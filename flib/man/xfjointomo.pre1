@@ -55,7 +55,9 @@ DDEESSCCRRIIPPTTIIOONN
   boundary so that a line fit will give a reasonable extrapolation of the
   trajectory.  The number of points used for the line fit is controlled by the
   -points entry; by default, fits will be done to 5 points if they are
-  available, and to a minimum of 2 points.  Thus, if a microtubule is curved
+  available, and to a minimum of 2 points.  Points on each side of the gap
+  must be on more than one Z slice, otherwise the line through them will not
+  extrapolate to the other side of the gap.  If a microtubule is curved
   at some distance from a boundary, you should add points densely enough so
   that the points being fit will be in a straight segment near the
   boundary. Avoid using the "Fill in Z" option, because that will create
@@ -89,7 +91,8 @@ DDEESSCCRRIIPPTTIIOONN
   Xfjointomo uses the PIP package for input exclusively (see the manual page
   for pip(1)).  The following options can be specified either as command line
   arguments (with the -) or one per line in a command file or parameter file
-  (without the -):
+  (without the -).  Options can be abbreviated to unique letters; the
+  currently valid abbreviations for short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 

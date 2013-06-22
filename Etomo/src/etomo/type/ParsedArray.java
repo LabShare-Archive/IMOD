@@ -141,49 +141,56 @@ public final class ParsedArray extends ParsedElement {
   private boolean debug = false;
 
   private ParsedArray(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      String key, boolean debug, EtomoNumber defaultValue, final boolean allowNan) {
+      String key, boolean debug, EtomoNumber defaultValue, final boolean allowNan,
+      final String descr) {
+    super(descr);
     this.etomoNumberType = etomoNumberType;
     this.type = type.toArrayInstance();
     this.key = key;
     this.defaultValue = defaultValue;
     this.debug = debug;
     this.allowNan = allowNan;
-    array = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan);
+    array = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan,descr);
     setDebug(debug);
   }
 
-  public static ParsedArray getInstance(ParsedElementType type) {
-    return new ParsedArray(type, null, null, false, null, true);
+  public static ParsedArray getInstance(ParsedElementType type, final String descr) {
+    return new ParsedArray(type, null, null, false, null, true, descr);
   }
 
-  public static ParsedArray getMatlabInstance() {
-    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, null, null, false, null, true);
-  }
-
-  public static ParsedArray getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, etomoNumberType, null, false,
-        null, true);
+  public static ParsedArray getMatlabInstance(final String descr) {
+    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, null, null, false, null, true,
+        descr);
   }
 
   public static ParsedArray getMatlabInstance(EtomoNumber.Type etomoNumberType,
-      final boolean allowNan) {
+      final String descr) {
     return new ParsedArray(ParsedElementType.MATLAB_ARRAY, etomoNumberType, null, false,
-        null, allowNan);
+        null, true, descr);
   }
 
-  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType) {
+  public static ParsedArray getMatlabInstance(EtomoNumber.Type etomoNumberType,
+      final boolean allowNan, final String descr) {
+    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, etomoNumberType, null, false,
+        null, allowNan, descr);
+  }
+
+  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType,
+      final String descr) {
     return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType, null,
-        false, null, false);
+        false, null, false, descr);
   }
 
-  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType, String key) {
+  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType, String key,
+      final String descr) {
     return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType, key,
-        false, null, false);
+        false, null, false, descr);
   }
 
   static ParsedArray getInstance(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
-    return new ParsedArray(type, etomoNumberType, null, debug, defaultValue, true);
+      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue,
+      final String descr) {
+    return new ParsedArray(type, etomoNumberType, null, debug, defaultValue, true, descr);
   }
 
   /**
@@ -311,7 +318,7 @@ public final class ParsedArray extends ParsedElement {
     ParsedArrayDescriptor descriptor = getFirstArrayDescriptor();
     if (descriptor == null) {
       ParsedNumber number = ParsedNumber.getInstance(type, etomoNumberType, debug,
-          defaultValue, allowNan);
+          defaultValue, allowNan, descr);
       // If the string doesn't have a number in it, don't bother to create the
       // descriptor. Descriptors can't use "NaN", so there is no point to
       // creating an empty one.
@@ -320,7 +327,7 @@ public final class ParsedArray extends ParsedElement {
         return null;
       }
       descriptor = new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue,
-          allowNan);
+          allowNan, descr);
       array.add(descriptor);
     }
     return descriptor;
@@ -552,10 +559,10 @@ public final class ParsedArray extends ParsedElement {
     return false;
   }
 
-  void setRawString(int index, float number) {
+  void setRawString(int index, double number) {
     ParsedNumber element;
     element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue,
-        allowNan);
+        allowNan, descr);
     element.setRawString(number);
     array.set(index, element);
   }
@@ -600,7 +607,7 @@ public final class ParsedArray extends ParsedElement {
     }
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, debug,
-          defaultValue, allowNan);
+          defaultValue, allowNan,descr);
     }
     return parsedNumberExpandedArray;
   }
@@ -664,7 +671,7 @@ public final class ParsedArray extends ParsedElement {
         return token;
       }
       if (!token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        fail(OPEN_SYMBOL + " never found.");
+        fail("Missing delimiter: '" + OPEN_SYMBOL + "'");
         return token;
       }
       token = tokenizer.next();
@@ -680,7 +687,7 @@ public final class ParsedArray extends ParsedElement {
         token = tokenizer.next();
       }
       if (token == null || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        fail(CLOSE_SYMBOL + " never found.");
+        fail("Missing delimiter: '" + CLOSE_SYMBOL + "'");
         return token;
       }
       token = tokenizer.next();
@@ -793,7 +800,7 @@ public final class ParsedArray extends ParsedElement {
     ParsedElement element;
     // First assume that there might be an array descriptor.
     ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
-        debug, defaultValue, allowNan);
+        debug, defaultValue, allowNan, descr);
     if (descriptor != null) {
       descriptor.setDebug(debug);
       token = descriptor.parse(token, tokenizer);
@@ -820,7 +827,7 @@ public final class ParsedArray extends ParsedElement {
       // ParsedDescriptor would not return an instance so the type is not a type
       // that can have an array descriptor or iterator.
       element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue,
-          allowNan);
+          allowNan,descr);
       token = element.parse(token, tokenizer);
     }
     if (index == -1) {

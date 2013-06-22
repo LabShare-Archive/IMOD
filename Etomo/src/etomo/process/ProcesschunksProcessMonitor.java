@@ -75,6 +75,17 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private int tcshErrorCountDown = NO_TCSH_ERROR;
   private ParallelProgressDisplay parallelProgressDisplay = null;
   private MessageReporter messageReporter = null;
+  private boolean willResume = false;
+
+  public void dumpState() {
+    System.err.print("[rootName:" + rootName + ",subdirName:" + subdirName
+        + ",\nsetProgressBarTitle:" + setProgressBarTitle + ",useCommandsPipe:"
+        + useCommandsPipe + ",\nprocessRunning:" + processRunning + ",pausing:" + pausing
+        + ",\nkilling:" + killing + ",pid:" + pid + ",starting:" + starting
+        + ",\nfinishing:" + finishing + ",stop:" + stop + ",running:" + running
+        + ",\nreconnect:" + reconnect + ",multiLineMessages:" + multiLineMessages
+        + ",\ntcshErrorCountDown:" + tcshErrorCountDown + "]");
+  }
 
   ProcesschunksProcessMonitor(final BaseManager manager, final AxisID axisID,
       final String rootName, final Map computerMap, final boolean multiLineMessages) {
@@ -292,6 +303,15 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public boolean isPausing() {
+    return pausing && processRunning;
+  }
+
+  public void setWillResume() {
+    willResume = true;
+    setProgressBarTitle();
   }
 
   public final String getStatusString() {
@@ -605,6 +625,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       }
       else if (pausing) {
         title.append(" - pausing:  finishing current chunks");
+        if (willResume) {
+          title.append(" - will resume");
+        }
       }
     }
     else if (killing) {
@@ -612,6 +635,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     else if (pausing) {
       title.append(" - paused");
+      if (willResume) {
+        title.append(" - will resume");
+      }
     }
     manager.getMainPanel().setProgressBar(title.toString(), nChunks.getInt(), axisID,
         !reassembling && !killing);

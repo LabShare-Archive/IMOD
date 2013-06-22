@@ -95,25 +95,25 @@ typedef struct MRCheader
   b3dInt32   nz;         /*  # of Sections.                */
   b3dInt32   mode;       /*  given by #define MRC_MODE...  */
 
-  b3dInt32   nxstart;    /*  Starting point of sub image.  */
+  b3dInt32   nxstart;    /*  Starting point of sub image.  UNSUPPORTED */
   b3dInt32   nystart;
   b3dInt32   nzstart;
 
-  b3dInt32   mx;         /* Number of rows to read.        */
-  b3dInt32   my;
+  b3dInt32   mx;         /* "Grid size", # of pixels in "unit cell"    */
+  b3dInt32   my;         /* Keep the same as nx, ny, nz                */
   b3dInt32   mz;
 
-  b3dFloat   xlen;       /* length of x element in um.     */
-  b3dFloat   ylen;       /* get scale = xlen/nx ...        */
+  b3dFloat   xlen;       /* length of unit cell in Angstroms           */
+  b3dFloat   ylen;       /* get scale = xlen/nx ...                    */
   b3dFloat   zlen;
 
-  b3dFloat   alpha;      /* cell angles, ignore */
+  b3dFloat   alpha;      /* cell angles, ignored, set to 90            */
   b3dFloat   beta;
   b3dFloat   gamma;
 
-  b3dInt32   mapc;       /* map coloumn 1=x,2=y,3=z.       */
-  b3dInt32   mapr;       /* map row     1=x,2=y,3=z.       */
-  b3dInt32   maps;       /* map section 1=x,2=y,3=z.       */
+  b3dInt32   mapc;       /* map column  1=x,2=y,3=z.     UNSUPPORTED  */
+  b3dInt32   mapr;       /* map row     1=x,2=y,3=z.                  */
+  b3dInt32   maps;       /* map section 1=x,2=y,3=z.                  */
 
   b3dFloat   amin;
   b3dFloat   amax;
@@ -294,7 +294,7 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata,
 		   int slice, char axis);
 int mrcReadFloatSlice(b3dFloat *buf, MrcHeader *hdata, int slice);
 
-  unsigned char **mrcGetDataMemory(struct LoadInfo *li, size_t xysize,
+  unsigned char **mrcGetDataMemory(IloadInfo *li, size_t xysize,
                                    int zsize, int pixsize);
   void mrcFreeDataMemory(unsigned char **idata, int contig, int zsize);
   float mrcGetComplexScale();
@@ -306,41 +306,41 @@ void mrcContrastScaling(MrcHeader *hdata, float smin, float smax, int black,
                         int white, int ramptype, float *slope, float *offset);
 
 unsigned char **read_mrc_byte(FILE *fin, MrcHeader *hdata, 
-			      struct LoadInfo *li);
+			      IloadInfo *li);
 unsigned char **mrc_read_byte(FILE *fin, MrcHeader *hdata, 
-			      struct LoadInfo *li,
+			      IloadInfo *li,
 			      void (*func)(const char *));
 
-int mrcReadSectionByte(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
-int mrcReadZByte(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
-int mrcReadYByte(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int y);
-int mrcReadSectionUShort(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, 
+int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
+int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
+int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int y);
+int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, 
                          int z);
-int mrcReadZUShort(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
-int mrcReadYUShort(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int y);
-int mrcReadZ(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int cz);
-int mrcReadY(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int cy);
-int mrcReadSection(MrcHeader *hdata, struct LoadInfo *li, unsigned char *buf, int z);
+int mrcReadZUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
+int mrcReadYUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int y);
+int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int cz);
+int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int cy);
+int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
 int mrcReadSectionFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 
 /* misc stdio functions */
 int  loadtilts(struct TiltInfo *ti, MrcHeader *hdata);
-int  getloadinfo(MrcHeader *hdata,  struct LoadInfo *li); 
-int  mrc_init_li(struct LoadInfo *li, MrcHeader *hd);
-int  mrc_plist_li(struct LoadInfo *li, MrcHeader *hdata, const char *fname);
-int  mrc_plist_load(struct LoadInfo *li, MrcHeader *hdata, FILE *fin);
-int  mrc_plist_proc(struct LoadInfo *li, int nx, int ny, int nz);
-int  mrc_plist_create(struct LoadInfo *li, int nx, int ny, int nz, int nfx, 
+int  getloadinfo(MrcHeader *hdata,  IloadInfo *li); 
+int  mrc_init_li(IloadInfo *li, MrcHeader *hd);
+int  mrc_plist_li(IloadInfo *li, MrcHeader *hdata, const char *fname);
+int  mrc_plist_load(IloadInfo *li, MrcHeader *hdata, FILE *fin);
+int  mrc_plist_proc(IloadInfo *li, int nx, int ny, int nz);
+int  mrc_plist_create(IloadInfo *li, int nx, int ny, int nz, int nfx, 
 		      int nfy, int ovx, int ovy);
-int  iiPlistLoadF(FILE *fin, struct LoadInfo *li, int nx, int ny, int nz);
-int  iiPlistLoad(const char *filename, struct LoadInfo *li, int nx, int ny, int nz);
+int  iiPlistLoadF(FILE *fin, IloadInfo *li, int nx, int ny, int nz);
+int  iiPlistLoad(const char *filename, IloadInfo *li, int nx, int ny, int nz);
 int iiPlistFromMetadata(const char *filename, int addMdoc, IloadInfo *li, int nx, 
                         int ny, int nz);
-void mrc_liso(MrcHeader *hdata, struct LoadInfo *li);
-int mrc_fix_li(struct LoadInfo *li, int nx, int ny, int nz);
-int get_loadinfo(MrcHeader *hdata, struct LoadInfo *li);
+void mrc_liso(MrcHeader *hdata, IloadInfo *li);
+int mrc_fix_li(IloadInfo *li, int nx, int ny, int nz);
+int get_loadinfo(MrcHeader *hdata, IloadInfo *li);
 unsigned char *get_byte_map(float slope, float offset, int outmin, int outmax, 
                             int bytesSigned);
 unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,

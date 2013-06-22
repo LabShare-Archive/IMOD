@@ -1,29 +1,12 @@
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.4  2006/06/08 03:12:51  mast
-    Added stubs and new type of output
-
-    Revision 3.3  2003/10/25 02:53:30  mast
-    add a ;
-
-    Revision 3.2  2003/10/24 19:50:06  mast
-    Remove unused argument in usage statement
-
-    Revision 3.1  2003/10/08 17:23:25  mast
-    Addition to repository
-
-*/
+/* 
+ *  $Id$
+ */
 #include "parse_params.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 /* Simple program to convert an option file to a man page segment */
-/* First argument = -1 for cat output (.1), 1 for .man output */
+/* First argument = type of output                                */
 /* Second argument is # of directories to go up to look for option files */
 /* Third argument is program name */
 
@@ -32,9 +15,9 @@ int main(int argc , char **argv)
   int mantype, local, ierr;
   
   if (argc == 1) {
-    fprintf(stderr, "Usage: autodoc2man output_type directories_up "
-            "program_name\n"
-            "   type = -2 for fallback Fortran option code\n"
+    fprintf(stderr, "Usage: autodoc2man output_type directories_up program_name\n"
+            "   type = -3 for fallback Fortran option code (f90 free format)\n"
+            "          -2 for fallback Fortran option code (f77 fixed format)\n"
             "          -1 for cat output (.1)\n"
             "           1 for man output (.man)\n"
             "           2 for fallback C option code\n"

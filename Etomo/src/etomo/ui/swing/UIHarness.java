@@ -3,13 +3,17 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.io.File;
 import java.util.Hashtable;
+
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.type.AxisID;
+import etomo.type.EtomoBoolean2;
 import etomo.util.UniqueKey;
 
 /**
@@ -33,6 +37,8 @@ import etomo.util.UniqueKey;
 public final class UIHarness {
   public static final String rcsid = "$Id$";
 
+  private static final String LOG_TAG = "LOG";
+
   public static final UIHarness INSTANCE = new UIHarness();
 
   private final Hashtable managerFrameTable = new Hashtable();
@@ -41,6 +47,7 @@ public final class UIHarness {
   private boolean headless = false;
   private MainFrame mainFrame = null;
   private boolean verbose = false;
+  private JFileChooser fileChooser = null;
 
   private UIHarness() {
   }
@@ -68,7 +75,7 @@ public final class UIHarness {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
     }
   }
 
@@ -78,13 +85,33 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(final BaseManager manager,
-      final Component parentComponent, final String message, final String title,
+      final UIComponent uiComponent, final String message, final String title,
       final AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      getFrame(manager).displayMessage(manager, parentComponent, message, title, axisID);
+      getFrame(manager).displayMessage(manager, uiComponent, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
+    }
+  }
+
+  public synchronized void openMessageDialog(final UIComponent uiComponent,
+      final String message, final String title) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      getFrame(null).displayMessage(null, uiComponent, message, title, null);
+    }
+    else {
+      log(message, title, null);
+    }
+  }
+
+  public synchronized void openMessageDialog(final UIComponent uiComponent,
+      final String[] message, final String title) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      getFrame(null).displayMessage(null, uiComponent, message, title, null);
+    }
+    else {
+      log(message, title, null);
     }
   }
 
@@ -94,7 +121,7 @@ public final class UIHarness {
       getFrame(manager).displayInfoMessage(manager, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
     }
   }
 
@@ -109,7 +136,7 @@ public final class UIHarness {
       getFrame(manager).displayErrorMessage(manager, message, title, axisID);
     }
     else {
-      logError("openMessageDialog", message, title, axisID);
+      logError(message, title, axisID);
     }
   }
 
@@ -124,7 +151,7 @@ public final class UIHarness {
       getFrame(manager).displayWarningMessage(manager, messages, title, axisID);
     }
     else {
-      logWarning("openMessageDialog", messages, title, axisID);
+      logWarning(messages, title, axisID);
     }
   }
 
@@ -139,7 +166,7 @@ public final class UIHarness {
       getFrame(manager).displayMessage(manager, message, title);
     }
     else {
-      log("openMessageDialog", message, title);
+      log(message, title);
     }
   }
 
@@ -154,17 +181,32 @@ public final class UIHarness {
       getFrame(manager).displayMessage(manager, message, title, axisID);
     }
     else {
-      log("openMessageDialog", message, title, axisID);
+      log(message, title, axisID);
     }
   }
 
-  public synchronized int openYesNoCancelDialog(BaseManager manager, String[] message,
-      AxisID axisID) {
+  public synchronized EtomoBoolean2 openYesNoCancelDialog(BaseManager manager,
+      String message, AxisID axisID) {
+    EtomoBoolean2 retval = null;
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
-      return getFrame(manager).displayYesNoCancelMessage(manager, message, axisID);
+      int dialogRetValue = getFrame(manager).displayYesNoCancelMessage(manager, message,
+          axisID);
+      if (dialogRetValue == JOptionPane.CANCEL_OPTION) {
+        return null;
+      }
+      retval = new EtomoBoolean2();
+      if (dialogRetValue == JOptionPane.YES_OPTION) {
+        retval.set(true);
+      }
+      else if (dialogRetValue == JOptionPane.YES_OPTION) {
+        retval.set(false);
+      }
+      return retval;
     }
-    log("openYesNoCancelDialog", message, axisID);
-    return JOptionPane.YES_OPTION;
+    log(message, axisID);
+    retval = new EtomoBoolean2();
+    retval.set(true);
+    return retval;
   }
 
   public synchronized boolean openYesNoDialog(BaseManager manager, String message,
@@ -172,7 +214,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
-    log("openYesNoDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -181,7 +223,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayDeleteMessage(manager, message, axisID);
     }
-    log("openDeleteDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -190,7 +232,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoWarningDialog(manager, message, axisID);
     }
-    log("openYesNoWarningDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -199,7 +241,7 @@ public final class UIHarness {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
       return getFrame(manager).displayYesNoMessage(manager, message, axisID);
     }
-    log("openYesNoDialog", message, axisID);
+    log(message, axisID);
     return true;
   }
 
@@ -229,7 +271,9 @@ public final class UIHarness {
 
   public void pack(BaseManager manager) {
     if (isHead()) {
-      manager.pack();
+      if (manager != null) {
+        manager.pack();
+      }
       AbstractFrame abstractFrame = getFrame(manager);
       abstractFrame.repaint();
       abstractFrame.pack();
@@ -242,11 +286,33 @@ public final class UIHarness {
     }
   }
 
+  public void cancel(final BaseManager manager) {
+    if (isHead()) {
+      AbstractFrame frame = getFrame(manager);
+      if (frame != null) {
+        frame.cancel();
+      }
+    }
+  }
+
+  public void save(final BaseManager manager, final AxisID axisID) {
+    if (isHead()) {
+      AbstractFrame frame = getFrame(manager);
+      if (frame != null) {
+        frame.save(axisID);
+      }
+    }
+  }
+
   public AbstractFrame getFrame(BaseManager manager) {
     if (manager == null || !manager.isInManagerFrame()) {
       return mainFrame;
     }
     return (ManagerFrame) managerFrameTable.get(manager);
+  }
+
+  public AbstractFrame getMainFrame() {
+    return mainFrame;
   }
 
   public void pack(boolean force, BaseManager manager) {
@@ -356,6 +422,33 @@ public final class UIHarness {
     return new Point(0, 0);
   }
 
+  /**
+   * Returns the existing file chooser.  Everything in the file chooser is reset except
+   * current directory.
+   * @return a file chooser if the application has a GUI, otherwise null
+   */
+  public JFileChooser getFileChooser() {
+    if (isHead()) {
+      if (fileChooser == null) {
+        fileChooser = new FileChooser(null);
+        fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+      }
+      else {
+        //restore to defaults
+        fileChooser.resetChoosableFileFilters();
+        fileChooser.setDialogTitle(FileChooser.DEFAULT_TITLE);
+        fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+        fileChooser.setFileFilter(null);
+        fileChooser.setFileHidingEnabled(true);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setSelectedFile(new File(""));
+      }
+      return fileChooser;
+    }
+    return null;
+  }
+
   public void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
     if (isHead()) {
@@ -425,9 +518,15 @@ public final class UIHarness {
     }
   }
 
-  public void addFrame(BaseManager manager) {
+  public void setEnabledNewSerialSectionsMenuItem(boolean enable) {
     if (isHead()) {
-      ManagerFrame managerFrame = ManagerFrame.getInstance(manager);
+      mainFrame.setEnabledNewSerialSectionsMenuItem(enable);
+    }
+  }
+
+  public void addFrame(final BaseManager manager, final boolean savable) {
+    if (isHead()) {
+      ManagerFrame managerFrame = ManagerFrame.getInstance(manager, savable);
       managerFrameTable.put(manager, managerFrame);
     }
   }
@@ -482,7 +581,7 @@ public final class UIHarness {
     }
   }
 
-  public void exit(AxisID axisID) {
+  public void exit(final AxisID axisID, final int exitValue) {
     // Store the current location of the frame in case etomo exits.
     if (isHead()) {
       mainFrame.saveLocation();
@@ -493,7 +592,8 @@ public final class UIHarness {
     }
     // Check to see if etomo an exit, save data, and then exit.
     if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
-      System.exit(0);
+      System.err.println("exitValue:" + exitValue);
+      System.exit(exitValue);
     }
   }
 
@@ -524,8 +624,8 @@ public final class UIHarness {
    * @param message
    * @param axisID
    */
-  private void log(String function, String message, AxisID axisID) {
-    log(function, message, null, axisID);
+  private void log(String message, AxisID axisID) {
+    log(message, null, axisID);
   }
 
   /**
@@ -535,8 +635,8 @@ public final class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String message, String title) {
-    log(function, message, title, AxisID.ONLY);
+  private void log(String message, String title) {
+    log(message, title, AxisID.ONLY);
   }
 
   /**
@@ -546,26 +646,24 @@ public final class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String message, String title, AxisID axisID) {
-    System.err.println();
-    System.err.println(function + ", " + axisID + ", " + title + ":");
+  private void log(String message, String title, AxisID axisID) {
+    logHeader(title, axisID);
     System.err.println(message);
+    System.err.println();
     System.err.flush();
   }
 
-  private void logError(String function, ProcessMessages processMessages, String title,
-      AxisID axisID) {
-    System.err.println();
-    System.err.println(function + ", " + axisID + ", " + title + ":");
+  private void logError(ProcessMessages processMessages, String title, AxisID axisID) {
+    logHeader(title, axisID);
     processMessages.printError();
+    System.err.println();
     System.err.flush();
   }
 
-  private void logWarning(String function, ProcessMessages processMessages, String title,
-      AxisID axisID) {
-    System.err.println();
-    System.err.println(function + ", " + axisID + ", " + title + ":");
+  private void logWarning(ProcessMessages processMessages, String title, AxisID axisID) {
+    logHeader(title, axisID);
     processMessages.printWarning();
+    System.err.println();
     System.err.flush();
   }
 
@@ -575,8 +673,8 @@ public final class UIHarness {
    * @param message
    * @param axisID
    */
-  private void log(String function, String[] message, AxisID axisID) {
-    log(function, message, null, axisID);
+  private void log(String[] message, AxisID axisID) {
+    log(message, null, axisID);
   }
 
   /**
@@ -586,21 +684,20 @@ public final class UIHarness {
    * @param title
    * @param axisID
    */
-  private void log(String function, String[] message, String title, AxisID axisID) {
-    System.err.println();
-    if (title == null) {
-      System.err.print(function + ", " + axisID + ":");
-    }
-    else {
-      System.err.print(function + ", " + axisID + ", " + title + ":");
-    }
-    System.err.println();
+  private void log(String[] message, String title, AxisID axisID) {
+    logHeader(title, axisID);
     if (message != null) {
       for (int i = 0; i < message.length; i++) {
         System.err.println(message[i]);
       }
     }
+    System.err.println();
     System.err.flush();
+  }
+
+  private void logHeader(final String title, final AxisID axisID) {
+    System.err.println(LOG_TAG + ": " + (title == null ? "" : title)
+        + (axisID == null || axisID == AxisID.ONLY ? "" : "(" + axisID + ")") + ":");
   }
 }
 /**

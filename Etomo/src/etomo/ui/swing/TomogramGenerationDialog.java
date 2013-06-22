@@ -709,23 +709,23 @@ public class TomogramGenerationDialog extends ProcessDialog implements ContextMe
   }
 
   private void createPanel() {
-    //init
+    // init
     JPanel pnlMethod = new JPanel();
     rbBackProjection.setSelected(true);
-    //root panel
+    // root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Tomogram Generation").getBorder());
     rootPanel.add(pnlMethod);
     rootPanel.add(tiltPanel.getRoot());
     rootPanel.add(sirtPanel.getRoot());
-    //method panel
+    // method panel
     pnlMethod.setLayout(new BoxLayout(pnlMethod, BoxLayout.X_AXIS));
     pnlMethod.add(Box.createHorizontalGlue());
     pnlMethod.add(rbBackProjection.getComponent());
     pnlMethod.add(Box.createHorizontalGlue());
     pnlMethod.add(rbSirt.getComponent());
     pnlMethod.add(Box.createHorizontalGlue());
-    //buttons
+    // buttons
     btnExecute.setText("Done");
     addExitButtons();
   }

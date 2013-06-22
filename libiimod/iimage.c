@@ -8,7 +8,6 @@
  *   Colorado.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -18,6 +17,8 @@
 #include "iimage.h"
 #include "ilist.h"
 #include "b3dutil.h"
+
+static char *defMode = "rb";
 
 /* The resident check list */
 static Ilist *checkList = NULL;
@@ -98,6 +99,7 @@ ImodImageFile *iiNew()
   ofile->smax   = 255;
   ofile->axis   = 3;
   ofile->mirrorFFT = 0;
+  ofile->anyTiffPixSize = 0;
   ofile->format = IIFILE_UNKNOWN;
   ofile->fp     = NULL;
   ofile->readSection     = NULL;
@@ -165,7 +167,7 @@ ImodImageFile *iiOpen(const char *filename, const char *mode)
     return(NULL);
   }
   ofile->filename = strdup(filename);
-  ofile->fmode = mode;
+  ofile->fmode = strdup(mode);
     
   /* Try to open the file with each of the check functions in turn 
    * until one succeeds
@@ -208,7 +210,7 @@ int  iiReopen(ImodImageFile *inFile)
   if (inFile->fp)
     return 1;
   if (!inFile->fmode)
-    inFile->fmode = "rb";
+    inFile->fmode = defMode;
   if (inFile->reopen) {
     if ((*inFile->reopen)(inFile))
       return 2;
@@ -220,14 +222,18 @@ int  iiReopen(ImodImageFile *inFile)
   if (!inFile->fp)
     return 2;
 
-  if (inFile->state == IISTATE_NOTINIT){
-    inFile->format = IIFILE_UNKNOWN;
-    for (i = 0; i < ilistSize(checkList); i++) {
-      checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
-      if (!(*checkFunc)(inFile)) {
-        inFile->state = IISTATE_READY;
-        return 0;
-      }
+  if (inFile->state != IISTATE_NOTINIT) {
+    inFile->state = IISTATE_READY;
+    return 0;
+  }
+
+  /* If the file is not initted yet, treat it as unknown and deal with from scratch */
+  inFile->format = IIFILE_UNKNOWN;
+  for (i = 0; i < ilistSize(checkList); i++) {
+    checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
+    if (!(*checkFunc)(inFile)) {
+      inFile->state = IISTATE_READY;
+      return 0;
     }
   }
   return -1;
@@ -303,14 +309,13 @@ void iiDelete(ImodImageFile *inFile)
   if (!inFile) 
     return;
   iiClose(inFile);
-  if (inFile->filename)
-    free(inFile->filename);
+  B3DFREE(inFile->filename);
   if (inFile->cleanUp)
     (*inFile->cleanUp)(inFile);
-  if (inFile->description)
-    free(inFile->description);
-  if (inFile->colormap)
-    free(inFile->colormap);
+  B3DFREE(inFile->description);
+  B3DFREE(inFile->colormap);
+  if (inFile->fmode != defMode)
+    B3DFREE(inFile->fmode);
   free(inFile);
 }
 
@@ -387,66 +392,3 @@ int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li, int nx,
     err = iiPlistFromMetadata(inFile->filename, 1, li, nx, ny, nz);
   return 0;
 }
-
-/*
-$Log$
-Revision 3.19  2010/12/18 18:43:58  mast
-Initialize nx/ny/nz so unitialized file can be detected
-
-Revision 3.18  2010/08/31 21:55:48  mast
-Load piece coordinates from image file or from metadata file
-
-Revision 3.17  2009/01/02 05:18:43  mast
-const char * for Qt 4 port
-
-Revision 3.16  2008/11/25 16:24:03  mast
-Allocating fmode was not a good idea
-
-Revision 3.15  2008/11/24 23:59:05  mast
-Changes to use and stop leaks in SerialEM
-
-Revision 3.14  2008/04/02 02:57:45  mast
-Added ability to open a file from stdin
-
-Revision 3.13  2007/06/22 04:59:24  mast
-Fixed a comment
-
-Revision 3.12  2006/09/21 22:25:32  mast
-Adedd function to insert check function earlier in list
-
-Revision 3.11  2006/09/03 22:19:36  mast
-Switched to new error codes, handled properly in iiOpen, documented
-
-Revision 3.10  2006/09/02 23:51:15  mast
-Added Like MRC check to list, before mrc
-
-Revision 3.9  2006/08/27 23:46:10  mast
-Added colormap entry
-
-Revision 3.8  2005/05/19 23:51:05  mast
-Made iiOpen not go on checking if file is closed
-
-Revision 3.7  2004/12/02 21:50:33  mast
-Moved declaration for MRC check function to iimage.h
-
-Revision 3.6  2004/11/30 03:46:44  mast
-Added ability to a caller to put an arbitrary file check and open function
-onto a list, after TIFF and MRC are checked
-
-Revision 3.5  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.4  2004/01/08 06:41:07  mast
-Fixed complex scaling
-
-Revision 3.3  2004/01/05 17:53:54  mast
-Changed imin/imax to smin/smax and initialized axis to 3
-
-Revision 3.2  2003/11/01 16:42:15  mast
-changed to use new error processing routine
-
-Revision 3.1  2003/02/27 17:05:37  mast
-define coordinate upper limits as -1 initially to avoid confusion with a true
-upper limit of 0
-
-*/

@@ -9,7 +9,6 @@ import etomo.comscript.ToolsComScriptManager;
 import etomo.comscript.WarpVolParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.process.ToolsProcessManager;
 import etomo.storage.LogFile;
@@ -18,9 +17,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
-import etomo.type.BaseScreenState;
-import etomo.type.BaseState;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
@@ -36,10 +33,8 @@ import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainToolsPanel;
-import etomo.ui.swing.ProcessDisplay;
 import etomo.ui.swing.ToolsDialog;
 import etomo.ui.swing.WarpVolDisplay;
-import etomo.util.DatasetFiles;
 import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
@@ -127,6 +122,10 @@ public final class ToolsManager extends BaseManager {
       uiHarness.toFront(this);
     }
   }
+  
+  public boolean closeFrame() {
+    return true;
+  }
 
   /**
    * Checks for .edf, .ejf, or .epe files with the same dataset name (left side)
@@ -157,7 +156,7 @@ public final class ToolsManager extends BaseManager {
   public void setName(File inputFile) {
     propertyUserDir = inputFile.getParent();
     metaData.setRootName(inputFile);
-    mainPanel.setStatusBarText(propertyUserDir,STATUS_BAR_SIZE);
+    mainPanel.setStatusBarText(propertyUserDir, STATUS_BAR_SIZE);
     uiHarness.setTitle(this, toolType.toString() + " - " + getName());
     // Open dialog tasks for for Flatten Volume
     if (toolType == ToolType.FLATTEN_VOLUME) {
@@ -191,7 +190,10 @@ public final class ToolsManager extends BaseManager {
   }
 
   public void gpuTiltTest(final AxisID axisID) {
-    GpuTiltTestParam param = updateGpuTiltTest(axisID);
+    GpuTiltTestParam param = updateGpuTiltTest(axisID, true);
+    if (param == null) {
+      return;
+    }
     String threadName;
     try {
       threadName = processMgr.gpuTiltTest(param, axisID);
@@ -219,7 +221,7 @@ public final class ToolsManager extends BaseManager {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    WarpVolParam param = updateWarpVolParam(display, axisID);
+    WarpVolParam param = updateWarpVolParam(display, axisID, false);
     if (param == null) {
       return;
     }
@@ -241,26 +243,29 @@ public final class ToolsManager extends BaseManager {
     setThreadName(threadName, axisID);
   }
 
-  private GpuTiltTestParam updateGpuTiltTest(final AxisID axisID) {
+  private GpuTiltTestParam updateGpuTiltTest(final AxisID axisID,
+      final boolean doValidation) {
     GpuTiltTestParam param = new GpuTiltTestParam();
     if (toolsDialog == null) {
       uiHarness.openMessageDialog(this, "Unable to get information from the dialog.",
           "Etomo Error", axisID);
       return null;
     }
-    toolsDialog.getParameters(param);
+    if (!toolsDialog.getParameters(param, doValidation)) {
+      return null;
+    }
     return param;
   }
 
   private WarpVolParam updateWarpVolParam(final WarpVolDisplay display,
-      final AxisID axisID) {
+      final AxisID axisID, final boolean doValidation) {
     WarpVolParam param = comScriptMgr.getWarpVolParamFromFlatten(axisID);
     if (display == null) {
       uiHarness.openMessageDialog(this, "Unable to get information from the display.",
           "Etomo Error", axisID);
       return null;
     }
-    if (!display.getParameters(param)) {
+    if (!display.getParameters(param, doValidation)) {
       return null;
     }
     comScriptMgr.saveFlatten(param, axisID);
@@ -364,7 +369,7 @@ public final class ToolsManager extends BaseManager {
       processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
-    FlattenWarpParam param = updateFlattenWarpParam(display, axisID);
+    FlattenWarpParam param = updateFlattenWarpParam(display, axisID, true);
     if (param == null) {
       return;
     }
@@ -389,14 +394,14 @@ public final class ToolsManager extends BaseManager {
   }
 
   private FlattenWarpParam updateFlattenWarpParam(FlattenWarpDisplay display,
-      final AxisID axisID) {
+      final AxisID axisID, final boolean doValidation) {
     FlattenWarpParam param = new FlattenWarpParam(this);
     if (display == null) {
       uiHarness.openMessageDialog(this, "Unable to get information from the display.",
           "Etomo Error", axisID);
       return null;
     }
-    if (!display.getParameters(param)) {
+    if (!display.getParameters(param, doValidation)) {
       return null;
     }
     return param;
@@ -425,17 +430,8 @@ public final class ToolsManager extends BaseManager {
     }
   }
 
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID) {
-    return null;
-  }
-
   public ParallelState getState() {
     return null;
-  }
-
-  public boolean setParamFile() {
-    return loadedParamFile;
   }
 
   public InterfaceType getInterfaceType() {
@@ -450,26 +446,14 @@ public final class ToolsManager extends BaseManager {
     return null;
   }
 
-  public boolean canChangeParamFileName() {
-    return false;
-  }
-
-  public boolean canSnapshot() {
-    return false;
-  }
-
   void createComScriptManager() {
     comScriptMgr = new ToolsComScriptManager(this);
   }
 
-  void processSucceeded(final AxisID axisID, final ProcessName processName) {
-  }
-
   void createMainPanel() {
-    mainPanel = new MainToolsPanel(this);
-  }
-
-  void createProcessTrack() {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainToolsPanel(this);
+    }
   }
 
   private void createState() {
@@ -477,18 +461,6 @@ public final class ToolsManager extends BaseManager {
 
   public BaseMetaData getBaseMetaData() {
     return metaData;
-  }
-
-  public BaseScreenState getBaseScreenState(final AxisID axisID) {
-    return null;
-  }
-
-  public BaseState getBaseState() {
-    return null;
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
   }
 
   public MainPanel getMainPanel() {
@@ -507,24 +479,10 @@ public final class ToolsManager extends BaseManager {
     return processMgr;
   }
 
-  BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  void getProcessTrack(final Storable[] storable, final int index) {
-  }
-
-  public void kill(final AxisID axisID) {
-    processMgr.kill(axisID);
-  }
-
-  public void pause(final AxisID axisID) {
-    processMgr.pause(axisID);
-  }
-
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
+    return true;
   }
 
   public boolean exitProgram(final AxisID axisID) {
@@ -542,20 +500,8 @@ public final class ToolsManager extends BaseManager {
     }
   }
 
-  public void setParamFile(final File paramFile) {
-    this.paramFile = paramFile;
-  }
-
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
-      final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
-      final DialogType dialogType, final ProcessDisplay display) {
-  }
-
   public String getName() {
     return metaData.getName();
-  }
-
-  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   /**
@@ -564,7 +510,7 @@ public final class ToolsManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
+    reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
   }
 
   /**
@@ -587,15 +533,16 @@ public final class ToolsManager extends BaseManager {
      * @return true if file is in conflict with compareFileName
      */
     public boolean accept(final File file) {
-      // If this file has one of the three exclusive dataset extensions and the
+      // If this file has one of the five exclusive dataset extensions and the
       // left side of the file name is equal to compareFileName, then
       // compareFileName is in conflict with the dataset in this directory and
       // may cause file name collisions.
       if (file.isFile()) {
         String fileName = file.getName();
-        if (fileName.endsWith(DatasetFiles.RECON_DATA_FILE_EXT)
-            || fileName.endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)
-            || fileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
+        if (fileName.endsWith(DataFileType.RECON.extension)
+            || fileName.endsWith(DataFileType.JOIN.extension)
+            || fileName.endsWith(DataFileType.PEET.extension)
+            || fileName.endsWith(DataFileType.SERIAL_SECTIONS.extension)) {
           return fileName.substring(0, fileName.lastIndexOf('.')).equals(compareFileName);
         }
       }

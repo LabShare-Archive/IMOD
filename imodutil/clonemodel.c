@@ -41,12 +41,15 @@ int main( int argc, char *argv[])
   Imat *xform;
 
   int numOptions = 7;
-  char *options[] = {
+  const char *options[] = {
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
     "input:InputFile:FN:", "output:OutputFile:FN:", 
     "contours:ContourNumbers:LI:"};
+  const char *usageString = 
+    "Usage: clonemodel [options] -at locationFile inputModel outputModel";
 
   /* Parse parameters */
+  PipSetUsageString(usageString);
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 3, 1,
                         1, &numOptArgs, &numNonOptArgs, 
                         imodUsageHeader);
@@ -71,6 +74,8 @@ int main( int argc, char *argv[])
   if (!PipGetString("ContourNumbers", &listString)) {
     contourList = parselist(listString, &numContours);
     free(listString);
+    if (!contourList)
+      exitError("Bad entry in list of contour numbers");
   }
   PipDone();
 

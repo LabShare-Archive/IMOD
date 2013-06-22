@@ -1,15 +1,14 @@
 package etomo.comscript;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import etomo.ApplicationManager;
-import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.type.StringParameter;
 import etomo.type.ViewType;
 import etomo.ui.swing.UIHarness;
 
@@ -115,6 +114,11 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
   private final ScriptParameter betterRadius = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "BetterRadius");
+  private final StringParameter lineObjects = new StringParameter(LINE_OBJECTS_KEY);
+  private final StringParameter boundaryObjects = new StringParameter(
+      BOUNDARY_OBJECTS_KEY);
+  private final StringParameter allSectionObjects = new StringParameter(
+      ALL_SECTION_OBJECTS_KEY);
 
   private String[] commandArray = null;
   private boolean debug = true;
@@ -136,52 +140,13 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   public String[] getCommandArray() {
     if (commandArray == null) {
       if (mode == Mode.BEADS) {
-        ArrayList options = genOptions();
-        commandArray = new String[options.size() + COMMAND_SIZE];
-        commandArray[0] = BaseManager.getIMODBinPath()
-            + ProcessName.CCD_ERASER.toString();
-        for (int i = 0; i < options.size(); i++) {
-          commandArray[i + COMMAND_SIZE] = (String) options.get(i);
-        }
-        if (debug) {
-          StringBuffer buffer = new StringBuffer();
-          for (int i = 0; i < commandArray.length; i++) {
-            buffer.append(commandArray[i]);
-            if (i < commandArray.length - 1) {
-              buffer.append(' ');
-            }
-          }
-          System.err.println(buffer.toString());
-        }
+        return new String[] { ProcessName.GOLD_ERASER.getComscript(axisID) };
       }
       else {
         return new String[] { ProcessName.ERASER.getComscript(axisID) };
       }
     }
     return commandArray;
-  }
-
-  private ArrayList genOptions() {
-    ArrayList options = new ArrayList();
-    options.add("-" + INPUT_FILE_KEY);
-    options.add(inputFile);
-    options.add("-" + OUTPUT_FILE_KEY);
-    options.add(outputFile);
-    options.add("-" + "ModelFile");
-    options.add(modelFile);
-    options.add("-" + betterRadius.getName());
-    options.add(betterRadius.toString());
-    options.add("-" + POLYNOMIAL_ORDER_KEY);
-    options.add(polynomialOrder);
-    if (expandCircleIterations.matches("\\S+")) {
-      options.add("-" + EXPAND_CIRCLE_ITERATIONS_KEY);
-      options.add(expandCircleIterations);
-    }
-    options.add("-MergePatches");
-    options.add("-ExcludeAdjacent");
-    options.add("-CircleObjects");
-    options.add("/");
-    return options;
   }
 
   public boolean validate() {
@@ -216,6 +181,8 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       scanCriterion = scriptCommand.getValue(SCAN_CRITERION_KEY);
       maximumRadius = scriptCommand.getValue(MAXIMUM_RADIUS_KEY);
       annulusWidth = scriptCommand.getValue(ANNULUS_WIDTH_KEY);
+      expandCircleIterations = scriptCommand.getValue(EXPAND_CIRCLE_ITERATIONS_KEY);
+      betterRadius.parse(scriptCommand);
       xyScanSize = scriptCommand.getValue(X_Y_SCAN_SIZE_KEY);
       edgeExclusion = scriptCommand.getValue(EDGE_EXCLUSION_WIDTH_KEY);
       pointModel = scriptCommand.getValue("PointModel");
@@ -236,6 +203,9 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       if (!outerRadius.equals("")) {
         convertOuterRadius();
       }
+      lineObjects.parse(scriptCommand);
+      boundaryObjects.parse(scriptCommand);
+      allSectionObjects.parse(scriptCommand);
     }
     else {
       inputFile = inputArgs[0].getArgument();
@@ -334,7 +304,13 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     else {
       scriptCommand.deleteKey(ANNULUS_WIDTH_KEY);
     }
-
+    if (!expandCircleIterations.equals("")) {
+      scriptCommand.setValue(EXPAND_CIRCLE_ITERATIONS_KEY, expandCircleIterations);
+    }
+    else {
+      scriptCommand.deleteKey(EXPAND_CIRCLE_ITERATIONS_KEY);
+    }
+    betterRadius.updateComScript(scriptCommand);
     if (!xyScanSize.equals("")) {
       scriptCommand.setValue(X_Y_SCAN_SIZE_KEY, xyScanSize);
     }
@@ -442,8 +418,8 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     if (!annulusWidth.equals("") || outerRadius.equals("") || maximumRadius.equals("")) {
       return;
     }
-    annulusWidth = String.valueOf(Float.parseFloat(outerRadius)
-        - Float.parseFloat(maximumRadius));
+    annulusWidth = String.valueOf(Double.parseDouble(outerRadius)
+        - Double.parseDouble(maximumRadius));
   }
 
   public void setInputFile(String inputFile) {
@@ -565,6 +541,18 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     scanCriterion = string;
   }
 
+  public String getLineObjects() {
+    return lineObjects.toString();
+  }
+
+  public String getBoundaryObjects() {
+    return boundaryObjects.toString();
+  }
+
+  public String getAllSectionObjects() {
+    return allSectionObjects.toString();
+  }
+
   public void setBetterRadius(double input) {
     betterRadius.set(input);
   }
@@ -573,13 +561,17 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     expandCircleIterations = input.toString();
   }
 
+  public void resetExpandCircleIterations() {
+    expandCircleIterations = "";
+  }
+
   public AxisID getAxisID() {
     return axisID;
   }
 
   public String getCommand() {
     if (mode == Mode.BEADS) {
-      return ProcessName.CCD_ERASER.toString();
+      return ProcessName.GOLD_ERASER.getComscript(axisID);
     }
     return ProcessName.ERASER.getComscript(axisID);
   }
@@ -589,16 +581,6 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   }
 
   public String getCommandLine() {
-    if (mode == Mode.BEADS) {
-      if (commandArray == null) {
-        return "";
-      }
-      StringBuffer buffer = new StringBuffer();
-      for (int i = 0; i < commandArray.length; i++) {
-        buffer.append(commandArray[i] + " ");
-      }
-      return buffer.toString();
-    }
     return getCommand();
   }
 
@@ -607,7 +589,10 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
   }
 
   public String getCommandName() {
-    return ProcessName.CCD_ERASER.toString();
+    if (mode == Mode.BEADS) {
+      return ProcessName.GOLD_ERASER.toString();
+    }
+    return ProcessName.ERASER.toString();
   }
 
   public File getCommandOutputFile() {
@@ -627,7 +612,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
   public ProcessName getProcessName() {
     if (mode == Mode.BEADS) {
-      return ProcessName.CCD_ERASER;
+      return ProcessName.GOLD_ERASER;
     }
     return ProcessName.ERASER;
   }

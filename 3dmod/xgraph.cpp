@@ -41,15 +41,11 @@
 #include "imod_edit.h"
 #include "info_cb.h"
 #include "display.h"
+#include "pyramidcache.h"
 #include "b3dgfx.h"
 #include "control.h"
 #include "preferences.h"
 #include "dia_qtutils.h"
-
-#include "lowres.bits"
-#include "highres.bits"
-#include "lock.bits"
-#include "unlock.bits"
 
 #define XGRAPH_WIDTH 320
 #define XGRAPH_HEIGHT 160
@@ -62,9 +58,9 @@ static void graphKey_cb(ImodView *vi, void *client, int released,
 static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
                               int iy1, int iy2, Ipoint *newpt);
 
-static unsigned char *bitList[MAX_GRAPH_TOGGLES][2] =
-  { {lowres_bits, highres_bits},
-    {unlock_bits, lock_bits}};
+static const char *fileList[MAX_GRAPH_TOGGLES][2] =
+  { {":/images/lowres.png", ":/images/highres.png"},
+    {":/images/unlock.png", ":/images/lock.png"}};
 
 static QIcon *icons[MAX_GRAPH_TOGGLES];
 static int firstTime = 1;
@@ -112,7 +108,7 @@ int xgraphOpen(struct ViewInfo *vi)
 
   xg->ctrl = ivwNewControl (xg->vi, graphDraw_cb, graphClose_cb, graphKey_cb,
 			    (void *)xg);
-  imodDialogManager.add((QWidget *)xg->dialog, IMOD_IMAGE, GRAPH_WINDOW_TYPE);
+  imodDialogManager.add((QWidget *)xg->dialog, IMOD_IMAGE, GRAPH_WINDOW_TYPE, xg->ctrl);
 
   imod_info_input();
   QSize size = xg->dialog->sizeHint();
@@ -188,7 +184,7 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   setAnimated(false);
 
   if (firstTime) 
-    utilBitListsToIcons(bitList, icons, MAX_GRAPH_TOGGLES);
+    utilFileListsToIcons(fileList, icons, MAX_GRAPH_TOGGLES);
   firstTime = 0;
 
   // Make central vbox and top frame containing an hbox
@@ -240,7 +236,8 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
   axisCombo->addItem("Y-axis");
   axisCombo->addItem("Z-axis");
   axisCombo->addItem("Contour");
-  axisCombo->addItem("Histogram");
+  if (!App->cvi->pyrCache)
+    axisCombo->addItem("Histogram");
   axisCombo->setFocusPolicy(Qt::NoFocus);
   connect(axisCombo, SIGNAL(currentIndexChanged(int)), this, 
           SLOT(axisSelected(int)));
@@ -469,12 +466,14 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
   int cp;
   Icont *cont;
   Ipoint *pt1, *pt2, *pts;
+  unsigned char **imdata;
   int   pt;
   int curpt, vecpt, istr, iend, skipStart, skipEnd;
   float frac, totlen, curint, dx, dy, smin, smax;
-  Ipoint scale, startPt, endPt;
+  Ipoint scale, startPt, endPt, pmin, pmax;
   double sum, lensq;
   ImodView *vi = xg->vi;
+  int cacheInd = vi->pyrCache ? vi->pyrCache->getBaseIndex() : -1;
 
   if (!vi)
     return;
@@ -494,11 +493,13 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
   nxUse = vi->xsize;
   nyUse = vi->ysize;
   zapSubsetLimits(vi, ixStart, iyStart, nxUse, nyUse);
+  if (xg->axis != GRAPH_HISTOGRAM && !xg->highres && cacheInd < 0) {
+    if (ivwSetupFastAccess(vi, &imdata, 0, &istr, vi->curTime))
+      return;
+  }
 
   switch(xg->axis){
   case GRAPH_XAXIS:
-    image = ivwGetCurrentZSection(vi);
-    usimage = (b3dUInt16 **)image;
     dsize = nxUse;
     xg->subStart = ixStart;
     if (allocDataArray(dsize))
@@ -507,8 +508,6 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     /* DNM: skip out if outside limits */
     if (cz < 0 || cz >= vi->zsize || cy < 0 || cy >= vi->ysize)
       break;
-    if (!image)
-      break;
 
     if (cx < ixStart || cx > ixStart + nxUse - 1) {
       cx = xg->cx = vi->xmouse = 
@@ -516,7 +515,15 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       imodDraw(vi, IMOD_DRAW_XYZ);
     }
     xg->cpt = cx;
-    
+
+    // For tile cache, get the tiles needed from base cache and then set up fast access
+    if (cacheInd >= 0 && !xg->highres) {
+      vi->pyrCache->loadTilesContainingArea(cacheInd, ixStart, cy - xg->nlines / 2 - 1,
+                                            dsize, xg->nlines + 3, cz);
+      if (ivwSetupFastTileAccess(vi, cacheInd, 0, istr))
+        return;
+    }
+
     nlines = 0;
     for (j = 0; j < xg->nlines; j++) {
       jy = cy + j - (xg->nlines - 1) / 2;
@@ -526,12 +533,9 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (xg->highres)
         for(i = 0; i < dsize; i++)
           xg->data[i] += ivwGetFileValue(vi, i + ixStart, jy, cz);
-      else if (vi->ushortStore)
-        for(i = 0; i < dsize; i++)
-          xg->data[i] += usimage[jy][i + ixStart];
       else
         for(i = 0; i < dsize; i++)
-          xg->data[i] += image[jy][i + ixStart];
+          xg->data[i] += ivwFastGetValue(i + ixStart, jy, cz);
     }
     if (nlines > 1)
       for(i = 0; i < dsize; i++)
@@ -540,8 +544,6 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
 
 
   case GRAPH_YAXIS:
-    image = ivwGetCurrentZSection(vi);
-    usimage = (b3dUInt16 **)image;
     dsize = nyUse;
     xg->subStart = iyStart;
     if (allocDataArray(dsize))
@@ -550,8 +552,6 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     /* DNM: skip out if outside limits */
     if (cx < 0 || cx >= vi->xsize || cz < 0 || cz >= vi->zsize)
       break;
-    if (!image)
-      break;
 
     if (cy < iyStart || cy > iyStart + nyUse - 1) {
       cy = xg->cy = vi->ymouse = 
@@ -559,6 +559,14 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       imodDraw(vi, IMOD_DRAW_XYZ);
     }
     xg->cpt = cy;
+
+    // For tile cache, get the tiles needed from base cache and then set up fast access
+    if (cacheInd >= 0 && !xg->highres) {
+      vi->pyrCache->loadTilesContainingArea(cacheInd, cx - xg->nlines / 2 - 1, iyStart, 
+                                            xg->nlines + 3, dsize, cz);
+      if (ivwSetupFastTileAccess(vi, cacheInd, 0, istr))
+        return;
+    }
 
     nlines = 0;
     for (j = 0; j < xg->nlines; j++) {
@@ -569,12 +577,9 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
       if (xg->highres)
         for (i = 0; i < dsize; i++)
           xg->data[i] += ivwGetFileValue(vi, jy, i + iyStart, cz);
-      else if (vi->ushortStore)
-        for (i = 0; i < dsize; i++)
-          xg->data[i] += usimage[i + iyStart][jy];
       else
         for (i = 0; i < dsize; i++)
-          xg->data[i] += image[i + iyStart][jy];
+          xg->data[i] += ivwFastGetValue(jy, i + iyStart, cz);
     }
     if (nlines > 1)
       for(i = 0; i < dsize; i++)
@@ -591,12 +596,16 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
     /* DNM: skip out if outside limits */
     if (cx < 0 || cx >= vi->xsize || cy < 0 || cy >= vi->ysize)
       break;
+    if (cacheInd >= 0 && !xg->highres) {
+      if (ivwSetupFastTileAccess(vi, cacheInd, 0, istr))
+        return;
+    }
     if (xg->highres)
       for(i = 0; i < dsize; i++)
         xg->data[i] = ivwGetFileValue(vi, cx, cy, i);
     else
       for(i = 0; i < dsize; i++)
-        xg->data[i] = ivwGetValue(vi, cx, cy, i);
+        xg->data[i] = ivwFastGetValue(cx, cy, i);
     break;
 
 
@@ -652,6 +661,27 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
           break;
         }
       }
+    }
+
+    // For tile cache, find limits of contour within area being used and load it if it
+    // is planar
+    if (cacheInd >= 0 && !xg->highres) {
+      imodContourGetBBox(cont, &pmin, &pmax);
+      if (B3DNINT(pmin.z) == B3DNINT(pmax.z)) {
+        pmin.x = B3DMAX(pmin.x, ixStart) - xg->nlines / 2 - 1;
+        pmin.x = B3DMAX(0, pmin.x);
+        pmax.x = B3DMIN(pmax.x, ixStart + nxUse) + xg->nlines / 2 + 1;
+        pmax.x = B3DMIN(pmax.x, vi->xsize - 1);
+        pmin.y = B3DMAX(pmin.y, iyStart) - xg->nlines / 2 - 1;
+        pmin.y = B3DMAX(0, pmin.y);
+        pmax.y = B3DMIN(pmax.y, iyStart + nyUse) + xg->nlines / 2 + 1;
+        pmax.y = B3DMIN(pmax.y, vi->ysize - 1);
+        vi->pyrCache->loadTilesContainingArea(cacheInd, pmin.x, pmin.y, pmax.x + 1 - 
+                                              pmin.x, pmax.y + 1 - pmin.y, 
+                                              B3DNINT(pmin.z));
+      }
+      if (ivwSetupFastTileAccess(vi, cacheInd, 0, istr))
+        return;
     }
 
     /* Get true 3D length, record where current point falls */
@@ -746,7 +776,7 @@ void GraphWindow::xgraphFillData(GraphStruct *xg)
           if (xg->highres)
             xg->data[i] += ivwGetFileValue(vi, cx, cy, cz);
           else
-            xg->data[i] += ivwGetValue(vi, cx, cy, cz);
+            xg->data[i] += ivwFastGetValue(cx, cy, cz);
         }
       }
       if (nlines)

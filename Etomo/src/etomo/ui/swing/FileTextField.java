@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import etomo.type.ConstStringParameter;
+import etomo.ui.FieldType;
 
 /**
  * <p>Description: </p>
@@ -98,6 +99,8 @@ final class FileTextField implements FileTextFieldInterface {
   public static final String rcsid = "$Id$";
 
   private final static Dimension FOLDER_BUTTON_SIZE = FixedDim.folderButton;
+  // Assuming the field type is always non-numeric
+  private final FieldType FIELD_TYPE = FieldType.STRING;
 
   private final SimpleButton button = new SimpleButton(new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif")));
@@ -145,8 +148,8 @@ final class FileTextField implements FileTextFieldInterface {
       layout.setConstraints(this.label, constraints);
       panel.add(this.label);
     }
-    field = new TextField(label);
-    field.setTextPreferredSize(new Dimension(250 * Math.round(UIParameters.INSTANCE
+    field = new TextField(FIELD_TYPE, label, null);
+    field.setTextPreferredSize(new Dimension(250 * (int) Math.round(UIParameters.INSTANCE
         .getFontSizeAdjustment()), FOLDER_BUTTON_SIZE.height));
     constraints.insets = new Insets(0, 0, 0, -1);
     layout.setConstraints(field.getComponent(), constraints);
@@ -282,7 +285,12 @@ final class FileTextField implements FileTextFieldInterface {
    * @return
    */
   boolean isEmpty() {
-    return field.getText().matches("\\s*");
+    String text = field.getText();
+    return text.matches("\\s*");
+  }
+
+  boolean isEditable() {
+    return field.isEditable();
   }
 
   boolean exists() {

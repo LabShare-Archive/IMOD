@@ -54,9 +54,6 @@ HEADERS	+= autox.h \
 	mv_movie.h \
 	qcursor.bits \
 	qcursor_mask.bits \
-	time_lock.bits \
-	unlock.bits \
-	lock.bits \
 	hottoolbar.h \
 	imodplug.h \
 	xcramp.h \
@@ -83,6 +80,7 @@ HEADERS	+= autox.h \
 	surfpieces.h \
 	mappingtable.h \
         vertexbuffer.h \
+        pyramidcache.h \
 	form_object_edit.h \
 	formv_control.h \
 	formv_movie.h \
@@ -90,6 +88,7 @@ HEADERS	+= autox.h \
 	formv_views.h \
 	formv_depthcue.h \
 	formv_objed.h \
+	formv_sequence.h \
 	form_info.h \
 	form_moviecon.h \
 	form_autox.h \
@@ -173,6 +172,7 @@ SOURCES	+= autox.cpp \
 	scalebar.cpp \
 	mappingtable.cpp \
         vertexbuffer.cpp \
+        pyramidcache.cpp \
 	form_object_edit.cpp \
 	formv_control.cpp \
 	formv_movie.cpp \
@@ -180,6 +180,7 @@ SOURCES	+= autox.cpp \
 	formv_views.cpp \
 	formv_depthcue.cpp \
 	formv_objed.cpp \
+	formv_sequence.cpp \
 	form_info.cpp \
 	form_moviecon.cpp \
 	form_autox.cpp \
@@ -202,6 +203,7 @@ FORMS	= form_object_edit.ui \
 	formv_views.ui \
 	formv_depthcue.ui \
 	formv_objed.ui \
+	formv_sequence.ui \
 	form_info.ui \
 	form_moviecon.ui \
 	form_autox.ui \

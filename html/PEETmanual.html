@@ -35,7 +35,9 @@
 <br /><a HREF="#Number of Particles to Average">3.4. Number of Particles to Average</a> 
 <br /><a HREF="#Use Equal Numbers of Particles from All Tomograms">3.5. Use Equal Numbers of Particles From All Tomograms</a>
 <br /><a HREF="#Optional / Advanced Features">3.6. Optional / Advanced Features</a>
-<br /><a HREF="#3.7. Action Buttons">3.7. Action Buttons</a>
+<br /><a HREF="#3.7 Action Buttons">3.7. Action Buttons</a>
+<br /><a HREF="#Resampling Existing Volumes / Models">3.8. Resampling
+  Existing Volumes / Models</a>
 <br /><br />
 
 <hr />
@@ -43,14 +45,24 @@
 <h3><a NAME="Introduction to PEET"></a>1. Introduction to PEET</h3>
 
 <p>PEET is a set of programs, separate from IMOD, to align and average
-particles/subvolumes extracted from 3D volumes.&nbsp;  It iteratively refines
+particles / subvolumes extracted from 3D volumes.&nbsp;  It iteratively refines
 the alignment of each particle with a reference volume over several iterations.&nbsp;
 Subsequent iterations refine the best alignment found in the
 previous iteration by aligning to a new reference generated from a subset
-of the previously aligned particles.&nbsp;  A graphical user interface permits
- users to set up options (search parameters, etc.), 
+of the previously aligned particles.&nbsp;  An 
+<a href="man/etomo.html#TOP">eTomo </a> graphical user interface 
+permits  users to set up options (search parameters, etc.), 
 and to control the execution of the process.&nbsp;  This guide will explain
-the options in the interface.</p>
+the use of that interface.&nbsp; 
+For details on individual PEET
+programs, please consult the program descriptions and manual pages
+accessible from the eTomo's Help Menu, by running "PEETHelp",
+or online at
+<a href="http://bio3d.colorado.edu/ftp/PEET/man/html/index.html">
+bio3d.colorado.edu</a>.&nbsp;
+Manual pages are also available at a shell prompt using the "man" 
+command.&npsp; (Program descriptions and manual pages will only be available
+locally on systems with PEET already installed).</p>
 
 <p>Each PEET project must reside in its own directory because of the  potentially large 
 number of intermediate and output files created.&nbsp; Input files (IMOD models and
@@ -87,7 +99,7 @@ files.&nbsp; To make this manual concrete, we will assume
 a base name of "myRun". 
 </p>
 
-<H4><A NAME="Directory"></A>2.2. Directory</H4>
+<H4><A NAME="Directory Field"></A>2.2. Directory</H4>
 
 <p>(Read only). Displays the directory containing the PEET project.</p>
 
@@ -311,12 +323,13 @@ adequate reference size automatically).</p>
 particles will be aligned and combined using a binary tree structure, and the resulting
 average used as the initial reference.</p>
 
-<H4><A NAME="Reference Section"></A>2.6. Volume Size</H4>
+<H4><A NAME="Volume Size"></A>2.6. Volume Size</H4>
 
 <p>Specifies the size in voxels of the subvolumes to be aligned and averaged.&nbsp;
-Cubical volumes are prefered when possible, although they are not required.*nbsp;
-The size specified should be that of the volume of interest plus at least twice
-the maximum Search Distance (described under the Run Tab below) in each direction.</p>
+Cubical volumes are prefered when possible, although they are not required.&nbsp;
+NOTE: as of PEET 1.9.0 it is no longer necessary (nor desirable) 
+that volume size be padded by twice the maximum Search Distance. Volume
+size should now be set only slightly larger than the volume of interest.
 
 <H4><A NAME="Missing Wedge Compensation Section"></A>2.7. Missing Wedge Compensation Section</H4>
 
@@ -490,10 +503,10 @@ range.</p>
 <p>PEET can distribute the computational load of aligning and averaging
 particles over multiple processors on one or more systems, as specified
 by the user.&nbsp; This section allows you to select which systems and
-how many processors on each system are to be used.&nbsp; See the 
-<a href="UsingEtomo.html#ParallelProcessing">eTomo User's Guide</a> for
-details on the controls in this section and on how to configure parallel
-processing on your system(s).  For information on how to use a cluster queue,
+how many processors on each system are to be used.&nbsp; See the
+<a href="UsingEtomo.html#ParallelProcessing">Using Parallel Processing</a> 
+in the eTomo User's Guide for details on these controls and on
+configuring parallel processing.  For information on using a cluster queue,
 see the man pages for <a href="man/processchunks.html#TOP">processchunks</a> and
 the <a href="man/cpuadoc.html#TOP">cpu.adoc</a> file.
 </p>
@@ -551,12 +564,12 @@ with standard deviation given by the <b>Sigma</b> field.&nbsp;
 Both the reference and the particle are filtered separately, so the
 correlation is essentially filtered twice.&nbsp;  One way to see what
 a reference or particle looks like with a particular filter is apply
-the same filter to a file with the IMOD program <a href="man/mtffilter.html#TOP">
-mtffilter</a>, e.g., with
-the command "mtffilter -3d -low cutoff,sigma input_file output_file".&nbsp;
+the same filter to a file with the IMOD program 
+<a href="man/mtffilter.html#TOP">mtffilter</a>, e.g., with
+the command "mtffilter -3d -low cutoff, sigma input_file output_file".&nbsp;
 You can do this with the reference particle
 extracted by PEET, or you can extract a particle from the tomogram in
-3dmod using the rubber band in the Zap window and the Extract entry
+<a href="man/3dmod.html#TOP">3dmod</a> using the rubber band in the Zap window and the Extract entry
 in the File menu.</p>
 
 <p><b>Reference Threshold</b> controls how many particles
@@ -702,7 +715,7 @@ is the standard deviation of the Gaussian whose left half defines the shape of t
 resulting high-pass filter.&nbsp; We have rarely found low frequency filtering to
 be useful, and do not recommend its routine use.</p>
 
-<H4><A NAME="3.7. Action Buttons"></A>3.7. Action Buttons</H4>
+<H4><A NAME="3.7 Action Buttons"></A>3.7. Action Buttons</H4>
 
 <p>After reviewing and selecting Systems and / or processors in the
 Processing Table, press <b>Run</b> to start processing.&nbsp;
@@ -727,6 +740,53 @@ the references generated at each iteration.&nbsp;  You can also select
 alignment, e.g. after changing the number of particles to average or
 other settings.</p> 
 
-</body>
+<H4><A NAME="Resampling Existing Volumes / Models"></A>3.8 Resampling
+  Existing Volumes / Models</H4>
 
+<p>In some cases it may be desirable to change the origin, image size,
+or voxel size of an existing IMOD volume and its corresponding
+model for use with PEET.&nbsp; For example, one may wish to create a
+binned version to reduce memory requirements or to speed preliminary
+characterization.&nbsp; This is easy using IMOD, but must be done in a 
+specific way to preserve compatability with both PEET and 
+<a href="man/3dmod.html#TOP">3dmod</a>.</p> 
+
+<p>First, it is necessary to ensure the starting model contains
+information about the associated volume.&nbsp; To do this, simply open the
+volume and the model together in <a href="man/3dmod.html#TOP">3dmod</a>, 
+and then re-save the model;&nbsp; equivalently, use 
+"<a href="man/imodtrans.html#TOP">imodtrans</a> -i" to update the existing 
+model, as illustrated below.&nbsp; Second, create the modified volume
+using one or more IMOD tools such as 
+"<a href="man/binvol.html#TOP">binvol</a>" or 
+"<a href="man/clip.html#TOP">clip</a> -resize".&nbsp; Finally, generate
+the revised model either by a) opening the modified volume and the 
+original model together in <a href="man/3dmod.html#TOP">3dmod</a>, or 
+b) by using "<a href="man/imodtrans.html#TOP">imodtrans</a> -i".</p>
+
+<p>
+For example, to perform 2-fold binning on a dataset in which the
+original volume and model were named "old.rec" and "old.mod", 
+respectively, one might use<BR>
+<BLOCKQUOTE>
+imodtrans -i old.rec old.mod old.mod<BR>
+binvol -b 2 old.rec new.rec<BR>
+imodtrans -i new.rec old.mod new.mod<BR>
+</BLOCKQUOTE>
+
+In this case, the first operation could also have been done by
+running "3dmod old.rec old.mod" and then selecting the "File / Save" menu
+entry.&nbsp; Similarly, the final operation could have been done by running
+"3dmod new.rec old.mod", selecting "File / Save As", and specifying 
+"new.mod" as the name for the new model.</p>
+<p>
+
+If the voxel size has been changed, parameter file settings (e.g. mask
+radii) must be modified accordingly.&npsp; Similarly, offsets which are 
+stored in columns 11-13 of the motive list will need to be scaled
+manually; Motive lists are stored in comma-separated-value (csv) 
+format, so a spreadsheet program can be used to make any changes required.
+</p>
+
+</body>
 </html>

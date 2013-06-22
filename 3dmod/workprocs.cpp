@@ -17,10 +17,12 @@
 #include <qtimer.h>
 #include "imod.h"
 #include "imod_io.h"
+#include "info_cb.h"
 #include "display.h"
 #include "workprocs.h"
 #include "moviecon.h"
 #include "control.h"
+#include "pyramidcache.h"
 #include "preferences.h"
 
 // The constructor for the class: set up the timers and connections
@@ -62,6 +64,20 @@ void ImodWorkproc::controlTimeout()
   ivwWorkProc(mVi);
 }
 
+/*
+ * Function to start a timer to start loading of tiles, and slot to make the call
+ */
+void ImodWorkproc::startTileLoading()
+{
+  QTimer::singleShot(1, this, SLOT(loadTileTimeout()));
+}
+
+void ImodWorkproc::loadTileTimeout()
+{
+  mVi->pyrCache->loadRequestedTiles(1);
+}
+
+
 
 /*
  * Movie for xyz images
@@ -95,12 +111,6 @@ void ImodWorkproc::controlTimeout()
 #endif
 
 static int first_frame;
-
-static void xinput(void)
-{
-  QApplication::flush();
-  qApp->processEvents();
-}
 
 /* DNM: generalized routine to get increment and limits, and handle looping
    in the proper way */
@@ -184,12 +194,12 @@ void ImodWorkproc::movieProc()
   movie_inc(vi, &vi->ymouse, &vi->ymovie, 1, &show);
   movie_inc(vi, &vi->zmouse, &vi->zmovie, 2, &show);
 
-  timetmp = vi->ct;
+  timetmp = vi->curTime;
   movie_inc(vi, &timetmp, &vi->tmovie, 3, &show);
-  // vi->ct = (int)timetmp;
+  // vi->curTime = (int)timetmp;
 
   if (vi->tmovie != 0){
-    // vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+    // vi->hdr = vi->image = &vi->imageList[vi->curTime-1];
     ivwSetTime(vi, (int)timetmp);
     drawflag |= IMOD_DRAW_IMAGE;
   }
@@ -208,14 +218,14 @@ void ImodWorkproc::movieProc()
 
   /* DNM 9/10/02: Process events before the draw to prevent expose events
      from crashing with Ti 4600 */
-  xinput();
+  imod_info_input();
 
   /*  imodPrintStderr("calling imodDraw..."); */
   imodDraw(vi, drawflag);
   /* imodPrintStderr("back\n"); */
 
   /* Process all events to allow the timer to fire */
-  xinput();
+  imod_info_input();
   mDisplayBusy = 0;
   if (mTimerFired) {
     vi->movieRunning = 1;

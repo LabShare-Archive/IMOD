@@ -50,7 +50,8 @@ from pip import *
 options = ['s::B:Treat unsigned data as signed (use if < 32768)',
            'r::B:Reduce (divide by 2) unsigned 16-bit data or 32-bit integer data',
            'u::B:Save unsigned data in unsigned 16-bit file mode',
-           'c::B:Convert 32-bit integer data to 16-bit integers instead of floats']
+           'c::B:Convert 32-bit integer data to 16-bit integers instead of floats',
+           'i::B:Stack images in inverted order in Z']
 
 
 PipExitOnError(False, prefix)
@@ -66,6 +67,7 @@ convert = ""
 unsigned = ""
 signed = 0
 signopt = 0
+invertStack = ""
 
 if PipGetBoolean('c', 0):
    convert = '-c'
@@ -82,6 +84,12 @@ if PipGetBoolean('s', 0):
 if signopt > 1:
    exitError('You can enter only one of -r, -u, and -s')
 
+# For inversion, raw2mrc just has to be told to invert slices when reading from files
+# and not to invert files, because we are inverting file list here
+if PipGetBoolean('i', 0):
+   invertStack = '-iz'
+
+   
 # Spaces in filenames will be taken care of by quoting all the non-option args
 
 # Build arrays of critical values when we scan the data
@@ -99,12 +107,17 @@ differ = 0
 swap = 0
 dm2 = 0
 dm3 = 0
+pixelOpt = ''
+zPixelOpt = ''
 
 # Read all files
 prnstr('Scanning files...')
 nfiles = numNonOpts - 1
 for num in range(nfiles):
-   fname = PipGetNonOptionArg(num)
+   argnum = num
+   if invertStack:
+      argnum = nfiles - 1 - num
+   fname = PipGetNonOptionArg(argnum)
    fnames.append('"' + fname + '"')
    if not os.path.exists(fname):
       exitError('Input file ' + fname + ' does not exist')
@@ -164,10 +177,14 @@ for num in range(nfiles):
          propstxt = propsarr[0].split()
          try:
             props = []
-            for txt in propstxt:
-               props.append(int(txt))
+            for ind in range(len(propstxt)):
+               txt = propstxt[ind]
+               if ind < 5:
+                  props.append(int(txt))
+               else:
+                  props.append(float(txt))
          except Exception:
-            exitError('Converting output of dm3props to integers')
+            exitError('Converting output of dm3props to numbers')
       except ImodpyError:
          exitFromImodError(progname)
          
@@ -175,7 +192,12 @@ for num in range(nfiles):
    else:
       exitError(fname + ' is not recognized as a DM file')
 
-
+   # Take the first pixel size that shows up
+   if pixelOpt == '' and len(props) > 5:
+      pixelOpt = '-p ' + str(props[5])
+   if zPixelOpt == '' and pixelOpt != '' and len(props) > 6:
+      zPixelOpt = '-pz ' + str(props[6])
+      
    # add properties to wordlists, and check for consistency
    xsizes.append(props[0])
    ysizes.append(props[1])
@@ -243,8 +265,9 @@ if os.path.exists(outfile):
 
 prnstr('Converting files...')
 if not differ:
-   rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {}', offset, swap,
-                   type, xsize, ysize, zsize, convert, divide, unsigned)
+   rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} {} {} {}',
+                   offset, swap, type, xsize, ysize, zsize, convert, invertStack, divide,
+                   unsigned, pixelOpt, zPixelOpt)
    for fname in fnames:
       rawcom += ' ' + fname
    rawcom += ' "' + outfile + '"'
@@ -259,12 +282,16 @@ newstcom = []
 pid = '.' + str(os.getpid())
 try:
    for i in range(nfiles):
-      fname = PipGetNonOptionArg(i)
+      argnum = i
+      if invertStack:
+         argnum = nfiles - 1 - i
+      fname = PipGetNonOptionArg(argnum)
       outtmp = fname + pid
       tmplist.append(outtmp)
-      rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} "{}" "{}"',
-                      offsets[i], swap, types[i], xsizes[i], ysizes[i], zsizes[i],
-                      convert, divide, unsigned, fname, outtmp)
+      rawcom = fmtstr('raw2mrc -f -o {} {} -t {} -x {} -y {} -z {} {} {} {} {} {} ' + \
+                         '"{}" "{}"', offsets[i], swap, types[i], xsizes[i], ysizes[i],
+                      zsizes[i], convert, invertStack, divide, unsigned, pixelOpt, fname,
+                      outtmp)
       try:
          runcmd(rawcom, None, 'stdout')
       except ImodpyError:

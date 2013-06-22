@@ -243,6 +243,10 @@ final class LabeledSpinner {
     return (spinner.isEnabled());
   }
 
+  boolean isVisible() {
+    return panel.isVisible();
+  }
+
   void setVisible(final boolean isVisible) {
     panel.setVisible(isVisible);
   }
@@ -279,7 +283,7 @@ final class LabeledSpinner {
 
   void setPreferredWidth(final int width) {
     Dimension dim = spinner.getPreferredSize();
-    dim.width = width * Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
+    dim.width = width * (int) Math.round(UIParameters.INSTANCE.getFontSizeAdjustment());
     spinner.setPreferredSize(dim);
     spinner.setMaximumSize(dim);
   }

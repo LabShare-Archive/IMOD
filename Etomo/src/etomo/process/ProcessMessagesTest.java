@@ -26,7 +26,6 @@ public class ProcessMessagesTest extends TestCase {
 
   public void testWarnings() {
     ProcessMessages messages = ProcessMessages.getInstance();
-    assertFalse("Did not set multiline messages", messages.isMultiLineMessages());
     File file = new File(TestUtilites.INSTANCE.getUnitTestData(), "aligna.log");
     try {
       messages.addProcessOutput(file);
@@ -42,7 +41,6 @@ public class ProcessMessagesTest extends TestCase {
 
   public void testErrors() {
     ProcessMessages messages = ProcessMessages.getInstance();
-    assertFalse("Did not set multiline messages", messages.isMultiLineMessages());
     File file = new File(TestUtilites.INSTANCE.getUnitTestData(), "testErrors.log");
     try {
       messages.addProcessOutput(file);

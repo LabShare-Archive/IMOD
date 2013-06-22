@@ -4,7 +4,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 
 progname = 'tomosnapshot'
@@ -16,8 +15,8 @@ edfSetFiles = ['.rawtlt', '_peak.mod', '.prexf', '.prexg', '.seed', '.fid', '.3d
                '.tlt', 'fid.xyz', '.resid', '.resmod', '.tltxf', '_fid.xf', 'local.xf',
                '.matmod', '.pl', '.ecd', '_orig.seed', '.xtilt', '.maggrad', '.zfac',
                '.defocus', '_erase.fid', '_3dfind.mod', '_flat.mod', '_flat.mod',
-               '_fid.tlt']
-edfAxisHeaders = ['_orig.st', '.st', '.preali', '.ali', '.rec', '.mat _full.rec']
+               '_fid.tlt', '.erase']
+edfAxisHeaders = ['_orig.st', '.st', '.preali', '.ali', '.rec', '.mat', '_full.rec']
 edfSingleFiles = ['solvezero.xf', 'solve.xf', 'refine.xf', 'warp.xf', 'inverse.xf', 
                   'patch.out', 'patch_vector.mod', 'patch_vector_ccc.mod',
                   'patch_region.mod', 'processchunks.out',
@@ -26,6 +25,9 @@ edfSingleFiles = ['solvezero.xf', 'solve.xf', 'refine.xf', 'warp.xf', 'inverse.x
                   'combine.out', 'volcombine.csh', 'tomopitcha.mod', 'tomopitchb.mod',
                   'tomopitch.mod']
 edfSingleHeaders = []
+edfAxisThumbs = ['.st', '.rec', '.mat', '_full.rec']
+edfSingleThumbs = ['mid.rec', 'mida.rec', 'midb.rec', 'bot.rec', 'bota.rec', 'botb.rec',
+                   'top.rec', 'topa.rec', 'topb.rec', 'sum.rec']
 ejfSetFiles = ['.info', '.tomoxf', '.tomoxg', '.xf', '_auto.xcxf', '_auto.xf',
                '_empty.xf', '_midas.xf', '.sqzxf', '.xpndxf', '_refine.mod', '_join.mod',
                '_refine.alimod', '_refine.xf', '_refine.xg', '_refinejoin.xg']
@@ -51,6 +53,9 @@ allSingleFiles = [edfSingleFiles, ejfSingleFiles, epeSingleFiles, nadSingleFiles
                   eppSingleFiles]
 allSingleHeaders = [edfSingleHeaders, ejfSingleHeaders, epeSingleHeaders,
                     nadSingleHeaders, eppSingleHeaders]
+allAxisThumbs = [edfAxisThumbs, [], [], [], []]
+allSingleThumbs = [edfSingleThumbs, [], [], [], []]
+
 # The extensions of file types
 extList = ['edf', 'ejf', 'epe', 'epp']
 
@@ -62,6 +67,7 @@ allSetKeys = [['Setup.DatasetName'], ['Join.RootName'], ['Peet.RootName'],
 tempdir = '.'
 copylogs = []
 tarlist = []
+thumbnails = []
 
 
 # FUNCTIONS
@@ -123,6 +129,32 @@ def copyErrLog(errfile):
       warning('Failed to copy ' + errfile)
 
 
+# Make a thumbnail of the image file
+def makeThumbnail(imfile):
+   global thumbnails
+   if not doThumbnails or not os.path.exists(imfile):
+      return
+   shrink = 4.
+   maxSize = 512. * 512.
+   try:
+      (nx, ny, nz) = getmrcsize(imfile)
+      if nx * ny > maxSize * (shrink ** 2):
+         shrink = math.sqrt(nx * ny / maxSize)
+      base = os.path.basename(imfile + '.tn')
+      outfile = os.path.join(tempdir, base)
+      newstcom = ['InputFile ' + imfile,
+                  'OutputFile ' + outfile,
+                  'ModeToOutput 0',
+                  'FloatDensities 1',
+                  'SectionsToRead ' + str(nz // 2),
+                  'ShrinkByFactor ' + str(shrink)]
+      runcmd('newstack -StandardInput', newstcom)
+      thumbnails.append(outfile)
+      tarlist.append(base)
+   except ImodpyError:
+      warning('Error making thumbnail of ' + imfile)
+
+
 # Print a warning
 def warning(message):
    prnstr('WARNING: ' + progname + ' - ' + message)
@@ -177,6 +209,7 @@ options = ["e:EtomoFile:FN:Etomo data file to define type of snapshot (can be " 
            "o:OutputFile:FN:Name of tarred output file (default rootname-snapshot)",
            "w:WriteableDirectory:FN:Location at which to place output and temporary "+ \
            "files",
+           "t:Thumbnails:B:Make thumbnails of middle sections of some image files",
            "help:usage:B:Print usage output"]
 PipExitOnError(0, prefix)
 (numOpts, numNonOpts) = PipParseInput(sys.argv, options)
@@ -204,6 +237,7 @@ if etomoFile:
       inputDir = '.'
    inputDir += os.sep
 
+doThumbnails = PipGetBoolean('Thumbnails', 0)
 writeableDir = PipGetString('WriteableDirectory', '.')
 
 if not os.path.isdir(writeableDir):
@@ -292,6 +326,8 @@ oneAxisSetFiles = allSetFiles[typeInd]
 oneAxisHeaders = allAxisHeaders[typeInd]
 singleFiles = allSingleFiles[typeInd]
 singleHeaders = allSingleHeaders[typeInd]
+oneAxisThumbs = allAxisThumbs[typeInd]
+singleThumbs = allSingleThumbs[typeInd]
 
 naxis = 1
 axislet = ''
@@ -363,9 +399,10 @@ if typeInd == 1:
          if numfiles > 0:
             for i in range(max(3, nlines - numfiles), nlines):
                singleHeaders.append(infolines[i])
+               singleThumbs.append(infolines[i])
 
    oneAxisHeaders += ['.sampavg', '.sample', '.join', '_modeled.join', '_trial.join']
-
+   
 
 #
 # PEET
@@ -382,6 +419,7 @@ if typeInd == 2:
       volumes = prmUniqueEntries(prmLines, 'fnVolume')
       if volumes:
          singleHeaders += volumes
+         singleThumbs += volumes
       ref = getKeyValue(prmLines, 'reference')
       if ref.find("'") >= 0:
          singleHeaders.append(ref.strip("'"))
@@ -512,6 +550,10 @@ for axnum in range(naxis):
          except:
             warning('Failed to run header on ' + sfile)
 
+   for ext in oneAxisThumbs:
+      sfile = inputDir + setname + axislet + ext
+      makeThumbnail(sfile)
+
    axislet = 'b'
 
 # Add single files to copy list if they exist
@@ -529,6 +571,10 @@ for sfile in singleHeaders:
          unameOut += runcmd('header -StandardInput', ['InputFile ' + sfile])
       except:
          warning('Failed to run header on ' + sfile)
+
+# Get thumbnails, without adding input directory since join files can have abs paths
+for sfile in singleThumbs:
+   makeThumbnail(sfile)
 
 # Add them all to the tar list, or copy them to other directory if needed and add to
 # tar list only if copy succeeds
@@ -581,14 +627,8 @@ else:
    removeWarn(lslrtFile)
    for log in copylogs:
       removeWarn(log)
+   for thumb in thumbnails:
+      removeWarn(thumb)
 
 sys.exit(0)
 
-#
-# $Log$
-# Revision 1.2  2011/04/28 15:02:09  mast
-# Add _fid.tlt
-#
-# Revision 1.1  2011/04/22 18:08:29  mast
-# converted to python
-#

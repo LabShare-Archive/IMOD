@@ -139,7 +139,8 @@ static int addWarpFile()
 /*!
  * Initialize for a new warp file based on image dimensions [nx], [ny] at the given
  * [binning], with the pixel size in Angstroms in [pixelSize] and [flags] containing the
- * sum of 1 for inverse warping and 2 for control points.
+ * sum of 1 for inverse warping and 2 for control points.  Returns the index of the new
+ * file, or -1 for a memory error.
  */
 int newWarpFile(int nx, int ny, int binning, float pixelSize, int flags)
 {
@@ -447,7 +448,7 @@ int clearWarpFile(int index)
 
 /*!
  * Deletes all warp file data and resets pointers and indices; also calls 
- * @extrapolateDone.
+ * @@extrapolateDone@.
  */
 void warpFilesDone()
 {
@@ -500,6 +501,7 @@ int getWarpFileSize(int *nx, int *ny, int *nz, int *ifControl)
 /*!
  * Sets the linear transform for section [iz] in the current warp file to [xform]; [rows]
  * specifies the number of rows (2 or 3) in the [xform] array.
+ * When calling from Fortran, omit [rows]; it is assumed to be 2.
  */
 int setLinearTransform(int iz, float *xform, int rows) 
 {
@@ -674,6 +676,7 @@ int removeWarpPoint(int iz, int index)
 /*!
  * Returns the linear transform for section [iz] of the current warp file into [xform],
  * which has [rows] rows (2 or 3).  Returns 1 for [iz] out of range or no warp file.
+ * When calling from Fortran, omit [rows]; it is assumed to be 2.
  */
 int getLinearTransform(int iz, float *xform, int rows)
 {

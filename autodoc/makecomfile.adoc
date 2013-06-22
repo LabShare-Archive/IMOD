@@ -1,0 +1,106 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input file to copy commands from (optional)
+tooltip = 
+manpage = Input file to copy commands from; this entry is not required for all
+types of files.  Because of this, the input file cannot be entered as a
+non-option argument.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for commands (required)
+tooltip = 
+manpage = Output file for commands, a required entry.  The filename determines
+the type of output, and must start with
+xcorr_pt, autofidseed, transferfid, newst_3dfind, blend_3dfind, tilt_3dfind_reproject,
+tilt_3dfind,  findbeads3d, golderaser, or sirtsetup.  If this option is not
+entered, the first (not second) non-option argument is taken as the output file.
+
+[Field = RootNameOfDataFiles]
+short = root
+type = CH
+usage = Root name of data files, including axis letter
+tooltip = 
+manpage =
+
+[Field = SingleAxis]
+short = single
+type = B
+usage = Dataset is single axis (overrides last letter of output file root name)
+tooltip = 
+manpage = This entry can be used to indicate that the dataset is single axis
+even though the output com file name ends in "a" or "b".  It is not needed
+with any of the currently defined output file types.
+
+[Field = BinningOfImages]
+short = binning
+type = I
+usage = Binning value to place in command file
+tooltip = 
+manpage = Binning value to place in command file, which is required by many
+types of files.
+
+[Field = BeadSize]
+short = bead
+type = F
+usage = Bead size in pixels, needed for findbeads3d
+tooltip = 
+manpage = Bead size in pixels, required for findbeads3d.
+
+[Field = Use3dfindAliInput]
+short = use
+type = B
+usage = Change input file to setname_3dfind.ali if needed for tilt_3dfind
+tooltip = 
+manpage =
+
+[Field = ThicknessToMake]
+short = thickness
+type = I
+usage = Thickness to make the reconstruction, required for tilt_3dfind
+tooltip = 
+manpage =
+
+[Field = ShiftInY]
+short = shift
+type = F
+usage = Amount to shift reconstruction in Y in tilt_3dfind
+tooltip = 
+manpage =
+
+[Field = ChangeParametersFile]
+short = change
+type = FNM
+usage = Name of file with directives for changing parameters
+tooltip = 
+manpage = Name of file with directives for changing parameters.  A directive
+has the form "comparam.comfile.process.option=value" where "comparam" is a required
+prefix for directives to be processed by Copytomocoms, "comfile" is the root
+name of the command file with optional "a" or "b", "process" is the name of a
+program being run on a line starting with "$", "option" is an option to add
+or modify, and "value" is its value, which may be empty to remove an option
+from a command list.  Files are processed in order, and
+a duplicate entry for an option generally overrides an earlier one or any
+changes imposed by this script.  However,
+for a dual-axis data set, a directive specific to a particular axis, such as
+that example, will always be preferred over a generic directive with no "a" or
+"b" on the command file name will.  For a single-axis data set, directives
+with a "b" are ignored and ones with an "a" or with no "a or "b" are treated
+equivalently, such that later ones override earlier ones.
+
+[Field = OneParameterChange]
+short = one
+type = CHM
+usage = One directive for changing parameters
+tooltip = 
+manpage = One directive for changing parameters, in the format 
+"comparam.comfile.process.option=value".
+Entries with this option are processed after change files, can override any
+standard changes or additions being imposed by the script, and later entries
+override earlier ones
+

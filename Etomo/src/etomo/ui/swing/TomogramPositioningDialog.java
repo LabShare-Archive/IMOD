@@ -19,6 +19,8 @@ import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: Tomogram Positioning User Interface</p>
@@ -372,13 +374,14 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
   static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
 
   private final LabeledTextField ltfSampleThickness = new LabeledTextField(
-      "Sample tomogram thickness: ");
+      FieldType.INTEGER, "Sample tomogram thickness: ");
   private final LabeledTextField ltfExtraThickness = new LabeledTextField(
-      "Added border thickness (unbinned): ");
-  private final LabeledTextField ltfThickness = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Added border thickness (unbinned): ");
+  private final LabeledTextField ltfThickness = new LabeledTextField(FieldType.INTEGER,
       "Final Tomogram Thickness: ");
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
-  private final LabeledTextField ltfRotation = new LabeledTextField("Tilt axis rotation:");
+  private final LabeledTextField ltfRotation = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Tilt axis rotation:");
   private final LabeledSpinner spinBinning = new LabeledSpinner("   Binning ",
       new SpinnerNumberModel(3, 1, 8, 1), 3);
   private final CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
@@ -411,15 +414,15 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     btnAlign = (MultiLineButton) displayFactory.getFinalAlignment();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
-    //  Construct the binning spinner
+    // Construct the binning spinner
     spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
 
-    //  Create the primary panels
+    // Create the primary panels
     JPanel pnlWholeTomogram = new JPanel();
     pnlWholeTomogram.setLayout(new BoxLayout(pnlWholeTomogram, BoxLayout.X_AXIS));
-    //if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
-    //  cbWholeTomogram.setEnabled(false);
-    //}
+    // if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
+    // cbWholeTomogram.setEnabled(false);
+    // }
     pnlWholeTomogram.add(cbWholeTomogram);
     pnlWholeTomogram.add(spinBinning.getContainer());
 
@@ -465,7 +468,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     UIUtilities.alignComponentsX(pnlPosition, Component.CENTER_ALIGNMENT);
     UIUtilities.setButtonSizeAll(pnlPosition, UIParameters.INSTANCE.getButtonDimension());
 
-    //  Create dialog content pane
+    // Create dialog content pane
     rootPanel.add(pnlPosition);
     addExitButtons();
     setToolTipText();
@@ -487,7 +490,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     btnCreateBoundary.addActionListener(localActionListener);
     btnTomopitch.addActionListener(localActionListener);
     btnAlign.addActionListener(localActionListener);
-    //  Mouse adapter for context menu
+    // Mouse adapter for context menu
     rootPanel.addMouseListener(new GenericMouseAdapter(this));
   }
 
@@ -516,16 +519,18 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     ltfRotation.setText(tiltAxisAngle);
   }
 
-  public String getImageRotation() throws NumberFormatException {
-    return ltfRotation.getText();
+  public String getImageRotation(final boolean doValidation)
+      throws NumberFormatException, FieldValidationFailedException {
+    return ltfRotation.getText(doValidation);
   }
 
-  String getOrigTiltAngleOffset() {
-    return cpTiltAngleOffset.getOriginal();
+  String getOrigTiltAngleOffset(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpTiltAngleOffset.getOriginal(doValidation);
   }
 
-  String getOrigZShift() {
-    return cpZShift.getOriginal();
+  String getOrigZShift(final boolean doValidation) throws FieldValidationFailedException {
+    return cpZShift.getOriginal(doValidation);
   }
 
   void setAngleOffset(ConstEtomoNumber angleOffset) {
@@ -569,32 +574,42 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     ltfThickness.setText(thickness);
   }
 
-  String getAngleOffsetTotal() {
-    return cpAngleOffset.getTotal();
+  String getAngleOffsetTotal(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpAngleOffset.getTotal(doValidation);
   }
 
-  String getTiltAxisZShiftTotal() {
-    return cpTiltAxisZShift.getTotal();
+  String getTiltAxisZShiftTotal(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpTiltAxisZShift.getTotal(doValidation);
   }
 
-  String getExtraThickness() {
-    return ltfExtraThickness.getText();
+  String getExtraThickness(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfExtraThickness.getText(doValidation);
   }
 
-  String getXAxisTiltTotal() {
-    return cpXAxisTilt.getTotal();
+  String getXAxisTiltTotal(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpXAxisTilt.getTotal(doValidation);
   }
 
-  String getZShift() {
-    return cpZShift.getTotal();
+  String getZShift(final boolean doValidation) throws FieldValidationFailedException {
+    return cpZShift.getTotal(doValidation);
   }
 
-  String getThickness() {
-    return ltfThickness.getText();
+  String getThickness(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfThickness.getText(doValidation);
   }
 
-  String getTiltAngleOffset() {
-    return cpTiltAngleOffset.getTotal();
+  String getTiltAngleOffset(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return cpTiltAngleOffset.getTotal(doValidation);
+  }
+
+  String getSampleThickness(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfSampleThickness.getText(doValidation);
   }
 
   String getSampleThickness() {
@@ -671,8 +686,8 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
   }
 
   boolean setAngleOffset(TomopitchLog log) {
-    return cpAngleOffset.set(log.getAngleOffsetOriginal(), log.getAngleOffsetAdded(), log
-        .getAngleOffsetTotal());
+    return cpAngleOffset.set(log.getAngleOffsetOriginal(), log.getAngleOffsetAdded(),
+        log.getAngleOffsetTotal());
   }
 
   boolean setTiltAxisZShift(TomopitchLog log) {
@@ -681,8 +696,8 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
   }
 
   boolean setXAxisTilt(TomopitchLog log) {
-    return cpXAxisTilt.set(log.getXAxisTiltOriginal(), log.getXAxisTiltAdded(), log
-        .getXAxisTiltTotal());
+    return cpXAxisTilt.set(log.getXAxisTiltOriginal(), log.getXAxisTiltAdded(),
+        log.getXAxisTiltTotal());
   }
 
   void setExtraThickness(String extraThickness) {
@@ -767,8 +782,8 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
   }
 
   boolean setZShift(TomopitchLog log) {
-    return cpZShift.set(log.getAxisZShiftOriginal(), log.getAxisZShiftAdded(), log
-        .getAxisZShiftTotal());
+    return cpZShift.set(log.getAxisZShiftOriginal(), log.getAxisZShiftAdded(),
+        log.getAxisZShiftTotal());
   }
 
   void setZShiftEnabled(boolean enable) {
@@ -808,7 +823,7 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
   }
 
   //
-  //	Action listener adapters
+  // Action listener adapters
   //
   private final class LocalActionListener implements ActionListener {
     private final TomogramPositioningDialog adaptee;
@@ -873,10 +888,13 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
     public static final int MAX_DIGITS = 6;
     private final SpacedPanel panel = SpacedPanel.getInstance();
     private final JLabel label;
-    private final LabeledTextField ltfOriginal = new LabeledTextField("Original:");
-    private final LabeledTextField ltfAdded = new LabeledTextField(ADDED_KEY + ':');
-    private final LabeledTextField ltfTotal = new LabeledTextField("Total:");
-    //utility field
+    private final LabeledTextField ltfOriginal = new LabeledTextField(
+        FieldType.FLOATING_POINT, "Original:");
+    private final LabeledTextField ltfAdded = new LabeledTextField(
+        FieldType.FLOATING_POINT, ADDED_KEY + ':');
+    private final LabeledTextField ltfTotal = new LabeledTextField(
+        FieldType.FLOATING_POINT, "Total:");
+    // utility field
     private final EtomoNumber number = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     private boolean more = true;
 
@@ -956,20 +974,12 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
       }
     }
 
-    String getOriginal() {
-      return ltfOriginal.getText();
+    String getOriginal(final boolean doValidation) throws FieldValidationFailedException {
+      return ltfOriginal.getText(doValidation);
     }
 
-    String getAdded() {
-      return ltfAdded.getText();
-    }
-
-    String getTotal() {
-      return ltfTotal.getText();
-    }
-
-    double getTotalDouble() {
-      return number.set(ltfTotal.getText()).getDouble();
+    String getTotal(final boolean doValidation) throws FieldValidationFailedException {
+      return ltfTotal.getText(doValidation);
     }
   }
 }

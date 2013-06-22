@@ -135,17 +135,15 @@ public interface ConstTiltParam extends CommandDetails {
 
   public int getIdxSliceStop();
 
-  public int getIncrSlice();
-
   public String getLogShift();
 
-  public float getRadialBandwidth();
+  public double getRadialBandwidth();
 
-  public float getRadialFalloff();
+  public double getRadialFalloff();
 
-  public float getScaleCoeff();
+  public double getScaleCoeff();
 
-  public float getScaleFLevel();
+  public double getScaleFLevel();
 
   public int getThickness();
 
@@ -155,7 +153,7 @@ public interface ConstTiltParam extends CommandDetails {
 
   public double getXAxisTilt();
 
-  public float getXShift();
+  public double getXShift();
 
   public ConstEtomoNumber getZShift();
 
@@ -166,8 +164,6 @@ public interface ConstTiltParam extends CommandDetails {
   public boolean hasScale();
 
   public boolean hasSlice();
-
-  public boolean hasSliceIncr();
 
   public boolean hasThickness();
 

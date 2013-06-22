@@ -1,0 +1,61 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Name of data file
+tooltip =
+manpage = Name of file with data to plot.  If this option is not entered, the
+first non-option argument is used for the name.
+
+[Field = TypeOfDataToPlot]
+short = type
+type = IA
+usage = Type of data to plot (1-3: transforms, 4: blendmont, 5-10: tiltalign,
+11-12: clip stat)
+tooltip =
+manpage = Type of data to plot.  
+^  1-3: Shifts from a transform file; 1 for X shift, 2 for Y shifts, 3 for both.
+^  4: Mean and maximum errors in a Blendmont(1) log versus view number.
+^  5-10: Solution parameters from a Tiltalign(1) log versus view number:
+^        5 for rotation, 
+^        6 for delta tilt and skew if present,
+^        7 for magnification, 
+^        8 for X-stretch (dmag), 
+^        9 for global mean residual, and
+^       10 for the average of the mean residual over all local areas
+^  11-13: 11 for minimum, 12 for maximum, and 13 for both values from "clip
+stats" output plotted versus view number or versus piece number for a montage.
+
+[Field = ConnectWithLines]
+short = connect
+type = I
+usage = 1 to draw lines between successive points, 0 not to.
+tooltip =
+manpage = To override the default on whether connecting lines are drawn, enter
+1 draw lines between successive points, or 0 not to.
+This entry has no effect if the symbol is 0 (no symbol).
+
+[Field = SymbolsForGroups]
+short = symbols
+type = IA
+usage = One or more symbols to use for the different types or columns
+tooltip =
+manpage = One or more symbols to use for the different types or columns being
+displayed.  See onegenplot(1) for a list of symbol types.
+
+[Field = HueOfGroup]
+short = hue
+type = CHM
+usage = Group number, and color name or red, green, blue (0-255)
+tooltip =
+manpage = This option can be used to specify a color for each group being
+plotted.  If one type of data is being plotted, the group number is 1 and
+default color is black.  When two types of data are being plotted, the
+group numbers are 1 and 2 and the default colors are navy and maroon.
+Enter either 4 integers separated by commas 
+(the group number and the red, green, and blue values, ranging from 0 to 255)
+or the group number and a stock color name separated by a comma.  An entry
+here replaces the default for that group.  Stock colors can be listed with
+"onegenplot -stock".

@@ -5,7 +5,7 @@
 clonemodel \- clone copies of a model (e.g. an isosurface from a PEET average)
 back to the aligned positions and orientations.
 .SH SYNOPSIS
-clonemodel -at <csvFile> [options] <inputModel> <outputModel>
+clonemodel [options] -at <csvFile> <inputModel> <outputModel>
 
 .SH DESCRIPTION
 After aligning and averaging a set of subvolumes with PEET and creating an 
@@ -33,7 +33,9 @@ order X, Y, Z), respectively.
 .SS Options
 Clonemodel uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
-or one per line in a command file (without the -):
+or one per line in a command file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
 INSERT OPTION TEXT HERE
 
 .SH AUTHOR

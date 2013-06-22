@@ -18,6 +18,8 @@ import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PanelId;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
 * <p>Description: </p>
@@ -46,8 +48,9 @@ final class RadialPanel {
 
   private final JPanel pnlRoot = new JPanel();
   private final LabeledTextField ltfRadialMax = new LabeledTextField(
-      "Radial filter cutoff: ");
-  private final LabeledTextField ltfRadialFallOff = new LabeledTextField(" Falloff: ");
+      FieldType.FLOATING_POINT, "Radial filter cutoff: ");
+  private final LabeledTextField ltfRadialFallOff = new LabeledTextField(
+      FieldType.FLOATING_POINT, " Falloff: ");
 
   final PanelId panelId;
   final BaseManager manager;
@@ -108,12 +111,18 @@ final class RadialPanel {
     }
   }
 
-  void getParameters(final SirtsetupParam param) {
-    if (ltfRadialMax.isEnabled()) {
-      param.setRadiusAndSigma(0, ltfRadialMax.getText());
+  boolean getParameters(final SirtsetupParam param, final boolean doValidation) {
+    try {
+      if (ltfRadialMax.isEnabled()) {
+        param.setRadiusAndSigma(0, ltfRadialMax.getText(doValidation));
+      }
+      if (ltfRadialFallOff.isEnabled()) {
+        param.setRadiusAndSigma(1, ltfRadialFallOff.getText(doValidation));
+      }
+      return true;
     }
-    if (ltfRadialFallOff.isEnabled()) {
-      param.setRadiusAndSigma(1, ltfRadialFallOff.getText());
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
@@ -126,23 +135,32 @@ final class RadialPanel {
     }
   }
 
-  public void getParameters(final TiltParam tiltParam) throws NumberFormatException {
-    String badParameter = "";
+  public boolean getParameters(final TiltParam tiltParam, final boolean doValidation)
+      throws NumberFormatException {
     try {
-      if (ltfRadialMax.getText().matches("\\S+")
-          || ltfRadialFallOff.getText().matches("\\S+")) {
-        badParameter = ltfRadialMax.getLabel();
-        tiltParam.setRadialBandwidth(Float.parseFloat(ltfRadialMax.getText()));
-        badParameter = ltfRadialFallOff.getLabel();
-        tiltParam.setRadialFalloff(Float.parseFloat(ltfRadialFallOff.getText()));
+      String badParameter = "";
+      try {
+        if (ltfRadialMax.getText(doValidation).matches("\\S+")
+            || ltfRadialFallOff.getText(doValidation).matches("\\S+")) {
+          badParameter = ltfRadialMax.getLabel();
+          tiltParam.setRadialBandwidth(Double.parseDouble(ltfRadialMax
+              .getText(doValidation)));
+          badParameter = ltfRadialFallOff.getLabel();
+          tiltParam.setRadialFalloff(Double.parseDouble(ltfRadialFallOff
+              .getText(doValidation)));
+        }
+        else {
+          tiltParam.resetRadialFilter();
+        }
       }
-      else {
-        tiltParam.resetRadialFilter();
+      catch (NumberFormatException except) {
+        String message = badParameter + " " + except.getMessage();
+        throw new NumberFormatException(message);
       }
+      return true;
     }
-    catch (NumberFormatException except) {
-      String message = badParameter + " " + except.getMessage();
-      throw new NumberFormatException(message);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 

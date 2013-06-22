@@ -38,6 +38,8 @@ import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.Utilities;
 
 /**
@@ -434,6 +436,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public static final String DIRECTORY_LABEL = "Directory";
   public static final String RUN_LABEL = "Run";
   public static final String AVERAGE_ALL_LABEL = "Remake Averages";
+  static final String SETUP_LOCATION_DESCR = "the Setup tab";
 
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
   private static final String LST_THRESHOLD_START_TITLE = "Start";
@@ -444,27 +447,28 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private static final String SETUP_TAB_LABEL = "Setup";
   private static final String RUN_TAB_LABEL = "Run";
   private final EtomoPanel rootPanel = new EtomoPanel();
-  private final LabeledTextField ltfDirectory = new LabeledTextField(DIRECTORY_LABEL
-      + ": ");
-  private final LabeledTextField ltfFnOutput = new LabeledTextField(FN_OUTPUT_LABEL
-      + ": ");
+  private final LabeledTextField ltfDirectory = new LabeledTextField(FieldType.STRING,
+      DIRECTORY_LABEL + ": ");
+  private final LabeledTextField ltfFnOutput = new LabeledTextField(FieldType.STRING,
+      FN_OUTPUT_LABEL + ": ");
   private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
   private final CheckBox cbAlignedBaseName = new CheckBox(
       "Save individual aligned particles");
   private final CheckBox cbFlgStrictSearchLimits = new CheckBox(
       "Strict search limit checking");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
-      "Low frequency cutoff:", 5);
-  private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField("Sigma: ");
+      FieldType.FLOATING_POINT, "Low frequency cutoff:", 5);
+  private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Sigma: ");
   private final CheckBox cbRefFlagAllTom = new CheckBox("For new references");
   private final LabeledTextField ltfLstThresholdsStart = new LabeledTextField(
-      LST_THRESHOLD_START_TITLE + ": ");
+      FieldType.INTEGER, LST_THRESHOLD_START_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsIncrement = new LabeledTextField(
-      LST_THRESHOLD_INCREMENT_TITLE + ": ");
+      FieldType.INTEGER, LST_THRESHOLD_INCREMENT_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsEnd = new LabeledTextField(
-      LST_THRESHOLD_END_TITLE + ": ");
-  private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(" "
-      + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
+      FieldType.INTEGER, LST_THRESHOLD_END_TITLE + ": ");
+  private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(
+      FieldType.INTEGER_ARRAY, " " + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
   private final CheckBox cbLstFlagAllTom = new CheckBox("For average volumes");
   private final SpacedPanel pnlRunBody = SpacedPanel.getInstance(true);
   private final MultiLineButton btnRun = new MultiLineButton(RUN_LABEL);
@@ -502,6 +506,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Align averages to have their Y axes vertical");
   private final CheckBox cbFlgAbsValue = new CheckBox(
       "Use absolute value of cross-correlation");
+  private final LabeledTextField ltfSelectClassID = new LabeledTextField(
+      FieldType.INTEGER, "Average only members of class: ");
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
@@ -792,44 +798,60 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     maskingPanel.setParameters(matlabParam);
     cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
     cbFlgAbsValue.setSelected(matlabParam.isFlgAbsValue());
+    ltfSelectClassID.setText(matlabParam.getSelectClassID());
     updateDisplay();
   }
 
-  public boolean getParameters(final MatlabParam matlabParam, final boolean forRun) {
+  public boolean getParameters(final MatlabParam matlabParam, final boolean forRun,
+      final boolean doValidation) {
     if (!matlabParam.validate(forRun)) {
       return false;
     }
     matlabParam.clear();
     volumeTable.getParameters(matlabParam);
     iterationTable.getParameters(matlabParam);
-    matlabParam.setFnOutput(ltfFnOutput.getText());
-    referencePanel.getParameters(matlabParam);
-    missingWedgeCompensationPanel.getParameters(matlabParam);
-    matlabParam
-        .setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl.getSelection())
-            .getEnumeratedType());
-    if (cbAlignedBaseName.isSelected()) {
-      matlabParam.setAlignedBaseName("aligned");
+    try {
+      matlabParam.setFnOutput(ltfFnOutput.getText(doValidation));
+      if (!referencePanel.getParameters(matlabParam, forRun)) {
+        return false;
+      }
+      missingWedgeCompensationPanel.getParameters(matlabParam, doValidation);
+      matlabParam.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
+          .getSelection()).getEnumeratedType());
+      if (cbAlignedBaseName.isSelected()) {
+        matlabParam.setAlignedBaseName("aligned");
+      }
+      else {
+        matlabParam.resetAlignedBaseName();
+      }
+      matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
+      matlabParam.setLowCutoff(ltfLowCutoff.getText(doValidation),
+          ltfLowCutoffSigma.getText(doValidation));
+      matlabParam.setDebugLevel(lsDebugLevel.getValue());
+      matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText(doValidation));
+      matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement
+          .getText(doValidation));
+      matlabParam.setLstThresholdsEnd(ltfLstThresholdsEnd.getText(doValidation));
+      matlabParam.setLstThresholdsAdditional(ltfLstThresholdsAdditional
+          .getText(doValidation));
+      matlabParam.setRefFlagAllTom(!cbRefFlagAllTom.isSelected());
+      matlabParam.setLstFlagAllTom(!cbLstFlagAllTom.isSelected());
+      matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
+      yAxisTypePanel.getParameters(matlabParam);
+      if (!sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam, doValidation)) {
+        return false;
+      }
+      if (!maskingPanel.getParameters(matlabParam, doValidation)) {
+        return false;
+      }
+      matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
+      matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
+      matlabParam.setSelectClassID(ltfSelectClassID.getText(doValidation));
+      return true;
     }
-    else {
-      matlabParam.resetAlignedBaseName();
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
-    matlabParam.setLowCutoff(ltfLowCutoff.getText(), ltfLowCutoffSigma.getText());
-    matlabParam.setDebugLevel(lsDebugLevel.getValue());
-    matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText());
-    matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement.getText());
-    matlabParam.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
-    matlabParam.setLstThresholdsAdditional(ltfLstThresholdsAdditional.getText());
-    matlabParam.setRefFlagAllTom(!cbRefFlagAllTom.isSelected());
-    matlabParam.setLstFlagAllTom(!cbLstFlagAllTom.isSelected());
-    matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
-    yAxisTypePanel.getParameters(matlabParam);
-    sphericalSamplingForThetaAndPsiPanel.getParameters(matlabParam);
-    maskingPanel.getParameters(matlabParam);
-    matlabParam.setFlgAlignAverages(cbflgAlignAverages.isSelected());
-    matlabParam.setFlgAbsValue(cbFlgAbsValue.isSelected());
-    return true;
   }
 
   public boolean isReferenceFileSelected() {
@@ -844,12 +866,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     return referencePanel.isReferenceParticleSelected();
   }
 
-  public String getFnOutput() {
-    return ltfFnOutput.getText();
-  }
-
-  public String getDirectoryString() {
-    return ltfDirectory.getText();
+  public String getFnOutput(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfFnOutput.getText(doValidation);
   }
 
   public void setDirectory(final String directory) {
@@ -944,6 +963,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setToolTipText("Additional numbers of particles for which averages are "
             + "desired.  Values must be listed in increasing order and must be "
             + "larger than End.");
+    ltfSelectClassID
+        .setToolTipText("Restrict averaging to members of the specified class. This is "
+            + "useful only when the motive list contains class numbers (e.g. generated "
+            + "by clusterPca). WARNING: if accidentally set when running a new alignment "
+            + "(or at any other time when class numbers have not been assigned in the "
+            + "motive list), you will get no particles in the new averages / "
+            + "references.");
   }
 
   private void setDefaults() {
@@ -1088,7 +1114,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
     pnlOptionalRight.add(lsDebugLevel.getContainer());
     pnlOptionalRight.add(pnlLowCutoff);
-    pnlOptionalRight.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlOptionalRight.add(ltfSelectClassID.getContainer());
     // low cutoff
     pnlLowCutoff.setLayout(new BoxLayout(pnlLowCutoff, BoxLayout.X_AXIS));
     pnlLowCutoff.add(ltfLowCutoff.getContainer());

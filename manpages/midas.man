@@ -318,7 +318,17 @@ which is numbered 0.
 .B -c <list of sizes>
 Determine alignment between chunks of sections.  Enter a comma-separated list
 of the number of sections in each chunk.  The list should add up to the
-total number of sections in the image file.
+total number of sections in the image file.  When chunks are entered in this
+way, the reference or current section can be set to any section within a chunk.
+.TP
+.B -cs <list of sizes>
+Determine alignment between chunks of sections from samples near the
+boundaries between chunks (e.g., tomograms corresponding to physical
+sections).  Enter a comma-separated list of the number of sections in each
+sample, where the first and last chunk have only one sample and other chunks
+have two samples.  The list should add up to the total number of sections in
+the image file.  When chunks are entered in this way, the reference and
+current section are constrained to stay within a sample.
 .TP
 .B -B <factor>
 Bin images by the given factor when reading them in.  The translation

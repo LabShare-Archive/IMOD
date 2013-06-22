@@ -35,6 +35,7 @@
 #include "imodv.h"
 #include "imod.h"
 #include "mkmesh.h"
+#include "pyramidcache.h"
 #include "mv_gfx.h"
 #include "isosurface.h"
 #include "surfpieces.h"
@@ -45,12 +46,12 @@
 #include "display.h"
 #include "mv_objed.h"
 #include "control.h"
+#include "cachefill.h"
 
 
-enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
-  IIS_Z_SIZE};
+enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE, IIS_Z_SIZE};
 enum {FIND_DEFAULT_DIM=0, FIND_MAXIMAL_DIM};
-enum {MASK_NONE = 0, MASK_CONTOUR, MASK_OBJECT, MASK_SPHERE, MASK_ELLIPSOID};
+enum {MASK_NONE = 0, MASK_CONTOUR, MASK_OBJECT, MASK_SPHERE, MASK_ELLIPSOID, MASK_LASSO};
 
 static int xDrawSize = -1;
 static int yDrawSize = -1;
@@ -109,8 +110,9 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
   }
 
   iisData.a = a;
-  iisData.dia = new ImodvIsosurface
-    (a->vi, imodvDialogManager.parent(IMODV_DIALOG), "isosurface view");
+  iisData.dia = new ImodvIsosurface(a->vi, a->vi->pyrCache != NULL,
+                                    imodvDialogManager.parent(IMODV_DIALOG),
+                                    "isosurface view");
   imodvDialogManager.add((QWidget *)iisData.dia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)iisData.dia, IMODV_DIALOG);
   if (!iisData.dia->mVolume) {
@@ -120,15 +122,20 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
 }
 
 // The external call to update the dialog and isosurface
-bool imodvIsosurfaceUpdate(void)
+bool imodvIsosurfaceUpdate(int drawFlags)
 {
+  Iobj *obj;
   Icont *cont;
   int ob, co, pt;
+  bool lassoMask = iisData.maskType == MASK_LASSO;
+  bool objMask = iisData.maskType == MASK_OBJECT;
+  bool contMask = iisData.maskType == MASK_CONTOUR;
+  double checksum = 0.;
   ImodvIsosurface *dia = iisData.dia;
 
   if (dia && dia->mVolume) { 
     dia->updateCoords(iisData.flags & IIS_LINK_XYZ);
-    if (isBoxChanged(dia->mBoxOrigin, dia->mBoxEnds)) {
+    if ((drawFlags & IMOD_DRAW_IMAGE) || isBoxChanged(dia->mBoxOrigin, dia->mBoxEnds)) {
       dia->setBoundingBox();
       if (iisData.flags & IIS_CENTER_VOLUME)
         dia->setViewCenter();
@@ -143,14 +150,26 @@ bool imodvIsosurfaceUpdate(void)
       dia->setIsoObj(true);
       //imodvDraw(Imodv);
       return true;
-    } else if (!(iisData.flags & IIS_LINK_XYZ) && 
-               (iisData.maskType == MASK_CONTOUR || iisData.maskType == MASK_OBJECT)) {
-      imodGetIndex(Imodv->imod, &ob, &co, &pt);
-      cont = imodContourGet(Imodv->imod);
-      if ((iisData.maskType == MASK_OBJECT && ob != dia->mMaskObj) ||
-          (iisData.maskType == MASK_CONTOUR && cont && 
+    } else if (!(iisData.flags & IIS_LINK_XYZ) && (objMask || contMask || lassoMask)) {
+      if (lassoMask) {
+        cont = getTopZapLassoContour(false);
+      } else {
+        imodGetIndex(Imodv->imod, &ob, &co, &pt);
+        obj = imodObjectGet(Imodv->imod);
+        cont = imodContourGet(Imodv->imod);
+      }
+      if (objMask && obj) {
+        checksum = imodObjectChecksum(obj, ob);
+      } else if (cont && cont->psize == dia->mMaskPsize) {
+        for (pt = 0; pt < cont->psize; pt++)
+          checksum += cont->pts[pt].x + cont->pts[pt].y;
+      }
+      if ((objMask && (ob != dia->mMaskObj || checksum != dia->mMaskChecksum)) ||
+          (contMask && cont && 
            (ob != dia->mMaskObj || co != dia->mMaskCont || 
-            cont->psize != dia->mMaskPsize))) {
+            cont->psize != dia->mMaskPsize || checksum != dia->mMaskChecksum)) ||
+          (lassoMask && cont && 
+           (cont->psize != dia->mMaskPsize || checksum != dia->mMaskChecksum))) {
         dia->resizeToContours(false);
         return true;
       }
@@ -170,6 +189,19 @@ bool imodvIsosurfaceUpdate(void)
   } else
     return false;
 }
+
+// External call to get limits being displayed in X and Y
+bool imodvIsosurfaceBoxLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  ImodvIsosurface *dia = iisData.dia;
+  if (!dia || !dia->mVolume)
+    return false;
+  ixStart = dia->mBoxOrigin[0];
+  iyStart = dia->mBoxOrigin[1];
+  nxUse = dia->mBoxEnds[0] + 1 - ixStart;
+  nyUse = dia->mBoxEnds[1] + 1 - iyStart;
+  return true;
+} 
 
 // Compute starting and ending draw coordinates from center coordinate, desired
 // size and maximum size, shifting center if necessary
@@ -258,14 +290,16 @@ static void findDimLimits(int which, int &xdim, int &ydim, int &zdim, int *sizes
 
 // THE ImodvIsosurface CLASS IMPLEMENTATION
 
-static const char *buttonLabels[] = {"Save to Object", "Done", "Help"};
+static const char *buttonLabels[] = {"Save to Object", "Done", "Help", " Fill "};
 static const char *buttonTips[] = {"Save isosurfaces and bounding box as Imod objects",
-                                   "Close dialog box", "Open help window"};
+                                   "Close dialog box", "Open help window", 
+                                   "Fill cache for current displayed area"};
 static const char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size"};
 static const char *histLabels[] = {"Threshold", "Outer limit"};
 
-ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name)
-  : DialogFrame(parent, 3, 1, buttonLabels, buttonTips, false, 
+ImodvIsosurface::ImodvIsosurface(ImodView *vi, bool fillBut, QWidget *parent, 
+                                 const char *name)
+  : DialogFrame(parent, fillBut ? 4 : 3, 1, buttonLabels, buttonTips, false, 
       ImodPrefs->getRoundedStyle(), "3dmodv Isosurface View", "", name)
 {
   mCtrlPressed = false;
@@ -430,6 +464,8 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name
                          "Use data inside the largest sphere that fits in the box");
   radio = diaRadioButton("Ellipsoid", gbox, maskGroup, gbLayout, 4,
                          "Use data inside the largest ellipsoid that fits in the box");
+  radio = diaRadioButton("Zap lasso", gbox, maskGroup, gbLayout, 5,
+                         "Use data inside the lasso in the top Zap window");
   diaSetGroup(maskGroup, iisData.maskType);
 
   gbox = new QGroupBox("Set X/Y area from", this);
@@ -444,12 +480,14 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name
   mUseRubber->setToolTip("Show isosurfaces of area enclosed by the Zap rubberband");
   connect(mUseRubber, SIGNAL(clicked()), this, SLOT(showRubberBandArea()));
 
-  mSizeContours = diaPushButton(iisData.maskType == MASK_OBJECT ? "Object" : "Contour",
+  mSizeContours = diaPushButton(iisData.maskType == MASK_OBJECT ? "Object" : 
+                                (iisData.maskType == MASK_LASSO ? "Lasso" : "Contour"),
                                 this, hLayout);
   mSizeContours->setToolTip("Make X/Y sizes as big as masking contours if possible");
   connect(mSizeContours, SIGNAL(clicked()), this, SLOT(areaFromContClicked()));
   mSizeContours->setEnabled(iisData.maskType == MASK_CONTOUR || 
-                            iisData.maskType == MASK_OBJECT);
+                            iisData.maskType == MASK_OBJECT ||
+                            iisData.maskType == MASK_LASSO);
 
   hLayout = new QHBoxLayout;
   rightLayout->addLayout(hLayout);
@@ -480,7 +518,7 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, QWidget *parent, const char *name
   if (iisData.flags & IIS_CENTER_VOLUME) 
     setViewCenter();
   setBoundingObj();
-  for (int i = 0; i<mVi->nt+1; i++) {
+  for (int i = 0; i<mVi->numTimes+1; i++) {
     mStackThresholds.push_back(-1.0);
     mStackOuterLims.push_back(-1);
   }
@@ -577,10 +615,10 @@ bool ImodvIsosurface::allocArraysIfNeeded()
  */
 int ImodvIsosurface::getCurrStackIdx()
 {
-  if(mVi->nt == 0)
+  if(mVi->numTimes == 0)
     return 0;
   else
-    return mVi->ct - 1;
+    return mVi->curTime - 1;
 }
 
 /*
@@ -659,8 +697,14 @@ float ImodvIsosurface::fillVolumeArray()
   int value;
 
   /* Set up image pointer tables */
-  if ( ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &tempCacheSum) )
-    return -1;
+  if (mVi->pyrCache) {
+    if (ivwSetupFastTileAccess(mVi, mVi->pyrCache->getBaseIndex(), vmnullvalue, 
+                               tempCacheSum))
+      return -1;
+  } else {
+    if ( ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &tempCacheSum) )
+      return -1;
+  }
   if (mVi->ushortStore) {
     bmap = ivwUShortInRangeToByteMap(mVi);
     if (!bmap)
@@ -727,16 +771,19 @@ void ImodvIsosurface::applyMask()
   int ny = mBoxSize[1];
   int nz = mBoxSize[2];
   float aa, bb, cc, dx, dy, dxasq, dz, xcen, ycen, zcen;
+  bool useLasso = iisData.maskType == MASK_LASSO;
   xcen = (nx - 1.) / 2.;
   ycen = (ny - 1.) / 2.;
   zcen = (nz - 1.) / 2.;
 
   if (iisData.maskType == MASK_NONE) {
     return;
-  } else if (iisData.maskType == MASK_CONTOUR) {
+  } else if (iisData.maskType == MASK_CONTOUR || useLasso) {
 
     // Contour masking is simple, just call the routine on each Z plane
-    if (!obj || !obj->contsize || !iobjClose(obj->flags) || !cont)
+    if (useLasso)
+      cont = getTopZapLassoContour(false);
+    if ((!useLasso && (!obj || !obj->contsize || !iobjClose(obj->flags))) || !cont)
       return;
     scan = imodel_contour_scan(cont);
     for (iz = 0; iz < nz; iz++)
@@ -1675,7 +1722,7 @@ void ImodvIsosurface::linkXYZToggled(bool state)
 {
   setOrClearFlags(&iisData.flags, IIS_LINK_XYZ, state ? 1 : 0);
   if(state) {
-    imodvIsosurfaceUpdate();
+    imodvIsosurfaceUpdate(0);
     imodDraw(mVi, IMOD_DRAW_MOD);
   }
 }
@@ -1904,9 +1951,11 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
 void ImodvIsosurface::maskSelected(int which)
 {
   iisData.maskType = which;
-  mSizeContours->setEnabled(which == MASK_CONTOUR || which == MASK_OBJECT);
-  mSizeContours->setText(iisData.maskType == MASK_OBJECT ? "Object" : "Contour");
-  if (which == MASK_CONTOUR || which == MASK_OBJECT) {
+  mSizeContours->setEnabled(which == MASK_CONTOUR || which == MASK_OBJECT || 
+                            which == MASK_LASSO);
+  mSizeContours->setText(iisData.maskType == MASK_OBJECT ? "Object" : 
+                         (iisData.maskType == MASK_LASSO ? "Lasso" : "Contour"));
+  if (which == MASK_CONTOUR || which == MASK_OBJECT || which == MASK_LASSO) {
     resizeToContours(true);
   } else {
     fillAndProcessVols(false);
@@ -1928,17 +1977,23 @@ void ImodvIsosurface::resizeToContours(bool draw)
   Icont *cont = imodContourGet(Imodv->imod);
   int curob, curco, co, otherZ, iz, zmin, zmax, zlsize, nummax, znear, znlast, found = 0;
   int *contz, *zlist, *numatz, **contatz;
+  bool useLasso = iisData.maskType == MASK_LASSO;
   imodGetIndex(Imodv->imod, &curob, &curco, &co);
 
-  if (!obj || !obj->contsize || !iobjClose(obj->flags))
+  if (!useLasso && (!obj || !obj->contsize || !iobjClose(obj->flags)))
     return;
-  if (iisData.maskType == MASK_CONTOUR) {
+  if (iisData.maskType == MASK_CONTOUR || useLasso) {
+    if (useLasso) 
+      cont = getTopZapLassoContour(false);
     if (!cont || cont->psize < 3)
       return;
     imodContourGetBBox(cont, &pmin, &pmax);
+    mMaskPsize = cont->psize;
     mMaskObj = curob;
     mMaskCont = curco;
-    mMaskPsize = cont->psize;
+    mMaskChecksum = 0.;
+    for (co = 0; co < cont->psize; co++)
+      mMaskChecksum += cont->pts[co].x + cont->pts[co].y;
 
   } else if (iisData.maskType == MASK_OBJECT) {
     if (imodContourMakeZTables(obj, 1, 0, &contz, &zlist, &numatz, &contatz, &zmin, &zmax,
@@ -1974,7 +2029,7 @@ void ImodvIsosurface::resizeToContours(bool draw)
     if (!found)
       return;
     mMaskObj = curob;
-
+    mMaskChecksum = imodObjectChecksum(obj, curob);
   } else
     return;
   showDefinedArea(pmin.x, pmax.x, pmin.y, pmax.y, draw);
@@ -2098,6 +2153,8 @@ void ImodvIsosurface::buttonPressed(int which)
 {
   if (which == 2)
     imodShowHelpPage("modvIsosurface.html#TOP");
+  else if (which == 3)
+    imodCacheFill(mVi, 0);
   else if (which == 1)
     close();
   else if (which == 0) {

@@ -12,8 +12,10 @@ reference image.  It runs Xfsimplex(1) repeatedly to find these
 transformations.  Because Xfsimplex performs an incremental search for a local
 optimum in alignment, it cannot find the right alignment if there is a large
 displacement between the images.  Xfalign has options for initially finding
-such displacements by cross-correlation using tiltxcorr(1), and for working
-from a set of initial displacements computed previously.
+such displacements by cross-correlation using Tiltxcorr(1), and for working
+from a set of initial displacements computed previously or set up manually.
+In addition, Xfalign can find a warping transformation between successive
+images by running Tiltxcorr(1) to correlate overlapping image patches.
 
 These methods will work only on images where there are enough similar features 
 between one section and the next to guide the alignment.  It may take some
@@ -61,24 +63,68 @@ decreased.
 When initial cross-correlation is used, the program will produce two transform
 files, the one specified as your output file, and another file with the
 initial transformations.  The name of the latter file will be the root name
-of your output file, with the extension .xcxf (e.g., setname.xcxf if your
-output file is setname.xf).
+of your output file, with the extension ".xcxf" (e.g., "setname.xcxf" if your
+output file is "setname.xf").
 If some of the initial displacements are bad, there are two possible 
 approaches to repairing the deficiencies.
-You can use midas(1) to correct the final transformations, in which case you
+You can use Midas(1) to correct the final transformations, in which case you
 will have to introduce any rotations, size changes or stretches manually as
 well.  Alternatively, you can edit the initial transformations, then rerun
 xfalign with the 
 .B -initial
 option specifying that existing .xcxf file, instead of the 
 .B -prexcorr
-option.  This would give xfalign a chance to find the more complex
+option.  This would give Xfalign a chance to find the more complex
 linear transformations properly for the sections that had bad initial 
 alignments the first time.
 
+If you are finding warping transformations, by default the program will first
+find linear transforms with Xfsimplex(1).  However, you can also choose to
+have it find initial shifts as well as linear transforms with the
+.B -prexcorr
+option, you can have it find initial shifts only by entering 
+"-prexcorr" and "-param -1", or you can provide initial transforms with the
+.B -initial
+option.  In all of these cases, Xfalign runs Tiltxcorr(1) separately on each pair of
+sections after using Newstack(1) to transform the second image of the pair
+with its initial linear transform.  If images are already well enough aligned,
+you can try finding warping transforms directly in Tiltxcorr(1) by using
+"-param -1" without entering the 
+.B -prexcorr
+or
+.B -initial
+options.  This will be significantly faster, if it works.
+
+When you enter options that make Xfalign find linear transforms then warping
+transforms, the initial linear transforms are left in a file with extension
+".linxf" (e.g., the file is named "setname.linxf" if your output file is
+"setname.xf").  If there is problem with the final transforms, you can use
+Midas(1) with this ".linxf" file to see if the initial linear transforms are
+bad.  After correcting these transforms, you can rerun Xfalign to find the
+warping transforms again using
+.B -initial
+option with the ".xcxf" file, with "-param -1", and without the
+.B -prexcorr
+option.
+
+When finding warping alignments, it is possible to enter a
+model with contours enclosing areas where there are data suitable for patch
+correlation
+(see the
+.B -boundary
+option).  One can also enter separate limits for the shifts to be found in
+the patch correlations with the 
+.B -shift
+option.
+
+Xfalign works on RGB color images (MRC mode 16).  It simply uses Clip(1) to
+create a new gray-scale stack in bytes, and a gray-scale reference file if a
+color reference file is used.  If a color file is named "rootname.ext", the
+gray-scale file will be named "rootname_gray.ext".  Transforms can be applied
+to a color file by running Colornewst(1).
+
 .SS Options
-Options may be abbreviated to one to three letters, the minimum needed to
-unambiguously specify the particular option.  The
+The
 .B -prexcorr
 option cannot be used with either the
 .B -ref
@@ -88,7 +134,9 @@ options.
 
 Xfalign uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
-or one per line in a command file (without the -):
+or one per line in a command file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
 INSERT OPTION TEXT HERE
 .TP
 .B -StandardInput
@@ -98,12 +146,11 @@ Read parameter entries from standard input
 When using prealignment by cross-correlation, the initial transforms will
 be placed into a file with the same root name as the transform output file but
 with the extension .xcxf.
-If an output file already exists a backup image
-of the original is created
+If an output file already exists a backup of the original is created
 with the ~ extension.
 .SH AUTHOR
 David Mastronarde
 .SH SEE ALSO
-xfsimplex(1), tiltxcorr(1)
+xfsimplex(1), tiltxcorr(1), midas(1), colornewst(1), clip(1)
 .SH BUGS
 Report bugs to mast@colorado.edu

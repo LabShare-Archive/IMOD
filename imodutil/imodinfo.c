@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -582,15 +581,18 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
                              Ipoint max, int useclip)
 {
   Iobj *obj;
-  Icont *cont;
+  Icont *cont, *cont2;
   Icont *scan;
   Ipoint pmin, pmax;
-  int ob, co, pt, i, coz, skipz;
+  Ipoint *pts, *pts2;
+  int ob, co, pt, i, coz, skipz, pt2, co2;
   float tvol, volFac;
+  float delx, dely, delz, dist, distmax;
   double *sa = NULL;
   double *vol = NULL;
   double *mvol = NULL;
   int *nofc = NULL;
+  float *extent = NULL;
   unsigned int maxsurf;
   Iplane plane[2 * IMOD_CLIPSIZE];
   int nPlanes = 0;
@@ -611,34 +613,56 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         maxsurf = cont->surf;
     }
     obj->surfsize = maxsurf;
-    sa = (double *)malloc((obj->surfsize + 1) * sizeof(double));
-    if (!sa)
-      return;
-    vol = (double *)malloc((obj->surfsize + 1) * sizeof(double));
-    if (!vol){
-      free(sa);
-      return;
-    }
-    mvol = (double *)malloc((obj->surfsize + 1) * sizeof(double));
-    if (!mvol){
-      free(sa);
-      free(vol);
-      return;
-    }
-    nofc = (int *)malloc((obj->surfsize + 1) * sizeof(int));
-    if (!nofc){
-      free(vol);
-      free(mvol);
-      free(sa);
+    sa = B3DMALLOC(double, obj->surfsize + 1);
+    vol = B3DMALLOC(double, obj->surfsize + 1);
+    mvol = B3DMALLOC(double, obj->surfsize + 1);
+    nofc = B3DMALLOC(int, obj->surfsize + 1);
+    extent = B3DMALLOC(float, obj->surfsize + 1);
+    if (!sa || !vol || !mvol || !nofc || !extent) {
+      B3DFREE(vol);
+      B3DFREE(mvol);
+      B3DFREE(sa);
+      B3DFREE(nofc);
+      B3DFREE(extent);
       return;
     }
 
-    for(i = 0; i <= obj->surfsize; i++){
+    /* Compute maximum extent since Garry Morgan requested it! */
+    for (i = 0; i <= obj->surfsize; i++){
       sa[i] = vol[i] = mvol[i] = 0.0;
       nofc[i] = 0;
+      distmax = 0.;
+      extent[i] = 0.;
+      for (co = 0; co < obj->contsize; co++) {
+        cont = &(obj->cont[co]);
+        if (!cont->psize || cont->surf != i)
+          continue;
+        pts = cont->pts;
+        for (co2 = co; co2 < obj->contsize; co2++) {
+          cont2 = &(obj->cont[co2]);
+          if (!cont2->psize || cont2->surf != i)
+            continue;
+          pts2 = cont2->pts;
+          for (pt = 0; pt < cont->psize; pt++) {
+            for (pt2 = 0; pt2 < cont2->psize; pt2++) {
+              delx = pts[pt].x - pts2[pt2].x;
+              dely = pts[pt].y - pts2[pt2].y;
+              delz = (pts[pt].z - pts2[pt2].z) * imod->zscale;
+              if (fabs(delx) + fabs(dely) + fabs(delz) < extent[i])
+                continue;
+              dist = delx * delx + dely * dely + delz * delz;
+              if (dist > distmax) {
+                distmax = dist;
+                extent[i] = sqrt((double)dist);
+              }
+            }
+          }
+        }
+      }
+      extent[i] *= imod->pixsize;
     }
       
-    for(co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
       if (!cont->psize)
         continue;
@@ -689,6 +713,7 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         free(vol);
         free(mvol);
         free(sa);
+        free(extent);
         return;
       }
       for(i = 0; i <= obj->surfsize; i++)
@@ -753,23 +778,24 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         }
       }               
       fprintf(fout, "#Surface : Contours,  Cyl. Volume,  "
-              "Mesh Volume,  Cyl. Surface,  Mesh Surface\n");
+              "Mesh Volume,  Mesh Surface,  Max Extent\n");
       for(i = 0; i <= obj->surfsize; i++)
         fprintf(fout, "%7d   %8d   %12.6g  %12.6g  %12.6g  %12.6g\n"
-                , i, nofc[i], vol[i], mvol[i], sa[i], msa[i]);
+                , i, nofc[i], vol[i], mvol[i], msa[i], extent[i]);
       free(msa);
     } else {
           
-      fprintf(fout, "#Surface : Contours,  Cyl. Volume,  Cyl. Surface\n");
+      fprintf(fout, "#Surface : Contours,  Cyl. Volume,  Cyl. Surface,  Max. Extent\n");
       for(i = 0; i <= obj->surfsize; i++)
-        fprintf(fout, "%7d   %8d   %12.6g  %12.6g\n", 
-                i, nofc[i], vol[i], sa[i]);
+        fprintf(fout, "%7d   %8d   %12.6g  %12.6g  %12.6g\n", 
+                i, nofc[i], vol[i], sa[i], extent[i]);
     }
 
     free(sa);
     free(vol);
     free(mvol);
     free(nofc);
+    free(extent);
   }
   return;
 }
@@ -2235,83 +2261,3 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
     }
   }
 }
-
-/*
-
-$Log$
-Revision 3.22  2010/03/31 05:11:55  mast
-Fixed verbose contour center of mass for scattered points and contours
-with one or two points
-
-Revision 3.21  2009/02/24 18:03:00  mast
-Made object centroid be done differently for open object
-
-Revision 3.20  2008/11/14 06:11:09  mast
-Added volume in mesh report, renamed mesh volume to contour volume, made
-it drop the cylinder reports if the mesh exists.
-
-Revision 3.19  2008/06/19 19:18:37  mast
-Fixed -vv option
-
-Revision 3.18  2008/04/04 21:21:29  mast
-Free contour after adding to object
-
-Revision 3.17  2006/09/13 02:37:25  mast
-Switch to allocating and freeing model
-
-Revision 3.16  2006/06/26 14:48:49  mast
-Added b3dutil include for parselist
-
-Revision 3.15  2005/09/11 19:22:11  mast
-Changes for new style of mesh
-
-Revision 3.14  2005/04/04 22:41:32  mast
-Fixed problem with argument order to imdContourGetBBox
-
-Revision 3.13  2005/03/20 19:56:05  mast
-Eliminating duplicate functions
-
-Revision 3.12  2005/01/29 20:28:57  mast
-Pulled out routines for making Z tables and doing nested contour
-analysis; fixed bug in clipping plane volume measurement
-
-Revision 3.11  2004/12/06 22:39:54  mast
-Fixed use of -f with ascii output of model
-
-Revision 3.10  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.9  2004/09/28 22:20:31  mast
-Overhauled to add mesh volume computation that takes account of spacing
-between connected contours; to handle multiple clipping planes; and
-to give consistent results with inside contours, clipping and subset
-volumes for main output, full object, surface, and centroid outputs.
-
-Revision 3.8  2004/09/21 20:34:25  mast
-First changes to deal with new clipping plane structure
-
-Revision 3.7  2004/09/10 21:34:01  mast
-Eliminated long variables
-
-Revision 3.5.4.1  2004/07/07 19:26:21  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.5  2003/10/26 14:46:41  mast
-fixed problem in eliminating getopt
-
-Revision 3.4  2003/10/24 03:05:23  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.3  2003/10/02 05:38:25  mast
-Fixed point info output so it does subareas correctly for scattered points or 
-points with sizes; and made hush suppress individual point data
-
-Revision 3.2  2003/02/07 00:18:06  mast
-Divided all mesh triangles that cross boundaries with -x, -y, -z options
-so that no area is lost
-
-Revision 3.1  2002/12/23 21:40:50  mast
-fixed exit status
-
-*/
-

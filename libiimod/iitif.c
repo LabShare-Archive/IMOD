@@ -8,7 +8,6 @@
  *   Colorado.
  *
  *  $Id$
- *  Log at end of file
  */
 
 /************************************************************************** 
@@ -61,6 +60,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int conv
 static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout, int byte,
                      int toShort, int pixsize, int type, int format, int samples,
                      float slope, float offset, int doscale, unsigned char *map);
+static void bestTileSize(int imSize, int *tileSize, int *numTiles);
 static TIFF *openWithoutBMode(ImodImageFile *inFile);
 static int setMatchingDirectory(ImodImageFile *inFile, int dirnum);
 static void closeWithError(ImodImageFile *inFile, char *message);
@@ -77,11 +77,16 @@ int iiTIFFCheck(ImodImageFile *inFile)
   b3dUInt16 buf;
   int dirnum = 1;
   uint16 bits, samples, photometric, sampleformat, planarConfig;
-  uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm;
-  int nxim, nyim, formatDef;
-  int defined, i, j, mismatch = 0, err = 0;
+  uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm, resUnit;
+  uint32 rowsPerStrip;
+  int nxim, nyim, formatDef, tileWidth, tileLength;
+  int defined, i, j, hasPixelIm, hasPixel = 0, mismatch = 0, err = 0;
+  float xResol, yResol, xPixelIm = 0., yPixelIm = 0., xPixel, yPixel, resScale;
   double minmax;
   b3dUInt16 *redp, *greenp, *bluep;
+  char *resvar;
+  uint16 TVIPStag = 37708;
+  float pixelLimit = 1.;
 
   if (!inFile) 
     return IIERR_BAD_CALL;
@@ -121,6 +126,9 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->multipleSizes = 0;
   inFile->planesPerImage = 1;
   inFile->contigSamples = 1;
+  resvar = getenv("TIFF_RES_PIXEL_LIMIT");
+  if (resvar)
+    pixelLimit = atof(resvar);
 
   /* Read each directory of the file, get properties and count usable images */
   do {
@@ -140,17 +148,42 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
     defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &formatIm);
 
+    /* Handle pixel sizes */
+    hasPixelIm = TIFFGetField(tif, TIFFTAG_XRESOLUTION, &xResol);
+    resUnit = 0;
+    TIFFGetField(tif, TIFFTAG_RESOLUTIONUNIT, &resUnit);
+    if (resUnit > 1 && hasPixelIm) {
+      if (!TIFFGetField(tif, TIFFTAG_YRESOLUTION, &yResol))
+        yResol = xResol;
+      resScale = 1.e8 * (resUnit == 2 ? 2.54 : 1.);
+      xPixelIm = resScale / xResol;
+      yPixelIm = resScale / yResol;
+    }
+
     /* If this is a bigger image, it is a new standard, so set all the
        properties and reset to one directory */
     if ((float)nxim * (float)nyim > (float)inFile->nx * (float)inFile->ny) {
       inFile->nx = nxim;
       inFile->ny = nyim;
+
+      /* Record the strip and tile size for 3dmod caching */
+      inFile->tileSizeX = inFile->tileSizeY = 0;
+      if (TIFFGetField(tif, TIFFTAG_ROWSPERSTRIP, &rowsPerStrip)) {
+        inFile->tileSizeY = rowsPerStrip;
+      } else if (TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tileWidth) &&
+                 TIFFGetField(tif, TIFFTAG_TILELENGTH, &tileLength)) {
+        inFile->tileSizeX = tileWidth;
+        inFile->tileSizeY = tileLength;
+      }        
       bits = bitsIm;
       photometric = photoIm;
       planarConfig = planarIm;
       samples = samplesIm;
       formatDef = defined;
       sampleformat = formatIm;
+      hasPixel = hasPixelIm;
+      xPixel = xPixelIm;
+      yPixel = yPixelIm;
       
       if (dirnum)
         inFile->multipleSizes = 1;
@@ -289,12 +322,26 @@ int iiTIFFCheck(ImodImageFile *inFile)
       }
     }
   }
-  
+
+  if (TIFFGetField(tif, TVIPStag, &bits, &inFile->userData) > 0) {
+    inFile->userCount = bits;
+    inFile->userFlags = IIFLAG_TVIPS_DATA;
+    if (TIFFIsByteSwapped(tif))
+      inFile->userFlags |= IIFLAG_BYTES_SWAPPED;
+  }
+
   /* Use min and max from file if defined (better be there for float/int) */
   if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
     inFile->amin = minmax;
   if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
     inFile->amax = minmax;
+
+  /* Handle pixel size if it is above threshold */
+  if (hasPixel && (inFile->anyTiffPixSize || xPixel / 1.e4 <= pixelLimit)) {
+    inFile->xscale = xPixel;
+    inFile->yscale = yPixel;
+    inFile->zscale = xPixel;
+  }
 
   inFile->smin   = inFile->amin;
   inFile->smax   = inFile->amax;
@@ -349,7 +396,7 @@ int tiffGetField(ImodImageFile *inFile, int tag, void *value)
 }
 /* Get the value for a field that returns the address of an array.  The count
    argument seems to be required but does not seem to return the count */
-int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value)
+int tiffGetArray(ImodImageFile *inFile, int tag, uint16 *count, void *value)
 {
   TIFF *tif;
   if (!inFile)
@@ -380,8 +427,8 @@ static void warningHandler(const char *module, const char *fmt, va_list ap)
   va_end(ap);
 
   /* It didn't work to call the old handler with some errors, so print it
-     ourselves to stderr */
-  if (!strstr(buffer, "unknown field with tag")) {
+     ourselves to stderr.  It was "unknown" in libtiff 3 and "Unknown" in 4 */
+  if (!strstr(buffer, "nknown field with tag")) {
     if (module)
       fprintf(stderr, "%s: Warning, %s\n", module, buffer);
     else
@@ -866,8 +913,8 @@ int tiffOpenNew(ImodImageFile *inFile)
   return 0;
 }
 
-static uint32 rowsPerStrip, lineBytes, stripBytes;
-static int linesDone, numStrips, alreadyInverted;
+static uint32 rowsPerStrip, lineBytes, stripBytes, xTileSize;
+static int linesDone, numStrips, alreadyInverted, numXtiles, pixSize;
 static char *tmpbuf;
 
 /*
@@ -878,10 +925,10 @@ static char *tmpbuf;
 int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
                      int inverted, int resolution, int quality)
 {
-  int strip, lines, err;
+  int strip, lines, err, tileX = 0;
   char *sbuf;
   err = tiffWriteSetup(inFile, compression, inverted, resolution, quality,
-                       &strip, &lines);
+                       &strip, &lines, &tileX);
   if (err)
     return err;
   for (strip = 0; strip < numStrips; strip++) {
@@ -898,9 +945,19 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
   return 0;
 }
 
-int tiffWriteSetup(ImodImageFile *inFile, int compression, 
-                   int inverted, int resolution, int quality, 
-                   int *outRows, int *outNum)
+/*
+ * Set up the writing of a section, which then be written as either strips or tiles.
+ * Compression is done according to the given compression and quality values.  Data will
+ * be inverted before writing unless the inverted entry is nonzero.  outRows is returned
+ * with the number of rows per strip or tile; outNum is returned with number of strips or
+ * tiles in Y.  tileSizeX must be 0 to write in strips; in this case any incoming value 
+ * of outRows is ignored.  To write in tiles, supply the desired size in X in tileSizeX 
+ * and the size in Y in outRows.  These sizes will be adjusted to a multiple of 16 that
+ * minimizes the padding required to make all tiles equal in size.
+ */
+
+int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int resolution,
+                   int quality, int *outRows, int *outNum, int *tileSizeX)
 {
   uint32 stripTarget = 8192;
   int maxStrips = 4096;
@@ -982,22 +1039,40 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression,
   }
   TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, photometric);
   TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, samples);
-  
-  /* Increase the strip target size to avoid having too many strips, as per
-     recommendations that go with libtiff4 */
-  lineBytes = (samples * bits / 8) * inFile->nx;
-  if (inFile->ny > maxStrips)
-    stripTarget = (1 + inFile->ny / maxStrips) * lineBytes;
-  rowsPerStrip = B3DMAX(1, (stripTarget + lineBytes / 2) / lineBytes);
+  pixSize = samples * bits / 8;
 
-  /* For JPEG compression, rows must be multiple of 8 */
-  if (compression == COMPRESSION_JPEG && rowsPerStrip % 8) {
-    if (rowsPerStrip < 5 || rowsPerStrip % 8 > 4)
-      rowsPerStrip = 8 * ((rowsPerStrip + 7) / 8);
-    else
-      rowsPerStrip = 8 * (rowsPerStrip / 8);
+  if (*tileSizeX) {
+
+    rowsPerStrip = *outRows;
+    bestTileSize(inFile->nx, tileSizeX, &numXtiles);
+    bestTileSize(inFile->ny, &rowsPerStrip, &numStrips);
+    xTileSize = *tileSizeX;
+    TIFFSetField(tif, TIFFTAG_TILEWIDTH, xTileSize);
+    TIFFSetField(tif, TIFFTAG_TILELENGTH, rowsPerStrip);
+    lineBytes = pixSize * xTileSize;
+    
+  } else {
+  
+    /* Increase the strip target size to avoid having too many strips, as per
+       recommendations that go with libtiff4 */
+    lineBytes = pixSize * inFile->nx;
+    if (inFile->ny > maxStrips)
+      stripTarget = (1 + inFile->ny / maxStrips) * lineBytes;
+    rowsPerStrip = B3DMAX(1, (stripTarget + lineBytes / 2) / lineBytes);
+
+    /* For JPEG compression, rows must be multiple of 8 */
+    if (compression == COMPRESSION_JPEG && rowsPerStrip % 8) {
+      if (rowsPerStrip < 5 || rowsPerStrip % 8 > 4)
+        rowsPerStrip = 8 * ((rowsPerStrip + 7) / 8);
+      else
+        rowsPerStrip = 8 * (rowsPerStrip / 8);
+    }
+    TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
   }
-  TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
+  numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
+  stripBytes = rowsPerStrip * lineBytes;
+  *outNum = numStrips;
+  *outRows = rowsPerStrip;
 
   time(&curtime);
   tm = localtime(&curtime);
@@ -1005,38 +1080,75 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression,
           tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
   TIFFSetField(tif, TIFFTAG_DATETIME, datetime);
 
-  stripBytes = rowsPerStrip * lineBytes;
-  numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
-  if (!inverted) {
+  if (!inverted || xTileSize) {
     tmpbuf = (char *)_TIFFmalloc(stripBytes);
     if (!tmpbuf)
       return IIERR_MEMORY_ERR;
   }
   linesDone = 0;
   alreadyInverted = inverted;
-  *outRows = rowsPerStrip;
-  *outNum = numStrips;
   return 0;
 }
 
+/* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does 
+   But also increase tile size to the point that minimizes the extra amount that is
+   put out because tiles must be equal */
+static void bestTileSize(int imSize, int *tileSize, int *numTiles)
+{
+  *numTiles = (imSize + *tileSize - 1) / *tileSize;
+  *tileSize = 16 * (int)ceil(imSize / (16. * *numTiles));
+  *numTiles = (imSize + *tileSize - 1) / *tileSize;
+}
+
+/*
+ * Write a strip of the given number.  When writing tiles, the buffer must contain the
+ * whole strip of data; this routine will copy it into tiles for saving.
+ */
 int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf)
 {
-  int lines, i;
+  int lines, i, xOffset, xtile, numBytes;
+  size_t bufLine;
   char *inbuf;
   TIFF *tif = (TIFF *)inFile->header;
   lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
-  if (alreadyInverted) {
-    tmpbuf = (char *)buf;
-  } else {
-    for (i = 0; i < lines; i++) {
-      inbuf = (char *)buf + (lines - (i + 1)) * lineBytes;
-      memcpy(tmpbuf + i * lineBytes, inbuf, lineBytes);
+
+  if (!xTileSize) {
+
+    /* Ordinary strip writing */
+    if (alreadyInverted) {
+      tmpbuf = (char *)buf;
+    } else {
+      for (i = 0; i < lines; i++) {
+        inbuf = (char *)buf + (lines - (i + 1)) * lineBytes;
+        memcpy(tmpbuf + i * lineBytes, inbuf, lineBytes);
+      }
     }
-  }
-  if (TIFFWriteEncodedStrip(tif, strip, tmpbuf, lineBytes * lines) < 0) {
-    if (!alreadyInverted)
-      free(tmpbuf);
-    return IIERR_IO_ERROR;
+    if (TIFFWriteEncodedStrip(tif, strip, tmpbuf, lineBytes * lines) < 0) {
+      if (!alreadyInverted)
+        _TIFFfree(tmpbuf);
+      return IIERR_IO_ERROR;
+    }
+  } else {
+    
+    /* Tile writing.  Copy just the data that exists in the strip given to us into
+     the portion of the buffer corresponding to its rows and columns */
+    for (xtile = 0; xtile < numXtiles; xtile++) {
+      xOffset = xtile * xTileSize * pixSize;
+      numBytes = B3DMIN(xTileSize, inFile->nx - xtile * xTileSize) * pixSize;
+      for (i = 0; i < lines; i++) {
+        bufLine = alreadyInverted ? i : lines - (i + 1);
+        inbuf = (char *)buf + bufLine * inFile->nx * pixSize + xOffset;
+        memcpy(tmpbuf + i * lineBytes, inbuf, numBytes);
+      }
+
+      /* But then write the entire buffer of data.  It is required to have the full 
+         size */
+      if (TIFFWriteEncodedTile(tif, xtile + strip * numXtiles, tmpbuf, 
+                               lineBytes * rowsPerStrip) < 0) {
+        _TIFFfree(tmpbuf);
+        return IIERR_IO_ERROR;
+      }
+    }
   }
   linesDone += lines;
   return 0;
@@ -1063,88 +1175,3 @@ int tiffVersion(int *minor)
   sscanf(substr + 7, "%d.%d.%d", &version, minor, &update);
   return version;
 }    
-
-/*
-  $Log$
-  Revision 3.26  2011/03/14 22:55:07  mast
-  Changes for scaling to ushorts; also simplified integer and float loading with
-  scaling and limited the values from scaling without a map.
-
-  Revision 3.25  2011/01/29 15:59:29  mast
-  Fixed test for output file size to include data size
-
-  Revision 3.24  2010/12/21 05:28:40  mast
-  Added quality argument to tiff writing
-
-  Revision 3.23  2010/12/18 18:43:18  mast
-  Changes to write files in chunks and for big tiff files
-
-  Revision 3.22  2010/12/15 06:21:58  mast
-  Added ability to set resolution when writing
-
-  Revision 3.21  2010/07/06 03:20:00  mast
-  Put out module too, which sometimes has the filename!
-
-  Revision 3.20  2010/07/05 20:01:19  mast
-  Fixed warning handler to not try to call TIFF handler
-
-  Revision 3.19  2009/06/19 21:02:30  mast
-  Took out debug output
-
-  Revision 3.18  2009/06/19 20:45:28  mast
-  Added ability to read long integer and RGBA files
-
-  Revision 3.17  2009/04/18 19:11:32  mast
-  Added date-time stamp to tiff file
-
-  Revision 3.16  2009/04/01 03:18:57  mast
-  Use routine to prevent buffer overrun in warning handler
-
-  Revision 3.15  2009/03/31 23:47:35  mast
-  Added writing function and support for multiple samples as images either
-  in contiguous bytes or separate planes and for multiple sizes in file
-
-  Revision 3.14  2008/11/25 16:32:11  mast
-  Visual C wants all declarations before executable statements
-
-  Revision 3.13  2008/11/25 16:24:31  mast
-  Made stripping of b mode fancier, switched back to non-allocated fmode
-
-  Revision 3.12  2008/11/24 23:59:25  mast
-  Changes for using from SerialEM: field-getting
-
-  Revision 3.11  2008/05/23 22:15:22  mast
-  Added float support and fixed assignment of min and max when it exists
-
-  Revision 3.10  2007/06/13 17:12:07  sueh
-  bug# 1019 In iiTIFFCheck and tiffReopen, setting inFile->sectionSkip to 0.
-
-  Revision 3.9  2006/09/12 15:49:58  mast
-  Added include
-
-  Revision 3.8  2006/09/03 22:17:59  mast
-  Reorganized and switched to IIERR codes
-
-  Revision 3.7  2006/08/27 23:46:28  mast
-  Added color map support
-  
-  Revision 3.6  2005/05/19 23:51:40  mast
-  Made open routine reopen the file if it fails as a tiff
-  
-  Revision 3.5  2005/02/11 01:42:33  mast
-  Warning cleanup: implicit declarations, main return type, parentheses, etc.
-  
-  Revision 3.4  2004/11/05 18:53:04  mast
-  Include local files with quotes, not brackets
-  
-  Revision 3.3  2004/01/21 00:56:50  mast
-  Stopped freeing map from byte_map
-  
-  Revision 3.2  2004/01/05 17:51:16  mast
-  renamed imin/imax to smin/smax or outmin/outmax as appropriate, changed
-  unsigned short to b3dUInt16
-  
-  Revision 3.1  2003/02/27 17:08:23  mast
-  Set default upper coordinates to -1 rather than 0.
-  
-*/

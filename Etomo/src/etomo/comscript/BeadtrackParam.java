@@ -231,6 +231,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public static final String MIN_OVERLAP_BEADS_KEY = "MinOverlapBeads";
   public static final String MAX_VIEWS_IN_ALIGN_KEY = "MaxViewsInAlign";
   public static final String ROUNDS_OF_TRACKING_KEY = "RoundsOfTracking";
+  public static final String SOBEL_FILTER_CENTERING_KEY="SobelFilterCentering";
+  public static final String KERNEL_SIGMA_FOR_SOBEL_KEY = "KernelSigmaForSobel";
 
   private final BaseManager manager;
 
@@ -260,7 +262,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   private ScriptParameter roundsOfTracking;
   private ScriptParameter imagesAreBinned;
   private ScriptParameter beadDiameter;
-
+  private EtomoBoolean2 sobelFilterCentering;
+  private ScriptParameter kernelSigmaForSobel;
+  
   private AxisID axisID;
 
   public BeadtrackParam(AxisID axisID, BaseManager manager) {
@@ -325,8 +329,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
         MAX_VIEWS_IN_ALIGN_KEY, requiredMap);
     roundsOfTracking = new ScriptParameter(EtomoNumber.Type.INTEGER,
         ROUNDS_OF_TRACKING_KEY, requiredMap);
-    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter("ImagesAreBinned");
     beadDiameter = new ScriptParameter(EtomoNumber.Type.DOUBLE, "BeadDiameter");
+    sobelFilterCentering = new EtomoBoolean2(SOBEL_FILTER_CENTERING_KEY);
+    kernelSigmaForSobel=new ScriptParameter(EtomoNumber.Type.DOUBLE,KERNEL_SIGMA_FOR_SOBEL_KEY);
   }
 
   private void reset() {
@@ -379,6 +385,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     roundsOfTracking.reset();
     imagesAreBinned.reset();
     beadDiameter.reset();
+    sobelFilterCentering.reset();
+    kernelSigmaForSobel.reset();
   }
 
   private HashMap getRequiredMap() {
@@ -480,6 +488,14 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public ConstEtomoNumber getLocalAreaTracking() {
     return localAreaTracking;
   }
+  
+  public boolean isSobelFilterCentering() {
+    return sobelFilterCentering.is();
+  }
+  
+  public String getKernelSigmaForSobel() {
+    return kernelSigmaForSobel.toString();
+  }
 
   public ConstEtomoNumber getLocalAreaTargetSize() {
     return localAreaTargetSize;
@@ -560,6 +576,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
       maxViewsInAlign.parse(scriptCommand);
       roundsOfTracking.parse(scriptCommand);
       beadDiameter.parse(scriptCommand);
+      sobelFilterCentering.parse(scriptCommand);
+      kernelSigmaForSobel.parse(scriptCommand);
     }
     //backward compatibility bug# 1160
     if (!centroidRadius.isNull()) {
@@ -629,6 +647,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     minOverlapBeads.updateComScript(scriptCommand);
     maxViewsInAlign.updateComScript(scriptCommand);
     roundsOfTracking.updateComScript(scriptCommand);
+    sobelFilterCentering.updateComScript(scriptCommand);
+    kernelSigmaForSobel.updateComScript(scriptCommand);
 
     minTiltRangeToFindAxis.updateComScript(scriptCommand);
     minTiltRangeToFindAngles.updateComScript(scriptCommand);
@@ -801,6 +821,14 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   public ConstEtomoNumber setLocalAreaTracking(boolean localAreaTracking) {
     return this.localAreaTracking.set(localAreaTracking);
   }
+  
+  public void setSobelFilterCentering(boolean input) {
+    sobelFilterCentering.set(input);
+  }
+  
+  public void setKernelSigmaForSobel(String input) {
+    kernelSigmaForSobel.set(input);
+  }
 
   public ConstEtomoNumber setLocalAreaTargetSize(String localAreaTargetSize) {
     return this.localAreaTargetSize.set(localAreaTargetSize);
@@ -814,7 +842,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
     return this.minOverlapBeads.set(minOverlapBeads);
   }
 
-  public void setImagesAreBinned(long input) {
+  public void setImagesAreBinned(int input) {
     imagesAreBinned.set(input);
   }
 
@@ -896,10 +924,6 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam,
   }
 
   public ConstEtomoNumber getEtomoNumber(final FieldInterface field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public float getFloatValue(final FieldInterface field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

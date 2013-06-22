@@ -25,7 +25,9 @@ DDEESSCCRRIIPPTTIIOONN
   options accepted by the old newst script are all accepted by newstack.
   Almost all options can be abbreviated to one or two letters.  The following
   options can be specified either as command line arguments (with the -) or
-  one per line in a command file or parameter file (without the -):
+  one per line in a command file or parameter file (without the -).  Options
+  can be abbreviated to unique letters; the currently valid abbreviations for
+  short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 
@@ -118,7 +120,7 @@ INSERT OPTION TEXT HERE
 AADDDDIITTIIOONNAALL NNOOTTEESS
 
   The program will adjust the pixel spacing in the header of the output file
-  if binning and/or the expansion or skrinkage options are used.  Models built
+  if binning and/or the expansion or shrinkage options are used.  Models built
   on the input file in 3dmod should display correctly on a file scaled by
   these three options.  However, the image origin is not adjusted for images
   that are a subset of the input image unless the -origin option is entered as
@@ -174,14 +176,12 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   Complex data (Fourier transforms) can be stacked but not otherwise  
   manipulated.  Don't try to change the size or center of the FFT's.
 
-  Newstack will not work with color data (MRC data mode 16).  If your images
-  came from color Tiff files and you do not need the color information, use
-  the "-g" option when converting them with Tif2mrc.  If you do need to 
-  preserve the color information, then you can split the color channels into
+  Newstack will not work directly with color data (MRC data mode 16), but
+  there is a script, Colornewst(1), that will split the color channels into
   three byte-mode files with "clip splitrgb", use Newstack to perform
   identical operations on each of the three files, and recombine the data into
   a color file with "clip joinrgb".
-         
+
   The program attempts to allocate enough memory to hold an entire input
   image and output image in 4 bytes per pixel, but it can work on large images
   with less memory than this by reading, operating on, and writing strips of

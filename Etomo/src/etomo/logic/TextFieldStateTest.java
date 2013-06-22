@@ -4,7 +4,6 @@ import java.io.File;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.ParsedElementType;
 
 import junit.framework.TestCase;
 
@@ -106,12 +105,6 @@ public class TextFieldStateTest extends TestCase {
 
   }
 
-  public void testConvertToParsedArray() {
-    TextFieldState testInstance = new TextFieldState(false, ParsedElementType.MATLAB_ARRAY, null);
-    assertEquals("builds parsed array", "1, 2, 3",
-        testInstance.convertToParsedArray("1,2,3").getRawString());
-  }
-
   public void testConvertToContractedString() {
     TextFieldState testInstance = new TextFieldState(false, null, null);
     File file = new File(new File(new File("c"), "d"), "e");
@@ -170,14 +163,14 @@ public class TextFieldStateTest extends TestCase {
     n = testInstance.convertToEtomoNumber("1");
     assertTrue("return number", n.equals(1));
 
-    n = testInstance.convertToEtomoNumber(EtomoNumber.Type.FLOAT, "1.5");
+    n = testInstance.convertToEtomoNumber(EtomoNumber.Type.DOUBLE, "1.5");
     assertTrue("return number", n.equals(1.5));
   }
 
-  public void testConvertToLong() {
+  public void testConvertToInt() {
     TextFieldState testInstance = new TextFieldState(false, null, null);
-    assertEquals("null number - return 0", 0, testInstance.convertToLong(null));
-    assertEquals("bad number - return 0", 0, testInstance.convertToLong("not a number"));
-    assertEquals("return number", 1, testInstance.convertToLong("1"));
+    assertEquals("null number - return 0", 0, testInstance.convertToInt(null));
+    assertEquals("bad number - return 0", 0, testInstance.convertToInt("not a number"));
+    assertEquals("return number", 1, testInstance.convertToInt("1"));
   }
 }

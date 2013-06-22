@@ -512,8 +512,10 @@ The
 .B -r, -g,
 and
 .B -b
-options can be used to scale the components (default scaling is 1).  
-No other options except 
+options can be used to scale the components (default scaling is 1).  The 
+.B -a
+option can be used to append to an existing color file of the same size in X
+and Y.  No other options except 
 .B -v
 will work with this process.
 .TP
@@ -631,9 +633,14 @@ for sigma up to 2.0, and 7x7 for higher sigma values.
 Output the 3 color channels of an RGB file into three separate files, so that
 other operations can be performed on them (such as transformations).  With
 this process, the output file name will be used as a root for three filenames
-ending in .r, .g, and .b.  No options except
+ending in .r, .g, and .b.  A subset in Z may be extracted
+from the file, where the
+.B -iz
+entry is interpreted as usual depending on whether 
+.B -2d
+is specified.  No other options except
 .B -v
-will work with this process.
+will work with this process.  
 .TP
 .B standev
 .PD 0
@@ -703,6 +710,9 @@ limit with
 and the upper limit with
 .B
 -h.
+If the 
+.B -s
+option is given, values beyond the limit will be replaced by the image mean.
 Standard input and output options can be used.
 .TP
 .B unwrap

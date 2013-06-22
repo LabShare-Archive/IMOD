@@ -48,7 +48,7 @@ class ImodClipboard : public QObject
   Q_OBJECT
 
  public:
-  ImodClipboard(bool useStdin);
+  ImodClipboard(bool useStdin, bool willLoadImages);
   ~ImodClipboard() {};
   bool handleMessage();
   bool executeMessage();
@@ -57,6 +57,7 @@ class ImodClipboard : public QObject
   void startDisconnect();
   int waitForDisconnect();
   bool disconnectedFromStderr() {return mDisconnected;};
+  void doneWithLoad();
 
   QTimer *mClipHackTimer;
   QTimer *mStdinTimer;
@@ -69,9 +70,10 @@ class ImodClipboard : public QObject
 
  private:  
   bool mHandling;
-  bool mExiting;
+  int mExiting;
   bool mUseStdin;
   bool mDisconnected;
+  int mDeferredHandling;
   QString mSavedClipboard;
 };
 

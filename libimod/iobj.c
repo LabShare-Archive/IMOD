@@ -310,7 +310,7 @@ Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex)
  * Adds the mesh pointed to by [inMesh] to the mesh array of object [inObject].
  * All pointers are transferred to the new mesh array element and no data are
  * duplicated.  If [inMesh] was allocated, such as with 
- * @imesh.html#imodMeshNew , it should be freed with free.
+ * @@imesh.html#imodMeshNew@ , it should be freed with free.
  * Returns index of new array element or -1 if error.
  */
 int imodObjectAddMesh(Iobj *inObject, Imesh *inMesh)
@@ -473,7 +473,7 @@ int imodel_object_centroid(Iobj *obj, Ipoint *rcp)
 /*!
  * Adds contour [ncont] to the end of the contour array of object [obj].  
  * Pointers are copied so no data are duplicated.  If [ncont] was allocated, 
- * such as with @icont.html#imodContourNew , it should be freed with free.
+ * such as with @@icont.html#imodContourNew@ , it should be freed with free.
  * Returns index of new contour or -1 if error.
  */
 int imodObjectAddContour(Iobj *obj, Icont *ncont)
@@ -486,7 +486,7 @@ int imodObjectAddContour(Iobj *obj, Icont *ncont)
 /*!
  * Inserts contour [ncont] at position [index] into the contour array of object
  * [obj].  Pointers are copied so no data are duplicated.  If [ncont] was 
- * allocated, such as with @icont.html#imodContourNew , it should be freed 
+ * allocated, such as with @@icont.html#imodContourNew@ , it should be freed 
  * with free.  Returns index of new contour or -1 if error.
  */
 int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
@@ -525,7 +525,7 @@ int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
 /*!
  * Removes the contour at [index] from object [obj] without deleting the 
  * contour data; this is thus appropriate after adding the contour to another
- * object with @imodObjectAddContour.  Returns 1 if error.
+ * object with @@imodObjectAddContour@.  Returns 1 if error.
  */
 int imodObjectRemoveContour(Iobj *obj, int index)
 {

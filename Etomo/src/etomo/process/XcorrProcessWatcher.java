@@ -27,6 +27,9 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   private boolean stop = false;
   private boolean running = false;
 
+  public void dumpState() {
+  }
+
   /**
    * Construct a xcorr process watcher
    * @param appMgr
@@ -64,9 +67,9 @@ public class XcorrProcessWatcher implements ProcessMonitor {
         }
         catch (Exception e) {
           setProcessEndState(ProcessEndState.DONE);
-          //not expecting any exception here
+          // not expecting any exception here
           e.printStackTrace();
-          //send an interrupt to the monitor so it can clean up
+          // send an interrupt to the monitor so it can clean up
           blendmontThread.interrupt();
           return;
         }
@@ -81,11 +84,11 @@ public class XcorrProcessWatcher implements ProcessMonitor {
         Thread.sleep(100);
       }
       catch (Exception e) {
-        //only expecting interrupt here
+        // only expecting interrupt here
         if (!(e instanceof InterruptedException)) {
           e.printStackTrace();
         }
-        //send an interrupt to the monitor so it can clean up
+        // send an interrupt to the monitor so it can clean up
         tiltxcorrThread.interrupt();
       }
     }
@@ -123,6 +126,13 @@ public class XcorrProcessWatcher implements ProcessMonitor {
 
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("pause illegal in this monitor");
+  }
+
+  public boolean isPausing() {
+    return false;
+  }
+
+  public void setWillResume() {
   }
 }
 /**

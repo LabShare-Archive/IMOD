@@ -141,7 +141,8 @@ public final class ParsedNumber extends ParsedElement {
   private boolean debug = false;
 
   private ParsedNumber(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue, final boolean allowNan) {
+      boolean debug, EtomoNumber defaultValue, final boolean allowNan, final String descr) {
+    super(descr);
     this.etomoNumberType = etomoNumberType;
     this.type = type;
     this.allowNan = allowNan;
@@ -155,25 +156,27 @@ public final class ParsedNumber extends ParsedElement {
     setDebug(debug);
   }
 
-  public static ParsedNumber getMatlabInstance() {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null, true);
-  }
-
-  public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
-        null, true);
+  public static ParsedNumber getMatlabInstance(final String descr) {
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null, true,
+        descr);
   }
 
   public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType,
-      final boolean allowNan) {
+      final String descr) {
     return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
-        null, allowNan);
+        null, true, descr);
+  }
+
+  public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType,
+      final boolean allowNan, final String descr) {
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
+        null, allowNan, descr);
   }
 
   static ParsedNumber getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue,
-      final boolean allowNan) {
-    return new ParsedNumber(type, etomoNumberType, debug, defaultValue, allowNan);
+      final boolean allowNan, final String descr) {
+    return new ParsedNumber(type, etomoNumberType, debug, defaultValue, allowNan, descr);
   }
 
   public void parse(ReadOnlyAttribute attribute) {
@@ -253,7 +256,7 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   /**
-   * return the raw number.  If the type is floating point or double, return it
+   * return the raw number.  If the type is double, return it
    * as an int or long if there is no decimal value
    */
   public String getParsableString() {
@@ -273,16 +276,10 @@ public final class ParsedNumber extends ParsedElement {
     }
     Number number = rawNumber.getDefaultedNumber();
     // Remove unnecessary decimal points.
-    if (etomoNumberType == EtomoNumber.Type.FLOAT) {
-      float floatNumber = number.floatValue();
-      if (Math.round(floatNumber) == floatNumber) {
-        return new Integer(number.intValue()).toString();
-      }
-    }
-    else if (etomoNumberType == EtomoNumber.Type.DOUBLE) {
+    if (etomoNumberType == EtomoNumber.Type.DOUBLE) {
       double doubleNumber = number.doubleValue();
       if (Math.round(doubleNumber) == doubleNumber) {
-        return new Long(number.longValue()).toString();
+        return new Integer(number.intValue()).toString();
       }
     }
     return number.toString();
@@ -294,11 +291,13 @@ public final class ParsedNumber extends ParsedElement {
 
   public void setElement(ParsedElement element) {
     if (element != null) {
-      rawNumber.set(element.getRawString());
+      String rawString = element.getRawString();
+      if (!rawString.equals("NaN")) {
+        rawNumber.set(rawString);
+        return;
+      }
     }
-    else {
-      rawNumber.reset();
-    }
+    rawNumber.reset();
   }
 
   public boolean isEmpty() {
@@ -309,12 +308,22 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   public void setRawString(String number) {
-    rawNumber.set(number);
+    if (!number.equals("NaN")) {
+      rawNumber.set(number);
+    }
+    else {
+      rawNumber.reset();
+    }
     setFailed(!rawNumber.isValid(), rawNumber.getInvalidReason());
   }
 
   void setRawString(BaseManager manager, String number, String fieldDescription) {
-    rawNumber.set(number);
+    if (!number.equals("NaN")) {
+      rawNumber.set(number);
+    }
+    else {
+      rawNumber.reset();
+    }
     if (fieldDescription != null) {
       String errorMessage = rawNumber.validate(fieldDescription);
       if (errorMessage != null) {
@@ -323,14 +332,18 @@ public final class ParsedNumber extends ParsedElement {
     }
   }
 
-  String validate() {
+  public String validate() {
     if (!rawNumber.isValid()) {
-      return rawNumber.getInvalidReason();
+      String invalidReason = rawNumber.getInvalidReason();
+      if (invalidReason == null) {
+        return (descr != null ? descr : "") + ": Unable to parse.";
+      }
+      return (descr != null ? descr : "") + ": " + invalidReason;
     }
     return getFailedMessage();
   }
 
-  void setRawString(float number) {
+  void setRawString(double number) {
     rawNumber.set(number);
   }
 
@@ -338,7 +351,7 @@ public final class ParsedNumber extends ParsedElement {
     return rawNumber.equals(input.rawNumber);
   }
 
-  void setRawString(int index, float number) {
+  void setRawString(int index, double number) {
     if (index != 0) {
       return;
     }
@@ -424,7 +437,7 @@ public final class ParsedNumber extends ParsedElement {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, debug,
-          defaultValue, allowNan);
+          defaultValue, allowNan, descr);
     }
     if (rawNumber.isNull()) {
       return parsedNumberExpandedArray;
@@ -529,7 +542,13 @@ public final class ParsedNumber extends ParsedElement {
         fail(e.getMessage());
       }
     }
-    rawNumber.set(buffer.toString());
+    String string = buffer.toString();
+    if (!string.equals("NaN")) {
+      rawNumber.set(string);
+    }
+    else {
+      rawNumber.reset();
+    }
     return token;
   }
 

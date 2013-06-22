@@ -15,11 +15,14 @@ DDEESSCCRRIIPPTTIIOONN
   summing (actually averaging) all of the values in a block of voxels (e.g.,
   2x2x2 or 1x1x3) in the input volume to create one voxel in the output
   volume.  The output file will have appropriately larger pixel spacings in
-  its header.
+  its header.  It is also possible to use antialiased image reduction instead
+  of binning in the Z dimension.
 
   Binvol uses the PIP package for input (see the manual page for pip(1)).
   The following options can be specified either as command line arguments
-  (with the -) or one per line in a command file (without the -):
+  (with the -) or one per line in a command file (without the -).  Options can
+  be abbreviated to unique letters; the currently valid abbreviations for
+  short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 

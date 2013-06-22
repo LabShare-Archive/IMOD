@@ -22,7 +22,7 @@ class FittingDialog :public QDialog
 {
   Q_OBJECT
   public:
-    FittingDialog(QWidget *parent=0);
+    FittingDialog(MyApp *app, QWidget *parent=0);
 signals:
     void range(double lowX, double highX, double, double );
     void x1MethodChosen(int );

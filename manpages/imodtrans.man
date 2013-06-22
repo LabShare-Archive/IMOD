@@ -12,7 +12,7 @@ different ways: 1) as translations, rotations,
 and scaling factors; 2) as a list of 2-D transformations in a file, one for
 each section, such as are
 produced by Midas(1) and Xfalign(1); 3) as a single 3-D transformation in a
-file, such as are produced by Solvematch(1).
+file, such as is produced by Solvematch(1).
 When the transformation is specified by individual components, they are
 applied in the order that they are entered, and any option can be entered
 more than once.
@@ -132,9 +132,18 @@ option is given to apply one transform to the whole model.
 This option is useful for 
 transforming a model to match an
 image stack that has been aligned with Xfalign or Midas.
-This option cannot be entered with the translation, scaling, or rotation
-options, or with 
+This option cannot be entered with the scaling or rotation
+options
+or with 
 .B -3.
+The translation options
+.B -tx
+and
+.B -ty
+can be used with this option, and 
+.B -tz
+can be used when applying one transform to the whole model.  In each case, the
+option can be entered only once, and the shift is applied after the transformation.
 .TP
 .B -l <line #>
 Transform the whole model with the single 2D transformation at the given line
@@ -149,9 +158,17 @@ The format of the file is to have 3 lines, each with 4 numbers, the
 coefficients for multiplying the old X, Y, and Z coordinates and a translation
 value.  The first, second, and third lines are for computing new X, Y, and
 Z coordinates, respectively.
-This option cannot be entered with the translation, scaling, or rotation
+This option cannot be entered with the scaling or rotation
 options, or with 
 .B -2.
+It can be used with the translation options, but each option can be entered
+only once, and the shift is applied after the transformation.
+.TP
+.B -S <factor>
+Scale the X, Y, and Z shifts in the transformations from transform files by the given
+factor.  This option is needed, e.g., if transformations have shifts based on
+unbinned coordinates and the model is now in
+binned coordinates.
 .TP
 .B -n <NX,NY,NZ>
 Specify the dimensions of the image file on which the model is to be
@@ -175,7 +192,12 @@ coordinates, which will work with transformations obtained from Solvematch.
 .TP
 .B -i <image file>
 Transform the model coordinates as if the model were being loaded into 3dmod
-together with the given image file.
+together with the given image file.  The maximum coordinates in the model
+(reported as "max # # #" in the output from Imodinfo(1)) will be changed to
+match those in the image file.  This transformation occurs before any of
+the other operations except flipping with the
+.B -Y 
+option.
 .TP
 .B -Y
 Exchange Y and Z coordinates in the model file, without changing the flag
@@ -184,6 +206,40 @@ indicating the model's flip state.
 .B -T
 Toggle the flag indicating the model's flip state, without actually flipping
 the data.
+
+.SH Examples
+Example 1: Suppose a model is drawn on a raw stack (set.st) and needs to
+be transformed to fit on a binned by 2 stack (set.ali) that was aligned with
+transformations in set.xg.  The aligned file might be a different size
+in X and Y than the size of the raw stack divided by the binning.  If the
+origin was adjusted when the aligned stack was created, using the 
+.B -origin
+option to Newstack(1) or Blendmont(1), then the command would be:
+   imodtrans -2 set.xg -i set.ali -S 0.5 input_model output_model
+.br
+First, the program reduces all X and Y coordinates by 2 to match the
+coordinate system in set.ali, and shifts points based on the change in origin
+values.  Then it multiples the shifts in set.xg by 0.5, since they are in
+unbinned coordinates, and applies the transformations.
+
+However, if the origin was not adjusted for any size change, then it is
+necessary to add a translation to account for it.  The needed translation is:
+   xtrans = (alignedXsize - rawXsize / binning) / 2.
+   ytrans = (alignedYsize - rawYsize / binning) / 2.
+.br 
+And the command is
+   imodtrans -2 set.xg -i set.ali -S 0.5 -tx xtrans -ty ytrans input output
+
+Example 2: Suppose a model is drawn on one stack (seta.ali) and needs to fit 
+on another stack (setb.ali) that is rotated by approximately 90 degrees.  The
+file set_AtoB.xf has a single line with the transformation that would align
+the images.  The command is:
+   imodtrans -2 set.xg -l 0 -n bXsize,bYsize,bZsize input_model output_model
+.br
+This command works because the input model has the size of seta.st stored as
+its maximum coordinates, and because the output file size is given.  The
+prgram is thus able to shift the model by the difference between the center
+coordinates of the two stack.
 
 .SH AUTHOR
 Jim Kremer and David Mastronarde

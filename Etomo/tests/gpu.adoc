@@ -14,14 +14,20 @@ run.function.gpu-test=
 	assert.enabled.tf.#-of-minutes=
   assert.enabled.sp.gpu-#=
   assert.enabled.bn.run-gpu-test=
+  #test field validation
+  tf.#-of-minutes=1abc
+  bn.run-gpu-test=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.#-of-minutes=1
 [[]]
 tf.#-of-minutes=.5
+bn.run-gpu-test=
+wait.popup.gputilttest-succeeded=OK
+wait.process.running-gputilttest=done
 sp.gpu-#=8
 bn.run-gpu-test=
 wait.popup.gputilttest-terminated=OK
 wait.process.running-gputilttest=failed
 assert.exists.file= gputest.log
-sp.gpu-#=0
-bn.run-gpu-test=
-wait.popup.gputilttest-succeeded=OK
-wait.process.running-gputilttest=done
+

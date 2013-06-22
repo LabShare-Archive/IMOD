@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include <stdio.h>
@@ -48,6 +47,7 @@ static Islice *readSliceAsFloat(FILE *infp, MrcHeader *inhead, int sliceMode,
 static float templateCCCoefficient(float *array, int nxdim, int nx, int ny, 
                                    float *template, int nxtdim, int nxt, 
                                    int nyt, int xoffset, int yoffset);
+static void areaContListCheckErr(Imod *areaMod, int iz, int *areaConts, int *numAreaCont);
 static int pointInsideBoundary(Iobj *obj, Ipoint *pnt);
 static void kernelHistoPL(PeakEntry *peakList, float *element, int numPeaks,
                             int skipZeroCCC, float *select, float selMin, 
@@ -61,9 +61,6 @@ static void printArray(float *filtBead, int nxdim, int nx, int ny);
 static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
                            float *minVal, float *maxVal, int *ninRange);
-static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen, 
-                           float ycen);
-static void makeAreaContList(Iobj *obj, int iz, int *list, int *nlist);
 
 /* 
  * Main entry
@@ -97,11 +94,13 @@ int main( int argc, char *argv[])
   float center = 2.;
   int lightBeads = 0;
   int linear = 0;
+  int excludeAreas = 0;
   int measureToUse = 1;
   int remakeModelBead = 0;
   float annulusPctile = -1.;
   float minRelativePeak = 0.1f;
   float minSpacing = 1.;
+  int averageFallback = 0, storageFallback = 0;
   int forward = 0, inverse = 1;
   float scaledSize = 8.;
   float beadSize, scaleFactor, xOffset, yOffset, xscale, yscale;
@@ -129,8 +128,8 @@ int main( int argc, char *argv[])
   int maxSec, numRuns, numZperRun, runsAddingOne, irun, indz;
   float cumStart, target, cumul, annMin, annMax, lowerLim, upperLim, threshUse;
   float selPeakMin, selPeakMax, selSlope, selIntcp, modeSlope, modeIntcp;
-  float selectPctile = 0.90;
-  float annMidval[MAX_GROUPS], annPctPeak[MAX_GROUPS], annDip[MAX_GROUPS];
+  //float annPctPeak[MAX_GROUPS], selectPctile = 0.90;
+  float annMidval[MAX_GROUPS], annDip[MAX_GROUPS];
   float annPeakAbove[MAX_GROUPS], dip, kernel[KERNEL_MAXSIZE * KERNEL_MAXSIZE];
   int numGroups = 4;
   int areaConts[MAX_AREAS];
@@ -141,29 +140,29 @@ int main( int argc, char *argv[])
   int ob, co, pt;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodfindbeads  */
-  int numOptions = 32;
-  char *options[] = {
-    "input:InputImageFile:FN:", "output:OutputModelFile:FN:",
-    "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:",
-    "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
-    "boundary:BoundaryObject:I:", "size:BeadSize:F:", "light:LightBeads:B:",
-    "scaled:ScaledSize:F:", "interpmin:MinInterpolationFactor:F:",
-    "linear:LinearInterpolation:B:", "center:CenterWeight:F:",
-    "box:BoxSizeScaled:I:", "threshold:ThresholdForAveraging:F:",
-    "store:StorageThreshold:F:", "bkgd:BackgroundGroups:F:",
-    "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:",
-    "spacing:MinSpacing:F:", "sections:SectionsToDo:LI:",
-    "maxsec:MaxSectionsPerAnalysis:I:", "remake:RemakeModelBead:B:",
-    "guess:MinGuessNumBeads:I:", "measure:MeasureToUse:I:",
-    "kernel:KernelSigma:F:", "rad1:FilterRadius1:F:",
-    "rad2:FilterRadius2:F:", "sig1:FilterSigma1:F:", "sig2:FilterSigma2:F:",
-    "verbose:VerboseKeys:CH:", "param:ParameterFile:PF:"};
+  int numOptions = 35;                                                          
+  const char *options[] = {
+    "input:InputImageFile:FN:", "output:OutputModelFile:FN:", 
+    "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:", 
+    "exclude:ExcludeInsideAreas:B:", "query:QueryAreaOnSection:I:", "add:AddToModel:FN:", 
+    "ref:ReferenceModel:FN:", "boundary:BoundaryObject:I:", "size:BeadSize:F:", 
+    "light:LightBeads:B:", "scaled:ScaledSize:F:", 
+    "interpmin:MinInterpolationFactor:F:", "linear:LinearInterpolation:I:", 
+    "center:CenterWeight:F:", "box:BoxSizeScaled:I:", 
+    "threshold:ThresholdForAveraging:F:", "store:StorageThreshold:F:", 
+    "fallback:FallbackThresholds:IP:", "bkgd:BackgroundGroups:F:", 
+    "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:", 
+    "spacing:MinSpacing:F:", "sections:SectionsToDo:LI:", 
+    "maxsec:MaxSectionsPerAnalysis:I:", "remake:RemakeModelBead:B:", 
+    "guess:MinGuessNumBeads:I:", "measure:MeasureToUse:I:", "kernel:KernelSigma:F:", 
+    "rad1:FilterRadius1:F:", "rad2:FilterRadius2:F:", "sig1:FilterSigma1:F:", 
+    "sig2:FilterSigma2:F:", "verbose:VerboseKeys:CH:", "param:ParameterFile:PF:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
                         3, 1, 1, &numOptArgs, &numNonOptArgs, imodUsageHeader);
 
-  /* Get input and output files */
+  /* Get input file */
   if (PipGetInOutFile("InputImageFile", 0, &filename))
       exitError("No input image file specified");
   infp = fopen(filename, "rb");
@@ -176,9 +175,36 @@ int main( int argc, char *argv[])
   // Check if it is the correct data type and set slice type
   sliceMode = sliceModeIfReal(inhead.mode);
   if (sliceMode < 0)
-    exitError("File mode is %d; only byte, short, float allowed", 
-              inhead.mode);
+    exitError("File mode is %d; only byte, short, float allowed", inhead.mode);
 
+  // Read area model
+  if (!PipGetString("AreaModel", &filename)) {
+    areaMod = imodRead(filename);
+    if (!areaMod)
+      exitError("Reading area model %s", filename);
+    free(filename);
+    if (!areaMod->objsize || !areaMod->obj[0].contsize)
+      exitError("No contours in object 1 of area model");
+    PipGetBoolean("ExcludeInsideAreas", &excludeAreas);
+  }
+
+  // Check if this is a run just to find the area
+  if (!PipGetInteger("QueryAreaOnSection", &iz)) {
+    if (!areaMod)
+      exitError("You must enter an area model to use -query");
+    areaContListCheckErr(areaMod, iz, areaConts, &numAreaCont);
+    beadSize = 0.;
+    for (co = 0; co < numAreaCont; co++)
+      beadSize += imodContourArea(&areaMod->obj[0].cont[areaConts[co]]);
+    if (excludeAreas)
+      beadSize = inhead.nx * inhead.ny - beadSize;
+
+    // Autofidseed is looking for 'Area (megapixels)' on any line
+    printf("Area (megapixels) included in analysis = %.3f", beadSize * 1.e-6);
+    exit(0);
+  }
+
+  // Get output file
   if (PipGetInOutFile("OutputModelFile", 1, &outModel))
     exitError("No output model file specified");
 
@@ -194,16 +220,6 @@ int main( int argc, char *argv[])
         exitError("Boundary object number %d is out of bounds (model has %d "
                   "objects)", boundObj, refmod->objsize);
     }
-  }
-
-  // Read area model
-  if (!PipGetString("AreaModel", &filename)) {
-    areaMod = imodRead(filename);
-    if (!areaMod)
-      exitError("Reading area model %s", filename);
-    free(filename);
-    if (!areaMod->objsize || !areaMod->obj[0].contsize)
-      exitError("No contours in object 1 of area model");
   }
 
   // Read existing model
@@ -227,10 +243,11 @@ int main( int argc, char *argv[])
   if (PipGetFloat("BeadSize", &beadSize))
     exitError("You must enter a bead size");
   PipGetBoolean("LightBeads", &lightBeads);
-  PipGetBoolean("LinearInterpolation", &linear);
+  PipGetInteger("LinearInterpolation", &linear);
   PipGetBoolean("RemakeModelBead", &remakeModelBead);
   PipGetFloat("ThresholdForAveraging", &threshold);
   PipGetFloat("StorageThreshold", &peakThresh);
+  PipGetTwoIntegers("FallbackThresholds", &averageFallback, &storageFallback);
   PipGetFloat("CenterWeight", &center);
   PipGetInteger("BackgroundGroups", &numGroups);
   PipGetFloat("MinInterpolationFactor", &minInterp);
@@ -266,10 +283,12 @@ int main( int argc, char *argv[])
   PipGetInteger("BoxSizeScaled", &boxScaled);
   if (!PipGetString("SectionsToDo", &filename)) {
     zlist = parselist(filename, &nzout);
+    if (!zlist)
+      exitError("Bad entry in list of sections to do");
     free(filename);
   } else {
     nzout = inhead.nz;
-    zlist = (int *)malloc(nzout * sizeof(int));
+    zlist = B3DMALLOC(int, nzout);
     if (zlist)
       for (i = 0; i < nzout; i++)
         zlist[i] = i;
@@ -373,20 +392,20 @@ int main( int argc, char *argv[])
          "= %d\n", scaleFactor, boxSize, boxScaled);
 
   // Get memory for filtered slice, synthetic bead and scaled bead
-  filtSlice = (float *)malloc(nxout * nyout * sizeof(float));
-  corrSlice = (float *)malloc(nxpdim * nypad * sizeof(float));
-  fullBead = (float *)malloc(boxSize * boxSize * sizeof(float));
-  oneBead = (float *)malloc(boxSize * boxSize * sizeof(float));
-  filtBead = (float *)malloc(boxScaled * boxScaled * sizeof(float));
-  splitBead = (float *)malloc(nxpdim * nypad * sizeof(float));
+  filtSlice = B3DMALLOC(float, nxout * nyout);
+  corrSlice = B3DMALLOC(float, nxpdim * nypad);
+  fullBead = B3DMALLOC(float, boxSize * boxSize);
+  oneBead = B3DMALLOC(float, boxSize * boxSize);
+  filtBead = B3DMALLOC(float, boxScaled * boxScaled);
+  splitBead = B3DMALLOC(float, nxpdim * nypad);
   if (!center)
-    writeSlice = (float *)malloc(nxout * nyout * sizeof(float));
+    writeSlice = B3DMALLOC(float, nxout * nyout);
 
   if (!filtSlice || !fullBead  || !filtBead || !splitBead || !corrSlice || 
       !oneBead || (!center && !writeSlice))
     exitError("Failed to get memory for an image array");
 
-  listStart = (int *)malloc((nzout + 2) * sizeof(int));
+  listStart = B3DMALLOC(int, nzout + 2);
   if (!listStart)
     exitError("Failed to get memory for working array");
   
@@ -431,7 +450,7 @@ int main( int argc, char *argv[])
         listStart[indz - izst] = numPeaks;
         numAreaCont = 0;
         if (areaMod)
-          makeAreaContList(&areaMod->obj[0], iz, areaConts, &numAreaCont);
+          areaContListCheckErr(areaMod, iz, areaConts, &numAreaCont);
       
         // Create a slice and read into it as floats
         sl = readSliceAsFloat(infp, &inhead, sliceMode, iz);
@@ -511,9 +530,12 @@ int main( int argc, char *argv[])
               // Center of feature in full original image
               xcen = (ixofs + cx + beadCenOfs) * scaleFactor + xOffset;
               ycen = (iyofs + cy + beadCenOfs) * scaleFactor + yOffset;
-              if (numAreaCont && !pointInsideArea(&areaMod->obj[0], areaConts,
-                                                  numAreaCont, xcen, ycen))
-                continue;
+              if (numAreaCont) {
+                co = imodPointInsideArea(&areaMod->obj[0], areaConts, numAreaCont, xcen,
+                                        ycen);
+                if ((co < 0 && !excludeAreas) || (co >= 0 && excludeAreas))
+                  continue;
+              }
 
               // First validate the peak by polarity of density in full image
               integral = (float)beadIntegral
@@ -534,10 +556,9 @@ int main( int argc, char *argv[])
                 if (ccc > 0.) {
                   if (numPeaks >= listSize) {
                     if (!listSize)
-                      peakList = (PeakEntry *)malloc(10000 *sizeof(PeakEntry));
+                      peakList = B3DMALLOC(PeakEntry, 10000);
                     else
-                      peakList = (PeakEntry *)realloc
-                        (peakList, (listSize + 10000) * sizeof(PeakEntry));
+                      B3DREALLOC(peakList, PeakEntry, listSize + 10000);
                     if (!peakList)
                       exitError("Failed to get memory for peak list");
                     listSize += 10000;
@@ -759,23 +780,31 @@ int main( int argc, char *argv[])
 
           // Negative threshold: find dip
           if (findHistoDipPL(peakList, numPeaks, numGuess * nzout, kernHist,
-                               regHist, &histDip, &peakBelow, &peakAbove,NULL))
-            exitError("Failed to find dip in smoothed histogram of peaks");
-
-          // Set original automatic threshold at 1/4 way from dip to peak, or
-          // -threshold as the fraction above dip to take
-          threshUse = 0.75 * histDip + 0.25 * peakAbove;
-          if (threshold >= -1.) {
-            if (numPeaks > 1) 
-              qsort(&peakList[0], numPeaks, sizeof(PeakEntry), comparePeaks);
-            for (j = 0; j < numPeaks; j++)
-              if (peakList[j].ccc && peakList[j].peak >= histDip)
-                break;
-            numStart = numPeaks + B3DNINT(threshold * (numPeaks - j));
-            numStart = B3DMAX(0, B3DMIN(numPeaks - 1, numStart));
-            threshUse = peakList[numStart].peak;
+                             regHist, &histDip, &peakBelow, &peakAbove,NULL)) {
+            if (averageFallback <= 0 || numPeaks < 2)
+              exitError("Failed to find dip in smoothed histogram of peaks");
+            printf("Failed to find dip in histogram; using fallback threshold for "
+                   "averaging\n");
+            qsort(&peakList[0], numPeaks, sizeof(PeakEntry), comparePeaks);
+            numStart = B3DMAX(0, numPeaks - averageFallback);
+            threshUse = 2.;
+          } else {
+            
+            // Set original automatic threshold at 1/4 way from dip to peak, or
+            // -threshold as the fraction above dip to take
+            threshUse = 0.75 * histDip + 0.25 * peakAbove;
+            if (threshold >= -1.) {
+              if (numPeaks > 1) 
+                qsort(&peakList[0], numPeaks, sizeof(PeakEntry), comparePeaks);
+              for (j = 0; j < numPeaks; j++)
+                if (peakList[j].ccc && peakList[j].peak >= histDip)
+                  break;
+              numStart = numPeaks + B3DNINT(threshold * (numPeaks - j));
+              numStart = B3DMAX(0, B3DMIN(numPeaks - 1, numStart));
+              threshUse = peakList[numStart].peak;
+            }
+            printf("Threshold for averaging set to %.3f\n", threshUse);
           }
-          printf("Threshold for averaging set to %.3f\n", threshUse);
         }
 
         for (i = 0; i < boxSize * boxSize; i++)
@@ -798,7 +827,7 @@ int main( int argc, char *argv[])
               // Interpolate the bead into center of array, add it to sum
               cubinterp(sl->data.f, oneBead, nxin, nyin, boxSize, boxSize, 
                         amat, peakList[j].xcen, peakList[j].ycen, 0., 0., 1.,
-                        inhead.amean, linear);
+                        inhead.amean, B3DMAX(0,linear));
               nsum++;
               for (i = 0; i < boxSize * boxSize; i++)
                 fullBead[i] += oneBead[i];
@@ -857,6 +886,9 @@ int main( int argc, char *argv[])
           }
     
           threshUse = j * dxbin;
+
+          // autofidseed wants to see " peaks are above" or "using fallback"
+          // on the next to last line and 'total peaks being' on the last line
           printf("%d peaks are above threshold of %.3f\n"
                  "%d more peaks %s stored in model down to value of %.3f\n"
                  , nsum, histDip, jdir, numObjOrig ? "would be" : "being",
@@ -878,8 +910,20 @@ int main( int argc, char *argv[])
                  threshUse);
         }
 
-      } else 
+      } else if (storageFallback > 0 && numPeaks > 1) {
+        qsort(&peakList[0], numPeaks, sizeof(PeakEntry), comparePeaks);
+        numStart = B3DMAX(0, numPeaks - storageFallback);
+        threshUse = peakList[numStart].peak;
+        printf("Failed to find dip in histogram, using fallback threshold for storing "
+               "points\n");
+        printf("%d total peaks being stored in model down to value of %.3f\n", 
+               numPeaks - numStart, threshUse);
+
+      } else {
+
+        // Autofidseed wants to see 'Failed to find dip' on the last line of output
         printf("Failed to find dip in histogram\n");
+      }
     }
 
     // Eliminate duplicates from original objects by brute force
@@ -1083,6 +1127,20 @@ int main( int argc, char *argv[])
          100. * (numPeakPts - numPeakMatch) / numRefPts);
 
   exit(0);
+}
+
+/*
+ * Calls makeAreaContList for a section and checks and responds to errors
+ */
+static void areaContListCheckErr(Imod *areaMod, int iz, int *areaConts, int *numAreaCont)
+{
+  int ix;
+  ix = makeAreaContList(&areaMod->obj[0], iz, areaConts, numAreaCont, MAX_AREAS);
+  if (ix < 0)
+    exitError("Too many contours on one section in area model for array "
+              "(limit %d)", MAX_AREAS);
+  if (ix > 0)
+    exitError("No contours in object 1 of area model");
 }
 
 /*
@@ -1341,14 +1399,14 @@ static void printArray(float *filtBead, int nxdim, int nx, int ny)
  * to be assessed in the first peak; select can be NULL or a pointer to the
  * element in the first peak to use for selection, and selMin and selMax
  * are minimum and maximum values for the selection range.  min and max and
- * number in range are returne din minVal, maxVal, and ninRange.
+ * number in range are returned in minVal, maxVal, and ninRange.
  */
 static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
                            float *minVal, float *maxVal, int *ninRange)
 {
-  float dxbin, delta, val;
-  int i, j, ist, ind;
+  float val;
+  int j;
   *minVal = 1.e30;
   *maxVal = -1.e30;
   *ninRange = 0;
@@ -1366,78 +1424,3 @@ static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
     (*ninRange)++;
   }
 }
-
-/*
- * Make a list of the contours in obj at Z value iz; rteurn them in list and
- * number of values in nlist
- */
-static void makeAreaContList(Iobj *obj, int iz, int *list, int *nlist)
-{
-  int co, dzmin, izmin, zco, dz;
-  izmin = -999;
-  dzmin = 100000;
-  for (co = 0; co < obj->contsize; co++) {
-    if (!obj->cont[co].psize)
-      continue;
-    zco = B3DNINT(obj->cont[co].pts[0].z);
-    dz = B3DMAX(iz - zco, zco - iz);
-    if (dz < dzmin) {
-      dzmin = dz;
-      izmin = zco;
-    }
-  }
-
-  if (izmin == -999)
-    exitError("No contours in object 1 of area model");
-  *nlist = 0;
-  for (co = 0; co < obj->contsize; co++) {
-    if (!obj->cont[co].psize)
-      continue;
-    zco = B3DNINT(obj->cont[co].pts[0].z);
-    if (zco == izmin) {
-      if (*nlist == MAX_AREAS - 1)
-        exitError("Too many contours on one section in area model for array");
-      list[(*nlist)++] = co;
-    }
-  }
-}
-
-/* 
- * Test for whether the point xcen, ycen is inside any of the contours in obj
- * that are listed in list (nlist values there)
- */
-static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen, 
-                           float ycen)
-{
-  int i;
-  Ipoint pnt;
-  pnt.x = xcen;
-  pnt.y = ycen;
-  pnt.z = 0.;
-  for (i = 0; i < nlist; i++) {
-    if (imodPointInsideCont(&obj->cont[list[i]], &pnt))
-      return 1;
-  }
-  return 0;
-}
-
-/*
-
-$Log$
-Revision 3.5  2008/12/01 15:44:39  mast
-Pulled out more library functions, made kernel filtering be default
-
-Revision 3.4  2008/11/12 03:48:19  mast
-Pulled out the scan histogram function for library
-
-Revision 3.3  2008/11/02 13:43:48  mast
-Switched to float-slice reading function
-
-Revision 3.2  2008/06/22 05:04:26  mast
-Make sure valblack is not based on dip below the minimum value output
-
-Revision 3.1  2008/06/19 23:26:50  mast
-Added to package
-
-
-*/

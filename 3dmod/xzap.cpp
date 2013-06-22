@@ -30,6 +30,7 @@
 #include "hottoolbar.h"
 
 #include "imod.h"
+#include "mv_image.h"
 #include "display.h"
 #include "b3dgfx.h"
 #include "xcramp.h"
@@ -48,6 +49,7 @@
 #include "cont_edit.h"
 #include "model_edit.h"
 #include "workprocs.h"
+#include "pyramidcache.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
 #include "undoredo.h"
@@ -76,8 +78,8 @@ static int sSubEndX = 0;
 static int sSubEndY = 0;
 
 static int sFirstDrag = 0;
-static int sMoveBand = 0;
-static int sDragBand;
+static int sMoveBandLasso = 0;
+static int sDragBandLasso;
 static int sDragging[4];
 static int sFirstmx, sFirstmy;
 static int sMaxMultiZarea = 0;
@@ -126,9 +128,11 @@ void zapReportBiggestMultiZ()
 }
 
 /*
- * Find the first zap window, with a rubberband if flag is set
+ * Find the first zap window of the given type (default regular zap), with a rubberband 
+ * if flag is set, or with a lasso if that flag is set (default false) or with either one
+ * if both flags are set.
  */
-ZapFuncs *getTopZapWindow(bool withBand, int type)
+ZapFuncs *getTopZapWindow(bool withBand, bool withLasso, int type)
 {
   QObjectList objList;
   ZapFuncs *zap;
@@ -150,8 +154,9 @@ ZapFuncs *getTopZapWindow(bool withBand, int type)
     for (i = 0; i < objList.count(); i++) {
       zap = ((ZapWindow *)objList.at(i))->mZap;
       if (ctrlPtr->id == zap->mCtrl && 
-          (!withBand || zap->mRubberband || 
-           (zap->mStartingBand && zap->getLowHighSection(ixl, ixr)))) {
+          ((!withLasso || (zap->mLassoOn && !zap->mDrawingLasso)) ||
+           (!withBand || zap->mRubberband || 
+            (zap->mStartingBand && zap->getLowHighSection(ixl, ixr))))) {
         if (zap->mRubberband) {
           ixl = (int)floor(zap->mRbImageX0 + 0.5);
           ixr = (int)floor(zap->mRbImageX1 - 0.5);
@@ -167,11 +172,24 @@ ZapFuncs *getTopZapWindow(bool withBand, int type)
     }
   }
   App->cvi->ctrlist->list->current = curSave;
-  if (topOne < 0 && withBand)
+  if (topOne < 0 && (withBand || withLasso))
     return NULL;
   if (topOne < 0)
     topOne = 0;
   return ((ZapWindow *)objList.at(topOne))->mZap;
+}
+
+/*
+ * Return the lasso contour from the top with lasso; but if aboveBand is true,
+ * return it only if is higher than any window with a rubberband.
+ */
+Icont *getTopZapLassoContour(bool aboveBand)
+{
+  ZapFuncs *zap = getTopZapWindow(aboveBand, true);
+
+  if (!zap || !zap->mLassoOn || zap->mDrawingLasso)
+    return NULL;
+  return zap->getLassoContour();
 }
 
 /*
@@ -517,6 +535,8 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   mStartingBand = 0;
   mShiftingCont = 0;
   mBandChanged = 0;
+  mLassoOn = false;
+  mDrawingLasso = false;
   mShiftRegistered = 0;
   mCenterMarked = 0;
   mXformFixedPt.x = 0.;
@@ -578,7 +598,7 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   
   mCtrl = ivwNewControl(vi, zapDraw_cb, zapClose_cb, zapKey_cb, (void *)this);
   imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, 
-                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE);
+                        wintype ? MULTIZ_WINDOW_TYPE : ZAP_WINDOW_TYPE, mCtrl);
 
   if (!wintype) {
     diaMaximumWindowSize(maxWinx, maxWiny);
@@ -608,10 +628,13 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
 
       for (i = 0; i < 2; i++) {
         mZoom = 1.;
-        while (mZoom * vi->xsize > 1.1 * maxWinx || 
-               mZoom * vi->ysize > 1.1 * maxWiny - toolHeight) {
+        while ((mZoom * vi->xsize > 1.1 * maxWinx || 
+                mZoom * vi->ysize > 1.1 * maxWiny - toolHeight)) {
           newZoom = b3dStepPixelZoom(mZoom, -1);
           if (fabs(newZoom - mZoom) < 0.0001)
+            break;
+          if (mVi->pyrCache && mVi->pyrCache->zoomRequiresBigLoad(newZoom, maxWinx,
+                                                                  maxWiny - toolHeight))
             break;
           mZoom = (float)newZoom;
         }
@@ -703,6 +726,9 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
         // This test goes into infinite loop in Windows - Intel, 6/22/04
         // if (newZoom == mZoom)
         if (fabs(newZoom - mZoom) < 0.0001)
+          break;
+        if (mVi->pyrCache && mVi->pyrCache->zoomRequiresBigLoad(newZoom, needWinx,
+                                                                needWiny))
           break;
         mZoom = (float)newZoom;
       }
@@ -1046,11 +1072,15 @@ void ZapFuncs::paint()
   if (mDrawCurrentOnly > 0) {
     if (App->doublebuffer)
       mGfx->swapBuffers();
-    ifgResetValueSetup();
-    ob = mVi->imod->cindex.object;
-    imodSetObjectColor(ob); 
-    b3dLineWidth(mVi->imod->obj[ob].linewidth2); 
-    drawContour(mVi->imod->cindex.contour, ob);
+      ifgResetValueSetup();
+    if (mDrawingLasso)
+      drawExtraObject();
+    else {
+      ob = mVi->imod->cindex.object;
+      imodSetObjectColor(ob); 
+      b3dLineWidth(mVi->imod->obj[ob].linewidth2); 
+      drawContour(mVi->imod->cindex.contour, ob);
+    }
     mDrawCurrentOnly = -1;
     return;
   }
@@ -1188,6 +1218,10 @@ void ZapFuncs::stateToggled(int index, int state)
     toggleRubberband();
     break;
 
+  case ZAP_TOGGLE_LASSO:
+    toggleLasso();
+    break;
+
   case ZAP_TOGGLE_TIMELOCK:
     ivwGetTime(mVi, &time);
     mTimeLock = state ? time : 0;
@@ -1287,9 +1321,11 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   int shifted = event->modifiers() & Qt::ShiftModifier;
   int ctrl = event->modifiers() & Qt::ControlModifier;
   int handled = 0;
+  QString str;
   Iindex indadd;
   Iindex *indp;
   Ipoint selmin, selmax;
+  Icont *lasso;
   float dist2d, cx, cy, dx, dy;
   Iobj *obj;
   /* downtime.start(); */
@@ -1492,6 +1528,9 @@ void ZapFuncs::keyInput(QKeyEvent *event)
       }
       selmin.z = mSection - 0.5;
       selmax.z = mSection + 0.5;
+      lasso = NULL;
+      if (mLassoOn && !mDrawingLasso)
+        lasso = getLassoContour();
 
       // Look through selection list, remove any that do not fit constraints
       for (i = ilistSize(vi->selectionList) - 1; i >= 0; i--) {
@@ -1499,8 +1538,10 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         if (indp->object < imod->objsize) {
           obj = &imod->obj[indp->object];
           if (indp->contour < obj->contsize) {
-            if (imodContInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
-                                     selmax))
+            if ((lasso && imodContInsideCont(obj, &(obj->cont[indp->contour]), lasso,
+                                             selmin.z, selmax.z)) || 
+                (!lasso && imodContInSelectArea(obj, &(obj->cont[indp->contour]), selmin,
+                                                selmax)))
               continue;
           }
         }
@@ -1521,7 +1562,9 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         indadd.point = -1;
         for (i = 0; i < obj->contsize; i++) {
           indadd.contour = i;
-          if (imodContInSelectArea(obj, &(obj->cont[i]), selmin, selmax)) {
+          if ((lasso && imodContInsideCont(obj, &(obj->cont[i]), lasso, selmin.z, 
+                                           selmax.z)) ||
+              (!lasso && imodContInSelectArea(obj, &(obj->cont[i]), selmin, selmax))) {
             imodSelectionListAdd(vi, indadd);
             imod->cindex = indadd;
           }
@@ -1529,7 +1572,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
       }
       imod_setxyzmouse();
       handled = 1;
-
+      
     } else if (!shifted) {
       autox_next(vi->ax);
       handled = 1;
@@ -1630,11 +1673,11 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     getixy(ix, iy, cx, cy, i);
     dx = cx - vi->xmouse;
     dy = cy - vi->ymouse;
-    dist2d  = (float)sqrt(vi->xybin * (dx * dx + dy * dy));
-    wprint("Distance from (%.1f, %.1f) to (%.1f, %.1f) =\n"
-           "  %.1f %spixels, %g %s\n", vi->xmouse+1., vi->ymouse+1., cx+1., cy+1.,
-           dist2d, vi->xybin > 1 ? "unbinned " : "",
-           dist2d * imod->pixsize, imodUnits(imod));
+    dist2d  = (float)(vi->xybin * sqrt(dx * dx + dy * dy));
+    wprint("From (%.1f, %.1f) to (%.1f, %.1f) =\n", vi->xmouse+1,
+           vi->ymouse+1., cx+1., cy+1.);
+    str.sprintf("  %.1f %spixels", dist2d, vi->xybin > 1 ? "unbinned " : "");
+    utilWprintMeasure(str, imod, dist2d);
     break;
 
     /*
@@ -1696,7 +1739,7 @@ void ZapFuncs::keyRelease(QKeyEvent *event)
   mQtWindow->releaseKeyboard();
   mGfx->releaseMouse();
 
-  // Note that unless the user truns off autorepeat on the key, there is a
+  // Note that unless the user turns off autorepeat on the key, there is a
   // series of key press - release events and it does full draws
   if (mDrawCurrentOnly) {
     setDrawCurrentOnly(0);
@@ -1748,7 +1791,11 @@ void ZapFuncs::mousePress(QMouseEvent *event)
   int button1, button2, button3, ifdraw = 0, drew = 0;
   int ctrlDown = event->modifiers() & Qt::ControlModifier;
   int dxll, dxur,dyll, dyur, x, y;
+  Icont *cont;
+  Ipoint mpt;
   int rcrit = 10;   /* Criterion for moving the whole band */
+  bool ebut1 = event->button() == ImodPrefs->actualButton(1);
+  bool ebut2 = event->button() == ImodPrefs->actualButton(2);
 
   button1 = event->buttons() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->buttons() & ImodPrefs->actualButton(2) ? 1 : 0;
@@ -1768,8 +1815,8 @@ void ZapFuncs::mousePress(QMouseEvent *event)
                     button2, button3);
 
   // Check for starting a band move before offering to plugin
-  if (event->button() == ImodPrefs->actualButton(2) && !button1 && !button3) {
-    sMoveBand = 0;
+  if (ebut2 && !button1 && !button3 && !mShiftingCont) {
+    sMoveBandLasso = 0;
     
     /* If rubber band is on and within criterion distance of any edge, set
        flag to move whole band and return */
@@ -1783,16 +1830,32 @@ void ZapFuncs::mousePress(QMouseEvent *event)
                                     (dxur < rcrit && dxur > -rcrit))) ||
           (dxll > 0 && dxur < 0 && ((dyll < rcrit && dyll > -rcrit) ||
                                     (dyur < rcrit && dyur > -rcrit)))) {
-        sMoveBand = 1;
+        sMoveBandLasso = 1;
         setCursor(mMousemode);
         return;
       }
-    }   
+    }
+  }
+
+  // Also check if lasso is within criterion distance, with button 1 or 2
+  if ((ebut2 || ebut1) && !button3 && !mShiftingCont) {
+    sMoveBandLasso = 0;
+    if (mLassoOn && !mDrawingLasso) {
+      getixy(x, y, mpt.x, mpt.y, dxll);
+      mpt.z = dxll;
+      cont = getLassoContour();
+      if (cont && imodPointContDistance(cont, &mpt, 0, 0, &dxll) * mZoom < rcrit) {
+        sMoveBandLasso = 1;
+        setCursor(mMousemode);
+        return;
+      }
+    }
   }  
   setCursor(mMousemode, utilNeedToSetCursor());
 
   // Now give the plugins a crack at it
-  ifdraw = checkPlugUseMouse(event, button1, button2, button3);
+  if (!mDrawingLasso)
+    ifdraw = checkPlugUseMouse(event, button1, button2, button3);
   if (ifdraw & 1) {
     if (ifdraw & 2)
       draw();
@@ -1800,7 +1863,7 @@ void ZapFuncs::mousePress(QMouseEvent *event)
   }
 
   // Check for regular actions
-  if (event->button() == ImodPrefs->actualButton(1)) {
+  if (ebut1 && !mDrawingLasso) {
     if (mShiftingCont)
       drew = startShiftingContour(sFirstmx, sFirstmy, 1, ctrlDown);
     else if (mStartingBand)
@@ -1808,15 +1871,13 @@ void ZapFuncs::mousePress(QMouseEvent *event)
     else
       sFirstDrag = 1;
       
-  } else if (event->button() == ImodPrefs->actualButton(2) &&
-	     !button1 && !button3) {
+  } else if ((mDrawingLasso && (ebut1 || ebut2)) || (ebut2 && !button1 && !button3)) {
     if (mShiftingCont)
       drew = startShiftingContour(x, y, 2, ctrlDown);
     else
       drew = b2Click(x, y, ctrlDown);
 
-  } else if (event->button() == ImodPrefs->actualButton(3) &&
-	     !button1 && !button2) {
+  } else if (event->button() == ImodPrefs->actualButton(3) && !button1 && !button2) {
     if (mShiftingCont)
       drew = startShiftingContour(x, y, 3, ctrlDown);
     else
@@ -1831,13 +1892,18 @@ void ZapFuncs::mousePress(QMouseEvent *event)
  */
 void ZapFuncs::mouseRelease(QMouseEvent *event)
 {
-  int imz, button1, button2, button3, ifdraw = 0, drew = 0;
-  bool needDraw;
+  Iobj *obj;
+  int imz, ind, button1, button2, button3, ifdraw = 0, drew = 0;
+  float area, length;
+  bool needDraw, releaseBand;
   float imx, imy;
+  QString str;
   button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
   sMousePressed = false;
+  releaseBand = ((button2 && mRubberband) || ((button1 || button2) && mLassoOn)) && 
+    sMoveBandLasso;
 
   if (imodDebug('m'))
     imodPrintStderr("release at %d %d   buttons %d %d %d\n", event->x(), 
@@ -1848,7 +1914,8 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   }
   needDraw = mDrewExtraCursor && !mGfx->extraCursorInWindow();
 
-  ifdraw = checkPlugUseMouse(event, button1, button2, button3);
+  if (!mDrawingLasso && !releaseBand)
+    ifdraw = checkPlugUseMouse(event, button1, button2, button3);
   if (ifdraw & 1) {
     if ((ifdraw & 2) || needDraw)
       draw();
@@ -1857,9 +1924,9 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
     // check other things below if this flag is off
   }
 
-  if (button1 && !(ifdraw & 1)) {
-    if (sDragBand) {
-      sDragBand = 0;
+  if (button1 && !(ifdraw & 1) && !mDrawingLasso && !releaseBand) {
+    if (sDragBandLasso) {
+      sDragBandLasso = 0;
       setCursor(mMousemode);
     }
     sFirstDrag = 0;
@@ -1877,22 +1944,50 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   }
  
   // Button 2 and band moving, release the band
-  if (button2 && mRubberband && sMoveBand) {
-    sMoveBand = 0;
+  if (releaseBand) {
+    sMoveBandLasso = 0;
     setCursor(mMousemode);
-    if (mHqgfxsave) {
-      draw();
+
+    // Do a full draw for lasso move because isosurface may need updating
+    if (mHqgfxsave || mLassoOn) {
+      if (mLassoOn)
+        imodDraw(mVi, IMOD_DRAW_MOD);
+      else        
+        draw();
       drew = 1;
     }
     mHqgfxsave  = 0;
 
     // Button 2 and doing a drag draw - draw for real.
-  } else if (button2 && !mNumXpanels && !(ifdraw & 1) &&
-             mVi->imod->mousemode == IMOD_MMODEL) {
+  } else if ((button2 || (button1 && mDrawingLasso)) && !mNumXpanels && !(ifdraw & 1) &&
+              (mVi->imod->mousemode == IMOD_MMODEL || mDrawingLasso)) {
     if (imodDebug('z'))
       imodPrintStderr("Down time %d msec\n", sBut1downt.elapsed());
 
-    registerDragAdditions();
+    if (mDrawingLasso) {
+      obj = ivwGetAnExtraObject(mVi, mLassoObjNum);
+      if (!obj || obj->cont->psize < 2) {
+        toggleLasso();
+      } else {
+        mDrawingLasso = false;
+        setOrClearFlags(&obj->cont->flags, ICONT_OPEN, 0);
+        imodTrimContourLoops(obj->cont, 0);
+        for (ind = 0; ind < 2; ind++) {
+          length = mVi->xybin * imodContourLength(obj->cont, ind);
+          str.sprintf("%s length %.1f %spixels", ind ? "Closed" : "Open", length, 
+                      mVi->xybin > 1 ? "unbin " : "");
+          utilWprintMeasure(str, mVi->imod, length);
+        }
+        area = mVi->xybin * mVi->xybin * imodContourArea(obj->cont);
+        str.sprintf("Area %g %spixels^2", area, mVi->xybin > 1 ? "unbin " : "");
+        utilWprintMeasure(str, mVi->imod, area, true);
+
+        setMouseTracking();
+        setCursor(mMousemode, true);
+      }
+    } else
+
+      registerDragAdditions();
 
     // Fix the mouse position and update the other windows finally
     // Why call imod_info_setxyz again on release of single point add?
@@ -1932,6 +2027,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
   static int button1, button2, button3, ex, ey, processing = 0;
   static int ctrlDown, shiftDown;
   int cumdx, cumdy;
+  bool movingBandLasso = (mRubberband || mLassoOn) && sMoveBandLasso;
   int ifdraw = 0, drew = 0;
   int cumthresh = 6 * 6;
   int dragthresh = 10 * 10;
@@ -1955,7 +2051,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
     pvNewMousePosition(mVi, imx, imy, imz);
   }
 
-  if (!(mRubberband && sMoveBand)  && 
+  if (!movingBandLasso  && 
       (sMousePressed || sInsertDown || mVi->trackMouseForPlugs)) {
     ifdraw = checkPlugUseMouse(event, button1, button2, button3);
     if (ifdraw & 1) {
@@ -1967,7 +2063,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
     setControlAndLimits();
 
   if (!(sMousePressed || sInsertDown)) {
-    if (mRubberband)
+    if ((mRubberband || (mLassoOn && !mDrawingLasso)) && !mShiftingCont)
       analyzeBandEdge(ex, ey);
     if (ifdraw)
       draw();
@@ -1976,7 +2072,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
 
   // For first button or band moving, eat any pending move events and use 
   // latest position
-  if ( (button1 && !button2 && !button3) || (mRubberband && sMoveBand)) {
+  if ( (button1 && !mDrawingLasso && !button2 && !button3) || movingBandLasso){
     processing = 1;
     imod_info_input();
     if (imodDebug('m') && processing > 1)
@@ -1995,7 +2091,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
     imodPrintStderr("move %d,%d  mb  %d|%d|%d  c %x s %x\n", ex, ey, button1,
                     button2, button3, ctrlDown, shiftDown);
 
-  if ( (button1) && (!button2) && (!button3)){
+  if (!movingBandLasso && (button1 && !mDrawingLasso) && !button2 && !button3){
     if (ctrlDown) {
       drew = dragSelectContsCrossed(ex, ey);
     } else {
@@ -2008,13 +2104,14 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
   }
 
   // DNM 8/1/08: Reject small movements soon after the button press
-  if ( (!button1) && (button2) && (!button3)) {
+  if ( (((mDrawingLasso || (mLassoOn && sMoveBandLasso)) && (button1 || button2)) || 
+        (!button1 && button2)) && !button3) {
     if ((sBut1downt.elapsed()) > 150 || cumdx * cumdx + cumdy * cumdy > 
         dragthresh)
       drew = b2Drag(ex, ey, ctrlDown);
   }
   
-  if ( (!button1) && (!button2) && (button3))
+  if ( !button1 && !button2 && button3)
     drew = b3Drag(ex, ey, ctrlDown, shiftDown);
   
   mLmx = ex;
@@ -2055,77 +2152,89 @@ void ZapFuncs::analyzeBandEdge(int ix, int iy)
   int rubbercrit = 10;  /* Criterion distance for grabbing the band */
   int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
   int minedgex, minedgey;
+  Icont *cont;
+  Ipoint mpt;
 
   bandImageToMouse(0);    
   dminsq = rubbercrit * rubbercrit;
-  sDragBand = 0;
+  sDragBandLasso = 0;
   minedgex = -1;
   for (i = 0; i < 4; i++)
     sDragging[i] = 0;
-  dxll = ix - mRbMouseX0;
-  dxur = ix - mRbMouseX1;
-  dyll = iy - mRbMouseY0;
-  dyur = iy - mRbMouseY1;
 
-  /* Find distance from each corner, keep track of a min */
-  distsq = dxll * dxll + dyll * dyll;
-  if (distsq < dminsq) {
-    dminsq = distsq;
-    minedgex = 0;
-    minedgey = 2;
-  }
-  distsq = dxur * dxur + dyll * dyll;
-  if (distsq < dminsq) {
-    dminsq = distsq;
-    minedgex = 1;
-    minedgey = 2;
-  }
-  distsq = dxll * dxll + dyur * dyur;
-  if (distsq < dminsq) {
-    dminsq = distsq;
-    minedgex = 0;
-    minedgey = 3;
-  }
-  distsq = dxur * dxur + dyur * dyur;
-  if (distsq < dminsq) {
-    dminsq = distsq;
-    minedgex = 1;
-    minedgey = 3;
-  }
-
-  /* If we are close to a corner, set up to drag the band */
-  if (minedgex >= 0) {
-    sDragBand = 1;
-    sDragging[minedgex] = 1;
-    sDragging[minedgey] = 1;
+  if (mLassoOn) {
+    cont = getLassoContour();
+    getixy(ix, iy, mpt.x, mpt.y, i);
+    mpt.z = i;
+    if (cont && imodPointContDistance(cont, &mpt, 0, 0, &dxll) * mZoom < rubbercrit)
+      sDragBandLasso = 1;
   } else {
-    /* Otherwise look at each edge in turn */
-    dmin = rubbercrit;
-    dist = dxll > 0 ? dxll : -dxll;
-    if (dyll > 0 && dyur < 0 && dist < dmin){
-      dmin = dist;
+
+    dxll = ix - mRbMouseX0;
+    dxur = ix - mRbMouseX1;
+    dyll = iy - mRbMouseY0;
+    dyur = iy - mRbMouseY1;
+
+    /* Find distance from each corner, keep track of a min */
+    distsq = dxll * dxll + dyll * dyll;
+    if (distsq < dminsq) {
+      dminsq = distsq;
       minedgex = 0;
+      minedgey = 2;
     }
-    dist = dxur > 0 ? dxur : -dxur;
-    if (dyll > 0 && dyur < 0 && dist < dmin){
-      dmin = dist;
+    distsq = dxur * dxur + dyll * dyll;
+    if (distsq < dminsq) {
+      dminsq = distsq;
       minedgex = 1;
+      minedgey = 2;
     }
-    dist = dyll > 0 ? dyll : -dyll;
-    if (dxll > 0 && dxur < 0 && dist < dmin){
-      dmin = dist;
-      minedgex = 2;
+    distsq = dxll * dxll + dyur * dyur;
+    if (distsq < dminsq) {
+      dminsq = distsq;
+      minedgex = 0;
+      minedgey = 3;
     }
-    dist = dyur > 0 ? dyur : -dyur;
-    if (dxll > 0 && dxur < 0 && dist < dmin){
-      dmin = dist;
-      minedgex = 3;
+    distsq = dxur * dxur + dyur * dyur;
+    if (distsq < dminsq) {
+      dminsq = distsq;
+      minedgex = 1;
+      minedgey = 3;
     }
-    if (minedgex < 0)
-      sDragBand = 0;
-    else {
+
+    /* If we are close to a corner, set up to drag the band */
+    if (minedgex >= 0) {
+      sDragBandLasso = 1;
       sDragging[minedgex] = 1;
-      sDragBand = 1;
+      sDragging[minedgey] = 1;
+    } else {
+      /* Otherwise look at each edge in turn */
+      dmin = rubbercrit;
+      dist = dxll > 0 ? dxll : -dxll;
+      if (dyll > 0 && dyur < 0 && dist < dmin){
+        dmin = dist;
+        minedgex = 0;
+      }
+      dist = dxur > 0 ? dxur : -dxur;
+      if (dyll > 0 && dyur < 0 && dist < dmin){
+        dmin = dist;
+        minedgex = 1;
+      }
+      dist = dyll > 0 ? dyll : -dyll;
+      if (dxll > 0 && dxur < 0 && dist < dmin){
+        dmin = dist;
+        minedgex = 2;
+      }
+      dist = dyur > 0 ? dyur : -dyur;
+      if (dxll > 0 && dxur < 0 && dist < dmin){
+        dmin = dist;
+        minedgex = 3;
+      }
+      if (minedgex < 0)
+        sDragBandLasso = 0;
+      else {
+        sDragging[minedgex] = 1;
+        sDragBandLasso = 1;
+      }
     }
   }
   setCursor(mMousemode);
@@ -2201,7 +2310,7 @@ int ZapFuncs::b1Click(int x, int y, int controlDown)
     mStartingBand = 0;
     mRubberband = 1;
     mGfx->setMouseTracking(true);
-    sDragBand = 1;
+    sDragBandLasso = 1;
     sDragging[0] = 0;
     sDragging[1] = 1;
     sDragging[2] = 0;
@@ -2276,19 +2385,44 @@ int ZapFuncs::b2Click(int x, int y, int controlDown)
   // 3/5/08: Moved band moving to mouse press routine so it would happen before
   // plugin action
 
-  if (vi->imod->mousemode == IMOD_MMODEL) {
+  if (vi->imod->mousemode == IMOD_MMODEL || mDrawingLasso) {
     if (mNumXpanels)
       return 0;
     mDragAddCount = 0;
-    obj = imodObjectGet(vi->imod);
-    if (!obj)
-      return 0;
 
-    // Get current contour; if there is none, start a new one
-    // DNM 7/10/04: switch to calling routine; it now fixes time of empty cont
-    cont = ivwGetOrMakeContour(vi, obj, mTimeLock);
-    if (!cont)
-      return 0;
+    if (mDrawingLasso) {
+      obj = ivwGetAnExtraObject(vi, mLassoObjNum);
+      if (!obj) {
+        toggleLasso();
+        return 0;
+      }
+      imodObjectSetColor(obj, 1., 0., 0.);
+      obj->flags &= ~IMOD_OBJFLAG_SCAT;
+      obj->pdrawsize = 0;
+      obj->linewidth = 1;
+      obj->extra[IOBJ_EX_LASSO_ID] = mCtrl;
+      cont = imodContourNew();
+      if (!cont) {
+        toggleLasso();
+        return 0;
+      }
+      imodObjectAddContour(obj, cont);
+      free(cont);
+      cont = obj->cont;
+      cont->flags |= (ICONT_DRAW_ALLZ | ICONT_STIPPLED | ICONT_OPEN);
+      
+    } else {
+
+      obj = imodObjectGet(vi->imod);
+      if (!obj)
+        return 0;
+
+      // Get current contour; if there is none, start a new one
+      // DNM 7/10/04: switch to calling routine; it now fixes time of empty cont
+      cont = ivwGetOrMakeContour(vi, obj, mTimeLock);
+      if (!cont)
+        return 0;
+    }
 
     point.x = ix;
     point.y = iy;
@@ -2298,75 +2432,81 @@ int ZapFuncs::b2Click(int x, int y, int controlDown)
     }
     vi->xmouse = ix;
     vi->ymouse = iy;
+    
+    if (mDrawingLasso) {
+      imodPointAppend(cont, &point);
 
-    /* If contours are closed and Z has changed, start a new contour */
-    /* Also check for a change in time, if time data are being modeled  */
-    /* and start new contour for any kind of contour */
-    // DNM 7/10/04: just use first point instead of current point which is
-    // not always defined
-    if (cont->psize > 0) {
-      cz = (int)floor(cont->pts->z + 0.5); 
-      pz = (int)point.z;
-      if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) 
-          || ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
-        if (cont->psize == 1) {
-          wprint("Started a new contour even though last "
-                 "contour had only 1 pt.  ");
-          if (cz != pz && iobjClose(obj->flags))
-            wprint("\aUse open contours to model across sections.\n");
-          else if (cz != pz)
-            wprint("\aTurn off \"Start new contour at new Z\" to model "
-                   "across sections.\n");
-          else
-            wprint("\aSet contour time to 0 to model across times.\n");
-        }
+    } else {
+
+      /* If contours are closed and Z has changed, start a new contour */
+      /* Also check for a change in time, if time data are being modeled  */
+      /* and start new contour for any kind of contour */
+      // DNM 7/10/04: just use first point instead of current point which is
+      // not always defined
+      if (cont->psize > 0) {
+        cz = (int)floor(cont->pts->z + 0.5); 
+        pz = (int)point.z;
+        if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) 
+            || ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
+          if (cont->psize == 1) {
+            wprint("Started a new contour even though last "
+                   "contour had only 1 pt.  ");
+            if (cz != pz && iobjClose(obj->flags))
+              wprint("\aUse open contours to model across sections.\n");
+            else if (cz != pz)
+              wprint("\aTurn off \"Start new contour at new Z\" to model "
+                     "across sections.\n");
+            else
+              wprint("\aSet contour time to 0 to model across times.\n");
+          }
         
-        vi->undo->contourAddition(obj->contsize);
-        imodNewContour(vi->imod);
-        cont = imodContourGet(vi->imod);
-        if (!cont) {
-          vi->undo->flushUnit();
-          return 0;
+          vi->undo->contourAddition(obj->contsize);
+          imodNewContour(vi->imod);
+          cont = imodContourGet(vi->imod);
+          if (!cont) {
+            vi->undo->flushUnit();
+            return 0;
+          }
+          ivwSetNewContourTime(vi, obj, cont);
         }
-        ivwSetNewContourTime(vi, obj, cont);
       }
-    }
 
-    /* Now if times still don't match refuse the point */
-    if (ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
-      wprint("\aContour time does not match current time.\n"
-             "Set contour time to 0 to model across times.\n");
-      vi->undo->finishUnit();
-      return 0;
-    }
+      /* Now if times still don't match refuse the point */
+      if (ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
+        wprint("\aContour time does not match current time.\n"
+               "Set contour time to 0 to model across times.\n");
+        vi->undo->finishUnit();
+        return 0;
+      }
     
-    // DNM 11/17/04: Cleaned up adding point logic to set an insertion point
-    // and just call InsertPoint with it
-    // Set insertion point to next point and adjust it down if going backwards
-    pt = vi->imod->cindex.point + 1;
-    if (pt > 0 && cont->psize)
-      lastz = cont->pts[pt - 1].z;
-    else
-      lastz = point.z;
-
-    if (pt > 0 && mInsertmode)
-      pt--;
-    
-    ivwRegisterInsertPoint(vi, cont, &point, pt);
-
-    /* DNM: auto section advance is based on the direction of section change 
-       between last and just-inserted points */
-    if (mSectionStep && point.z != lastz) {
-      if (point.z - lastz > 0.0)
-        vi->zmouse += 1.0;
+      // DNM 11/17/04: Cleaned up adding point logic to set an insertion point
+      // and just call InsertPoint with it
+      // Set insertion point to next point and adjust it down if going backwards
+      pt = vi->imod->cindex.point + 1;
+      if (pt > 0 && cont->psize)
+        lastz = cont->pts[pt - 1].z;
       else
-        vi->zmouse -= 1.0;
+        lastz = point.z;
 
-      if (vi->zmouse < 0.0)
-        vi->zmouse = 0;
-      if (vi->zmouse > vi->zsize - 1)
-        vi->zmouse = vi->zsize - 1;
-    }     
+      if (pt > 0 && mInsertmode)
+        pt--;
+    
+      ivwRegisterInsertPoint(vi, cont, &point, pt);
+
+      /* DNM: auto section advance is based on the direction of section change 
+         between last and just-inserted points */
+      if (mSectionStep && point.z != lastz) {
+        if (point.z - lastz > 0.0)
+          vi->zmouse += 1.0;
+        else
+          vi->zmouse -= 1.0;
+
+        if (vi->zmouse < 0.0)
+          vi->zmouse = 0;
+        if (vi->zmouse > vi->zsize - 1)
+          vi->zmouse = vi->zsize - 1;
+      }     
+    }
     imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
     /* DNM 5/22/03: sync all but the active window when single point added */
       //} else
@@ -2493,7 +2633,7 @@ int ZapFuncs::b1Drag(int x, int y)
     analyzeBandEdge(x, y);
   sFirstDrag = 0;
      
-  if (mRubberband && sDragBand) {
+  if (mRubberband && sDragBandLasso) {
 
     /* Move the rubber band */
     if (sDragging[0]) {
@@ -2659,12 +2799,23 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
     }
   }
 
-  if (mRubberband && sMoveBand) {
+  if ((mRubberband || mLassoOn) && sMoveBandLasso) {
     /* Moving rubber band: get desired move and constrain it to keep
        band in the image */
     idx = (x - mLmx) / mXzoom;
     idy = (mLmy - y) / mZoom;
-    shiftRubberband(idx, idy);
+    if (mRubberband)
+      shiftRubberband(idx, idy);
+    else {
+      cont = getLassoContour();
+      if (cont) {
+        limitContourShift(cont, idx, idy);
+        for (pt = 0; pt < cont->psize; pt++) {
+          cont->pts[pt].x += idx;
+          cont->pts[pt].y += idy;
+        }
+      }
+    }
 
     if (cancelHQ) {
       mHqgfxsave = mHqgfx;
@@ -2673,14 +2824,15 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
     draw();
     if (cancelHQ)
       mHqgfx = mHqgfxsave;
-    mBandChanged = 1;
+    if (mRubberband)
+      mBandChanged = 1;
     return 1;
   }
 
-  if (vi->imod->mousemode == IMOD_MMOVIE)
+  if (vi->imod->mousemode == IMOD_MMOVIE && !mDrawingLasso)
     return 0;
 
-  if (vi->imod->cindex.point < 0)
+  if (vi->imod->cindex.point < 0  && !mDrawingLasso)
     return 0;
 
   getixy(x, y, ix, iy, iz);
@@ -2689,75 +2841,93 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
   cpt.y = iy;
   cpt.z = mSection;
      
-  obj = imodObjectGet(vi->imod);
-  if (!obj)
-    return 0;
+  if (mDrawingLasso) {
+    obj = ivwGetAnExtraObject(vi, mLassoObjNum);
+    if (!obj || !obj->cont) {
+      toggleLasso();
+      return 0;
+    }
+    cont = obj->cont;
+    lpt = &cont->pts[cont->psize - 1];
 
-  cont = imodContourGet(vi->imod);
-  if (!cont)
-    return 0;
+  } else {
 
-  lpt = &(cont->pts[vi->imod->cindex.point]);
-  if (mTwod)
-    cpt.z = lpt->z;
+    obj = imodObjectGet(vi->imod);
+    if (!obj)
+      return 0;
+    
+    cont = imodContourGet(vi->imod);
+    if (!cont)
+      return 0;
 
-  dist = imodel_point_dist( lpt, &cpt);
+    lpt = &(cont->pts[vi->imod->cindex.point]);
+    if (mTwod)
+      cpt.z = lpt->z;
 
-  /* DNM 6/18/03: If Z or time has changed, treat it like a button click so
-     new contour can be started */
-  // DNM 6/30/04: change to start new for any kind of contour with time change
-  // DNM 7/15/08: Start new contour if up to the point limit too
-  if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && 
-      (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
-      ivwTimeMismatch(vi, mTimeLock, obj, cont) || 
-      (obj->extra[IOBJ_EX_PNT_LIMIT] &&
-       cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT])) {
-    registerDragAdditions();
-    return b2Click(x, y, 0);
+    /* DNM 6/18/03: If Z or time has changed, treat it like a button click so
+       new contour can be started */
+    // DNM 6/30/04: change to start new for any kind of contour with time change
+    // DNM 7/15/08: Start new contour if up to the point limit too
+    if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && 
+         (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
+        ivwTimeMismatch(vi, mTimeLock, obj, cont) || 
+        (obj->extra[IOBJ_EX_PNT_LIMIT] &&
+         cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT])) {
+      registerDragAdditions();
+      return b2Click(x, y, 0);
+    }
+
+    if (ivwTimeMismatch(vi, mTimeLock, obj, cont))
+      return 0;
   }
 
-  if (ivwTimeMismatch(vi, mTimeLock, obj, cont))
-    return 0;
-
+  dist = imodel_point_dist( lpt, &cpt);
   if ( dist > scaleModelRes(vi->imod->res, mZoom)){
 
-    // Set insertion index to next point, or to current if drawing backwards
-    pt = vi->imod->cindex.point + 1;
-    if (pt > 0 && mInsertmode)
-      pt--;
-
-    // Set flag for drawing current contour only if at end and going forward
-    if (!mInsertmode && pt == cont->psize)
+    if (mDrawingLasso) {
+      imodPointAppend(cont, &cpt);
       setDrawCurrentOnly(1);
 
-    // Register previous additions if the count is up or if the object or
-    // contour has changed
-    if (mDragAddCount >= sDragRegisterSize || 
-        mDragAddIndex.object != vi->imod->cindex.object ||
-        mDragAddIndex.contour != vi->imod->cindex.contour)
-      registerDragAdditions();
+    } else {
 
-    // Start keeping track of delayed registrations by opening a unit and
-    // saving the indices.  If general store exists, start with whole data
-    // change to save the store.
-    // Otherwise if going backwards, need to increment registered first point
-    if (!mDragAddCount) {
-      if (ilistSize(cont->store))
-        vi->undo->contourDataChg();
-      else
-        vi->undo->getOpenUnit();
-      mDragAddIndex = vi->imod->cindex;
-      mDragAddIndex.point = pt;
-    } else if (mInsertmode)
-      mDragAddIndex.point++;
+      // Set insertion index to next point, or to current if drawing backwards
+      pt = vi->imod->cindex.point + 1;
+      if (pt > 0 && mInsertmode)
+        pt--;
+
+      // Set flag for drawing current contour only if at end and going forward
+      if (!mInsertmode && pt == cont->psize)
+        setDrawCurrentOnly(1);
+
+      // Register previous additions if the count is up or if the object or
+      // contour has changed
+      if (mDragAddCount >= sDragRegisterSize || 
+          mDragAddIndex.object != vi->imod->cindex.object ||
+          mDragAddIndex.contour != vi->imod->cindex.contour)
+        registerDragAdditions();
+
+      // Start keeping track of delayed registrations by opening a unit and
+      // saving the indices.  If general store exists, start with whole data
+      // change to save the store.
+      // Otherwise if going backwards, need to increment registered first point
+      if (!mDragAddCount) {
+        if (ilistSize(cont->store))
+          vi->undo->contourDataChg();
+        else
+          vi->undo->getOpenUnit();
+        mDragAddIndex = vi->imod->cindex;
+        mDragAddIndex.point = pt;
+      } else if (mInsertmode)
+        mDragAddIndex.point++;
     
-    // Always save last point not registered and increment count
-    mDragAddEnd = pt;
-    mDragAddCount++;
+      // Always save last point not registered and increment count
+      mDragAddEnd = pt;
+      mDragAddCount++;
 
-    // Since we are not changing xyzmouse yet, drag draws can be done without
-    // IMOD_DRAW_XYZ; this prevents some time-consuming things in other windows
-    imodInsertPoint(vi->imod, &cpt, pt);
+      // Since we are not changing xyzmouse yet, drag draws can be done without
+      // IMOD_DRAW_XYZ; this prevents some time-consuming things in other windows
+      imodInsertPoint(vi->imod, &cpt, pt);
+    }
     imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
     return 1;
   }
@@ -2891,7 +3061,7 @@ void ZapFuncs::endContourShift()
     return;
   mShiftingCont = 0;
   ivwFreeExtraObject(mVi, mShiftObjNum);
-  if (mCenterMarked)
+  if (mCenterMarked || mLassoOn)
     imodDraw(mVi, IMOD_DRAW_MOD);
   setCursor(mMousemode);
 }
@@ -2907,15 +3077,23 @@ Icont *ZapFuncs::checkContourShift(int &pt, int &err)
   pt = vi->imod->cindex.point;
   
   err = 0;
-  if (vi->imod->mousemode != IMOD_MMODEL || !obj || !cont || !cont->psize)
-    err = 1;
-  else if (iobjScat(obj->flags) || 
-           (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD)))
-    err = -1;
+  if (mLassoOn && !cont && !mDrawingLasso) {
+    cont = getLassoContour();
+    if (cont)
+      pt = 0;
+    else
+      err = 1;
+  } else {
+    if (vi->imod->mousemode != IMOD_MMODEL || !obj || !cont || !cont->psize)
+      err = 1;
+    else if (iobjScat(obj->flags) || 
+             (!iobjClose(obj->flags) && (cont->flags & ICONT_WILD)))
+      err = -1;
 
-  // If no current point, just use first
-  if (pt < 0)
-    pt = 0;
+    // If no current point, just use first
+    if (pt < 0)
+      pt = 0;
+  }
 
   if (err)
     endContourShift();
@@ -2943,10 +3121,12 @@ void ZapFuncs::setupContourShift()
   mFixedPtDefined = 0;
   mShiftObjNum = ivwGetFreeExtraObjectNumber(mVi);
   setCursor(mMousemode);
+  if (mLassoOn)
+    imodDraw(mVi, IMOD_DRAW_MOD);
 }
 
 // Keep track of the base position for contour shifting
-static Ipoint contShiftBase;
+static Ipoint sContShiftBase;
 
 /*
  * Start the actual shift once the mouse goes down
@@ -2997,23 +3177,23 @@ int ZapFuncs::startShiftingContour(int x, int y, int button,
   if (button == 1) {
     
     // Get base for shift as current point minus mouse position
-    contShiftBase.x = cont->pts[pt].x - ix;
-    contShiftBase.y = cont->pts[pt].y - iy;
+    sContShiftBase.x = cont->pts[pt].x - ix;
+    sContShiftBase.y = cont->pts[pt].y - iy;
   } else {
 
     // Use defined center if one was set
     if (mCenterDefined) {
-      contShiftBase.x = mXformCenter.x;
-      contShiftBase.y = mXformCenter.y;
+      sContShiftBase.x = mXformCenter.x;
+      sContShiftBase.y = mXformCenter.y;
     } else {
 
       // Otherwise get center for transforms as center of mass
-      if (defaultXformCenter(contShiftBase.x, contShiftBase.y)) {
+      if (defaultXformCenter(sContShiftBase.x, sContShiftBase.y)) {
         endContourShift();
         return 0;
       }
     }
-    markXformCenter(contShiftBase.x, contShiftBase.y);
+    markXformCenter(sContShiftBase.x, sContShiftBase.y);
     return 1;
   }
   return 0;
@@ -3031,6 +3211,16 @@ int ZapFuncs::defaultXformCenter(float &xcen, float &ycen)
 
   // Loop on contours and analyze current or selected ones
   imodGetIndex(imod, &curob, &curco, &pt);
+  if (curco < 0 && mLassoOn && !mDrawingLasso) {
+    cont = getLassoContour();
+    if (!cont)
+      return 1;
+    imodContourCenterOfMass(cont, &cent);
+    xcen = cent.x;
+    ycen = cent.y;
+    return 0;
+  }
+
   xcen = ycen = 0;
   centSum.x = centSum.y = 0;
   areaSum = 0;
@@ -3078,8 +3268,7 @@ int ZapFuncs::defaultXformCenter(float &xcen, float &ycen)
 /*
  * Shift or transform contour upon mouse move
  */
-void ZapFuncs::shiftContour(int x, int y, int button, 
-                         int shiftDown)
+void ZapFuncs::shiftContour(int x, int y, int button, int shiftDown)
 {
   int   pt, err, ob, co, curco, curob, iz;
   float ix, iy;
@@ -3095,8 +3284,9 @@ void ZapFuncs::shiftContour(int x, int y, int button,
     // Shift by change from original mouse pos minus change in current 
     // point position
     getixy(x, y, ix, iy, iz);
-    ix += contShiftBase.x - cont->pts[pt].x;
-    iy += contShiftBase.y - cont->pts[pt].y;
+    ix += sContShiftBase.x - cont->pts[pt].x;
+    iy += sContShiftBase.y - cont->pts[pt].y;
+    limitContourShift(cont, ix, iy);
   } else {
 
     // Get transformation matrix if 2nd or 3rd button
@@ -3106,6 +3296,11 @@ void ZapFuncs::shiftContour(int x, int y, int button,
   }
 
   imodGetIndex(imod, &curob, &curco, &pt);
+  if (curco < 0 && mLassoOn && !mDrawingLasso) {
+    transformContour(cont, mat, ix, iy, button);
+    imodDraw(mVi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+    return;
+  }
 
   // Loop on contours and act on current or selected ones
   for (ob = 0; ob < imod->objsize; ob++) {
@@ -3123,31 +3318,59 @@ void ZapFuncs::shiftContour(int x, int y, int button,
         // Register changes first time only
         if (!mShiftRegistered)
           mVi->undo->contourDataChg(ob, co);
-        if (button == 1) {
-          
-          // Shift points
-          for (pt = 0; pt < cont->psize; pt++) {
-            cont->pts[pt].x += ix;
-            cont->pts[pt].y += iy;
-          }
-        } else {
-          
-          // Transform points
-          for (pt = 0; pt < cont->psize; pt++) {
-            ix = mat[0][0] * (cont->pts[pt].x - contShiftBase.x) + mat[0][1] *
-              (cont->pts[pt].y - contShiftBase.y) + contShiftBase.x;
-            iy = mat[1][0] * (cont->pts[pt].x - contShiftBase.x) + mat[1][1] *
-              (cont->pts[pt].y - contShiftBase.y) + contShiftBase.y;
-            cont->pts[pt].x = ix;
-            cont->pts[pt].y = iy;
-          }
-        }
+        transformContour(cont, mat, ix, iy, button);
       }
     }
   }
 
   mShiftRegistered = 1;
   imodDraw(mVi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD );
+}
+
+/*
+ * Limit the shift to keep the contour intersecting with image
+ */
+void ZapFuncs::limitContourShift(Icont *cont, float &ix, float &iy)
+{
+  Ipoint pmin, pmax;
+  imodContourGetBBox(cont, &pmin, &pmax);
+  
+  if (pmin.x + ix >= mVi->xsize - 1)
+    ix = mVi->xsize - pmin.x - 1.;
+  else if (pmax.x + ix <= 0)
+    ix = -pmax.x + 1.;
+  if (pmin.y + iy >= mVi->ysize - 1)
+    iy = mVi->ysize - pmin.y - 1.;
+  else if (pmax.y + iy <= 0)
+    iy = -pmax.y + 1.;
+}
+
+/*
+ * Transform one contour with shift of matrix
+ */
+void ZapFuncs::transformContour(Icont *cont, float mat[2][2], float ix, float iy, 
+                                int button)
+{
+  int pt;
+  if (button == 1) {
+    
+    // Shift points
+    for (pt = 0; pt < cont->psize; pt++) {
+      cont->pts[pt].x += ix;
+      cont->pts[pt].y += iy;
+    }
+  } else {
+          
+    // Transform points
+    for (pt = 0; pt < cont->psize; pt++) {
+      ix = mat[0][0] * (cont->pts[pt].x - sContShiftBase.x) + mat[0][1] *
+        (cont->pts[pt].y - sContShiftBase.y) + sContShiftBase.x;
+      iy = mat[1][0] * (cont->pts[pt].x - sContShiftBase.x) + mat[1][1] *
+        (cont->pts[pt].y - sContShiftBase.y) + sContShiftBase.y;
+      cont->pts[pt].x = ix;
+      cont->pts[pt].y = iy;
+    }
+  }
 }
 
 /*
@@ -3164,8 +3387,8 @@ int ZapFuncs::mouseXformMatrix(int x, int y, int type,
   double dyn, distsq, disxn, disyn, disxl, disyl, p2lsq, tmin;
   int xcen, ycen, xfix, yfix;
 
-  xcen = xpos(contShiftBase.x);
-  ycen = ypos(contShiftBase.y);
+  xcen = xpos(sContShiftBase.x);
+  ycen = ypos(sContShiftBase.y);
 
   // Compute starting/ending  angle and radii as in midas
   // l for last, n for new, f for fixed
@@ -3327,15 +3550,13 @@ void ZapFuncs::markXformCenter(float ix, float iy)
 /* return x pos in window for given image x cord. */
 int ZapFuncs::xpos(float x)
 {
-  return( (int)(((x - mXstart) * mXzoom) 
-                + mXborder));
+  return( (int)(((x - mXposStart) * mXzoom) + mXborder));
 }
 
 /* return y pos in window for given image y cord. */
 int ZapFuncs::ypos(float y)
 {
-  return((int)(((y - mYstart) * mZoom)
-               + mYborder));
+  return((int)(((y - mYposStart) * mZoom) + mYborder));
 }
 
 /* returns image coords in x,y, z, given mouse coords mx, my */
@@ -3363,8 +3584,8 @@ void ZapFuncs::getixy(int mx, int my, float &x, float &y, int &z)
         z = -1;
     }
   }
-  x = ((float)(mx - mXborder) / mXzoom) + (float)mXstart;
-  y = ((float)(my - mYborder) / mZoom) + (float)mYstart;
+  x = ((float)(mx - mXborder) / mXzoom) + (float)mXposStart;
+  y = ((float)(my - mYborder) / mZoom) + (float)mYposStart;
 }
 
 // Determine which panel a point is in for one direction and get the position
@@ -3488,7 +3709,7 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
 {
   float xl, xr, yb, yt;
   int ixl, ixr, iyb, iyt, iz;
-  int ixcen, iycen, ixofs, iyofs, imx, imy;
+  int ixcen, iycen, ixofs, iyofs, imx, imy, itmp;
   int bin = mVi->xybin;
   bool ifpad, flipped = mVi->li->axis == 2;
 
@@ -3528,6 +3749,11 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
     wprint("ERROR: %s is out of range.\n", flipped ? "-y" : "-z");
     if (!toInfoWindow)
       return "";
+  }
+  if (flipped) {
+    itmp =  mVi->zsize + 1 - lowSection;
+    lowSection = mVi->zsize + 1 - highSection;
+    highSection = itmp;
   }
   lowSection = mVi->zbin * (lowSection - 1) + 1;
   highSection *= mVi->zbin;
@@ -3701,8 +3927,10 @@ void ZapFuncs::toggleRubberband(bool drawWin)
     setControlAndLimits();
     setMouseTracking();
   } else {
+    if (mLassoOn)
+      toggleLasso(false);
     mStartingBand = 1;
-    mShiftingCont = 0;
+    endContourShift();
     /* Eliminated old code for making initial band */
   }
 
@@ -3739,12 +3967,49 @@ void ZapFuncs::shiftRubberband(float idx, float idy)
 }
 
 /*
+ * Toggle the lasso contour
+ */
+void ZapFuncs::toggleLasso(bool drawWin)
+{
+  if (mLassoOn) {
+    ivwFreeExtraObject(mVi, mLassoObjNum);
+  } else {
+    if (mRubberband || mStartingBand)
+      toggleRubberband(false);
+    endContourShift();
+    mLassoObjNum = ivwGetFreeExtraObjectNumber(mVi);
+  }
+  mLassoOn = !mLassoOn;
+  mDrawingLasso = mLassoOn;
+  setMouseTracking();
+  mQtWindow->setToggleState(ZAP_TOGGLE_LASSO, mLassoOn ? 1 : 0);
+
+  // Set it to a modeling cursor
+  setCursor(mMousemode, true);
+  if (drawWin)
+    draw();
+  setCursor(mMousemode, true);
+}
+
+/*
+ * Just get the contour
+ */
+Icont *ZapFuncs::getLassoContour()
+{
+  Iobj *obj;
+  if (!mLassoOn)
+    return NULL;
+  obj = ivwGetAnExtraObject(mVi, mLassoObjNum);
+  return obj ? obj->cont : NULL;
+}
+
+/*
  * Set mouse tracking based on state of all governing flags
  */
 void ZapFuncs::setMouseTracking()
 {
-  mGfx->setMouseTracking(sInsertDown != 0 || mRubberband ||
-                             sPixelViewOpen || mVi->trackMouseForPlugs);
+  mGfx->setMouseTracking(sInsertDown != 0 || mRubberband || (mLassoOn && !mDrawingLasso)
+                         || sPixelViewOpen || mVi->trackMouseForPlugs);
 }
 
 /*
@@ -3953,7 +4218,16 @@ void ZapFuncs::drawGraphics()
   unsigned char *overImage;
   int overlay = 0;
   int otherSec = mSection + vi->overlaySec;
+  double zoom;
+  int xDrawsize, yDrawsize, xStart, yStart, tileScale = 1, status, imXsize, imYsize;
+  float xOffset, yOffset;
+  bool asyncLoad = !mVi->zmovie && imodDialogManager.windowCount(ZAP_WINDOW_TYPE) == 1 &&
+    !mvImageDrawingZplanes() && !mNumXpanels && !mVi->loadingImage;
 
+  zoom = mZoom;
+  imXsize = vi->xsize;
+  imYsize = vi->ysize;
+  
   // DNM: this is not needed, 1/12/08
   //  ivwGetLocation(vi, &x, &y, &z);
 
@@ -3968,6 +4242,8 @@ void ZapFuncs::drawGraphics()
   b3dSetImageOffset(mNumXpanels ? mPanelYsize : mWiny, vi->ysize,
                     mZoom, mYdrawsize, mYtrans, 
                     mYborder, mYstart, 1);
+  mXposStart = mXstart;
+  mYposStart = mYstart;
 
   /* Get the time to display and flush if time is different. */
   if (mTimeLock)
@@ -3977,8 +4253,41 @@ void ZapFuncs::drawGraphics()
   if (time != mTime)
     flushImage();
 
+  // For tile cache, go ahead and get the section area even if doing panels
+  // in order to get all the drawing parameters modified once
+  if (vi->pyrCache) {
+    mGfx->cancelRedraw();
+    imageData = vi->pyrCache->getSectionArea(mSection, mXstart, mYstart, mXdrawsize,
+                                             mYdrawsize, mZoom, asyncLoad, xDrawsize, 
+                                             yDrawsize, xOffset, yOffset, tileScale,
+                                             status);
+    xStart = 0;
+    yStart = 0;
+    zoom = mZoom * tileScale;
+    imXsize = xDrawsize;
+    imYsize = yDrawsize;
+    mXposStart += xOffset;
+    mYposStart += yOffset;
+    if (mXlastStart != mXstart || mXlastSize != mXdrawsize || 
+        mYlastStart != mYstart || mYlastSize != mYdrawsize || mLastStatus > 0)
+      flushImage();
+    mXlastStart = mXstart;
+    mXlastSize = mXdrawsize; 
+    mYlastStart = mYstart; 
+    mYlastSize = mYdrawsize;
+    mLastStatus = status;
+    if (status > 0)
+      mGfx->scheduleRedraw(300);   // 100 was way too often with debug version
+  } else {
+    xStart = mXstart;
+    xDrawsize = mXdrawsize;
+    yStart = mYstart;
+    yDrawsize = mYdrawsize;
+  }
+  
   if (!mNumXpanels) {
-    imageData = ivwGetZSectionTime(vi, mSection, time);
+    if (!vi->pyrCache)
+      imageData = ivwGetZSectionTime(vi, mSection, time);
 
     // If flag set, record the subarea size, clear flag, and do call float to
     // set the color map if necessary.  If the black/white changes, flush image
@@ -3997,13 +4306,13 @@ void ZapFuncs::drawGraphics()
     }
     
     b3dDrawBoxout(mXborder, mYborder, 
-                  mXborder + (int)(mXdrawsize * mZoom),
-                  mYborder + (int)(mYdrawsize * mZoom));
+                  mXborder + (int)(xDrawsize * zoom),
+                  mYborder + (int)(yDrawsize * zoom));
     
     // If overlay section is set and legal, get an image buffer and fill it
     // with the color overlay
     if (vi->overlaySec && App->rgba && !vi->rgbStore && otherSec >= 0 &&
-        otherSec < vi->zsize) {
+        otherSec < vi->zsize && !vi->pyrCache) {
       overImage = (unsigned char *)malloc(3 * vi->xsize * vi->ysize);
       if (!overImage) {
         wprint("\aFailed to get memory for overlay image.\n");
@@ -4033,13 +4342,13 @@ void ZapFuncs::drawGraphics()
     mOverlay = overlay;
 
     b3dDrawGreyScalePixelsHQ(imageData,
-                             vi->xsize, vi->ysize,
-                             mXstart, mYstart,
+                             imXsize, imYsize,
+                             xStart, yStart,
                              mXborder, mYborder,
-                             mXdrawsize, mYdrawsize,
+                             xDrawsize, yDrawsize,
                              mImage,
                              vi->rampbase, 
-                             (double)mZoom, (double)mZoom,
+                             zoom, zoom,
                              mHqgfx, mSection, rgba);
   } else {
 
@@ -4052,18 +4361,25 @@ void ZapFuncs::drawGraphics()
         iz = mSection + mPanelZstep * bl;
         if (iz < 0 || iz >= vi->zsize)
           continue;
-        imageData = ivwGetZSectionTime(vi, iz, time);
+        if (vi->pyrCache) {
+          imageData = vi->pyrCache->getSectionArea(iz, mXstart, mYstart, mXdrawsize,
+                                                   mYdrawsize, mZoom, asyncLoad,
+                                                   xDrawsize, yDrawsize, xOffset, yOffset,
+                                                   tileScale, status);
+        } else {
+          imageData = ivwGetZSectionTime(vi, iz, time);
+        }
         bl =  mXborder + mPanelXborder + ix * 
           (mPanelXsize + mPanelGutter);
         wh =  mYborder + mPanelYborder + iy * 
           (mPanelYsize + mPanelGutter);
         b3dDrawGreyScalePixelsHQ(imageData,
-                                 vi->xsize, vi->ysize,
-                                 mXstart, mYstart, bl, wh,
-                                 mXdrawsize, mYdrawsize,
+                                 imXsize, imYsize,
+                                 xStart, yStart, bl, wh,
+                                 xDrawsize, yDrawsize,
                                  mImages[ind],
                                  vi->rampbase, 
-                                 mZoom, mZoom,
+                                 zoom, zoom,
                                  mHqgfx, iz, rgba);
       }
     }
@@ -4071,7 +4387,7 @@ void ZapFuncs::drawGraphics()
 
   /* DNM 9/15/03: Get the X zoom, which might be slightly different */
   // Then get the subarea limits again with more correct zoom value
-  mXzoom = b3dGetCurXZoom();
+  mXzoom = b3dGetCurXZoom() / tileScale;
   mTime = time;
   if (mRecordSubarea) {
     setAreaLimits();
@@ -4153,8 +4469,9 @@ void ZapFuncs::drawExtraObject()
 {
   ImodView *vi = mVi;
   Iobj *xobj;
-  int co, ob;
-
+  int co, ob, lassoCtrl, stippleSave;
+  Icont *cont = imodContourGet(vi->imod);
+ 
   if (vi->imod->drawmode <= 0)
     return;
   for (ob = 0; ob < vi->numExtraObj; ob++) {
@@ -4163,6 +4480,15 @@ void ZapFuncs::drawExtraObject()
       continue;
     if (iobjOff(xobj->flags) || (xobj->flags & IMOD_OBJFLAG_MODV_ONLY))
       continue;
+    lassoCtrl = xobj->extra[IOBJ_EX_LASSO_ID];
+    if (lassoCtrl && lassoCtrl != mCtrl)
+      continue;
+    if (lassoCtrl) {
+      stippleSave = mVi->drawStipple;
+      mVi->drawStipple = 1;
+      if (mShiftingCont && !cont && !mDrawingLasso)
+        xobj->linewidth2 = 2;
+    }
 
     ifgResetValueSetup();
 
@@ -4171,6 +4497,10 @@ void ZapFuncs::drawExtraObject()
                      (int)(255. * xobj->blue));
     for (co = 0; co < xobj->contsize; co++)
       drawContour(co, -1 - ob);
+    if (lassoCtrl) {
+      mVi->drawStipple = stippleSave;
+      xobj->linewidth2 = 1;
+    }
   }
   resetGhostColor();
 }
@@ -4736,8 +5066,8 @@ void ZapFuncs::drawTools()
     mQtWindow->setSizeText(winx, winy);
   }
 
-  if (mVi->nt) {
-    int time = mTimeLock ? mTimeLock : mVi->ct;
+  if (mVi->numTimes) {
+    int time = mTimeLock ? mTimeLock : mVi->curTime;
     if (mToolTime != time){
       mToolTime = time;
       mQtWindow->setTimeLabel(time, QString(ivwGetTimeIndexLabel(mVi, time)));
@@ -4750,9 +5080,9 @@ void ZapFuncs::setCursor(int mode, bool setAnyway)
   Qt::CursorShape shape;
 
   // Set up a special cursor for the rubber band
-  if (mStartingBand || (mRubberband && (sMoveBand || sDragBand)) ||
-      mShiftingCont) {
-    if (mStartingBand || sMoveBand || mShiftingCont)
+  if (mStartingBand || ((mRubberband || mLassoOn) && (sMoveBandLasso || sDragBandLasso))
+      || mShiftingCont) {
+    if (mStartingBand || sMoveBandLasso || mShiftingCont || (mLassoOn && sDragBandLasso))
       shape = Qt::SizeAllCursor;
     else if ((sDragging[0] && sDragging[2]) || (sDragging[1] && sDragging[3]))
       shape = Qt::SizeFDiagCursor;
@@ -4772,9 +5102,9 @@ void ZapFuncs::setCursor(int mode, bool setAnyway)
     return;
   }
 
-  // Or restore cursor from rubber band or change cursor dur to mode change
+  // Or restore cursor from rubber band or change cursor due to mode change
   if (mMousemode != mode || mLastShape >= 0 || setAnyway) {
-    if (mode == IMOD_MMODEL) {
+    if (mode == IMOD_MMODEL || mDrawingLasso) {
       mGfx->setCursor(*App->modelCursor);
     } else {
       mGfx->unsetCursor();

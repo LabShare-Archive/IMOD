@@ -1,0 +1,109 @@
+Version = 1.0
+Pip = 1
+
+[Field = InfoFile]
+short = info
+type = FN
+usage = Name of supermontage info file to be created or edited
+tooltip =
+manpage = Name of a supermontage info file in which all data about the files
+will be stored.  If the file exists, it will be read in when the program
+starts, and renamed to filename~ before writing a new version when the program
+exits.  If this option is not entered, the first non-option argument will be
+taken as the name of the info file.
+
+[Field = NoZValues]
+short = noz
+type = B
+usage = Search for and create names without Z values
+tooltip =
+manpage = Search for and create names without Z values and assume the Z value
+is zero.  This option cannot be used when adding a supermontage to an existing
+one, or when specifying a z range with -zadd.
+
+[Field = RootName]
+short = root
+type = CH
+usage = Rootname for existing files and ones to be created
+tooltip =
+manpage = Rootname for existing files and ones to be created.  
+Existing files need not be named according to the conventions if they are
+already listed in the info file.
+
+[Field = OverlapInXandY]
+short = overlap
+type = IP
+usage = Nominal overlap between adjacent volumes in X and Y
+tooltip =
+manpage = Nominal overlap between adjacent volumes in X and Y.  This only
+needs to be a rough approximation.  This entry is required when adding a
+supermontage or the first time a manually prepared info file is read.  To
+measure overlap, for example in X, click on a corresponding point in two
+adjacent volumes.  The overlap in X is XR + NXL - XL where
+^   XR = X position in volume on the right
+^   NXL = Size in X of volume on the left
+^   XL = X position in volume on the left
+
+[Field = UnderscoreXYZ]
+short = underscore
+type = B
+usage = Use underscores between x, y, and z in composing names
+tooltip =
+manpage = Use underscores between x, y, and z in composing names for files
+being searched for and created.
+
+[Field = ExtensionOnVolumes]
+short = ext
+type = CH
+usage = Extension on filenames when searching for volumes (default .rec)
+tooltip =
+manpage = Extension on filenames when searching for volumes, including the
+period.  There may be characters before the true extension, such as if all
+files are named "binned.rec".  The default is .rec.
+
+[Field = AddMontageXandY]
+short = xyadd
+type = IP
+usage = Add a supermontage with the given number of frames in X and Y
+tooltip =
+manpage = Add a supermontage with the given number of frames in X and Y.  The
+program will search for pieces by rootname and frame number in X and Y, with 
+numbers starting from 1.
+
+[Field = AddMontageXRange]
+short = xadd
+type = IP
+usage = Add a supermontage with given starting and ending frame numbers in X 
+tooltip =
+manpage = Starting and ending X values to search for when adding a
+supermontage.  Use this option and -yadd if the starting frame number is not 1
+in X or in Y.  If one of the two options -xadd and -yadd is entered, then the
+other must be entered as well, and -xyadd must not be entered.
+
+[Field = AddMontageYRange]
+short = yadd
+type = IP
+usage = Add a supermontage with given starting and ending frame numbers in Y 
+tooltip =
+manpage = Starting and ending Y values to search for when adding a
+supermontage.
+
+[Field = AddMontageZRange]
+short = zadd
+type = IP
+usage = Starting and ending Z values to search for when adding a supermontage
+tooltip =
+manpage = Starting and ending Z values to search for when adding a
+supermontage.  If this option is entered, then either -xyadd, or -xadd and
+-yadd, must be entered.
+
+[Field = DefaultRegionModel]
+short = model
+type = FN
+usage = Patch region model to use for an overlap zone if one is not found
+tooltip =
+manpage = Patch region model to use for an overlap zone if one is not found
+when initially setting up the Edge entries in the info file.  This option will
+have an effect only when adding a supermontage or processing a manually
+prepared info file for the first time.
+

@@ -29,15 +29,25 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.filechooser.FileFilter;
 
 import etomo.ApplicationManager;
+import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveFileCollection;
 import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
+import etomo.type.DataFileType;
+import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.TiltAngleSpec;
+import etomo.type.UserConfiguration;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
+import etomo.ui.SetupReconInterface;
 
 final class SetupDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer, Expandable {
+    Run3dmodButtonContainer, Expandable, SetupReconInterface {
   public static final String rcsid = "$Id$";
 
   static final String DATASET_NAME_LABEL = "Dataset name: ";
@@ -48,6 +58,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String MONTAGE_LABEL = "Montage";
   static final String SINGLE_FRAME_LABEL = "Single frame";
   private final String BACKUP_DIRECTORY_LABEL = "Backup directory: ";
+  private final int BINNING_DEFAULT = 1;
 
   private final JPanel pnlDataParameters = new JPanel();
   // Dataset GUI objects
@@ -55,7 +66,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final ImageIcon iconFolder = new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif"));
 
-  private final FileTextField ftfDataset = new FileTextField(DATASET_NAME_LABEL);
+  private final FileTextField2 ftfDataset = FileTextField2.getInstance(
+      applicationManager, DATASET_NAME_LABEL);
 
   private final FileTextField ftfBackupDirectory = new FileTextField(
       BACKUP_DIRECTORY_LABEL);
@@ -83,17 +95,18 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlImageRows = new JPanel();
 
   private final JPanel pnlStackInfo = new JPanel();
-  private final LabeledTextField ltfPixelSize = new LabeledTextField("Pixel size (nm): ");
+  private final LabeledTextField ltfPixelSize = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Pixel size (nm): ");
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      FIDUCIAL_DIAMETER_LABEL);
+      FieldType.FLOATING_POINT, FIDUCIAL_DIAMETER_LABEL);
   private final LabeledTextField ltfImageRotation = new LabeledTextField(
-      "Image rotation (degrees): ");
+      FieldType.FLOATING_POINT, "Image rotation (degrees): ");
 
   private final JPanel pnlDistortionInfo = new JPanel();
   private final FileTextField ftfDistortionFile = new FileTextField(
       "Image distortion field file: ");
   private final LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
-      new SpinnerNumberModel(1, 1, 50, 1), 1);
+      new SpinnerNumberModel(BINNING_DEFAULT, 1, 50, 1), BINNING_DEFAULT);
 
   private final JPanel pnlMagGradientInfo = new JPanel();
   private final FileTextField ftfMagGradientFile = new FileTextField(
@@ -103,20 +116,26 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   // Tilt angle GUI objects
   // private TiltAnglePanel tiltAnglesA = new TiltAnglePanel();
-  private final LabeledTextField ltfExcludeListA = new LabeledTextField("Exclude views: ");
+  private final LabeledTextField ltfExcludeListA = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Exclude views: ");
   private final JPanel pnlAdjustedFocusA = new JPanel();
   private final CheckBox cbAdjustedFocusA = new CheckBox(
       "Focus was adjusted between montage frames");
 
   private final BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
   // private TiltAnglePanel tiltAnglesB = new TiltAnglePanel();
-  private final LabeledTextField ltfExcludeListB = new LabeledTextField("Exclude views: ");
+  private final LabeledTextField ltfExcludeListB = new LabeledTextField(
+      FieldType.INTEGER_LIST, "Exclude views: ");
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
 
   private final SetupDialogExpert expert;
   private final boolean calibrationAvailable;
+  private final SetupDialogActionListener listener;
+  private final TemplatePanel templatePanel;
+
+  private DirectiveFileCollection directiveFileCollection = null;
 
   // Construct the setup dialog
   private SetupDialog(final SetupDialogExpert expert, final ApplicationManager manager,
@@ -124,7 +143,14 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     super(manager, axisID, dialogType);
     this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
+    listener = new SetupDialogActionListener(expert);
+    templatePanel = TemplatePanel.getInstance(manager, axisID, listener, "Templates",
+        null);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
+    ftfDataset.setFileSelectionMode(FileChooser.FILES_ONLY);
+    ftfDataset.setOrigin(expert.getDatasetDir());
+    ftfDataset.setAbsolutePath(true);
+    ftfDataset.setFileFilter(new StackFileFilter());
     createDatasetPanel();
     createDataTypePanel();
     createPerAxisInfoPanel();
@@ -146,10 +172,6 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rootPanel.add(Box.createVerticalGlue());
     addExitButtons();
     UIUtilities.alignComponentsX(rootPanel, Component.CENTER_ALIGNMENT);
-
-    // Mouse adapter for context menu
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    rootPanel.addMouseListener(mouseAdapter);
 
     // Resize the standard panel buttons
     UIUtilities.setButtonSizeAll(pnlExitButtons,
@@ -180,8 +202,30 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void done() {
-    applicationManager.doneSetupDialog();
-    setDisplayed(false);
+    if (applicationManager
+        .doneSetupDialog(expert.getExitState() == DialogExitState.EXECUTE)) {
+      setDisplayed(false);
+    }
+  }
+
+  public boolean buttonExecuteAction() {
+    String sDataset = ftfDataset.getText();
+    if (sDataset.indexOf(File.separator) != -1) {
+      if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
+          ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
+        return false;
+      }
+    }
+    else {
+      String datasetName = ftfDataset.getText();
+      if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
+          new File(expert.getPropertyUserDir()), datasetName, DataFileType.RECON,
+          expert.getAxisType(),
+          !datasetName.endsWith(FileType.RAW_STACK.getExtension(applicationManager)))) {
+        return false;
+      }
+    }
+    return super.buttonExecuteAction();
   }
 
   public void action(final Run3dmodButton button,
@@ -191,6 +235,49 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
     else if (btnViewRawStackB == button) {
       expert.viewRawStack(AxisID.SECOND, run3dmodMenuOptions);
+    }
+  }
+
+  public DirectiveFileCollection getDirectiveFileCollection() {
+    return templatePanel.getDirectiveFileCollection();
+  }
+
+  void setParameters(final UserConfiguration userConfig) {
+    templatePanel.setParameters(userConfig);
+  }
+
+   void updateTemplateValues() {
+    DirectiveFileCollection directiveFileCollection = templatePanel
+        .getDirectiveFileCollection();
+    rbDualAxis.setSelected(directiveFileCollection.isDual());
+    rbMontage.setSelected(directiveFileCollection.isMontage());
+    if (directiveFileCollection.containsPixel()) {
+      ltfPixelSize.setText(directiveFileCollection.getPixelSize(false));
+    }
+    if (directiveFileCollection.containsGold()) {
+      ltfFiducialDiameter.setText(directiveFileCollection.getFiducialDiameter(false));
+    }
+    if (directiveFileCollection.containsRotation()) {
+      ltfImageRotation.setText(directiveFileCollection.getImageRotation(AxisID.FIRST,
+          false));
+    }
+    expert.updateTiltAnglePanelTemplateValues(directiveFileCollection);
+    if (directiveFileCollection.containsDistort()) {
+      ftfDistortionFile.setText(directiveFileCollection.getDistortionFile());
+    }
+    if (directiveFileCollection.containsBinning()) {
+      spnBinning.setValue(directiveFileCollection.getIntBinning(BINNING_DEFAULT));
+    }
+    if (directiveFileCollection.containsGradient()) {
+      ftfMagGradientFile.setText(directiveFileCollection.getMagGradientFile());
+    }
+    if (directiveFileCollection.containsFocus(AxisID.FIRST)) {
+      cbAdjustedFocusA.setSelected(directiveFileCollection
+          .isAdjustedFocusSelected(AxisID.FIRST));
+    }
+    if (directiveFileCollection.containsFocus(AxisID.SECOND)) {
+      cbAdjustedFocusB.setSelected(directiveFileCollection
+          .isAdjustedFocusSelected(AxisID.SECOND));
     }
   }
 
@@ -316,15 +403,15 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rbSingleAxis.setSelected(input);
   }
 
-  boolean isSingleAxisSelected() {
+  public boolean isSingleAxisSelected() {
     return rbSingleAxis.isSelected();
   }
 
-  boolean isSingleViewSelected() {
+  public boolean isSingleViewSelected() {
     return rbSingleView.isSelected();
   }
 
-  boolean isDualAxisSelected() {
+  public boolean isDualAxisSelected() {
     return rbDualAxis.isSelected();
   }
 
@@ -332,7 +419,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rbDualAxis.setSelected(input);
   }
 
-  void setPixelSize(final double input) {
+  public void setPixelSize(final double input) {
     ltfPixelSize.setText(input);
   }
 
@@ -340,7 +427,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfFiducialDiameter.setText(input);
   }
 
-  void setImageRotation(final String input) {
+  public void setImageRotation(final String input) {
     ltfImageRotation.setText(input);
   }
 
@@ -348,19 +435,20 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfImageRotation.setText(input);
   }
 
-  void setBinning(final int input) {
+  public void setBinning(final int input) {
     spnBinning.setValue(input);
   }
 
-  Number getBinning() {
-    return spnBinning.getValue();
+  public String getBinning() {
+    return spnBinning.getValue().toString();
   }
 
-  String getExcludeList(final AxisID axisID) {
+  public String getExcludeList(final AxisID axisID, final boolean doValidation)
+      throws FieldValidationFailedException {
     if (axisID == AxisID.SECOND) {
-      return ltfExcludeListB.getText();
+      return ltfExcludeListB.getText(doValidation);
     }
-    return ltfExcludeListA.getText();
+    return ltfExcludeListA.getText(doValidation);
   }
 
   void setExcludeList(final AxisID axisID, final String input) {
@@ -398,47 +486,62 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     rbMontage.setSelected(input);
   }
 
-  String getDataset() {
+  public String getDataset() {
     return ftfDataset.getText();
   }
 
-  String getBackupDirectory() {
+  public boolean getTiltAngleFields(final AxisID axisID,
+      final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    return expert.getTiltAngleFields(axisID, tiltAngleSpec, doValidation);
+  }
+
+  public String getBackupDirectory() {
     return ftfBackupDirectory.getText();
   }
 
-  String getDistortionFile() {
+  public String getDistortionFile() {
     return ftfDistortionFile.getText();
   }
 
-  String getMagGradientFile() {
+  public String getMagGradientFile() {
     return ftfMagGradientFile.getText();
   }
 
-  boolean isParallelProcessSelected() {
+  public boolean isParallelProcessSelected(final String propertyUserDir) {
     return cbParallelProcess.isSelected();
   }
 
-  boolean isGpuProcessingSelected() {
+  public boolean isGpuProcessingSelected(final String propertyUserDir) {
     return cbGpuProcessing.isSelected();
   }
 
-  boolean isAdjustedFocusSelected(final AxisID axisID) {
+  public boolean isAdjustedFocusSelected(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return cbAdjustedFocusB.isSelected();
     }
     return cbAdjustedFocusA.isSelected();
   }
 
-  String getPixelSize() {
-    return ltfPixelSize.getText();
+  public String getPixelSize(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfPixelSize.getText(doValidation);
   }
 
-  String getFiducialDiameter() {
-    return ltfFiducialDiameter.getText();
+  public boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {
+    return expert.validateTiltAngle(axisID, errorTitle);
   }
 
-  String getImageRotation() {
-    return ltfImageRotation.getText();
+  public String getFiducialDiameter(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfFiducialDiameter.getText(doValidation);
+  }
+
+  /**
+   * @param axisID has no effect
+   */
+  public String getImageRotation(final AxisID axisID, final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfImageRotation.getText(doValidation);
   }
 
   boolean equalsSingleAxisActionCommand(final String actionCommand) {
@@ -468,6 +571,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   boolean equalsScanHeaderActionCommand(final String actionCommand) {
     return actionCommand.equals(btnScanHeader.getActionCommand());
+  }
+
+  boolean equalsTemplateActionCommand(final String actionCommand) {
+    return templatePanel.equalsActionCommand(actionCommand);
   }
 
   public void expand(GlobalExpandButton button) {
@@ -505,33 +612,13 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return null;
   }
 
-  void datasetAction() {
-    try {
-      File file = getFile(expert.getDatasetDir(), new StackFileFilter(),
-          JFileChooser.FILES_ONLY);
-      if (file == null) {
-        return;
-      }
-      String dir = file.getParent();
-      if (dir.endsWith(" ")) {
-        UIHarness.INSTANCE.openMessageDialog(applicationManager, "The directory, " + dir
-            + ", cannot be used because it ends with a space.",
-            "Unusable Directory Name", AxisID.ONLY);
-        return;
-      }
-      if (file != null) {
-        ftfDataset.setText(file.getAbsolutePath());
-      }
-    }
-    catch (Exception excep) {
-      excep.printStackTrace();
-    }
-  }
-
   void backupDirectoryAction() {
     try {
-      ftfBackupDirectory.setText(getFile(expert.getCurrentBackupDirectory(), null,
-          JFileChooser.DIRECTORIES_ONLY).getCanonicalPath());
+      File file = getFile(expert.getCurrentBackupDirectory(), null,
+          JFileChooser.DIRECTORIES_ONLY);
+      if (file != null) {
+        ftfBackupDirectory.setText(file.getCanonicalPath());
+      }
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -540,8 +627,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void distortionFileAction() {
     try {
-      ftfDistortionFile.setText(getFile(expert.getCurrentDistortionDir(),
-          new DistortionFileFilter(), JFileChooser.FILES_ONLY).getAbsolutePath());
+      File file = getFile(expert.getCurrentDistortionDir(), new DistortionFileFilter(),
+          JFileChooser.FILES_ONLY);
+      if (file != null) {
+        ftfDistortionFile.setText(file.getAbsolutePath());
+      }
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -554,8 +644,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
    */
   void magGradientFileAction() {
     try {
-      ftfMagGradientFile.setText(getFile(expert.getCurrentMagGradientDir(),
-          new MagGradientFileFilter(), JFileChooser.FILES_ONLY).getAbsolutePath());
+      File file = getFile(expert.getCurrentMagGradientDir(), new MagGradientFileFilter(),
+          JFileChooser.FILES_ONLY);
+      if (file != null) {
+        ftfMagGradientFile.setText(file.getAbsolutePath());
+      }
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -577,13 +670,14 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void addListeners() {
-    ftfDataset.addActionListener(new DatasetActionListener(this));
+    // Mouse adapter for context menu
+    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
+    rootPanel.addMouseListener(mouseAdapter);
     ftfBackupDirectory.addActionListener(new BackupDirectoryActionListener(this));
     ftfDistortionFile.addActionListener(new DistortionFileActionListener(this));
     ftfMagGradientFile.addActionListener(new MagGradientFileActionListener(this));
     btnViewRawStackA.addActionListener(new ViewRawStackAActionListener(this));
     btnViewRawStackB.addActionListener(new ViewRawStackBActionListener(this));
-    SetupDialogActionListener listener = new SetupDialogActionListener(expert);
     rbSingleAxis.addActionListener(listener);
     rbDualAxis.addActionListener(listener);
     rbSingleView.addActionListener(listener);
@@ -599,7 +693,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     // Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
 
-    pnlDataset.add(ftfDataset.getContainer());
+    pnlDataset.add(ftfDataset.getRootPanel());
     pnlDataset.add(Box.createRigidArea(FixedDim.x10_y0));
 
     pnlDataset.add(ftfBackupDirectory.getContainer());
@@ -607,10 +701,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void createDataTypePanel() {
+    JPanel pnlRow2 = new JPanel();
     // init
     ftfDistortionFile.setTextPreferredWidth(505);
     ftfMagGradientFile.setTextPreferredWidth(505);
-    
+
     // Datatype subpnls: DataSource AxisType Viewtype
     Dimension dimDataTypePref = new Dimension(
         (int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
@@ -705,12 +800,17 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlImageParams.add(Box.createHorizontalGlue());
     pnlImageParams.add(Box.createRigidArea(FixedDim.x5_y0));
 
+    pnlRow2.setLayout(new BoxLayout(pnlRow2, BoxLayout.X_AXIS));
+    pnlRow2.add(templatePanel.getComponent());
+    pnlRow2.add(Box.createRigidArea(FixedDim.x2_y0));
+    pnlRow2.add(pnlDataType);
+
     // Create Data Parameters panel
     pnlDataParameters.setLayout(new BoxLayout(pnlDataParameters, BoxLayout.Y_AXIS));
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlDataset);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlDataParameters.add(pnlDataType);
+    pnlDataParameters.add(pnlRow2);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlDataParameters.add(pnlImageParams);
     pnlDataParameters.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -763,20 +863,6 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlPerAxisInfo.setLayout(new BoxLayout(pnlPerAxisInfo, BoxLayout.X_AXIS));
     pnlPerAxisInfo.add(pnlAxisInfoA);
     pnlPerAxisInfo.add(pnlAxisInfoB);
-  }
-
-  // Button action listener classes
-  private static final class DatasetActionListener implements ActionListener {
-
-    private final SetupDialog adaptee;
-
-    private DatasetActionListener(final SetupDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(final ActionEvent event) {
-      adaptee.datasetAction();
-    }
   }
 
   private static final class BackupDirectoryActionListener implements ActionListener {
@@ -844,7 +930,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  private static final class SetupDialogActionListener implements ActionListener {
+  private static final class SetupDialogActionListener implements TemplateActionListener {
 
     private final SetupDialogExpert adaptee;
 

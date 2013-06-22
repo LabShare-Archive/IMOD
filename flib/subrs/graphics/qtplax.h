@@ -1,3 +1,7 @@
+/* Header for qtplax.cpp with defines for Fortran-callable routines
+ *
+ *  $Id$
+ */
 #ifndef _PLAX_H_
 #define _PLAX_H_
 
@@ -20,59 +24,68 @@
 
 #ifdef F77FUNCAP
 
-#define plax_open     P_START
-#define plax_close    P_END
-#define plax_flush    P_B_FLUSH
-#define plax_mapcolor P_CLT8
-#define plax_box      P_BOX
-#define plax_boxo     P_BOXO
-#define plax_vect     P_VECT
-#define plax_vectw    P_VECTW
-#define plax_circ     P_CIRC
-#define plax_circo    P_CIRCO
-#define plax_poly     P_POLY
-#define plax_polyo    P_POLYO
-#define plax_sctext   P_SCTEXT
+#define plax_open     PLAX_OPEN
+#define plax_close    PLAX_CLOSE
+#define plax_flush    PLAX_FLUSH
+#define plax_mapcolor PLAX_MAPCOLOR
+#define plax_box      PLAX_BOX
+#define plax_boxo     PLAX_BOXO
+#define plax_vect     PLAX_VECT
+#define plax_vectw    PLAX_VECTW
+#define plax_circ     PLAX_CIRC
+#define plax_circo    PLAX_CIRCO
+#define plax_poly     PLAX_POLY
+#define plax_polyo    PLAX_POLYO
+#define plax_sctext   PLAX_SCTEXT
 #define plax_erase    PLAX_ERASE
 #define plax_initialize  PLAX_INITIALIZE
+#define plax_wait_for_close PLAX_WAIT_FOR_CLOSE
+#define plax_next_text_align PLAX_NEXT_TEXT_ALIGN
+#define plax_drawing_scale PLAX_DRAWING_SCALE
 
 #else
 
 #ifdef G77__HACK
-#define plax_open     p_start__
-#define plax_close    p_end__
-#define plax_flush    p_b_flush__
-#define plax_mapcolor p_clt8__
-#define plax_box      p_box__
-#define plax_boxo     p_boxo__
-#define plax_vect     p_vect__
-#define plax_vectw    p_vectw__
-#define plax_circ     p_circ__
-#define plax_circo    p_circo__
-#define plax_poly     p_poly__
-#define plax_polyo    p_polyo__
-#define plax_sctext   p_sctext__
+#define plax_open     plax_open__
+#define plax_close    plax_close__
+#define plax_flush    plax_flush__
+#define plax_mapcolor plax_mapcolor__
+#define plax_box      plax_box__
+#define plax_boxo     plax_boxo__
+#define plax_vect     plax_vect__
+#define plax_vectw    plax_vectw__
+#define plax_circ     plax_circ__
+#define plax_circo    plax_circo__
+#define plax_poly     plax_poly__
+#define plax_polyo    plax_polyo__
+#define plax_sctext   plax_sctext__
 #define plax_putc     putc_
 #define plax_erase    plax_erase__
 #define plax_initialize  plax_initialize__
+#define plax_wait_for_close plax_wait_for_close__
+#define plax_next_text_align plax_next_text_align__
+#define plax_drawing_scale plax_drawing_scale__
 
 #else
 
-#define plax_open     p_start_
-#define plax_close    p_end_
-#define plax_flush    p_b_flush_
-#define plax_mapcolor p_clt8_
-#define plax_box      p_box_
-#define plax_boxo     p_boxo_
-#define plax_vect     p_vect_
-#define plax_vectw    p_vectw_
-#define plax_circ     p_circ_
-#define plax_circo    p_circo_
-#define plax_poly     p_poly_
-#define plax_polyo    p_polyo_
-#define plax_sctext   p_sctext_
+#define plax_open     plax_open_
+#define plax_close    plax_close_
+#define plax_flush    plax_flush_
+#define plax_mapcolor plax_mapcolor_
+#define plax_box      plax_box_
+#define plax_boxo     plax_boxo_
+#define plax_vect     plax_vect_
+#define plax_vectw    plax_vectw_
+#define plax_circ     plax_circ_
+#define plax_circo    plax_circo_
+#define plax_poly     plax_poly_
+#define plax_polyo    plax_polyo_
+#define plax_sctext   plax_sctext_
 #define plax_erase    plax_erase_
 #define plax_initialize  plax_initialize_
+#define plax_wait_for_close plax_wait_for_close_
+#define plax_next_text_align plax_next_text_align_
+#define plax_drawing_scale plax_drawing_scale_
 
 #endif
 
@@ -86,6 +99,7 @@ int plax_open(void);
 void plax_close(void);
 void plax_flush(void);
 void plax_erase(void);
+void plax_wait_for_close(void);
 void plax_mapcolor(int *color, int *ired, int *igreen, int *iblue);
 void plax_box(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
 void plax_boxo(int *cindex, int *ix1, int *iy1, int *ix2, int *iy2);
@@ -96,12 +110,10 @@ void plax_circ(int *cindex, int *radius, int *ix, int *iy);
 void plax_circo(int *cindex, int *radius, int *ix, int *iy);
 void plax_poly(int *cindex, int *size, b3dInt16 *vec);
 void plax_polyo(int *cindex, int *size, b3dInt16 *vec);
-void plax_sctext(int *thickness,
-		 int *xsize,
-		 int *iysize,
-		 int *cindex,
-		 int *ix, int *iy,
-                 char *string, int strsize);
+void plax_sctext(int *thickness, int *xsize, int *iysize, int *cindex,
+                 int *ix, int *iy, char *string, int strsize);
+void plax_next_text_align(int *type);
+void plax_drawing_scale(float *xscale, float *xadd, float *yscale, float *yadd);
 }
 
 class PlaxWindow : public QWidget
@@ -116,12 +128,15 @@ class PlaxWindow : public QWidget
 
   public slots:
   void redrawSlot();
+  void savePNGslot(bool state);
+  void printSlot(bool state);
 
  protected:
     void closeEvent ( QCloseEvent * e );
     void paintEvent ( QPaintEvent * );
     void resizeEvent ( QResizeEvent * );
     void timerEvent(QTimerEvent *e);
+    void mousePressEvent(QMouseEvent * e );
 
  private:
     int mTimerID;

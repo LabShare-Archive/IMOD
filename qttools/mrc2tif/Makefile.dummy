@@ -1,0 +1,9 @@
+include ../configure
+
+all :
+
+# There has to be a .dsp for building the program before enabling this
+install	:
+	#$(CP) $(VCEXEDIR)/mrc2tif.exe $(INSTBINDIR)
+
+clean :

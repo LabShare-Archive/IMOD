@@ -463,7 +463,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(parallelPanelContainer);
-    //  Construct the main panel for this dialog panel
+    // Construct the main panel for this dialog panel
     tabbedPane.add(lblSetup, pnlSetup.getContainer());
     tabbedPane.add(lblInitial, pnlInitial.getContainer());
     tabbedPane.add(lblFinal, pnlFinal.getContainer());
@@ -514,8 +514,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param combineParams
    * @throws NumberFormatException
    */
-  public void getCombineParams(CombineParams combineParams) throws NumberFormatException {
-    pnlSetup.getParameters(combineParams);
+  public boolean getCombineParams(CombineParams combineParams, final boolean doValidation)
+      throws NumberFormatException {
+    return pnlSetup.getParameters(combineParams, doValidation);
   }
 
   Run3dmodButton getImodCombinedButton() {
@@ -586,13 +587,14 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param solvematchParams
    * @throws NumberFormatException
    */
-  public void getSolvematchParams(SolvematchParam solvematchParams)
-      throws NumberFormatException {
-    pnlInitial.getSolvematchParams(solvematchParams);
+  public boolean getSolvematchParams(SolvematchParam solvematchParams,
+      final boolean doValidation) throws NumberFormatException {
+    return pnlInitial.getSolvematchParams(solvematchParams, doValidation);
   }
 
-  public void getParameters(MatchvolParam param) throws NumberFormatException {
-    pnlInitial.getParameters(param);
+  public boolean getParameters(MatchvolParam param, final boolean doValidation)
+      throws NumberFormatException {
+    return pnlInitial.getParameters(param, doValidation);
   }
 
   /**
@@ -618,17 +620,17 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param patchcrawl3DParams
    * @throws NumberFormatException
    */
-  public void getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams)
-      throws NumberFormatException {
-    pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams);
+  public boolean getPatchcrawl3DParams(Patchcrawl3DParam patchcrawl3DParams,
+      final boolean doValidation) throws NumberFormatException {
+    return pnlFinal.getPatchcrawl3DParams(patchcrawl3DParams, doValidation);
   }
 
-  public void getReductionFactorParam(SetParam setParam) {
-    pnlFinal.getReductionFactorParam(setParam);
+  public boolean getReductionFactorParam(SetParam setParam, final boolean doValidation) {
+    return pnlFinal.getReductionFactorParam(setParam, doValidation);
   }
 
-  public void getLowFromBothRadiusParam(SetParam setParam) {
-    pnlFinal.getLowFromBothRadiusParam(setParam);
+  public boolean getLowFromBothRadiusParam(SetParam setParam, final boolean doValidation) {
+    return pnlFinal.getLowFromBothRadiusParam(setParam, doValidation);
   }
 
   public void enableReductionFactor(boolean enable) {
@@ -684,8 +686,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public ProcessingMethod getRunProcessingMethod() {
     String tabTitle = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
     if (tabTitle.equals(lblInitial)) {
-      //Tabs copy their data to other tabs when other tabs is selected, so
-      //either setup or final should be correct.
+      // Tabs copy their data to other tabs when other tabs is selected, so
+      // either setup or final should be correct.
       return pnlFinal.getProcessingMethod();
     }
     else {
@@ -806,9 +808,9 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
    * @param matchorwarpParams
    * @throws NumberFormatException
    */
-  public void getMatchorwarpParams(MatchorwarpParam matchorwarpParams)
-      throws NumberFormatException {
-    pnlFinal.getMatchorwarpParams(matchorwarpParams);
+  public boolean getMatchorwarpParams(MatchorwarpParam matchorwarpParams,
+      final boolean doValidation) throws NumberFormatException {
+    return pnlFinal.getMatchorwarpParams(matchorwarpParams, doValidation);
   }
 
   public void synchronizeFromCurrentTab() {
@@ -864,7 +866,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     int idxNewTab = tabbedPane.getSelectedIndex();
     synchronize(tabbedPane.getTitleAt(idxLastTab), true);
     setVisible(tabbedPane.getTitleAt(idxNewTab));
-    //  Set the last tab index to current tab so that we are ready for tab
+    // Set the last tab index to current tab so that we are ready for tab
     // change
     idxLastTab = tabbedPane.getSelectedIndex();
     mediator.setMethod(this, getProcessingMethod());

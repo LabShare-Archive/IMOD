@@ -2,15 +2,18 @@ package etomo.ui.swing;
 
 import java.awt.GraphicsEnvironment;
 import java.awt.event.*;
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.*;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.ConfigTool;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.UserConfiguration;
+import etomo.ui.FieldType;
 
 /**
  * @author rickg
@@ -26,11 +29,12 @@ public final class SettingsDialog extends JDialog {
   // Font selection panel
   private final FontFamilies fontFamilies = new FontFamilies();
   private final JList listFontFamily = new JList(fontFamilies.getFontFamilies());
-  private final LabeledTextField ltfFontSize = new LabeledTextField("Size: ");
+  private final LabeledTextField ltfFontSize = new LabeledTextField(FieldType.INTEGER,
+      "Size: ");
   private final LabeledTextField ltfTooltipsInitialDelay = new LabeledTextField(
-      "Tooltips initial delay: ");
+      FieldType.FLOATING_POINT, "Tooltips initial delay: ");
   private final LabeledTextField ltfTooltipsDismissDelay = new LabeledTextField(
-      "Tooltips dismiss delay: ");
+      FieldType.FLOATING_POINT, "Tooltips dismiss delay: ");
   private final CheckBox cbNativeLAF = new CheckBox("Native look & feel");
   private final CheckBox cbAdvancedDialogs = new CheckBox("Always use advanced dialogs");
   private final CheckBox cbAutoFit = new CheckBox("Auto-fit");
@@ -41,7 +45,8 @@ public final class SettingsDialog extends JDialog {
   private final CheckBox cbParallelProcessing = new CheckBox("Enable "
       + ParallelPanel.FIELD_LABEL);
   private final CheckBox cbGpuProcessing = new CheckBox("Enable graphics processing");
-  private final LabeledTextField ltfCpus = new LabeledTextField("# CPUs: ");
+  private final LabeledTextField ltfCpus = new LabeledTextField(FieldType.INTEGER,
+      "# CPUs: ");
   private final CheckBox cbSingleAxis = new CheckBox(SetupDialog.AXIS_TYPE_LABEL + ":  "
       + SetupDialog.SINGLE_AXIS_LABEL);
   private final CheckBox cbMontage = new CheckBox(SetupDialog.FRAME_TYPE_LABEL + ":  "
@@ -55,32 +60,47 @@ public final class SettingsDialog extends JDialog {
   private final CheckBox cbSwapYAndZ = new CheckBox(
       TrimvolPanel.REORIENTATION_GROUP_LABEL + "  " + TrimvolPanel.SWAP_YZ_LABEL);
   private final LabeledTextField ltfParallelTableSize = new LabeledTextField(
-      "Parallel table size: ");
+      FieldType.INTEGER, "Parallel table size: ");
   private final LabeledTextField ltfJoinTableSize = new LabeledTextField(
-      "Join tables size: ");
+      FieldType.INTEGER, "Join tables size: ");
   private final LabeledTextField ltfPeetTableSize = new LabeledTextField(
-      "PEET table size: ");
+      FieldType.INTEGER, "PEET table size: ");
+  private final CheckBox cbSetFEIPixelSize = new CheckBox(
+      "Set pixel size in files from FEI");
+  private final FileTextField2 ftfUserTemplateDir = FileTextField2.getInstance(null,
+      "User templates directory: ");
+  private final SettingsDialogListener listener = new SettingsDialogListener(this);
 
+  private final TemplatePanel templatePanel;
   private final String propertyUserDir;
 
-  private SettingsDialog(final String propertyUserDir) {
+  private SettingsDialog(final BaseManager manager, final String propertyUserDir) {
     this.propertyUserDir = propertyUserDir;
+    templatePanel = TemplatePanel.getInstance(manager, AxisID.ONLY, listener,
+        "Default Templates", this);
+
   }
 
   public static SettingsDialog getInstance(final BaseManager manager,
       final String propertyUserDir) {
-    SettingsDialog instance = new SettingsDialog(propertyUserDir);
+    SettingsDialog instance = new SettingsDialog(manager, propertyUserDir);
     instance.buildDialog();
     instance.loadData(manager, propertyUserDir);
+    instance.setTooltips();
     instance.addListeners();
     return instance;
   }
 
   private void buildDialog() {
+    // init
+    ftfUserTemplateDir.setAbsolutePath(true);
+    ftfUserTemplateDir.setUseTextAsOriginDir(true);
+    ftfUserTemplateDir.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
+    ftfUserTemplateDir.setFile(ConfigTool.getDefaultUserTemplateDir());
+    ftfUserTemplateDir.setTurnOffFileHiding(true);
     setTitle("eTomo Settings");
     SpacedPanel pnlMain = SpacedPanel.getInstance();
     pnlMain.setBoxLayout(BoxLayout.Y_AXIS);
-    // pnlMain.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     ((JPanel) getContentPane()).add(pnlMain.getContainer());
     // Layout the font panel
     SpacedPanel panelFontSelect = SpacedPanel.getInstance();
@@ -140,6 +160,7 @@ public final class SettingsDialog extends JDialog {
     panelDefaults.add(cbGpuProcessingDefault);
     panelDefaults.add(cbTiltAnglesRawtltFile);
     panelDefaults.add(cbSwapYAndZ);
+    panelDefaults.add(cbSetFEIPixelSize);
     pnlMain.add(panelDefaults.getContainer());
     // table settings
     EtomoPanel pnlTableSize = new EtomoPanel();
@@ -149,6 +170,8 @@ public final class SettingsDialog extends JDialog {
     pnlTableSize.add(ltfJoinTableSize.getContainer());
     pnlTableSize.add(ltfPeetTableSize.getContainer());
     pnlMain.add(pnlTableSize);
+    pnlMain.add(ftfUserTemplateDir.getRootPanel());
+    pnlMain.add(templatePanel.getComponent());
     // buttons
     SpacedPanel panelButtons = SpacedPanel.getInstance();
     panelButtons.setBoxLayout(BoxLayout.X_AXIS);
@@ -181,7 +204,6 @@ public final class SettingsDialog extends JDialog {
   }
 
   private void addListeners() {
-    SettingsDialogListener listener = new SettingsDialogListener(this);
     buttonCancel.addActionListener(listener);
     buttonApply.addActionListener(listener);
     buttonDone.addActionListener(listener);
@@ -202,12 +224,18 @@ public final class SettingsDialog extends JDialog {
     cbGpuProcessingDefault.setSelected(userConfig.getGpuProcessingDefault());
     cbTiltAnglesRawtltFile.setSelected(userConfig.getTiltAnglesRawtltFile());
     cbSwapYAndZ.setSelected(userConfig.getSwapYAndZ());
+    cbSetFEIPixelSize.setSelected(userConfig.isSetFEIPixelSize());
     cbParallelProcessing.setSelected(userConfig.isParallelProcessing());
     cbGpuProcessing.setSelected(userConfig.isGpuProcessing());
     ltfCpus.setText(userConfig.getCpus());
     ltfParallelTableSize.setText(userConfig.getParallelTableSize());
     ltfJoinTableSize.setText(userConfig.getJoinTableSize());
     ltfPeetTableSize.setText(userConfig.getPeetTableSize());
+    String dir = userConfig.getUserTemplateDir();
+    if (dir != null && !dir.matches("\\s*")) {
+      ftfUserTemplateDir.setText(userConfig.getUserTemplateDir());
+    }
+    templatePanel.setParameters(userConfig);
 
     // Get the current font parameters to set the UI
     // Since they may not be all the same make the assumption that the first
@@ -230,12 +258,27 @@ public final class SettingsDialog extends JDialog {
     updateDisplay();
   }
 
+  boolean equalsUserTemplateDir(final File input) {
+    File userTemplateDir = ftfUserTemplateDir.getFile();
+    if (userTemplateDir == null && input == null) {
+      return true;
+    }
+    if (userTemplateDir == null) {
+      return false;
+    }
+    return userTemplateDir.equals(input);
+  }
+
+  File getUserTemplateDir() {
+    return ftfUserTemplateDir.getFile();
+  }
+
   public void getParameters(final UserConfiguration userConfig) {
     // Convert the tooltips times to milliseconds
-    float delay = Float.parseFloat(ltfTooltipsInitialDelay.getText());
+    double delay = Double.parseDouble(ltfTooltipsInitialDelay.getText());
     userConfig.setToolTipsInitialDelay((int) (delay * 1000));
 
-    delay = Float.parseFloat(ltfTooltipsDismissDelay.getText());
+    delay = Double.parseDouble(ltfTooltipsDismissDelay.getText());
     userConfig.setToolTipsDismissDelay((int) (delay * 1000));
     userConfig.setAutoFit(cbAutoFit.isSelected());
     userConfig.setNativeLookAndFeel(cbNativeLAF.isSelected());
@@ -249,15 +292,21 @@ public final class SettingsDialog extends JDialog {
     userConfig.setGpuProcessingDefault(cbGpuProcessingDefault.isSelected());
     userConfig.setTiltAnglesRawtltFile(cbTiltAnglesRawtltFile.isSelected());
     userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
+    userConfig.setSetFEIPixelSize(cbSetFEIPixelSize.isSelected());
     userConfig.setParallelProcessing(cbParallelProcessing.isSelected());
     userConfig.setGpuProcessing(cbGpuProcessing.isSelected());
     userConfig.setCpus(ltfCpus.getText());
     userConfig.setParallelTableSize(ltfParallelTableSize.getText());
     userConfig.setJoinTableSize(ltfJoinTableSize.getText());
     userConfig.setPeetTableSize(ltfPeetTableSize.getText());
+    userConfig.setUserTemplateDir(ftfUserTemplateDir.getFile());
+    templatePanel.getParameters(userConfig);
   }
 
   public boolean isAppearanceSettingChanged(final UserConfiguration userConfig) {
+    if (templatePanel.isAppearanceSettingChanged(userConfig)) {
+      return true;
+    }
     if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
         || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
         || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
@@ -266,6 +315,7 @@ public final class SettingsDialog extends JDialog {
         || userConfig.getGpuProcessingDefault() != cbGpuProcessingDefault.isSelected()
         || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile.isSelected()
         || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
+        || userConfig.isSetFEIPixelSize() != cbSetFEIPixelSize.isSelected()
         || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
         || !userConfig.getFontFamily().equals(
             fontFamilies.getName(listFontFamily.getSelectedIndex()))
@@ -298,7 +348,13 @@ public final class SettingsDialog extends JDialog {
     }
   }
 
-  private static final class SettingsDialogListener implements ActionListener {
+  void setTooltips() {
+    cbSetFEIPixelSize.setToolTipText(TooltipFormatter.INSTANCE
+        .format("During tomogram setup, transfer pixel size from extended header to "
+            + "pixel."));
+  }
+
+  private static final class SettingsDialogListener implements TemplateActionListener {
     private final SettingsDialog adaptee;
 
     private SettingsDialogListener(final SettingsDialog settingsDialog) {

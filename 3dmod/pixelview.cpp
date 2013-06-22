@@ -30,6 +30,7 @@
 #include "info_cb.h"
 #include "display.h"
 #include "control.h"
+#include "pyramidcache.h"
 #include "preferences.h"
 #include "imod_input.h"
 #include "dia_qtutils.h"
@@ -286,7 +287,7 @@ void PixelView::update()
 {
   ImodView *vi = App->cvi;
   QString str;
-  int i, j, x, y, iz;
+  int i, j, x, y, iz, xend, yend;
   float pixel;
   int red, green, blue;
   bool readable;
@@ -316,6 +317,17 @@ void PixelView::update()
   }
   if (vi->rgbStore)
     data = ivwGetCurrentSection(vi);
+
+  if (vi->imagePyramid) {
+    x = (int)floor((double)vi->xmouse) - (PV_COLS/2);
+    y = (int)floor((double)vi->ymouse) - (PV_ROWS/2);
+    x = B3DMAX(0, x);
+    y = B3DMAX(0, y);
+    xend = B3DMIN(vi->xsize, x + PV_COLS);
+    yend = B3DMIN(vi->ysize, y + PV_ROWS);
+    vi->pyrCache->loadTilesContainingArea(vi->pyrCache->getBaseIndex(), x, y, xend - x, 
+                                          yend - y, iz);
+  }
 
   for (i = 0; i < PV_COLS; i++) {
     /* DNM: take floor to avoid duplicating 1 at 0 */

@@ -3,17 +3,22 @@
 </head>
 <A NAME = "TOP"><H3>Model Movie & Montage Control</H3></A>
 <H4>Movie Making</H4>
+This dialog allows you to save a series of images from the model view window
+for making a movie, or to save a high-resolution image of the model by forming
+a montage from a zoomed-up display.
 The upper controls make a movie by stepping through 
 from the values in the left column of text boxes (starting values) to 
 the values in the right column (ending values).
 <P>
 Press the <B>Set Start</B> button to set the starting values to the 
 values of the current display, or the <B>Set End</B> button to set 
-the ending values.  You can also edit the values.  In addition to the values
-show, the positions of global clipping planes are recorded.  Thus, you can have
-any number of global clipping planes shift their positions from the
-starting to the ending display, but other changes in the planes will not be
-reproduced. 
+the ending values.  You can also edit the values.  Note that the "Zoom Factor"
+is inversely proportional to the display zoom; specifically, it is half the window
+size divided by the display scale in image pixels per window pixel. In
+addition to the values shown, the positions of global clipping planes are
+recorded.  Thus, you can have any number of global clipping planes shift their
+positions from the starting to the ending display, but other changes in the
+planes will not be reproduced. 
 <P>
 If the model view window is opened from 3dmod, then text boxes will 
 appear for starting and ending image slices in X, Y, and Z.  These 
@@ -26,7 +31,11 @@ Pressing the <B>Make</B> button will cause 3dmodv to
 display the number of frames given.  The rotation between the 
 starting and ending positions will be resolved into a rotation 
 around a single axis, and the rotation will occur at even 
-increments around that axis.
+increments around that axis.  When <B>Write Files</B>  is not selected, the
+movie will proceed at approximately the number of frames per second given in
+the <B>FPS</B> spin box, which allows you to preview a movie before saving
+files.  If the starting and ending points are the same, then the program will
+ask if you really want to run a movie with such settings.
 <P>
 Press the <B>Stop</B> button to stop after the next display.
 <P>
@@ -55,6 +64,10 @@ If <B>Long way</B> is selected, the rotation will go the long way
 around, through an angle greater instead of less than 180 
 degrees.
 <P>
+It is possible to save a series of movie parameters and play them in sequence
+using the <A HREF="movieSequence.html#TOP">Movie Sequence</A> dialog.
+The <B>Sequence</B> button can be used to open this dialog.
+<P>
 <H4>Montage Making</H4>
 The lower controls allow one to save a montage of zoomed-up views 
 of the model into a single TIFF or non-TIFF file, in order to get a 
@@ -71,4 +84,4 @@ option to have this resolution scaled up when taking a montage, so that a
 montaged image will display at the same size as a single-frame snapshot in
 programs that pay attention to the resolution.
 <P>
-<A HREF="index.html#TOP">Help Index<A>
+<A HREF="index.html#TOP">Help Index</A>

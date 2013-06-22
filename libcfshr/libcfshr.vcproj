@@ -44,10 +44,11 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;WIN32_BIGFILE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/libcfshr.pch"
 				AssemblerListingLocation=".\Release/"
@@ -117,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE,WIN32_BIGFILE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -355,6 +356,22 @@
 						BasicRuntimeChecks="3"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\dsyevc3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dsyevh3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dsyevq3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\dsytrd3.c"
+				>
 			</File>
 			<File
 				RelativePath="filtxcorr.c"
@@ -616,6 +633,10 @@
 						BasicRuntimeChecks="3"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\regression.c"
+				>
 			</File>
 			<File
 				RelativePath=".\robuststat.c"

@@ -1,29 +1,21 @@
 package etomo;
 
-import java.io.File;
 import java.io.IOException;
 
 import etomo.process.BaseProcessManager;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
-import etomo.type.BaseScreenState;
-import etomo.type.BaseState;
-import etomo.type.DialogType;
 import etomo.type.FrontPageMetaData;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessName;
-import etomo.type.ProcessResultDisplay;
-import etomo.ui.swing.FrontPageDialog;
+import etomo.ui.FrontPageUIHarness;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainFrontPagePanel;
 import etomo.ui.swing.MainPanel;
-import etomo.ui.swing.ProcessDisplay;
 
 /**
  * <p>Description: </p>
@@ -67,7 +59,7 @@ public final class FrontPageManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
-  private FrontPageDialog frontPageDialog = null;
+  private FrontPageUIHarness dialogExpert = new FrontPageUIHarness(this, AXIS_ID);
   private MainFrontPagePanel mainPanel;
   private final FrontPageMetaData metaData;
 
@@ -86,27 +78,18 @@ public final class FrontPageManager extends BaseManager {
 
   public void doAutomation() {
     if (EtomoDirector.INSTANCE.getArguments().isReconAutomation()) {
-      frontPageDialog.reconActionForAutomation();
+      dialogExpert.reconActionForAutomation();
     }
 
     super.doAutomation();
-  }
-
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID) {
-    return null;
   }
 
   public FrontPageMetaData getMetaData() {
     return metaData;
   }
 
-  public boolean setParamFile() {
-    return loadedParamFile;
-  }
-
   public InterfaceType getInterfaceType() {
-    return InterfaceType.PP;
+    return InterfaceType.FRONT_PAGE;
   }
 
   public LogInterface getLogInterface() {
@@ -117,25 +100,13 @@ public final class FrontPageManager extends BaseManager {
     return null;
   }
 
-  public boolean canChangeParamFileName() {
-    return false;
+  void processSucceeded(final AxisID axisID, final ProcessName processName) {
   }
 
-  public boolean canSnapshot() {
-    return false;
-  }
-
-  protected void createComScriptManager() {
-  }
-
-  protected void processSucceeded(final AxisID axisID, final ProcessName processName) {
-  }
-
-  protected void createMainPanel() {
-    mainPanel = new MainFrontPagePanel(this);
-  }
-
-  protected void createProcessTrack() {
+  void createMainPanel() {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainFrontPagePanel(this);
+    }
   }
 
   private void createState() {
@@ -143,18 +114,6 @@ public final class FrontPageManager extends BaseManager {
 
   public BaseMetaData getBaseMetaData() {
     return metaData;
-  }
-
-  public BaseScreenState getBaseScreenState(final AxisID axisID) {
-    return null;
-  }
-
-  public BaseState getBaseState() {
-    return null;
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
   }
 
   public MainPanel getMainPanel() {
@@ -168,19 +127,8 @@ public final class FrontPageManager extends BaseManager {
     return storables;
   }
 
-  public boolean isInManagerFrame() {
-    return false;
-  }
-
   public BaseProcessManager getProcessManager() {
     return null;
-  }
-
-  BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  void getProcessTrack(final Storable[] storable, final int index) {
   }
 
   public void kill(final AxisID axisID) {
@@ -189,9 +137,10 @@ public final class FrontPageManager extends BaseManager {
   public void pause(final AxisID axisID) {
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
+    return true;
   }
 
   public boolean exitProgram(final AxisID axisID) {
@@ -209,20 +158,8 @@ public final class FrontPageManager extends BaseManager {
     }
   }
 
-  public void setParamFile(final File paramFile) {
-    this.paramFile = paramFile;
-  }
-
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
-      final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      DialogType dialogType, ProcessDisplay display) {
-  }
-
   public String getName() {
     return metaData.getName();
-  }
-
-  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   private void openProcessingPanel() {
@@ -231,9 +168,6 @@ public final class FrontPageManager extends BaseManager {
   }
 
   private void openFrontPageDialog() {
-    if (frontPageDialog == null) {
-      frontPageDialog = FrontPageDialog.getInstance();
-    }
-    mainPanel.showProcess(frontPageDialog.getContainer(), AXIS_ID);
+    dialogExpert.openDialog();
   }
 }

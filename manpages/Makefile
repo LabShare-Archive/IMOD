@@ -11,6 +11,7 @@ HERE = .
 
 install : mantohtml autodoc2man
 	./convert $(HERE)
+	./csvtohtml ../com/directives.csv ../html/directives.html directives.stub
 	\mv *.1 $(INSTDIR)/man/cat1
 	\mv *.html ../html/man
 #	echo 'User-agent: *' > $(INSTDIR)/html/man/robots.txt
@@ -28,7 +29,7 @@ mantohtml.$(O) : proglist.h
 clean :
 	$(FIND) . -type f -name "*.1"   -exec rm "{}" \;
 	$(FIND) . -type f -name "*.html"   -exec rm "{}" \;
-	$(FIND) . -type f -name "*.o*"   -exec rm "{}" \;
+	$(FIND) . -type f -name "*.$(OBJEXT)"   -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
 	$(FIND) . -type f -name "*exe"    -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;

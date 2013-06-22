@@ -73,8 +73,8 @@ static struct{
 // Check whether hardware is available for the current state of buffering
 static bool hardwareOK(void)
 {
-  return ((Imodv->db && Imodv->enableDepthDBst >= 0) || 
-          (!Imodv->db && Imodv->enableDepthSBst >= 0));
+  return ((Imodv->dblBuf && Imodv->enableDepthDBst >= 0) || 
+          (!Imodv->dblBuf && Imodv->enableDepthSBst >= 0));
 }
 
 // External call to update the dialog
@@ -426,7 +426,7 @@ void ImodvStereo::sliderMoved(int which, int value, bool dragging)
 void ImodvStereo::imageToggled(bool state)
 {
   Imodv->imageStereo = state ? 1 : 0;
-  imodvImageUpdate(Imodv);
+  mvImageUpdate(Imodv);
   update();
   imodvDraw(Imodv);
 }

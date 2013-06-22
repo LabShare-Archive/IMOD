@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import etomo.ApplicationManager;
+import etomo.BaseManager;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -33,8 +34,8 @@ import etomo.util.EnvironmentVariable;
 public final class VersionControl {
   public final String rcsid = "$$Id$$";
 
-  public static final String TIME_STAMP = "3/23/2012 23:23";
-  
+  public static final String TIME_STAMP = "6/22/2013 00:09";
+
   private static final String DEPENDANT_IMOD_VERSION = "4.4.4";
   private static final String DEPENDANT_PEET_VERSION = "1.8.0";
 
@@ -59,7 +60,7 @@ public final class VersionControl {
       retVal = peetVersion.ge(DEPENDANT_PEET_VERSION);
     }
     if (!retVal) {
-      UIHarness.INSTANCE.openMessageDialog(null,
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
           "The PEET version is incompatible with this IMOD version.  " + "IMOD "
               + DEPENDANT_IMOD_VERSION + " or later requires PEET "
               + DEPENDANT_PEET_VERSION + " or later.  IMOD versions prior to "

@@ -12,7 +12,7 @@ program will be run; the two choices are equivalent to starting the
 program
 at the command line with "3dmod" or "3dmodv".
 <P>
-The three lines for specifying input files allow you either to type
+The four lines for specifying input files allow you either to type
 file names into the text boxes or to open a file chooser to select the
 files, using a <B>Select</B> button.  The first line is used to
 specify either image files, when running the program as "3dmod", or
@@ -22,7 +22,7 @@ for this line:
 <UL>
 <LI> Multiple files can be selected.
 <LI> Multiple file names can always be separated by semicolons, and
-they can usually separated by spaces.  When the names are returned
+they can usually be separated by spaces.  When the names are returned
 from the file chooser, they will be separated by spaces if they do not
 contain any spaces themselves.  When you type names into the edit box,
 you can separate them by spaces if they are just filenames with no
@@ -32,10 +32,17 @@ must separate multiple names with semicolons.
 entries; * matches any set of characters and ? matches a single character.
 </UL>
 <P>
+The line for specifying a piece list file will also accept multiple filenames,
+up to one per image file.  Multiple montages are allowed only when they
+constitute an image pyramid.  Filenames can be separated by semicolon or
+space, unless they contain spaces.
+<P>
 The rest of the items in the window correspond to options documented
 in the <A HREF = "../man/3dmod.html#TOP">3dmod</A> or
 <A HREF = "../man/3dmodv.html#TOP">3dmodv</A> man pages.  Specifically:
 <UL>
+<LI>The <B>Piece file is a metadata autodoc (.mdoc) file</B> corresponds to
+  the <B>-pm</B> option.
 <LI>The <B>Load image subset</B> group corresponds to the <B>-x</B>, <B>-y</B>,
 and <B>-z</B> options.
 <LI>The <B>Open</B> group specifies which windows to open initially,
@@ -43,9 +50,15 @@ and activates the <B>-Z</B>, <B>-xyz</B>, <B>-S</B>, and <B>-V</B>
 options.
 <LI> The <B>Bin by</B> spin boxes correspond to the <B>-b</B> option.
 <LI> <B>Scale image intensities</B> corresponds to the <B>-s</B> option.
-<LI> The <B>Use cache</B> entries correspond to the <B>-C</B> option.
+<LI> The <B>Use cache</B> entries correspond to the <B>-C</B> option, or to
+  the <B>-CT</B> option if <B>Cache images as tiles or strips</B> is checked
+  Placing a 0 in the field for the cache size will activate the cache with a
+  size big enough to hold all the image data.
+<LI> <B>Cache images as tiles or strips</B> corresponds to the <B>-CT</B> option.
 <LI> <B>Fill cache upon startup</B> activates the <B>-F</B> option.
-<LI> <B>Flip Y and Z</B> activates the <B>-Y</B> option.
+<LI> <B>Image files form a pyramid at multiple resolutions</B> correspomds to
+  the <B>-py</B> option.
+<LI> <B>Flip Y and Z size by rotating around X</B> activates the <B>-Y</B> option.
 <LI> <B>Load non-byte data in as 16-bit integers</B> activates the <B>-I</B>
 option.
 <LI> <B>Show RGB images as grayscale</B> activates the <B>-G</B> option.

@@ -1,0 +1,148 @@
+Version = 1.0
+Pip = 1
+
+[Field = DirectiveFile]
+short = directive
+type = FNM
+usage = Input file with directives for automating one or more data sets
+tooltip = 
+manpage = Input file with directives for automating one or more data sets.
+The filename must end in .adoc.  All non-option arguments will be taken as
+such input files.  
+
+[Field = RootName]
+short = root
+type = FNM
+usage = Root name of data set (omit a or b for dual-axis set)
+tooltip = 
+manpage = A data set name can be provided with this option to override the
+name contained in the directive file, thus allowing directive files to be
+reused without editing.  If this
+option is used, the number of directive files must be either one or the same
+as the number of root names.  The current location of the tilt series must be indicated
+with the -current option if only one directive file is entered with multiple
+root names.
+
+[Field = CurrentLocation]
+short = current
+type = FNM
+usage = Directory where tilt series currently resides
+tooltip = 
+manpage = Directory where tilt series is currently located.  This entry
+overrides the dataset directory contained in the directive file.  It can be
+used in two different ways.  If the -deliver option is entered, this option
+can be entered only once, and it must be the directory where all tilt series
+will be moved from.  If the -deliver option is not entered, then this option
+specifies the directory where the data set will be processed and must be
+entered once for each data set.
+
+[Field = DeliverToDirectory]
+short = deliver
+type = FN
+usage = Make a subdirectory of this directory for each data set
+tooltip = 
+manpage = Make a subdirectory of the specified directory for each data set,
+named with the root name of the data set, and move the tilt series into the
+subdirectory.  An associated metadata file named as the tilt series filename
+plus ".mdoc" will also be moved.  The -current option must be entered once.
+
+[Field = ProcessOneAxis]
+short = one
+type = I
+usage = 1 to do only A axis, 2 to do only B axis of dual axis data set
+tooltip = 
+manpage = Enter 1 to do setup and process A axis, or 2 to skip setup and
+process only B axis.  This entry applies to all dual-axis data sets being
+run.
+
+[Field = CPUMachineList]
+short = cpus
+type = CH
+usage = Machines to use in parallel processing, or number of local cores
+tooltip = 
+manpage = 
+
+[Field = SingleOnFirstCPU]
+short = single
+type = B
+usage = Run single command files on first machine in CPU list
+tooltip = 
+manpage = Run single command files on the first machine in the CPU list, instead of
+on the local machine.
+
+[Field = GPUMachineList]
+short = gpus
+type = CH
+usage = Machines to use for parallel processing with a GPU, or 1 for local GPU
+tooltip = 
+manpage = 
+
+[Field = NiceValue]
+short = nice
+type = I
+usage = Priority level or niceness for running jobs; default is 15
+tooltip = 
+manpage = Priority level or niceness for running jobs.  Note that this applies
+to all computations, not just those run with parallel processing.  The default is 15.
+
+[Field = RemoteDirectory]
+short = remote
+type = FN
+usage = Path to starting directory on remote machines
+tooltip = 
+manpage = Path on remote machines to directory from which this program is started.
+
+[Field = CheckFile]
+short = check
+type = FN
+usage = File to check for quit signals
+tooltip = 
+manpage = File to check for quit signals.  The default is batchrunner###.input
+in the directory where this program is started, where ### is the process ID.
+The file is passed to processchunks when it runs jobs, and is checked before
+and after running jobs.  Only a Q should be placed in this file.  This will
+terminate any running jobs and stop all processing.
+
+[Field = ValidationType]
+short = validation
+type = I
+usage = 0/1/2 to validate directives (1/2 to do this then exit), or -1 not to
+tooltip = 
+manpage = By default, the program will check all directives in the directive
+and template files against the master list of directives in
+IMOD_DIR/com/directives.csv.  Enter 1 to run the program just to check
+a directive file and exit, 2 to check a template file and exit, or -1 to skip
+this step.  When checking a directive file, the directive file is first processed to
+find certain required values, and an error in that step will prevent the
+checking of directives.  Template files referenced by the directive file will
+be checked as well.  With an entry of 2, the file will be checked right after
+reading.  A batch directive file is required to contain only directives with a
+Y in the "Batch" column of the master directives file, and a template file
+must contain only directives with a Y in the "Tmplt" column.
+
+[Field = StartingStep]
+short = start
+type = I
+usage = Step to start at for first set, or 100 plus step for second axis
+tooltip = 
+manpage = "Step to start with for first set: 0 = setup, 1 = preprocessing, 2 =
+xcorr, 3 = prealigned stack, 4 = patch tracking or seeding or RAPTOR, 5 =
+beadtrack, 6 = aligned stack, 7 = CTF correction, 8 = erase gold, 9 = filter,
+10 = reconstruction.  Add 100 to start with this step in the second axis of a
+dual-axis data set."
+
+[Field = EndingStep]
+short = end
+type = I
+usage = Step to end with
+tooltip = 
+manpage = Step to end with in each set and axis.  Steps are numbered as
+described for -start.
+
+[Field = ExitOnError]
+short = exit
+type = B
+usage = Exit on error instead of going on to next axis or data set
+tooltip =
+manpage =
+

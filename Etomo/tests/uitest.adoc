@@ -42,7 +42,6 @@ set.dataset = BB
 copy.file = %{dataset}.st
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.test-gui=
@@ -61,7 +60,9 @@ copy.file.a = %{dataset}a.st
 copy.file.b = %{dataset}b.st
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
+#set.param = --debug
+#set.param = --timestamp
+#set.param = --actions
 #set.param = %{dataset}.edf
 set.var.dual=
 set.var.test-gui=
@@ -93,7 +94,6 @@ set.dataset = BB
 copy.file = %{dataset}.st
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.simple-align=
@@ -125,30 +125,10 @@ set.dataset = BB
 copy.file = %{dataset}.st
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.test-gui=
 set.var.patch-tracking=
-set.var.run_sirt=
-set.interface.Recon=
-
-
-[Test = dual-testBB-test-gui]
-set.testdir = dual-testBB-test-gui
-#set.keep.testdir = dual-test-gui
-set.adoc.dialog.a=recon.adoc
-set.adoc.bdialog.b=recon.adoc
-set.var.dataset = testBB
-set.dataset = testBB
-copy.file.a = %{dataset}a.st
-copy.file.b = %{dataset}b.st
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-#set.param = %{dataset}.edf
-set.var.dual=
-set.var.test-gui=
 set.var.run_sirt=
 set.interface.Recon=
 
@@ -167,6 +147,21 @@ set.var.single=
 set.var.run_sirt=
 set.var.montage=
 
+[Test = single-montage-patch-tracking]
+set.testdir = single-montage-patch-tracking
+#set.keep.testdir = single-montage
+set.adoc.dialog = recon.adoc
+set.var.dataset = midzone2a
+set.dataset = midzone2
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.run_sirt=
+set.var.montage=
+set.var.patch-tracking=
+
 [Test = dual-montage]
 set.testdir = dual-montage
 #set.keep.testdir = dual-montage
@@ -176,7 +171,6 @@ set.var.dataset = midzone2
 set.dataset = midzone2
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 #set.param = %{dataset}.edf
 set.var.dual=
 set.var.run_sirt=
@@ -189,7 +183,6 @@ set.var.dataset = midzone2a
 set.dataset = midzone2
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.var.single=
 set.var.montage=
 set.var.run_sirt=
@@ -205,7 +198,6 @@ set.var.dataset = midzone2
 set.dataset = midzone2
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 #set.param = %{dataset}.edf
 #set.param= --names
 set.var.dual=
@@ -231,37 +223,6 @@ set.var.run_sirt=
 set.var.patch-tracking=
 
 
-[Test = single-testmontage-test-gui]
-set.testdir = single-testmontage-test-gui
-set.adoc.dialog = recon.adoc
-set.var.dataset = testmidzone2a
-set.dataset = testmidzone2
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-set.var.single=
-set.var.montage=
-set.var.run_sirt=
-set.var.test-gui=
-#set.var.quick=
-
-[Test = dual-testmontage-patch-tracking]
-set.testdir = dual-testmontage-patch-tracking
-#set.keep.testdir = dual-montage-patch-tracking
-set.adoc.dialog.a=recon.adoc
-set.adoc.bdialog.b=recon.adoc
-set.var.dataset = testmidzone2
-set.dataset = testmidzone2
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-#set.param = midzone2.edf
-set.var.dual=
-set.var.montage=
-set.var.run_sirt=
-set.var.patch-tracking=
-
-
 [Test = join]
 set.testdir = join
 set.adoc.tab = join.adoc
@@ -271,7 +232,6 @@ copy.file = %{dataset}2.rec
 copy.file = %{dataset}3.rec
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.interface.Join=
 
 [Test = join-test-gui]
@@ -284,22 +244,28 @@ copy.file = %{dataset}2.rec
 copy.file = %{dataset}3.rec
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.interface.Join=
 
 
-[Test = join-testunicross-test-gui]
-set.testdir = join-testunicross-test-gui
-set.adoc.tab = join.adoc
-set.var.dataset = testunicross
-set.dataset = testunicross
+[Test = serial-sections-test-gui]
+set.testdir=serial-sections-test-gui
+set.adoc.dialog=serial-sections.adoc
+set.var.dataset=M154_03-03-11
+set.dataset=%{dataset}
 set.var.test-gui=
-copy.file = %{dataset}2.rec
-copy.file = %{dataset}3.rec
-set.param = --autoclose3dmod
-set.param = --ignoreloc
-set.param = --actions
-set.interface.Join=
+set.param=--autoclose3dmod
+set.param=--ignoreloc
+
+
+[Test = serial-sections-montage-test-gui]
+set.testdir=serial-sections-montage-test-gui
+set.adoc.dialog=serial-sections.adoc
+set.var.dataset=mediumscansb2
+set.dataset=%{dataset}
+set.var.test-gui=
+set.var.montage=
+set.param=--autoclose3dmod
+set.param=--ignoreloc
 
 
 [Test = generic]
@@ -309,7 +275,6 @@ set.dataset = BB
 set.var.dataset = tilt
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.interface.Generic=
 
 [Test = nad]
@@ -319,20 +284,19 @@ set.var.dataset = unicross
 set.dataset = unicross
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.var.volume=unicross1.rec
 set.interface.Nad=
 
 
-[Test = nad-testunicross]
-set.testdir = nad-testunicross
+[Test = nad-test-gui]
+set.testdir = nad
 set.adoc.dialog = nad.adoc
-set.var.dataset = testunicross
-set.dataset = testunicross
+set.var.dataset = unicross
+set.dataset = unicross
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
-set.var.volume=testunicross1.rec
+set.var.test-gui=
+set.var.volume=unicross1.rec
 set.interface.Nad=
 
 
@@ -342,7 +306,6 @@ set.adoc.dialog = peet.adoc
 set.var.dataset = pi
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.dataset = pi
 
 [Test = peet-test-gui]
@@ -352,7 +315,6 @@ set.var.dataset = pi
 set.dataset = pi
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.var.test-gui=
 
 [Test = flatten-volume]
@@ -363,7 +325,6 @@ set.dataset = BB
 copy.file = %{dataset}
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 #set.param = --names
 set.interface.tools=
 
@@ -375,7 +336,6 @@ set.dataset = BB
 copy.file = %{dataset}
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.var.test-gui=
 set.interface.flatten=
 
@@ -385,7 +345,6 @@ set.testdir = gpu-test-gui
 set.adoc.flatten-volume = gpu.adoc
 set.param = --autoclose3dmod
 set.param = --ignoreloc
-set.param = --actions
 set.var.test-gui=
 set.interface.gpu=
 
@@ -410,11 +369,12 @@ set.var.size-to-output-x=550
 set.var.size-to-output-y=550
 set.var.center-to-center-thickness = 83.0
 set.var.rounded-unbinned-bead-diameter = 5.0
+set.var.better-radius=2.5
 set.var.findbeads3d-binning = 1
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness=98
-set.var.incremental-shift-to-center.a=-12.9
-set.var.incremental-shift-to-center.b=-13.9
+set.var.incremental-shift-to-center.a=-12.5
+set.var.incremental-shift-to-center.b=-12.3
 set.var.incremental-shift-to-center-simple-align.a=-12.4
 set.var.incremental-shift-to-center-simple-align.b=-13.9
 set.var.final-align-comscript=newst
@@ -423,21 +383,17 @@ set.var.ctfcorrection-binned-pixel-size=4.04
 #TomoGen
 set.var.output-density-scaling-factor=1000.0
 set.var.linear-density-scaling-factor=0.2
-set.var.tomogram-thickness-in-z.a=76
+set.var.tomogram-thickness-in-z.a=84
 set.var.tomogram-thickness-in-z.b=78
-set.var.tomogram-thickness-in-z-patch-tracking.a=88
-set.var.x-axis-tilt.a=1.76
-set.var.x-axis-tilt.b=0.13
-set.var.x-axis-tilt-patch-tracking.a=1.48
+set.var.tomogram-thickness-in-z-patch-tracking.a=84
+set.var.x-axis-tilt.a=1.94
+set.var.x-axis-tilt.b=-0.08
+set.var.x-axis-tilt-patch-tracking.a=1.23
 #PostProc
-set.var.scaling-z-min=25
-set.var.scaling-z-max=50
-set.var.scaling-z-min-patch-tracking=29
-set.var.scaling-z-max-patch-tracking=58
-
-
-[dataset = testBB]
-use.dataset = BB
+set.var.scaling-z-min=28
+set.var.scaling-z-max=56
+set.var.scaling-z-min-patch-tracking=28
+set.var.scaling-z-max-patch-tracking=56
 
 
 [dataset = midzone2]
@@ -471,12 +427,13 @@ set.var.size-to-output-y.b=2000
 set.var.center-to-center-thickness.a = 122.0
 set.var.center-to-center-thickness.b = 116.0
 set.var.rounded-unbinned-bead-diameter = 10.6
+set.var.better-radius=5.3
 set.var.findbeads3d-binning = 2
 # center-to-center-thickness + additional-unbinned-diameters-to-add*int-unbinned-bead-diameter
 set.var.erase-gold-thickness.a=154
 set.var.erase-gold-thickness.b=148
-set.var.incremental-shift-to-center.a=28.8
-set.var.incremental-shift-to-center.b=38.7
+set.var.incremental-shift-to-center.a=27.8
+set.var.incremental-shift-to-center.b=32.8
 set.var.final-align-comscript=blend
 set.var.final-align-command=blendmont
 set.var.ctfcorrection-binned-pixel-size=2.84
@@ -485,24 +442,27 @@ set.var.output-density-scaling-factor.a=500.0
 set.var.output-density-scaling-factor.b=1000.0
 set.var.linear-density-scaling-factor.a=0.1
 set.var.linear-density-scaling-factor.b=0.2
-set.var.tomogram-thickness-in-z=84
-set.var.x-axis-tilt.a=1.71
-set.var.x-axis-tilt.b=0.18
+set.var.tomogram-thickness-in-z.a=96
+set.var.tomogram-thickness-in-z.b=84
+set.var.x-axis-tilt.a=2.03
+set.var.x-axis-tilt.b=0.21
 set.var.tomogram-thickness-in-z-patch-tracking.a=128
 set.var.tomogram-thickness-in-z-patch-tracking.b=144
 #PostProc
-set.var.scaling-z-min=28
-set.var.scaling-z-max=56
+set.var.scaling-z-min=32
+set.var.scaling-z-max=64
 set.interface.Recon=
-
-[dataset = testmidzone2]
-use.dataset = midzone2
 
 [dataset = unicross]
 copy.file = %{dataset}1.rec
 
-[dataset = testunicross]
-use.dataset = unicross
+[dataset = M154_03-03-11]
+copy.file = %{dataset}.st
+set.interface.serial-sections=
+
+[dataset = mediumscansb2]
+copy.file = %{dataset}.st
+set.interface.serial-sections=
 
 [dataset = pi]
 copy.file = %{dataset}-a.rec
@@ -538,7 +498,7 @@ open.dialog.CleanUp.bn.clean =
 [interface = Join]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-join=
+	bn.join-serial-tomograms=
 [[]]
 goto.frame.pnl.main-frame =
 open.dialog.setup.tb.setup =
@@ -547,23 +507,29 @@ open.dialog.join.tb.setup.2 =
 open.dialog.model.tb.setup.3 =
 open.dialog.rejoin.tb.setup.4 =
 
+[interface = Serial-Sections]
+[[open = interface]]
+  pnl.main-frame=
+  bn.align-serial-sections-/-blend-montages=
+[[]]
+
 [interface = PEET]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-peet=
+	bn.subvolume-averaging=
 [[]]
 
 [Interface = Nad]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-nonlinear-anisotropic-diffusion=
+	bn.nonlinear-anisotropic-diffusion=
 [[]]
 goto.frame.pnl.main-frame =
 
 [Interface = Generic]
 [[open = interface]]
 	pnl.main-frame=
-	bn.new-generic-parallel-process=
+	bn.generic-parallel-process=
 [[]]
 goto.frame.pnl.main-frame =
 

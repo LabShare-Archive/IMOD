@@ -5,56 +5,600 @@ IMOD History
 order make eTomo work with Java for Mac 1.6.0_51 (update 16) (In 4.5).
 (Bug# 1717)
 
+6/20/13: IMOD_4-6-22
+6/18/13: Made a subm script to start submfg in the background in cases where
+the subm alias is not available; added a man page for subm.
+
+6/17/13: Standardized the  Mac ps command to be the same as the Linux one.
+(Bug# 1714)
+
+6/17/13: Made a new Imodkillgroup that can kill a process tree as well as a
+process group, and that works on Windows without Cygwin.  Changed
+Processchunks to use this for all non-queue kills, thus fixing killing on
+Windows.  Also added b3dwinps and b3dtouch for eTomo to use instead of Cygwin
+calls.
+
+6/13/13: Made processchunks watch for jobs taking way too long and kill them.
+
+6/11/13: Made processchunks able to send jobs to specific GPUs.
+
+6/9/13: Added options to find warping transforms to Xfalign and changed
+Tiltxcorr to take pairs of raw and aligned sections so that it can find
+warping when only F transforms exist.
+
+6/9/13: In Xfalign, implemented local fitting for warping transforms to avoid
+bad buildup of cumulative warps over many sections, made the reference section
+option work with warping, and added an ability to do robust fitting to
+transform components to keep the alignment from being thrown off by isolated
+aberrant images.
+
+6/7/13: Fixed 3dmod icon missing from dock on Mac, adopted a higher-resolution
+version from Mike Strauss.
+
+6/6/13: Switched to makecomfile for the creation of patch tracking and
+sirtsetup com files in eTomo.(Bug# 1705)
+
+6/5/13: Added value for maximum distance between contour points for the
+surface output of imodinfo.
+
+6/5/13: Handling null values during tomogram reconstruction setup that are
+caused by running eTomo through batchruntomo.(Bug# 1708)
+
+6/4/13: Added options for inverted the Z order of the output to dm2mrc,
+raw2mrc, and tif2mrc.
+
+6/2/13: In eTomo fixed the batchruntomo error message.(Bug# 1702)
+
+6/2/13: Added an editor for directives derived from the dataset.(Bug# 1685)
+
+5/30/13: Fixed Tomodataplots to send right color option to Onegenplot.
+
+5/29/13: IMOD-4-6-21
+5/29/13: Ctfplotter: added version number to defocus file so the old bug of
+view numbers off by 1 will not be detected in error, allowed double-clicking a
+row to set the angles to that row, and added checkbox for fitting to each view.
+
+5/28/13: In eTomo - Join, using the -cs Midas parameter instead of the -c
+parameter.(Bug# 1704)
+
+5/28/13: Changed the local load average process to use the bash shell unless
+the user's shell is tcsh.(Bug# 1703)
+
+5/27/13: Tiltxcorr can now produce a file of warping transformations with a
+variant of patch tracking.
+
+5/27/13: Made Patch2imod able to produce a model from warping transforms.
+
+5/27/13: Midas: Added input option to specify sample sizes instead of chunks
+sizes so that selected sections can be constrained better; added controls for
+see warping vectors and selecting warp points based on size of their shifts;
+improved cross-correlation around warp point to reduce need for iterating.
+
+5/27/13: Made Xf2rotmagstr able to read warping files.
+
+5/22/13: Fixed 3dmod recognition of DigitalMicrograph files to work with file
+from tilt series.
+
+5/21/13: Batchruntomo will now accept .mrc stack files and rename them to .st,
+will take template entries with no path and find files in default locations,
+and gets the pixel size correctly from FEI files.
+
+5/7/13: Added option to Ctfphaseflip to set maximum strip width, for reducing
+artifacts at zeros in FFT at low tilts.
+
+4/10/13: Fixed Batchruntomo's reading of processchunks log hanging on Mac.
+
+4/9/13: Handled multi-line INFO and WARNING messages in copytomocoms.
+(Bug# 1694)
+
+4/9/13: Made shift limits to Tiltxcorr apply to shift from one view to next
+when using cumulative correlation.
+
+4/9/13: Fixed a few bugs in Batchruntomo for single axis and for running in
+Windows.
+
+4/7/13: Added options to Batchruntomo to specify the data set name and
+directory so that a batch directive file is reusable without editing it, an
+option to deliver data from central location to separate directories, and
+ability to process only one axis.
+
+4/5/13: Fixed a null pointer exception, which happened while running
+copytomocoms from eTomo - when a directive file that did not contain any
+setupset.copyarg directives was included.(Bug# 1693)
+
+4/5/13: Made it possible to do a model view movie with no change in display.
+
+4/4/13: Made copytomocoms put out a command file for extracting data from a B
+axis added later.
+
+3/22/13: IMOD_4-6-20
+3/13/13: Tiltxcorr can do its image reduction with antialiasing instead of
+simple binning and it has an option to start from the last image at minimum
+tilt instead of the first, which reverses the order for untilted images.
+
+3/12/13: Newstack has an option -fromone to allow section and line numbers to
+be numbered from 1 instead of 0, and an option -exclude to specify sections to
+exclude; Colornewst accepts -fromone but not -exclude.
+
+3/12/13: Newstack can read input with antialias reduction instead of binning,
+so -shrink can be combined with essentially all image transformations.
+
+3/7/13: Xfalign can now do cross-correlation only with -params -1.
+
+3/4/13: IMOD_4-6-19
+3/3/13: Fixed a problem with recording Exclude Projections in the .edf file.
+(Bug# 1686)
+
+3/1/13: Added support for templates to eTomo.(Bug# 1677)
+
+2/27/13: Fixed array allocation problem in Pickbestseed.
+
+2/27/13: Fixed problem of 3dmod quitting during initial load due to messages 
+to Bead Fixer.
+
+2/26/13: 3dmod can take an image pyramid (multiple copies of same volume at
+different resolutions) and has a new kind of cache that allows rapid access to
+subareas at any zoom when a pyramid is loaded; ordinary (non-tiled) files can
+also be cached as strips for somewhat faster access.
+
+2/26/13: Fixed suppression of "unknown field" messages in Tif2mrc.
+
+2/23/13: Added script Makepyramid for making an image pyramid.
+
+2/21/13: Fixed bug in Vmstopy when translating cp and mv with a filename
+starting with f.
+
+2/21/13: Made Binvol able to use antialiased reduction in Z instead of
+binning.
+
+2/10/13: Redefined blank values in batch/template directives to mean unset the
+parameter for other than comparams, and required all booleans to be 0 or 1.
+
+2/7/13: Fixed ability of Fortran programs to read more than 2 GB in one call.
+
+2/7/13: Changed Reducemont to PIP input and made it able to handle arbitrarily
+large input pieces or images so that large images can be broken into tiles.
+
+2/1/13: Added option to stop Batchruntomo processing at a chosen step.
+
+2/1/13: Fixed blendmont array allocation.
+
+1/31/13: Fixed graphics module so Onegenplot will exit when window is closed
+on all platforms.
+
+1/31/13: In Batchruntomo, implemented definition of scope file as just another
+template file and changed the way that boolean copytomocoms arguments are
+treated so that they can be used in templates.
+
+1/31/13: Fixed the processing of the directive file parameter.(Bug# 1681)
+
+1/28/13: XYZ window now has a toolbar button to apply the current Z scale to
+the XZ and YZ views; the setting is saved between invocations.
+
+1/22/13: Switched Addtostack to dynamic array allocation.
+
+1/19/13: Mauro Maiorca contributed preNAD for NAD-type filtering of tilt
+series prior to reconstruction.
+
+1/17/13: Added selectClassID to eTomo - PEET.(Bug# 1673)
+
+1/16/13: IMOD_4-6-18
+1/16/13: Added the creation of an empty .xf file to the Serial Sections
+interface.(Bug# 1679)
+
+1/16/13: Removed the SetFEIPixelSize copytomocoms parameter checkbox from
+Setup Dialog(Bug# 1661).
+
+1/15/12: Defined a file chooser plugin for 3dmod.
+
+1/15/12: Fixed behavior when startup window is used when started as 3dmod 
+and model view is selected, so that it actually runs 3dmodv.
+
+1/14/12: Made Mrc2tif able to save TIFF files organized in tiles.
+
+1/13/13: Fixed an unhandled exception when montaged stack with an extension
+other then ".st" is used with Align Serial Sections.(Bug# 1676)
+
+1/13/13: Fixed incorrect betterRadius in golderaser.com.(Bug# 1662)
+
+1/13/13: Fixed two problems with the behavior of eTomo - Fiducial Model.
+(Bug# 1675)
+
+1/11/13: Added back to non-PIP support for colornewst.(Bug# 1665)
+
+1/10/13: Fixed problems with list reading from fortran introduced 8/24/12.
+
+1/9/13: Fixed problems with 3dmod messaging caused by change to rotation.
+
+1/8/13: Creating a second backup file for dataset files, the .prm file, and
+the project long.(Bug# 1488)
+
+1/8/13: Changed the processchunks control panel to allow a Resume to be
+ordered before the Pause is completed.(Bug# 1434)
+
+1/8/13: In eTomo, handled the change from flipping to rotation in 3dmod, so
+running trimvol will work both with newly selected Z values and ones set
+previously with old-style flipping.(Bug# 1674)
+
+1/2/13: Made Ctfplotter not open windows when autofitting in batch mode.
+
+1/1/13: Turned YZ flipping in 3dmod into 90 degree rotation about X to
+preserve handedness; models saved from this state still have Y and Z swapped
+to keep other programs working.  Modified Trimvol and Findcontrast to work
+with new Z values and to have an option to treat Z values in old way.
+
+12/31/12: Fixed reading of views from ascii model file.
+
+12/31/12: Fixed -scaled option to Model2point, which was never read in.
+
+12/28/12: Converted Filltomo and added options to specify the area in the B
+tomogram that has valid data and made Setupcombine add these options when
+appropriate.  This helps fill in bad regions when using over-sized
+reconstructions that have a substantial shift between them.
+
+12/26/12: Added dialog to Model View for saving and running a sequence of
+movie segments with different settings.
+
+12/20/12: Added Tomodataplots for graphing various data from tilt series
+processing (clip stats, blendmont errors, tiltalign mean residuals).
+
+12/19/12: Fixed Tilt when running internal SIRT on CPU with 90 degree angles.
+
+12/19/12: Modified eTomo to run from a directive file.  ETomo will run without
+an interface in this situation.(Bug# 1662)
+
+12/18/12: Fixed Edgepatches to use original Z shift when using X/Y shift from
+projxf.
+
+12/18/12: A new script, Batchruntomo, can build tomograms automatically with
+fiducial, patch tracking, or fiducialless alignment given a text file of
+"directives" to set parameters.
+
+12/18/12: Added the SetFEIPixelSize copytomocoms parameter to Setup Tomogram.
+The standard pixel spacing will be set automatically in files from FEI
+software unless the option to do this is unselected in eTomo 
+settings.(Bug# 1661).
+
+12/17/12: Added right click menu to Plax graphing window to allowing printing
+the graph or saving to a PNG file; also, in Genhstplt, left-clicking pops up
+the coordinates clicked.  Made Genhstplt draw black on white by default.
+
+12/17/12: Added option -t to Tomosnapshot to take thumbnails of selected files.
+
+12/17/12: Fixed some of the log file monitors, which had the file size defined
+as an integer rather then a long, causing an overflow for larger tomograms.
+(Bug# 1632)
+
+12/16/12: Made Genhstplt able to plot in color in the graphics window and in
+the postscript output; added option to Onegenplot to specify color by R,G,B or
+by a standard color name.
+
+12/14/12: Converted newstack comscripts to PIP.(Bug# 1665)
+
+12/14/12: Added a button for viewing the seed model to the Transfer Fiducials
+panel.(Bug# 1669)
+
+12/13/12: Made Clipmodel able to clip contours or points by value and retain
+fine grained properties in all operations; added option to update object min/max
+value; changed it to remove empty contours and added option to keep them.
+
+12/13/12: Added button the Model View Edit-Models dialog to show all models at
+the same scale.
+
+12/12/12: Made 3dmod print length and area of lasso when it is completed.
+
+12/10/12: Made Splittilt turn GPU failure from warning to error so that one
+machine doesn't fall back to CPU while others are on GPU.
+
+12/9/12: Fixed Xyzproj and clip 2D average to preserve pixel size.
+
+12/9/12: If Z pixel size is 0, MRC header gets fixed so it matches X pixel
+size.
+
+12/8/12: Modified Imodtrans to adjust model max coordinates when image file is
+given for reference coordinates, added option to allow scaling of transform
+shifts, and allowed translations to be combined with transforms.
+
+12/8/12: Changed Imodfindbeads and autofidseed to provide a default minimum
+guess and a fallback number to store in model if histogram dip is not found.
+
+12/8/12: Modified Imodtrans, Imodjoin, and raw2mrc to put error output to 
+standard output.
+
+12/2/12: Added script Makecomfile to make optional com files for tomogram
+generation.
+
+12/2/12: Made Autofidseed able to append to an existing seed model, modified
+Repackseed to retain surface numbers and values in Transferfid.
+
+11/17/12: Added option to Tiltalign and align.com so that Z shifts will be
+relative to the original centering produced by coarse alignment.
+
 11/16/12: Fixed installer to put pylib on front, not end, of path (In 4.5)
+
+11/14:12: Fixed imodtrans so output file can be same as input file on Windows.
+
+11/12:12: Processchunks: fixed a problem where a "+" in the dataset name caused
+processchunks to fail.(Bug# 1649)
+
+11/12/12: Added ability to select multiple contours in slicer and made slicer
+draw selected contours thicker.
+
+11/7/12: ETomo: Fixed the estimated time of completion for process monitors
+that watch a log file.(Bug# 1632)
+
+11/7/12: ETomo - PEET: handling parsing failures in the .prm file.(Bug# 1644)
+
+11/6/12: IMOD_4-6-17
+11/6/12: ETomo: Added an interface for autofidseed to the Fiducial Model
+dialog.(Bug# 1655)
+
+11/5/12: ETomo: Added field validation and better white space handling for
+numeric text fields.(Bug# 1614)
+
+10/30/12: Removed underscore from Autofidseed info file and temporary
+directory names for eTomo. 
+
+10/29/12: Made Header report of pixel size from extended header take account
+of binning  up to 4; made Alterheader FEIPIXEL do the same and set a flag to
+prevent the operation from being done twice; added option to Copytomocoms for
+converting pixel sizes of FEI files. 
+
+10/24/12: IMOD_4-6-16
+10/24/12: Removed Tilt's setting of pixel size from extended header (8/28/12)
+because it screws up bead erasing and combining.
+
+10/23/12: Added ability to get Z pixel size from DigitalMicrograph files.
 
 10/23/12: Fixed Model View shifting with mouse and montage snapshot when
 Invert Z is on, and added flush statements to prevent failures in montage
 snapshots with vertex buffer drawing on (In 4.5).
 
+10/19/12: Made Tif2mrc able to read metadata in files from TVIPS acquisition
+software and produce a .rawtlt file and a title in the header with tilt axis
+rotation angle.
+
+10/4/12: IMOD_4-6-15
+10/4/12: Pixel sizes are now obtained from DigitalMicrograph files and stored
+in output file by dm2mrc.  They are read from TIFF files and stored in output
+file by tif2mrc if they are less than 1 micron, with an option and environment
+variable to override that limit.  3dmod will assign these pixel sizes to a new
+model when reading such files.
+
+10/4/12: Fixed Blendmont for using good edge limits with the new stitching
+scheme. 
+
+10/2/12: Changed Autofidseed to keep Beadtrack from solving for tilt angles
+and to save a copy of the track com file for comparison.
+
+9/28/12: Keeping most of the 3dmod debug code in eTomo (debug level 3).
+(Bug# 1646)
+
+9/27/12: ETomo: fixed a problem involving the incorrect handling of 3dmod's
+stderr, which could potentially cause eTomo to lock up until 3dmod exits.
+(Bug# 1647)
+
+9/27/12: ETomo: fixed null pointer exceptions.(Bug# 1645)
+
+9/27/12: Enabled the GPU check box in the Setup Tomogram dialog when the local
+host has a GPU available (eTomo).(Bug# 1642)
+
+9/25/12: ETomo:  rearranged the file, fixed the crash that happened when the
+wrong file type was passed to eTomo, and other miscellaneous changes.
+(Bug# 1643).
+
 9/18/12: Fixed 3dmod crashing on X-ray model with no objects (In 4.5).
+
+9/15/12: Added the last 10 lines of stdout and stderr to eTomo's log (when
+--debug is not set).(Bug# 1615)
+
+9/13/12: IMOD_4-6-13
+9/13/12: With robust fitting in Tiltalign, eTomo now puts the weighted mean
+residual in the project and shows the Robust tab first in the align log.
+
+9/13/12: Made Autofidseed keep Sortbeadsurfs from flipping Y and Z.
+
+9/12/12: IMOD_4-6-12
+9/12/12: Added a program, Joinwarp2model, to produce a model file from warping
+control points in joining, which should be used as starting point for a
+refining model.
+
+9/12/12: Properly added Setupstitch to distribution.
+
+9/12/12: Fixed an inadequate memory allocation in Tiltalign.
+
+9/12/12: Etomo fixed to deal with KFactorScaling entry properly.
+
+9/6/12: IMOD_4-6-11
+9/6/12: In eTomo fixed a bug which caused Tomogram Setup to fail when there was
+a subdirectory in the target directory.(Bug# 1640)
+
+9/5/12: IMOD_4-6-10
+9/5/12: Fixed a division by 0 in Beadtrack that made it hang or crash.
+
+9/5/12: Changes to Autofidseed and associated tools: made it possible to
+ignore surface information for selected tracked models or to drop models, 
+switched to a local temporary directory and left surface sorted models and
+peak models there; improved elimination of elongated points when there are
+many clustered points.  Added ability to draw boundary contours around
+excluded instead of included areas.
+
+8/30/12: Supermontaging changes: split Edgepatches into two, with a new program 
+Setupstitch to set up the info file.  Added options to edgepatches to help with
+fixing problems in initial 2D correlations.  Changed Stitchalign and
+Tomostitch so the volumes are not shifted into alignment during warping but
+using piece shifts in Blendmont, to guarantee that Blendmont's overlap zone
+analysis includes the actual overlap.  Made all patch models show false color
+value display without having to turn it on.
 
 8/29/12: IMOD_4-5-7
 8/28/12: Fixed Alterheader FEIPIXEL command, which never worked (In 4.5).
 
+8/28/12: Remove duplicate uitest directories testBB, testmidzone2, and
+testunicross.(Bug# 1639)
+
+8/28/12: Boxstartend now sets the origin correctly when extracting to separate
+files so models will be interchangeable between full and subvolumes.
+
+8/28/12: Made Tilt set the output file's pixel size from the input stack's
+extended header if the input appears not to have a pixel spacing set.
+
 8/28/12: Fixed 3dmodv crash when toggling stereo, transparent background, or
 double buffer with multiple models (In 4.5).
 
+8/27/12: IMOD_4-6-9
 8/27/12: In Finishjoin, fixed the scaling of the shifts when applying a
 refining transform with warping and squeezing of the sample (In 4.5).
 
+8/27/12: In eTomo - Join - Align, fixed a problem with bring up Midas where
+the chunks parameters was not passed.(Bug# 1638)
+
+8/23/12: IMOD_4-6-8
 8/22/12: IMOD_4-5-6
 8/22/12: In eTomo - Final Aligned Stack, fixed the defocus value in the
 _simple.defocus file to be in nm instead of microns (In 4.5).(Bug# 1604)
 
+8/22/12: In Beadtrack, use a sobel-based position on second pass only if it is
+closer to the expected position; try to make running 4 rounds behave more like
+rerunning with fiducial model as seed.
+
+8/22/12: In Tiltalign and Beadtrack, restored iterative method of initializing
+X/Y/Z positions for medium to large amounts of data; direct solution was too
+slow.
+
+8/21/12: In eTomo - Fine Alignment, added Robust Fitting to the Beadtrack
+interface.(Bug# 1628)
+
+8/21/12: In eTomo, fixed a confusing message.(Bug# 1633)
+
+8/21/12: In eTomo - Generation Tomogram, fixed a bug where the tomogram height
+in Y was being ignored if the Y shift was not filled in.(Bug# 1626)
+
+8/20/12: In eTomo - Fiducial Modeling, added Sobel filter parameters to the
+BeadTracking panel.(Bug# 1627)
+
 8/20/12: Fixed Xfmodel model scaling when applying distortion field (In 4.5).
+
+8/20/12: In eTomo remembering the state of the trial tilt panel.(Bug# 1625)
+
+8/20/12: In eTomo handled chunk error messages with multiple error tags
+(In 4.5).(Bug# 1629)
 
 8/19/12: Added a small CUDA library to Mac package that was needed on our Mac
 mini (In 4.5).
 
-8/15/12: In eTomo handled chunk error messages with multiple error tags
-(In 4.5).(Bug# 1629)
+8/20/12: Made sure that pop-up messages for the PEET and Serial Sections start
+up dialogs will pop-up over the correct dialog.(Bug# 1624)
+
+8/19/12: Added a small CUDA library to Mac package that was needed on our Mac
+mini (In 4.5).
+
+8/17/12: Added the Align Serial Sections interface.(Bug# 1611)
 
 8/14/12: Fixed the empty project log error (In 4.5).(Bug# 1616)
+
+8/2/12: Beadtrack: improved criteria for when a bead is too weak so that weaker
+beads are allowed when the average one is getting weaker and to try to prevent
+beads from tracking on wild positions.  Improved the position prediction when
+returning to the starting view for the next local area, and also made it track
+halfway out on both sides on first round, to reduce loss of points when
+going back to starting view.  Added model Z scale.  Added detection of
+incorrect polarity.  Fixed some problems with sobel positioning.
+
+8/2/12: Made usage statements and manpages from PIP show abbreviations of
+short names.
+
+7/29/12: Added Autofidseed for automatic selection of a fiducial seed model,
+and a companion program, Pickbestseed, that it uses for analysis of beads.
+
+7/29/12: Added a script, Onegenplot, that will use Genhstplt to make a single
+graph with a relatively simple set of command-line options, and made numerous
+changes to Genhstplt to improve its usability for this purpose, including the
+ability to rearrange data so several columns can be plotted at once versus
+another column.
 
 7/27/12: Fixed Midas giving an error message when reading an empty transform
 file (In 4.5).
 
+7/25/12: Fixed temporary use of real array as double in Tiltalign/Beadtrack.
+
 7/23/12: Fixed bug in Splittilt that made parallel writing fail in SIRT 
 reprojection with a binned aligned stack (In 4.5).
+
+7/23/12: Beadtrack now takes prealignment transforms to avoid tracking onto
+gray fill areas.
+
+7/20/12: IMOD_4-6-7
+7/19/12: IMOD_4-6-6
+7/19/12: Added option to mtk to switch to making graphs of distance to nearest
+neighbor instead of distance to all neighbors.
+
+7/17/12: Made scale bar in Model View show up as black and be controllable by
+the White checkbox if image display is on.
+
+7/17/12: Added options to Newstack for setting mean and SD of output images
+and for omitting extra header from output.
+
+7/17/12: Replaced eigenvector solving routine in nad_eed_3d with one
+compatible with open source.  Results are slightly different and speed is
+improved by 13%.
 
 7/16/12: Fixed ancient bug in Splittilt that failed to limit the number of
 chunks correctly when vertical slices are being done with high X-axis tilt
 (e.g., in SIRT), and allowed number of chunks to go down to the number of
 processors in this case (In 4.5).
 
+7/13/12: In Beadtrack, fixed memory allocation problem, replaced
+surface output option with two options for output of extensive residual and
+elongation information and XYX coordinates after tracking automatically picked
+beads.
+
+7/13/12: Added options to Sortbeadsurf for picking subarea size based on
+number of points in potential subareas, and for leaving some points identified
+as outliers out of initial pairings.
+
+7/13/12: Made Model2point able to output general point or contour values, and
+Point2model able to read in point files with such values.
+
 7/7/12: Fixed treatment of min/max values when reading an ascii model file
 with contour values (In 4.5).
+
+6/28/12: IMOD_4-6-5
+6/28/12: Fixed bug in beadfixer that made it skip all residuals; fixed
+undefined variable when using sobel filter in Beadtrack.
+
+6/22/13: Converted Clipmodel to PIP input, fixed point output.
+
+6/21/13: IMOD_4-6-4
+6/21/13: Fixed array not allocated big enough in Beadtrack.
+
+6/21/12: Added an option to Blendmont to specify a value for filling blank
+regions.
+
+6/21/12: Made Xfalign support color image files, added an option to enter
+sections numbered from 1.
+
+6/21/12: Kept robust fit in Tiltalign from setting all weights for a fiducial
+to at or near zero; tweaked output from Tiltalign and Alignlog.
+
+6/20/12: IMOD_4-6-3
+6/20/12: Beadtrack can now refine center positions using an edge-detecting
+filter, which significantly improves accuracy for many plastic section data
+sets and some cryo data sets.
+
+6/19/12: Tiltalign can now do robust fitting, eliminating or down-weighting
+points with exceptionally high residuals. 
 
 6/9/12: In Tilt, increased the assumed limit on number of lines in a CUDA
 array to 65535, the limit on Fermi cards (In 4.5).
 
 6/6/12: In eTomo - Final Aligned Stack, fixed a bug where 
 tilt_3dfind_reprojecta.com was not being created (In 4.5).(Bug# 1622)
+
+6/5/12: Added options to Point2model to set scale and origin directly.
+
+6/5/12: In eTomo, added code to dump the state of classes which may be
+involved in an intermittently occurring bug.(Bug# 1618)
 
 5/31/12: In eTomo, removed incorrect error messages from the _err.log
 (In 4.5).(Bug# 1620)
@@ -63,6 +607,13 @@ tilt_3dfind_reprojecta.com was not being created (In 4.5).(Bug# 1622)
 message (In 4.5).(Bug# 1621) 
 
 5/29/12: IMOD_4-5-3
+5/26/12: Changed Tiltalign and Beadtrack to get initial x/y/z
+coordinates with a direct solution instead of iteration, and added an initial
+scan for correct starting tilt axis rotation angle to Tiltalign.
+
+5/26/12: Changed -linear option to Imodfindbeads to allow use of antialias
+image reduction instead of regular interpolation.
+
 5/26/12: Made Taperoutvol and  Assemblevol preserve angles in header so they
 are not lost when running NAD (In 4.5).
 
@@ -77,6 +628,9 @@ choice if several match (In 4.5).
 
 5/15/12: Fix setting of environment variables in Vmstopy (In 4.5).
 
+5/11/12: Parallelized clip smooth with OpenMP and made it use a much faster
+routine for a float input data.
+
 5/11/12: Fixed Tiltalign array sizes that allowed less than 1440 views
 (In 4.5).
 
@@ -87,9 +641,20 @@ fixed an initialization problem (In 4.5).
 
 5/9/12: Fixed 3dmod loading of RGB data with binning in X/Y (In 4.5).
 
+5/8/12: IMOD_4-6-1
+5/8/12: Added lasso to Zap toolbar, useful for selecting multiple contours,
+masking an isosurface, and selecting area for deleting contours below
+threshold in bead Fixer.
+
 5/7/12: IMOD_4-5-2
 5/7/12: Needed to prepend pylib to path in Python scripts because there is a 
 pip installer module in some installations (In 4.5).
+
+5/4/12: Added a filter useful for defringing images taken with phase plates to
+mtffilter.
+
+5/3/12: Added model view information to ascii model format, but excluding
+object views.
 
 5/2/12: IMOD_4-5-1 released
 5/2/12: Fixed 3dmod leaving tile angle file open, which could keep align.com
@@ -98,12 +663,29 @@ from replacing it in Windows (In 4.5).
 5/1/12: Fixed archiveorig not removing xray file when restoring, and fixed
 cleanup of temporary files when using subm and running combine.com (In 4.5).
 
+4/27/12: Added imod-dist, a program by Rick Gaudette for reporting distances
+between points in a model and a reference location.
+
+4/24/12: In eTomo, modified output to newst*.com to work with colornewst.
+(Bug# 1612)
+
 4/20/12: Fixed 3dmod's handling of autocontrasting with contrast reversed so
 that it produces a mean display value at the target mean, and made it adjust
 contrast when float is on and contrast is reversed (In 4.5).
 
+4/20/12: In eTomo - Join, fixed the print actions functionality, which was not
+printing some file copies.(Bug# 1610)
+
 4/20/12: Prevented eTomo from unchecking a disabled computer checkbox in the
 Parallel Processing table when there is only one row (In 4.5).(Bug# 1613)
+
+4/17/12: Added Colornewst to process RGB color files with Newstack.
+
+4/17/12: In eTomo - Tomogram Generation, substituted tomogram height and Y
+shift for starting, ending, and increment slice.(Bug# 1468)
+
+4/15/12: Made clip splitrgb able to extract a subset in Z, and joinrgb able to
+append to an existing color file, so that a file can be processed in chunks.
 
 4/15/12: Fixed origin change when resizing with clip (In 4.5).
 

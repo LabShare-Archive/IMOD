@@ -5,10 +5,10 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,22 +26,25 @@ import etomo.storage.LogFile;
 import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
+import etomo.storage.SerialSectionsFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
+import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
 import etomo.type.ImodVersion;
 import etomo.type.JoinMetaData;
 import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.PeetMetaData;
+import etomo.type.SerialSectionsMetaData;
 import etomo.type.ToolType;
 import etomo.type.UserConfiguration;
 import etomo.ui.swing.MainFrame;
 import etomo.ui.swing.SettingsDialog;
 import etomo.ui.swing.UIHarness;
 import etomo.ui.swing.UIParameters;
-import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
 import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
@@ -65,7 +68,9 @@ import etomo.util.Utilities;
 public class EtomoDirector {
   public static final String rcsid = "$Id$";
 
-  private static final long TO_BYTES = 1024;
+  public static final String USER_CONFIG_FILE_EXT = ".etomo";
+
+  private static final int TO_BYTES = 1024;
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
@@ -114,7 +119,6 @@ public class EtomoDirector {
 
   private static void setup(final String[] args) {
     try {
-      EtomoDirector.INSTANCE.arguments.parse(args);
       if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
         // Print out java properties
         Enumeration enumeration = System.getProperties().propertyNames();
@@ -133,7 +137,7 @@ public class EtomoDirector {
           Object key = iterator.next();
           System.err.println(key + ":  " + env.get(key));
         }
-        if (EtomoDirector.INSTANCE.arguments.getDebugLevel() > 1) {
+        if (EtomoDirector.INSTANCE.arguments.isDebugLevel(2)) {
           System.err.println();
           System.err.println("Java lib:");
           File libDir = new File(new File(System.getProperty("java.home")), "lib");
@@ -156,10 +160,33 @@ public class EtomoDirector {
     }
     catch (OutOfMemoryError e) {
       e.printStackTrace();
-      UIHarness.INSTANCE.openMessageDialog(null, "WARNING:  Ran out of memory."
-          + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+          "WARNING:  Ran out of memory."
+              + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
       throw e;
     }
+    catch (Exception e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(),
+          "Exception");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
+    }
+    catch (Error e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage(), "Error");
+      if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
+    }
+  }
+
+  private void setAdvanced(boolean state) {
+    isAdvanced = state;
   }
 
   public void doAutomation() {
@@ -181,7 +208,11 @@ public class EtomoDirector {
    */
   private void doAutomation(final ManagerKey managerKey) {
     if (managerList == null) {
-      return;
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+          "Unable to open interface.", "Interface Failed");
+      if (arguments.isHeadless()) {
+        UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      }
     }
     BaseManager manager = null;
     if (managerKey != null) {
@@ -220,7 +251,7 @@ public class EtomoDirector {
     // create the user config file
     File userConfigFile = null;
     try {
-      userConfigFile = new File(homeDirectory, ".etomo");
+      userConfigFile = new File(homeDirectory, USER_CONFIG_FILE_EXT);
     }
     catch (Exception except) {
       System.err.println("Could not create .etomo:");
@@ -246,16 +277,21 @@ public class EtomoDirector {
       parameterStore.load(userConfig);
     }
     catch (LogFile.LockException except) {
+      except.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
           "Can't load user configuration.\n" + except.getMessage(), "Etomo Error");
     }
     setUserPreferences();
-    ArrayList paramFileNameList = arguments.getParamFileNameList();
+    List<String> paramFileNameList = arguments.getParamFileNameList();
     if (arguments.isHelp()) {
       printUsageMessage();
       return;
     }
     UIHarness.INSTANCE.createMainFrame();
+    if (!arguments.validate(UIHarness.INSTANCE.getMainFrame())) {
+      UIHarness.INSTANCE.exit(AxisID.ONLY, 1);
+      return;
+    }
     initIMODDirectory();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
@@ -267,24 +303,32 @@ public class EtomoDirector {
     }
     else {
       ManagerKey saveKey = null;
+      ManagerKey managerKey = null;
       for (int i = 0; i < paramFileNameListSize; i++) {
-        paramFileName = (String) paramFileNameList.get(i);
-        ManagerKey managerKey = null;
-        if (paramFileName.endsWith(DatasetFiles.RECON_DATA_FILE_EXT)) {
+        paramFileName = paramFileNameList.get(i);
+        managerKey = null;
+        if (paramFileName.endsWith(DataFileType.RECON.extension)) {
           managerKey = openTomogram(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)) {
+        else if (paramFileName.endsWith(DataFileType.JOIN.extension)) {
           managerKey = openJoin(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT)) {
+        else if (paramFileName.endsWith(DataFileType.PARALLEL.extension)) {
           managerKey = openParallel(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
+        else if (paramFileName.endsWith(DataFileType.PEET.extension)) {
           managerKey = openPeet(paramFileName, false, AxisID.ONLY);
+        }
+        else if (paramFileName.endsWith(DataFileType.SERIAL_SECTIONS.extension)) {
+          managerKey = openSerialSections(paramFileName, false, AxisID.ONLY);
         }
         if (i == 0) {
           saveKey = managerKey;
         }
+      }
+      if (saveKey == null) {
+        managerKey = openFrontPage(true, AxisID.ONLY);
+        saveKey = managerKey;
       }
       currentManagerKey = saveKey;
     }
@@ -296,10 +340,16 @@ public class EtomoDirector {
     if (manager != null) {
       UIHarness.INSTANCE.setCurrentManager(manager, currentManagerKey.getKey(), true);
     }
-    UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey.getKey());
+    if (currentManagerKey != null) {
+      UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey.getKey());
+    }
     setCurrentManager(currentManagerKey, false);
     UIHarness.INSTANCE.setMRUFileLabels(userConfig.getMRUFileList());
     UIHarness.INSTANCE.pack(manager);
+    if (manager == null) {
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Invalid dataset file",
+          "Unable to Open Dataset");
+    }
     UIHarness.INSTANCE.setVisible(manager, true);
     System.err.println("imod:  " + getIMODDirectory());
     if (manager == null) {
@@ -352,7 +402,7 @@ public class EtomoDirector {
     String sJavaMemoryLimit = EnvironmentVariable.INSTANCE.getValue(null,
         originalUserDir, JAVA_MEMORY_LIMIT_ENV_VAR, AxisID.ONLY);
     if (sJavaMemoryLimit != null) {
-      long conversionNumber = 1;
+      int conversionNumber = 1;
       if (sJavaMemoryLimit.endsWith("k") || sJavaMemoryLimit.endsWith("K")) {
         conversionNumber = TO_BYTES;
         sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit.length() - 1);
@@ -558,13 +608,25 @@ public class EtomoDirector {
 
   /**
    * Build, save, and display a ToolsManager instance.
+   * @param dialogType may not be null
+   */
+  public void openTools(ToolType toolType) {
+    ToolsManager manager = new ToolsManager(toolType);
+    UIHarness.INSTANCE.addFrame(manager, false);
+    manager.initialize();
+    Utilities.managerStamp(manager.getPropertyUserDir(), manager.getName());
+  }
+
+  /**
+   * Build, save, and display a ToolsManager instance.
    * @param axisID
    * @param dialogType may not be null
    */
-  public void openTools(AxisID axisID, ToolType toolType) {
-    ToolsManager manager;
-    manager = new ToolsManager(toolType);
-    UIHarness.INSTANCE.addFrame(manager);
+  public void openDirectiveEditor(final DirectiveFileType directiveFileType,
+      final BaseManager dataSource, final String timestamp, final StringBuffer errmsg) {
+    DirectiveEditorManager manager = new DirectiveEditorManager(directiveFileType,
+        dataSource, timestamp, errmsg);
+    UIHarness.INSTANCE.addFrame(manager, true);
     manager.initialize();
     Utilities.managerStamp(manager.getPropertyUserDir(), manager.getName());
   }
@@ -572,6 +634,11 @@ public class EtomoDirector {
   public ManagerKey openPeet(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
     return openPeet(PeetMetaData.NEW_TITLE, makeCurrent, axisID);
+  }
+
+  public ManagerKey openSerialSections(boolean makeCurrent, AxisID axisID) {
+    closeDefaultWindow(axisID);
+    return openSerialSections(SerialSectionsMetaData.NEW_TITLE, makeCurrent, axisID);
   }
 
   private ManagerKey openJoin(File etomoJoinFile, boolean makeCurrent, AxisID axisID) {
@@ -600,6 +667,15 @@ public class EtomoDirector {
       return openPeet(makeCurrent, axisID);
     }
     return openPeet(etomoPeetFile.getAbsolutePath(), makeCurrent, axisID);
+  }
+
+  private ManagerKey openSerialSections(File etomoSerialSectionsFile,
+      boolean makeCurrent, AxisID axisID) {
+    if (etomoSerialSectionsFile == null) {
+      return openSerialSections(makeCurrent, axisID);
+    }
+    return openSerialSections(etomoSerialSectionsFile.getAbsolutePath(), makeCurrent,
+        axisID);
   }
 
   private ManagerKey openJoin(String etomoJoinFileName, boolean makeCurrent, AxisID axisID) {
@@ -653,6 +729,26 @@ public class EtomoDirector {
     return key;
   }
 
+  private ManagerKey openSerialSections(String serialSectionsFileName,
+      boolean makeCurrent, AxisID axisID) {
+    SerialSectionsManager manager;
+    if (serialSectionsFileName == null
+        || serialSectionsFileName.equals(SerialSectionsMetaData.NEW_TITLE)) {
+      manager = SerialSectionsManager.getInstance();
+      UIHarness.INSTANCE.setEnabledNewSerialSectionsMenuItem(false);
+    }
+    else {
+      manager = SerialSectionsManager.getInstance(serialSectionsFileName);
+    }
+    ManagerKey key = setManager(manager, makeCurrent);
+    manager.display();
+    if (!manager.isValid()) {
+      closeCurrentManager(AxisID.ONLY, false);
+      return null;
+    }
+    return key;
+  }
+
   private ManagerKey setManager(BaseManager manager, boolean makeCurrent) {
     UniqueKey uniqueKey;
     uniqueKey = managerList.add(manager.getName(), manager);
@@ -693,8 +789,10 @@ public class EtomoDirector {
   }
 
   private void saveLogs() {
-    for (int i = 0; i < managerList.size(); i++) {
-      ((BaseManager) managerList.get(i)).saveLog();
+    if (managerList != null) {
+      for (int i = 0; i < managerList.size(); i++) {
+        ((BaseManager) managerList.get(i)).saveLog();
+      }
     }
   }
 
@@ -721,6 +819,11 @@ public class EtomoDirector {
     PeetFileFilter peetFileFilter = new PeetFileFilter();
     if (peetFileFilter.accept(dataFile)) {
       openPeet(dataFile, makeCurrent, axisID);
+      return;
+    }
+    SerialSectionsFileFilter serialSectionsFileFilter = new SerialSectionsFileFilter();
+    if (serialSectionsFileFilter.accept(dataFile)) {
+      openSerialSections(dataFile, makeCurrent, axisID);
       return;
     }
     UIHarness.INSTANCE.openMessageDialog(getCurrentManager(), "Unknown file type "
@@ -786,6 +889,9 @@ public class EtomoDirector {
     else if (key.getName().equals(PeetMetaData.NEW_TITLE)) {
       UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);
     }
+    else if (key.getName().equals(SerialSectionsMetaData.NEW_TITLE)) {
+      UIHarness.INSTANCE.setEnabledNewSerialSectionsMenuItem(true);
+    }
   }
 
   /**
@@ -816,9 +922,12 @@ public class EtomoDirector {
    */
   public boolean exitProgram(AxisID axisID) {
     try {
-      while (managerList.size() != 0) {
-        if (!closeCurrentManager(axisID, true)) {
-          return false;
+      saveLogs();
+      if (managerList != null) {
+        while (managerList.size() != 0) {
+          if (!closeCurrentManager(axisID, true)) {
+            return false;
+          }
         }
       }
       if (utilityThread != null) {
@@ -870,6 +979,9 @@ public class EtomoDirector {
    * Set the user preferences
    */
   private void setUserPreferences() {
+    if (arguments.isHeadless()) {
+      return;
+    }
     ToolTipManager.sharedInstance().setInitialDelay(userConfig.getToolTipsInitialDelay());
     ToolTipManager.sharedInstance().setDismissDelay(userConfig.getToolTipsDismissDelay());
     setUIFont(userConfig.getFontFamily(), userConfig.getFontSize());
@@ -931,7 +1043,7 @@ public class EtomoDirector {
     catch (Exception excep) {
       System.err.println("Could not set " + lookAndFeelClassName + " look and feel");
     }
-    if (arguments.getDebugLevel() > 1) {
+    if (arguments.isDebugLevel(2)) {
       // print look and feel info
       System.err.println("\nLook and feel defaults:");
       UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
@@ -1041,6 +1153,7 @@ public class EtomoDirector {
       parameterStore.save(userConfig);
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(getCurrentManager(),
           "Unable to save or write preferences to " + parameterStore.getAbsolutePath()
               + ".\n" + e.getMessage(), "Etomo Error");
@@ -1119,12 +1232,8 @@ public class EtomoDirector {
    * Return the users home directory environment variable HOME or an empty
    * string if it doesn't exist.
    */
-  private String getHomeDirectory() {
+  public String getHomeDirectory() {
     return homeDirectory;
-  }
-
-  private void setAdvanced(boolean state) {
-    isAdvanced = state;
   }
 
   private static final class Setup implements Runnable {

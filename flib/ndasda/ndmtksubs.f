@@ -1,16 +1,4 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.2  2003/10/26 05:33:27  mast
-c       change command files to use unit 4 instead reopening 5
-c	
-c       Revision 3.1  2003/08/08 16:40:06  mast
-c       Added function to export graph and function to check if model file
-c       is needed for a particular option
+c       $Id$
 c	
 c       
 C       GRAPHDSP displays one graph in histogram format in one of 4 windows
@@ -26,11 +14,11 @@ c       and return them in XMAX and YMAX; if either one is non-zero then that
 c       value will be used for the full-scale value of that axis.
 c       
       subroutine graphdsp(graph,nbins,delr,iwin,jgrf,xmax,ymax)
+      use scrnvars
       real*4 graph(*)
       data ixwinsiz/640/,iywinsiz/510/
       integer*4 ixwin(4),iywin(4)
       data ixwin/0,640,0,640/,iywin/512,512,0,0/
-      common /smplgr/ifplxon,ixcur,iycur
       character*5 dumchar
       character*10 label
       character*8 formt
@@ -74,14 +62,14 @@ c
       iylo=iywin(iwin)
       ixran=ixwinsiz-20-marglft-margrt
       iyran=iywinsiz-20-margbot-margtop
-      if(ifplxon.gt.0)then
+      if(ifPlaxOn.gt.0)then
 c         
 c         output window and graph number in top left (if parallax is on)
 c         
-        call p_clt8(251,0,255,0)
-        call p_box(0,ixlo,iylo,ixlo+ixwinsiz-1,iylo+iywinsiz-1)
+        call plax_mapcolor(251,0,255,0)
+        call plax_box(0,ixlo,iylo,ixlo+ixwinsiz-1,iylo+iywinsiz-1)
         write(dumchar,'(i1,'':'',i3)')iwin,jgrf
-        call p_sctext(1,12,12,251,ixlo+20+marglft,
+        call plax_sctext(1,12,12,251,ixlo+20+marglft,
      &      iylo+margbot+iyran-35, dumchar)
 c         
 c         output x then y axis labels
@@ -92,7 +80,7 @@ c
           write(label,fmt=formt,err=30)xval
 30        ix=ixlo+max(0,ii*ixran/10+10+marglft-
      &        ifix(itxtsiz*(ntxtchr-.3)))
-          call p_sctext(1,itxtsiz,itxtsiz,251,ix,iylo,
+          call plax_sctext(1,itxtsiz,itxtsiz,251,ix,iylo,
      &        label(1:ntxtchr))
         enddo
 c         
@@ -101,7 +89,7 @@ c
           yval=ii*dy
           write(label,fmt=formt,err=40)yval
 40        iy=iylo+3+margbot+ii*iyran/10
-          call p_sctext(1,itxtsiz,itxtsiz,251,ixlo,iy,
+          call plax_sctext(1,itxtsiz,itxtsiz,251,ixlo,iy,
      &        label(1:ntxtchr))
         enddo
       endif
@@ -112,10 +100,10 @@ c
       yscal=iyran/ymax
       ixlo=ixlo+10+marglft
       iylo=iylo+10+margbot
-      call dsgrd(ixlo,iylo,ixran/10,0,10)
-      call dsgrd(ixlo,iylo,0,iyran/10,10)
-      call dsgrd(ixlo,iylo+iyran,ixran/10,0,10)
-      call dsgrd(ixlo+ixran,iylo,0,iyran/10,10)
+      call scrnGridLine(ixlo,iylo,ixran/10,0,10)
+      call scrnGridLine(ixlo,iylo,0,iyran/10,10)
+      call scrnGridLine(ixlo,iylo+iyran,ixran/10,0,10)
+      call scrnGridLine(ixlo+ixran,iylo,0,iyran/10,10)
       ixlas=ixlo
 c       
 c       draw bins
@@ -125,15 +113,15 @@ c
           ix=ixlo+xscal*i*delr
           iy=iylo+yscal*graph(i)
           if(i.eq.1)then 
-            call ma(ixlas,iy)
+            call scrnMoveAbs(ixlas,iy)
           else
-            call va(ixlas,iy)
+            call scrnVectAbs(ixlas,iy)
           endif
-          call va(ix,iy)
+          call scrnVectAbs(ix,iy)
           ixlas=ix
         endif
       enddo
-      call updat(1)
+      call scrnUpdate(1)
 c       
       write(*,321)'X',xmax,dx,'Y',ymax,dy
 321   format(1x,a1,': 0 to',f13.5,', at',f13.6,'/div')
@@ -180,7 +168,7 @@ c
      &    ymaxdsp, igrfdsp)
       real*4 graphs(limbins,*),xmaxdsp(*),ymaxdsp(*),delrgrf(*)
       integer*4 igrfdsp(*),nbingrf(*)
-      call erase(-1)
+      call scrnErase(-1)
       do jj=1,4
         jgrf=igrfdsp(jj)
         if(jgrf.gt.0)then
@@ -225,7 +213,7 @@ c
       ofsetbot=0.1
       ofsettop=0.1
       ntxtchr=7
-      itxtsiz=256
+      itxtsiz=8
 c       
 c       extra size of page
 c       
@@ -241,7 +229,7 @@ c
       iaxthick=1
       igrfthick=1
 c       
-      call imset(1,width,c2,c3,0)
+      call psSetup(1,width,c2,c3,0)
       if(iplot.gt.0)then
 c         
 c         for standard graph, set size & location, output graphs #
@@ -251,8 +239,8 @@ c
         xsize=xpltsiz*width-0.1-ofsetlft-ofsetrt
         ysize=ypltsiz*width-0.1-ofsettop-ofsetbot
         write(label,'(i2)')jgrf
-        call pwrit(xlo+0.2,ylo+ysize-0.3,label,2
-     &      ,itxtsiz*2,0,0)
+c        call pwrit(xlo+0.2,ylo+ysize-0.3,label,2 ,itxtsiz*2,0,0)
+        call psWriteText(xlo+0.2,ylo+ysize-0.3,label(1:2) ,itxtsiz*2,0,0)
 c         
 c         do X labels then y
 c         
@@ -261,7 +249,8 @@ c
           xval=ii*xmax/10.
           write(label,fmt=formt,err=30)xval
 30        xlab=xlo+ii*xsize/10
-          call pwrit(xlab,ylo-0.12,label,ntxtchr,itxtsiz,0,0)
+c          call pwrit(xlab,ylo-0.12,label,ntxtchr,itxtsiz,0,0)
+          call psWriteText(xlab,ylo-0.12,label(1:ntxtchr),itxtsiz,0,0)
         enddo
 c         
         call makefmt(ymax,ntxtchr,formt)
@@ -269,7 +258,8 @@ c
           yval=ii*ymax/10.
           write(label,fmt=formt,err=40)yval
 40        ylab=ylo+ii*ysize/10
-          call pwrit(xlo-0.05,ylab,label,ntxtchr,itxtsiz,0,1)
+c          call pwrit(xlo-0.05,ylab,label,ntxtchr,itxtsiz,0,1)
+          call psWriteText(xlo-0.05,ylab,label(1:ntxtchr),itxtsiz,0,1)
         enddo
 c         
       elseif(iplot.lt.0.and.irow.gt.0.and.icol.gt.0)then
@@ -320,30 +310,30 @@ c
 c       
 c       set scaling, do grids
 c       
-      call imset(iaxthick,c1,c2,c3,0)
+      call psSetup(iaxthick,c1,c2,c3,0)
       xscal=xsize/xmax
       yscal=ysize/ymax
-      call imgrid(xlo,ylo,xsize,0.,ntx,tiksiz)
-      call imgrid(xlo,ylo,0.,ysize,nty,tiksiz)
+      call psGridLine(xlo,ylo,xsize,0.,ntx,tiksiz)
+      call psGridLine(xlo,ylo,0.,ysize,nty,tiksiz)
       if(ifbox.ne.0)then
-        call imgrid(xlo,ylo+ysize,xsize,0.,ntx,-tiksiz)
-        call imgrid(xlo+xsize,ylo,0.,ysize,nty,-tiksiz)
+        call psGridLine(xlo,ylo+ysize,xsize,0.,ntx,-tiksiz)
+        call psGridLine(xlo+xsize,ylo,0.,ysize,nty,-tiksiz)
       endif
       xlas=xlo
 c       
 c       draw graph
 c       
-      call imset(igrfthick,c1,c2,c3,0)
+      call psSetup(igrfthick,c1,c2,c3,0)
       do i=1,nbins
         if(i*delr .le. xmax)then
           x=xlo+xscal*i*delr
           y=ylo+yscal*graph(i)
           if(i.eq.1)then 
-            call imma(xlas,y)
+            call psMoveAbs(xlas,y)
           else
-            call imva(xlas,y)
+            call psVectAbs(xlas,y)
           endif
-          call imva(x,y)
+          call psVectAbs(x,y)
           xlas=x
         endif
       enddo
@@ -353,7 +343,7 @@ c
       if(iplot.eq.0)then
         call label_axis(xlo,ylo,xsize,xscal,abs(ntx),xtick,0,0)
         call label_axis(xlo,ylo,ysize,yscal,abs(nty),ytick,0,1)
-        call immisc(xscal,0.,xlo,xsize,yscal,0.,ylo,ysize)
+        call psMiscItems(xscal,0.,xlo,xsize,yscal,0.,ylo,ysize)
       endif
       return
       end

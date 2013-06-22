@@ -110,7 +110,10 @@ is computed from the line segments themselves.
 Print lengths of open contours in column output.
 .TP
 .B -s
-Print volumes and surface areas for each separate surface in an object.
+Print volumes and surface areas for each separate surface in an object, as
+defined by contour surface numbers.  The maximum extent, or biggest distance
+between any two points in the surface contours, is also reported.  If a
+mesh is available, the cylinder surface area is omitted from the report.
 .TP
 .B -p
 Print point size information, including a summary of mean radius, and the

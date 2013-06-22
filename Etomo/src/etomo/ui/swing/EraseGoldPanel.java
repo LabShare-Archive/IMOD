@@ -163,16 +163,16 @@ final class EraseGoldPanel implements ContextMenu {
   }
 
   private void createPanel() {
-    //Local panels
+    // Local panels
     JPanel pnlModel = new JPanel();
-    //Root panel
+    // Root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     pnlRoot.setBorder(new EtchedBorder("Bead Eraser").getBorder());
     pnlRoot.add(pnlModel);
     pnlRoot.add(xfModelPanel.getComponent());
     pnlRoot.add(beads3dFindPanel.getComponent());
     pnlRoot.add(ccdEraserBeadsPanel.getComponent());
-    //Model panel
+    // Model panel
     pnlModel.setLayout(new BoxLayout(pnlModel, BoxLayout.Y_AXIS));
     pnlModel.setBorder(new EtchedBorder("Model Creation Method").getBorder());
     pnlModel.setAlignmentX(Box.CENTER_ALIGNMENT);
@@ -183,8 +183,8 @@ final class EraseGoldPanel implements ContextMenu {
   Component getComponent() {
     return pnlRoot;
   }
-  
-  void initialize() {
+
+  void initializeBeads() {
     ccdEraserBeadsPanel.initialize();
   }
 
@@ -272,8 +272,16 @@ final class EraseGoldPanel implements ContextMenu {
     beads3dFindPanel.setParameters(param, initialize);
   }
 
+  void initialize() {
+    beads3dFindPanel.initialize();
+  }
+
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     beads3dFindPanel.setParameters(param, initialize);
+  }
+
+  void setOverrideParameters(final ConstMetaData metaData) {
+    beads3dFindPanel.setOverrideParameters(metaData);
   }
 
   private void action(final String command, Deferred3dmodButton deferred3dmodButton,

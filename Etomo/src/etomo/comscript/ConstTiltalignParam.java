@@ -93,6 +93,8 @@ public class ConstTiltalignParam implements CommandDetails {
   static final String OUTPUT_X_AXIS_TILT_FILE_KEY = "OutputXAxisTiltFile";
   public static final String BEAM_TILT_OPTION_KEY = "BeamTiltOption";
   public static final String FIXED_OR_INITIAL_BEAM_TILT = "FixedOrInitialBeamTilt";
+  public static final String ROBUST_FITTING_KEY = "RobustFitting";
+  public static final String K_FACTOR_SCALING_KEY = "KFactorScaling";
 
   static final String modelFileString = "ModelFile";
   static final String imageFileString = "ImageFile";
@@ -198,8 +200,11 @@ public class ConstTiltalignParam implements CommandDetails {
   ScriptParameter imagesAreBinned;
   ScriptParameter beamTiltOption;
   final ScriptParameter fixedOrInitialBeamTilt = new ScriptParameter(
-      EtomoNumber.Type.FLOAT, "FixedOrInitialBeamTilt");
+      EtomoNumber.Type.DOUBLE, "FixedOrInitialBeamTilt");
   String outputXAxisTiltFile = "";
+  final EtomoBoolean2 robustFitting = new EtomoBoolean2(ROBUST_FITTING_KEY);
+  ScriptParameter kFactorScaling = new ScriptParameter(EtomoNumber.Type.DOUBLE,
+      K_FACTOR_SCALING_KEY);
 
   AxisID axisID;
   String datasetName;
@@ -291,8 +296,8 @@ public class ConstTiltalignParam implements CommandDetails {
     localAlignments.setDisplayAsInteger(true);
     fixXYZCoordinates = new EtomoBoolean2(FIX_XYZ_COORDINATES_KEY);
     fixXYZCoordinates.setDisplayAsInteger(true);
-    //do not default imagesAreBinnned
-    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG, "ImagesAreBinned");
+    // do not default imagesAreBinnned
+    imagesAreBinned = new ScriptParameter( "ImagesAreBinned");
     imagesAreBinned.setFloor(1);
     beamTiltOption = new ScriptParameter(BEAM_TILT_OPTION_KEY);
     beamTiltOption.setDefault(FIXED_OPTION);
@@ -377,6 +382,8 @@ public class ConstTiltalignParam implements CommandDetails {
     beamTiltOption.reset();
     fixedOrInitialBeamTilt.reset();
     outputXAxisTiltFile = "";
+    robustFitting.reset();
+    kFactorScaling.reset();
   }
 
   public ConstEtomoNumber getImagesAreBinned() {
@@ -518,10 +525,6 @@ public class ConstTiltalignParam implements CommandDetails {
     if (fieldInterface == Fields.LOCAL_ALIGNMENTS) {
       return localAlignments.is();
     }
-    throw new IllegalArgumentException("field=" + fieldInterface);
-  }
-
-  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 
@@ -895,6 +898,14 @@ public class ConstTiltalignParam implements CommandDetails {
    */
   public ConstEtomoNumber getResidualReportCriterion() {
     return residualReportCriterion;
+  }
+
+  public boolean isRobustFitting() {
+    return robustFitting.is();
+  }
+
+  public String getKFactorScaling() {
+    return kFactorScaling.toString();
   }
 
   /**

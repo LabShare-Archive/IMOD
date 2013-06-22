@@ -20,13 +20,13 @@
 #include "form_info.h"
 #include <qmenubar.h>
 #include <qmenu.h>
+#include <qdir.h>
 #include <qaction.h>
 #include <qsignalmapper.h>
 #include <qlayout.h>
 #include <qtextedit.h>
 #include <qframe.h>
 #include <qtimer.h>
-#include <qfiledialog.h>
 #include <qstringlist.h>
 //Added by qt3to4:
 #include <QTimerEvent>
@@ -184,7 +184,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   ADD_ACTION(ePoint, "S&ort by dist", EPOINT_MENU_SORTDIST);
 
   // Edit Image submenu
-  ADD_ACTION(eImage, "F&lip", EIMAGE_MENU_FLIP);
+  ADD_ACTION(eImage, "F&lip/Rotate", EIMAGE_MENU_FLIP);
   ADD_ACTION(eImage, "P&rocess...", EIMAGE_MENU_PROCESS);
   ADD_ACTION(eImage, "R&eload...", EIMAGE_MENU_RELOAD);
   ADD_ACTION(eImage, "F&ill Cache", EIMAGE_MENU_FILLCACHE);
@@ -434,18 +434,21 @@ void InfoWindow::manageMenus()
   mActions[FILE_MENU_TIFF]->setEnabled(vi->rgbStore != 0);
   mActions[FILE_MENU_EXTRACT]->setEnabled
     (vi->rgbStore == 0 && vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
-     vi->noReadableImage == 0);
+     vi->noReadableImage == 0 && vi->pyrCache == NULL && !vi->li->plist);
   /*fprintf(stderr, "vi->multiFileZ=%d\n", vi->multiFileZ);*/
-  mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
-  mActions[EIMAGE_MENU_FILLER]->setEnabled(vi->vmSize != 0 || vi->nt > 0);
+  mActions[EIMAGE_MENU_FILLCACHE]->setEnabled(vi->vmSize != 0 || vi->numTimes > 0 ||
+                                              vi->pyrCache != NULL);
+  mActions[EIMAGE_MENU_FILLER]->setEnabled((vi->vmSize != 0 || vi->numTimes > 0) &&
+                                           vi->pyrCache == NULL);
   //mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
   mActions[IMAGE_MENU_ISOSURFACE]->setEnabled(imageOK);
   mActions[ECONTOUR_MENU_AUTO]->setEnabled(imageOK);
   if (!imageOK) {
     mActions[IMAGE_MENU_GRAPH]->setEnabled(false);
   }
+  mActions[EIMAGE_MENU_PROCESS]->setEnabled(imageOK && !vi->colormapImage && 
+                                            !vi->pyrCache);
   if (!imageOK || vi->colormapImage) {
-    mActions[EIMAGE_MENU_PROCESS]->setEnabled(false);
     mActions[IMAGE_MENU_TUMBLER]->setEnabled(false);
     ImodInfoWidget->setFloat(-1);
   }
@@ -453,9 +456,11 @@ void InfoWindow::manageMenus()
 
   // These are run-time items.  If more instances appear this should be
   // split into initial and runtime calls
-  mActions[EIMAGE_MENU_FLIP]->setEnabled(!iprocBusy() && !vi->colormapImage);
+  mActions[EIMAGE_MENU_FLIP]->setEnabled(!iprocBusy() && !vi->colormapImage && 
+                                         !vi->pyrCache);
   mActions[EIMAGE_MENU_RELOAD]->setEnabled
-    (!iprocBusy() && imageOK && !vi->colormapImage && !vi->noReadableImage);
+    (!iprocBusy() && imageOK && !vi->colormapImage && !vi->noReadableImage && 
+     !vi->pyrCache);
   mActions[FILE_MENU_RELOAD]->setEnabled(vi->reloadable != 0);
   mActions[EOBJECT_MENU_DELETE]->setEnabled(!meshingBusy());
   mActions[EOBJECT_MENU_RENUMBER]->setEnabled(!meshingBusy());
@@ -494,8 +499,7 @@ void InfoWindow::extract()
     wprint("\aExtracting volume visible in Zap window with rubberband on but not "
            "drawn.\n");
 
-  mTrimvolOutput = QFileDialog::getSaveFileName
-    (this, "MRC File to extract to:");
+  mTrimvolOutput = imodPlugGetSaveName(this, "MRC File to extract to:");
   if (mTrimvolOutput.isEmpty())
     return;
   QString commandString = zap->printInfo(false);
@@ -697,13 +701,13 @@ void InfoWindow::timerEvent(QTimerEvent *e)
     raise();
 }
 
-void InfoWindow::openSelectedWindows(char *keys)
+void InfoWindow::openSelectedWindows(char *keys, int modelViewOpen)
 {
   bool imageOK = !(App->cvi->fakeImage || App->cvi->rgbStore);
   if (!keys)
     return;
 
-  // Model view uses mBCDILMOSV
+  // Model view uses mBCDILMOSVN
   if (strchr(keys, 'a'))
     editContourSlot(ECONTOUR_MENU_AUTO);
   if (strchr(keys, 'b'))
@@ -712,7 +716,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     editContourSlot(ECONTOUR_MENU_COPY);
   if (strchr(keys, 'e'))
     editSlot(EDIT_MENU_SCALEBAR);
-  if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->nt > 0))
+  if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->numTimes > 0))
     editImageSlot(EIMAGE_MENU_FILLER);
   if (strchr(keys, 'g') && imageOK)
     imageSlot(IMAGE_MENU_GRAPH);
@@ -722,7 +726,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     editContourSlot(ECONTOUR_MENU_JOIN);
   if (strchr(keys, 'l'))
     editObjectSlot(EOBJECT_MENU_COLOR);
-  if (strchr(keys, 'm') && imageOK)
+  if (strchr(keys, 'm') && imageOK && modelViewOpen == FALSE)
     imageSlot(IMAGE_MENU_LOCATOR);
   if (strchr(keys, 'n'))
     fileSlot(FILE_MENU_MOVIEMONT);

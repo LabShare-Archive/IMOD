@@ -1,8 +1,7 @@
 #  Makefile for flib/model
 #
 #  $Id$
-#  Log at end
-#
+
 
 include ../configure
 
@@ -18,7 +17,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
  findhotpixels$(E) xfjointomo$(E) boxavg$(E) tiltxcorr$(E) findbeads3d$(E) \
- sortbeadsurfs$(E) edmont$(E)
+ sortbeadsurfs$(E) edmont$(E) filltomo$(E)
 # mtteach$(E)  tomoblobs$(E)
 
 WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
@@ -53,6 +52,12 @@ edmont$(E): edmont.$(O)
 
 endmodel$(E): endmodel.$(O)
 	$(FC) -o endmodel endmodel.$(O) $(LDFLG) $(WLIBS)
+
+filltomo$(E): filltomo.$(O) get_region_contours.$(O)
+	$(FC) -o filltomo filltomo.$(O) get_region_contours.$(O) $(LDFLG) $(SMALLLIBS)
+
+filltomo.$(O): filltomo.f90
+	$(FC) $(FFLAGS) $(OPENMPF) -c filltomo.f90
 
 realscalemod$(E): realscalemod.$(O)
 	$(FC) -o realscalemod realscalemod.$(O) $(LDFLG) $(WLIBS)
@@ -130,7 +135,7 @@ fiberpitch$(E): fiberpitch.$(O)
 	$(FC) -o fiberpitch fiberpitch.$(O) $(LDFLG) $(WLIBS)
 
 repackseed$(E): repackseed.$(O)
-	$(FC) -o repackseed repackseed.$(O) $(LDFLG) $(WLIBS)
+	$(FC) -o repackseed repackseed.$(O) $(LDFLG) $(SMALLLIBS)
 
 resamplemod$(E): resamplemod.$(O)
 	$(FC) -o resamplemod resamplemod.$(O) $(LDFLG) $(WLIBS)
@@ -154,10 +159,10 @@ findbeads3d$(E): findbeads3d.$(O)
 	$(FC) -o findbeads3d findbeads3d.$(O) $(LDFLG) $(WLIBS)
 
 tiltxcorr$(E): tiltxcorr.$(O)
-	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(SMALLLIBS)
+	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(LIWARP) $(SMALLLIBS)
 
-tiltxcorr.$(O): tiltxcorr.f
-	$(FC) $(FFLAGS) $(OPENMPF) -c tiltxcorr.f
+tiltxcorr.$(O): tiltxcorr.f90
+	$(FC) $(FFLAGS) $(OPENMPF) -c tiltxcorr.f90
 
 tomoblobs$(E): tomoblobs.$(O)
 	$(FC) -o tomoblobs tomoblobs.$(O) $(LDFLG) $(IMLIBS) $(FORTCLIBS)
@@ -170,4 +175,4 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *~ *.exe $(PROGS)
+	-\rm -f *.$(OBJEXT) *~ *.exe $(PROGS)

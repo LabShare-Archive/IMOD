@@ -113,6 +113,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mRecordedZapGeom = QRect(0, 0, 0, 0);
   mGenericList = ilistNew(sizeof(GenericSettings), 4);
   mMultiZgeom =  QRect(0, 0, 0, 0);
+  mXyzApplyZscale = false;
   QCoreApplication::setOrganizationDomain("bio3d.colorado.edu");
 
   // Put plugin dir on the library path so image plugins can be found
@@ -360,6 +361,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   imodInfoSetFloatFlags(floatOn, subarea);
   i = settings->value("useWheelForSize").toInt();
   iceSetWheelForSize(i);
+  mXyzApplyZscale = settings->value("xyzApplyZscale").toBool();
   if (settings->contains("montageSnapshots")) {
     str = settings->value("montageSnapshots").toString();
     sscanf(LATIN1(str), "%d,%d,%d,%d,%d", &left, &top, &i, &width, &position);
@@ -617,6 +619,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   settings->setValue("floatButton", floatOn);
   settings->setValue("subareaButton", subarea);
   settings->setValue("useWheelForSize", iceGetWheelForSize());
+  settings->setValue("xyzApplyZscale", mXyzApplyZscale);
   str.sprintf("%d,%d,%d,%d,%d", imcGetSnapMontage(false) ? 1 : 0, 
               imcGetMontageFactor(), imcGetSnapWholeMont() ? 1: 0,
               imcGetScaleSizes() ? 1 : 0, imcGetSizeScaling());
@@ -772,7 +775,7 @@ void ImodPreferences::donePressed()
   mTabDlg->close();
   mTabDlg = NULL;
   imcUpdateDialog();
-  imodvMovieUpdate();
+  mvMovieUpdate();
 }
 
 // When cancel is pressed, get the current tab then go through common cancel

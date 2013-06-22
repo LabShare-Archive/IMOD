@@ -32,15 +32,15 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
   private final JMenuItem startupWindow;
   private final JMenuItem binBy2;
-  //When the button is not a 3dmod button, then it may run 3dmod deferred; first
-  //running the process associated with the button and then running 3dmod as
-  //directed by the right-click menu.  The right click menu contains a plain
-  //3dmod option (noMenuOption) when deferred is true.
+  // When the button is not a 3dmod button, then it may run 3dmod deferred; first
+  // running the process associated with the button and then running 3dmod as
+  // directed by the right-click menu. The right click menu contains a plain
+  // 3dmod option (noMenuOption) when deferred is true.
   private final boolean deferred;
 
   private Run3dmodButtonContainer container = null;
   private JMenuItem noMenuOption = null;
-  //When deferred is true, need a button that knows how to run the 3dmod command.
+  // When deferred is true, need a button that knows how to run the 3dmod command.
   private Deferred3dmodButton deferred3dmodButton = null;
 
   private Run3dmodButton(final String label, final Run3dmodButtonContainer container,
@@ -79,6 +79,12 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
     return instance;
   }
 
+  static Run3dmodButton get3dmodInstance(final String label) {
+    Run3dmodButton instance = new Run3dmodButton(label, null, false, null, false, null);
+    instance.init();
+    return instance;
+  }
+
   static Run3dmodButton getToggle3dmodInstance(final String label,
       final DialogType dialogType) {
     Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType, false,
@@ -91,6 +97,12 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
       final Run3dmodButtonContainer container) {
     Run3dmodButton instance = new Run3dmodButton(label, container, false, null, true,
         null);
+    instance.init();
+    return instance;
+  }
+
+  static Run3dmodButton getDeferred3dmodInstance(final String label) {
+    Run3dmodButton instance = new Run3dmodButton(label, null, false, null, true, null);
     instance.init();
     return instance;
   }
@@ -169,7 +181,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,
   }
 
   private void action(final ActionEvent event) {
-    //MenuOptions holds the current menu choice.
+    // MenuOptions holds the current menu choice.
     Run3dmodMenuOptions menuOptions = new Run3dmodMenuOptions();
     if (event.getActionCommand().equals(startupWindow.getText())) {
       menuOptions.setStartupWindow(true);

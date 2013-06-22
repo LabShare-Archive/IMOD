@@ -49,6 +49,10 @@ extern "C" {
 #define IIERR_IO_ERROR   2
 #define IIERR_MEMORY_ERR 3
 #define IIERR_NO_SUPPORT 4
+
+  /* Flags for userData */
+#define IIFLAG_BYTES_SWAPPED   1
+#define IIFLAG_TVIPS_DATA      2
 /* END_CODE */
 
   /* DOC_CODE Raw mode codes */
@@ -103,13 +107,19 @@ extern "C" {
     /* extra storage used by individual file format functions. */
     int   headerSize;
     int   sectionSkip;
+    int   hasPieceCoords;    /* Flag that MRC file has piece coordinates in header */
     char *header;
     char *userData;
+    unsigned int userFlags;  /* Flags for the userData */
+    int userCount;           /* Number of bytes of userData */
     unsigned char *colormap;
     int  planesPerImage;     /* # of planes per TIFF image */
     int  contigSamples;      /* # of contiguous samples per pixel in plane */
     int  multipleSizes;      /* Flag that TIFF file has multiple sizes */
     int  rgbSamples;         /* Number of samples for RGB TIFF file */
+    int  anyTiffPixSize;     /* Set non-0 to have TIFF pixel size put into [xyz]scale */
+    int  tileSizeX;          /* Tile size in X, or 0 if no tiles */
+    int  tileSizeY;          /* Tile size in Y if tiles, strip size if not */
 
     /* Callback functions used by different file formats. */
     iiSectionFunc readSection;
@@ -137,6 +147,8 @@ extern "C" {
     int sectionSkip;    /* Padding after each section - there may be no padding
                            after last section */
     int yInverted;      /* Lines are inverted in Y */
+    float pixel;        /* Pixel size in Angstroms, set to 0. if unknown */
+    float zPixel;       /* Pixel size in Z if different, set to 0. otherwise */
   } RawImageInfo;
 /* END_CODE */
 
@@ -158,7 +170,7 @@ extern "C" {
   int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
-  int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, struct LoadInfo *li,
+  int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li,
                    int nx, int ny, int nz);
 
   /* Create and write support. */
@@ -172,23 +184,23 @@ extern "C" {
   int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
-  int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx,
+  int iiMRCLoadPCoord(ImodImageFile *inFile, IloadInfo *li, int nx,
                       int ny, int nz);
+  int iiMRCcheckPCoord(MrcHeader *hdr);
   int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
   void tiffClose(ImodImageFile *inFile);
   int tiffGetField(ImodImageFile *inFile, int tag, void *value);
-  int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value);
+  int tiffGetArray(ImodImageFile *inFile, int tag, b3dUInt16 *count, void *value);
   void tiffSuppressWarnings(void);
   void tiffSuppressErrors(void);
   void tiffFilterWarnings(void);
   int tiffOpenNew(ImodImageFile *inFile);
   int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression, 
                        int inverted, int resolution, int quality);
-  int tiffWriteSetup(ImodImageFile *inFile, int compression, 
-                     int inverted, int resolution, int quality, 
-                     int *outRows, int *outNum);
+  int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int resolution,
+                     int quality, int *outRows, int *outNum, int *tileSizeX);
   int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf);
   void tiffWriteFinish(ImodImageFile *inFile);
   int tiffVersion(int *minor);

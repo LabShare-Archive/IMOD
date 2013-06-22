@@ -1,0 +1,130 @@
+[Field = ImageInputFile]
+short = imin
+type = FN
+usage = Image input file
+tooltip =
+manpage = Image input file, which may or may not be a montage.  If this option
+is not entered, the first non-option argument is taken as the input file.
+
+[Field = PieceListInput]
+short = plin
+type = FN
+usage = File with list of piece coordinates for image input file
+tooltip =
+manpage = File with list of piece coordinates for image input file, if it is a
+montage.
+
+[Field = ImageOutputFile]
+short = imout
+type = FN
+usage = Output file for montaged images
+tooltip =
+manpage = Output file for montaged images.  If this option
+is not entered, the second non-option argument is taken as the output file.
+
+[Field = PieceListOutput]
+short = plout
+type = FNM
+usage = File for list of coordinates of pieces in output image file (required)
+tooltip =
+manpage = File for list of coordinates of pieces in output image file.  
+
+[Field = SectionsToDo]
+short = sections
+type = LIM
+usage = List of sections to use from input file, numbered from 0 (default all)
+tooltip = 
+manpage = List of sections to use from input file, numbered from 0.
+Ranges may be entered (e.g., 1-3,5,8).
+If no list is entered, all sections will be used.  Note that montages can have
+missing sections, and a list that includes such missing sections will generate
+an error.
+
+[Field = ModeToOutput]
+short = mode
+type = I
+usage = Storage mode of output file; 0 for byte, 1 or 6 for integer, 2 for real
+tooltip = 
+manpage = The storage mode of the output file; 0 for byte, 1 for 16-bit 
+signed integer, 6 for 16-bit unsigned integer, or 2 for 32-bit floating point.
+The default is the mode of the input file.
+
+[Field = FloatToRange]
+short = float
+type = B
+usage = Rescale densities of sections separately to fill data range
+tooltip = 
+manpage = 
+
+[Field = BinByFactor]
+short = bin
+type = I
+usage = Use binning to reduce images in size by the given factor (default 1)
+tooltip = 
+manpage = 
+
+[Field = StartingAndEndingX]
+short = xminmax
+type = IP
+usage = Minimum and maximum X index coordinates to output
+tooltip = 
+manpage = Minimum and maximum X index coordinates to output (numbered from 0).
+The default is to output the entire image.
+
+[Field = StartingAndEndingY]
+short = yminmax
+type = IP
+usage = Minimum and maximum Y index coordinates to output
+tooltip = 
+manpage = Minimum and maximum Y index coordinates to output (numbered from 0).
+
+[Field = MaximumFrameSizeXandY]
+short = frame
+type = IP
+usage = Maximum size of output pieces in X and Y (default 0,0 for unlimited)
+tooltip = 
+manpage = Maximum size of output pieces in X and Y; pieces will be made
+smaller as needed to divide the output region into equal pieces.  Enter 0,0 to
+output data in a single frame (which is the default)
+
+[Field = MinimumOverlapXandY]
+short = overlap
+type = IP
+usage = Minimum overlap between output pieces in X and Y (default 0, 0)
+tooltip = 
+manpage = Minimum overlap between output pieces in X and Y.  Pieces may
+overlap more than this as needed to divide the output region into equal
+pieces.  The default is 0,0 for no overlap.
+
+[Field = NoResizeForFFT]
+short = nofft
+type = B
+usage = Do not increase output frame size to legal size for FFT
+tooltip = 
+manpage = Do not increase the size of the output to be suitable for taking an
+FFT.  By default, output sizes are increased to have no higher prime factor
+than 19.  This option suppresses that increase, and the only constraint is
+that the output frame sizes be even.
+
+[Field = LineLoadLimit]
+short = line
+type = I
+usage = Maximum megabytes of memory allowed for loading a single-frame image
+tooltip = 
+manpage = When the input image is a single frame, it will be loaded in strips
+when loading an entire section would take more than the given number of
+meagabytes of memory.  The default is 1000.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

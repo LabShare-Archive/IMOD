@@ -194,7 +194,7 @@ public final class PeetParserParam implements CommandDetails {
   }
 
   public String getCommandName() {
-    return null;
+    return PROCESS_NAME.toString();
   }
 
   public String getName() {
@@ -253,10 +253,6 @@ public final class PeetParserParam implements CommandDetails {
   }
 
   public boolean getBooleanValue(etomo.comscript.FieldInterface fieldInterface) {
-    throw new IllegalArgumentException("field=" + fieldInterface);
-  }
-
-  public float getFloatValue(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
   }
 

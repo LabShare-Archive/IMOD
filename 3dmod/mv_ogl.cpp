@@ -421,7 +421,7 @@ void imodvDraw_models(ImodvApp *a)
 
   // 3/2/12: flushes and finishes should not be needed when double buffering.
   // New practice, do a finish only here and only if single-buffer or picking
-  if (!a->db || a->doPick)
+  if (!a->dblBuf || a->doPick)
     glFinish();
 }
 

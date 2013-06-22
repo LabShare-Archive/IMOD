@@ -1,0 +1,159 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file to be clipped
+tooltip = 
+manpage = 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file, either clipped model or list of points
+tooltip = 
+manpage = Name of output file, which can be either an IMOD model file or text file
+with a list of point coordinates.
+
+[Field = PointOutput]
+short = point
+type = I
+usage = 1 to make a point instead of a model output file (-1 for corner points)
+tooltip = 
+manpage = Enter 1 to make a point output file instead of a model output file.
+Nearest integer coordinates will be output; use Model2point(1) to get more
+flexible point list output.  Enter -1 to get a point list with corner points
+added each time a new Z value is encountered; in this case -xminmax and
+-yminmax must be entered.
+
+[Field = XMinAndMax]
+short = xminmax
+type = FPM
+usage = Starting and ending X coordinates to include or exclude, numbered from 0
+tooltip = 
+manpage = Starting and ending X index coordinates to include or exclude,
+numbered from 0.  Enter a / to take the default, which is to have no selection
+based on X coordinate.
+
+[Field = YMinAndMax]
+short = yminmax
+type = FPM
+usage = Starting and ending Y coordinates to include or exclude, numbered from 0
+tooltip = 
+manpage = Starting and ending Y index coordinates to include or exclude,
+numbered from 0.  Enter a / to take the default, which is to have no selection
+based on Y coordinate.
+
+[Field = ZMinAndMax]
+short = zminmax
+type = FPM
+usage = Starting and ending Z coordinates to include or exclude, numbered from 0
+tooltip = 
+manpage = Starting and ending Z coordinates to include or exclude,
+numbered from 0.  Enter a / to take the default, which is to have no selection
+based on Z coordinate.  Starting and ending will be adjusted down and
+up by 0.005, respectively, so whole numbers can be entered; e.g., 16,18 will clip out
+sections 16 through 18.
+
+[Field = ExcludeOrInclude]
+short = exclude
+type = IA
+usage = 1 to exclude or 0 to include points within coordinate block
+tooltip = 
+manpage = 1 to exclude or 0 to include points within specified coordinate
+block.  Multiple values can be entered for a sequence of operations.  The
+number of -xminmax, -yminmax, and -zminmax entries must each be equal to the
+number of values entered here, unless an option is not entered at all for that
+dimension.  If any coordinate limits are entered, the default for this entry
+is a single 0; in other words, you can omit this entry if you are just
+clipping out coordinates inside one coordinate block.
+
+[Field = LongestContourSegment]
+short = longest
+type = B
+usage = Retain just longest segment instead of all contour segments inside volume
+tooltip = 
+manpage = Retain only the longest segment of a contour that is within the
+volume being included, instead of all segments.
+
+[Field = KeepEmptyContours]
+short = keep
+type = B
+usage = Keep contours that have no points
+tooltip = 
+manpage = Keep contours that have no points, so that contours have their original
+numbers in the output model.  This was the behavior before IMOD 4.6.18.
+The default is now to remove empty contours.
+
+[Field = ObjectList]
+short = objects
+type = LI
+usage = List of model objects to remove or clip endpoints from
+tooltip = 
+manpage = List of model objects to remove or clip endpoints from.  This option
+cannot be entered together with any of the options for clipping by
+coordinates.  If -ends is entered, points will be removed from endpoints of
+contours; otherwise whole objects will be removed.
+
+[Field = ClipFromStartAndEnd]
+short = ends
+type = IP
+usage = Number of points to clip from start and end of contours
+tooltip = 
+manpage = Number of points to clip from start and end of contours for the
+objects specified by -objects; the latter must be entered.
+
+[Field = ValuesInOrOutOfRange]
+short = values
+type = I
+usage = Delete contours, points, or both with values in or out of a range
+tooltip = 
+manpage = Use this option to delete contours or points that have stored values
+inside of or outside of a defined range.  Enter 1 or -1 to delete contours, 2
+or -2 to delete points, or 3 or -3 to delete both, with a positive or negative
+number to delete if values are inside or outside the range, respectively.  For
+example, if a model is produced by Imodfindbeads(1) with the default storage
+option, contours with values below threshold can be removed with "clipmodel -values 1
+input_file output_file".
+
+[Field = RangeForValues]
+short = range
+type = FP
+usage = Lower and upper values of range for deleting or retaining points/contours
+tooltip = 
+manpage = Lower and upper values of the range used to decide whether a 
+point or contour is to be deleted.  If this option is not entered,
+the default range for each object is all values below the lower threshold
+stored in the model by Imodfindbeads(1), Findbeads3d(1), 3dmod(1), or other
+programs.  In
+3dmod(1), this threshold appears in the Bead Fixer dialog and also as the
+Black slider setting in the Values panel of the Edit-Objects dialog of the
+Model View window.
+
+[Field = UpdateObjectMinMax]
+short = update
+type = B
+usage = Update the stored minimum and maximum values for all objects
+tooltip =
+manpage = Update the stored minimum and maximum values of each object based
+on the stored values of all contours and points in the object.  These minimum
+and maximum values determine the range of the Black/White sliders in the
+Values panel of the Edit-Objects dialog of the Model View window.  This option
+cannot be used together with -keep.
+
+[Field = ParameterFile]
+short = param
+long = ParameterFile
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

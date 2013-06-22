@@ -22,6 +22,7 @@
 #include <qdir.h>
 #include "imod.h"
 #include "cachefill.h"
+#include "client_message.h"
 #include "iirawimage.h"
 #include "display.h"
 #include "info_cb.h"
@@ -39,14 +40,15 @@
 #include "xcramp.h"
 #include "workprocs.h"
 #include "vertexbuffer.h"
+#include "utilities.h"
+#include "pyramidcache.h"
 #include "preferences.h"
 #include "undoredo.h"
 
 static int ivwProcessImageList(ImodView *vi);
-static int ivwManageInitialFlips(ImodView *vi);
+static int initializeFlipAndModel(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
-static void deletePlistBuf(void);
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi, bool modview)
@@ -61,7 +63,7 @@ void ivwInit(ImodView *vi, bool modview)
   vi->fullXsize  = vi->fullYsize  = vi->fullZsize  = 0;
   vi->xysize = 0;
 
-  vi->nt = 0; vi->ct = 0;
+  vi->numTimes = 0; vi->curTime = 0;
 
   // Initialize things needed for model view and then stop if model view only
   vi->imod       = NULL;
@@ -81,6 +83,9 @@ void ivwInit(ImodView *vi, bool modview)
   vi->vmSize     = 0;
   vi->keepCacheFull = 1;
   vi->fullCacheFlipped = 0;
+  vi->imagePyramid = 0;
+  vi->stripOrTileCache = 0;
+  vi->pyrCache = NULL;
   vi->loadingImage = 0;
   vi->doingInitialLoad = 0;
   vi->black      = 0;
@@ -145,9 +150,13 @@ unsigned char **ivwGetCurrentSection(ImodView *vi)
   return(ivwGetZSection(vi, cz));
 }
 
+/* Get the current Z section; with tile cache, this call will allocate a full section 
+   array and load tiles to fill it */
 unsigned char **ivwGetCurrentZSection(ImodView *vi)
 {
   int cz = (int)(vi->zmouse + 0.5f);
+  if (vi->pyrCache)
+    return (vi->pyrCache->getFullSection(cz));
   return(ivwGetZSection(vi, cz));
 }
 
@@ -172,23 +181,23 @@ unsigned char **ivwGetZSectionTime(ImodView *vi, int section, int time)
 
   if (!vi)
     return NULL;
-  if (!vi->nt)
+  if (!vi->numTimes)
     return(ivwGetZSection(vi, section));
 
   /* DNM: make test > instead of >= */
-  if (time < 1 || time > vi->nt)
+  if (time < 1 || time > vi->numTimes)
     return(NULL);
 
   ivwGetTime(vi, &oldTime);
   if (time == oldTime) 
     return(ivwGetZSection(vi, section));
 
-  vi->ct = time;
+  vi->curTime = time;
   vi->hdr = vi->image = &vi->imageList[time-1];
   ivwReopen(vi->image);
   imageData = ivwGetZSection(vi, section);
   iiClose(vi->image);
-  vi->ct = oldTime;
+  vi->curTime = oldTime;
   vi->hdr = vi->image = &vi->imageList[oldTime-1];
   return(imageData);
 }
@@ -202,8 +211,8 @@ void ivwScaleDepth8(ImodView *vi, ivwSlice *tempSlicePtr)
   int pix, i;
   int mi = tempSlicePtr->sec->xsize * tempSlicePtr->sec->ysize;
   unsigned char *id = tempSlicePtr->sec->data.b;
-  if (App->depth == 8 && !vi->rawImageStore){
-    for (i = 0; i < mi; i++){
+  if (App->depth == 8 && !vi->rawImageStore) {
+    for (i = 0; i < mi; i++) {
       pix   = (int)(id[i] * scale + rbase);
       id[i] = (unsigned char)pix;
     }
@@ -218,14 +227,17 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
 {
   ivwSlice *tempSlicePtr = NULL;
   int sl, slmin, minused, pixSize, slice;
-  int cz = section;
 
   if (section < 0 || section >= vi->zsize) 
     return(NULL);
-  if (!vi->fp || vi->fakeImage || vi->loadingImage)
+  if (!vi->fp || vi->fakeImage || vi->loadingImage || vi->pyrCache)
     return(NULL);
   if (!vi->fullCacheFlipped && ivwPlistBlank(vi, section)) 
     return(NULL);
+
+  // Flip -> rotation: invert Z if flipped
+  if (vi->li->axis == 2)
+    section = vi->zsize - 1 - section;
 
   /* Plain, uncached data: make line pointers if not flipped */
   if (!vi->vmSize) {
@@ -250,7 +262,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
       return(NULL);
     pixSize = ivwGetPixelBytes(vi->rawImageStore);
     for (sl = 0; sl < vi->ysize; sl++) {
-      slice = vi->cacheIndex[sl*vi->vmTdim + vi->ct - vi->vmTbase];
+      slice = vi->cacheIndex[sl*vi->vmTdim + vi->curTime - vi->vmTbase];
       if (slice < 0)
         vi->linePtrs[sl] = vi->blankLine;
       else
@@ -261,7 +273,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
   }
 
   /* Cached data otherwise */
-  sl = vi->cacheIndex[section * vi->vmTdim + vi->ct - vi->vmTbase];
+  sl = vi->cacheIndex[section * vi->vmTdim + vi->curTime - vi->vmTbase];
   /* imodPrintStderr("sect %d slice %d\n", section, sl);*/
   if (sl >= 0)
     tempSlicePtr = &(vi->vmCache[sl]);
@@ -271,7 +283,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
 
     /* DNM 12/12/01: add call to cache filler */
     if (icfGetAutofill())
-      return(ivwMakeLinePointers(vi, icfDoAutofill(vi, cz), vi->xsize,
+      return(ivwMakeLinePointers(vi, icfDoAutofill(vi, section), vi->xsize,
                                  vi->ysize, vi->rawImageStore));
 
     /* Find oldest slice to replace */
@@ -294,8 +306,8 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
     ivwScaleDepth8(vi, tempSlicePtr);
 
     tempSlicePtr->cz = section;
-    tempSlicePtr->ct = vi->ct;
-    vi->cacheIndex[section * vi->vmTdim + vi->ct - vi->vmTbase] = sl;
+    tempSlicePtr->ct = vi->curTime;
+    vi->cacheIndex[section * vi->vmTdim + vi->curTime - vi->vmTbase] = sl;
   }
 
   /* Adjust use count, assign to slice */
@@ -322,20 +334,13 @@ int ivwPlistBlank(ImodView *vi, int cz)
   return(1);
 }
 
-static void deletePlistBuf(void)
-{
-  if (plistBuf) free(plistBuf);
-  plistBuf = NULL;
-  plistBufSize = 0;
-}
-
 /* Read a section of data into the cache */
 void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
 {
   int zread;
 
   /* Image in not a stack but loaded into pieces. */
-  if (vi->li->plist){
+  if (vi->li->plist) {
   
     int mx, my; /* the size of the section buffer */
     int ox, oy; /* data offset/origin  */
@@ -361,29 +366,24 @@ void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
     memset(buf, 127, mxy * pixSize);
 
     /* Setup load buffer. */
-    if (plistBufSize == -1){
-      atexit(deletePlistBuf);
+    if (plistBufSize < bxy) {
+      B3DFREE(plistBuf);
+      plistBufSize = 0;
+      plistBuf = (unsigned char *)malloc(bxy * pixSize);
+      if (!plistBuf) 
+        return;
       plistBufSize = bxy;
-      plistBuf = (unsigned char *)malloc(plistBufSize * pixSize);
-      if (!plistBuf) plistBufSize = 0;
-      return;
-    }
-    if (plistBufSize < bxy){
-      deletePlistBuf();
-      plistBufSize = bxy;
-      plistBuf = (unsigned char *)malloc(plistBufSize * pixSize);
-      if (!plistBuf) plistBufSize = 0;
     }
     cz += vi->li->zmin;
 
     /* Check each piece and copy its parts into the section. */
-    for (i = 0; i < vi->li->plist; i++){
+    for (i = 0; i < vi->li->plist; i++) {
       int iox, ioy, fox, foy;
       int xsize, ysize;
       int fskip, iskip;
       int llx, lly, urx, ury;
 
-      if ( vi->li->pcoords[(i*3)+2] == cz){
+      if ( vi->li->pcoords[(i*3)+2] == cz) {
         iox = vi->li->pcoords[(i*3)];
         ioy = vi->li->pcoords[(i*3)+1];
 
@@ -521,7 +521,12 @@ unsigned char **ivwMakeLinePointers(ImodView *vi, unsigned char *data,
 }
 
 /* Read a section, potentially with binning */
-int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
+int ivwReadBinnedSection(ImodView *vi, char *buf, int section) 
+{
+  return ivwReadBinnedSection(vi, vi->image, buf, section);
+}
+
+int ivwReadBinnedSection(ImodView *vi, ImodImageFile *image, char *buf, int section)
 {
   int xsize, ysize, ix, iy, iz, pixsize, xOffset, leftXpad = 0, rightXpad = 0;
   int yOffset, leftYpad = 0, rightYpad = 0, zOffset, leftZpad, rightZpad;
@@ -540,8 +545,8 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   pixsize = ivwGetPixelBytes(vi->rawImageStore);
 
   // Copy image structure and adjust load-in coordinates
-  im = *(vi->image);
-  if (!vi->li->plist) {
+  im = *image;
+  if (!vi->li->plist && !vi->pyrCache) {
     blankX  = ivwFixUnderSizeCoords(vi->fullXsize, im.nx / vi->xybin, im.llx, im.urx, 
                                     xOffset, leftXpad, rightXpad);
     blankY  = ivwFixUnderSizeCoords(vi->fullYsize, im.ny / vi->xybin, im.lly, im.ury,
@@ -550,7 +555,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
       blankZ  = ivwFixUnderSizeCoords(vi->fullZsize, im.nz / vi->zbin, im.llz, im.urz,
                                     zOffset, leftZpad, rightZpad);
 
-  // Adjust the section number appropriately for the axis and see if section exists
+    // Adjust the section number appropriately for the axis and see if section exists
     if (vi->multiFileZ <= 0 && !(blankX || blankY || blankZ)) {
       if (im.axis == 3) {
         section -= zOffset;
@@ -578,7 +583,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
   }
 
   // Now load the image normally with these adjusted coordinates
-  ivwGetFileStartPos(vi->image);
+  ivwGetFileStartPos(image);
   xbinned = im.urx + 1 - im.llx;
   ybinned = im.axis == 3 ? im.ury + 1 - im.lly : im.urz + 1 - im.llz;
   xybinned = xbinned * ybinned;
@@ -654,7 +659,7 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
     if (binbuf)
       free(binbuf);
   }
-  ivwDumpFileSysCache(vi->image);
+  ivwDumpFileSysCache(image);
 
   // If the image is at all undersized, now it needs to be copied up in array and
   // padding applied
@@ -857,19 +862,19 @@ int ivwGetValue(ImodView *vi, int x, int y, int z)
   return((*best_ivwGetValue)(vi, x, y, z));
 }
 
-int idata_ivwGetValue(ImodView *vi, int x, int y, int z)
+static int idata_ivwGetValue(ImodView *vi, int x, int y, int z)
 {
   /* DNM: calling routine is responsible for limit checks */
   if (vi->li->axis == 3)
     return(vi->idata[z][x + (y * vi->xsize)]);
   else
-    return(vi->idata[y][x + (z * vi->xsize)]);
+    return(vi->idata[y][x + ((vi->zsize - 1 - z) * vi->xsize)]);
 }
 
 /* 1/3/04: eliminated fileScale_ivwGetValue which was unussed, incorrect,
    and the only user of li->slope and offset */
 
-int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
+static int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
 {
   ivwSlice *tempSlicePtr = 0;
   unsigned char *image;
@@ -878,6 +883,10 @@ int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
   size_t index;
 
   /* find pixel in cache */
+  // Flip -> rotation: invert Z
+  if (vi->li->axis == 2)
+    z = vi->zsize - 1 - z;
+
   /* If full cache and flipped, swap y and z */
   if (vi->fullCacheFlipped) {
     sl = z;
@@ -886,7 +895,7 @@ int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
   }
 
   /* get slice if it is loaded */
-  sl = vi->cacheIndex[z * vi->vmTdim + vi->ct - vi->vmTbase];
+  sl = vi->cacheIndex[z * vi->vmTdim + vi->curTime - vi->vmTbase];
   if (sl < 0)
     return(0);
 
@@ -906,10 +915,16 @@ int cache_ivwGetValue(ImodView *vi, int x, int y, int z)
   return(image[index]);
 }
 
-int fake_ivwGetValue(ImodView *vi, int x, int y, int z)
+static int fake_ivwGetValue(ImodView *vi, int x, int y, int z)
 {
   return(0);
 }
+
+static int tiles_ivwGetValue(ImodView *vi, int x, int y, int z)
+{
+  return vi->pyrCache->getValueFromBaseCache(x, y, z);
+}
+
 
 /* A map that can be used for returned unsigned shorts */
 unsigned char *ivwUShortInRangeToByteMap(ImodView *vi)
@@ -932,6 +947,11 @@ static b3dUInt16 **usimdata;
 static int imdataMax = 0;
 static int vmnullvalue;
 static int rgbChan;
+static int zsizeFac;
+static int xzsizeFac;
+static size_t xzsizeBigFac;
+static int numXfastTiles, numYfastTiles, fastTileXdelta, fastTileYdelta;
+static int fastTileXoffset, fastTileYoffset;
 
 /* A global variable with the appropriate function - because I had trouble
    returning that from the setup function */
@@ -950,12 +970,12 @@ static int idata_BigGetValue(int x, int y, int z)
 
 static int flipped_GetValue(int x, int y, int z)
 {
-  return(imdata[y][x + (z * imdataxsize)]);
+  return(imdata[y][x + xzsizeFac - (z * imdataxsize)]);
 }
 
 static int flipped_BigGetValue(int x, int y, int z)
 {
-  return(imdata[y][x + ((size_t)z * (size_t)imdataxsize)]);
+  return(imdata[y][x + xzsizeBigFac - ((size_t)z * (size_t)imdataxsize)]);
 }
 
 static int cache_GetValue(int x, int y, int z)
@@ -976,14 +996,14 @@ static int cache_GetFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][x + (z * vmdataxsize[y])]);
+  return(imdata[y][x + ((zsizeFac - z) * vmdataxsize[y])]);
 }
 
 static int cache_BigGetFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][x + ((size_t)z * (size_t)vmdataxsize[y])]);
+  return(imdata[y][x + ((size_t)(zsizeFac - z) * (size_t)vmdataxsize[y])]);
 }
 
 static int idata_ChanValue(int x, int y, int z)
@@ -998,12 +1018,12 @@ static int idata_BigChanValue(int x, int y, int z)
 
 static int flipped_ChanValue(int x, int y, int z)
 {
-  return(imdata[y][3 * (x + (z * imdataxsize)) + rgbChan]);
+  return(imdata[y][3 * (x + xzsizeFac - (z * imdataxsize)) + rgbChan]);
 }
 
 static int flipped_BigChanValue(int x, int y, int z)
 {
-  return(imdata[y][3 * (x + ((size_t)z * (size_t)imdataxsize)) + rgbChan]);
+  return(imdata[y][3 * (x + xzsizeBigFac - ((size_t)z * (size_t)imdataxsize)) + rgbChan]);
 }
 
 static int cache_ChanValue(int x, int y, int z)
@@ -1024,14 +1044,14 @@ static int cache_ChanFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][3 * (x + (z * vmdataxsize[y])) + rgbChan]);
+  return(imdata[y][3 * (x + ((zsizeFac - z) * vmdataxsize[y])) + rgbChan]);
 }
 
 static int cache_BigChanFlipped(int x, int y, int z)
 {
   if (!imdata[y])
     return(vmnullvalue);
-  return(imdata[y][3 * (x + ((size_t)z * (size_t)vmdataxsize[y])) + rgbChan]);
+  return(imdata[y][3 * (x + (size_t)(zsizeFac - z) * (size_t)vmdataxsize[y]) + rgbChan]);
 }
 
 static int idata_GetUSValue(int x, int y, int z)
@@ -1046,12 +1066,12 @@ static int idata_BigGetUSValue(int x, int y, int z)
 
 static int flipped_GetUSValue(int x, int y, int z)
 {
-  return(usimdata[y][x + (z * imdataxsize)]);
+  return(usimdata[y][x + xzsizeFac - (z * imdataxsize)]);
 }
 
 static int flipped_BigGetUSValue(int x, int y, int z)
 {
-  return(usimdata[y][x + ((size_t)z * (size_t)imdataxsize)]);
+  return(usimdata[y][x + xzsizeBigFac - ((size_t)z * (size_t)imdataxsize)]);
 }
 
 static int cache_GetUSValue(int x, int y, int z)
@@ -1072,19 +1092,72 @@ static int cache_GetUSFlipped(int x, int y, int z)
 {
   if (!usimdata[y])
     return(vmnullvalue);
-  return(usimdata[y][x + (z * vmdataxsize[y])]);
+  return(usimdata[y][x + ((zsizeFac - z) * vmdataxsize[y])]);
 }
 
 static int cache_BigGetUSFlipped(int x, int y, int z)
 {
   if (!usimdata[y])
     return(vmnullvalue);
-  return(usimdata[y][x + ((size_t)z * (size_t)vmdataxsize[y])]);
+  return(usimdata[y][x + ((size_t)(zsizeFac - z) * (size_t)vmdataxsize[y])]);
 }
 
 static int fake_GetValue(int x, int y, int z)
 {
   return(0);
+}
+
+// Macro for tile cahce access
+#define TILECACHE_VALUE(data) \
+  int xtile, ytile, xInTile, yInTile, index; \
+  xtile = (x + fastTileXoffset) / fastTileXdelta; \
+  B3DCLAMP(xtile, 0, numXfastTiles - 1); \
+  ytile = (y + fastTileYoffset) / fastTileYdelta; \
+  B3DCLAMP(ytile, 0, numYfastTiles - 1); \
+  index = xtile + (ytile + z * numYfastTiles) * numXfastTiles; \
+  if (!data[index]) \
+    return(vmnullvalue); \
+  xInTile = xtile ? ((x + fastTileXoffset) - xtile * fastTileXdelta) : x; \
+  yInTile = ytile ? ((y + fastTileYoffset) - ytile * fastTileYdelta) : y; \
+  return(data[index][xInTile + yInTile * vmdataxsize[index]]);
+
+static int tilecache_GetValue(int x, int y, int z)
+{
+  TILECACHE_VALUE(imdata);
+}
+
+static int tilecache_GetUSValue(int x, int y, int z)
+{
+  TILECACHE_VALUE(usimdata);
+}
+
+// Common function to get the arrays big enough
+static int setupFastArrays(int size, int doXsize)
+{
+  /* If array(s) are not big enough, get new ones */
+  if (imdataMax < size) {
+    if (imdataMax) {
+      free(imdata);
+      if (doXsize)
+        free(vmdataxsize);
+    }
+    imdata = B3DMALLOC(unsigned char *, size);
+    if (!imdata) {
+      imdataMax = 0;
+      return 1;
+    }
+    if (doXsize) {
+      vmdataxsize = B3DMALLOC(int, size);
+      if (!vmdataxsize) {
+        free(imdata);
+        imdataMax = 0;
+        return 1;
+      }
+    }
+    imdataMax = size;
+  }
+  usimdata = (b3dUInt16 **)imdata;
+  return 0;
 }
 
 /* To set up the tables and set the appropriate function */
@@ -1097,7 +1170,7 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
 
   // Time is an optional argument with default of -1 for current time
   if (time < 0)
-    time = vi->ct;
+    time = vi->curTime;
 
   *cacheSum = 0;
   bigGets = ((double)vi->xsize) * vi->ysize > 2.e9 ? 1 : 0;
@@ -1108,47 +1181,34 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
     bigGets = ((double)vi->xsize) * vi->zsize > 2.e9 ? 1 : 0;
   }
 
-  /* If array(s) are not big enough, get new ones */
-  if (imdataMax < size) {
-    if (imdataMax) {
-      free(imdata);
-      if (vi->vmSize)
-        free(vmdataxsize);
-    }
-    imdata = (unsigned char **) malloc(sizeof(unsigned char *) * size);
-    if (!imdata) {
-      imdataMax = 0;
-      return 1;
-    }
-    if (vi->vmSize) {
-      vmdataxsize = (int *)malloc(sizeof(int) * size);
-      if (!vmdataxsize) {
-        free(imdata);
-        imdataMax = 0;
-        return 1;
-      }
-    }
-    imdataMax = size;
-  }
+  if (setupFastArrays(size, vi->vmSize))
+    return 1;
 
   if (vi->fakeImage) {
     ivwFastGetValue = fake_GetValue;
 
   } else if (vi->vmSize) {
 
-    /* Cached data: fill up pointers that exist */
+    /* Cached data: fill up pointers that exist
+       The cache section is the inverse of an internal section number, so take the
+       inverse when looking up the index for a flipped cache */
     for (iz = 0; iz < size; iz++) {
-      i = vi->cacheIndex[iz * vi->vmTdim + time - vi->vmTbase];
+
+      if (vi->li->axis == 2 && !vi->fullCacheFlipped)
+        i = vi->cacheIndex[(vi->zsize -1 - iz) * vi->vmTdim + time - vi->vmTbase];
+      else
+        i = vi->cacheIndex[iz * vi->vmTdim + time - vi->vmTbase];
       if (i < 0) {
         imdata[iz] = NULL;
       } else {
         imdata[iz] = vi->vmCache[i].sec->data.b;
         vmdataxsize[iz] = vi->vmCache[i].sec->xsize;
-	*cacheSum += iz;
+        *cacheSum += iz;
       }
     }
     
     vmnullvalue = inNullvalue;
+    zsizeFac = vi->zsize - 1;
     if (vi->ushortStore) {
       if (vi->fullCacheFlipped)
         ivwFastGetValue = bigGets ? cache_BigGetUSFlipped : cache_GetUSFlipped;
@@ -1172,6 +1232,10 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
     for (i = 0; i < size; i++)
       imdata[i] = vi->idata[i];
     imdataxsize = vi->xsize;
+    if (bigGets)
+      xzsizeBigFac = (size_t)(vi->zsize - 1) * (size_t)imdataxsize;
+    else
+      xzsizeFac = (vi->zsize - 1) * imdataxsize;
     if (vi->ushortStore) {
       if (vi->li->axis == 3)
         ivwFastGetValue = bigGets ? idata_BigGetUSValue : idata_GetUSValue;
@@ -1190,7 +1254,6 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
     }
   }
   *outImdata = imdata;
-  usimdata = (b3dUInt16 **)imdata;
   return 0;
 }
 
@@ -1198,6 +1261,27 @@ void ivwSetRGBChannel(int value)
 {
   rgbChan = B3DMAX(0, B3DMIN(2, value));
 }
+
+/*
+ * To set up the tables and set the appropriate function when doing tile caches
+ */
+int ivwSetupFastTileAccess(ImodView *vi, int cacheInd, int inNullvalue, int &cacheSum)
+{
+  int nz;
+  if (vi->pyrCache->getCacheTileNumbers(cacheInd, numXfastTiles, numYfastTiles, nz))
+    return 1;
+  if (setupFastArrays(numXfastTiles * numYfastTiles * nz, 1))
+    return 1;
+  vi->pyrCache->setupFastAccess(cacheInd, imdata, vmdataxsize, cacheSum, fastTileXdelta,
+                                fastTileYdelta, fastTileXoffset, fastTileYoffset);
+  if (vi->ushortStore)
+    ivwFastGetValue = tilecache_GetUSValue;
+  else
+    ivwFastGetValue = tilecache_GetValue;
+  vmnullvalue = inNullvalue;
+  return 0;
+}
+
 
 /* DNM 1/19/03: eliminated ivwShowstatus in favor of imod_imgcnt */
 
@@ -1229,7 +1313,7 @@ void ivwFlushCache(ImodView *vi, int time)
   if (vi->li->axis == 2) 
     zsize = vi->li->ymax - vi->li->ymin + 1;
 
-  for (i = 0; i < vi->vmSize; i++){
+  for (i = 0; i < vi->vmSize; i++) {
     if (time < 0 || vi->vmCache[i].ct == time) {
       vi->vmCache[i].cz = -1;
       vi->vmCache[i].ct = 0;
@@ -1238,8 +1322,8 @@ void ivwFlushCache(ImodView *vi, int time)
   }
   if (time < 0) {
     vi->vmCount = 0;
-    tst = vi->nt ? 1 : 0;
-    tnd = vi->nt ? vi->nt : 0;
+    tst = vi->numTimes ? 1 : 0;
+    tnd = vi->numTimes ? vi->numTimes : 0;
   } else {
     tst = time;
     tnd = time;
@@ -1258,8 +1342,8 @@ int ivwInitCache(ImodView *vi)
   int ysize = vi->li->ymax - vi->li->ymin + 1;
   int zsize = vi->li->zmax - vi->li->zmin + 1;
 
-  vi->vmTdim = vi->nt ? vi->nt : 1;
-  vi->vmTbase = vi->nt ? 1 : 0;
+  vi->vmTdim = vi->numTimes ? vi->numTimes : 1;
+  vi->vmTbase = vi->numTimes ? 1 : 0;
 
   if (vi->li->axis == 2) {
     ysize = vi->li->zmax - vi->li->zmin + 1;
@@ -1288,12 +1372,12 @@ int ivwInitCache(ImodView *vi)
     vi->vmCache[i].sec = NULL;
      
   /* get a slice array for each slice, mark each slice as empty */
-  for (i = 0; i < vi->vmSize; i++){
+  for (i = 0; i < vi->vmSize; i++) {
     vi->vmCache[i].sec = sliceCreate(xsize, ysize, vi->rawImageStore);
  
     /*  imodPrintStderr("cache %d : %d x %d\n", i, xsize, ysize); */
  
-    if (!vi->vmCache[i].sec){
+    if (!vi->vmCache[i].sec) {
       ivwFreeCache(vi);
       return(10);
     }
@@ -1316,18 +1400,33 @@ static int ivwSetCacheSize(ImodView *vi)
   // 3/8/11: This was the size of the data in the file!  It needs to be loaded data
   int pixSize = ivwGetPixelBytes(vi->rawImageStore);
   int i;
+  char *envLimit;
+  double memLimit = 0.;
 
   if (!xsize || !ysize || !zsize)
     return(-1);
 
   /* If negative size, it is megabytes, convert to sections */
   if (vi->vmSize < 0) {
-    vi->vmSize = (int)((-1000000. * vi->vmSize) / (xsize * ysize * pixSize));
+    if (vi->pyrCache)
+      vi->pyrCache->setVMpixels(-1000000. * vi->vmSize / pixSize);
+    vi->vmSize = (int)((-1000000. * vi->vmSize) / (((float)xsize * ysize) * pixSize));
     if (!vi->vmSize)
       vi->vmSize = 1;
+  } else if (vi->pyrCache) {
+    if (vi->vmSize) {
+      vi->pyrCache->setVMpixels((vi->vmSize * (double)xsize) * ysize);
+    } else {
+      envLimit = getenv("TILECACHE_LIMIT_MB");
+      if (envLimit)
+        memLimit = atof(envLimit);
+      if (!memLimit)
+        memLimit = DEFAULT_TILE_CACHE_LIMIT;
+      vi->pyrCache->setVMpixels(1000000. * memLimit / pixSize);
+    }
   }
 
-  if (vi->li->plist){
+  if (vi->li->plist) {
     /* For montage, make the maximum cache size be the minimum of the 
        number of sections with data and the number actually being 
        loaded */
@@ -1344,7 +1443,7 @@ static int ivwSetCacheSize(ImodView *vi)
         vi->zmouse = vi->li->pcoords[(3*i)+2] - vi->li->zmin;
   } else
     /* For non-montage, maximum cache is size * number of files */
-    dzsize *= (vi->nt > 0) ? vi->nt : 1;
+    dzsize *= (vi->numTimes > 0) ? vi->numTimes : 1;
 
   /* If no entry, just take the maximum size */
   /* Otherwise, limit the entry to the maximum size needed */
@@ -1365,13 +1464,13 @@ static int ivwSetCacheSize(ImodView *vi)
    used to access images */
 int ivwFlip(ImodView *vi)
 {
-  int nx, ny, nz;
+  int nx, newy, newz;
   int i, t, cacheFull;
   unsigned int nyz;
-  int oymouse, ozmouse;
+  int oldYmouse, oldZmouse;
 
   /* DNM 12/10/02: if loading image, flip the axis but defer until done */
-  if (vi->doingInitialLoad) {
+  if (vi->doingInitialLoad > 0) {
     vi->li->axis =  (vi->li->axis == 2) ? 3 : 2;
     return (1);
   }
@@ -1391,40 +1490,40 @@ int ivwFlip(ImodView *vi)
   }
 
   /* Flipping is always allowed unless the cache is not full */
-  if ((!vi->flippable || vi->li->plist) && !cacheFull){
+  if ((!vi->flippable || vi->li->plist) && !cacheFull) {
     wprint("\aSorry, these image data can't be flipped unless they "
            "are completely loaded into memory.\n");
     return(-1);
   }
 
-  oymouse = (int)(vi->ymouse + 0.5f);
-  ozmouse = (int)(vi->zmouse + 0.5f);
+  oldYmouse = (int)(vi->ymouse + 0.5f);
+  oldZmouse = (int)(vi->zmouse + 0.5f);
 
   wprint("Flipping image data.\n");
 
   /* DNM: restore data before flipping, as well as resetting when done */
   iprocRethink(vi);
   nx = vi->xsize;
-  ny = vi->zsize;
-  nz = vi->ysize;
-  nyz = ny * nz;
+  newy = vi->zsize;
+  newz = vi->ysize;
+  nyz = newy * newz;
 
   vi->li->axis =  (vi->li->axis == 2) ? 3 : 2;
 
   if (vi->vmSize && cacheFull) {
     vi->fullCacheFlipped = 1 - vi->fullCacheFlipped;
 
-  } else if (vi->vmSize){
+  } else if (vi->vmSize) {
 
     /* If Image data is cached from disk */
     /* tell images to flipaxis */
           
-    if ((vi->nt) && (vi->imageList)){
-      for (t = 0; t < vi->nt; t++){
+    if ((vi->numTimes) && (vi->imageList)) {
+      for (t = 0; t < vi->numTimes; t++) {
         vi->imageList[t].axis = vi->li->axis;
       }
     }
-    if (vi->image){
+    if (vi->image) {
       vi->image->axis = vi->li->axis;
                
     }
@@ -1434,11 +1533,11 @@ int ivwFlip(ImodView *vi)
        number of planes, including ones for each file
        Otherwise, set it to occupy same amount of memory, rounding up
        to avoid erosion on repeated flips */
-    t = vi->nt > 0 ? vi->nt : 1;
+    t = vi->numTimes > 0 ? vi->numTimes : 1;
     if (vi->vmSize == t * vi->zsize)
-      vi->vmSize = t * nz;
+      vi->vmSize = t * newz;
     else {
-      vi->vmSize = (vi->vmSize * vi->ysize + ny / 2) / ny;
+      vi->vmSize = (vi->vmSize * vi->ysize + newy / 2) / newy;
       if (!vi->vmSize)
         vi->vmSize = 1;
     }
@@ -1446,8 +1545,8 @@ int ivwFlip(ImodView *vi)
   }
 
   //vi->xsize = nx;
-  vi->ysize = ny;
-  vi->zsize = nz;
+  vi->ysize = newy;
+  vi->zsize = newz;
   vi->xysize = (size_t)vi->xsize * (size_t)vi->ysize;
   //vi->xmouse = 0;
   vi->ymouse = 0;
@@ -1457,17 +1556,24 @@ int ivwFlip(ImodView *vi)
   vi->yUnbinSize = vi->zUnbinSize;
   vi->zUnbinSize = nx;
 
-  ivwFlipModel(vi);
+  // Rotate here instead of flipping
+  if (!vi->doingInitialLoad)
+    ivwFlipModel(vi, true);
   iprocRethink(vi);
   autox_newsize(vi);
   imod_info_float_clear(-1, -1);
 
-  vi->ymouse = ozmouse;
-  vi->zmouse = oymouse;
+  if (vi->li->axis == 2) {
+    vi->ymouse = oldZmouse;
+    vi->zmouse = newz - 1 - oldYmouse;
+  } else {
+    vi->ymouse = newy - 1 - oldZmouse;
+    vi->zmouse = oldYmouse;
+  }
 
   /* Keep it in bounds */
-  if (vi->zmouse > nz - 1)
-    vi->zmouse = nz - 1;
+  if (vi->zmouse > newz - 1)
+    vi->zmouse = newz - 1;
 
   /* DNM: need to reset the movie controller because ny and nz changed */
   imcResetAll(vi);
@@ -1493,7 +1599,7 @@ int ivwScale(ImodView *vi)
 
   for (k = 0; k < vi->zsize; k++)
     for (j = 0; j < ysize; j++)
-      for (i = 0; i < xsize; i++){
+      for (i = 0; i < xsize; i++) {
         pix = (int)(vi->idata[k][i + (j * vi->xsize)] * scale);
         pix += rbase;
         vi->idata[k][i + (j * vi->xsize)] = pix;
@@ -1541,10 +1647,10 @@ void ivwGetLocationPoint(ImodView *inImodView, Ipoint *outPoint)
  */
 int ivwGetTime(ImodView *vi, int *time)
 {
-  if (time){
-    *time = vi->ct;
+  if (time) {
+    *time = vi->curTime;
   }
-  return(vi->nt);
+  return(vi->numTimes);
 }
 
 /* Set the current time index.  Time index ranges from 1 to maxtime 
@@ -1553,25 +1659,27 @@ int ivwGetTime(ImodView *vi, int *time)
 void ivwSetTime(ImodView *vi, int time)
 {
     
-  if (!vi->nt){
-    vi->ct = vi->imod->ctime = 0;
+  if (!vi->numTimes) {
+    vi->curTime = 0;
+    if (vi->imod)
+      vi->imod->ctime = 0;
     return;
   }
      
   /* DNM 6/17/01: Don't do this */
   /* inputSetModelTime(vi, time); */  /* set model point to a good value. */
 
-  if (vi->ct > 0 && !vi->fakeImage)
-    iiClose(&vi->imageList[vi->ct-1]);
+  if (vi->curTime > 0 && !vi->fakeImage)
+    iiClose(&vi->imageList[vi->curTime-1]);
 
-  vi->ct = time;
-  if (vi->ct > vi->nt)
-    vi->ct = vi->nt;
-  if (vi->ct <= 0)
-    vi->ct = 1;
+  vi->curTime = time;
+  if (vi->curTime > vi->numTimes)
+    vi->curTime = vi->numTimes;
+  if (vi->curTime <= 0)
+    vi->curTime = 1;
 
-  if (!vi->fakeImage){
-    vi->hdr = vi->image = &vi->imageList[vi->ct-1];
+  if (!vi->fakeImage) {
+    vi->hdr = vi->image = &vi->imageList[vi->curTime-1];
     if (vi->ushortStore)
       ImodInfoWidget->setLHSliders(vi->rangeLow, vi->rangeHigh, vi->image->smin, 
                                    vi->image->smax, vi-> image->type == IITYPE_FLOAT);
@@ -1582,15 +1690,15 @@ void ivwSetTime(ImodView *vi, int time)
    }
   /* DNM: update scale window */
   imodImageScaleUpdate(vi);
-  vi->imod->ctime = vi->ct;
-  return;
+  if (vi->imod)
+    vi->imod->ctime = vi->curTime;
 }
 
 const char *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex)
 {
   if (!inImodView) return "";
   if (inIndex < 1) return "";
-  if (inIndex > inImodView->nt) return "";
+  if (inIndex > inImodView->numTimes) return "";
   if (inImodView->fakeImage) return "";
   return(inImodView->imageList[inIndex-1].description);
 }
@@ -1602,15 +1710,15 @@ const char *ivwGetTimeLabel(ImodView *inImodView)
 
 int  ivwGetMaxTime(ImodView *inImodView)
 {
-  return(inImodView->nt);
+  return(inImodView->numTimes);
 }
 
 // Set the time of a new contour - only if there are multiple times and the
 // object flags indicate time is to be stored
 void ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont)
 {
-  if (vw->nt && obj && cont && iobjTime(obj->flags)) {
-    cont->time = vw->ct;
+  if (vw->numTimes && obj && cont && iobjTime(obj->flags)) {
+    cont->time = vw->curTime;
   }
 }
 
@@ -1653,17 +1761,17 @@ int imod_redraw(ImodView *vw)
   Icont *cont = NULL;
   int   index;
 
-  if ( (index = imod->cindex.point) < 0){
+  if ( (index = imod->cindex.point) < 0) {
     imodDraw(vw, IMOD_DRAW_MOD);
     return(1);
   }
 
   cont = imodContourGet(imod);
-  if (cont == NULL){
+  if (cont == NULL) {
     imodDraw(vw, IMOD_DRAW_MOD);
     return(1);
   }
-  if ((cont->pts == NULL) || (cont->psize <= index)){
+  if ((cont->pts == NULL) || (cont->psize <= index)) {
     imodDraw(vw, IMOD_DRAW_MOD);
     return(1);
   }
@@ -1749,14 +1857,23 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
       return ivwGetValue(vi, cx, cy, cz);
     return 0.0f;
   }
+  if (vi->li->axis == 2)
+    cz = vi->zsize - 1 - cz;
 
   fp = vi->image->fp;
   mrcheader = (MrcHeader *)vi->image->header;
 
-  if (vi->li){
+  // For a tile cache, translate the coordinates and read it
+  if (vi->pyrCache) {
+    if (!vi->pyrCache->getBaseFileCoords(cx, cy, cz, fx, fy, fz))
+    return(ivwReadBinnedPoint(vi, fp, mrcheader, fx, fy, fz));
+      return 0.f;
+  }
+
+  if (vi->li) {
 
     /* get to index values in file from screen index values */
-    if (ivwGetImagePadding(vi, cy, cz, vi->ct, llx, xpad, fx, lly, ypad, fy, llz, 
+    if (ivwGetImagePadding(vi, cy, cz, vi->curTime, llx, xpad, fx, lly, ypad, fy, llz, 
                            zpad, fz) < 0)
         return 0.;
 
@@ -1788,21 +1905,21 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
       fz = 0;
     }
 
-    if (vi->li->plist){
+    if (vi->li->plist) {
 
       /* montaged: find piece with coordinates in it and get data 
          there */
       int px, py, pz;
       int i, mi = vi->li->plist;
       px = fx; py = fy; pz = fz;
-      for (i = 0; i < mi; i++){
-        if (pz == vi->li->pcoords[(i*3)+2]){
+      for (i = 0; i < mi; i++) {
+        if (pz == vi->li->pcoords[(i*3)+2]) {
                         
           if ((px >= vi->li->pcoords[(i*3)]) &&
               (px < (vi->li->pcoords[(i*3)]+vi->hdr->nx/vi->xybin)) &&
               (py >= vi->li->pcoords[(i*3)+1]) &&
               (py < (vi->li->pcoords[(i*3)+1]+vi->hdr->ny/vi->xybin)
-               )){
+               )) {
             fz = i;
             fx = px - vi->li->pcoords[(i*3)];
             fy = py - vi->li->pcoords[(i*3)+1];
@@ -1823,9 +1940,9 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
 void memreccpy
 (unsigned char *tb,             /* copy data to buffer */
  unsigned char *fb,             /* copy data from buffer */
- int xcpy, int ycpy, int psize, /* amount/size of data to copy. */
- int tskip, int tox, int toy,   /* to buffer offsets, skip. */
- int fskip, int fox, int foy)   /* from buffer offsets, skip. */
+ int xcpy, int ycpy, int psize, /* number of pixels X&Y and byte size of data to copy. */
+ int tskip, int tox, int toy,   /* to buffer initial offsets, skip between lines. */
+ int fskip, int fox, int foy)   /* from buffer initial offsets, skip between lines. */
 {
   register unsigned int y, my;
 
@@ -1841,7 +1958,7 @@ void memreccpy
   fskip*=psize;
   tskip+=xcpy;
   fskip+=xcpy;
-  for (y = 0; y < my; y++){
+  for (y = 0; y < my; y++) {
     memcpy(tb, fb, xcpy);
     tb+=tskip;
     fb+=fskip;
@@ -1862,7 +1979,7 @@ void memLineCpy
   /* initialize from buffer pointer */
   fb += (fox + fxsize * foy) * psize;
   xcpy *= psize;
-  for (y = 0; y < ycpy; y++){
+  for (y = 0; y < ycpy; y++) {
     tb = tlines[y + toy] + tox * psize;
     memcpy(tb, fb, xcpy);
     fb += fxsize * psize;
@@ -1902,9 +2019,9 @@ void ivwCheckWildFlag(Imod *imod)
   Iobj *obj;
   Icont *cont;
      
-  for (ob = 0; ob < imod->objsize; ob++){
+  for (ob = 0; ob < imod->objsize; ob++) {
     obj = &(imod->obj[ob]);
-    for (co = 0; co < obj->contsize; co++){
+    for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
       cont->flags &= ~ICONT_WILD;
       if (cont->pts) {
@@ -1990,11 +2107,17 @@ void ivwSetModelTrans(ImodView *vi)
   Imod *imod = vi->imod;
   IrefImage *ref, *iref;
 
+  // Unconditionally set the maxes in the model; this works for fakeimage because
+  // size was set from model right away
+  imod->xmax = vi->xsize;
+  imod->ymax = vi->ysize;
+  imod->zmax = vi->zsize;
+
   if (vi->fakeImage)
     return;
 
   // If there is not an existing refImage, get a new one
-  if (!imod->refImage){
+  if (!imod->refImage) {
     imod->refImage = (IrefImage *) malloc (sizeof(IrefImage));
     if (!imod->refImage) 
       return;
@@ -2009,11 +2132,6 @@ void ivwSetModelTrans(ImodView *vi)
   ref->cscale = iref->cscale;
   ref->ctrans = iref->ctrans;
   ref->crot   = iref->crot;
-
-  if (vi->li->axis == 2)
-    imod->flags |= IMODF_FLIPYZ;
-  else
-    imod->flags &= ~IMODF_FLIPYZ;
 
   /* DNM 11/5/98: set this flag that tilt angles were properly saved */
   imod->flags |= IMODF_TILTOK;
@@ -2030,28 +2148,32 @@ void ivwSetModelTrans(ImodView *vi)
   free(iref);
 }
 
-/* Flips model IF it does not match current flip state of image */
+/* Flips or rotates model IF it does not match current flip state of image */
 
-void ivwFlipModel(ImodView *vi)
+void ivwFlipModel(ImodView *vi, bool rotate /* = false */)
 {
-  /* flip model y and z */
+  /* flip model y and z and manage the flag state */
   Imod  *imod = vi->imod;
+  int flag = rotate ? IMODF_ROT90X : IMODF_FLIPYZ;
+  int curState = (imod->flags & flag) ? 1 : 0;
+  //imodPrintStderr("axis %d  curstate %d  flag %d\n", vi->li->axis, curState, 
+  //  rotate?1:0);
+  if (vi->li->axis == 2 && curState)
+    return;
 
-  if (vi->li->axis == 2)
-    if ((imod->flags & IMODF_FLIPYZ))
-      return;
+  if ((vi->li->axis == 3 || vi->li->axis == 0) && !curState)
+    return;
 
-  if ((vi->li->axis == 3) || (vi->li->axis == 0))
-    if (!(imod->flags & IMODF_FLIPYZ))
-      return;
-
-  if (imod->flags & IMODF_FLIPYZ)
-    imod->flags &= ~IMODF_FLIPYZ;
+  if (curState)
+    imod->flags &= ~flag;
   else
-    imod->flags |= IMODF_FLIPYZ;
+    imod->flags |= flag;
 
-  imodFlipYZ(imod);
-  return;
+  if (rotate) {
+    //imodPrintStderr("curstate %d ymax %d zmax %d\n", curState, imod->ymax, imod->zmax);
+    imodRot90X(imod, curState);
+  } else
+    imodFlipYZ(imod);
 }
 
 
@@ -2063,37 +2185,45 @@ void ivwTransModel(ImodView *vi)
   Imod  *imod = vi->imod;
   Ipoint binScale;
 
-  /* If model doesn't have a reference coordinate system
-   * from an image, then use this image's coordinate
-   * system and return, unless there is binning;
+  /* If model doesn't have a reference coordinate system from an image, then use this
+   * image's coordinate system and return, unless there is binning;
    */
-  if ((!ImodTrans) || (!vi->imod->refImage)) {
+  if (!ImodTrans || !vi->imod->refImage) {
+
+    // When loading with no trans, if the model is flipped, need to invert it to restore 
+    // handedness and mark it as rotated if image is, to avoid further operations
+    if (!ImodTrans) {
+      utilExchangeFlipRotation(vi->imod, FLIP_TO_ROTATION);
+      setOrClearFlags(&vi->imod->flags, IMODF_ROT90X, vi->li->axis != 2 ? 1 : 0);
+    } else {
+
+      // Otherwise is needs to be in the right flip state before setting the trans data
+      ivwFlipModel(vi);
+    }
     ivwSetModelTrans(vi);
-    if ((!ImodTrans) || (!vi->imod->refImage) || (vi->xybin * vi->zbin == 1))
+    if (!ImodTrans || !vi->imod->refImage || vi->xybin * vi->zbin == 1)
       return;
   }
 
-  /* Try and get the coordinate system that we will
-   * transform the model to match.
+  /* Try and get the coordinate system that we will transform the model to match.
    * Set the old members if iref to the model's current members
    */
   iref = ivwGetImageRef(vi);
-  if (!iref) 
-    return;
+  if (iref) {
 
-  iref->orot   = vi->imod->refImage->crot;
-  iref->otrans = vi->imod->refImage->ctrans;
-  iref->oscale = vi->imod->refImage->cscale;
-  binScale.x = binScale.y = vi->xybin;
-  binScale.z = vi->zbin;
-
-  /* transform model to new coords (it will be unflipped if necessary) */
-  imodTransFromRefImage(imod, iref, binScale);
+    iref->orot   = vi->imod->refImage->crot;
+    iref->otrans = vi->imod->refImage->ctrans;
+    iref->oscale = vi->imod->refImage->cscale;
+    binScale.x = binScale.y = vi->xybin;
+    binScale.z = vi->zbin;
+    
+    /* transform model to new coords (it will be unflipped if necessary) */
+    imodTransFromRefImage(imod, iref, binScale);
+  }
 
   ivwFlipModel(vi);
   ivwSetModelTrans(vi);
-  free(iref);
-  return;
+  B3DFREE(iref);
 }
 
 /*****************************************************************************/
@@ -2125,11 +2255,11 @@ int imodImageFileDesc(FILE *fin)
   if (0 == strncmp("IMOD image list", buf, 15))
     isifd = 1;
 
-  if (isifd){
+  if (isifd) {
     isifd = 0;
 
-    while((imodFgetline(fin, buf, 127) > 0)){
-      if (!strncmp("VERSION", buf, 7)){
+    while((imodFgetline(fin, buf, 127) > 0)) {
+      if (!strncmp("VERSION", buf, 7)) {
         isifd = atoi(&buf[8]);
         if (!isifd)
           isifd = 1;
@@ -2144,47 +2274,57 @@ int imodImageFileDesc(FILE *fin)
 
 /* Load the IMOD image list file description. */
 #define IFDLINE_SIZE 255
-int ivwLoadIMODifd(ImodView *vi)
+int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceList,
+                   bool &anyImageFail)
 {
   Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
   ImodImageFile *image;
   char line[IFDLINE_SIZE + 1];
   int i;
-  struct LoadInfo *li;
+  IloadInfo *li;
   int xsize = 0, ysize = 0, zsize;
+  float smin = 0., smax = 0.;
   int version = 0;
-
+  int needVersion = 1;
   char *imgdir = NULL;
   QDir *curdir = new QDir();
+  QString qname;
 
+  anyHavePieceList = false;
+  anyImageFail = false;
   rewind(vi->fp);
   imodFgetline(vi->fp, line, IFDLINE_SIZE);
 
-  while((imodFgetline(vi->fp, line, IFDLINE_SIZE) > 0)){
+  while((imodFgetline(vi->fp, line, IFDLINE_SIZE) > 0)) {
 
-    wprint("%s\n\r",line);
-    imod_info_input();
+    //wprint("%s\n\r",line);
+    //imod_info_input();
 
     /* clear the return from the line. */
     for (i = 0; line[i]; i++)
-      if (line[i] == '\n' || line[i] == '\r'){
+      if (line[i] == '\n' || line[i] == '\r') {
         line[i] = 0x00;
         break;
       }
 
-    if (!strncmp("VERSION", line, 7)){
+    if (line[0] == '#') {
+      needVersion = 2;
+      continue;
+    }
+
+    if (!strncmp("VERSION", line, 7)) {
       version = atoi(&line[8]);
       continue;
     }
 
     /* supply size in case first file is not found. */
-    if (!strncmp("SIZE", line, 4)){
+    if (!strncmp("SIZE", line, 4)) {
       sscanf(line, "SIZE %d%*c%d%*c%d\n", &xsize, &ysize, &zsize);
       continue;
     }
 
     /* define a root pathname for all image files. */
-    if (!strncmp("IMGDIR", line, 6)){
+    if (!strncmp("IMGDIR", line, 6)) {
       if (imgdir) 
         free(imgdir);
       imgdir = strdup(LATIN1(curdir->cleanPath(QString(&line[7]).
@@ -2192,8 +2332,21 @@ int ivwLoadIMODifd(ImodView *vi)
       continue;
     }
 
+    // Define a scale for images that follow; can be defined again
+    if (!strncmp("SCALE", line, 4)) {
+      sscanf(line, "SCALE %f%*c%f\n", &smin, &smax);
+      needVersion = 2;
+      continue;
+    }
+
+    if (!strncmp("PYRAMID", line, 7)) {
+      vi->imagePyramid = 1;
+      needVersion = 2;
+      continue;
+    }
+
     /* DNM: XYZ label now supported; require one image file */
-    if (!strncmp("XYZ", line, 3)){
+    if (!strncmp("XYZ", line, 3)) {
 
       li = vi->li;            
       if (ilist->size == 1)
@@ -2204,8 +2357,7 @@ int ivwLoadIMODifd(ImodView *vi)
                 " before the XYZ option.\n");
         exit(3);
       }
-      iiPlistLoadF(vi->fp, li, 
-                   image->nx, image->ny, image->nz);
+      iiPlistLoadF(vi->fp, li, image->nx, image->ny, image->nz);
 
       /* DNM 1/2/04: move adjusting of loading coordinates to fix_li call,
          move that call into list processing, eliminate setting cache size,
@@ -2214,7 +2366,8 @@ int ivwLoadIMODifd(ImodView *vi)
       break;
     }
 
-    if (!strncmp("TIME", line, 4)){
+    // TIME label replaces the filename in the description string
+    if (!strncmp("TIME", line, 4)) {
       if (ilist->size) {
         image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
         if (image->description)
@@ -2224,26 +2377,35 @@ int ivwLoadIMODifd(ImodView *vi)
       continue;
     }
 
-    if (!strncmp("IMAGE", line, 5)){
+    // Origin is applied to the current image file
+    if (!strncmp("ORIGIN", line, 6)) {
+      if (ilist->size) {
+        image = (ImodImageFile *)ilistItem(ilist, ilist->size - 1);
+        sscanf(line, "ORIGIN %f%*c%f%*c%f\n", &image->xtrans, &image->ytrans, 
+               &image->ztrans);
+      }
+      needVersion = 2;
+      continue;
+    }
+
+    if (!strncmp("IMAGE", line, 5)) {
       /* Load image file */
       int pathlen = strlen(&line[6]);
       char *filename = NULL;
                
-      if (imgdir){
+      if (imgdir) {
         pathlen += strlen(imgdir);
         filename = (char *)malloc(pathlen + 4);
         strcpy(filename, imgdir);
         strcat(filename, "/");
-        strcat(filename, LATIN1(curdir->cleanPath(QString(&line[6]).
-                                                  trimmed())));
+        strcat(filename, LATIN1(curdir->cleanPath(QString(&line[6]).trimmed())));
       }else{
-        filename = strdup(LATIN1(curdir->cleanPath(QString(&line[6]).
-                                                   trimmed())));
+        filename = strdup(LATIN1(curdir->cleanPath(QString(&line[6]).trimmed())));
       }
 
       errno = 0;
       image = iiOpen(LATIN1(QDir::convertSeparators(QString(filename))), "rb");
-      if (!image){
+      if (!image) {
         if (!xsize || !ysize) {
           imodError(NULL, "3DMOD Error: " 
                   "couldn't open %s, first file in image list,"
@@ -2251,26 +2413,31 @@ int ivwLoadIMODifd(ImodView *vi)
                   filename);
           exit(3);
         }
-        wprint("Warning: couldn't open %s\n\r",
-               filename);
+        wprint("Warning: couldn't open %s\n\r", filename);
         imodError(stdout, "Warning: couldn't open %s\n%s%s", filename, 
                   errno ? "System error: " : "", errno ? strerror(errno): "");
         image = iiNew();
         image->nx = xsize;
         image->ny = ysize;
         image->nz = zsize;
-        image->filename = strdup
-          (LATIN1(QDir::convertSeparators(QString(filename))));
+        image->filename = strdup(LATIN1(QDir::convertSeparators(QString(filename))));
+        anyImageFail = true;
       }
 
       /* DNM: set up scaling for this image, leave last file in hdr/image */
-      if (image->file == IIFILE_RAW && !image->amin && !image->amax)
+      if (image->file == IIFILE_RAW && !image->amin && !image->amax && smin >= smax)
         iiRawScan(image);
+      if (smin < smax) {
+        image->smin = smin;
+        image->smax = smax;
+      }
+        
       vi->hdr = vi->image = image;
       iiClose(image);
+      if (image->hasPieceCoords)
+        anyHavePieceList = true;
 
-      /* DNM: Make filename with directory stripped be the default 
-         descriptor */
+      /* DNM: Make filename with directory stripped be the default descriptor */
       pathlen = strlen(filename);
       while (( pathlen > 0) && (filename[pathlen-1] != '/'))
         pathlen--;
@@ -2284,13 +2451,23 @@ int ivwLoadIMODifd(ImodView *vi)
         zsize = image->nz;
       }
 
-      /* DNM: set time and increment time counter here, not with
-         the TIME label */
-      image->time = vi->nt;
-      vi->nt++;
+      /* DNM: set time and increment time counter here, not with the TIME label */
+      image->time = vi->numTimes;
+      vi->numTimes++;
 
       if (filename)
         free(filename);
+      continue;
+    }
+
+    if (!strncmp("PIECEFILE", line, 9)) {
+      for (i = plFileNames.size(); i < ilist->size - 1; i++)
+        plFileNames << "NONE";
+      qname = QString(&line[10]).trimmed();
+      if (imgdir)
+        qname = QString(imgdir) + "/" + qname;
+      plFileNames << QDir::convertSeparators(curdir->cleanPath(qname));
+      needVersion = 2;
       continue;
     }
 
@@ -2303,6 +2480,11 @@ int ivwLoadIMODifd(ImodView *vi)
 
   /* save this in iv although it is an Ilist so ImageFile */
   vi->imageList = (ImodImageFile *)ilist;
+  if (version < needVersion) {
+    imodError(NULL, "3DMOD Error: "
+              "The image list file must specify version %d or higher\n", needVersion);
+    exit(3);
+  }
 
   if (imgdir)
     free(imgdir);
@@ -2311,9 +2493,22 @@ int ivwLoadIMODifd(ImodView *vi)
   return(0);
 }
 
+// Loads a piece list file listed in an IFD file, which may be located elsewhere
+int ivwLoadIFDpieceList(const char *plName, IloadInfo *li, int nx, int ny, int nz)
+{
+  int retval;
+  if (!Imod_IFDpath.isEmpty())
+  QDir::setCurrent(Imod_IFDpath);
+  retval = (iiPlistLoad(plName, li, nx, ny, nz));
+  if (!Imod_IFDpath.isEmpty())
+    QDir::setCurrent(Imod_cwdpath);
+  return retval;
+}
+
 /* Take a list of multiple files from the argument list and compose an
    image list */
-void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
+void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
+                      bool &anyHavePieceList)
 {
   Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
   ImodImageFile *image;
@@ -2321,6 +2516,7 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
   char *convarg;
   QDir *curdir = new QDir();
   QString str;
+  anyHavePieceList = false;
 
   for (i = firstfile; i <= lastimage; i++) {
     if (argv[i][0]) {
@@ -2328,7 +2524,7 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
       image = iiOpen(LATIN1(QDir::convertSeparators(QString(convarg))), "rb");
     } else
       image = iiOpen(argv[i], "rb");
-    if (!image){
+    if (!image) {
       str.sprintf("3DMOD Error: couldn't open image file %s.\n", argv[i]);
       str = QString(b3dGetError()) + str;
       imodError(NULL, LATIN1(str));
@@ -2343,8 +2539,8 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
     vi->fp = image->fp;
     vi->hdr = vi->image = image;
     
-    image->time = vi->nt;
-    vi->nt++;
+    image->time = vi->numTimes;
+    vi->numTimes++;
 
     /* Copy filename with directory stripped to the descriptor */
     /* There was strange comment about "Setting the fp keeps it from closing 
@@ -2358,9 +2554,14 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
       free(convarg);
     } else
       image->description = strdup(argv[i]);
+    if (image->hasPieceCoords)
+      anyHavePieceList = true;
     ilistAppend(ilist, image);
   }
   delete curdir;
+
+  if (anyHavePieceList && vi->numTimes > 1 && !vi->imagePyramid)
+    vi->imagePyramid = -1;
 
   /* save this in iv so it can be passed in call to ivwSetCacheFrom List */
   vi->imageList = (ImodImageFile *)ilist;
@@ -2373,38 +2574,36 @@ int ivwLoadImage(ImodView *vi)
   int axisSave;
   int eret;
 
-  if (vi->fakeImage){
+  if (vi->fakeImage) {
 
-    // Initialize various things for no image
-    vi->xsize = vi->imod->xmax;
-    vi->ysize = vi->imod->ymax;
-    vi->zsize = vi->imod->zmax;
+    // Initialize various things for no image; access Model not vi->imod
+    vi->xsize = Model->xmax;
+    vi->ysize = Model->ymax;
+    vi->zsize = Model->zmax;
     vi->xybin = 1;
     vi->zbin = 1;
     vi->xUnbinSize = vi->xsize;
     vi->yUnbinSize = vi->ysize;
     vi->zUnbinSize = vi->zsize;
-    if (vi->nt > 1)
+    if (vi->numTimes > 1)
       ivwSetTime(vi, 1);
 
     vi->rawImageStore = 0;
     ImodInfoWidget->hideLowHighGrid();
     imod_color_init(App);
 
-    wprint("Image size %d x %d, %d sections.\n",
-           vi->xsize, vi->ysize, vi->zsize);
+    wprint("Image size %d x %d, %d sections.\n", vi->xsize, vi->ysize, vi->zsize);
     best_ivwGetValue = fake_ivwGetValue;
 
     /* DNM: set the axis flag based on the model flip flag */
     if (vi->li->axis == 2) 
-      imodError(NULL, "The -Y flag is ignored when loading a model"
-              " without an image.\nUse Edit-Image-Flip to flip the"
-              " model if desired");
+      imodError(NULL, "The -Y flag is ignored when loading a model without an image.\n"
+                "Use Edit-Image-Flip to flip the model if desired");
     vi->li->axis = 3;
-    if (vi->imod->flags & IMODF_FLIPYZ)
+    if (Model->flags & IMODF_FLIPYZ)
       vi->li->axis = 2;
     ImodPrefs->setInfoGeometry();
-    return(0);
+    return (initializeFlipAndModel(vi));
   }
 
   ivwProcessImageList(vi); 
@@ -2414,10 +2613,11 @@ int ivwLoadImage(ImodView *vi)
   vi->doingInitialLoad = 1;
      
   /* Set up the cache and load it for a variety of conditions */
-  if (vi->li->plist || vi->nt || vi->multiFileZ > 0 || vi->vmSize || vi->ushortStore) {
+  if (vi->li->plist || vi->numTimes || vi->multiFileZ > 0 || vi->vmSize || 
+      vi->ushortStore || vi->pyrCache) {
 
     /* DNM: only one mode won't work now; just exit in either case */
-    if (vi->hdr->mode == MRC_MODE_COMPLEX_SHORT){
+    if (vi->hdr->mode == MRC_MODE_COMPLEX_SHORT) {
       imodError(NULL, "3DMOD Error: "
                 "Image cache and piece lists do not work with "
                 "complex short data.\n");
@@ -2427,32 +2627,39 @@ int ivwLoadImage(ImodView *vi)
     vi->idata = NULL;
 
     /* print load status */
-    wprint("Image size %d x %d, %d sections.\n", vi->xsize, vi->ysize, 
-           vi->zsize);
+    wprint("Image size %d x %d, %d sections.\n", vi->xsize, vi->ysize, vi->zsize);
           
-    /* initialize cache, make sure axis is set for all data structures 
-       Set axis to 3 for first initialization because vmSize has been 
-       computed based on unflipped Z dimensions */
     ivwSetCacheSize(vi);
-    axisSave = vi->li->axis;
-    vi->li->axis = 3;
-    eret = ivwInitCache(vi);
-    if (eret)
-      return(eret);
 
-    best_ivwGetValue = cache_ivwGetValue;
-    
-    /* If we are to keep cache full, fill it now and restore axis for possible
-       flip later, unless user flipped it via menu */
-    if (vi->keepCacheFull) {
-      eret = imodCacheFill(vi);
+    if (vi->pyrCache) {
+      vi->pyrCache->initializeCaches();
+      best_ivwGetValue = tiles_ivwGetValue;
+
+    } else {
+
+      /* initialize ordinary cache, make sure axis is set for all data structures 
+         Set axis to 3 for first initialization because vmSize has been 
+         computed based on unflipped Z dimensions */
+      axisSave = vi->li->axis;
+      vi->li->axis = 3;
+      eret = ivwInitCache(vi);
       if (eret)
-        return eret;
+        return(eret);
+      
+      best_ivwGetValue = cache_ivwGetValue;
+      
+      /* If we are to keep cache full, fill it now and restore axis for possible
+         flip later, unless user flipped it via menu */
+      if (vi->keepCacheFull) {
+        eret = imodCacheFill(vi);
+        if (eret)
+          return eret;
+      }
+      if (vi->li->axis == 3) 
+        vi->li->axis = axisSave;
+      else
+        vi->li->axis = (axisSave == 3) ? 2 : 3;
     }
-    if (vi->li->axis == 3) 
-      vi->li->axis = axisSave;
-    else
-      vi->li->axis = (axisSave == 3) ? 2 : 3;
 
   } else {
 
@@ -2468,18 +2675,16 @@ int ivwLoadImage(ImodView *vi)
 
     best_ivwGetValue = idata_ivwGetValue;
     vi->idata = imod_io_image_load(vi);
-    if (!vi->idata){
+    if (!vi->idata) {
       /* Let caller do error message */
       return(-1);
     }
   }
 
-  vi->doingInitialLoad = 0;
-
   if (App->depth == 8)
     ivwScale(vi);
      
-  return (ivwManageInitialFlips(vi));
+  return (initializeFlipAndModel(vi));
 }
 
 /* Process an image list and determine sizes and types of files */
@@ -2568,6 +2773,11 @@ static int ivwProcessImageList(ImodView *vi)
 
     if (image->format == IIFORMAT_COLORMAP)
       cmaps++;
+    if (vi->stripOrTileCache && (image->format == IIFORMAT_COMPLEX || rgbs || cmaps)) {
+      imodError(NULL, "3DMOD Error: You cannot cache tiles or strips with complex,\n"
+                "colormap, or RGB data, except when loading RGB as grayscale");
+      exit(3);
+    }
   }     
 
   // Cancel integer loading if all files are bytes or there is color loading
@@ -2626,7 +2836,7 @@ static int ivwProcessImageList(ImodView *vi)
   /* Set the scaling including equal scaling of intensities */
   for (i = 0; i < ilist->size; i++) {
     image = (ImodImageFile *)ilistItem(ilist, i);
-    if (vi->equalScaling) {
+    if (vi->equalScaling || (vi->imagePyramid && vi->li->smin == vi->li->smax)) {
       vi->li->smin = smin;
       vi->li->smax = smax;
     }
@@ -2636,12 +2846,18 @@ static int ivwProcessImageList(ImodView *vi)
   if (!vi->li->plist) {
 
     /* Deal with non-montage case */
-    /* If maximum Z is 1 and multifile treatment in Z is allowed, set zsize
-       to number of files, and cancel treatment as times */
-    if (ilist->size > 1 && zsize == 1 && vi->multiFileZ >= 0) {
+    if (vi->imagePyramid) {
+      xsize = vi->xUnbinSize;
+      ysize = vi->yUnbinSize;
+      zsize = vi->zUnbinSize;
+
+    } else if (ilist->size > 1 && zsize == 1 && vi->multiFileZ >= 0) {
+
+      /* If maximum Z is 1 and multifile treatment in Z is allowed, set zsize
+         to number of files, and cancel treatment as times */
       zsize = ilist->size;
       vi->multiFileZ = ilist->size;
-      vi->ct = vi->nt = 0;
+      vi->curTime = vi->numTimes = 0;
     } 
 
     /* Use this to fix the load-in coordinates, then use those to set the
@@ -2649,21 +2865,21 @@ static int ivwProcessImageList(ImodView *vi)
        multifile Z case, which is set to 0 - 0 */
     mrc_fix_li(vi->li, xsize, ysize, zsize);
     ivwCheckBinning(vi, xsize, ysize, zsize);
-    for (i = 0; i < ilist->size; i++) {
-      image = (ImodImageFile *)ilistItem(ilist, i);
-      image->llx = vi->li->xmin;
-      image->lly = vi->li->ymin;
-      image->llz = vi->multiFileZ > 0 ? 0 : vi->li->zmin;
-      image->urx = vi->li->xmax;
-      image->ury = vi->li->ymax;
-      image->urz = vi->multiFileZ > 0 ? 0 : vi->li->zmax;
+    if (!vi->imagePyramid) {
+      for (i = 0; i < ilist->size; i++) {
+        image = (ImodImageFile *)ilistItem(ilist, i);
+        image->llx = vi->li->xmin;
+        image->lly = vi->li->ymin;
+        image->llz = vi->multiFileZ > 0 ? 0 : vi->li->zmin;
+        image->urx = vi->li->xmax;
+        image->ury = vi->li->ymax;
+        image->urz = vi->multiFileZ > 0 ? 0 : vi->li->zmax;
                
-      /* If not an MRC file, or if multifile in Z, set to no
-         flipping unless cache full */
-      if ((image->file != IIFILE_MRC  && image->file != IIFILE_RAW) || 
-          vi->multiFileZ > 0)
-        vi->flippable = 0;
-
+        // If not an MRC file, or if multifile in Z, set to no flipping unless cache full
+        if ((image->file != IIFILE_MRC  && image->file != IIFILE_RAW) || 
+            vi->multiFileZ > 0)
+          vi->flippable = 0;
+      }
     }     
   } else {
 
@@ -2676,17 +2892,17 @@ static int ivwProcessImageList(ImodView *vi)
   // 3/17/11: This fixes bugs from various places not testing <= 0 vs > 0
   vi->multiFileZ = B3DMAX(0, vi->multiFileZ);
 
-  if (ilist->size == 1){
+  if (ilist->size == 1) {
 
     /* for single file, cancel times and copy "list" to vi->image */
     vi->hdr = vi->image = iiNew();
-    if (!vi->image){
+    if (!vi->image) {
       imodError(NULL, "Not enough memory.\n"); 
       exit(3);
     }
     memcpy(vi->image, ilist->data, sizeof(ImodImageFile));
     ivwReopen(vi->image);
-    vi->ct = vi->nt = 0;
+    vi->curTime = vi->numTimes = 0;
     vi->imageList = NULL;
     if (cmaps) {
       xcramp_copyfalsemap(&vi->image->colormap[768 * vi->li->zmin]);
@@ -2703,10 +2919,15 @@ static int ivwProcessImageList(ImodView *vi)
       exit(3);
     }
     memcpy(vi->imageList, ilist->data, sizeof(ImodImageFile) * ilist->size);
-    vi->hdr = vi->image = &vi->imageList[0];
+    vi->hdr = vi->image = &vi->imageList[vi->imagePyramid ? 
+                                         vi->pyrCache->getBaseIndex() : 0];
 
     /* for times, set up initial time; for multifile Z, reopen first image */
-    if (!vi->multiFileZ) {
+    if (vi->imagePyramid) {
+      vi->curTime = vi->numTimes = 0;
+      ivwReopen(vi->image);
+ 
+    } else if (!vi->multiFileZ) {
       ivwSetTime(vi, 1);
       vi->dim |= 8;
     } else {
@@ -2721,42 +2942,39 @@ static int ivwProcessImageList(ImodView *vi)
   return 0;
 }
 
-
-/* Take care of scaling the model, and flipping data and model as needed */
-static int ivwManageInitialFlips(ImodView *vi)
+/* Take care of initial flipping of data and initializing new or read-in model */
+static int initializeFlipAndModel(ImodView *vi)
 {
   int flipit;
   int retcode;
 
-  /* Transform model to match new image. */
-  ivwTransModel(vi); 
-     
-  /* Unflip it if that didn't */
-  if (vi->imod->flags & IMODF_FLIPYZ){
-    imodFlipYZ(vi->imod);
-    vi->imod->flags &= ~IMODF_FLIPYZ;
-  }
-     
-  /* Flip data and model if called for, but do not generate error if it is not 
-     flippable */
-  flipit = (vi->li->axis == 2) ? 1 : 0;
-  vi->li->axis = 3;
-  if (flipit) {
-    retcode = ivwFlip(vi);
-    if (retcode && retcode != -1)
-      return (retcode);
+  // Set this to -1 so image flipping works, but model initializing can skip things */
+  vi->doingInitialLoad = -1;
+
+  /* Flip data if called for, but do not generate error if it is not flippable */
+  if (!vi->fakeImage) {
+    flipit = (vi->li->axis == 2) ? 1 : 0;
+    vi->li->axis = 3;
+    if (flipit) {
+      retcode = ivwFlip(vi);
+
+      // This leads to an exit so just returning is OK
+      if (retcode && retcode != -1)
+        return (retcode);
+    }
   }
 
-  /* 10/14/05: Eliminated setting model max values and binning since they are
-     not needed as runtime values and it was confusing when and whether they
-     were being handled for loaded and new models */
-
-  vi->imod->csum = imodChecksum(vi->imod);
-  if (imodDebug('C'))
-    wprint("ivwManageInitialFlips set checksum %d\n", vi->imod->csum);
-
-  /* DNM: check wild flag here, after all the flipping is done */
-  ivwCheckWildFlag(vi->imod);
+  // Now that flipping is done, set up read-in or new model by standard routes
+  if (Model) {
+    initReadInModelData(Model, false);
+  } else {
+    retcode = createNewModel(Imod_filename);
+    if (retcode != IMOD_IO_SUCCESS)
+      return retcode;
+  }
+  vi->doingInitialLoad = 0;
+  if (ClipHandler)
+    ClipHandler->doneWithLoad();
   return 0;
 }    
 
@@ -2796,9 +3014,14 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
   }
 
   // forbid Z binning for multifile Z or montage (need to test multiFileZ this way)
-  if ((vi->multiFileZ > 0 || vi->li->plist) && vi->zbin > 1) {
+  if ((vi->multiFileZ > 0 || vi->li->plist || vi->imagePyramid || vi->stripOrTileCache) 
+      && vi->zbin > 1) {
     vi->zbin = 1;
-    if (vi->li->plist)
+    if (vi->imagePyramid || vi->stripOrTileCache) 
+      wprint("\a\nThe Z dimension cannot be binned with an image pyramid.\n");
+    else if (vi->stripOrTileCache) 
+      wprint("\a\nThe Z dimension cannot be binned with strip/tile caching.\n");
+    else if (vi->li->plist)
       wprint("\a\nThe Z dimension cannot be binned with montaged data.\n");
     else
       wprint("\a\nThe Z dimension cannot be binned with multiple "
@@ -2862,6 +3085,8 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
   vi->fullXsize = nxbin;
   vi->fullYsize = nybin;
   vi->fullZsize = nzbin;
+  if (vi->pyrCache)
+    vi->pyrCache->adjustForBinning();
     
   return 0;
 }
@@ -2918,6 +3143,24 @@ void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ)
 int ivwGetImageStoreMode(ImodView *vi)
 {
   return vi->rawImageStore;
+}
+
+bool ivwDataInTileOrStripCache(ImodView *inImodView)
+{
+  return inImodView->pyrCache != NULL;
+}
+
+unsigned char **ivwGetTileCachedSection(ImodView *inImodView, int section)
+{
+  if (inImodView->pyrCache)
+    return inImodView->pyrCache->getFullSection(section);
+  return NULL;
+}
+
+void ivwFreeTileCachedSection(ImodView *inImodView)
+{
+  if (inImodView->pyrCache)
+    inImodView->pyrCache->freeFullSection();
 }
 
 int ivwGetMovieModelMode(ImodView *vw)
@@ -3201,7 +3444,7 @@ void ivwSetOverlayMode(ImodView *vw, int sec, int reverse,
 Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
 {
   Icont *cont = imodContourGet(vw->imod);
-  int curTime = timeLock ? timeLock : vw->ct;
+  int curTime = timeLock ? timeLock : vw->curTime;
   if (!cont || (obj->extra[IOBJ_EX_PNT_LIMIT] && 
                 cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT])) {
   
@@ -3243,8 +3486,8 @@ Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
    current display time, which is either global time or timelock time */
 bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
 {
-  int time = timelock ? timelock : vi->ct;
-  return (vi->nt > 0 && iobjFlagTime(obj) && cont->time && 
+  int time = timelock ? timelock : vi->curTime;
+  return (vi->numTimes > 0 && iobjFlagTime(obj) && cont->time && 
           (time != cont->time));
 }
 
@@ -3296,7 +3539,7 @@ int  ivwGetObjectColor(ImodView *inImodView, int inObject)
      
   obj = &(inImodView->imod->obj[inObject]);
      
-  if (App->depth <= 8){
+  if (App->depth <= 8) {
     obj->fgcolor = App->objbase - inObject;
   }else{
     obj->fgcolor = App->objbase + inObject;

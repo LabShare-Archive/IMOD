@@ -51,6 +51,12 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
     else if (mode == BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE) {
       title = "Whole tomogram";
     }
+    else if (mode == BlendmontParam.Mode.SERIAL_SECTION_PREBLEND) {
+      title = "Initial blend";
+    }
+    else if (mode == BlendmontParam.Mode.SERIAL_SECTION_BLEND) {
+      title = "Blend serial sections";
+    }
   }
 
   protected void initializeProgressBar() {
@@ -95,7 +101,7 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   protected void findNSections() throws InterruptedException, NumberFormatException,
       LogFile.LockException, InvalidParameterException, IOException {
     Montagesize montagesize = null;
-    montagesize = Montagesize.getInstance(manager, axisID);
+    montagesize = Montagesize.getInstance(manager, axisID,".st");
     montagesize.read(manager);
     nSections = montagesize.getZ().getInt();
   }

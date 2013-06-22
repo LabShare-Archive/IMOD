@@ -2,12 +2,8 @@
 .na
 .nh
 
-
-
 .SH NAME
 uitest - a script to run GUI tests against Etomo using JFCUnit
-
-
 
 .SH SYNOPSIS
 .P
@@ -17,16 +13,12 @@ uitest - a script to run GUI tests against Etomo using JFCUnit
 .P
 .B etomo.uitest.JfcUnitTests
 
-
-
 .SH DESCRIPTION
 \fBUitest\fR is a script that runs \fBJfcUnitTests\fR.  \fBJfcUnitTests\fR runs
 the \fBetomo\fR application and interacts with it by using JfcUnit to grab
 named GUI elements.  \fBEtomo\fR automatically names most of its GUI elements.
 \fBJfcUnitTests\fR gets its instructions from a set of autodoc files which are
 read sequentially.
-
-
 
 .SH ENVIRONMENT
 The IMOD environment that allows Etomo to be run must be in place.
@@ -44,7 +36,6 @@ dataset are stored.
 .TP 4
 .B IMOD_UITEST_SOURCE
 should be set the Etomo/tests directory.
-
 
 .SS Used by the Uitest Script
 
@@ -72,13 +63,11 @@ Should be set to the directory containing the Jakarta regexp jar file.
 .B IMOD_JAKARTA_REGEXP_JAR
 Should be set to the Jakarta regexp jar file.
 
-
 .SS Used in Uitest.make
 
 .TP 4
 .B IMOD_UITEST_SCRIPT
 Should be set the directory containing uitest.
-
 
 .SS Used by JfcUnitTests
 
@@ -87,7 +76,6 @@ Should be set the directory containing uitest.
 Only needs to be set if \fBJfcUnitTests\fR is being run directly.  It should be
 set to the name of \fBTest\fR section that will be run (see Section
 Relationships below).
-
 
 .SH FILES
 .SS Autodocs
@@ -170,8 +158,8 @@ button (\fBbn\fR) is to push it.
 .TP 4
 .I action
 .B assert\fR, \fBcopy\fR, \fBend\fR, \fBformat\fR, \fBif\fR, \fBgoto\fR, \fBopen\fR,
-\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBunset\fR,
-\fBuse\fR, \fBwait\fR, \fBwrite
+\fBreturn\fR, \fBrun\fR, \fBset\fR, \fBskipto\fR, \fBsleep\fR, \fBstart\fR, \fBtouch\fR,
+\fBunset\fR, \fBuse\fR, \fBwait\fR, \fBwrite
 
 .TP 4
 .I subcommand_action
@@ -190,9 +178,9 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I subject_type
-.B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBfile\fR, \fBfile-chooser\fR,
-\fBframe\fR, \fBfunction\fR, \fBindex\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR,
-\fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR, \fBvar
+.B adoc\fR, \fBdataset\fR, \fBdebug\fR, \fBdialog\fR, \fBdir\fR, \fBfile\fR,
+\fBfile-chooser\fR, \fBframe\fR, \fBfunction\fR, \fBindex\fR, \fBinterface\fR, \fBparam\fR, \fBpopup\fR, \fBprocess\fR, \fBsection\fR, \fBtest\fR, \fBtestdir\fR,
+\fBvar
 
 .TP 4
 .I subject_name
@@ -341,7 +329,6 @@ Precedence
 \fB|\fR, \fB" "\fR, \fB%{ }
 .RE
 
-
 .SS Scope
 Autodocs, sections, and subsections have scope.  Settings defined in a section
 are in force in that section and in any sections or autodocs that are run from
@@ -350,7 +337,6 @@ test.  Variables set in a \fBdataset\fR section also global for the entire test;
 as if they where set in a  \fBTest\fR section.  The scope for settings in the
 global section of an autodoc is all the sections in the autodoc and any sections
 or autodocs that are run from them.
-
 
 .SS Variables
 Variable are created by the \fBset.var\fR command and removed by the
@@ -384,7 +370,13 @@ assert.contains.file=logb.txt|%{axis} is a variable
 
 .TP 4
 .B testdir
-A global variable created when the set.testdir command executed in a Test section.
+A global variable containing the test directory path, which is created when the
+set.testdir command executed in a Test section.
+
+.TP 4
+.B testdir-name
+A global variable containing the test directory name, which is created when the
+set.testdir command executed in a Test section.
 
 .TP 4
 .B dataset
@@ -403,13 +395,17 @@ A variable created when a Test autodoc is executed.  It is global to the Test au
 "\fB*\fR" can be used to replace 0 or more characters in the \fIliteral_string\fR in
 \fBassert.contains.file\fR.  "\fB*\fR" cannot match the end of the line.
 
+.SS Relative paths
+The "\fB/\fR" separator must always be used for relative file paths.
+"\fB..\fR" can be used to describe a file that is not in a subdirectory
+of the test directory.
+
 .SS Waiting
 The \fBwait\fR command creates a wait state in a tester and causes the tester to
 wait until the situation specified in the \fBwait\fR command occurs.  If multiple
 Dialog autodocs where specified in the Test section, the tester for the current
 Dialog autodoc will cease testing and the tester for the next Dialog autodoc
 will continue where it left off whenever there is a wait in the current tester.
-
 
 .SS Naming
 To name a field in \fBetomo\fR, its associated label is changed to all lower
@@ -435,7 +431,6 @@ one, going left to right.  The left-most mini-button has a default index of 0.
 Multiple fields of the same type and name can be referred to with an index.  The
 index defaults to 0.
 
-
 .SS Order
 Commands are always read in the order they are written, so order is always
 meaningful.  Don't use variables before setting them.  In the \fBTest\fR
@@ -443,13 +438,11 @@ sections, always set the test directory and the autodocs before setting the
 dataset.  The only exception to this is the Interface Section, where order does
 not count, except in its subsections.
 
-
 .SS The B Axis
 The B axis is tested in the \fBsub-frame\fR (the second window).  Tests will
 automatically try to open their frame if an \fBopen.frame\fR command is placed
 in the interface section that is being used.  If the frame can't be opened the
 test will fail.
-
 
 .SS UITest Autodoc
 .B uitest.adoc
@@ -493,7 +486,9 @@ run.  \fITest_Directory\fR will be created under \fB./UITests\fR.  If the
 directory already exists and the \fBkeep\fR modifier was not used, the directory
 will be deleted and re-added.  The \fBkeep\fR modifier makes it possible to test
 a partially completed dataset by keeping the \fItest_directory\fR from being
-deleted.
+deleted.  This command also causes two global variables to be created:  \fBtestdir\fR,
+which contains the directory path of the test directory, and \fBtestdir-name\fR, which
+contains the name of the test directory.
 
 .TP 4
 .B set.adoc.\fItest_section_type\fR[\fB.\fR(\fBa\fR|\fBb\fR)]\fB = \fItest_autodoc_name\fB.adoc
@@ -759,7 +754,7 @@ that has been pressed is dark), the check box is checked, or the radio button is
 selected.
 
 .TP 4
-.B assert.contains.file = \fIfile_name\fB|\fIliteral_string
+.B assert.contains.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)\fB|\fIliteral_string
 Tests whether a file in the \fItest_directory\fR called \fIfile_name\fR contains
 \fIliteral_string\fR.  All or part of the \fIliteral_string\fR can be quoted with
 double quotes (\fB"\fR) to prevent variable substitution.  The wildcard (\fB*\fR)
@@ -1082,6 +1077,20 @@ Write value to a text field called \fItext_field_name\fR.  If there are multiple
 text fields of the same name, use \fIindex\fR.  See Naming above.
 
 .TP 4
+.B touch.dir = \fIdirectory_name
+Causes the last modified date of the directory called \fIdirectory_name\fR
+in the \fItest_directory\fR (see \fBset.testdir\fR) to be changed to the current
+date and time.  If the directory doesn't exist, this command creates an empty
+directory called \fIdirectory_name\fR in the \fItest_directory\fR.
+
+.TP 4
+.B touch.file = \fIfile_name
+Causes the last modified date of the file called \fIfile_name\fR in the
+\fItest_directory\fR (see \fBset.testdir\fR) to be changed to the current date
+and time.  If the file doesn't exist, this command creates an empty file called
+\fIfile_name\fR in the \fItest_directory\fR.
+
+.TP 4
 .B unset.var.\fIvariable_name\fB = 
 Removes a variable called \fIvariable_name\fR.  A variable can only be removed in
 the scope where it was created.
@@ -1138,8 +1147,6 @@ wait.test.b = TomoGen
 .B write.file = \fIfile_name\fB|\fIliteral_string
 Append a new line and \fIliteral_string\fR to \fIfile_name\fR.  Double quotes (\fB" "\fR)
 can be used to avoid variable substitution.
-
-
 
 .SH EXAMPLES
 
@@ -1224,15 +1231,8 @@ set.var.montage=
 In recon.adoc use these variables to decide which radio buttons to check and
 which processes to wait for.
 
-
-
-
 .SH AUTHOR
 Sue Held
 
-
-
 .SH SEE ALSO
 etomo(1), imodenv(1), pip(1).
-
-

@@ -39,7 +39,7 @@ clean them with Ccderaser(1), such as with:
    ccderaser -find -peak 8 -diff 6  input_file output_file
 
 The noise files must have positive means; i.e., their values should be
-proportion to the recorded electrons.  If they are acquired with software
+proportional to the recorded electrons.  If they are acquired with software
 that subtracts 32768 before storing as signed integers, then you need to add
 this offset back to the data in order to use them as noise files.
 
@@ -83,7 +83,8 @@ can be found in the IMOD/com directory.
 Ctfplotter uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file
-(without the -):
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
 INSERT OPTION TEXT HERE
 .TP
 .B -StandardInput
@@ -93,6 +94,7 @@ Read parameter entries from standard input
 .nf
 Quanren Xiong
 David Mastronarde
+John Heumann
 .fi
 .SH SEE ALSO
 ctfphaseflip(1)

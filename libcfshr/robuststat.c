@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 #include <math.h>
 #include <stdlib.h>
@@ -34,6 +33,33 @@
 #define rsmadn rsmadn_
 #define rsmadmedianoutliers rsmadmedianoutliers_
 #endif
+
+static int intCompar(const void *val1, const void *val2)
+{
+  int *v1 = (int *)val1;
+  int *v2 = (int *)val2;
+  if (*v1 < *v2)
+    return -1;
+  else if (*v1 > *v2)
+    return 1;
+  return 0;
+}
+
+/*!
+ * Uses {qsort} to sort the [n] ints in the array [x].
+ */
+void rsSortInts(int *x, int n)
+{
+  qsort(x, n, sizeof(int), intCompar);
+}
+
+/*!
+ * Fortran wrapper for @rsSortInts
+ */
+void rssortints(int *x, int *n)
+{
+  rsSortInts(x, *n);
+}
 
 static int floatCompar(const void *val1, const void *val2)
 {
@@ -88,8 +114,8 @@ void rsSortIndexedFloats(float *x, int *index, int n)
 }
 
 /*!
- * Fortran wrapper for @rsSortIndexedFloats.  Indexes will be reduced by one to index the
- * array in the C comparison routine, so they can still be Fortran indexes.
+ * Fortran wrapper for @@rsSortIndexedFloats@.  Indexes will be reduced by one to index 
+ * the array in the C comparison routine, so they can still be Fortran indexes.
  */
 void rssortindexedfloats(float *x, int *index, int *n)
 {
@@ -237,20 +263,3 @@ void rstrimmedmean(float *x, int *n, float *gamma, float *xsort, float *median)
 {
   rsTrimmedMean(x, *n, *gamma, xsort, median);
 }
-/*
-
-$Log$
-Revision 1.4  2010/12/28 18:04:26  mast
-Added trimmed mean
-
-Revision 1.3  2010/03/11 18:18:21  mast
-Fixed the median outliers routine to recompute the deviation
-
-Revision 1.2  2009/11/28 20:09:46  mast
-Added indexed sort
-
-Revision 1.1  2009/11/21 21:15:10  mast
-Added to package
-
-
-*/

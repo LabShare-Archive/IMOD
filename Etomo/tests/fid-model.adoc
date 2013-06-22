@@ -1,10 +1,12 @@
 Version = 1.2
 
 [function = main]
+#temp
 if.var.quick.run.function.quick=
 if.var.quick.return=
 run.function.fiducial-model-generation=
 bn.done=
+
 
 
 [function = quick]
@@ -30,6 +32,7 @@ bn.done=
 
 [function = transfer-fiducials-quick]
 if.not-equals.var.axis.return = b
+rb.transfer-seed-model-from-the-other-axis=
 bn.transfer-fiducials-from-other-axis =
 wait.process.transferring-fiducials = done
 bn.done=
@@ -47,12 +50,30 @@ set.var.seed-button=view-seed-model
 	return.var.seed-button=
 [[]]
 rb.make-seed-and-track=
+if.var.test-gui.run.function.test-make-seed-and-track=
 run.function.transfer-fiducials=
+run.function.generate-seed-model=
+run.function.manual-seed-model=
+run.function.beadtracker=
+
+
+[function = test-make-seed-and-track]
+#test values
+assert.rb.make-seed-model-manually=on
+assert.rb.generate-seed-model-automatically=off
+[[if = dual]]
+  assert.rb.transfer-seed-model-from-the-other-axis=off
+[[]]
+#test enabled/disabled
+assert.enabled.rb.make-seed-model-manually=
+assert.enabled.rb.generate-seed-model-automatically=
+
+
+[function = manual-seed-model]
+rb.make-seed-model-manually=
 [[if = test-gui]]
-	#test values
-	assert.bn.%{seed-button}=off
-	#test enabled/disabled
-	assert.enabled.bn.%{seed-button}=
+  #test enabled/disabled
+  assert.enabled.bn.%{seed-button}=
 [[]]
 bn.%{seed-button}=
 [[if = axis]]
@@ -60,15 +81,131 @@ bn.%{seed-button}=
   copy.file=%{dataset}%{axis}.seed
 [[]]
 [[if = test-gui]]
-	#test values
-	assert.bn.%{seed-button}=on
+  #test values
+  assert.bn.%{seed-button}=on
 [[]]
-run.function.beadtracker=
+
+
+[function = generate-seed-model]
+rb.generate-seed-model-automatically=
+[[if = test-gui]]
+  #basic
+  #test values
+  assert.cb.make-boundary-model=off
+  assert.cb.exclude-inside-boundary-contours=off
+  assert.rb.total-number=on
+  assert.tf.total-number=
+  assert.rb.density=off
+  assert.tf.density=
+  assert.cb.select-beads-on-two-surfaces=off
+  assert.bn.generate-seed-model=off
+  #test enabled/disabled
+  assert.enabled.cb.make-boundary-model=
+  assert.disabled.bn.open-boundary-model=
+  assert.disabled.cb.exclude-inside-boundary-contours=
+  assert.disabled.bn.open-initial-bead-model=
+  assert.enabled.rb.total-number=
+  assert.enabled.tf.total-number=
+  assert.enabled.rb.density=
+  assert.disabled.tf.density=
+  assert.enabled.cb.select-beads-on-two-surfaces=
+  assert.disabled.bn.open-sorted-3d-models=
+  assert.enabled.bn.generate-seed-model=
+  assert.enabled.bn.open-seed-model=
+  assert.enabled.bn.clean-up-temporary-files=
+  #behavior
+  cb.make-boundary-model=on
+  assert.enabled.bn.open-boundary-model=
+  assert.enabled.cb.exclude-inside-boundary-contours=
+  cb.make-boundary-model=off
+  #
+  rb.density=
+  assert.disabled.tf.total-number=
+  assert.enabled.tf.density=
+  rb.total-number=
+  #advanced
+  bn.advanced=
+  #test values
+  assert.tf.borders-in-x-&-y=
+  assert.tf.estimated-number-of-beads-in-sample=
+  assert.tf.minimum-spacing=0.85
+  assert.tf.fraction-of-peaks-to-store=1.0
+  assert.tf.drop-tracked-models=
+  assert.tf.maximum-ratio-between-surfaces=
+  assert.cb.allow-clustered-beads=off
+  assert.cb.allow-elongated-beads-of-severity=off
+  assert.sp.allow-elongated-beads-of-severity=1
+  #test enabled/disabled
+  assert.enabled.tf.borders-in-x-&-y=
+  assert.enabled.tf.estimated-number-of-beads-in-sample=
+  assert.enabled.tf.minimum-spacing=
+  assert.enabled.tf.fraction-of-peaks-to-store=
+  assert.enabled.tf.drop-tracked-models=
+  assert.enabled.tf.maximum-ratio-between-surfaces=
+  assert.enabled.cb.allow-clustered-beads=
+  assert.disabled.cb.allow-elongated-beads-of-severity=
+  assert.disabled.sp.allow-elongated-beads-of-severity=
+  #behavior
+  cb.allow-clustered-beads=on
+  assert.enabled.cb.allow-elongated-beads-of-severity=
+  assert.disabled.sp.allow-elongated-beads-of-severity=
+  cb.allow-elongated-beads-of-severity=on
+  assert.enabled.sp.allow-elongated-beads-of-severity=
+  cb.allow-elongated-beads-of-severity=off
+  cb.allow-elongated-beads-of-severity=off
+  bn.basic=
+[[]]
+tf.total-number=40
+bn.generate-seed-model=
+wait.process.autofidseed=done
+[[if = test-gui]]
+  #test values
+  assert.bn.generate-seed-model=on
+  #test enabled/disabled
+  assert.enabled.bn.open-initial-bead-model=
+  assert.disabled.bn.open-sorted-3d-models=
+  #files
+  assert.exists.file=autofidseed%{axis}.com
+  assert.exists.file=autofidseed%{axis}.info
+  assert.exists.file=%{dataset}%{axis}.seed
+  assert.exists.file=autofidseed%{axis}.dir
+  assert.exists.file=autofidseed%{axis}.log
+  assert.exists.file=autofidseed%{axis}.dir/track%{axis}.com
+[[]]
+cb.select-beads-on-two-surfaces=on
+bn.generate-seed-model=
+wait.process.autofidseed=done
+[[if = test-gui]]
+  #test enabled/disabled
+  assert.enabled.bn.open-sorted-3d-models=
+  #files
+  assert.exists.file=%{dataset}%{axis}.seed~
+  assert.exists.file=autofidseed%{axis}.log~
+[[]]
+bn.generate-seed-model=
+wait.process.autofidseed=done
+[[if = test-gui]]
+  #3dmod
+  bn.open-seed-model=
+  bn.open-initial-bead-model=
+  bn.open-sorted-3d-models=
+[[]]
+# clean up
+bn.clean-up-temporary-files=
+wait.process.deleting-temporary-directory=done
+[[if = test-gui]]
+  #test enabled/disabled
+  assert.disabled.bn.open-initial-bead-model=
+  assert.disabled.bn.open-sorted-3d-models=
+  #files
+  assert.not-exists.file=autofidseed%{axis}.dir
+[[]]
 
 
 [function = transfer-fiducials]
 if.not-equals.var.axis.return = b
 rb.make-seed-and-track=
+rb.transfer-seed-model-from-the-other-axis=
 mb.transfer-fiducials=+
 [[if = test-gui]]
 	#Test values
@@ -88,6 +225,7 @@ mb.transfer-fiducials=+
 	#Test enabled/disabled
 	assert.enabled.cb.run-midas=
 	assert.enabled.bn.transfer-fiducials-from-other-axis=
+	assert.enabled.bn.open-seed-model=
 	#advanced
 	mb.transfer-fiducials.1=A
 	assert.enabled.tf.center-view-a=
@@ -102,17 +240,24 @@ mb.transfer-fiducials=+
 [[]]
 bn.transfer-fiducials-from-other-axis =
 wait.process.transferring-fiducials = done
+[[if = test-gui]]
+assert.rb.transfer-seed-model-from-the-other-axis=on
 assert.exists.file=transferfid.log
 assert.exists.file=transferfid.coord
 assert.exists.file=%{dataset}%{axis}.seed
+bn.open-seed-model=
+[[]]
 
 
 [function = beadtracker]
+tb.seed-model.1=
 mb.beadtracker=+
 [[if = test-gui]]
 	#Test values
 	assert.tf.view-skip-list=
 	assert.tf.separate-view-groups=
+	assert.cb.refine-center-with-sobel-filter=off
+	assert.tf.sigma-for-kernel-filter=
 	assert.cb.fill-seed-model-gaps=on
 	assert.cb.local-tracking=off
 	assert.tf.local-area-size=1000
@@ -140,6 +285,8 @@ mb.beadtracker=+
 	#Test enabled/disabled
 	assert.enabled.tf.view-skip-list=
 	assert.enabled.tf.separate-view-groups=
+	assert.enabled.cb.refine-center-with-sobel-filter=
+  assert.disabled.tf.sigma-for-kernel-filter=
 	assert.enabled.cb.fill-seed-model-gaps=
 	assert.enabled.cb.local-tracking=
 	assert.disabled.tf.local-area-size=
@@ -165,6 +312,9 @@ mb.beadtracker=+
 	#basic
 	mb.beadtracker.1=B
 	#Test behavior
+	cb.refine-center-with-sobel-filter=on
+  assert.enabled.tf.sigma-for-kernel-filter=
+  cb.refine-center-with-sobel-filter=off
 	cb.local-tracking=on
 	mb.beadtracker.1=A
 	assert.enabled.tf.local-area-size=
@@ -175,13 +325,21 @@ mb.beadtracker=+
 	assert.disabled.tf.minimum-beads-in-area=
 	assert.disabled.tf.minimum-beads-overlapping=
 	mb.beadtracker.1=B
+	#Test field validation
+	tf.view-skip-list=abc
+	bn.track-seed-model=
+	wait.popup.field-validation-failed=OK
+	assert.disabled.bn.kill-process=
+	tf.view-skip-list=
 [[]]
 run.function.expert-parameters=
+cb.refine-center-with-sobel-filter=on
 bn.track-seed-model=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.com
 assert.exists.file=track%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
+cb.refine-center-with-sobel-filter=off
 bn.track-seed-model=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.log~
@@ -205,9 +363,7 @@ copy.file=%{dataset}%{axis}.fid
 
 
 [function = expert-parameters]
-[[if = dual]]
-	mb.transfer-fiducials=-
-[[]]
+tb.seed-model.1=
 mb.beadtracker.1=A
 mb.expert-parameters=+
 [[if = test-gui]]
@@ -236,9 +392,6 @@ mb.expert-parameters=+
 [[]]
 mb.expert-parameters=-
 mb.beadtracker.1=B
-[[if = dual]]
-	mb.transfer-fiducials=+
-[[]]
 
 
 [function = patch-tracking]
@@ -327,18 +480,23 @@ assert.exists.file=%{dataset}%{axis}.fid~
 #don't break contours for midzone2b (doesn't need it)
 if.equals.var.axis.return=b
 cb.break-contours-into-pieces=on
+[[if = test-gui]]
+  #test field validation
+  tf.break-contours-into-pieces=16,4abc
+  bn.track-patches=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.break-contours-into-pieces=16,4
+[[]]
 bn.track-patches=
 wait.process.cross-correlating-stack=done
-[[if = test-gui]]
-  assert.contains.file=xcorr_pt.com|TiltFile*%{dataset}%{axis}.rawtlt
-[[]]
 
 
 [function = patch-layout]
 [[if = test-gui]]
 	#test values
 	assert.rb.fractional-overlap-of-patches=on
-	assert.tf.fractional-overlap-of-patches=.33,.33
+	assert.tf.fractional-overlap-of-patches=0.33,0.33
 	assert.rb.number-of-patches=off
 	assert.tf.number-of-patches=
 	#enabled/disabled

@@ -38,8 +38,8 @@ int main(int argc, char **argv)
     if (analyzeDM3(fp, argv[i], dmf, &info, &type))
       exit(1);
       
-    printf("%d %d %d %d %d\n", info.nx, info.ny, info.nz, type,
-           info.headerSize);
+    printf("%d %d %d %d %d %f %f\n", info.nx, info.ny, info.nz, type,
+           info.headerSize, info.pixel, info.zPixel);
     fclose(fp);
   }
   exit(0);

@@ -3,7 +3,11 @@ package etomo.process;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Vector;
 
@@ -11,6 +15,8 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
+import etomo.type.EtomoNumber;
+import etomo.type.OSType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
@@ -644,6 +650,7 @@ public class ImodProcess {
 
   // Get stderr messages only through this member variable.
   private final Stderr stderr = new Stderr();
+  private final Integer messageSenderRegId = stderr.register();
   private final ContinuousListener continuousListener;
 
   private String datasetName = "";
@@ -679,6 +686,7 @@ public class ImodProcess {
   private File[] fileList = null;
   private boolean loadAsIntegers = false;
   private boolean montageSeparation = false;
+  private List<String> modelNameList = null;
 
   /**
    * If true, run 3dmod with -L.  This means that imodsentevent will not be used
@@ -806,6 +814,10 @@ public class ImodProcess {
     this.modelName = modelName;
   }
 
+  public void setModelNameList(List<String> modelNameList) {
+    this.modelNameList = modelNameList;
+  }
+
   public void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
@@ -861,6 +873,13 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
 
+    if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+      commandOptions.add("-D");
+      if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
+        commandOptions.add("-L");
+      }
+    }
+
     if (outputWindowID) {
       commandOptions.add("-W");
     }
@@ -907,11 +926,7 @@ public class ImodProcess {
     if (useModv) {
       commandOptions.add("-view");
     }
-    /*
-    if (debug) {
-      commandOptions.add("-DC");
-    }
-*/
+    /* if (debug) { commandOptions.add("-DC"); } */
     if (binning > defaultBinning
         || (menuOptions.isBinBy2() && menuOptions.isAllowBinningInZ())) {
       commandOptions.add("-B");
@@ -964,8 +979,16 @@ public class ImodProcess {
       }
     }
 
-    if (openWithModel && !modelName.equals("")) {
-      commandOptions.add(modelName);
+    if (openWithModel) {
+      if (!modelName.equals("")) {
+        commandOptions.add(modelName);
+      }
+      if (modelNameList != null) {
+        Iterator<String> i = modelNameList.iterator();
+        while (i.hasNext()) {
+          commandOptions.add(i.next());
+        }
+      }
     }
 
     String[] commandArray = new String[commandOptions.size()];
@@ -1004,8 +1027,12 @@ public class ImodProcess {
 
       // Check the stderr of the 3dmod process for the windowID and the
       String line;
+      if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+        System.err.println("ImodProcess:open " + Utilities.getDateTimeStamp(true));
+      }
+      Integer stderrRegId = stderr.register();
       while (imodThread.isAlive() && windowID.equals("")) {
-        while ((line = stderr.getQuickMessage()) != null) {
+        while ((line = stderr.getQuickMessage(stderrRegId)) != null) {
           if (line.indexOf("Window id = ") != -1) {
             String[] words = line.split("\\s+");
             if (words.length < 4) {
@@ -1015,12 +1042,11 @@ public class ImodProcess {
           }
         }
       }
-
       // If imod exited before getting the window report the problem to the user
       if (windowID.equals("") && outputWindowID) {
         String message = "3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
-        while ((line = stderr.getQuickMessage()) != null) {
+        while ((line = stderr.getQuickMessage(stderrRegId)) != null) {
           System.err.println(line);
           message = message + "stderr: " + line + "\n";
         }
@@ -1283,7 +1309,7 @@ public class ImodProcess {
     }
   }
 
-  public void setBeadfixerDiameter(long beadfixerDiameter) {
+  public void setBeadfixerDiameter(int beadfixerDiameter) {
     beadfixerDiameterSet = true;
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER,
         String.valueOf(beadfixerDiameter));
@@ -1537,7 +1563,6 @@ public class ImodProcess {
           message = message + "stderr: " + line + "\n";
           line = imodSendEvent.readStderr();
         }
-
         line = imodSendEvent.readStdout();
         while (line != null) {
           message = message + "stdout: " + line + "\n";
@@ -1610,6 +1635,8 @@ public class ImodProcess {
   private void sendCommands(String[] args, Vector imodReturnValues, boolean readResponse)
       throws IOException {
     MessageSender messageSender = new MessageSender(args, imodReturnValues, readResponse);
+    /* //patch for quicklistener shared queue problem try { Thread.sleep(200); } catch
+     * (InterruptedException e) { } */
     if (imodReturnValues == null) {
       new Thread(messageSender).start();
     }
@@ -1790,17 +1817,64 @@ public class ImodProcess {
   }
 
   /**
+   * Class to allow testing of the quick listener queue functionality in Stderr.
+   * @author sueh
+   *
+   */
+  static final class QuickListenerQueueTestWrapper {
+    private final Stderr stderr = new Stderr();
+
+    QuickListenerQueueTestWrapper() {
+    }
+
+    int getExpectedRegistrants() {
+      return Stderr.EXPECTED_REGISTRANTS;
+    }
+
+    Integer register() {
+      return stderr.register();
+    }
+
+    int getPurgeSize() {
+      return Stderr.PURGE_SIZE;
+    }
+
+    void add(final String input) {
+      stderr.quickListenerQueue.add(input);
+    }
+
+    public String toString() {
+      return stderr.quickListenerQueue.toString();
+    }
+
+    String getQuickMessage(final Integer regId) {
+      return stderr.getQuickMessage(regId);
+    }
+
+    void purge() {
+      stderr.purgeQuickListenerQueue();
+    }
+  }
+
+  /**
    * Class to get messages from the stderr and place them in queues.  This is
    * only way that imod.stderr should be accessed.
    * @author sueh
    *
    */
   private static final class Stderr {
+    private static final int EXPECTED_REGISTRANTS = 2;
+    private static final int PURGE_SIZE = 10;
+
+    /**
+     * Contains an id and the last index used to read quickListenerQueue.
+     */
+    private final Map<Integer, EtomoNumber> registration = new HashMap<Integer, EtomoNumber>();
     /**
      * Queue to hold returned data that was requested by etomo, and also error
      * messages.  Also contains miscellaneous messages that can be ignored.
      */
-    private final Queue quickListenerQueue = new LinkedList();
+    private final List<String> quickListenerQueue = new ArrayList<String>();
 
     /**
      * Queue to hold information from 3dmod.  These messages are requested by
@@ -1815,6 +1889,8 @@ public class ImodProcess {
     private final Queue requestQueue = new LinkedList();
 
     private InteractiveSystemProgram imod = null;
+    private boolean receivedInterruptedException = false;
+    private int regId = -1;
 
     private Stderr() {
     }
@@ -1824,13 +1900,72 @@ public class ImodProcess {
     }
 
     /**
-     * Removes and returns one message from the quickListenerQueue, or null if
+    * Creates a new id and adds it to registration.  Returns the id.
+    * @return
+    */
+    private synchronized Integer register() {
+      Integer id = new Integer(++regId);
+      EtomoNumber index = new EtomoNumber();
+      index.set(-1);
+      registration.put(id, index);
+      return id;
+    }
+
+    /**
+     * Returns one line from the quickListenerQueue, or null if
      * the queue is empty.
      * @return
      */
-    private String getQuickMessage() {
+    private synchronized String getQuickMessage(final Integer regId) {
+      int queueSize = quickListenerQueue.size();
       readStderr();
-      return (String) quickListenerQueue.poll();
+      EtomoNumber index = registration.get(regId);
+      // Read a string from the queue, if there is anything left to read.
+      if (index.lt(quickListenerQueue.size() - 1)) {
+        // Increment the index.
+        index.add(1);
+        return quickListenerQueue.get(index.getInt());
+      }
+      return null;
+    }
+
+    /**
+     * Don't let the quick listener queue grow too big.  Make sure that all interested
+     * parties are registered before doing any purging.  This function is not efficient at
+     * all but it isn't likely to be used very much.  To make it efficient, make in the
+     * quick listener queue a real link list.
+     * much.
+     */
+    private synchronized void purgeQuickListenerQueue() {
+      if (registration.size() < EXPECTED_REGISTRANTS
+          || quickListenerQueue.size() < PURGE_SIZE) {
+        return;
+      }
+      Iterator<Map.Entry<Integer, EtomoNumber>> i = registration.entrySet().iterator();
+      // Get the lowest index, which is the last string that all the registrants have
+      // read.
+      int readByAllIndex = -1;
+      if (i.hasNext()) {
+        readByAllIndex = i.next().getValue().getInt();
+        while (i.hasNext()) {
+          readByAllIndex = Math.min(readByAllIndex, i.next().getValue().getInt());
+        }
+      }
+      // Purging is expensive - decide if its worth purging.
+      if (readByAllIndex >= PURGE_SIZE / 2) {
+        for (int j = 0; j <= readByAllIndex; j++) {
+          quickListenerQueue.remove(0);
+        }
+        // Now all the indexes are wrong - fix them.
+        i = registration.entrySet().iterator();
+        // Get the lowest index, which is the last string that all the registrants have
+        // read.
+        while (i.hasNext()) {
+          EtomoNumber index = i.next().getValue();
+          // Reduce the saved indices by the number of elements that where removed.
+          index.set(index.getInt() - readByAllIndex - 1);
+        }
+      }
     }
 
     /**
@@ -1866,6 +2001,7 @@ public class ImodProcess {
         Thread.sleep(500);
       }
       catch (InterruptedException e) {
+        receivedInterruptedException = true;
       }
       if (imod == null) {
         return;
@@ -1884,6 +2020,7 @@ public class ImodProcess {
         }
         else {
           quickListenerQueue.add(message);
+          purgeQuickListenerQueue();
         }
       }
     }
@@ -1931,6 +2068,10 @@ public class ImodProcess {
      */
     public synchronized void run() {
       try {
+        if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+          System.err
+              .println("ContinuousListener:run " + Utilities.getDateTimeStamp(true));
+        }
         do {
           Thread.sleep(500);
           String message = stderr.getContinuousMessage();
@@ -1994,6 +2135,10 @@ public class ImodProcess {
             }
             return;
           }
+          if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+            System.err.println("ImodProcess:MessageSender:run:Setting stdin "
+                + Utilities.getDateTimeStamp(true));
+          }
           imod.setCurrentStdInput(buffer.toString());
         }
         catch (IOException exception) {
@@ -2028,13 +2173,17 @@ public class ImodProcess {
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
+      if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+        System.err.println("ImodProcess:MessageSender:readResponse "
+            + Utilities.getDateTimeStamp(true));
+      }
       for (int timeout = 0; timeout < 30; timeout++) {
         if (responseReceived) {
           break;
         }
         // process response
         boolean failure = false;
-        while ((response = stderr.getQuickMessage()) != null) {
+        while ((response = stderr.getQuickMessage(messageSenderRegId)) != null) {
           responseReceived = true;
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
             System.err.println(response);
@@ -2063,6 +2212,10 @@ public class ImodProcess {
       }
       if (!responseReceived) {
         if (isRunning()) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()
+              && stderr.receivedInterruptedException) {
+            System.err.println("\nsleep interrupted");
+          }
           // no response received and 3dmod is running - "throw" exception
           SystemProcessException exception = new SystemProcessException(
               "No response received from 3dmod.  datasetName=" + datasetName
@@ -2110,10 +2263,9 @@ public class ImodProcess {
     static final String OPTION = "-E";
 
     static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O", true);
-
     static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U", true);
-
     static final WindowOpenOption OBJECT_LIST = new WindowOpenOption("L", true);
+    static final WindowOpenOption MODEL_EDIT = new WindowOpenOption("M", true);
 
     private final String windowKey;
 

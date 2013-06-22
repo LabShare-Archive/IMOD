@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <math.h>
@@ -173,7 +172,7 @@ void lsFitPred(float *x, float *y, int n, float *slope, float *bint, float *ro,
                float xpred, float *ypred, float *prederr)
 {
   double sx, sy, xbar, ybar,sxpsq, sxyp, sypsq, d, roden;
-  double sxy, sysq, rotmp, setmp, xp, yp;
+  double sxy, sysq, setmp, xp, yp;
   int i;
   *slope = 1.;
   *bint = *ro = *sa = *sb = *se = *ypred = *prederr = 0.;
@@ -202,9 +201,8 @@ void lsFitPred(float *x, float *y, int n, float *slope, float *bint, float *ro,
   *bint=(float)((ybar*sxpsq-xbar*sxyp)/sxpsq);
   roden=sqrt(sxpsq*sypsq);
   *ro=1.;
-  rotmp=sxyp/roden;
-  if(roden != 0. && rotmp >= -1. && rotmp <= 1.)
-    *ro=(float)rotmp;
+  if(roden != 0. && fabs(sxyp) <= fabs(roden))
+    *ro = sxyp/roden;
   *se=0.;
   sxy=sxyp+n*xbar*ybar;
   sysq=sypsq+n*ybar*ybar;
@@ -436,30 +434,39 @@ void lsfit3(float *x1, float *x2, float *x3, float *y, int *n, float *a1,
   lsFit3(x1, x2, x3, y, *n, a1, a2, a3, c);
 }
 
-
-/*
-
-$Log$
-Revision 1.7  2010/06/02 21:20:12  mast
-Added lsFit3
-
-Revision 1.6  2008/11/15 00:44:59  mast
-Fix defines for Windows wrappers
-
-Revision 1.5  2008/11/14 20:44:53  mast
-Fix another call in wrapper, eliminate warnings
-
-Revision 1.4  2008/11/14 20:41:06  mast
-Fix it right!
-
-Revision 1.3  2008/11/14 20:40:15  mast
-Switched name of call from avgsd
-
-Revision 1.2  2008/11/14 20:38:03  mast
-Change to remove b3dutil include
-
-Revision 1.1  2008/11/14 19:58:56  mast
-Switched to C versions
-
-
-*/
+/*!
+ * Sorts eigenvalues in [val] into descending order and rearranges their eigenvectors in
+ * [vec] so that they still correspond.  [n] is the number of dimensions, [rowStride] is
+ * the index step between succcessive elements of an eigenvector, and [colStride] is the
+ * index step between successive eigenvectors.  Set [useAbs] nonzero to sort on the 
+ * absolute value of the eigenvalues.  For eigenvectors from LAPACK, set [rowStride] to
+ * 1 and [colStride] to the leading dimension of the vector array; for eigenvectors from
+ * dsyevh3 and associated routines, set [rowStride] to [n] and [colStride] to 1.
+ */
+void eigenSort(double *val, double *vec, int n, int rowStride, int colStride, int useAbs)
+{
+  int k, j, i, imax;
+  double tmp;
+  for (i = 0; i < n - 1; i++) {
+    imax = i;
+    if (useAbs) {
+      for (j = i + 1; j < n; j++)
+        if (fabs(val[j]) > fabs(val[imax]))
+          imax = j;
+    } else {
+      for (j = i + 1; j < n; j++)
+        if (val[j] >= val[imax])
+          imax = j;
+    }
+    if (imax != i) {
+      tmp = val[i];
+      val[i] = val[imax];
+      val[imax] = tmp;
+      for (k = 0; k < n; k++) {
+        tmp = vec[k * rowStride + i * colStride];
+        vec[k * rowStride + i * colStride] = vec[k * rowStride + imax * colStride];
+        vec[k * rowStride + imax * colStride] = tmp;
+      }
+    }
+  }
+}

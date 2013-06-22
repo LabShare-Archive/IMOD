@@ -56,16 +56,8 @@ lacks a tag indicating that it is unsigned but the numbers do range above
 .B -k
 option.  
 .P
-If the program is run with version 4 of the TIFF library, it will read TIFF
+Since IMOD is distributed with version 4 of the TIFF library, the program will read TIFF
 files bigger than 2 GB, including ones in the BigTIFF format.
-In Linux, it is not necessary to have the program
-built against the version 4 library; the standard distributed program will run
-with this library, provided that libtiff.so.3 is a link to the
-version 4 library and is located in a directory on the LD_LIBRARY_PATH.  For
-example, if the directory with the version 4 library is on LD_LIBRARY_PATH,
-you can make a link in that directory with:
-.br
-   ln -s libtiff.so.5 libtiff.so.3
 
 .SS Options
 .TP
@@ -109,6 +101,13 @@ chosen incorrectly.
 With this option, the program will treat numbers as unsigned and output data
 into a file of mode 6 even if there is no tag indicating the data are unsigned.
 .TP
+.B -i
+Invert the order of sections in the output stack.  Either the multiple files
+or the pages of a a multi-page stack will be processed in inverted order to
+produce the output.  This option will preserve preserve handedness if the images being
+stacked are serial images obtained while cutting into a block face 
+and are in the same orientation as views looking down on the block.
+.TP
 .B -f
 If only one input file is given and it is a multi-page TIFF file, the program
 will convert all of the pages in the file into sections in an MRC file.  Use
@@ -129,10 +128,21 @@ range for the output data type (e.g., between 0 and 255 for byte output).  For
 color image output, the fill value will be used for red, green, and blue
 components.
 .TP
+.B -P
+Set the pixel spacing in the header of the output file from resolution values
+in the TIFF file, if any, regardless of the size of these values.  The default
+is to use a resolution value only if the resulting pixel size is no bigger
+that 1 micron.  This option is one way to override that limit.  To
+override the limit automatically, define the environment variable TIFF_RES_PIXEL_LIMIT
+to the desired limit, a floating point number in microns.  Pixel size is
+assigned from the size found in the first input file.
+.TP
 .B -p <#>
 Set the pixel spacing in the header of the output file to the given value.
 This spacing is defined as having units of Angstroms, but you can place
-arbitrary values there.
+arbitrary values there.  This option cannot be used with 
+.B -p
+and the entered value supercedes any resolution value in the TIFF file.
 .TP 
 .B -b file
 This option loads a background file in TIFF format.
@@ -140,6 +150,14 @@ If a background file is loaded its values are subtracted from
 the values in the rest of the files.
 The background file must have the same data type as the images from which
 it is being subtracted (8-bit or 16-bit grayscale).
+.TP
+.B -T <file>
+When the input files are produced by TVIPS data acquisition software (after
+October, 2012), this option can be used to output tilt angles, one per line,
+to the given file.  Regardless of whether this option is used, when the
+program recognizes such files, it will
+add a title to the header with the tilt axis rotation angle, binning, and spot
+size if available.
 .TP
 .B -m
 Turn off file-to-memory mapping in the TIFF library.  This mapping could be a

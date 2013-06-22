@@ -12,8 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
-import etomo.ui.swing.FiducialModelDialog;
-import etomo.util.DatasetFiles;
+import etomo.logic.TrackingMethod;
 import etomo.util.Utilities;
 
 /**
@@ -433,8 +432,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   private String datasetName = "";
   private String backupDirectory = "";
-  private String distortionFile = "";
-  private String magGradientFile = "";
+  private String distortionFile = null;
+  private String magGradientFile = null;
 
   private DataSource dataSource = DataSource.CCD;
   private ViewType viewType = ViewType.SINGLE_VIEW;
@@ -447,7 +446,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       "ImageRotationA");
   private EtomoNumber imageRotationB = new EtomoNumber(EtomoNumber.Type.DOUBLE,
       "ImageRotationB");
-  private int binning = 1;
+  EtomoNumber binning = new EtomoNumber("Binning");
 
   private boolean fiducialessAlignmentA = false;
   private boolean fiducialessAlignmentB = false;
@@ -456,10 +455,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   // Axis specific data
   private TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
-  private String excludeProjectionsA = "";
+  private String excludeProjectionsA = null;
 
   private TiltAngleSpec tiltAngleSpecB = new TiltAngleSpec();
-  private String excludeProjectionsB = "";
+  private String excludeProjectionsB = null;
   private EtomoBoolean2 useZFactorsA = new EtomoBoolean2("UseZFactorsA");
   private EtomoBoolean2 useZFactorsB = new EtomoBoolean2("UseZFactorsB");
   private EtomoBoolean2 adjustedFocusA = new EtomoBoolean2("AdjustedFocusA");
@@ -506,18 +505,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
       AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      AxisID.FIRST.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTilt");
+  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(AxisID.FIRST.getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
   private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
       AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".NoBeamTiltSelected");
   private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
       AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
           + ".FixedBeamTiltSelected");
-  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      AxisID.SECOND.getExtension() + "." + DialogType.FINE_ALIGNMENT.getStorableName()
-          + ".FixedBeamTilt");
+  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(AxisID.SECOND.getExtension()
+      + "." + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
   private final FortranInputString sizeToOutputInXandYA = new FortranInputString(2);
   private final FortranInputString sizeToOutputInXandYB = new FortranInputString(2);
   /**
@@ -580,8 +577,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + USE_KEY + RAW_STACK_KEY);
   private final EtomoNumber trackRaptorMarkA = new EtomoNumber(TRACK_KEY + "."
       + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + MARK_KEY);
-  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(EtomoNumber.Type.LONG,
-      TRACK_KEY + "." + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + DIAM_KEY);
+  private final EtomoNumber trackRaptorDiamA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + "." + RAPTOR_KEY + "." + DIAM_KEY);
 
   private final EtomoBoolean2 stackEraseGoldModelUseFidA = new EtomoBoolean2(STACK_KEY
       + "." + FIRST_AXIS_KEY + "." + ERASE_GOLD_KEY + "." + MODEL_USE_FID_KEY);
@@ -746,13 +743,72 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoBoolean2 eraseBeadsInitialized = new EtomoBoolean2(STACK_KEY
       + ".EraseBeadsInitialized");
 
+  private final EtomoBoolean2 trackSeedModelManualA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".SeedModel.Manual");
+  private final EtomoBoolean2 trackSeedModelManualB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".SeedModel.Manual");
+  private final EtomoBoolean2 trackSeedModelAutoA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".SeedModel.Auto");
+  private final EtomoBoolean2 trackSeedModelAutoB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".SeedModel.Auto");
+  private final EtomoBoolean2 trackSeedModelTransferA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".SeedModel.Transfer");
+  private final EtomoBoolean2 trackSeedModelTransferB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".SeedModel.Transfer");
+  private final EtomoBoolean2 trackExcludeInsideAreasA = new EtomoBoolean2(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + ".ExcludeInsideAreas");
+  private final EtomoBoolean2 trackExcludeInsideAreasB = new EtomoBoolean2(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + ".ExcludeInsideAreas");
+  private final EtomoNumber trackTargetNumberOfBeadsA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".TargetNumberOfBeads");
+  private final EtomoNumber trackTargetNumberOfBeadsB = new EtomoNumber(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".TargetNumberOfBeads");
+  private final EtomoNumber trackTargetDensityOfBeadsA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, TRACK_KEY + "." + FIRST_AXIS_KEY + ".TargetDensityOfBeads");
+  private final EtomoNumber trackTargetDensityOfBeadsB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, TRACK_KEY + "." + SECOND_AXIS_KEY
+          + ".TargetDensityOfBeads");
+  private final EtomoBoolean2 trackClusteredPointsAllowedElongatedA = new EtomoBoolean2(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + ".ClusteredPointsAllowed.Elongated");
+  private final EtomoBoolean2 trackClusteredPointsAllowedElongatedB = new EtomoBoolean2(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + ".ClusteredPointsAllowed.Elongated");
+  private final EtomoNumber trackClusteredPointsAllowedElongatedValueA = new EtomoNumber(
+      TRACK_KEY + "." + FIRST_AXIS_KEY + ".ClusteredPointsAllowed.Elongated.Value");
+  private final EtomoNumber trackClusteredPointsAllowedElongatedValueB = new EtomoNumber(
+      TRACK_KEY + "." + SECOND_AXIS_KEY + ".ClusteredPointsAllowed.Elongated.Value");
+  private final EtomoBoolean2 trackAdvancedA = new EtomoBoolean2(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".Advanced");
+  private final EtomoBoolean2 trackAdvancedB = new EtomoBoolean2(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".Advanced");
+
+  // stack3dFindThickness must override the .com file values when it is not null
+  private final EtomoNumber stack3dFindThicknessA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, STACK_KEY + "." + FIRST_AXIS_KEY + ".3dFind.Thickness");
+  private final EtomoNumber stack3dFindThicknessB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, STACK_KEY + "." + SECOND_AXIS_KEY + ".3dFind.Thickness");
+  private final EtomoBoolean2 setFEIPixelSize = new EtomoBoolean2("SetFEIPixelSize");
+  private final EtomoBoolean2 postTrimvolNewStyleZ = new EtomoBoolean2(POST_KEY
+      + "Trimvol.NewStyleZ");
+  private final EtomoBoolean2 postTrimvolScalingNewStyleZ = new EtomoBoolean2(POST_KEY
+      + "Trimvol.Scaling.NewStyleZ");
+  private final FortranInputString stackCtfAutoFitRangeAndStepA = new FortranInputString(
+      2);
+  private final FortranInputString stackCtfAutoFitRangeAndStepB = new FortranInputString(
+      2);
+  private final StringProperty origScopeTemplate = new StringProperty(
+      "Orig.ScopeTemplate");
+  private final StringProperty origSystemTemplate = new StringProperty(
+      "Orig.SystemTemplate");
+  private final StringProperty origUserTemplate = new StringProperty("Orig.UserTemplate");
+
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
+    binning.setDisplayValue(1);
     squeezevolParam = new SqueezevolParam(manager);
     combineParams = new CombineParams(manager);
     transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
     transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
-    fileExtension = DatasetFiles.RECON_DATA_FILE_EXT;
+    fileExtension = DataFileType.RECON.extension;
     useZFactorsA.setDisplayValue(true);
     useZFactorsB.setDisplayValue(true);
     sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
@@ -774,13 +830,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     posBinningB.setDisplayValue(3);
     stackBinningA.setDisplayValue(1);
     stackBinningB.setDisplayValue(1);
-    stack3dFindBinningA.setDisplayValue(1);
-    stack3dFindBinningB.setDisplayValue(1);
 
     stackEraseGoldModelUseFidA.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
     stackEraseGoldModelUseFidB.setDisplayValue(ERASE_GOLD_MODEL_USE_FID_DEFAULT);
     genBackProjectionA.setDisplayValue(true);
     genBackProjectionB.setDisplayValue(true);
+    stackCtfAutoFitRangeAndStepA.setPropertiesKey(STACK_KEY + "." + FIRST_AXIS_KEY
+        + ".CTF.AutoFit.RangeAndStep");
+    stackCtfAutoFitRangeAndStepA.setPropertiesKey(STACK_KEY + "." + SECOND_AXIS_KEY
+        + ".CTF.AutoFit.RangeAndStep");
   }
 
   /**
@@ -788,10 +846,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * end of the string
    */
   public void setDatasetName(final String fileName) {
-    String pathName = fileName.trim();
-    File file = new File(pathName);
-    String path = file.getPath();
-    datasetName = file.getName();
+    // Trim off the path, if it exists
+    datasetName = new File(fileName).getName();
     fixDatasetName();
     Utilities.managerStamp(null, datasetName);
   }
@@ -911,15 +967,130 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * end of the string
    */
   public void setBackupDirectory(final String backupDir) {
-    backupDirectory = backupDir.trim();
+    if (backupDir == null) {
+      backupDirectory = "";
+    }
+    else {
+      backupDirectory = backupDir.trim();
+    }
   }
 
   public void setDistortionFile(final String distortionFile) {
     this.distortionFile = distortionFile;
   }
-  
+
   public void setEraseBeadsInitialized(final boolean input) {
     eraseBeadsInitialized.set(input);
+  }
+
+  public void setTrackSeedModelManual(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackSeedModelManualB.set(input);
+    }
+    else {
+      trackSeedModelManualA.set(input);
+    }
+  }
+
+  public void setTrackSeedModelAuto(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackSeedModelAutoB.set(input);
+    }
+    else {
+      trackSeedModelAutoA.set(input);
+    }
+  }
+
+  public void setTrackSeedModelTransfer(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackSeedModelTransferB.set(input);
+    }
+    else {
+      trackSeedModelTransferA.set(input);
+    }
+  }
+
+  public void setTrackExcludeInsideAreas(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackExcludeInsideAreasB.set(input);
+    }
+    else {
+      trackExcludeInsideAreasA.set(input);
+    }
+  }
+
+  public void setTrackTargetNumberOfBeads(final String input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackTargetNumberOfBeadsB.set(input);
+    }
+    else {
+      trackTargetNumberOfBeadsA.set(input);
+    }
+  }
+
+  public void setTrackTargetDensityOfBeads(final String input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackTargetDensityOfBeadsB.set(input);
+    }
+    else {
+      trackTargetDensityOfBeadsA.set(input);
+    }
+  }
+
+  public void setTrackClusteredPointsAllowedElongated(final boolean input,
+      final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackClusteredPointsAllowedElongatedB.set(input);
+    }
+    else {
+      trackClusteredPointsAllowedElongatedA.set(input);
+    }
+  }
+
+  public void setTrackClusteredPointsAllowedElongatedValue(final Number input,
+      final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackClusteredPointsAllowedElongatedValueB.set(input);
+    }
+    else {
+      trackClusteredPointsAllowedElongatedValueA.set(input);
+    }
+  }
+
+  public void setTrackAdvanced(final boolean input, final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      trackAdvancedB.set(input);
+    }
+    else {
+      trackAdvancedA.set(input);
+    }
+  }
+
+  public void setStack3dFindThickness(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      stack3dFindThicknessB.set(input);
+    }
+    else {
+      stack3dFindThicknessA.set(input);
+    }
+  }
+
+  public void setSetFEIPixelSize(final boolean input) {
+    setFEIPixelSize.set(input);
+  }
+
+  public void setPostTrimvolNewStyleZ(final String uiZMin, final String uiZMax) {
+    if (postTrimvolNewStyleZ.isNull() || !postTrimvolNewStyleZ.is()) {
+      postTrimvolNewStyleZ.set(!postTrimvolZMin.equals(uiZMin)
+          || !postTrimvolZMax.equals(uiZMax));
+    }
+  }
+
+  public void setPostTrimvolScalingNewStyleZ(final String uiZMin, final String uiZMax) {
+    if (postTrimvolScalingNewStyleZ.isNull() || !postTrimvolScalingNewStyleZ.is()) {
+      postTrimvolScalingNewStyleZ.set(!postTrimvolSectionScaleMin.equals(uiZMin)
+          || !postTrimvolSectionScaleMax.equals(uiZMax));
+    }
   }
 
   public void setMagGradientFile(final String magGradientFile) {
@@ -948,7 +1119,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setPixelSize(final String pixelSize) {
-    this.pixelSize = Double.parseDouble(pixelSize);
+    if (pixelSize != null && !pixelSize.matches("\\s*")) {
+      this.pixelSize = Double.parseDouble(pixelSize);
+    }
+    else {
+      this.pixelSize = Double.NaN;
+    }
   }
 
   public void setUseLocalAlignments(final AxisID axisID, final boolean state) {
@@ -984,7 +1160,53 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setOrigScopeTemplate(final File input) {
+    if (input == null) {
+      origScopeTemplate.reset();
+    }
+    else {
+      origScopeTemplate.set(input.getAbsolutePath());
+    }
+  }
+
+  public void setOrigSystemTemplate(final File input) {
+    if (input == null) {
+      origSystemTemplate.reset();
+    }
+    else {
+      origSystemTemplate.set(input.getAbsolutePath());
+    }
+  }
+
+  public void setOrigUserTemplate(final File input) {
+    if (input == null) {
+      origUserTemplate.reset();
+    }
+    else {
+      origUserTemplate.set(input.getAbsolutePath());
+    }
+  }
+
+  public void setStackCtfAutoFitRangeAndStep(final AxisID axisID, final String input)
+      throws FortranInputSyntaxException {
+    if (axisID == AxisID.SECOND) {
+      stackCtfAutoFitRangeAndStepB.validateAndSet(input);
+    }
+    else {
+      stackCtfAutoFitRangeAndStepA.validateAndSet(input);
+    }
+  }
+
   public void setPosBinning(final AxisID axisID, final int binning) {
+    if (axisID == AxisID.SECOND) {
+      posBinningB.set(binning);
+    }
+    else {
+      posBinningA.set(binning);
+    }
+  }
+
+  public void setPosBinning(final AxisID axisID, final String binning) {
     if (axisID == AxisID.SECOND) {
       posBinningB.set(binning);
     }
@@ -1002,7 +1224,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setStackBinning(final AxisID axisID, final String binning) {
+    if (axisID == AxisID.SECOND) {
+      stackBinningB.set(binning);
+    }
+    else {
+      stackBinningA.set(binning);
+    }
+  }
+
   public void setStack3dFindBinning(final AxisID axisID, final int binning) {
+    if (axisID == AxisID.SECOND) {
+      stack3dFindBinningB.set(binning);
+    }
+    else {
+      stack3dFindBinningA.set(binning);
+    }
+  }
+
+  public void setStack3dFindBinning(final AxisID axisID, final String binning) {
     if (axisID == AxisID.SECOND) {
       stack3dFindBinningB.set(binning);
     }
@@ -1143,7 +1383,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setFiducialDiameter(final String fiducialDiameter) {
-    this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
+    if (fiducialDiameter == null || fiducialDiameter.matches("\\s*")) {
+      this.fiducialDiameter = Double.NaN;
+    }
+    else {
+      this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
+    }
   }
 
   public void setImageRotation(final String rotation, final AxisID axisID) {
@@ -1155,8 +1400,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setBinning(final Number binning) {
-    this.binning = binning.intValue();
+  public void setBinning(final String binning) {
+    this.binning.set(binning);
   }
 
   public void setTiltAngleSpecA(final TiltAngleSpec tiltAngleSpec) {
@@ -1164,6 +1409,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public void setExcludeProjections(final String list, final AxisID axisID) {
+    if (list == null) {
+      if (axisID == AxisID.SECOND) {
+        excludeProjectionsB = null;
+      }
+      else {
+        excludeProjectionsA = null;
+      }
+      return;
+    }
     // Strip whitespace.
     String[] array = list.trim().split("\\s+");
     if (array != null && array.length > 1) {
@@ -1175,16 +1429,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         excludeProjectionsB = buffer.toString();
       }
       else {
-        excludeProjectionsB = buffer.toString();
+        excludeProjectionsA = buffer.toString();
       }
     }
+    else if (axisID == AxisID.SECOND) {
+      excludeProjectionsB = list.trim();
+    }
     else {
-      if (axisID == AxisID.SECOND) {
-        excludeProjectionsB = list.trim();
+      excludeProjectionsA = list.trim();
+    }
+    if (axisID == AxisID.SECOND) {
+      if (excludeProjectionsB.matches("\\s*")) {
+        excludeProjectionsB = null;
       }
-      else {
-        excludeProjectionsA = list.trim();
-      }
+    }
+    else if (excludeProjectionsA.matches("\\s*")) {
+      excludeProjectionsA = null;
     }
   }
 
@@ -1326,9 +1586,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     super.load(props, prepend);
     // reset
     revisionNumber.reset();
-    distortionFile = "";
-    magGradientFile = "";
-    binning = 1;
+    distortionFile = null;
+    magGradientFile = null;
+    binning.reset();
     useLocalAlignmentsA = true;
     useLocalAlignmentsB = true;
     useZFactorsA.reset();
@@ -1455,6 +1715,30 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleYMin.reset();
     postTrimvolScaleYMax.reset();
     eraseBeadsInitialized.reset();
+
+    trackSeedModelManualA.reset();
+    trackSeedModelManualB.reset();
+    trackSeedModelAutoA.reset();
+    trackSeedModelAutoB.reset();
+    trackSeedModelTransferA.reset();
+    trackSeedModelTransferB.reset();
+    trackExcludeInsideAreasA.reset();
+    trackExcludeInsideAreasB.reset();
+    trackTargetNumberOfBeadsA.reset();
+    trackTargetNumberOfBeadsB.reset();
+    trackTargetDensityOfBeadsA.reset();
+    trackTargetDensityOfBeadsB.reset();
+    trackClusteredPointsAllowedElongatedA.reset();
+    trackClusteredPointsAllowedElongatedB.reset();
+    trackClusteredPointsAllowedElongatedValueA.reset();
+    trackClusteredPointsAllowedElongatedValueB.reset();
+    trackAdvancedA.reset();
+    trackAdvancedB.reset();
+    stack3dFindThicknessA.reset();
+    stack3dFindThicknessB.reset();
+    setFEIPixelSize.reset();
+    postTrimvolNewStyleZ.reset();
+    postTrimvolScalingNewStyleZ.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -1488,7 +1772,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.10"))) {
       trackUseRaptorA.load(props, prepend);
       if (trackUseRaptorA.is()) {
-        trackMethodA.set(FiducialModelDialog.MethodEnumeratedType.RAPTOR.toString());
+        trackMethodA.set(TrackingMethod.RAPTOR.toString());
       }
     }
     else {
@@ -1567,14 +1851,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
     dataSource = DataSource.fromString(props.getProperty(group + "DataSource", "CCD"));
     viewType = ViewType.fromString(props.getProperty(group + "ViewType", "Single View"));
-    pixelSize = Double.parseDouble(props.getProperty(group + "PixelSize", "0.0"));
-
+    String property = props.getProperty(group + "PixelSize");
+    if (property == null || property.matches("\\s*")) {
+      pixelSize = Double.NaN;
+    }
+    else {
+      pixelSize = Double.parseDouble(property);
+    }
     useLocalAlignmentsA = Boolean.valueOf(
         props.getProperty(group + "UseLocalAlignmentsA", "true")).booleanValue();
     useLocalAlignmentsB = Boolean.valueOf(
         props.getProperty(group + "UseLocalAlignmentsB", "true")).booleanValue();
-    fiducialDiameter = Double.parseDouble(props.getProperty(group + "FiducialDiameter",
-        "0.0"));
+    property = props.getProperty(group + "FiducialDiameter");
+    if (property == null || property.matches("\\s*")) {
+      fiducialDiameter = Double.NaN;
+    }
+    else {
+      fiducialDiameter = Double.parseDouble(property);
+    }
 
     // Read in the old single image rotation or the newer separate image
     // rotation for each axis
@@ -1587,16 +1881,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (imageRotationB.isNull()) {
       imageRotationB.set(strOldRotation);
     }
-    excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections", "");
+    excludeProjectionsA = props.getProperty(group + "AxisA.ExcludeProjections", null);
     tiltAngleSpecA.load(props, group + "AxisA");
 
-    excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections", "");
+    excludeProjectionsB = props.getProperty(group + "AxisB.ExcludeProjections", null);
     tiltAngleSpecB.load(props, group + "AxisB");
     combineParams.load(props, group);
-    distortionFile = props.getProperty(group + "DistortionFile", distortionFile);
-    magGradientFile = props.getProperty(group + "MagGradientFile", magGradientFile);
-    binning = Integer.parseInt(props.getProperty(group + "Binning",
-        Integer.toString(binning)));
+    distortionFile = props.getProperty(group + "DistortionFile");
+    magGradientFile = props.getProperty(group + "MagGradientFile");
+    binning.load(props, prepend);
 
     fiducialessAlignmentA = Boolean.valueOf(
         props.getProperty(group + "FiducialessAlignmentA", "false")).booleanValue();
@@ -1721,7 +2014,36 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         TILT_3D_FIND_A_TILT_PARALLEL_KEY, props, prepend);
     tilt3dFindTiltParallelB = EtomoBoolean2.load(tilt3dFindTiltParallelB,
         TILT_3D_FIND_B_TILT_PARALLEL_KEY, props, prepend);
-    eraseBeadsInitialized.load(props,prepend);
+    eraseBeadsInitialized.load(props, prepend);
+
+    trackSeedModelManualA.load(props, prepend);
+    trackSeedModelManualB.load(props, prepend);
+    trackSeedModelAutoA.load(props, prepend);
+    trackSeedModelAutoB.load(props, prepend);
+    trackSeedModelTransferA.load(props, prepend);
+    trackSeedModelTransferB.load(props, prepend);
+    trackExcludeInsideAreasA.load(props, prepend);
+    trackExcludeInsideAreasB.load(props, prepend);
+    trackTargetNumberOfBeadsA.load(props, prepend);
+    trackTargetNumberOfBeadsB.load(props, prepend);
+    trackTargetDensityOfBeadsA.load(props, prepend);
+    trackTargetDensityOfBeadsB.load(props, prepend);
+    trackClusteredPointsAllowedElongatedA.load(props, prepend);
+    trackClusteredPointsAllowedElongatedB.load(props, prepend);
+    trackClusteredPointsAllowedElongatedValueA.load(props, prepend);
+    trackClusteredPointsAllowedElongatedValueB.load(props, prepend);
+    trackAdvancedA.load(props, prepend);
+    trackAdvancedB.load(props, prepend);
+    stack3dFindThicknessA.load(props, prepend);
+    stack3dFindThicknessB.load(props, prepend);
+    setFEIPixelSize.load(props, prepend);
+    postTrimvolNewStyleZ.load(props, prepend);
+    postTrimvolScalingNewStyleZ.load(props, prepend);
+    stackCtfAutoFitRangeAndStepA.load(props, prepend);
+    stackCtfAutoFitRangeAndStepB.load(props, prepend);
+    origScopeTemplate.load(props, prepend);
+    origSystemTemplate.load(props, prepend);
+    origUserTemplate.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -1858,11 +2180,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return secondAxisPrepend;
   }
 
-  String createPrepend(final String prepend) {
-    if (prepend.equals("")) {
-      return "Setup";
+  String getGroupKey() {
+    return "Setup";
+  }
+
+  private void setProperty(final Properties props, final String group, final String key,
+      final String value) {
+    if (value == null) {
+      props.remove(group + key);
     }
-    return prepend + ".Setup";
+    else {
+      props.setProperty(group + key, value);
+    }
   }
 
   /**
@@ -1872,40 +2201,50 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     super.store(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
-    props.setProperty(group + "RevisionNumber", latestRevisionNumber);
-    props.setProperty(group + "ComScriptsCreated", String.valueOf(comScriptsCreated));
-    props.setProperty(group + "DatasetName", datasetName);
-    props.setProperty(group + "BackupDirectory", backupDirectory);
+    setProperty(props, group, "RevisionNumber", latestRevisionNumber);
+    setProperty(props, group, "ComScriptsCreated", String.valueOf(comScriptsCreated));
+    setProperty(props, group, "DatasetName", datasetName);
+    setProperty(props, group, "BackupDirectory", backupDirectory);
 
-    props.setProperty(group + "DataSource", dataSource.toString());
-    props.setProperty(group + "AxisType", axisType.toString());
-    props.setProperty(group + "ViewType", viewType.toString());
+    setProperty(props, group, "DataSource", dataSource.toString());
+    setProperty(props, group, "AxisType", axisType.toString());
+    setProperty(props, group, "ViewType", viewType.toString());
 
-    props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
-    props.setProperty(group + "UseLocalAlignmentsA", String.valueOf(useLocalAlignmentsA));
-    props.setProperty(group + "UseLocalAlignmentsB", String.valueOf(useLocalAlignmentsB));
-    props.setProperty(group + "FiducialDiameter", String.valueOf(fiducialDiameter));
-    props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
-    props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
+    setProperty(props, group, "PixelSize", String.valueOf(pixelSize));
+    setProperty(props, group, "UseLocalAlignmentsA", String.valueOf(useLocalAlignmentsA));
+    setProperty(props, group, "UseLocalAlignmentsB", String.valueOf(useLocalAlignmentsB));
+    setProperty(props, group, "FiducialDiameter", String.valueOf(fiducialDiameter));
+    setProperty(props, group, "ImageRotationA", String.valueOf(imageRotationA));
+    setProperty(props, group, "ImageRotationB", String.valueOf(imageRotationB));
     tiltAngleSpecA.store(props, group + "AxisA");
-    props.setProperty(group + "AxisA.ExcludeProjections",
-        String.valueOf(excludeProjectionsA));
+    if (excludeProjectionsA == null) {
+      props.remove(group + "AxisA.ExcludeProjections");
+    }
+    else {
+      setProperty(props, group, "AxisA.ExcludeProjections",
+          String.valueOf(excludeProjectionsA));
+    }
 
     tiltAngleSpecB.store(props, group + "AxisB");
-    props.setProperty(group + "AxisB.ExcludeProjections",
-        String.valueOf(excludeProjectionsB));
+    if (excludeProjectionsB == null) {
+      props.remove(group + "AxisB.ExcludeProjections");
+    }
+    else {
+      setProperty(props, group, "AxisB.ExcludeProjections",
+          String.valueOf(excludeProjectionsB));
+    }
 
     combineParams.store(props, group);
-    props.setProperty(group + "DistortionFile", distortionFile);
-    props.setProperty(group + "MagGradientFile", magGradientFile);
-    props.setProperty(group + "Binning", String.valueOf(binning));
-    props.setProperty(group + "FiducialessAlignmentA",
+    setProperty(props, group, "DistortionFile", distortionFile);
+    setProperty(props, group, "MagGradientFile", magGradientFile);
+    binning.store(props, prepend);
+    setProperty(props, group, "FiducialessAlignmentA",
         String.valueOf(fiducialessAlignmentA));
-    props.setProperty(group + "FiducialessAlignmentB",
+    setProperty(props, group, "FiducialessAlignmentB",
         String.valueOf(fiducialessAlignmentB));
-    props.setProperty(group + "WholeTomogramSampleA",
+    setProperty(props, group, "WholeTomogramSampleA",
         String.valueOf(wholeTomogramSampleA));
-    props.setProperty(group + "WholeTomogramSampleB",
+    setProperty(props, group, "WholeTomogramSampleB",
         String.valueOf(wholeTomogramSampleB));
     squeezevolParam.store(props, prepend);
     useZFactorsA.store(props, prepend);
@@ -1939,10 +2278,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sampleThicknessB.store(props, prepend);
     fiducialessA.store(props, prepend);
     fiducialessB.store(props, prepend);
-    props.setProperty(
-        group + "tiltalign." + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
-        targetPatchSizeXandY);
-    props.setProperty(group + "tiltalign."
+    setProperty(props, group,
+        "tiltalign." + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
+    setProperty(props, group, "tiltalign."
         + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY, numberOfLocalPatchesXandY);
     noBeamTiltSelectedA.store(props, prepend);
     fixedBeamTiltSelectedA.store(props, prepend);
@@ -2039,7 +2377,36 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleXMax.store(props, prepend);
     postTrimvolScaleYMin.store(props, prepend);
     postTrimvolScaleYMax.store(props, prepend);
-    eraseBeadsInitialized.store(props,prepend);
+    eraseBeadsInitialized.store(props, prepend);
+
+    trackSeedModelManualA.store(props, prepend);
+    trackSeedModelManualB.store(props, prepend);
+    trackSeedModelAutoA.store(props, prepend);
+    trackSeedModelAutoB.store(props, prepend);
+    trackSeedModelTransferA.store(props, prepend);
+    trackSeedModelTransferB.store(props, prepend);
+    trackExcludeInsideAreasA.store(props, prepend);
+    trackExcludeInsideAreasB.store(props, prepend);
+    trackTargetNumberOfBeadsA.store(props, prepend);
+    trackTargetNumberOfBeadsB.store(props, prepend);
+    trackTargetDensityOfBeadsA.store(props, prepend);
+    trackTargetDensityOfBeadsB.store(props, prepend);
+    trackClusteredPointsAllowedElongatedA.store(props, prepend);
+    trackClusteredPointsAllowedElongatedB.store(props, prepend);
+    trackClusteredPointsAllowedElongatedValueA.store(props, prepend);
+    trackClusteredPointsAllowedElongatedValueB.store(props, prepend);
+    trackAdvancedA.store(props, prepend);
+    trackAdvancedB.store(props, prepend);
+    stack3dFindThicknessA.store(props, prepend);
+    stack3dFindThicknessB.store(props, prepend);
+    setFEIPixelSize.store(props, prepend);
+    postTrimvolNewStyleZ.store(props, prepend);
+    postTrimvolScalingNewStyleZ.store(props, prepend);
+    stackCtfAutoFitRangeAndStepA.store(props, prepend);
+    stackCtfAutoFitRangeAndStepB.store(props, prepend);
+    origScopeTemplate.store(props, prepend);
+    origSystemTemplate.store(props, prepend);
+    origUserTemplate.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2529,6 +2896,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public String getDistortionFile() {
+    if (distortionFile == null) {
+      return "";
+    }
     return distortionFile;
   }
 
@@ -2539,7 +2909,36 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return sizeToOutputInXandYA;
   }
 
+  public String getOrigScopeTemplate() {
+    return origScopeTemplate.toString();
+  }
+
+  public String getOrigSystemTemplate() {
+    return origSystemTemplate.toString();
+  }
+
+  public String getOrigUserTemplate() {
+    return origUserTemplate.toString();
+  }
+
+  public FortranInputString getStackCtfAutoFitRangeAndStep(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackCtfAutoFitRangeAndStepB;
+    }
+    return stackCtfAutoFitRangeAndStepA;
+  }
+
+  public boolean isStackCtfAutoFitRangeAndStepSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !stackCtfAutoFitRangeAndStepB.isNull();
+    }
+    return !stackCtfAutoFitRangeAndStepA.isNull();
+  }
+
   public String getMagGradientFile() {
+    if (magGradientFile == null || magGradientFile.matches("\\s*")) {
+      return "";
+    }
     return magGradientFile;
   }
 
@@ -2560,6 +2959,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public double getPixelSize() {
+    if (pixelSize == Double.NaN) {
+      return 0.0;
+    }
     return pixelSize;
   }
 
@@ -2584,11 +2986,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return stackBinningA.getDefaultedInt();
   }
 
+  public boolean isStack3dFindBinningSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !stack3dFindBinningB.isNull();
+    }
+    return !stack3dFindBinningA.isNull();
+  }
+
   public int getStack3dFindBinning(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return stack3dFindBinningB.getDefaultedInt();
+      return stack3dFindBinningB.getInt();
     }
-    return stack3dFindBinningA.getDefaultedInt();
+    return stack3dFindBinningA.getInt();
   }
 
   public ConstEtomoNumber getPostCurTab() {
@@ -2630,12 +3039,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return finalStackCtfCorrectionParallelA;
   }
 
-  public ConstEtomoNumber getDefaultParallel() {
-    return defaultParallel;
+  public boolean isDefaultParallel() {
+    return defaultParallel.is();
   }
 
-  public ConstEtomoNumber getDefaultGpuProcessing() {
-    return defaultGpuProcessing;
+  public boolean isDefaultGpuProcessing() {
+    return defaultGpuProcessing.is();
   }
 
   public ConstEtomoNumber getUseZFactors(final AxisID axisID) {
@@ -2646,6 +3055,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public double getFiducialDiameter() {
+    if (fiducialDiameter == Double.NaN) {
+      return 0;
+    }
     return fiducialDiameter;
   }
 
@@ -2657,7 +3069,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public int getBinning() {
-    return binning;
+    return binning.getInt();
   }
 
   public ConstEtomoNumber getBStackProcessed() {
@@ -2687,10 +3099,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public String getExcludeProjectionsA() {
+    if (excludeProjectionsA == null) {
+      return "";
+    }
     return excludeProjectionsA;
   }
 
   public String getExcludeProjectionsB() {
+    if (excludeProjectionsB == null) {
+      return "";
+    }
     return excludeProjectionsB;
   }
 
@@ -2741,11 +3159,101 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   public boolean isDistortionCorrection() {
-    return !distortionFile.equals("") || !magGradientFile.equals("");
+    return (distortionFile != null && !distortionFile.matches("\\s*"))
+        || (magGradientFile != null && !magGradientFile.matches("\\s*"));
   }
-  
+
   public boolean isEraseBeadsInitialized() {
     return eraseBeadsInitialized.is();
+  }
+
+  public boolean isTrackSeedModelManual(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackSeedModelManualB.is();
+    }
+    return trackSeedModelManualA.is();
+  }
+
+  public boolean isTrackSeedModelAuto(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackSeedModelAutoB.is();
+    }
+    return trackSeedModelAutoA.is();
+  }
+
+  public boolean isTrackSeedModelTransfer(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackSeedModelTransferB.is();
+    }
+    return trackSeedModelTransferA.is();
+  }
+
+  public boolean isTrackExcludeInsideAreas(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackExcludeInsideAreasB.is();
+    }
+    return trackExcludeInsideAreasA.is();
+  }
+
+  public String getTrackTargetNumberOfBeads(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackTargetNumberOfBeadsB.toString();
+    }
+    return trackTargetNumberOfBeadsA.toString();
+  }
+
+  public String getTrackTargetDensityOfBeads(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackTargetDensityOfBeadsB.toString();
+    }
+    return trackTargetDensityOfBeadsA.toString();
+  }
+
+  public boolean isTrackClusteredPointsAllowedElongated(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackClusteredPointsAllowedElongatedB.is();
+    }
+    return trackClusteredPointsAllowedElongatedA.is();
+  }
+
+  public int getTrackClusteredPointsAllowedElongatedValue(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackClusteredPointsAllowedElongatedValueB.getInt();
+    }
+    return trackClusteredPointsAllowedElongatedValueA.getInt();
+  }
+
+  public boolean isTrackAdvanced(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackAdvancedB.is();
+    }
+    return trackAdvancedA.is();
+  }
+
+  public boolean isStack3dFindThicknessSet(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !stack3dFindThicknessB.isNull();
+    }
+    return !stack3dFindThicknessA.isNull();
+  }
+
+  public boolean isSetFEIPixelSize() {
+    return setFEIPixelSize.is();
+  }
+
+  public boolean isPostTrimvolNewStyleZ() {
+    return postTrimvolNewStyleZ.is();
+  }
+
+  public boolean isPostTrimvolScalingNewStyleZ() {
+    return postTrimvolScalingNewStyleZ.is();
+  }
+
+  public String getStack3dFindThickness(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stack3dFindThicknessB.toString();
+    }
+    return stack3dFindThicknessA.toString();
   }
 
   public boolean isWholeTomogramSample(final AxisID axisID) {
@@ -2797,13 +3305,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
 
     // Is the pixel size greater than zero
-    if (fromScreen && pixelSize <= 0.0) {
+    if (fromScreen && pixelSize != Double.NaN && pixelSize <= 0.0) {
       invalidReason = "Pixel size is not greater than zero.";
       return false;
     }
 
     // Is the fiducial diameter greater than zero
-    if (fromScreen && fiducialDiameter <= 0.0) {
+    if (fromScreen && (fiducialDiameter == Double.NaN || fiducialDiameter <= 0.0)) {
       invalidReason = "Fiducial diameter is not greater than zero.";
       return false;
     }
@@ -3002,9 +3510,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return false;
     if (!backupDirectory.equals(cmd.backupDirectory))
       return false;
-    if (!distortionFile.equals(cmd.distortionFile))
+    if ((distortionFile == null && distortionFile != cmd.distortionFile)
+        || (distortionFile != null && !distortionFile.equals(cmd.distortionFile)))
       return false;
-    if (!magGradientFile.equals(cmd.magGradientFile))
+    if ((magGradientFile == null && magGradientFile != cmd.magGradientFile)
+        || (magGradientFile != null && !magGradientFile.equals(cmd.magGradientFile)))
       return false;
     if (!dataSource.equals(cmd.dataSource))
       return false;
@@ -3034,12 +3544,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     // TODO tilt angle spec needs to be more complete
     if (!(tiltAngleSpecA.getType() == cmd.getTiltAngleSpecA().getType()))
       return false;
-    if (!excludeProjectionsA.equals(cmd.getExcludeProjectionsA()))
+    if ((excludeProjectionsA == null && excludeProjectionsA != cmd.excludeProjectionsA)
+        || (excludeProjectionsA != null && !excludeProjectionsA.equals(cmd
+            .getExcludeProjectionsA())))
       return false;
 
     if (!(tiltAngleSpecB.getType() == cmd.getTiltAngleSpecB().getType()))
       return false;
-    if (!excludeProjectionsB.equals(cmd.getExcludeProjectionsB()))
+    if ((excludeProjectionsB == null && excludeProjectionsB != cmd.excludeProjectionsB)
+        || (excludeProjectionsB != null && !excludeProjectionsB.equals(cmd
+            .getExcludeProjectionsB())))
       return false;
     if (!(comScriptsCreated == cmd.getComScriptCreated()))
       return false;

@@ -36,14 +36,10 @@
 #include "sslice.h"
 #include "xtum.h"
 #include "control.h"
+#include "pyramidcache.h"
 
 #include "imod_input.h"
 #include "b3dgfx.h"
-
-#include "lowres.bits"
-#include "highres.bits"
-#include "lock.bits"
-#include "unlock.bits"
 
 #define XTUM_WIDTH 200
 #define XTUM_HEIGHT 250
@@ -59,9 +55,9 @@ static void xtumDraw_cb(ImodView *vi, void *client, int drawflag);
 static void xtumKey_cb(ImodView *vi, void *client, int released,
 			QKeyEvent *e);
 
-static unsigned char *bitList[MAX_XTUM_TOGGLES][2] =
-  { {lowres_bits, highres_bits},
-    {unlock_bits, lock_bits}};
+static const char *fileList[MAX_XTUM_TOGGLES][2] =
+  { {":/images/lowres.png", ":/images/highres.png"},
+    {":/images/unlock.png", ":/images/lock.png"}};
 
 static QIcon *icons[MAX_XTUM_TOGGLES];
 static int firstTime = 1;
@@ -161,9 +157,9 @@ int xtumOpen(struct ViewInfo *vi)
     xtum->dialog->mGLw->setColormap(*(App->qColormap));
 
   xtum->dialog->setWindowTitle(imodCaption("3dmod Tumbler"));
-  xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb,
-                               (void *)xtum);
-  imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE);
+  xtum->ctrl = ivwNewControl(vi, xtumDraw_cb, xtumClose_cb, xtumKey_cb, (void *)xtum);
+  imodDialogManager.add((QWidget *)xtum->dialog, IMOD_IMAGE, TUMBLER_WINDOW_TYPE, 
+                        xtum->ctrl);
   adjustGeometryAndShow((QWidget *)xtum->dialog, IMOD_IMAGE, false);
      
   return(0);
@@ -187,7 +183,7 @@ TumblerWindow::TumblerWindow(TumblerStruct *xtum, bool rgba,
   setAttribute(Qt::WA_AlwaysShowToolTips);
 
   if (firstTime) 
-    utilBitListsToIcons(bitList, icons, MAX_XTUM_TOGGLES);
+    utilFileListsToIcons(fileList, icons, MAX_XTUM_TOGGLES);
   firstTime = 0;
   
   // Make central vbox and top frame containing an hboxlayout
@@ -649,8 +645,14 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum->vi->ct))
-    return;
+  if (xtum->vi->pyrCache) {
+    if (ivwSetupFastTileAccess(xtum->vi, xtum->vi->pyrCache->getBaseIndex(), vmnullvalue,
+                               i))
+      return;
+  } else {
+    if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum->vi->curTime))
+      return;
+  }
 
   fillASlice(xtum);
 

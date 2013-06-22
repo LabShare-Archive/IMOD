@@ -16,11 +16,6 @@ C       original values 128 - 255.
 C       NOTE:   The start of a line is ALWAYS 0 (ie NX1,NX2 are relative)
 c
 c       $Id$
-c       
-c       $Log$
-c       Revision 3.6  2009/06/22 20:20:26  mast
-c       Switch to module, make work for huge images
-c
 C       
       SUBROUTINE IRDLIN(ISTREAM,ARRAY,*)
       implicit none
@@ -138,7 +133,7 @@ C
       IF (ITYPE .EQ. 1) THEN                    !READ LINE
         NREAD = NCRS(1,J)*JB
       ELSE IF (ITYPE .EQ. 2) THEN               !READ SECTION
-        NREAD = NCRS(1,J)*int(nlines, kind=4)*JB
+        NREAD = NCRS(1,J)*int(nlines, kind=8)*JB
       ELSE IF (ITYPE .EQ. 3) THEN               !READ PART OF LINE
         NREAD = (NX2 - NX1  + 1)*JB
         NSKIP = NX1*JB                          !RELATIVE START!!!!

@@ -1,0 +1,80 @@
+.na
+.nh
+.TH colornewst 1 4.6.1 BL3DEMC
+.SH NAME
+colornewst -\ Run Newstack command on a color file
+.SH SYNOPSIS
+colornewst [options] input_file output_file
+.SH DESCRIPTION
+Colornewst is a Python script to run Newstack(1) operations on a color file by
+splitting the file into components with "clip splitrgb", running Newstack(1),
+and recombining the components with "clip joinrgb".  Most options to
+Newstack(1) can be included, but not 
+.B -fileinlist,
+.B -fileoutlist,
+.B -split,
+.B -replace,
+.B -numout,
+.B -skip,
+.B -blank,
+.B -onexform,
+.B -exclude,
+.B -input,
+or
+.B -output.
+ There must be only one input file and one output file, specified
+as the last arguments on the command line.
+.P
+The input file can be either an MRC file or a TIFF file.  If the input file is
+a TIFF file, it will be converted to an MRC file with Tif2mrc(1) using no
+options, and the processed MRC file will be converted to TIFF with Mrc2tif(1)
+using the 
+.B -s
+option.  If any more complicated conversions are desired, run
+the TIFF conversions separately with the desired options.  The program will
+automatically treat the files as TIFF if the input filename ends
+in ".tif", ".tiff", ".TIF", or ".TIFF" and the file is not an MRC file.
+Otherwise, the 
+.B -cntiff
+option can be used to tell the program to treat
+files as TIFF.
+.P
+If the input file is gray-scale instead of color, Newstack(1) will be run
+directly on it with the given options.
+.P
+Colornewst itself takes the following options, which can be intermixed with
+the Newstack(1) options.  Two leading dashes are accepted, just as for
+the Newstack options.
+.TP
+.B -cntiff
+Convert the input file from TIFF to MRC, process it, and convert the processed
+file to TIFF.  The option is not needed if the input filename ends in ".tif",
+".tiff", ".TIF", or ".TIFF".
+.TP
+.B -cntempdir dir
+Path to directory to use for temporary files, namely the red, green, and blue
+components produced by "clip splitrgb" and files for each component processed
+by Newstack(1).  The default is the standard temporary directory for IMOD
+commands.
+.TP
+.B -cnmaxtemp #
+Maximum amount of space to use in the temporary directory, in megabytes
+(floating point values allowed).  The default is 1024.  When processing the
+whole file at once would require more than this amount of space, the program
+will process the file in chunks.
+.TP
+.B -cnverbose
+Pass on the printed output from running Newstack(1) and the TIFF conversion
+programs, if any.  The default is for this output to be swallowed.
+.SH FILES
+Temporary files are named starting with "colornewst.PID" and removed at the
+end, if there is an error, or if the program is interrupted with Ctrl-C.  If
+the output file exists, it is turned into a backup file by appending "~" to
+the name unless the environment variable IMOD_NO_IMAGE_BACKUP is set.
+.SH AUTHOR
+David Mastronarde
+.SH SEE ALSO
+newstack(1), clip(1), tif2mrc(1), mrc2tif(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.
+

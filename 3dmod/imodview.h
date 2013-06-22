@@ -90,31 +90,57 @@ const char DLL_EX_IM *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
  * Sets the time for a new contour [cont] in object [obj] to match the 
  * current image time. 
  */
-void DLL_EX_IM ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont);
+void DLL_EX_IM ivwSetNewContourTime(ImodView *vi, Iobj *obj, Icont *cont);
 
 /*! Gets the mode of the image data stored in the program.  It will be 0 for bytes,
   MRC_MODE_USHORT (6) for unsigned shorts, or MRC_MODE_RGB (16) for RGB triplets. */
 int DLL_EX_IM ivwGetImageStoreMode(ImodView *inImodView);
 
 /*!
+ * Returns true if image data are loaded into a tile or strip cache.  If this is the
+ * case, then the regular image access functions @ivwGetZSection
+ * and @ivwGetZSectionTime will return NULL, and either ivwGetCurrentZSection or
+ * @ivwGetTileCachedSection must be used instead.
+ */
+bool DLL_EX_IM ivwDataInTileOrStripCache(ImodView *inImodView);
+
+/*!
  * Returns line pointers to loaded image data for the given Z section, 
  * [inSection].  The line pointers are an array of pointers to the data on
  * each line in Y.  The return value must be cast to (b3dUInt16 **) to use to access 
- * array values when unsigned shorts are loaded.
+ * array values when unsigned shorts are loaded.  Returns NULL if data are loaded as 
+ * strips or tiles.
  */
 unsigned char DLL_EX_IM **ivwGetZSection(ImodView *inImodView, int inSection);
 
 /*!
- * Returns line pointers to loaded image data for the current Z section, 
+ * Returns line pointers to loaded image data for the current Z section.  If data are 
+ * loaded as strips or tiles, this will load all tiles in the section if necessary/
  */
 unsigned char DLL_EX_IM **ivwGetCurrentZSection(ImodView *inImodView);
 
 /*!
  * Returns line pointers to loaded image data for the Z slice [section] and
- * time index [time].
+ * time index [time].  Returns NULL if data are loaded as strips or tiles.
  */
-unsigned char DLL_EX_IM **ivwGetZSectionTime(ImodView *vi, int section, 
-                                             int time);
+unsigned char DLL_EX_IM **ivwGetZSectionTime(ImodView *vi, int section, int time);
+
+/*!
+ * Returns line pointers to a buffer with the entire Z slice [section] loaded from
+ * the highest resolution image file, when data are cached as tiles or strips.  This
+ * call will force all of the data to be loaded synchronously, which can be 
+ * time-consuming if images are large.  The call will allocate an array for the image
+ * which should be freed when operations are done (or when a window closes) by calling
+ * @@ivwFreeTileCachedSection@.
+ */
+unsigned char DLL_EX_IM **ivwGetTileCachedSection(ImodView *inImodView, int section);
+
+/*!
+ * Frees the arrays allocated when @ivwGetTileCachedSection is called, if they have
+ * been allocated; otherwise does nothing.
+ */ 
+void DLL_EX_IM ivwFreeTileCachedSection(ImodView *inImodView);
+
 /*!
  * Returns a lookup table for mapping from unsigned short values to bytes based on the 
  * current setting of the Low and High range sliders.  It calls 
@@ -363,5 +389,23 @@ int DLL_EX_IM prefSaveGenericSettings(char *key, int numVals, double *values);
  * value is the number of values returned.
  */
 int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
+
+/*
+ * File chooser call
+ */
+/*!
+ * Gets the name of a single existing file with a file chooser that will show
+ * [caption] in its title bar.  A set of [numFilters] filters can be given in
+ * [filters]; the first will be the default filter.  Returns an empty string
+ * if the user cancels.  Uses the file chooser plugin if one is defined.
+ */
+QString DLL_EX_IM utilOpenFileName(QWidget *parent, const char *caption, 
+                                   int numFilters, const char *filters[]);
+
+/*!
+ * Gets the name of a file in which to save with a file chooser that will show
+ * [caption] in its title bar.  Uses the file chooser plugin if one is defined.
+ */
+QString DLL_EX_IM imodPlugGetSaveName(QWidget *parent, const QString &caption);
 
 #endif

@@ -69,9 +69,10 @@ be applied after binning and filtering if any.
 [Field = ParametersToSearch]
 short = params
 type = I
-usage = 0 for formal params, or # of semi-natural params
+usage = 0 for formal params, # of semi-natural params, or -1 to skip search
 tooltip =
-manpage = In Xfsimplex, search for the given number of semi-natural parameters.
+manpage = In Xfsimplex, search for the given number of semi-natural parameters
+or skip the search entirely.
 Enter 2 to search only for translations, 3 to search for rotations in
 addition, 4 to search for magnifications as well, or 6 to search for the
 full transformation as represented by semi-natural parameters (rotation,
@@ -80,7 +81,9 @@ X and Y axis rotation.)
 The default is 0, in which case Xfsimplex searches
 for the transformation by varying the formal parameters of the 2 by 2
 transformation matrix.  The one advantage of using 6 instead of 0 is that the
-search can be limited, and the amount of stretch is limited by default.
+search can be limited, and the amount of stretch is limited by default.  Enter
+-1 to skip the search and perform only initial cross-correlation alignment
+(the -prexcorr option must also be entered in this case).
 
 [Field = LimitsOnSearch]
 short = limits
@@ -160,6 +163,38 @@ tooltip =
 manpage = Search for transformations starting from the transforms in the given
 existing file.
 
+[Field = WarpPatchSizeXandY]
+short = warp
+type = IP
+usage = Find warping transformations with the given patch size in X and Y
+tooltip =
+manpage = Find warping transformations with the given patch size in X and Y.
+Before Tiltxcorr(1) is run to find warping, shifts will be determined with 
+cross-correlation if the -prexcorr option
+is given, and linear transformations will be sought unless "-param -1" is
+entered.  Alignment to a reference is not allowed when finding warping
+transforms.
+
+[Field = BoundaryModel]
+short = boundary
+type = FN
+usage = Model with contours around areas to analyze for warping
+tooltip =
+manpage = Model with contours around areas to analyze for warping.  Patches
+for warping will be included if their centers fall within one of the
+contours.  Contours can be drawn on multiple sections if the area changes
+through the stack.  When there is no contour on a section, the contour(s) from
+the nearest section with contours will be used to constrain patches.
+
+[Field = ShiftLimitsForWarp]
+short = shift
+type = IP
+usage = Limits in X and Y for shifts when using patch correlation to find warping
+tooltip =
+manpage = Limits in X and Y for shifts when using patch correlation to find
+warping.  The highest cross-correlation peak will be used that falls within
+the limits, or a zero shift will be assigned if none does.
+
 [Field = SkipSections]
 short = skip
 type = LI
@@ -219,4 +254,10 @@ found by Xfsimplex for each pair of images.
 The difference measure is the mean difference per pixel expressed as a multiple of the
 image standard deviation.
 
-
+[Field = SectionsNumberedFromOne]
+short = one
+type = B
+usage = Section number entries are numbered from 1 instead of from 0
+tooltip =
+manpage = Section numbers in the -skip and -break section list entries are
+numbered from 1 instead of from 0.

@@ -98,7 +98,8 @@ DDEESSCCRRIIPPTTIIOONN
   Stitchalign uses the PIP package for input exclusively (see the manual
   page for pip(1)).  The following options can be specified either as command
   line arguments (with the -) or one per line in a command file or parameter
-  file (without the -):
+  file (without the -).  Options can be abbreviated to unique letters; the
+  currently valid abbreviations for short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 
@@ -109,6 +110,8 @@ FFIILLEESS
   Stitchalign produces two files for each volume included in the analysis:
     piecename.matxf    File with single linear transformation
     piecename.patch    File with patch vectors for computing a warping
+  It also produces a file "sectionmame.ecdstub" with the displacements between
+  pieces needed when blending.
 
 HHIISSTTOORRYY
   Written by David Mastronarde, April 2007

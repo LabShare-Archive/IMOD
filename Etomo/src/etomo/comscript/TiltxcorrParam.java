@@ -158,6 +158,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   public static final String FILTER_RADIUS_2_DEFAULT = "0.25";
   public static final String FILTER_SIGMA_2_DEFAULT = "0.05";
   public static final String SKIP_VIEWS_KEY = "SkipViews";
+  public static final String FILTER_RADIUS_2_KEY = "FilterRadius2";
+  public static final String FILTER_SIGMA_2_KEY = "FilterSigma2";
 
   // PIP and sequential input
   private String inputFile;
@@ -190,11 +192,11 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   // was filterParams
   private double filterRadius1;
   private ScriptParameter filterRadius2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      "FilterRadius2");
+      FILTER_RADIUS_2_KEY);
   private ScriptParameter filterSigma1 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       "FilterSigma1");
   private ScriptParameter filterSigma2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      "FilterSigma2");
+      FILTER_SIGMA_2_KEY);
   private final ScriptParameter angleOffset = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, "AngleOffset");
 
@@ -215,8 +217,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private final StringParameter skipViews = new StringParameter(SKIP_VIEWS_KEY);
   private final StringParameter prealignmentTransformFile = new StringParameter(
       "PrealignmentTransformFile");
-  private ScriptParameter imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG,
-      "ImagesAreBinned");
+  private ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
 
   private boolean partialSave = false;
   private boolean validate = false;
@@ -297,7 +298,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       header.read(manager);
       int z = header.getNSections();
       if (z != -1) {
-        lengthAndOverlap.set(Math.round((float) (z / 5)));
+        lengthAndOverlap.set(Math.round((z / 5)));
       }
     }
     catch (IOException e) {
@@ -321,12 +322,12 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       if (x == -1) {
         return "";
       }
-      bordersInX.set(Math.round((float) (x * .05)));
+      bordersInX.set(Math.round((x * .05)));
       int y = header.getNRows();
       if (y == -1) {
         return "";
       }
-      bordersInY.set(Math.round((float) (y * .05)));
+      bordersInY.set(Math.round((y * .05)));
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -951,7 +952,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     prealignmentTransformFile.set(FileType.PRE_XG.getFileName(manager, axisID));
   }
 
-  public void setImagesAreBinned(long input) {
+  public void setImagesAreBinned(int input) {
     imagesAreBinned.set(input);
   }
 

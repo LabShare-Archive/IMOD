@@ -160,13 +160,13 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected static final String VERSION_KEY = "SectionTableRowData.Version";
   protected static final String groupString = "SectionTableRow";
   protected static final String setupSectionString = "Section";
-  //For conversion from version 1.0
+  // For conversion from version 1.0
   protected static final String setupXMaxString = "XMax";
   protected static final String setupYMaxString = "YMax";
   protected static final String setupZMaxString = "ZMax";
   protected static final double COS_X_Y_THRESHOLD = 0.5;
 
-  protected final EtomoNumber rowNumber;//key in the .ejf file, not displayed
+  protected final EtomoNumber rowNumber;// key in the .ejf file, not displayed
   protected final EtomoNumber sampleBottomStart;
   protected final EtomoNumber sampleBottomEnd;
   protected final EtomoNumber sampleTopStart;
@@ -188,8 +188,8 @@ public abstract class ConstSectionTableRowData implements Storable {
   protected int setupZMax = EtomoNumber.INTEGER_NULL_VALUE;
   protected int joinZMax = EtomoNumber.INTEGER_NULL_VALUE;
 
-  //state - these should not be saved to the .ejf file, but they are necessary
-  //for remembering the state of a row that is being retrieved from meta data.
+  // state - these should not be saved to the .ejf file, but they are necessary
+  // for remembering the state of a row that is being retrieved from meta data.
   private int imodIndex = -1;
   private int imodRotIndex = -1;
   private boolean sectionExpanded = false;
@@ -205,20 +205,20 @@ public abstract class ConstSectionTableRowData implements Storable {
    * @param rowNumber
    */
   protected ConstSectionTableRowData(int rowNumber) {
-    //construct
+    // construct
     this.rowNumber = new EtomoNumber("RowNumber");
     sampleBottomStart = new EtomoNumber("SampleBottomStart");
     sampleBottomEnd = new EtomoNumber("SampleBottomEnd");
     sampleTopStart = new EtomoNumber("SampleTopStart");
     sampleTopEnd = new EtomoNumber("SampleTopEnd");
-    setupFinalStart = new EtomoNumber(EtomoNumber.Type.LONG, "FinalStart");
-    setupFinalEnd = new EtomoNumber(EtomoNumber.Type.LONG, "FinalEnd");
-    joinFinalStart = new EtomoNumber(EtomoNumber.Type.LONG);
-    joinFinalEnd = new EtomoNumber(EtomoNumber.Type.LONG);
+    setupFinalStart = new EtomoNumber("FinalStart");
+    setupFinalEnd = new EtomoNumber("FinalEnd");
+    joinFinalStart = new EtomoNumber();
+    joinFinalEnd = new EtomoNumber();
     rotationAngleX = new EtomoNumber(EtomoNumber.Type.DOUBLE, "RotationAngleX");
     rotationAngleY = new EtomoNumber(EtomoNumber.Type.DOUBLE, "RotationAngleY");
     rotationAngleZ = new EtomoNumber(EtomoNumber.Type.DOUBLE, "RotationAngleZ");
-    //configure
+    // configure
     sampleBottomStart.setDescription("Sample Slices, Bottom, Start");
     sampleBottomEnd.setDescription("Sample Slices, Bottom, End");
     sampleTopStart.setDescription("Sample Slices, Top, Start");
@@ -234,7 +234,7 @@ public abstract class ConstSectionTableRowData implements Storable {
     rotationAngleY.setDefault(0);
     rotationAngleZ.setDescription("Rotation Angles, Z");
     rotationAngleZ.setDefault(0);
-    //initialize
+    // initialize
     this.rowNumber.set(rowNumber);
   }
 
@@ -243,21 +243,50 @@ public abstract class ConstSectionTableRowData implements Storable {
   }
 
   protected String paramString() {
-    return "rowNumber=" + rowNumber + ",inverted=" + inverted/*+",sampleBottomStart=" + sampleBottomStart
-                                                             + ",\nsampleBottomStart=" + sampleBottomStart + ",sampleBottomEnd="
-                                                             + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
-                                                             + ",\nsampleTopEnd=" + sampleTopEnd + ",setupFinalStart="
-                                                             + setupFinalStart + ",\nsetupFinalEnd=" + setupFinalEnd
-                                                             + ",\njoinFinalStart=" + joinFinalStart + ",joinFinalEnd="
-                                                             + joinFinalEnd + ",\nrotationAngleX=" + rotationAngleX
-                                                             + ",\nrotationAngleY=" + rotationAngleY + ",rotationAngleZ="
-                                                             + rotationAngleZ + ",\nsetupSection=" + setupSection + ",joinSection="
-                                                             + joinSection + ",\nsetupXMax=" + setupXMax + ",joinXMax=" + joinXMax
-                                                             + ",\nsetupYMax=" + setupYMax + ",joinYMax=" + joinYMax + ",setupZMax="
-                                                             + setupZMax + ",\njoinZMax=" + joinZMax + ",imodIndex=" + imodIndex
-                                                             + ",\nimodRotIndex=" + imodRotIndex + ",sectionExpanded="
-                                                             + sectionExpanded + ",\ninvalidReason=" + invalidReason
-                                                             + super.toString()*/;
+    return "rowNumber=" + rowNumber + ",inverted=" + inverted/* +",sampleBottomStart=" +
+                                                              * sampleBottomStart +
+                                                              * ",\nsampleBottomStart=" +
+                                                              * sampleBottomStart +
+                                                              * ",sampleBottomEnd=" +
+                                                              * sampleBottomEnd +
+                                                              * ",\nsampleTopStart=" +
+                                                              * sampleTopStart +
+                                                              * ",\nsampleTopEnd=" +
+                                                              * sampleTopEnd +
+                                                              * ",setupFinalStart=" +
+                                                              * setupFinalStart +
+                                                              * ",\nsetupFinalEnd=" +
+                                                              * setupFinalEnd +
+                                                              * ",\njoinFinalStart=" +
+                                                              * joinFinalStart +
+                                                              * ",joinFinalEnd=" +
+                                                              * joinFinalEnd +
+                                                              * ",\nrotationAngleX=" +
+                                                              * rotationAngleX +
+                                                              * ",\nrotationAngleY=" +
+                                                              * rotationAngleY +
+                                                              * ",rotationAngleZ=" +
+                                                              * rotationAngleZ +
+                                                              * ",\nsetupSection=" +
+                                                              * setupSection +
+                                                              * ",joinSection=" +
+                                                              * joinSection +
+                                                              * ",\nsetupXMax=" +
+                                                              * setupXMax + ",joinXMax=" +
+                                                              * joinXMax + ",\nsetupYMax="
+                                                              * + setupYMax + ",joinYMax="
+                                                              * + joinYMax + ",setupZMax="
+                                                              * + setupZMax +
+                                                              * ",\njoinZMax=" + joinZMax
+                                                              * + ",imodIndex=" +
+                                                              * imodIndex +
+                                                              * ",\nimodRotIndex=" +
+                                                              * imodRotIndex +
+                                                              * ",sectionExpanded=" +
+                                                              * sectionExpanded +
+                                                              * ",\ninvalidReason=" +
+                                                              * invalidReason +
+                                                              * super.toString() */;
   }
 
   /**
@@ -265,7 +294,7 @@ public abstract class ConstSectionTableRowData implements Storable {
    * @param constSectionTableRowData
    */
   protected ConstSectionTableRowData(ConstSectionTableRowData constSectionTableRowData) {
-    //deep copy
+    // deep copy
     imodIndex = constSectionTableRowData.imodIndex;
     imodRotIndex = constSectionTableRowData.imodRotIndex;
     sectionExpanded = constSectionTableRowData.sectionExpanded;
@@ -499,16 +528,10 @@ public abstract class ConstSectionTableRowData implements Storable {
     return inverted;
   }
 
-  public int getSampleBottomNumberSlices() {
-    int sampleBottomEnd = this.sampleBottomEnd.getInt();
-    int sampleBottomStart = this.sampleBottomStart.getInt();
-    if (sampleBottomEnd >= sampleBottomStart) {
-      return sampleBottomEnd - sampleBottomStart + 1;
+  public int getSampleTopNumberSlices(final int tableSize) {
+    if (rowNumber.equals(tableSize) || tableSize < 2) {
+      return -1;
     }
-    return 0;
-  }
-
-  public int getSampleTopNumberSlices() {
     int sampleTopEnd = this.sampleTopEnd.getInt();
     int sampleTopStart = this.sampleTopStart.getInt();
     if (sampleTopEnd >= sampleTopStart) {
@@ -517,18 +540,16 @@ public abstract class ConstSectionTableRowData implements Storable {
     return 0;
   }
 
-  public ConstEtomoNumber getChunkSize(int tableSize) {
-    if (tableSize <= 1) {
-      return (new EtomoNumber()).set(0);
+  public int getSampleBottomNumberSlices(final int tableSize) {
+    if (rowNumber.equals(1) || tableSize < 2) {
+      return -1;
     }
-    if (rowNumber.equals(1)) {
-      return (new EtomoNumber()).set(getSampleTopNumberSlices());
+    int sampleBottomEnd = this.sampleBottomEnd.getInt();
+    int sampleBottomStart = this.sampleBottomStart.getInt();
+    if (sampleBottomEnd >= sampleBottomStart) {
+      return sampleBottomEnd - sampleBottomStart + 1;
     }
-    if (rowNumber.equals(tableSize)) {
-      return (new EtomoNumber()).set(getSampleBottomNumberSlices());
-    }
-    return (new EtomoNumber()).set(getSampleBottomNumberSlices()
-        + getSampleTopNumberSlices());
+    return 0;
   }
 
   public ConstEtomoNumber getSetupFinalStart() {

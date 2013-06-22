@@ -33,6 +33,7 @@
 #define FWRAP_ERROR_MEMORY        -7
 #define FWRAP_ERROR_NO_VALUE      -8
 #define FWRAP_ERROR_STRING_LEN    -9
+#define FWRAP_ERROR_FROM_CALL     -10
 
 #define NO_VALUE_PUT           -9999.
 
@@ -93,6 +94,11 @@
 #define getimodobjrange GETIMODOBJRANGE
 #define imodarraylimits IMODARRAYLIMITS
 #define imodhasimageref IMODHASIMAGEREF
+#define clearimodobjstore CLEARIMODOBJSTORE
+#define deleteimodcont DELETEIMODCONT
+#define deleteimodpoint DELETEIMODPOINT
+#define getobjvaluethresh GETOBJVALUETHRESH
+#define findaddminmax1value FINDADDMINMAX1VALUE
 #else
 #define newimod      newimod_
 #define deleteimod   deleteimod_
@@ -148,6 +154,11 @@
 #define getimodobjrange getimodobjrange_
 #define imodarraylimits imodarraylimits_
 #define imodhasimageref imodhasimageref_
+#define clearimodobjstore clearimodobjstore_
+#define deleteimodcont deleteimodcont_
+#define deleteimodpoint deleteimodpoint_
+#define getobjvaluethresh getobjvaluethresh_
+#define findaddminmax1value findaddminmax1value_
 #endif
 
 /* Declare anything that is going to be called internally! */
@@ -163,6 +174,8 @@ int putpointvalue(int *ob, int *co, int *pt, float *value);
 static void deleteFimod();
 static int getMeshTrans(Ipoint *trans);
 void putimodflag(int *objnum, int *flag);
+static int checkAssignObject(int *ob);
+static int checkAssignObjCont(int *ob, int *co);
 
 typedef struct {
   int ob;
@@ -183,24 +196,28 @@ typedef struct {
   char *name;
 } NameStruct;
 
-static Imod *Fimod = NULL;
+static Imod *sImod = NULL;
 
-static int partialMode = 0;
-static int maxObjects = FWRAP_MAX_OBJECT;
-static int maxPoints = FWRAP_MAX_POINTS;
-static int nflags_put = 0;
-static int *flags_put = NULL;
-static int maxes_put = 0;
-static int xmax_put, ymax_put, zmax_put;
-static float zscale_put = NO_VALUE_PUT;
-static Ipoint rotation_put = {NO_VALUE_PUT, NO_VALUE_PUT, NO_VALUE_PUT};
-static int nsizes_put = 0;
-static SizeStruct *sizes_put = NULL;
-static int nvalues_put = 0;
-static int max_values = 0;
-static ValueStruct *values_put = NULL;
-static NameStruct *names_put = NULL;
-static int numNames_put = 0;
+static int sPartialMode = 0;
+static int sMaxObjects = FWRAP_MAX_OBJECT;
+static int sMaxPoints = FWRAP_MAX_POINTS;
+static int sNumFlagsPut = 0;
+static int *sFlagsPut = NULL;
+static int sMaxesPut = 0;
+static int sXmaxPut, sYmaxPut, sZmaxPut;
+static float sZscalePut = NO_VALUE_PUT;
+static Ipoint sRotationPut = {NO_VALUE_PUT, NO_VALUE_PUT, NO_VALUE_PUT};
+static int sNumSizesPut = 0;
+static SizeStruct *sSizesPut = NULL;
+static int sNumValuesPut = 0;
+static int sMaxValues = 0;
+static ValueStruct *sValuesPut = NULL;
+static NameStruct *sNamesPut = NULL;
+static int sNumNamesPut = 0;
+
+/* Convenience pointers assigned by checkAssignObject... */
+static Iobj *sObj;
+static Icont *sCont;
 
 /* These are not bit flags so they can range up to 255 */
 #define SCAT_SIZE_FLAG 3
@@ -220,46 +237,67 @@ static int numNames_put = 0;
 static void deleteFimod()
 {
   int i;
-  if (Fimod)
-    imodDelete(Fimod);
-  Fimod = NULL;
-  if (flags_put)
-    free(flags_put);
-  flags_put = NULL;
-  nflags_put = 0;
-  maxes_put = 0;
-  zscale_put = NO_VALUE_PUT;
-  rotation_put.x = rotation_put.y = rotation_put.z = NO_VALUE_PUT;
-  for (i = 0; i < nsizes_put; i++)
-    if (sizes_put[i].sizes)
-      free(sizes_put[i].sizes);
-  if (nsizes_put && sizes_put)
-    free(sizes_put);
-  nsizes_put = 0;
-  sizes_put = NULL;
-  if (values_put)
-    free(values_put);
-  values_put = NULL;
-  nvalues_put = 0;
-  max_values = 0;
-  for (i = 0; i < numNames_put; i++)
-    free(names_put[i].name);
-  if (names_put)
-    free(names_put);
-  numNames_put = 0;
-  names_put = NULL;
+  if (sImod)
+    imodDelete(sImod);
+  sImod = NULL;
+  if (sFlagsPut)
+    free(sFlagsPut);
+  sFlagsPut = NULL;
+  sNumFlagsPut = 0;
+  sMaxesPut = 0;
+  sZscalePut = NO_VALUE_PUT;
+  sRotationPut.x = sRotationPut.y = sRotationPut.z = NO_VALUE_PUT;
+  for (i = 0; i < sNumSizesPut; i++)
+    if (sSizesPut[i].sizes)
+      free(sSizesPut[i].sizes);
+  if (sNumSizesPut && sSizesPut)
+    free(sSizesPut);
+  sNumSizesPut = 0;
+  sSizesPut = NULL;
+  if (sValuesPut)
+    free(sValuesPut);
+  sValuesPut = NULL;
+  sNumValuesPut = 0;
+  sMaxValues = 0;
+  for (i = 0; i < sNumNamesPut; i++)
+    free(sNamesPut[i].name);
+  if (sNamesPut)
+    free(sNamesPut);
+  sNumNamesPut = 0;
+  sNamesPut = NULL;
+}
+
+static int checkAssignObject(int *ob)
+{
+  if (!sImod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 || *ob > sImod->objsize || !sImod->obj)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  sObj = &sImod->obj[*ob - 1];
+  return FWRAP_NOERROR;
+}
+
+static int checkAssignObjCont(int *ob, int *co)
+{
+  int err = checkAssignObject(ob);
+  if (err)
+    return err;
+  if (*co < 1 || *co > sObj->contsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  sCont = &sObj->cont[*co - 1];
+  return FWRAP_NOERROR;
 }
 
 static int getMeshTrans(Ipoint *trans)
 {
   IrefImage *iref;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
 
   trans->x = trans->y = trans->z = 0.;
-  iref = Fimod->refImage;
-  if (iref && (Fimod->flags & IMODF_OTRANS_ORIGIN)) {
+  iref = sImod->refImage;
+  if (iref && (sImod->flags & IMODF_OTRANS_ORIGIN)) {
     trans->x = (iref->otrans.x - iref->ctrans.x) / iref->cscale.x;
     trans->y = (iref->otrans.y - iref->ctrans.y) / iref->cscale.y;
     trans->z = (iref->otrans.z - iref->ctrans.z) / iref->cscale.z;
@@ -272,8 +310,8 @@ static int getMeshTrans(Ipoint *trans)
  */
 void imodarraylimits(int *maxpt, int *maxob)
 {
-  maxObjects = *maxob;
-  maxPoints = *maxpt;
+  sMaxObjects = *maxob;
+  sMaxPoints = *maxpt;
 }
 
 /*!
@@ -281,7 +319,7 @@ void imodarraylimits(int *maxpt, int *maxob)
  */
 void imodpartialmode(int *mode)
 {
-  partialMode = *mode;
+  sPartialMode = *mode;
 }
 
 /*!
@@ -306,9 +344,9 @@ int getimod(int ibase[], int npt[], float coord[][3], int color[][2],
     return err;
 
   *npoint = *nobject = 0;
-  if (partialMode)
+  if (sPartialMode)
     return FWRAP_NOERROR;
-  return (getimodobjrange(&one, &Fimod->objsize, ibase, npt, coord, color,
+  return (getimodobjrange(&one, &sImod->objsize, ibase, npt, coord, color,
                           npoint, nobject));
 }
 
@@ -354,16 +392,16 @@ int openimoddata(char *fname, int fsize)
   /* DNM: need to delete model to avoid memory leak */
   deleteFimod();
 
-  Fimod = model;
+  sImod = model;
   /*
    *  Translate reference image coordinates to 
    *  the identity matrix.
    *  DNM 11/5/98: rearranged to correspond to proper conventions 
    */
-  iref = Fimod->refImage;
+  iref = sImod->refImage;
 
-  if (Fimod->flags & IMODF_FLIPYZ)
-    imodFlipYZ(Fimod);
+  if (sImod->flags & IMODF_FLIPYZ)
+    imodFlipYZ(sImod);
 
   if (iref) {
 
@@ -384,7 +422,7 @@ int openimoddata(char *fname, int fsize)
       imodMatRot(mat, -iref->crot.z, Z);
     */
          
-    imodTransform(Fimod, mat);
+    imodTransform(sImod, mat);
     imodMatDelete(mat);
   }
   
@@ -415,7 +453,7 @@ int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
   int ibase_val = 0;
   int coi = 0;
 
-  if (!Fimod)
+  if (!sImod)
     return FWRAP_ERROR_NO_MODEL;
   if (*ninList <= 0)
     return FWRAP_ERROR_NO_OBJECTS;
@@ -423,21 +461,21 @@ int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
   /* Check object numbers and count contours and points */
   for (ind = 0; ind < *ninList; ind++) {
     ob = objList[ind] - 1;
-    if (ob < 0 || ob >= Fimod->objsize)
+    if (ob < 0 || ob >= sImod->objsize)
       return(FWRAP_ERROR_BAD_OBJNUM);
-    obj = &(Fimod->obj[ob]);
+    obj = &(sImod->obj[ob]);
     ncontour += obj->contsize;
     for (co = 0; co < obj->contsize; co++)
       npoints += obj->cont[co].psize;
   }
   
-  if (ncontour > maxObjects) {
+  if (ncontour > sMaxObjects) {
     fprintf(stderr, "getimod: Too many contours in model for Fortran "
             "program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
 
-  if (npoints > maxPoints) {
+  if (npoints > sMaxPoints) {
     fprintf(stderr, "getimod: Too many points in model for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
@@ -447,7 +485,7 @@ int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
 
   for (ind = 0; ind < *ninList; ind++) {
     ob = objList[ind] - 1;
-    obj = &(Fimod->obj[ob]);
+    obj = &(sImod->obj[ob]);
     for (co = 0; co < obj->contsize; co++, coi++) {
       cont = &(obj->cont[co]);
       ibase[coi] = ibase_val;
@@ -486,7 +524,7 @@ int getimodobjrange(int *objStart, int *objEnd, int ibase[], int npt[],
   int i;
   int ninList = *objEnd + 1 - *objStart;
 
-  if (!Fimod)
+  if (!sImod)
     return FWRAP_ERROR_NO_MODEL;
   if (ninList <= 0)
     return FWRAP_ERROR_NO_OBJECTS;
@@ -495,8 +533,9 @@ int getimodobjrange(int *objStart, int *objEnd, int ibase[], int npt[],
     return FWRAP_ERROR_MEMORY;
   for (i = 0; i < ninList; i++)
     objList[i] = *objStart + i;
-  return (getimodobjlist(objList, &ninList, ibase, npt, coord, color, npoint, 
-                         nobject));
+  i = getimodobjlist(objList, &ninList, ibase, npt, coord, color, npoint, nobject);
+  free(objList);
+  return i;
 }
 
 /*
@@ -523,9 +562,9 @@ int getimodscat (int ibase[],     /* index into coord array */
   Imod *model;
   Iobj *obj;
   Icont *scont, *cont;
-  if (!Fimod) return(FWRAP_ERROR_NO_MODEL);
-  if (!Fimod->objsize) return(FWRAP_ERROR_NO_OBJECTS);
-  model = Fimod;
+  if (!sImod) return(FWRAP_ERROR_NO_MODEL);
+  if (!sImod->objsize) return(FWRAP_ERROR_NO_OBJECTS);
+  model = sImod;
 
   for (ob = 0; ob < model->objsize; ob++) {
     obj = &(model->obj[ob]);
@@ -536,12 +575,12 @@ int getimodscat (int ibase[],     /* index into coord array */
       npoints += obj->cont[co].psize;
   }
 
-  if (maxobj > maxObjects) {
+  if (maxobj > sMaxObjects) {
     fprintf(stderr, "getimodscat: Too many contours in model for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
 
-  if (npoints > maxPoints) {
+  if (npoints > sMaxPoints) {
     fprintf(stderr, "getimodscat: Too many points in model for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
@@ -595,8 +634,8 @@ int  getimodmesh(int *objnum, float *verts, int *index, int *limverts,
 
   if (getMeshTrans(&trans))
     return(FWRAP_ERROR_NO_MODEL);
-  Fimod->cindex.object = *objnum - 1;
-  obj = &(Fimod->obj[Fimod->cindex.object]);
+  sImod->cindex.object = *objnum - 1;
+  obj = &(sImod->obj[sImod->cindex.object]);
   if (!obj->meshsize)
     return(-1);
 
@@ -661,8 +700,8 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
 
   if (getMeshTrans(&trans))
     return(FWRAP_ERROR_NO_MODEL);
-  Fimod->cindex.object = *objnum - 1;
-  obj = &(Fimod->obj[Fimod->cindex.object]);
+  sImod->cindex.object = *objnum - 1;
+  obj = &(sImod->obj[sImod->cindex.object]);
   if (!obj->meshsize)
     return(-1);
 
@@ -740,23 +779,19 @@ int  getimodverts(int *objnum, float *verts, int *index, int *limverts,
  */
 int getimodsizes(int *ob, float *sizes, int *limsizes, int *nsizes)
 {
-  Iobj *obj;
   Icont *cont;
   int co, pt;
   *nsizes = 0;
-  if (!Fimod) return(FWRAP_ERROR_NO_MODEL);
-  if (*ob < 1 && *ob > Fimod->objsize)
-    return(1);
-  obj = &Fimod->obj[*ob - 1];
-  if (!obj) return(1);
-  for (co = 0; co < obj->contsize; co++) {
-    cont = &obj->cont[co];
+  if ((co = checkAssignObject(ob)))
+    return co;
+  for (co = 0; co < sObj->contsize; co++) {
+    cont = &sObj->cont[co];
     if (*nsizes + cont->psize > *limsizes) {
       fprintf(stderr, "getimodsizes: Model too large for Fortran program\n");
       return(FWRAP_ERROR_FILE_TO_BIG);
     }
     for (pt = 0; pt < cont->psize; pt++)
-      *sizes++ = imodPointGetSize(obj, cont, pt);
+      *sizes++ = imodPointGetSize(sObj, cont, pt);
     *nsizes += cont->psize;
   }
      
@@ -773,27 +808,20 @@ int getimodsizes(int *ob, float *sizes, int *limsizes, int *nsizes)
 int getcontpointsizes(int *ob, int *co, float *sizes, int *limsizes, 
                       int *nsizes)
 {
-  Iobj *obj;
-  Icont *cont;
   int pt;
   *nsizes = 0;
-  if (!Fimod) return(FWRAP_ERROR_NO_MODEL);
-  if (*ob < 1 && *ob > Fimod->objsize)
-    return(1);
-  obj = &Fimod->obj[*ob - 1];
-  if (!obj || *co < 1 || *co > obj->contsize) 
-    return(1);
-  cont = &obj->cont[*co - 1];
-  if (!cont->sizes)
+  if ((pt = checkAssignObjCont(ob, co)))
+    return pt;
+  if (!sCont->sizes)
     return FWRAP_NOERROR;
     
-  if (cont->psize > *limsizes) {
+  if (sCont->psize > *limsizes) {
       fprintf(stderr, "getcontpointsizes: Too many points for array\n");
       return(FWRAP_ERROR_FILE_TO_BIG);
   }
-  for (pt = 0; pt < cont->psize; pt++)
-    *sizes++ = cont->sizes[pt];
-  *nsizes = cont->psize;
+  for (pt = 0; pt < sCont->psize; pt++)
+    *sizes++ = sCont->sizes[pt];
+  *nsizes = sCont->psize;
   return FWRAP_NOERROR;
 }          
 
@@ -806,21 +834,21 @@ int putcontpointsizes(int *ob, int *co, float *sizes, int *nsizes)
   SizeStruct *sizetmp;
 
   /* Saves the sizes in a new element of the size structure array */
-  if (!nsizes_put) 
-    sizetmp = (SizeStruct *)malloc(sizeof(SizeStruct));
+  if (!sNumSizesPut) 
+    sizetmp = B3DMALLOC(SizeStruct, 1);
   else
-    sizetmp = (SizeStruct *)realloc(sizes_put, (nsizes_put + 1) * 
+    sizetmp = (SizeStruct *)realloc(sSizesPut, (sNumSizesPut + 1) * 
                                   sizeof(SizeStruct));
   if (!sizetmp)
     return FWRAP_ERROR_MEMORY;
-  sizes_put = sizetmp;
-  sizes_put[nsizes_put].ob = *ob - 1;
-  sizes_put[nsizes_put].co = *co - 1;
-  sizes_put[nsizes_put].num = *nsizes;
-  sizes_put[nsizes_put].sizes = (float *)malloc(*nsizes * sizeof(float));
-  if (!sizes_put[nsizes_put].sizes)
+  sSizesPut = sizetmp;
+  sSizesPut[sNumSizesPut].ob = *ob - 1;
+  sSizesPut[sNumSizesPut].co = *co - 1;
+  sSizesPut[sNumSizesPut].num = *nsizes;
+  sSizesPut[sNumSizesPut].sizes = B3DMALLOC(float, *nsizes);
+  if (!sSizesPut[sNumSizesPut].sizes)
     return FWRAP_ERROR_MEMORY;
-  memcpy(sizes_put[nsizes_put++].sizes, sizes, *nsizes * sizeof(float));
+  memcpy(sSizesPut[sNumSizesPut++].sizes, sizes, *nsizes * sizeof(float));
   return FWRAP_NOERROR;
 }
 
@@ -833,11 +861,11 @@ int getimodtimes(int *times)
   Iobj *obj;
   int coi = 0;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
 
-  for (ob = 0; ob < Fimod->objsize; ob++) {
-    obj = &(Fimod->obj[ob]);
+  for (ob = 0; ob < sImod->objsize; ob++) {
+    obj = &(sImod->obj[ob]);
     for (co = 0; co < obj->contsize; co++, coi++)
       times[coi] = obj->cont[co].time;
   }
@@ -854,11 +882,11 @@ int getimodsurfaces(int *surfs)
   Iobj *obj;
   int coi = 0;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
 
-  for (ob = 0; ob < Fimod->objsize; ob++) {
-    obj = &(Fimod->obj[ob]);
+  for (ob = 0; ob < sImod->objsize; ob++) {
+    obj = &(sImod->obj[ob]);
     for (co = 0; co < obj->contsize; co++, coi++)
       surfs[coi] = obj->cont[co].surf;
   }
@@ -869,51 +897,48 @@ int getimodsurfaces(int *surfs)
 /*!
  * Returns surface numbers for all contours in object [ob] into the array [surfs].
  * If [sortSurfs] > 0, it analyzes a mesh to sort contours into surfaces using 
- * @iobj.html#imodObjectSortSurf .
+ * @@iobj.html#imodObjectSortSurf@.
  */
 int getobjsurfaces(int *ob, int *sortSurfs, int *surfs)
 {
-  Iobj *obj;
   Icont *contSave = NULL;
   int retval = FWRAP_NOERROR;
   int co;
 
-  if (!Fimod)
-    return(FWRAP_ERROR_NO_MODEL);
-  if (*ob < 1 || *ob > Fimod->objsize)
-    return(FWRAP_ERROR_BAD_OBJNUM);
-  obj = &Fimod->obj[*ob - 1];
-  if (*sortSurfs > 0 && obj->contsize > 0) {
+  if ((co = checkAssignObject(ob)))
+    return co;
+  if (*sortSurfs > 0 && sObj->contsize > 0) {
 
     /* Duplicate the contour array so that surfaces can be assigned in it */
-    contSave = B3DMALLOC(Icont, obj->contsize);
+    contSave = B3DMALLOC(Icont, sObj->contsize);
     if (!contSave)
       return FWRAP_ERROR_MEMORY;
-    for (co = 0; co < obj->contsize; co++)
-      imodContourCopy(&obj->cont[co], &contSave[co]);
+    for (co = 0; co < sObj->contsize; co++)
+      imodContourCopy(&sObj->cont[co], &contSave[co]);
 
     /* Sort the surfaces.  If no meshes, return all zeros; otherwise return surfaces */
-    co = imodObjectSortSurf(obj);
+    co = imodObjectSortSurf(sObj);
     if (co == 2)
       retval = FWRAP_ERROR_MEMORY;
     else if (co == 1)
-      for (co = 0; co < obj->contsize; co++)
+      for (co = 0; co < sObj->contsize; co++)
         surfs[co] = 0;
     else
-      for (co = 0; co < obj->contsize; co++)
-        surfs[co] = obj->cont[co].surf;
-    free(obj->cont);
-    obj->cont = contSave;
+      for (co = 0; co < sObj->contsize; co++)
+        surfs[co] = sObj->cont[co].surf;
+    free(sObj->cont);
+    sObj->cont = contSave;
   } else 
 
     /* If not sorting surfaces, return existing values */
-    for (co = 0; co < obj->contsize; co++)
-      surfs[co] = obj->cont[co].surf;
+    for (co = 0; co < sObj->contsize; co++)
+      surfs[co] = sObj->cont[co].surf;
   return retval;
 }
 
 /*!
- * Returns the general value for contour [co] of object [ob] into [value].
+ * Returns the general value for contour [co] of object [ob] into [value].  The return 
+ * value is -8 if there is no value.
  */
 int getcontvalue(int *ob, int *co, float *value)
 {
@@ -923,30 +948,23 @@ int getcontvalue(int *ob, int *co, float *value)
 
 /*!
  * Returns the general value for point [pt] in contour [co] of object [ob]
- * into [value].  If [pt] <= 0, has the same effect as @getcontvalue.
+ * into [value].  If [pt] <= 0, has the same effect as @@getcontvalue@.  The return 
+ * value is -8 if there is no value.
  */
 int getpointvalue(int *ob, int *co, int *pt, float *value)
 {
-  Iobj *obj;
-  Icont *cont;
   int index, after, i;
   Istore *item;
   Ilist *store;
-  if (!Fimod)
-    return(FWRAP_ERROR_NO_MODEL);
-  if (*ob < 1 || *ob > Fimod->objsize)
-    return(FWRAP_ERROR_BAD_OBJNUM);
-  obj = &Fimod->obj[*ob - 1];
-  if (*co < 1 || *co > obj->contsize)
-    return(FWRAP_ERROR_BAD_OBJNUM);
+  if ((i = checkAssignObjCont(ob, co)))
+    return i;
   if (*pt < 1) {
-    store = obj->store;
+    store = sObj->store;
     index = istoreLookup(store, *co - 1, &after);
   } else {
-    cont = &obj->cont[*co - 1];
-    if (*pt > cont->psize)
+    if (*pt > sCont->psize)
       return(FWRAP_ERROR_BAD_OBJNUM);
-    store = cont->store;
+    store = sCont->store;
     index = istoreLookup(store, *pt - 1, &after);
   }
   if (index < 0)
@@ -972,29 +990,106 @@ int putcontvalue(int *ob, int *co, float *value)
 
 /*!
  * Stores a general value [value] for point [pt] in contour [co] of object 
- * [ob].  If [pt] is <= 0 then the effect is the same as calling @putcontvalue.
+ * [ob].  If [pt] is <= 0 then the effect is the same as calling @@putcontvalue@.
  */
 int putpointvalue(int *ob, int *co, int *pt, float *value)
 {
-  if (nvalues_put >= max_values) {
-    if (max_values) {
-      max_values += 100;
-      values_put = (ValueStruct *)realloc
-        (values_put, max_values * sizeof(ValueStruct));
+  if (sNumValuesPut >= sMaxValues) {
+    if (sMaxValues) {
+      sMaxValues += 100;
+      sValuesPut = (ValueStruct *)realloc
+        (sValuesPut, sMaxValues * sizeof(ValueStruct));
     } else {
-      max_values += 100;
-      values_put = (ValueStruct *)malloc(max_values * sizeof(ValueStruct));
+      sMaxValues += 100;
+      sValuesPut = (ValueStruct *)malloc(sMaxValues * sizeof(ValueStruct));
     }
   }
-  if (!values_put)
+  if (!sValuesPut)
     return FWRAP_ERROR_MEMORY;
-  values_put[nvalues_put].ob = *ob - 1;
-  values_put[nvalues_put].co = *co - 1;
-  values_put[nvalues_put].pt = *pt - 1;
-  values_put[nvalues_put++].value = *value;
+  sValuesPut[sNumValuesPut].ob = *ob - 1;
+  sValuesPut[sNumValuesPut].co = *co - 1;
+  sValuesPut[sNumValuesPut].pt = *pt - 1;
+  sValuesPut[sNumValuesPut++].value = *value;
   return FWRAP_NOERROR;
 }
 
+/*!
+ * Deletes the store structure for the given object [ob], if any.
+ */
+int clearimodobjstore(int *ob)
+{
+  int err = checkAssignObject(ob);
+  if (err)
+    return err;
+  if (sObj->store)
+    ilistDelete(sObj->store);
+  sObj->store = NULL;
+  return FWRAP_NOERROR;
+}
+
+/*!
+ * Deletes contour [co] in object [ob] using @imodel.html#imodDeleteContour, which will
+ * adjust contour numbers in an object store, if any.
+ */
+int deleteimodcont(int *ob, int *co)
+{
+  int err = checkAssignObjCont(ob, co);
+  if (err)
+    return err;
+  imodSetIndex(sImod, *ob - 1, *co - 1, -1);
+  if (imodDeleteContour(sImod, *co - 1) < 0)
+    return(FWRAP_ERROR_FROM_CALL);
+  return FWRAP_NOERROR;
+}
+
+/*!
+ * Deletes point [pt] in contour [co] of object [ob] using @imodel.html#imodPointDelete,
+ *  which will adjust sizes, labels, and general storage items in the contour, if any.
+ */
+int deleteimodpoint(int *ob, int *co, int *pt)
+{
+  int err = checkAssignObjCont(ob, co);
+  if (err)
+    return err;
+  if (*pt < 1 || *pt > sCont->psize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  if (imodPointDelete(sCont, *pt - 1) < 0)
+    return(FWRAP_ERROR_FROM_CALL);
+  return FWRAP_NOERROR;
+}
+
+/*!
+ * Returns the threshold value for object [ob] in [thresh].  This value is based on the
+ * min and max contour values in the object as the value of the byte {valblack} as stored
+ * by imodfindbeads and findbeads3d or adjusted in beadfixer.  The return value is -8 if
+ * there is no min/max stored.
+ */
+int getobjvaluethresh(int *ob, float *thresh)
+{
+  float vmin, vmax;
+  int err = checkAssignObject(ob);
+  if (err)
+    return err;
+  if (!istoreGetMinMax(sObj->store, sObj->contsize, GEN_STORE_MINMAX1, &vmin, &vmax))
+    return FWRAP_ERROR_NO_VALUE;
+  *thresh = sObj->valblack * (vmax - vmin) / 255. + vmin;
+  return FWRAP_NOERROR;
+}
+
+/*! 
+ * Updates the min and max values for VALUE1 for contours and points of object [ob], using
+ * @@istore.html#istoreFindAddMinMax1@.
+ */
+int findaddminmax1value(int *ob)
+{
+  int err = checkAssignObject(ob);
+  if (err)
+    return err;
+  err = istoreFindAddMinMax1(sObj);
+  if (err > 0)
+    return FWRAP_ERROR_FROM_CALL;
+  return FWRAP_NOERROR;
+}
 
 #define OBJ_EMPTY    -2
 #define OBJ_HAS_DATA -1
@@ -1012,8 +1107,9 @@ static float Wmod_Colors[9][3]  =   { {0.90, 0.82, 0.37},  /* Dim Yellow  */
 
 /*!
  * Puts model contours from arrays back into IMOD model structure.  If partial
- * mode is off, all existing contours in all objects are deleted.  If partial
- * mode is on, existing contours will be deleted only from objects included 
+ * mode is off, all existing contour data in all objects are deleted, and replaced by
+ * the points in the contours being stored.  If partial
+ * mode is on, existing contour data will be deleted only from objects included 
  * in these data (as specified by the [color] values); other objects will be 
  * retained.
  * ^  [ibase]   = starting index of contours in [cindex] array, numbered from 0
@@ -1038,19 +1134,19 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
   int maxobj;
   int wimpno;
 
-  if (!Fimod) {
-    Fimod = imodNew();
-    Fimod->objsize = 0;
-    Fimod->obj = NULL;
+  if (!sImod) {
+    sImod = imodNew();
+    sImod->objsize = 0;
+    sImod->obj = NULL;
   }
 
-  mincolor = 256 - Fimod->objsize;
+  mincolor = 256 - sImod->objsize;
 
   /* Find minimum color, and maximum object #; get arrays */
   /* Skip empty contours unless we are in partial mode, where they are needed
      to signal that an existing object is now empty */
   for (object = 0; object < *nobject; object++) {
-    if (npt[object] == 0 && !partialMode) 
+    if (npt[object] == 0 && !sPartialMode) 
       continue;
     if (mincolor > color[object][1])
       mincolor = color[object][1];
@@ -1073,11 +1169,11 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
 
   /* Fill lookup table for existing objects; if in partial mode set nsaved
      to full count to keep contours from being deleted later */
-  for (ob = 0; ob < Fimod->objsize; ob++) {
+  for (ob = 0; ob < sImod->objsize; ob++) {
     objlookup[(255 - mincolor) - ob] = ob;
     nobj++;
-    if (partialMode)
-      nsaved[ob] = Fimod->obj[ob].contsize;
+    if (sPartialMode)
+      nsaved[ob] = sImod->obj[ob].contsize;
   }
 
   /* For all non-empty contours passed back, mark an empty object as having
@@ -1085,7 +1181,7 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
      object, set nsaved back to
      0 so that if all contours got deleted they will be deleted from object */
   for (object = 0; object < *nobject; object++) {
-    if (npt[object] == 0 && !partialMode)
+    if (npt[object] == 0 && !sPartialMode)
       continue;
     ob = color[object][1] - mincolor;
     if (objlookup[ob] >= 0)
@@ -1104,34 +1200,34 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
   for (ob = maxobj - 1; ob >= 0; ob--) {
     if (objlookup[ob] != OBJ_HAS_DATA)
       continue;
-    objlookup[ob] = Fimod->objsize;
-    imodNewObject(Fimod);
+    objlookup[ob] = sImod->objsize;
+    imodNewObject(sImod);
     wimpno = ob + mincolor;
 
     /* Just use top 6 colors and let new color scheme hold after that */
     if (wimpno >= 250) {
-      Fimod->obj[nobj].red   = Wmod_Colors[wimpno - 247][0];
-      Fimod->obj[nobj].green = Wmod_Colors[wimpno - 247][1];
-      Fimod->obj[nobj].blue  = Wmod_Colors[wimpno - 247][2];
+      sImod->obj[nobj].red   = Wmod_Colors[wimpno - 247][0];
+      sImod->obj[nobj].green = Wmod_Colors[wimpno - 247][1];
+      sImod->obj[nobj].blue  = Wmod_Colors[wimpno - 247][2];
         
     } /*else{
-        Fimod->obj[nobj].red   =  wimpno / 255.0f;
-        Fimod->obj[nobj].green = wimpno / 255.0f;
-        Fimod->obj[nobj].blue  = wimpno / 255.0f;
+        sImod->obj[nobj].red   =  wimpno / 255.0f;
+        sImod->obj[nobj].green = wimpno / 255.0f;
+        sImod->obj[nobj].blue  = wimpno / 255.0f;
         } */
-    Fimod->obj[nobj].flags |= IMOD_OBJFLAG_OPEN;
+    sImod->obj[nobj].flags |= IMOD_OBJFLAG_OPEN;
 
     /* Find object name in list if any */
     ci = 0;
-    for (pt = 0; pt < numNames_put; pt++) {
-      if (names_put[pt].ob == 255 - (ob + mincolor)) {
-        strncpy(Fimod->obj[nobj].name, names_put[pt].name, IOBJ_STRSIZE - 1);
-        Fimod->obj[nobj].name[IOBJ_STRSIZE - 1] = 0x00;
+    for (pt = 0; pt < sNumNamesPut; pt++) {
+      if (sNamesPut[pt].ob == 255 - (ob + mincolor)) {
+        strncpy(sImod->obj[nobj].name, sNamesPut[pt].name, IOBJ_STRSIZE - 1);
+        sImod->obj[nobj].name[IOBJ_STRSIZE - 1] = 0x00;
         ci = 1;
       }
     }
     if (!ci)
-      sprintf(Fimod->obj[nobj].name, "Wimp no. %d", wimpno);
+      sprintf(sImod->obj[nobj].name, "Wimp no. %d", wimpno);
     nobj++;
   }
 
@@ -1151,11 +1247,11 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
         fprintf(stderr, "putimod warning: bad object bounds %d\n", ob);
       continue;
     }
-    if (ob > Fimod->objsize) {
+    if (ob > sImod->objsize) {
       fprintf(stderr, "putimod warning: bad object bounds %d\n", ob);
       continue;
     }
-    obj = &Fimod->obj[ob];
+    obj = &sImod->obj[ob];
 
     if (nsaved[ob] < obj->contsize) {
 
@@ -1219,11 +1315,15 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
   /*
    *  Remove old contours that were not replaced
    */     
-  for (ob = 0; ob < Fimod->objsize; ob++) {
-    if (imodContoursDeleteToEnd(&(Fimod->obj[ob]), nsaved[ob]))
+  for (ob = 0; ob < sImod->objsize; ob++) {
+    if (imodContoursDeleteToEnd(&(sImod->obj[ob]), nsaved[ob])) {
+      free(objlookup);
+      free(nsaved);
       return FWRAP_ERROR_MEMORY;
+    }
   }   
-
+  free(objlookup);
+  free(nsaved);
   return FWRAP_NOERROR;
 }
 
@@ -1243,7 +1343,7 @@ int writeimod(char *fname, int fsize)
   char *filename = f2cString(fname, fsize);
   if (!filename)
     return(FWRAP_ERROR_BAD_FILENAME);
-  if (!Fimod) {
+  if (!sImod) {
     free(filename); 
     return(FWRAP_ERROR_NO_MODEL);
   }
@@ -1253,8 +1353,8 @@ int writeimod(char *fname, int fsize)
    *  DNM 11/5/98: rearranged to correspond to proper conventions 
    * 5/21/05: moved this up from putimod
    */
-  if (Fimod->refImage) {
-    IrefImage *iref = Fimod->refImage;
+  if (sImod->refImage) {
+    IrefImage *iref = sImod->refImage;
     Imat  *mat = imodMatNew(3); 
     Ipoint pnt;
 
@@ -1273,7 +1373,7 @@ int writeimod(char *fname, int fsize)
     pnt.z = 1.0/iref->cscale.z;
     imodMatScale(mat, &pnt);
     
-    imodTransform(Fimod, mat);
+    imodTransform(sImod, mat);
     imodMatDelete(mat);
 
 
@@ -1281,25 +1381,25 @@ int writeimod(char *fname, int fsize)
 
   /* Reflip data back if necessary */
 
-  if (Fimod->flags & IMODF_FLIPYZ)
-    imodFlipYZ(Fimod);
+  if (sImod->flags & IMODF_FLIPYZ)
+    imodFlipYZ(sImod);
 
   /* Put out the flag data */
   flagmask = (1 << FLAG_VALUE_SHIFT) - 1;
-  for (i = 0; i < nflags_put; i++) {
-    ob = flags_put[2 * i];
-    flag = flags_put[2 * i + 1];
+  for (i = 0; i < sNumFlagsPut; i++) {
+    ob = sFlagsPut[2 * i];
+    flag = sFlagsPut[2 * i + 1];
     value = flag >> FLAG_VALUE_SHIFT;
     flag &= flagmask;
     /* printf("object %d  flag %d  value %d\n", ob, flag, value); */
-    if (ob >= 0 && ob < Fimod->objsize) {
+    if (ob >= 0 && ob < sImod->objsize) {
 
       /* Save some data in the current view if it has an object view for
          this object */
       objview = NULL;
-      obj = &Fimod->obj[ob];
-      if (Fimod->cview > 0 && Fimod->view[Fimod->cview].objvsize > ob)
-        objview = &(Fimod->view[Fimod->cview].objview[ob]);
+      obj = &sImod->obj[ob];
+      if (sImod->cview > 0 && sImod->view[sImod->cview].objvsize > ob)
+        objview = &(sImod->view[sImod->cview].objview[ob]);
 
       switch (flag) {
       case 0:
@@ -1380,72 +1480,72 @@ int writeimod(char *fname, int fsize)
     }
   }
        
-  if (maxes_put) {
-    Fimod->xmax = xmax_put;
-    Fimod->ymax = ymax_put;
-    Fimod->zmax = zmax_put;
+  if (sMaxesPut) {
+    sImod->xmax = sXmaxPut;
+    sImod->ymax = sYmaxPut;
+    sImod->zmax = sZmaxPut;
   }
 
   /* Save Zscale, save rotation in current view if there is one */
-  if (zscale_put != NO_VALUE_PUT)
-    Fimod->zscale = zscale_put;
-  if (Fimod->cview > 0 && rotation_put.x != NO_VALUE_PUT)
-    Fimod->view[Fimod->cview].rot = rotation_put;
+  if (sZscalePut != NO_VALUE_PUT)
+    sImod->zscale = sZscalePut;
+  if (sImod->cview > 0 && sRotationPut.x != NO_VALUE_PUT)
+    sImod->view[sImod->cview].rot = sRotationPut;
 
   /* Put out the sizes into the contours */
-  for (i = 0; i < nsizes_put; i++) {
+  for (i = 0; i < sNumSizesPut; i++) {
 
     /* Ignore illegal object or contour numbers */
-    if (sizes_put[i].ob < 0 || sizes_put[i].ob >= Fimod->objsize)
+    if (sSizesPut[i].ob < 0 || sSizesPut[i].ob >= sImod->objsize)
       continue;
-    obj = &Fimod->obj[sizes_put[i].ob];
-    if (sizes_put[i].co < 0 || sizes_put[i].co >= obj->contsize)
+    obj = &sImod->obj[sSizesPut[i].ob];
+    if (sSizesPut[i].co < 0 || sSizesPut[i].co >= obj->contsize)
       continue;
 
     /* Fill up to the limit on the number of point in array and contour */
-    cont = &obj->cont[sizes_put[i].co];
-    value = B3DMIN(sizes_put[i].num, cont->psize);
+    cont = &obj->cont[sSizesPut[i].co];
+    value = B3DMIN(sSizesPut[i].num, cont->psize);
     for (j = 0; j < value; j++)
-      if (sizes_put[i].sizes[j] >= 0.)
-        imodPointSetSize(cont, j, sizes_put[i].sizes[j]);
+      if (sSizesPut[i].sizes[j] >= 0.)
+        imodPointSetSize(cont, j, sSizesPut[i].sizes[j]);
   }
 
   /* Put out general values */
-  if (nvalues_put) {
+  if (sNumValuesPut) {
     store.type = GEN_STORE_VALUE1;
     store.flags = (GEN_STORE_FLOAT << 2) | GEN_STORE_ONEPOINT;
-    for (i = 0; i < nvalues_put; i++) {
+    for (i = 0; i < sNumValuesPut; i++) {
 
       /* Ignore illegal object or contour numbers */
-      if (values_put[i].ob < 0 || values_put[i].ob >= Fimod->objsize)
+      if (sValuesPut[i].ob < 0 || sValuesPut[i].ob >= sImod->objsize)
         continue;
-      obj = &Fimod->obj[values_put[i].ob];
-      if (values_put[i].co < 0 || values_put[i].co >= obj->contsize)
+      obj = &sImod->obj[sValuesPut[i].ob];
+      if (sValuesPut[i].co < 0 || sValuesPut[i].co >= obj->contsize)
         continue;
 
       /* Insert value into contour or object stores */
-      store.value.f = values_put[i].value;
-      if (values_put[i].pt < 0) {
-        store.index.i = values_put[i].co;
+      store.value.f = sValuesPut[i].value;
+      if (sValuesPut[i].pt < 0) {
+        store.index.i = sValuesPut[i].co;
         istoreInsertChange(&obj->store, &store);
       } else {
-        cont = &obj->cont[values_put[i].co];
-        if (values_put[i].pt > cont->psize)
+        cont = &obj->cont[sValuesPut[i].co];
+        if (sValuesPut[i].pt > cont->psize)
           continue;
-        store.index.i = values_put[i].pt;
+        store.index.i = sValuesPut[i].pt;
         istoreInsertChange(&cont->store, &store);
       }
     }
     
     /* Now need to set min/maxes for all stores */
-    for (ob = 0; ob < Fimod->objsize; ob++)
-      istoreFindAddMinMax1(&Fimod->obj[ob]);
+    for (ob = 0; ob < sImod->objsize; ob++)
+      istoreFindAddMinMax1(&sImod->obj[ob]);
   }
      
   /* Complete the set of object views just before writing */
-  imodObjviewComplete(Fimod);
-  Fimod->file = fopen(filename, "wb");
-  retcode = imodWriteFile(Fimod);
+  imodObjviewComplete(sImod);
+  sImod->file = fopen(filename, "wb");
+  retcode = imodWriteFile(sImod);
   free(filename);
   return(retcode);
 }
@@ -1456,20 +1556,15 @@ int writeimod(char *fname, int fsize)
  */
 int putimodscat(int *ob, float *verts)
 {
-  Iobj *obj;
   Icont *cont;
   int co, pt, v;
      
-  if (!Fimod)
-    return(1);
-  if (*ob < 1 && *ob > Fimod->objsize)
-    return(1);
-  obj = &Fimod->obj[*ob - 1];
-  if (!obj) return(1);
-  if (!iobjScat(obj->flags)) return(2);
+  if ((co = checkAssignObject(ob)))
+    return co;
+  if (!iobjScat(sObj->flags)) return(2);
 
-  for (co = 0, v = 0; co < obj->contsize; co++) {
-    cont = &obj->cont[co];
+  for (co = 0, v = 0; co < sObj->contsize; co++) {
+    cont = &sObj->cont[co];
     for (pt = 0; pt < cont->psize; pt++) {
       cont->pts[pt].x = verts[v++];
       cont->pts[pt].y = verts[v++];
@@ -1486,7 +1581,7 @@ int putimodscat(int *ob, float *verts)
 int putimodmesh(float *verts)
 {
   int i,mi;
-  Iobj *obj = &(Fimod->obj[Fimod->cindex.object]);
+  Iobj *obj = &(sImod->obj[sImod->cindex.object]);
   Ipoint *fvert;
   Ipoint trans;
 
@@ -1514,11 +1609,11 @@ int putimodmesh(float *verts)
 int newimod(void)
 {
     deleteFimod();
-    Fimod = imodNew();
-    if (!Fimod)
+    sImod = imodNew();
+    if (!sImod)
       return FWRAP_ERROR_NO_MODEL;
-    Fimod->objsize = 0;
-    Fimod->obj = NULL;
+    sImod->objsize = 0;
+    sImod->obj = NULL;
     return FWRAP_NOERROR;
 }
 
@@ -1527,7 +1622,7 @@ int newimod(void)
  */
 int deleteimod(void)
 {
-    if (!Fimod)
+    if (!sImod)
       return FWRAP_ERROR_NO_MODEL;
     deleteFimod();
     return FWRAP_NOERROR;
@@ -1538,13 +1633,13 @@ int deleteimod(void)
  */
 int deleteiobj(void)
 {
-    if (!Fimod)
+    if (!sImod)
         return FWRAP_ERROR_NO_MODEL;
 
-    imodObjviewsFree(Fimod);
-    imodObjectsDelete(Fimod->obj, Fimod->objsize);
-    Fimod->objsize = 0;
-    Fimod->obj = NULL;
+    imodObjviewsFree(sImod);
+    imodObjectsDelete(sImod->obj, sImod->objsize);
+    sImod->objsize = 0;
+    sImod->obj = NULL;
 
     return FWRAP_NOERROR;
 }
@@ -1555,9 +1650,9 @@ int deleteiobj(void)
  */
 int getimodobjsize()
 {
-  if (!Fimod)
+  if (!sImod)
     return -1;
-  return Fimod->objsize;
+  return sImod->objsize;
 }
 
 /*!
@@ -1567,12 +1662,12 @@ int getimodheado(float *um, float *zscale)
 {
   int exval;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
 
-  exval = Fimod->units + 6;
-  *um = Fimod->pixsize * (pow(10.0, (double)exval));
-  *zscale = Fimod->zscale;
+  exval = sImod->units + 6;
+  *um = sImod->pixsize * (pow(10.0, (double)exval));
+  *zscale = sImod->zscale;
   return FWRAP_NOERROR;
 }
 
@@ -1581,12 +1676,12 @@ int getimodheado(float *um, float *zscale)
  */
 int getimodmaxes(int *xmax, int *ymax, int *zmax)
 {
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
 
-  *xmax = Fimod->xmax;
-  *ymax = Fimod->ymax;
-  *zmax = Fimod->zmax;
+  *xmax = sImod->xmax;
+  *ymax = sImod->ymax;
+  *zmax = sImod->zmax;
   return FWRAP_NOERROR;
 }
 
@@ -1602,16 +1697,16 @@ int getimodhead(float *um, float *zscale,
   int exval;
   IrefImage *iref;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
 
-  exval = Fimod->units + 6;
-  *um = Fimod->pixsize * (pow(10.0, (double)exval));
-  *zscale = Fimod->zscale;
+  exval = sImod->units + 6;
+  *um = sImod->pixsize * (pow(10.0, (double)exval));
+  *zscale = sImod->zscale;
 
      
 
-  iref = Fimod->refImage;
+  iref = sImod->refImage;
      
   /* DNM 7/20/02: If image origin has been stored in otrans, return that
      because that is what is needed to get to full volume index coords */
@@ -1619,7 +1714,7 @@ int getimodhead(float *um, float *zscale,
     *xoffset = 0;
     *yoffset = 0;
     *zoffset = 0;
-  } else if (Fimod->flags & IMODF_OTRANS_ORIGIN) {
+  } else if (sImod->flags & IMODF_OTRANS_ORIGIN) {
     *xoffset = -iref->otrans.x;
     *yoffset = -iref->otrans.y;
     *zoffset = -iref->otrans.z;
@@ -1630,7 +1725,7 @@ int getimodhead(float *um, float *zscale,
   }
 
 
-  if (Fimod->flags & IMODF_FLIPYZ) {
+  if (sImod->flags & IMODF_FLIPYZ) {
     *ifflip = 1;
   }else{
     *ifflip = 0;
@@ -1645,10 +1740,10 @@ int getimodscales(float *ximscale, float *yimscale, float *zimscale)
 {
   IrefImage *iref;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
 
-  iref = Fimod->refImage;
+  iref = sImod->refImage;
      
   if (iref) {
     *ximscale = iref->cscale.x;
@@ -1670,14 +1765,14 @@ int putimageref(float *delta, float *origin)
 {
   IrefImage *iref;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
-  if (!Fimod->refImage) {
-    Fimod->refImage = (IrefImage *) malloc (sizeof(IrefImage));
-    if (!Fimod->refImage)
+  if (!sImod->refImage) {
+    sImod->refImage = (IrefImage *) malloc (sizeof(IrefImage));
+    if (!sImod->refImage)
       return FWRAP_ERROR_MEMORY;
   }
-  iref = Fimod->refImage;
+  iref = sImod->refImage;
   iref->cscale.x = delta[0];
   iref->cscale.y = delta[1];
   iref->cscale.z = delta[2];
@@ -1693,9 +1788,9 @@ int putimageref(float *delta, float *origin)
  */
 int imodhasimageref()
 {
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
-  return Fimod->refImage ? 1 : 0;
+  return sImod->refImage ? 1 : 0;
 }
 
 /*!
@@ -1707,23 +1802,23 @@ int getimodflags(int *flags, int *limflags)
 {
   int i;
 
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
-  if (Fimod->objsize > *limflags) {
+  if (sImod->objsize > *limflags) {
     fprintf(stderr, "getimodflags: Too many objects for Fortran program\n");
     return(FWRAP_ERROR_FILE_TO_BIG);
   }
   for (i = 0; i < *limflags; i++)
     flags[i] = -1;
-  for (i = 0; i < Fimod->objsize; i++) {
-    if (!Fimod->obj[i].contsize)
+  for (i = 0; i < sImod->objsize; i++) {
+    if (!sImod->obj[i].contsize)
       continue;
     flags[i]=0;
-    if (Fimod->obj[i].flags & IMOD_OBJFLAG_OPEN)
+    if (sImod->obj[i].flags & IMOD_OBJFLAG_OPEN)
       flags[i] = 1;
-    if (Fimod->obj[i].flags & IMOD_OBJFLAG_SCAT)
+    if (sImod->obj[i].flags & IMOD_OBJFLAG_SCAT)
       flags[i] = 2;
-    if (Fimod->obj[i].meshsize)
+    if (sImod->obj[i].meshsize)
       flags[i] += 4;
   }
   return FWRAP_NOERROR;
@@ -1734,9 +1829,9 @@ int getimodflags(int *flags, int *limflags)
  */
 int getmodelname(char *fname, int fsize)
 {
-  if (!Fimod)
+  if (!sImod)
     return(FWRAP_ERROR_NO_MODEL);
-  if (c2fString(Fimod->name, fname, fsize))
+  if (c2fString(sImod->name, fname, fsize))
     return FWRAP_ERROR_STRING_LEN;
   return FWRAP_NOERROR;
 }
@@ -1747,19 +1842,11 @@ int getmodelname(char *fname, int fsize)
  */
 int getimodobjname(int *ob, char *fname, int fsize)
 {
-  Iobj *obj;
-  int i = 0;
-
-  if (!Fimod)
-    return(FWRAP_ERROR_NO_MODEL);
-  if (*ob < 1 && *ob > Fimod->objsize)
-    return(1);
-  obj = &Fimod->obj[*ob - 1];
-  if (!obj) 
-    return(1);
-
-  for (i = 0; i < fsize && i < IOBJ_STRSIZE && obj->name[i] ; i++)
-    fname[i] = obj->name[i];
+  int i;
+  if ((i = checkAssignObject(ob)))
+    return i;
+  for (i = 0; i < fsize && i < IOBJ_STRSIZE && sObj->name[i] ; i++)
+    fname[i] = sObj->name[i];
   for (; i < fsize; i++)
     fname[i] = 0x20;
   return FWRAP_NOERROR;
@@ -1773,30 +1860,25 @@ int getimodobjname(int *ob, char *fname, int fsize)
  */
 int getimodclip(int *objnum, float *clip)
 {
-  Iobj *obj;
   int nout, i, iout = 0;
-  if (!Fimod)
-    return(FWRAP_ERROR_NO_MODEL);
+  if ((i = checkAssignObject(objnum)))
+    return i;
 
-  if ((*objnum > Fimod->objsize) || (*objnum < 1))
-    return(FWRAP_ERROR_BAD_OBJNUM);
-     
-  Fimod->cindex.object = *objnum - 1;
-  obj = &(Fimod->obj[Fimod->cindex.object]);
+  sImod->cindex.object = *objnum - 1;
 
   /* DNM 9/19/04: modified for multiple clip planes */
-  nout = obj->clips.count;
+  nout = sObj->clips.count;
   if (nout > FWRAP_MAX_CLIP_PLANES)
     nout = FWRAP_MAX_CLIP_PLANES;
 
   for (i = 0; i < nout; i++) {
-    clip[iout++] = obj->clips.normal[i].x;
-    clip[iout++] = obj->clips.normal[i].y;
-    clip[iout++] = obj->clips.normal[i].z / Fimod->zscale;
-    clip[iout] = (obj->clips.normal[i].x * obj->clips.point[i].x) +
-      (obj->clips.normal[i].y * obj->clips.point[i].y) +
-      (obj->clips.normal[i].z * obj->clips.point[i].z);
-    clip[iout++] *= Fimod->pixsize;
+    clip[iout++] = sObj->clips.normal[i].x;
+    clip[iout++] = sObj->clips.normal[i].y;
+    clip[iout++] = sObj->clips.normal[i].z / sImod->zscale;
+    clip[iout] = (sObj->clips.normal[i].x * sObj->clips.point[i].x) +
+      (sObj->clips.normal[i].y * sObj->clips.point[i].y) +
+      (sObj->clips.normal[i].z * sObj->clips.point[i].z);
+    clip[iout++] *= sImod->pixsize;
   }
   return(nout);
 }
@@ -1807,10 +1889,10 @@ int getimodclip(int *objnum, float *clip)
 /* DNM 6/8/01: change this to save the values until a model is written */
 int putimodmaxes(int *xmax, int *ymax, int *zmax)
 {
-  xmax_put = *xmax;
-  ymax_put = *ymax;
-  zmax_put = *zmax;
-  maxes_put = 1;
+  sXmaxPut = *xmax;
+  sYmaxPut = *ymax;
+  sZmaxPut = *zmax;
+  sMaxesPut = 1;
   return FWRAP_NOERROR;
 }
 
@@ -1823,20 +1905,20 @@ int putimodmaxes(int *xmax, int *ymax, int *zmax)
  */
 void putimodflag(int *objnum, int *flag)
 {
-  if (nflags_put)
-    flags_put = (int *)realloc(flags_put,
-                               (nflags_put + 1) * 2 * sizeof(int));
+  if (sNumFlagsPut)
+    sFlagsPut = (int *)realloc(sFlagsPut,
+                               (sNumFlagsPut + 1) * 2 * sizeof(int));
   else
-    flags_put = (int *)malloc(2 * sizeof(int));
+    sFlagsPut = (int *)malloc(2 * sizeof(int));
       
-  if (!flags_put) {
-    nflags_put = 0;
+  if (!sFlagsPut) {
+    sNumFlagsPut = 0;
     return;
   }
 
-  flags_put[nflags_put * 2] = *objnum - 1;
-  flags_put[nflags_put * 2 + 1] = *flag;
-  nflags_put++;
+  sFlagsPut[sNumFlagsPut * 2] = *objnum - 1;
+  sFlagsPut[sNumFlagsPut * 2 + 1] = *flag;
+  sNumFlagsPut++;
 }
 
 /*!
@@ -1844,7 +1926,7 @@ void putimodflag(int *objnum, int *flag)
  */
 void putimodzscale(float *zscale)
 {
-  zscale_put = *zscale;
+  sZscalePut = *zscale;
 }
 
 /*!
@@ -1852,9 +1934,9 @@ void putimodzscale(float *zscale)
  */
 void putimodrotation(float *xrot, float *yrot, float *zrot)
 {
-  rotation_put.x = *xrot;
-  rotation_put.y = *yrot;
-  rotation_put.z = *zrot;
+  sRotationPut.x = *xrot;
+  sRotationPut.y = *yrot;
+  sRotationPut.z = *zrot;
 }
 
 /* DNM 12/3/01: added so that old wimp models can be converted */
@@ -1868,12 +1950,10 @@ void fromvmsfloats(unsigned char *data, int *amt)
  */
 int getscatsize(int *objnum, int *size)
 {
-  int ob = *objnum -1;
-  if (!Fimod)
-    return FWRAP_ERROR_NO_MODEL;
-  if (ob < 0 || ob >= Fimod->objsize)
-    return FWRAP_ERROR_BAD_OBJNUM;
-  *size = Fimod->obj[ob].pdrawsize;
+  int err = checkAssignObject(objnum);
+  if (err)
+    return err;
+  *size = sObj->pdrawsize;
   return FWRAP_NOERROR;
 }
 
@@ -1921,14 +2001,12 @@ void putlinewidth(int *objnum, int *width)
  */
 int getobjcolor(int *objnum, int *red, int *green, int *blue)
 {
-  int ob = *objnum -1;
-  if (!Fimod)
-    return FWRAP_ERROR_NO_MODEL;
-  if (ob < 0 || ob >= Fimod->objsize)
-    return FWRAP_ERROR_BAD_OBJNUM;
-  *red = B3DNINT(255. * Fimod->obj[ob].red);
-  *green = B3DNINT(255. * Fimod->obj[ob].green);
-  *blue = B3DNINT(255. * Fimod->obj[ob].blue);
+  int err = checkAssignObject(objnum);
+  if (err)
+    return err;
+  *red = B3DNINT(255. * sObj->red);
+  *green = B3DNINT(255. * sObj->green);
+  *blue = B3DNINT(255. * sObj->blue);
   return FWRAP_NOERROR;
 }
 
@@ -1974,13 +2052,13 @@ void putvalblackwhite(int *objnum, int *black, int *white)
 int putmodelname(char *fname, int fsize)
 {
   char *tmpstr;
-  if (!Fimod)
+  if (!sImod)
     return FWRAP_ERROR_NO_MODEL;
   tmpstr = f2cString(fname, fsize);
   if (!tmpstr)
     return FWRAP_ERROR_MEMORY;
-  strncpy(Fimod->name, tmpstr, IMOD_STRSIZE - 1);
-  Fimod->name[IMOD_STRSIZE - 1] = 0x00;
+  strncpy(sImod->name, tmpstr, IMOD_STRSIZE - 1);
+  sImod->name[IMOD_STRSIZE - 1] = 0x00;
   free(tmpstr);
   return FWRAP_NOERROR;
 }
@@ -1990,17 +2068,17 @@ int putmodelname(char *fname, int fsize)
  */
 void putimodobjname(int *objnum, char *fname, int fsize)
 {
-  if (!numNames_put) 
-    names_put = (NameStruct *)malloc(sizeof(NameStruct));
+  if (!sNumNamesPut) 
+    sNamesPut = (NameStruct *)malloc(sizeof(NameStruct));
   else
-    names_put = (NameStruct *)realloc(names_put,
-                                      (numNames_put + 1) * sizeof(NameStruct));
-  if (!names_put) {
-    numNames_put = 0;
+    sNamesPut = (NameStruct *)realloc(sNamesPut,
+                                      (sNumNamesPut + 1) * sizeof(NameStruct));
+  if (!sNamesPut) {
+    sNumNamesPut = 0;
     return;
   }
-  names_put[numNames_put].ob = *objnum - 1;
-  names_put[numNames_put++].name = f2cString(fname, fsize);
+  sNamesPut[sNumNamesPut].ob = *objnum - 1;
+  sNamesPut[sNumNamesPut++].name = f2cString(fname, fsize);
 }
 
 /*!
@@ -2018,7 +2096,6 @@ void putimodobjname(int *objnum, char *fname, int fsize)
 int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex, 
                    int *inCont, int *outIndex, int *outCont, int *arraySize)
 {
-  Iobj *obj;
   Icont **scancont;
   Ipoint *pmin, *pmax;
   Nesting *nests, *nest;
@@ -2036,32 +2113,29 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
   int eco;
   int numwarn = -1;
 
-  if (!Fimod)
-    return(FWRAP_ERROR_NO_MODEL);
-  if (*ob < 1 && *ob > Fimod->objsize)
-    return(FWRAP_ERROR_BAD_OBJNUM);
-  obj = &Fimod->obj[*ob - 1];
-  if (*arraySize <= obj->contsize)
+  if ((co = checkAssignObject(ob)))
+    return co;
+  if (*arraySize <= sObj->contsize)
     return(FWRAP_ERROR_FILE_TO_BIG);
-  if (imodContourMakeZTables(obj, 1, 0, &contz, &zlist, &numatz, &contatz, 
+  if (imodContourMakeZTables(sObj, 1, 0, &contz, &zlist, &numatz, &contatz, 
                              &zmin, &zmax, &zlsize, &nummax))
     return(FWRAP_ERROR_MEMORY);
 
   /* Allocate lists of mins, max's, and scan contours */
-  pmin = (Ipoint *)malloc(obj->contsize * sizeof(Ipoint));
-  pmax = (Ipoint *)malloc(obj->contsize * sizeof(Ipoint));
-  scancont = (Icont **)malloc(obj->contsize * sizeof (Icont *)); 
-  nestind = (int *)malloc(obj->contsize * sizeof(int));
+  pmin = B3DMALLOC(Ipoint, sObj->contsize);
+  pmax = B3DMALLOC(Ipoint, sObj->contsize);
+  scancont = B3DMALLOC(Icont *, sObj->contsize); 
+  nestind = B3DMALLOC(int, sObj->contsize);
   if (!pmin || !pmax || !scancont || !nestind)
     return(FWRAP_ERROR_MEMORY);
 
   /* Get mins, maxes, set addresses into scan contour list */
-  for (co = 0; co < obj->contsize; co++) {
+  for (co = 0; co < sObj->contsize; co++) {
     level[co] = 0;
     nestind[co] = -1;
-    if (obj->cont[co].psize) {
-      imodContourGetBBox(&(obj->cont[co]), &(pmin[co]), &(pmax[co]));
-      scancont[co] = &(obj->cont[co]);
+    if (sObj->cont[co].psize) {
+      imodContourGetBBox(&(sObj->cont[co]), &(pmin[co]), &(pmax[co]));
+      scancont[co] = &(sObj->cont[co]);
     }
   }
 
@@ -2069,11 +2143,11 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
   for (indz = 0; indz < zmax + 1 - zmin; indz++) {
     for (kis = 0; kis < numatz[indz] - 1; kis++) {
       co = contatz[indz][kis];
-      if (!obj->cont[co].psize)
+      if (!sObj->cont[co].psize)
         continue;
       for (lis = kis + 1; lis < numatz[indz]; lis++) {
         eco = contatz[indz][lis];
-        if (!obj->cont[eco].psize)
+        if (!sObj->cont[eco].psize)
           continue;
 
         if (imodContourCheckNesting(co, eco, scancont, pmin, pmax, &nests,
@@ -2093,7 +2167,7 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
     outIndex[0] = 1;
 
   /* Fill arrays with the inside and outside lists and indexes to lists */
-  for (co = 0; co < obj->contsize; co++) {
+  for (co = 0; co < sObj->contsize; co++) {
     if (nestind[co] >= 0) {
       nest = &nests[nestind[co]];
       if (intot + nest->ninside >= *arraySize || 
@@ -2113,8 +2187,8 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
   /* clean up everything */
   imodContourFreeNests(nests, numnests);
-  for (co = 0; co < obj->contsize; co++)
-    if (obj->cont[co].psize && (scancont[co]->flags & ICONT_SCANLINE))
+  for (co = 0; co < sObj->contsize; co++)
+    if (sObj->cont[co].psize && (scancont[co]->flags & ICONT_SCANLINE))
       imodContourDelete(scancont[co]);
   imodContourFreeZTables(numatz, contatz, contz, zlist, zmin, zmax);
   free(nestind);

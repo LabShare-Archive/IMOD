@@ -41,13 +41,11 @@ typedef struct __imodv_struct
   /* model data.   */
   Imod **mod;     /* model array              */
   Imod *imod;     /* current model            */
-  int  nm;        /* number of models         */
-  int  cm;        /* current model number     */
+  int  numMods;   /* number of models         */
+  int  curMod;    /* current model number     */
      
-  Iobj *obj;      /* Current object edit.     */
-  int    ob;      /* Current obj number       */
-  Iobj *dobj;     /* default obj=bounding box */
-  struct Mod_Draw  *md;  /* transformations   */
+  Iobj  *obj;     /* Current object edit.     */
+  int   objNum;   /* Current obj number       */
   Imat  *mat;     /* Transformation matrix storage.   */
   Imat  *rmat;    /* rotation matrix. */
 
@@ -69,10 +67,10 @@ typedef struct __imodv_struct
   int cnear;       /* clipping planes.                        */
   int cfar;
   int fovy;        /* field of view angle for perspective.    */
-  int db;          /* use doublebuffer widget if true         */
+  int dblBuf;      /* use doublebuffer widget if true         */
   int dbPossible;  /* Flag that double buffer is possible     */
   int winx, winy;  /* current drawing window size.            */
-  int lmx, lmy;    /* last x,y mouse location.                */
+  int lastmx, lastmy;    /* last x,y mouse location.                */
   int lightx,
     lighty;
 
@@ -87,9 +85,13 @@ typedef struct __imodv_struct
   int imageStereo;    /* draw images as stereo pairs             */
   int imagesPerArea;  /* Number of images of same item         */
   int imageDeltaZ;    /* Step in Z between stereo pairs        */
-  int movie;       /* allow movies.                           */
-  int drawall;     /* draw all models at once.                */
-  int alpha;       /* number of alpha planes.                 */
+  float deltaRot;     /* General rotation step */
+  int movie;          /* allow movies.                           */
+  float xrotMovie;    /* Movie rotations in X, Y, Z             */
+  float yrotMovie;
+  float zrotMovie;
+  int drawall;        /* draw all models at once.                */
+  int alpha;           /* number of alpha planes.                 */
   int current_subset;  /* display subset of model (current element) */
                        /* 0 = all, 1 = obj, 2 = surf, 3 = cont */
   int drawExtraOnly;   /* Draw only extra objects, skip rest of model */

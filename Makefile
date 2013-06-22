@@ -68,10 +68,8 @@ all : configure clibs
 	cd flib       ; $(MAKE) all
 	cd 3dmod      ; $(MAKE) all
 	cd imodutil   ; $(MAKE) all
-	cd sendevent  ; $(MAKE) all
-	cd qtassist   ; $(MAKE) all
+	cd qttools    ; $(MAKE) all
 	cd ctfplotter ; $(MAKE) all
-	cd processchunks ; $(MAKE) all
 	cd mrc        ; $(MAKE) all
 	cd clip       ; $(MAKE) all
 	cd midas      ; $(MAKE) all
@@ -93,14 +91,12 @@ install : configure man sourcedoc
 	cd libiimod   ; $(MAKE) $@
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
-	cd libcfft    ; $(MAKE) $@
+	cd libfft     ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
 	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
-	cd sendevent  ; $(MAKE) $@
-	cd qtassist   ; $(MAKE) $@
+	cd qttools    ; $(MAKE) $@
 	cd ctfplotter ; $(MAKE) $@
-	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
 	cd raptor     ; $(MAKE) $@
@@ -133,7 +129,7 @@ docs :	configure man sourcedoc ALWAYS
 # existing directory it seems to need the ALWAYS
 #
 sourcedoc : configure ALWAYS
-	cd sourcedoc ; $(MAKE)
+	cd qttools/sourcedoc ; $(MAKE)
 
 #
 # Install clibs only or all libs, helps if doing multiple architectures
@@ -144,7 +140,7 @@ installclibs : configure
 	cd libiimod  ; $(MAKE) install
 	cd libmesh   ; $(MAKE) install
 	cd libdiaqt  ; $(MAKE) install
-	cd libcfft   ; $(MAKE) install
+	cd libfft    ; $(MAKE) install
 	cd libwarp   ; $(MAKE) install
 
 installlibs : installclibs
@@ -159,21 +155,18 @@ clean : configure ALWAYS
 	cd libiimod   ; $(MAKE) $@
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
-	cd libcfft    ; $(MAKE) $@
+	cd libfft     ; $(MAKE) $@
 	cd libwarp    ; $(MAKE) $@
 	cd 3dmod      ; $(MAKE) $@
 	cd imodutil   ; $(MAKE) $@
-	cd sendevent  ; $(MAKE) $@
-	cd qtassist   ; $(MAKE) $@
+	cd qttools    ; $(MAKE) $@
 	cd ctfplotter ; $(MAKE) $@
-	cd processchunks ; $(MAKE) $@
 	cd mrc        ; $(MAKE) $@
 	cd midas      ; $(MAKE) $@
 	cd raptor     ; $(MAKE) $@
 	cd pysrc      ; $(MAKE) $@
 	cd plugs      ; $(MAKE) $@
 	cd clip       ; $(MAKE) $@
-	cd sourcedoc  ; $(MAKE) $@
 	cd scripts    ; $(MAKE) $@
 	cd manpages   ; $(MAKE) $@
 	cd flib       ; $(MAKE) $@
@@ -195,7 +188,7 @@ cleanclibs : configure ALWAYS
 	cd libiimod  ; $(MAKE) clean
 	cd libmesh   ; $(MAKE) clean
 	cd libdiaqt  ; $(MAKE) clean
-	cd libcfft   ; $(MAKE) clean
+	cd libfft    ; $(MAKE) clean
 	cd libwarp   ; $(MAKE) clean
 
 cleanlibs : cleanclibs
@@ -209,11 +202,8 @@ cleanqt : configure ALWAYS
 	cd plugs      ; $(MAKE) clean
 	cd 3dmod      ; $(MAKE) clean
 	cd midas      ; $(MAKE) clean
-	cd sendevent  ; $(MAKE) clean
-	cd qtassist   ; $(MAKE) clean
+	cd qttools    ; $(MAKE) clean
 	cd ctfplotter ; $(MAKE) clean
-	cd processchunks ; $(MAKE) clean
-	cd sourcedoc  ; $(MAKE) clean
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
 	cd flib/ndasda ; $(MAKE) clean
@@ -233,7 +223,7 @@ clibs : configure
 	cd libiimod  ; $(MAKE) all
 	cd libmesh   ; $(MAKE) all
 	cd libdiaqt  ; $(MAKE) all
-	cd libcfft   ; $(MAKE) all
+	cd libfft    ; $(MAKE) all
 	cd libwarp   ; $(MAKE) all
 
 libs : clibs 
@@ -267,12 +257,14 @@ dist : ALWAYS
 	if [ -e $(ARCDIR) ] ; then /bin/rm -rf $(ARCDIR)/ ; fi
 	mkdir $(ARCDIR)
 	mkdir $(ARCDIR)/licenses
+	mkdir $(ARCDIR)/SystemTemplate
 	./setup -inst $(ARCDIR) $(LAST_OPTIONS)
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
 	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
 	\cp  dist/[a-zA-Z]*.txt dist/CPOL.html $(ARCDIR)/licenses/
+	-\cp dist/[a-zA-Z]*.adoc $(ARCDIR)/SystemTemplate
 	-\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."

@@ -1,0 +1,127 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input image file to make pyramid from (required)
+tooltip = 
+manpage = Input image file to make pyramid from.  If this option is not
+entered, the first nonoption argument is taken as the input file.  Either way,
+the input file is a required entry.
+
+[Field = RootOutputName]
+short = rootname
+type = CH
+usage = Root name for output files (default is root of input file name)
+tooltip = 
+manpage = Root name for output files.  If you use the "-subdir" option, this
+will also be the name of directory in which files are placed.  The default is
+the root of the input file name.
+
+[Field = ReductionsInSize]
+short = reductions
+type = IA
+usage = List of reduction factors to apply in X and Y (default 2,4,8,...)
+tooltip = 
+manpage = Comma-separated list of reduction factors to apply in X and Y, such 
+as 2,4,8.  The default is a series of powers of 2, with a final factor that
+comes closest to reducing the image to 2 megapixels.  The final factor may
+substitute for the last power of two if it is close enough.
+
+[Field = ReductionsInZ]
+short = zreductions
+type = IA
+usage = List of reduction factors to apply in Z (default 2,3,4,...)
+tooltip = 
+manpage = List of reduction factors to apply in Z.  If this option is entered,
+there must be the same number of factors as entered with -reductions.  The
+default is a series of values increasing by 1 for each volume.
+
+[Field = FilesIntoSubdirectory]
+short = subdir
+type = B
+usage = Place files in a subdirectory named as rootname-pyr
+tooltip = 
+manpage = Place files in a subdirectory, which will be named as the root name
+of the output files with "-pyr" appended.  3dmod(1) can open the files if
+given either the name of the image list file inside the subdirectory or the name
+of the directory itself. 
+If the input file is used as is, the program will attempt to move it into the
+subdirectory.
+
+[Field = TiffOutputFiles]
+short = tiff
+type = B
+usage = Output tiled TIFF files instead of montaged MRC files
+tooltip = 
+manpage = Output tiled TIFF files with Mrc2tif(1) and the -T option.  The default
+is to output a montaged MRC stack and piece list file with Reducemont(1).
+
+[Field = TiffCompressionType]
+short = compress
+type = CH
+usage = Compress TIFF files (lzw, zip, jpeg, or numbers defined in libtiff)
+tooltip = 
+manpage = Apply the given compression to TIFF files.  The allowed entries are
+the same as for Mrc2tif(1): "lzw", "zip", "jpeg", or numbers defined in the libtiff
+library (these are listed in /usr/include/tiff.h on some Linux systems).  See
+the "-c" option of Mrc2tif(1) for details.  If
+an invalid number is given, an error will not occur until Mrc2tif(1) is run.
+
+[Field = CompressionQuality]
+short = quality
+type = I
+usage = Quality for JPEG compression (0-100) or for ZIP compression (1-9)
+tooltip = 
+manpage = Quality for JPEG compression (0-100) or for ZIP compression (1-9)
+when writing compressed TIFF files.  See the "-q" option of Mrc2tif(1) for
+details.  ZIP compression can give significant size reduction for 16-bit data
+that do not fill the 16-bit range, but usually has little value for byte data.
+JPEG compression is not available with 16-bit data.
+
+[Field = UseInputFileAsIs]
+short = use
+type = B
+usage = Do not convert the input file to a tiled file
+tooltip = 
+manpage = Use the input file as it is instead of making a tiled file from it.
+You would do this if you want to avoid the storage requirements of having two
+copies of the input file.  Access to subareas of this image will be slower
+because whole strips have to be loaded, instead of just tiles covering the
+desired area.
+
+[Field = AntialiasTypeInXandY]
+short = xyanti
+type = I
+usage = Type of antialias filter to apply in X and Y (0/1 for binning)
+tooltip = 
+manpage = Type of antialias filter to apply by shrinking the image in X and Y
+with Newstack(1).  The filters are:
+^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    3: Triangle - fast but smooths more than Blackman
+^    4: Mitchell - good at antialiasing, smooths a bit
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
+^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
+^ In fact, the default here is 6.  Enter 0 or 1 to use ordinary binning in
+Binvol(1) instead.
+
+[Field = AntialiasTypeInZ]
+short = zanti
+type = I
+usage = Type of antialias filter to apply in Z (0/1 for binning)
+tooltip = 
+manpage = Type of antialias filter to apply when reducing in Z with Binvol(1).
+The filters are as above, 0 or 1 give ordinary binning, and the default is 6.
+With antialias filtering, the "-spread" option to Binvol(1) will be used to
+get first and last slices as close to the ends of the data set as possible.
+
+[Field = TileSizeInXandY]
+short = tile
+type = IP
+usage = Approximate size of tiles to create in X and Y (default 1024,1024)
+tooltip = 
+manpage = Approximate size of tiles to create in X and Y.  This entry is
+treated as a maximum size by Reducemont(1), whereas Mrc2tif(1) will adjust the
+tile size to be above or below this to minimize wasted storage space.  The
+default is 1024,1024.

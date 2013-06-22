@@ -16,8 +16,10 @@ import etomo.type.ProcessEndState;
  * 
  * @version $Revision$
  */
-public interface ProcessMonitor extends Runnable {
+public interface ProcessMonitor extends Monitor {
   public static final String rcsid = "$Id$";
+
+  public void dumpState();
 
   public void setProcessEndState(ProcessEndState endState);
 

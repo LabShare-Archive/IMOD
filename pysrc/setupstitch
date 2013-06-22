@@ -1,0 +1,278 @@
+#!/usr/bin/env python
+# edgepatches - program to set up a supermontage, find overall shifts between
+# pieces, and compute patch correlation vectors in the edges (pverlap zones)
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+# FUNCTIONS
+
+
+# Function to compose a name given the rootname, string values for positions,
+# and flags for whether to add z and whether to put _ between x, y, z
+def composeName(root, x, y, z, noz, under):
+   name = root + '_x' + x
+   if under:
+      name += '_'
+   name += 'y' + y
+   if noz:
+      return name
+   if under:
+      name += '_'
+   name += 'z' + z
+   return name
+
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal
+
+progname = 'setupstitch'
+prefix = 'ERROR: ' + progname + ' - '
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from supermont import *
+
+setSMErrorPrefix(prefix)
+
+# Initializations
+recExt = '.rec'
+addx, addy, addZlo, addZhi = 0,0,0,0
+addXlo, addXhi, addYlo, addYhi = 0,0,0,0
+xOverlap, yOverlap = -1, -1
+
+# Fallbacks from ../manpages/autodoc2man 3 1 setupstitch
+options = ["info:InfoFile:FN:", "noz:NoZValues:B:", "root:RootName:CH:",
+           "overlap:OverlapInXandY:IP:", "underscore:UnderscoreXYZ:B:",
+           "ext:ExtensionOnVolumes:CH:", "xyadd:AddMontageXandY:IP:",
+           "xadd:AddMontageXRange:IP:", "yadd:AddMontageYRange:IP:",
+           "zadd:AddMontageZRange:IP:", "model:DefaultRegionModel:FN:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 2, \
+                                              1, 0)
+infofile = PipGetInOutFile('InfoFile', 0)
+if not infofile:
+   exitError("Info file name must be entered")
+
+# Get the options for adding montage and check for legality
+infoExists = os.path.exists(infofile)
+(addx, addy) = PipGetTwoIntegers('AddMontageXandY', addx, addy)
+addingxy = 1 - PipGetErrNo()
+(addXlo, addXhi) = PipGetTwoIntegers('AddMontageXRange', addXlo, addXhi)
+addingx = 1 - PipGetErrNo()
+(addYlo, addYhi) = PipGetTwoIntegers('AddMontageYRange', addYlo, addYhi)
+addingy = 1 - PipGetErrNo()
+(addZlo, addZhi) = PipGetTwoIntegers('AddMontageZRange', addZlo, addZhi)
+addingz = 1 - PipGetErrNo()
+if addingz and not (addingxy or (addingx and addingy)):
+   exitError("You must enter -xyadd or -xadd and -yadd if you enter " + \
+         "-zadd")
+if addingxy and (addingx or addingy):
+   exitError("You cannot enter -addxy with -addx or -addy")
+if (addingx and not addingy) or (addingy and not addingx):
+   exitError("You must enter both -xadd and -yadd if you enter one")
+if addingxy and (addx <= 0 or addy <= 0):
+   exitError("Illegal montage size in X or Y")
+if addingx and (addXlo > addXhi or addXlo < 0 or addXhi < 0):
+   exitError("X values out of order or negative")
+if addingy and (addYlo > addYhi or addYlo < 0 or addYhi < 0):
+   exitError("Y values out of order or negative")
+if addingz and (addZlo > addZhi or addZlo < 0 or addZhi < 0):
+   exitError("Z values out of order or negative")
+if infoExists and (addingxy or addingx or addingy) and not addingz:
+   exitError("Info file exists; you must enter -zadd along with " + \
+         "-xyadd or -xadd and -yadd")
+if addingxy:
+   addXlo = 1
+   addXhi = addx
+   addYlo = 1
+   addYhi = addy
+   addingx = 1
+
+# Get other options needed for composing names and doing edges
+underscore = PipGetBoolean('UnderscoreXYZ', 0)
+rootname = PipGetString('RootName', "")
+(xOverlap, yOverlap) = PipGetTwoIntegers('OverlapInXandY', xOverlap, yOverlap)
+recExt = PipGetString('ExtensionOnVolumes', recExt)
+nozopt = PipGetBoolean('NoZValues', 0)
+defaultModel = PipGetString('DefaultRegionModel', "")
+if nozopt and (addingx and infoExists or addingz):
+   exitError(" You cannot enter -noz with -zadd or if adding a " + \
+         "montage with an existing Info file")
+if not nozopt and addingx and not addingz:
+   exitError(" You must enter either -zadd to add volumes that have Z" + \
+         "values")
+if infoExists and not (addingxy or addingx or addingy or addingz) and \
+       (rootname or xOverlap > 0 or yOverlap > 0):
+   prnstr('INFO: There is no need to enter a rootname or overlaps when not adding ' + \
+             'pieces')
+
+PipDone()
+
+# Initialize dictionary arrays, then read existing info file 
+predata = {}
+pieces = []
+edges = []
+slices = []
+neededges = addingx
+
+if nozopt:
+   predata[kNoZvals] = "1"
+if infoExists:
+   readMontInfo(infofile, predata, slices, pieces, edges)
+   if not len(pieces):
+      exitError(" No pieces are defined in the Info file " + infofile)
+   (xmin, xmax, ymin, ymax, zmin, zmax, zlist) = montMinMax(pieces)
+
+   # Figure out if we need to do edges here: are there any edges for each z?
+   if not len(edges):
+      neededges = 1
+   if not neededges:
+      for z in zlist:
+         for edge in edges:
+            if edge[kLower][2] == z:
+               break
+         else:
+            neededges = 1
+
+   # Check for non-conflict between added and existing Z values
+   if addingx:
+      for z in range(addZlo, addZhi + 1):
+         if z in zlist:
+            exitError(fmtstr('Z value {} is in Z list from', z) + \
+                      ' existing file and in list to add')
+
+# Check that options have been entered for making edges
+if neededges and (not rootname or (xOverlap <= 0 and yOverlap <= 0)):
+   exitError(' You must enter a rootname and overlap values with' + \
+         ' new pieces')
+if addingx and addXhi > addXlo and xOverlap <= 0:
+   exitError('You must enter a positive value for overlap in X ' + \
+         'when adding multiple pieces in X')
+if addingx and addYhi > addYlo and yOverlap <= 0:
+   exitError('You must enter a positive value for overlap in Y ' + \
+         'when adding multiple pieces in Y')
+
+# Add the new pieces
+addedData = 0
+if addingx:
+   predata[kNoZvals] = str(nozopt)
+   for z in range(addZlo, addZhi + 1):
+      for x in range(addXlo, addXhi + 1):
+         for y in range(addYlo, addYhi + 1):
+            fileroot = composeName(rootname, str(x), str(y), str(z), \
+                                   nozopt, underscore)
+            filename = fileroot + recExt
+            if os.path.exists(filename):
+               addedData = 1
+               piece = {}
+               pieces.append(piece)
+               piece[kFrame] = [x, y, z]
+               piece['file'] = filename
+               prnstr('Adding piece ' + filename)
+               filename = fileroot + '_region.mod'
+               if os.path.exists(filename):
+                  piece[kModel] = filename
+               elif defaultModel:
+                  piece[kModel] = defaultModel
+
+# Rescan Z values
+(xmin, xmax, ymin, ymax, zmin, zmax, zlist) = montMinMax(pieces)
+
+# Build a piece map and fill in size entries for pieces
+(xsize, xysize, addedData, pieceMap) = buildPieceMap(pieces, xmin, xmax, ymin, ymax, \
+                                                        zmin, zmax, addedData)
+
+# Add edges for Z values that don't have any
+for z in zlist:
+   for edge in edges:
+      if edge[kLower][2] == z:
+         break
+   else:
+      delx = 1
+      dely = 0
+      zbase = xysize * (z - zmin)
+      for xory in ('X', 'Y'):
+         for x in range(xmin, xmax + dely):
+            for y in range(ymin, ymax + delx):
+               lower = pieceMap[x - xmin + xsize * (y - ymin) + zbase]
+               upper =  pieceMap[x + delx - xmin + xsize * \
+                                 (y + dely - ymin) + zbase]
+
+               # An edge exists if lower and upper pieces exist
+               if lower >= 0 and upper >= 0:
+                  addedData = 1
+                  edge = {}
+                  edges.append(edge)
+                  xstr = str(x)
+                  ystr = str(y)
+
+                  # Set up shift as default for corrsearch3d: half the
+                  # difference in sizes
+                  shift = []
+                  for i in [0, 1, 2]:
+                     shift.append(pieces[upper][kSize][i] / 2. - \
+                                  pieces[lower][kSize][i] / 2.)
+
+                  # Set name and shift based on X or Y edge
+                  if delx:
+                     xstr += '-' + str(x + 1)
+                     shift[0] = xOverlap - pieces[lower][kSize][0]
+                  else:
+                     ystr += '-' + str(y + 1)
+                     shift[1] = yOverlap - pieces[lower][kSize][1]
+                  edge['name'] = composeName(rootname, xstr, ystr, \
+                                             str(z), nozopt, underscore)
+                  edge[kXorY] = xory
+                  edge[kLower] = [x, y, z]
+                  edge[kShift] = shift
+                  edge[kOrigShift] = shift
+         delx = 0
+         dely = 1
+
+   # Add a Section section with name and z value
+   for slice in slices:
+      if int(slice[kZvalue]) == z:
+         break
+   else:
+      addedData = 1
+      slice = {}
+      slices.append(slice)
+      if kNoZvals in predata and predata[kNoZvals] != '0':
+         slice['name'] = rootname
+         slice[kZvalue] = '0'
+      else:
+         slice['name'] = rootname + '_' + str(z)
+         slice[kZvalue] = str(z)
+         
+# Write the info file now in case of failure, and after each edge
+if addedData:
+    writeMontInfo(infofile, predata, slices, pieces, edges)
+
+# Write the info file 
+if addedData:
+   prnstr('New info file written')
+else:
+   prnstr('Nothing was done')
+sys.exit(0)

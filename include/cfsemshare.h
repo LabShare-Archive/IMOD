@@ -69,6 +69,13 @@ extern "C" {
   double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
                             int ny, float xpeak, float ypeak, int nxpad,
                             int nypad, int *nsum);
+  double CCCoefficientTwoPads(float *array, float *brray, int nxdim, int nx, int ny,
+                              float xpeak, float ypeak, int nxpadA, int nypadA,
+                              int nxpadB, int nypadB, int minPixels, int *nsum);
+  void sliceGaussianKernel(float *mat, int dim, float sigma);
+  void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma);
+  void applyKernelFilter(float *array, float *brray, int nxdim, int nx, int ny,
+                         float *mat, int kdim);
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
@@ -132,8 +139,11 @@ extern "C" {
                   float *prederr);
   void lsFit3(float *x1, float *x2, float *x3, float *y, int n, float *a1, 
               float *a2, float *a3, float *c);
+  void eigenSort(double *val, double *vec, int n, int rowStride, int colStride,
+                 int useAbs);
 
   /* robuststat.c */
+  void rsSortInts(int *x, int n);
   void rsSortFloats(float *x, int n);
   void rsSortIndexedFloats(float *x, int *index, int n);
   void rsMedianOfSorted(float *x, int n, float *median);
@@ -183,11 +193,12 @@ extern "C" {
   double lnGamma(double x);
 
   /* surfacesort.c */
-  int surfaceSort(float *xyz, int numPts, int *group);
+  int surfaceSort(float *xyz, int numPts, int markersInGroup, int *group);
   int setSurfSortParam(int which, float value);
 
   /* gaussj.c */
   int gaussj(float *a, int n, int np, float *b, int m, int mp);
+  int gaussjDet(float *a, int n, int np, float *b, int m, int mp, float *determ);
 
   /* find_piece_shifts.c */
   int findPieceShifts
@@ -201,11 +212,15 @@ extern "C" {
 
   /* zoomdown.c */
   int selectZoomFilter(int type, double zoom, int *outWidth);
+  int selectZoomFilterXY(int type, double xzoom, double yzoom, int *outWidthX, 
+                         int *outWidthY);
+  void setZoomValueScaling(float factor);
   int zoomWithFilter(unsigned char **slines, int sXsize, int sYsize, float sXoff,
                      float sYoff, int dXsize, int dYsize, int dXdim, int dXoff, int dtype,
                      void *outData, b3dUInt32 *cindex, unsigned char *bindex);
   int zoomFiltInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
                      float xc, float yc, float xt, float yt, float dmean);
+  double zoomFiltValue(float radius);
 
   /* xformfuncs.f */
   void xfUnit(float *f, float val, int rows);
@@ -220,6 +235,22 @@ extern "C" {
                      int *minpiece, int *npieces, int *noverlap);
   void adjustPieceOverlap(int *pclist, int stride, int npclist, int nframe, int minpiece,
                           int noverlap, int newOverlap);
+
+  /* regression.c */
+  void statMatrices(float *x, int xsize, int colFast, int m, int msize, int ndata,
+                    float *sx, float *ss, float *ssd, float *d, float *r, float *xm,
+                    float *sd, int ifdisp);
+  int multRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
+                  int wgtcol, float *b, int bsize, float *c, float *xm, float *sd,
+                  float *work);
+  int robustRegress(float *x, int xsize, int colFast, int m, int ndata, int nbcol,
+                    float *b, int bsize, float *c, float *xm, float *sd, float *work,
+                    float kfactor, int *numIter, int maxIter, int maxZeroWgt,
+                    float maxChange, float maxOscill);
+  int weightedPolyFit(float *x, float *y, float *weight, int ndata, int order,
+                      float *slopes, float *intcpt, float *work);
+  int polynomialFit(float *x, float *y, int ndata, int order, float *slopes, 
+                    float *intcpt, float *work);    
 
 #ifdef __cplusplus
 }

@@ -153,19 +153,19 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
   }
 
   private void createPanel() {
-    //Local panels
+    // Local panels
     JPanel pnlGenerateTomogram = new JPanel();
-    //Root panel
+    // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.add(pnlGenerateTomogram);
     pnlRoot.add(findBeads3dPanel.getComponent());
     pnlRoot.add(reprojectModelPanel.getComponent());
-    //Generate tomogram panel
+    // Generate tomogram panel
     pnlGenerateTomogram.setLayout(new BoxLayout(pnlGenerateTomogram, BoxLayout.Y_AXIS));
     pnlGenerateTomogram.setBorder(BorderFactory.createEtchedBorder());
     pnlGenerateTomogram.add(header.getContainer());
     pnlGenerateTomogram.add(pnlGenerateTomogramBody);
-    //Generate tomogram body panel
+    // Generate tomogram body panel
     pnlGenerateTomogramBody.setLayout(new BoxLayout(pnlGenerateTomogramBody,
         BoxLayout.Y_AXIS));
     pnlGenerateTomogramBody.add(newstackOrBlendmont3dFindPanel.getComponent());
@@ -213,13 +213,16 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
 
   void setParameters(ConstFindBeads3dParam param, boolean initialize) {
     findBeads3dPanel.setParameters(param, initialize);
-    //This uses bead size in findBeads3dPanel, so is can be called after the
-    //findBeads3dPanel.setParameter call.
-    newstackOrBlendmont3dFindPanel.setParameters(initialize);
   }
-
+  void initialize() {
+    newstackOrBlendmont3dFindPanel.initialize();
+  }
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     tilt3dFindPanel.setParameters(param, initialize);
+  }
+  
+  void setOverrideParameters(final ConstMetaData metaData) {
+    tilt3dFindPanel.setOverrideParameters(metaData);
   }
 
   void setParameters(ReconScreenState screenState) {
@@ -276,16 +279,16 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions,
       final ProcessingMethod tiltpProcessingMethod) {
-    //The parent (this class) is responsible for running tilt_3dfind because it
-    //may have to run newst/blend_3dfind first.
-    //Validate to make sure that the binned bead size in pixels is not too
-    //small.
+    // The parent (this class) is responsible for running tilt_3dfind because it
+    // may have to run newst/blend_3dfind first.
+    // Validate to make sure that the binned bead size in pixels is not too
+    // small.
     if (!validate()) {
       return;
     }
-    //If the binning of the existing full aligned stack is different from the
-    //the binning requested here, run newst/blend_3dfind.com and then run
-    //tilt_3dfind.
+    // If the binning of the existing full aligned stack is different from the
+    // the binning requested here, run newst/blend_3dfind.com and then run
+    // tilt_3dfind.
     if (!manager.equalsBinning(axisID, newstackOrBlendmont3dFindPanel.getBinning(),
         FileType.ALIGNED_STACK)) {
       ProcessSeries processSeries = new ProcessSeries(manager, dialogType,
@@ -297,7 +300,7 @@ final class Beads3dFindPanel implements NewstackOrBlendmont3dFindParent,
     }
     else {
       manager.getState().setStackUsingNewstOrBlend3dFindOutput(axisID, false);
-      //Just run tilt_3dfind.
+      // Just run tilt_3dfind.
       tilt3dFindPanel.tilt3dFindAction(processResultDisplay, deferred3dmodButton,
           run3dmodMenuOptions);
     }

@@ -1,9 +1,7 @@
 package etomo;
 
 import java.awt.Component;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
@@ -23,24 +21,23 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.ProcessMessages;
-import etomo.process.ProcessResultDisplayFactoryBlank;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
+import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
-import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
-import etomo.type.ConstProcessSeries;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.InterfaceType;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
@@ -56,6 +53,7 @@ import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainJoinPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -559,6 +557,7 @@ public final class JoinManager extends BaseManager {
 
   // Process dialog references
   private JoinDialog joinDialog = null;
+  private AutoAlignmentController autoAlignmentController = null;
 
   // variables cast from base class variables
   // initialized in create function
@@ -570,7 +569,6 @@ public final class JoinManager extends BaseManager {
   private final JoinScreenState screenState = new JoinScreenState(AxisID.ONLY,
       AxisType.SINGLE_AXIS);
   private boolean debug = false;
-  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   JoinManager(String paramFileName, AxisID axisID) {
     super();
@@ -592,11 +590,6 @@ public final class JoinManager extends BaseManager {
     return InterfaceType.JOIN;
   }
 
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      AxisID axisID) {
-    return processResultDisplayFactory;
-  }
-
   public boolean saveParamFile() throws LogFile.LockException, IOException {
     boolean retval;
     if ((retval = super.saveParamFile())) {
@@ -610,7 +603,7 @@ public final class JoinManager extends BaseManager {
       String dir = joinDialog.getWorkingDirName();
       String root = joinDialog.getRootName();
       if (dir != null && !dir.matches("\\s*") && root != null && !root.matches("\\s*")) {
-        File file = new File(dir, root + DatasetFiles.JOIN_DATA_FILE_EXT);
+        File file = new File(dir, root + DataFileType.JOIN.extension);
         if (!file.exists()) {
           processMgr.createNewFile(file.getAbsolutePath());
         }
@@ -635,18 +628,9 @@ public final class JoinManager extends BaseManager {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
-  protected String paramString() {
+  String paramString() {
     return "joinDialog=" + joinDialog + ",metaData=" + metaData + ",\nprocessMgr="
         + processMgr + ",state=" + state + ",\nsuper[" + super.paramString() + "]";
-  }
-
-  protected void createComScriptManager() {
-  }
-
-  protected void createProcessTrack() {
-  }
-
-  protected void processSucceeded(AxisID axisID, ProcessName processName) {
   }
 
   /**
@@ -661,9 +645,11 @@ public final class JoinManager extends BaseManager {
       else {
         joinDialog = JoinDialog.getInstance(this, metaData, state);
       }
+      autoAlignmentController = new AutoAlignmentController(this, joinDialog);
+      joinDialog.setAutoAlignmentController(autoAlignmentController);
     }
     if (loadedParamFile) {
-      createEmptyXfFile(metaData.getDatasetName());
+      autoAlignmentController.createEmptyXfFile();
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
     String actionMessage = Utilities.prepareDialogActionMessage(DialogType.JOIN,
@@ -686,6 +672,15 @@ public final class JoinManager extends BaseManager {
     return paramFile;
   }
 
+  public void getParameters(final MidasParam param, final AxisID axisID) {
+    param.setInputFileName(FileType.JOIN_SAMPLE.getFileName(this, axisID));
+    param.setSectionTableRowData(metaData.getSectionTableData());
+  }
+
+  public void getParameters(final XfalignParam param, final AxisID axisID) {
+    param.setInputFileName(FileType.JOIN_SAMPLE_AVERAGES.getFileName(this, axisID));
+  }
+
   private boolean doneJoinDialog() {
     if (joinDialog == null) {
       return false;
@@ -701,6 +696,9 @@ public final class JoinManager extends BaseManager {
       propertyUserDir = workingDir;
     }
     String rootName = joinDialog.getRootName();
+    if (rootName == null) {
+      return false;
+    }
     if (!loadedParamFile && rootName != null && !rootName.matches("\\s*+")) {
       paramFile = new File(propertyUserDir, rootName + metaData.getFileExtension());
       if (!paramFile.exists()) {
@@ -712,7 +710,7 @@ public final class JoinManager extends BaseManager {
         mainPanel.setStatusBarText(paramFile, metaData, logPanel);
       }
     }
-    joinDialog.getMetaData(metaData);
+    joinDialog.getMetaData(metaData, false);
     joinDialog.getScreenState(screenState);
     state.setDoneMode(joinDialog.getMode());
     saveStorables(AxisID.ONLY);
@@ -723,8 +721,10 @@ public final class JoinManager extends BaseManager {
     return screenState;
   }
 
-  protected void createMainPanel() {
-    mainPanel = new MainJoinPanel(this);
+  void createMainPanel() {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainJoinPanel(this);
+    }
   }
 
   /**
@@ -809,10 +809,6 @@ public final class JoinManager extends BaseManager {
       uiHarness.openMessageDialog(this, e.getMessage(), "AxisType problem", AxisID.ONLY);
       return false;
     }
-  }
-
-  public boolean isInManagerFrame() {
-    return false;
   }
 
   /**
@@ -924,7 +920,7 @@ public final class JoinManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!joinDialog.getMetaData(metaData)) {
+    if (!joinDialog.getMetaData(metaData, true)) {
       return;
     }
     if (!metaData.isValid(joinDialog.getWorkingDirName())) {
@@ -937,12 +933,12 @@ public final class JoinManager extends BaseManager {
     }
     String rootName = metaData.getDatasetName();
     EtomoDirector.INSTANCE.renameCurrentManager(rootName);
-    createEmptyXfFile(rootName);
+    autoAlignmentController.createEmptyXfFile();
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData, state, this);
     if (paramFile == null) {
       endSetupMode();
     }
-    if (!joinDialog.getMetaData(metaData)) {
+    if (!joinDialog.getMetaData(metaData, true)) {
       return;
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
@@ -1031,73 +1027,6 @@ public final class JoinManager extends BaseManager {
     return true;
   }
 
-  public boolean canChangeParamFileName() {
-    return false;
-  }
-
-  /**
-   * Run midas on the sample
-   */
-  public void midasSample() {
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
-      return;
-    }
-    MidasParam midasParam = new MidasParam(this, AxisID.ONLY);
-    if (!copyMostRecentXfFile(JoinDialog.MIDAS_TEXT)) {
-      return;
-    }
-    try {
-      processMgr.midasSample(midasParam);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, "Can't run" + JoinDialog.MIDAS_TEXT + "\n"
-          + except.getMessage(), "SystemProcessException", AxisID.ONLY);
-      return;
-    }
-  }
-
-  public void xfalignInitial(ConstProcessSeries processSeries) {
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
-      return;
-    }
-    XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.Mode.INITIAL);
-    try {
-      threadNameA = processMgr.xfalign(xfalignParam, processSeries);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this,
-          "Can't run initial xfalign\n" + except.getMessage(), "SystemProcessException",
-          AxisID.ONLY);
-      joinDialog.enableMidas();
-      return;
-    }
-    mainPanel.startProgressBar("Initial xfalign", AxisID.ONLY, ProcessName.XFALIGN);
-  }
-
-  public void xfalignRefine(ConstProcessSeries processSeries) {
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
-      return;
-    }
-    XfalignParam xfalignParam = new XfalignParam(this, XfalignParam.Mode.REFINE);
-    if (!copyMostRecentXfFile(JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT)) {
-      return;
-    }
-    try {
-      threadNameA = processMgr.xfalign(xfalignParam, processSeries);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(this, "Can't run "
-          + JoinDialog.REFINE_AUTO_ALIGNMENT_TEXT + "\n" + except.getMessage(),
-          "SystemProcessException", AxisID.ONLY);
-      joinDialog.enableMidas();
-      return;
-    }
-    mainPanel.startProgressBar("Refine xfalign", AxisID.ONLY, ProcessName.XFALIGN);
-  }
-
   private boolean copyMostRecentXfFile(String commandDescription) {
     String rootName = metaData.getDatasetName();
     String xfFileName = rootName + ".xf";
@@ -1121,53 +1050,6 @@ public final class JoinManager extends BaseManager {
       }
     }
     return true;
-  }
-
-  public void copyXfFile(File xfOutputFile) {
-    File xfFile = new File(propertyUserDir, metaData.getDatasetName() + ".xf");
-    if (xfOutputFile != null && xfOutputFile.exists()) {
-      try {
-        Utilities.copyFile(xfOutputFile, xfFile);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        String[] message = {
-            "Unable to copy " + xfOutputFile.getAbsolutePath() + " to "
-                + xfFile.getName() + ".",
-            "Copy " + xfOutputFile.getName() + " to " + xfFile.getName() + "." };
-        uiHarness.openMessageDialog(this, message, "Cannot Copy File", AxisID.ONLY);
-      }
-    }
-  }
-
-  public void createEmptyXfFile(String rootName) {
-    File emptyXfFile = new File(propertyUserDir, rootName + "_empty.xf");
-    if (!emptyXfFile.exists()) {
-      String emptyLine = "   1.0000000   0.0000000   0.0000000   1.0000000       0.000       0.000";
-      try {
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(emptyXfFile));
-        bufferedWriter.write(emptyLine);
-        bufferedWriter.newLine();
-        bufferedWriter.write(emptyLine);
-        bufferedWriter.newLine();
-        bufferedWriter.write(emptyLine);
-        bufferedWriter.newLine();
-        bufferedWriter.close();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-        return;
-      }
-    }
-    File xfFile = new File(propertyUserDir, rootName + ".xf");
-    if (!xfFile.exists()) {
-      try {
-        Utilities.copyFile(emptyXfFile, xfFile);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
   }
 
   /**
@@ -1202,7 +1084,7 @@ public final class JoinManager extends BaseManager {
     return setMode(propertyUserDir);
   }
 
-  public void startjoin(ConstProcessSeries processSeries) {
+  public void startjoin(final ProcessSeries processSeries) {
     if (!metaData.isValid(joinDialog.getWorkingDir())) {
       uiHarness.openMessageDialog(this, metaData.getInvalidReason(), "Invalid Data",
           AxisID.ONLY);
@@ -1225,27 +1107,16 @@ public final class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Startjoin", AxisID.ONLY, ProcessName.STARTJOIN);
   }
 
-  public void revertXfFileToMidas() {
-    File midasOutputFile = new File(propertyUserDir, metaData.getDatasetName()
-        + MidasParam.getOutputFileExtension());
-    BaseProcessManager.touch(midasOutputFile.getAbsolutePath(), this);
-    copyXfFile(midasOutputFile);
-  }
-
-  public void revertXfFileToEmpty() {
-    File emptyFile = new File(propertyUserDir, metaData.getDatasetName() + "_empty.xf");
-    BaseProcessManager.touch(emptyFile.getAbsolutePath(), this);
-    copyXfFile(emptyFile);
-  }
-
   public void enableMidas() {
     joinDialog.enableMidas();
   }
 
-  public void xfjointomo(ConstProcessSeries processSeries) {
+  public void xfjointomo(final ProcessSeries processSeries) {
     XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state.getRefineTrial()
         .is());
-    joinDialog.getParameters(xfjointomoParam);
+    if (!joinDialog.getParameters(xfjointomoParam, true)) {
+      return;
+    }
     try {
       threadNameA = processMgr.xfjointomo(xfjointomoParam, processSeries);
     }
@@ -1259,7 +1130,7 @@ public final class JoinManager extends BaseManager {
         ProcessName.XFJOINTOMO);
   }
 
-  private void remapmodel(ConstProcessSeries processSeries) {
+  private void remapmodel(final ProcessSeries processSeries) {
     RemapmodelParam param = new RemapmodelParam(this);
     try {
       threadNameA = processMgr.remapmodel(param, processSeries);
@@ -1323,6 +1194,14 @@ public final class JoinManager extends BaseManager {
     }
     processSeries.setNextProcess(ProcessName.XFMODEL.toString(), null);
     XftoxgParam param = new XftoxgParam(this);
+    ConstEtomoNumber refSection = state.getJoinAlignmentRefSection(state.getRefineTrial()
+        .is());
+    if (!refSection.isNull()) {
+      param.setReferenceSection(refSection);
+    }
+    param.setNumberToFit(0);
+    param.setXfFileName(DatasetFiles.getRefineXfFileName(this));
+    param.setXgFileName(DatasetFiles.getRefineXgFileName(this));
     try {
       threadNameA = processMgr.xftoxg(param, processSeries);
     }
@@ -1352,7 +1231,7 @@ public final class JoinManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
+    if (!updateMetaDataFromJoinDialog(AxisID.ONLY, true)) {
       return;
     }
     FinishjoinParam param = new FinishjoinParam(this, mode);
@@ -1388,8 +1267,8 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  private boolean updateMetaDataFromJoinDialog(AxisID axisID) {
-    if (!joinDialog.getMetaData(metaData)) {
+  private boolean updateMetaDataFromJoinDialog(AxisID axisID, final boolean doValidation) {
+    if (!joinDialog.getMetaData(metaData, doValidation)) {
       return false;
     }
     if (!metaData.isValid(propertyUserDir)) {
@@ -1405,6 +1284,7 @@ public final class JoinManager extends BaseManager {
       parameterStore.save(metaData);
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       uiHarness.openMessageDialog(this,
           "Cannot save or write to metaData.\n" + e.getMessage(), "Etomo Error");
     }
@@ -1429,7 +1309,7 @@ public final class JoinManager extends BaseManager {
     joinDialog.setShiftInY(shiftInY);
   }
 
-  public void rotx(File tomogram, File workingDir, ConstProcessSeries processSeries) {
+  public void rotx(File tomogram, File workingDir, final ProcessSeries processSeries) {
     ClipParam clipParam = ClipParam.getRotxInstance(this, AxisID.ONLY, tomogram,
         workingDir);
     try {
@@ -1460,7 +1340,7 @@ public final class JoinManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
+    reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, false);
   }
 
   /**
@@ -1468,21 +1348,17 @@ public final class JoinManager extends BaseManager {
    * parameters.
    * @param paramFile a File object specifying the data set parameter file.
    */
-  public void setParamFile(File paramFile) {
-    this.paramFile = paramFile;
+  public boolean setParamFile(File paramFile) {
+    if (!super.setParamFile(paramFile)) {
+      return false;
+    }
     // Update main window information and status bar
     mainPanel.setStatusBarText(paramFile, metaData, logPanel);
-  }
-
-  protected void updateDialog(ProcessName processName, AxisID axisID) {
+    return true;
   }
 
   public ConstJoinMetaData getConstMetaData() {
     return (ConstJoinMetaData) metaData;
-  }
-
-  public String getFileSubdirectoryName() {
-    return null;
   }
 
   public JoinMetaData getJoinMetaData() {
@@ -1500,27 +1376,38 @@ public final class JoinManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
       DialogType dialogType, ProcessDisplay display) {
+    if (super.startNextProcess(uiComponent, axisID, process, processResultDisplay,
+        processSeries, dialogType, display)) {
+      return true;
+    }
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess=" + process);
     }
     if (process.equals("startjoin")) {
       startjoin(processSeries);
+      return true;
     }
-    else if (process.equals(ProcessName.XFTOXG.toString())) {
+    if (process.equals(ProcessName.XFTOXG.toString())) {
       xftoxg(processSeries, dialogType);
+      return true;
     }
-    else if (process.equals(ProcessName.XFMODEL.toString())) {
+    if (process.equals(ProcessName.XFMODEL.toString())) {
       xfmodel(processSeries, dialogType);
+      return true;
     }
-    else if (process.equals(ProcessName.REMAPMODEL.toString())) {
+    if (process.equals(ProcessName.REMAPMODEL.toString())) {
       remapmodel(processSeries);
+      return true;
     }
-    else if (process.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
+    if (process.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
       imodOpen(ImodManager.TRANSFORMED_MODEL_KEY);
+      return true;
     }
+    return false;
   }
 
   public BaseMetaData getBaseMetaData() {
@@ -1531,14 +1418,7 @@ public final class JoinManager extends BaseManager {
     return mainPanel;
   }
 
-  protected BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  protected void getProcessTrack(Storable[] storable, int index) {
-  }
-
-  protected void createState() {
+  void createState() {
     state = new JoinState(this);
   }
 
@@ -1555,17 +1435,13 @@ public final class JoinManager extends BaseManager {
     return state;
   }
 
-  public final BaseScreenState getBaseScreenState(AxisID axisID) {
-    return null;
+  AutoAlignmentMetaData getAutoAlignmentMetaData() {
+    return metaData.getAutoAlignmentMetaData();
   }
 
-  /**
-   * Interrupt the currently running thread for this axis
-   * 
-   * @param axisID
-   */
-  public void kill(AxisID axisID) {
-    processMgr.kill(axisID);
+  public boolean updateMetaData(final DialogType dialogType, final AxisID axisID,
+      final boolean doValidation) {
+    return joinDialog.getMetaData(metaData, doValidation);
   }
 
   /**
@@ -1587,7 +1463,7 @@ public final class JoinManager extends BaseManager {
     return processMgr;
   }
 
-  protected final Storable[] getStorables(int offset) {
+  final Storable[] getStorables(int offset) {
     Storable[] storable = new Storable[3 + offset];
     int index = offset;
     storable[index++] = metaData;
@@ -1611,14 +1487,11 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     doneJoinDialog();
     mainPanel.done();
-  }
-
-  public final boolean canSnapshot() {
-    return false;
+    return true;
   }
 
   public String getName() {

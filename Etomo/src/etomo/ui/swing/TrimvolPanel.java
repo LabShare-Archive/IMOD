@@ -22,6 +22,8 @@ import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -256,14 +258,16 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   private JPanel pnlScaleFixed = new JPanel();
   private CheckBox cbConvertToBytes = new CheckBox("Convert to bytes");
   private RadioButton rbScaleFixed = new RadioButton("Scale to match contrast  ");
-  private LabeledTextField ltfFixedScaleMin = new LabeledTextField(FIXED_SCALE_MIN_LABEL);
-  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(FIXED_SCALE_MAX_LABEL);
+  private LabeledTextField ltfFixedScaleMin = new LabeledTextField(FieldType.INTEGER,
+      FIXED_SCALE_MIN_LABEL);
+  private LabeledTextField ltfFixedScaleMax = new LabeledTextField(FieldType.INTEGER,
+      FIXED_SCALE_MAX_LABEL);
 
   private RadioButton rbScaleSection = new RadioButton("Find scaling from sections  ");
   private JPanel pnlScaleSection = new JPanel();
-  private LabeledTextField ltfSectionScaleMin = new LabeledTextField(
+  private LabeledTextField ltfSectionScaleMin = new LabeledTextField(FieldType.INTEGER,
       SECTION_SCALE_MIN_LABEL);
-  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(
+  private LabeledTextField ltfSectionScaleMax = new LabeledTextField(FieldType.INTEGER,
       SECTION_SCALE_MAX_LABEL);
 
   private final EtomoPanel pnlReorientationChoices = new EtomoPanel();
@@ -301,7 +305,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     this.dialogType = dialogType;
     this.axisID = axisID;
     applicationManager = appMgr;
-    //panels
+    // panels
     pnlScaleRubberband = RubberbandPanel.getNoButtonInstance(appMgr, this,
         ImodManager.COMBINED_TOMOGRAM_KEY, "Scaling from sub-area:",
         "Get XYZ Sub-Area From 3dmod",
@@ -314,13 +318,13 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     btnTrimvol.setContainer(this);
     btnTrimvol.setDeferred3dmodButton(btnImodTrim);
 
-    //  Set the button sizes
+    // Set the button sizes
     btnImodFull.setSize();
     btnTrimvol.setSize();
     btnImodTrim.setSize();
     btnGetCoordinates.setSize();
 
-    //  Layout the scale panel
+    // Layout the scale panel
     pnlScaleFixed.setLayout(new BoxLayout(pnlScaleFixed, BoxLayout.X_AXIS));
 
     pnlScaleFixed.add(rbScaleFixed.getComponent());
@@ -343,7 +347,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
 
     cbConvertToBytes.setAlignmentX(Component.RIGHT_ALIGNMENT);
     JPanel pnlConvertToBytes = new JPanel();
-    pnlConvertToBytes.setLayout(new BoxLayout(pnlConvertToBytes,BoxLayout.X_AXIS));
+    pnlConvertToBytes.setLayout(new BoxLayout(pnlConvertToBytes, BoxLayout.X_AXIS));
     pnlConvertToBytes.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlConvertToBytes.add(cbConvertToBytes);
     pnlConvertToBytes.add(Box.createHorizontalGlue());
@@ -393,7 +397,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     pnlReorientationChoices.add(rbSwapYZ.getComponent());
     pnlReorientationChoices.add(rbRotateX.getComponent());
     pnlReorientation.add(pnlReorientationChoices);
-    //reorientation warning panel
+    // reorientation warning panel
     JPanel pnlReorientationWarning = new JPanel();
     pnlReorientationWarning.setLayout(new BoxLayout(pnlReorientationWarning,
         BoxLayout.Y_AXIS));
@@ -403,7 +407,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     pnlReorientationWarning.add(lWarning4);
     pnlReorientationWarning.add(lWarning5);
     pnlReorientation.add(pnlReorientationWarning);
-    //trimvol panel
+    // trimvol panel
     pnlTrimvol.add(pnlReorientation.getContainer());
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlButton);
@@ -432,7 +436,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   void setParameters(final TrimvolParam param) {
-    //volumeRangePanel.setParameters(param);
+    // volumeRangePanel.setParameters(param);
     if (param.isSwapYZ()) {
       rbSwapYZ.setSelected(true);
     }
@@ -463,8 +467,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
    */
   void setParameters(final ConstMetaData metaData, final boolean dialogExists) {
     if (!dialogExists) {
-      //TrimvolParam can calculate the initial values, while metaData would have nothing
-      //from this panel if the dialog hadn't been created yet.
+      // TrimvolParam can calculate the initial values, while metaData would have nothing
+      // from this panel if the dialog hadn't been created yet.
       return;
     }
     volumeRangePanel.setParameters(metaData);
@@ -494,7 +498,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   void setStartupWarnings(final TrimvolInputFileState inputFileState) {
-    //set warning
+    // set warning
     if (inputFileState.isNColumnsChanged() || inputFileState.isNRowsChanged()) {
       if (inputFileState.isNSectionsChanged()) {
         warning.setText("Min and max values have been restored to defaults");
@@ -523,72 +527,88 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
     metaData.setPostTrimvolFixedScaleMax(ltfFixedScaleMax.getText());
     metaData.setPostTrimvolSectionScaleMin(ltfSectionScaleMin.getText());
     metaData.setPostTrimvolSectionScaleMax(ltfSectionScaleMax.getText());
-    //get the xyParam and set the values in it
+    // get the xyParam and set the values in it
     pnlScaleRubberband.getParameters(metaData);
+  }
+
+  void getParametersForTrimvol(final MetaData metaData) {
+    volumeRangePanel.getParametersForTrimvol(metaData);
+    metaData.setPostTrimvolScalingNewStyleZ(ltfSectionScaleMin.getText(),
+        ltfSectionScaleMax.getText());
   }
 
   /**
    * Get the parameter values from the panel 
    * @param trimvolParam
    */
-  public boolean getParameters(TrimvolParam trimvolParam) {
-    volumeRangePanel.getParameters(trimvolParam);
-    //Assume volume is flipped and set flipped - this means that Y and Z don't have to be
-    //swapped when setting them.
-    trimvolParam.setFlippedVolume(true);
-    trimvolParam.setSwapYZ(rbSwapYZ.isSelected());
-    trimvolParam.setRotateX(rbRotateX.isSelected());
-
-    trimvolParam.setConvertToBytes(cbConvertToBytes.isSelected());
-    String errorMessage;
-    if (rbScaleFixed.isSelected()) {
-      trimvolParam.setFixedScaling(true);
-
-      try {
-        errorMessage = trimvolParam.setFixedScaleMin(ltfFixedScaleMin.getText())
-            .validate(FIXED_SCALE_MIN_LABEL);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
-              SCALING_ERROR_TITLE, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-        errorMessage = trimvolParam.setFixedScaleMax(ltfFixedScaleMax.getText())
-            .validate(FIXED_SCALE_MAX_LABEL);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
-              SCALING_ERROR_TITLE, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-      }
-      catch (InvalidEtomoNumberException e) {
+  public boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    try {
+      if (!volumeRangePanel.getParameters(trimvolParam, doValidation)) {
         return false;
       }
-    }
-    else {
-      trimvolParam.setFixedScaling(false);
-      try {
-        errorMessage = trimvolParam.setSectionScaleMin(ltfSectionScaleMin.getText())
-            .validate(SECTION_SCALE_MIN_LABEL);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
-              SCALING_ERROR_TITLE, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
+      // Assume volume is flipped and set flipped - this means that Y and Z don't have to
+      // be
+      // swapped when setting them.
+      trimvolParam.setFlippedVolume(true);
+      trimvolParam.setSwapYZ(rbSwapYZ.isSelected());
+      trimvolParam.setRotateX(rbRotateX.isSelected());
+
+      trimvolParam.setConvertToBytes(cbConvertToBytes.isSelected());
+      String errorMessage;
+      if (rbScaleFixed.isSelected()) {
+        trimvolParam.setFixedScaling(true);
+
+        try {
+          errorMessage = trimvolParam.setFixedScaleMin(
+              ltfFixedScaleMin.getText(doValidation)).validate(FIXED_SCALE_MIN_LABEL);
+          if (errorMessage != null) {
+            UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+                SCALING_ERROR_TITLE, axisID);
+            throw new InvalidEtomoNumberException(errorMessage);
+          }
+          errorMessage = trimvolParam.setFixedScaleMax(
+              ltfFixedScaleMax.getText(doValidation)).validate(FIXED_SCALE_MAX_LABEL);
+          if (errorMessage != null) {
+            UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+                SCALING_ERROR_TITLE, axisID);
+            throw new InvalidEtomoNumberException(errorMessage);
+          }
         }
-        errorMessage = trimvolParam.setSectionScaleMax(ltfSectionScaleMax.getText())
-            .validate(SECTION_SCALE_MAX_LABEL);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
-              SCALING_ERROR_TITLE, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
+        catch (InvalidEtomoNumberException e) {
+          return false;
         }
       }
-      catch (InvalidEtomoNumberException e) {
+      else {
+        trimvolParam.setFixedScaling(false);
+        try {
+          errorMessage = trimvolParam.setSectionScaleMin(
+              ltfSectionScaleMin.getText(doValidation)).validate(SECTION_SCALE_MIN_LABEL);
+          if (errorMessage != null) {
+            UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+                SCALING_ERROR_TITLE, axisID);
+            throw new InvalidEtomoNumberException(errorMessage);
+          }
+          errorMessage = trimvolParam.setSectionScaleMax(
+              ltfSectionScaleMax.getText(doValidation)).validate(SECTION_SCALE_MAX_LABEL);
+          if (errorMessage != null) {
+            UIHarness.INSTANCE.openMessageDialog(applicationManager, errorMessage,
+                SCALING_ERROR_TITLE, axisID);
+            throw new InvalidEtomoNumberException(errorMessage);
+          }
+        }
+        catch (InvalidEtomoNumberException e) {
+          return false;
+        }
+      }
+      // get the xyParam and set the values in it
+      if (!pnlScaleRubberband.getScaleParameters(trimvolParam, doValidation)) {
         return false;
       }
+      return true;
     }
-    //get the xyParam and set the values in it
-    pnlScaleRubberband.getScaleParameters(trimvolParam);
-    return true;
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void setParameters(ReconScreenState screenState) {

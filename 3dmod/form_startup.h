@@ -1,8 +1,6 @@
 /*   form_startup.h  -  declarations for form_startup.cpp
  *
  *  $Id$
- *  $Log$
- *
  */
 #ifndef STARTUPFORM_H
 #define STARTUPFORM_H
@@ -43,7 +41,12 @@ class StartupForm : public QDialog, public Ui::StartupForm
   virtual void addArg( const char * arg );
   virtual char ** getArguments( int & argc );
   virtual void addImageFiles();
-  virtual void setValues( ImodView * vi, char * * argv, int firstfile, int argc, int doImodv, char * plistfname, char * anglefname, int xyzwinopen, int sliceropen, int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, int mirror, int frames, int nframex, int nframey, int overx, int overy, int overEntered );
+  virtual void setValues(ImodView *vi, char **argv, int firstfile, int argc, 
+                            int doImodv, QStringList &plFileNames, char *anglefname,
+                            int useMdoc, int xyzwinopen, int sliceropen, int zapOpen,
+                            int modelViewOpen, int fillCache, int ImodTrans, int mirror,
+                            int frames, int nframex, int nframey, int overx, int overy,
+                          int overEntered);
   virtual void helpClicked();
 
  protected:
@@ -52,11 +55,14 @@ class StartupForm : public QDialog, public Ui::StartupForm
   int mModvSizeOption;
   bool mModvMode;
   QString mImageFiles;
-  QString mPieceFile;
+  QString mPieceFiles;
   QStringList mImageFileList;
+  QStringList mPieceFileList;
   QString mModelFile;
   bool mJoinedWithSpace;
+  bool mPieceJoinedwSpace;
   bool mFilesChanged;
+  bool mPiecesChanged;
   char **mArgv;
   int mArgc;
   QString mStr;
@@ -68,6 +74,9 @@ class StartupForm : public QDialog, public Ui::StartupForm
   protected slots:
     virtual void languageChange();
 
+ private:
+    void loadFileList(QStringList &fileList, QString &files, QLineEdit *fileEdit, 
+                      bool &joinedWithSpace);
 };
 
 #endif // STARTUPFORM_H

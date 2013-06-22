@@ -31,8 +31,10 @@
 #include "mv_image.h"
 #include "mv_input.h"
 #include "b3dgfx.h"
+#include "pyramidcache.h"
 #include "display.h"
 #include "control.h"
+#include "cachefill.h"
 #include "preferences.h"
 #include "xcramp.h"
 
@@ -42,15 +44,23 @@
 enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
       IIS_Z_SIZE, IIS_SLICES, IIS_TRANSPARENCY, IIS_BLACK, IIS_WHITE};
 
-static void mkcmap(void);
+static void makeColorMap(void);
 static void imodvDrawTImage(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *p4,
                             Ipoint *clamp, unsigned char *data,
                             int width, int height);
 static void setAlpha(int iz, int zst, int znd, int izdir);
-static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+static void setSliceLimits(int ciz, int zsize, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir);
 static void setCoordLimits(int cur, int maxSize, int drawSize, 
                            int &str, int &end);
+static void fillPatchFromTiles(std::vector<FastSegment> &segments, 
+                               std::vector<int> &startInds, int ushort,
+                               unsigned char *bmap, int fillXsize, int istart, int iend,
+                               int jstart, int jend);
+static void adjustLimitsForTiles(ImodvApp *a, int cacheInd, int mainDir, int &xstr,
+                                 int &xend, int &ystr, int &yend, int &zstr, int &zend, 
+                                 float &xOffset, float &yOffset, float &zOffset,
+                                 int &zScale);
 static int initTexMapping(void);
 static void endTexMapping(void);
 
@@ -72,6 +82,8 @@ static int sXdrawSize = -1;
 static int sYdrawSize = -1;
 static int sZdrawSize = -1;
 static int sLastYsize = -1;
+static float sPyrZoomUpLimit = 1.05;
+static float sPyrZoomDownLimit = 0.5;
 ImodvImage *sDia = NULL;
 ImodvApp  *sA = NULL;
 int    sFlags = 0;
@@ -83,7 +95,7 @@ int    sFlags = 0;
 static double sWallLoad, sWallDraw;
 
 // Open, close, or raise the dialog box
-void imodvImageEditDialog(ImodvApp *a, int state)
+void mvImageEditDialog(ImodvApp *a, int state)
 {
   if (!state){
     if (sDia)
@@ -95,17 +107,18 @@ void imodvImageEditDialog(ImodvApp *a, int state)
     return;
   }
 
-  sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG), "image view");
+  sDia = new ImodvImage(imodvDialogManager.parent(IMODV_DIALOG), a->vi->pyrCache != NULL,
+                        "image view");
   sA = a;
 
-  mkcmap();
+  makeColorMap();
   imodvDialogManager.add((QWidget *)sDia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)sDia, IMODV_DIALOG);
-  imodvImageUpdate(a);
+  mvImageUpdate(a);
 }
 
 // Update the dialog box (just the view flag for now)
-void imodvImageUpdate(ImodvApp *a)
+void mvImageUpdate(ImodvApp *a)
 {
   if (a->texMap && !sFlags) {
     sFlags |= IMODV_DRAW_CZ;
@@ -113,7 +126,7 @@ void imodvImageUpdate(ImodvApp *a)
       diaSetChecked(sDia->mViewZBox, true);
   } else if (!a->texMap && sFlags) {
     sFlags = 0;
-    imodvImageCleanup();
+    mvImageCleanup();
     if (sDia) {
       diaSetChecked(sDia->mViewXBox, false);
       diaSetChecked(sDia->mViewYBox, false);
@@ -127,14 +140,38 @@ void imodvImageUpdate(ImodvApp *a)
   }
 }
 
-int imodvImageGetFlags(void)
+int mvImageGetFlags(void)
 {
   return sFlags;
 }
 
+bool mvImageDrawingZplanes(void)
+{
+  return (!ImodvClosed && Imodv->texMap && (sFlags & IMODV_DRAW_CZ));
+}
+
+// Return the limits of what is being drawn in X and Y
+bool mvImageSubsetLimits(double &zoom, float &zoomUpLimit, float &zoomDownLimit, 
+                         int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  int ixCur, iyCur, izCur, xend, yend;
+  ImodvApp *a = Imodv;
+  if (ImodvClosed || !a->texMap || !sFlags || sXdrawSize <= 0)
+    return false;
+  zoomUpLimit = sPyrZoomUpLimit;
+  zoomDownLimit = sPyrZoomDownLimit;
+  zoom = 0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad;
+  ivwGetLocation(a->vi, &ixCur, &iyCur, &izCur);
+  setCoordLimits(ixCur, a->vi->xsize, sXdrawSize, ixStart, xend);
+  setCoordLimits(iyCur, a->vi->ysize, sYdrawSize, iyStart, yend);
+  nxUse = xend + 1 - ixStart;
+  nyUse = yend + 1 - iyStart;
+  return true;
+}
+
 // Set the number of slices and the transparency from movie controller - 
 // do not update the image
-void imodvImageSetThickTrans(int slices, int trans)
+void mvImageSetThickTrans(int slices, int trans)
 {
  int maxSlices = Imodv->vi->zsize < MAX_SLICES ?
     Imodv->vi->zsize : MAX_SLICES;
@@ -155,13 +192,95 @@ void imodvImageSetThickTrans(int slices, int trans)
 }
 
 // Return the number of slices and transparancy
-int imodvImageGetThickness(void)
+int mvImageGetThickness(void)
 {
   return sNumSlices;
 }
-int imodvImageGetTransparency(void)
+int mvImageGetTransparency(void)
 {
   return sImageTrans;
+}
+
+// Return the current state of drawing into a movie segment structure
+void mvImageGetMovieState(MovieSegment &segment)
+{
+  segment.imgAxisFlags = sFlags;
+  if (!Imodv->texMap) {
+    segment.imgAxisFlags = 0;
+    return;
+  }
+  segment.imgWhiteLevel = sWhiteLevel;
+  segment.imgBlackLevel = sBlackLevel;
+  segment.imgFalseColor = sFalsecolor;
+  segment.imgXsize = sXdrawSize;
+  segment.imgYsize = sYdrawSize;
+  segment.imgZsize = sZdrawSize;
+}
+
+// Set ancillary parameters to the state for a movie segment
+int mvImageSetMovieDrawState(MovieSegment &segment)
+{
+ if (!segment.imgAxisFlags) {
+
+    // If there is no image drawing, turn off Imodv flag and then, if there is currently,
+    // take the update route to updating this module
+    Imodv->texMap = 0;
+    if (sFlags) 
+      mvImageUpdate(Imodv);
+    return 1;
+  }
+  sFlags = segment.imgAxisFlags;
+  Imodv->texMap = 1;
+  sWhiteLevel = segment.imgWhiteLevel;
+  sBlackLevel = segment.imgBlackLevel;
+  sFalsecolor = segment.imgFalseColor;
+  makeColorMap();
+  sXdrawSize = B3DMIN(segment.imgXsize, Imodv->vi->xsize);
+  sYdrawSize = B3DMIN(segment.imgYsize, Imodv->vi->ysize);
+  sZdrawSize = B3DMIN(segment.imgZsize, Imodv->vi->zsize);
+
+  // Update the dialog as needed
+  if (sDia) {
+
+    sDia->mSliders->setValue(IIS_X_SIZE, sXdrawSize);
+    sDia->mSliders->setValue(IIS_Y_SIZE, sYdrawSize);
+    sDia->mSliders->setValue(IIS_Z_SIZE, sZdrawSize);
+    diaSetChecked(sDia->mViewXBox, (sFlags & IMODV_DRAW_CX) != 0);
+    diaSetChecked(sDia->mViewYBox, (sFlags & IMODV_DRAW_CY) != 0);
+    diaSetChecked(sDia->mViewZBox, (sFlags & IMODV_DRAW_CZ) != 0);
+    sDia->mSliders->setValue(IIS_BLACK, sBlackLevel);
+    sDia->mSliders->setValue(IIS_WHITE, sWhiteLevel);
+    diaSetChecked(sDia->mFalseBox, sFalsecolor != 0);
+  }
+  return 0;
+}
+
+// Set the drawing state and dialog to the start or end of the given movie segment
+void mvImageSetMovieEndState(int startEnd, MovieSegment &segment)
+{
+  MovieTerminus *term = &segment.start;
+  int maxSlices = B3DMIN(Imodv->vi->zsize, MAX_SLICES);
+  if (startEnd == IMODV_MOVIE_END_STATE)
+    term = &segment.end;
+
+  if (mvImageSetMovieDrawState(segment))
+    return;
+ 
+  // Otherwise set the image position and copy all the data over
+  sImageTrans = term->imgTransparency;
+  ivwSetLocation(Imodv->vi, term->imgXcenter - 1, term->imgYcenter - 1, 
+                 term->imgZcenter - 1);
+  sNumSlices = B3DMIN(term->imgSlices, maxSlices);
+
+  // Update the dialog as needed
+  if (sDia) {
+
+    // Set this to prevent Y/Z swapping of sizes in the update
+    sLastYsize = Imodv->vi->ysize;
+    sDia->updateCoords();
+    sDia->mSliders->setValue(IIS_SLICES, sNumSlices);
+    sDia->mSliders->setValue(IIS_TRANSPARENCY, sImageTrans);
+  }
 }
 
 /****************************************************************************/
@@ -169,7 +288,7 @@ int imodvImageGetTransparency(void)
 /****************************************************************************/
 
 // Make a color map
-static void mkcmap(void)
+static void makeColorMap(void)
 {
   int rampsize, cmapReverse = 0;
   float slope, point;
@@ -223,15 +342,15 @@ static void mkcmap(void)
 }
 
 // Determine starting and ending slice and direction, and set the alpha
-static void setSliceLimits(int ciz, int miz, bool invertZ, int drawTrans, 
+static void setSliceLimits(int ciz, int zsize, bool invertZ, int drawTrans, 
                            int &zst, int &znd, int &izdir)
 {
   zst = ciz - sNumSlices / 2;
   znd = zst + sNumSlices - 1;
   if (zst < 0)
     zst = 0;
-  if (znd >= miz)
-    znd = miz - 1;
+  if (znd >= zsize)
+    znd = zsize - 1;
   izdir = 1;
 
   // If transparency is needed and it is time to draw solid, or no transparency
@@ -258,6 +377,28 @@ static void setCoordLimits(int cur, int maxSize, int drawSize,
   str = B3DMAX(1, str);
   end = B3DMIN(str + drawSize, maxSize - 1);
   str = B3DMAX(1, end - drawSize);
+}
+
+// Get adjusted coordinate limits if drawing from a tile cache
+static void adjustLimitsForTiles(ImodvApp *a, int cacheInd, int mainDir, int &xstr,
+                                 int &xend, int &ystr, int &yend, int &zstr, int &zend, 
+                                 float &xOffset, float &yOffset, float &zOffset,
+                                 int &zScale)
+{
+  int xstart, ystart, xsize, ysize, zstrNew, zendNew;
+  if (cacheInd < 0 || (mainDir > 0 && (xstr > xend || ystr > yend || zstr > zend)))
+    return;
+  a->vi->pyrCache->scaledAreaSize(cacheInd, xstr, ystr, xend + 1 - xstr, yend + 1 - ystr, 
+                                  xstart, ystart, xsize, ysize, xOffset, yOffset, false);
+  xstr = xstart;
+  ystr = ystart;
+  xend = xstart + xsize - 1;
+  yend = ystart + ysize - 1;
+  a->vi->pyrCache->scaledRangeInZ(cacheInd, zstr, zend, zstrNew, zendNew, zScale, 
+                                  zOffset);
+  zstr = zstrNew;
+  zend = zendNew;
+  imodTrace('t', "znew %d %d scale %d offset %f", zstrNew, zendNew, zScale, zOffset);
 }
 
 // Set the alpha factor based on transparency, number of images and which image
@@ -288,63 +429,74 @@ static void setAlpha(int iz, int zst, int znd, int izdir)
 // The call from within the openGL calling routines to draw the image
 void imodvDrawImage(ImodvApp *a, int drawTrans)
 {
-  Ipoint ll, lr, ur, ul, clamp;
+  Ipoint lowerLeft, lowerRight, upperRight, upperLeft, clamp;
   int tstep;
-  int cix, ciy, ciz;
-  int mix, miy, miz;
+  int ixCur, iyCur, izCur;
+  int xsize, ysize, zsize;
   int xstr, xend, ystr, yend, zstr, zend, fillXsize;
   unsigned char **idata;
   b3dUInt16 **usidata;
   unsigned char pix;
-  int i, j, ypatch, jend, xpatch, zpatch, iend;
+  int i, j, ypatch, jend, xpatch, zpatch, iend, xconst;
   int u, v, uvind;
-  int iz, idir, numSave;
-  int cacheSum, curtime;
+  int iz, idir, numSave, baseXstr, baseXsize, baseYstr, baseYsize;
+  int cacheSum, curtime, cacheInd = -1;
   float clampEnd;
+  int pyrXYscale = 1, pyrZscale = 1;
+  float pyrXoffset = 0., pyrYoffset = 0., pyrZoffset = 0.;
+  double zoom;
   unsigned char **imdata;
   b3dUInt16 **usimdata;
   unsigned char *bmap = NULL;
   bool flipped, invertX, invertY, invertZ;
   Imat *mat;
   Ipoint inp, outp;
+  std::vector<FastSegment> segments;
+  std::vector<int> startInds;
   QTime drawTime;
   drawTime.start();
   sWallLoad = sWallDraw = 0.;
-     
-  mix = a->vi->xsize;
-  miy = a->vi->ysize;
-  miz = a->vi->zsize;
+
+  xsize = a->vi->xsize;
+  ysize = a->vi->ysize;
+  zsize = a->vi->zsize;
   if (sDia)
     sDia->updateCoords();
 
   if (!sFlags) 
     return;
 
-  ivwGetLocation(a->vi, &cix, &ciy, &ciz);
+  if (a->vi->pyrCache != NULL) {
+    zoom = 0.5 * B3DMIN(a->winx, a->winy) / a->imod->view->rad;
+    cacheInd =  a->vi->pyrCache->pickBestCache(zoom, sPyrZoomUpLimit, sPyrZoomDownLimit,
+                                               pyrXYscale);
+    imodTrace('t', "zoom = %.3f, cache %d, scale %d", zoom, cacheInd, pyrXYscale);
+  }
+  ivwGetLocation(a->vi, &ixCur, &iyCur, &izCur);
   ivwGetTime(a->vi, &curtime);
   if (!sCmapInit || (a->vi->colormapImage && 
-                    (ciz != cmapZ || curtime != cmapTime))) {
-    mkcmap();
+                    (izCur != cmapZ || curtime != cmapTime))) {
+    makeColorMap();
     cmapTime = curtime;
-    cmapZ = ciz;
+    cmapZ = izCur;
   }
 
   if (sXdrawSize < 0) {
-    sXdrawSize = mix;
-    sYdrawSize = miy;
-    sZdrawSize = miz;
+    sXdrawSize = xsize;
+    sYdrawSize = ysize;
+    sZdrawSize = zsize;
   }
 
   // If doing stereo pairs, draw the pair as long as the step up stays in the
   // same set of images for an area
   if (a->imageStereo && a->stereo < 0) {
-    iz = ciz + a->imageDeltaZ;
-    if (ciz % a->imagesPerArea < iz % a->imagesPerArea)
-      ciz = iz;
+    iz = izCur + a->imageDeltaZ;
+    if (izCur % a->imagesPerArea < iz % a->imagesPerArea)
+      izCur = iz;
   }
 
   // Get data pointers if doing X or Y planes
-  if ((sFlags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) &&
+  if ((sFlags & (IMODV_DRAW_CX | IMODV_DRAW_CY)) && cacheInd < 0 &&
        !(a->imageStereo && a->stereo)) {
     if (ivwSetupFastAccess(a->vi, &imdata, 0, &cacheSum))
       return;
@@ -399,22 +551,49 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   // This used to be 1 with RGB data being passed in
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glEnable(GL_TEXTURE_2D);
-
-  /* Draw Current Z image. */
+ 
+ /* Draw Current Z image. */
   if (sFlags & IMODV_DRAW_CZ) {
 
-    setSliceLimits(ciz, miz, invertZ, drawTrans, zstr, zend, idir);
-    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
-    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
+    // Get the limits for the 3 axes.  In every section, xstr, xend etc are the full image
+    // starting and ending coordinates in actual X, Y, and Z diections.
+    setSliceLimits(izCur, zsize, invertZ, drawTrans, zstr, zend, idir);
+    setCoordLimits(ixCur, xsize, sXdrawSize, xstr, xend);
+    setCoordLimits(iyCur, ysize, sYdrawSize, ystr, yend);
+    baseXstr = xstr;
+    baseXsize = xend + 1 - xstr;
+    baseYstr = ystr;
+    baseYsize = yend + 1 - ystr;
+
+    // When displaying a lower resolution cache, this converts all of the limits to 
+    // loaded coordinates in that cache
+    adjustLimitsForTiles(a, cacheInd, idir, xstr, xend, ystr, yend, zstr, zend,
+                         pyrXoffset, pyrYoffset, pyrZoffset, pyrZscale);
+
+    // Outer loop is on the coordinate that varies through multiple slices if any
     for (iz = zstr; idir * (zend - iz) >= 0 ; iz += idir) {
       setAlpha(iz, zstr, zend, idir);
-      ll.z = lr.z = ur.z = ul.z = iz;
-      idata = ivwGetZSection(a->vi, iz);
-      if (!idata)
-        continue;
-      usidata = (b3dUInt16 **)idata;
+      lowerLeft.z = lowerRight.z = upperRight.z = upperLeft.z = iz * pyrZscale + 
+        pyrZoffset;
 
-      // Loop on patches in Y, get limits to fill and set corners
+      // Load the area if this is the central Z value, and set up access to the tiles
+      if (cacheInd >= 0) {
+        if (iz == B3DNINT((izCur - pyrZoffset) / pyrZscale))
+          a->vi->pyrCache->loadTilesContainingArea(cacheInd, baseXstr, baseYstr,
+                                                   baseXsize, baseYsize, iz); 
+        if (a->vi->pyrCache->fastPlaneAccess(cacheInd, iz, b3dZ, segments, startInds))
+          continue;
+      } else {
+
+        // Or get the Z section
+        idata = ivwGetZSection(a->vi, iz);
+        if (!idata)
+          continue;
+        usidata = (b3dUInt16 **)idata;
+      }
+
+      // Loop on patches in Y, for each patch get limits to fill and set corners
+      // ypatch is the starting coordinate and jend is the ending one
       for (ypatch = ystr; ypatch < yend; ypatch += tstep){
         clamp.y = clampEnd;
         jend = ypatch + tstep;
@@ -422,10 +601,11 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           jend = yend;
           clamp.y = (yend + 1. - ypatch) / (tstep + 2.);
         }
-        lr.y = ll.y = ypatch;
-        ul.y = ur.y = jend;
+        lowerRight.y = lowerLeft.y = ypatch * pyrXYscale + pyrYoffset;
+        upperLeft.y = upperRight.y = jend * pyrXYscale + pyrYoffset;
           
-        // Loop on patches in X, get limits to fill and set corners
+        // Loop on patches in X, for each patch get limits to fill and set corners
+        // xpatch is the starting coordinate and iend is the ending one
         for (xpatch = xstr; xpatch < xend; xpatch += tstep){
           clamp.x = clampEnd;
           iend = xpatch + tstep;
@@ -433,12 +613,17 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             iend = xend;
             clamp.x = (xend + 1. - xpatch) / (tstep + 2.);
           }
-          ul.x = ll.x = xpatch;
-          ur.x = lr.x = iend;
+          upperLeft.x = lowerLeft.x = xpatch * pyrXYscale + pyrXoffset;
+          upperRight.x = lowerRight.x = iend * pyrXYscale + pyrXoffset;
           fillXsize = 2 + iend - xpatch;
         
           // Fill the data for one patch then draw the patch
-          if (a->vi->ushortStore) {
+          // each patch is filled to one more than its limits to allow interpolation
+          // u and v are the coordinates in the plane being filled
+          if (cacheInd >= 0) {
+            fillPatchFromTiles(segments, startInds, a->vi->ushortStore, bmap, fillXsize,
+                               xpatch-1, iend+1, ypatch-1, jend+1);
+          } else if (a->vi->ushortStore) {
             for (j = ypatch-1; j < jend+1; j++) {
               v = (j - (ypatch-1));
               for (i = xpatch-1; i < iend+1; i++) {
@@ -458,7 +643,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             }
           }
           
-          imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
+          imodvDrawTImage(&lowerLeft, &lowerRight, &upperRight, &upperLeft, &clamp,
                           (unsigned char *)sTdata, fillXsize, 2 + jend - ypatch);
         }
       }
@@ -470,14 +655,24 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   if ((sFlags & IMODV_DRAW_CX) && 
       !(a->stereo && a->imageStereo)) {
 
-    setSliceLimits(cix, mix, invertX, drawTrans, xstr, xend, idir);
-    setCoordLimits(ciy, miy, sYdrawSize, ystr, yend);
-    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
+    setSliceLimits(ixCur, xsize, invertX, drawTrans, xstr, xend, idir);
+    setCoordLimits(iyCur, ysize, sYdrawSize, ystr, yend);
+    setCoordLimits(izCur, zsize, sZdrawSize, zstr, zend);
 
+    adjustLimitsForTiles(a, cacheInd, idir, xstr, xend, ystr, yend, zstr, zend, 
+                         pyrXoffset, pyrYoffset, pyrZoffset, pyrZscale);
+
+    // Outer loop on X
     for (xpatch = xstr; idir * (xend - xpatch) >= 0 ; xpatch += idir) {
       setAlpha(xpatch, xstr, xend, idir);
-      ll.x = lr.x = ur.x = ul.x = xpatch;
+      lowerLeft.x = lowerRight.x = upperRight.x = upperLeft.x = xpatch * pyrXYscale + 
+        pyrXoffset;
+      if (cacheInd >= 0) {
+        if (a->vi->pyrCache->fastPlaneAccess(cacheInd, xpatch, b3dX, segments, startInds))
+          continue;
+      }
 
+      // Next loop on Z patches
       for (zpatch = zstr; zpatch < zend; zpatch += tstep){
         clamp.y = clampEnd;
         jend = zpatch + tstep;
@@ -485,9 +680,10 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           jend = zend;
           clamp.y = (zend + 1. - zpatch) / (tstep + 2.);
         }
-        lr.z = ll.z = zpatch;
-        ul.z = ur.z = jend;
+        lowerRight.z = lowerLeft.z = zpatch * pyrZscale + pyrZoffset;
+        upperLeft.z = upperRight.z = jend * pyrZscale + pyrZoffset;
         
+        // Loop on Y patches
         for (ypatch = ystr; ypatch < yend; ypatch += tstep){
           clamp.x = clampEnd;
           iend = ypatch + tstep;
@@ -495,26 +691,33 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             iend = yend;
             clamp.x = (yend + 1. - ypatch) / (tstep + 2.);
           }
-          ul.y = ll.y = ypatch;
-          ur.y = lr.y = iend;
+          upperLeft.y = lowerLeft.y = ypatch * pyrXYscale + pyrYoffset;
+          upperRight.y = lowerRight.y = iend * pyrXYscale + pyrYoffset;
           fillXsize = 2 + iend - ypatch;
-        
+     
+          if (cacheInd >= 0) {
+            fillPatchFromTiles(segments, startInds, a->vi->ushortStore, bmap, fillXsize,
+                               ypatch-1, iend+1, zpatch-1, jend+1);
+   
           // Handle cases of flipped or not with different loops to put test
           // on presence of data in the outer loop
-          if (flipped) {
+          } else if (flipped) {
             for (i = ypatch-1; i < iend+1; i++) {
               u = i - (ypatch-1);
               if (imdata[i]) {
+                
+                // Invert Z when accessing cache for flipped data
+                xconst = xpatch + (zsize - 1) * xsize;
                 if (a->vi->ushortStore) {
                   for (j = zpatch-1; j < jend+1; j++) {
                     v = j - (zpatch-1);
-                    pix = bmap[usimdata[i][xpatch + (j * mix)]];
+                    pix = bmap[usimdata[i][xconst - j * xsize]];
                     FILLDATA(pix);
                   }
                 } else {
                   for (j = zpatch-1; j < jend+1; j++) {
                     v = j - (zpatch-1);
-                    pix = imdata[i][xpatch + (j * mix)];
+                    pix = imdata[i][xconst - j * xsize];
                     FILLDATA(pix);
                   }
                 }
@@ -532,13 +735,13 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
                 if (a->vi->ushortStore) {
                   for (i = ypatch-1; i < iend+1; i++) {
                     u = i - (ypatch-1);
-                    pix = bmap[usimdata[j][xpatch + (i * mix)]];
+                    pix = bmap[usimdata[j][xpatch + (i * xsize)]];
                     FILLDATA(pix);
                   }
                 } else {
                   for (i = ypatch-1; i < iend+1; i++) {
                     u = i - (ypatch-1);
-                    pix = imdata[j][xpatch + (i * mix)];
+                    pix = imdata[j][xpatch + (i * xsize)];
                     FILLDATA(pix);
                   }
                 }
@@ -551,7 +754,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             }
           }
           
-          imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
+          imodvDrawTImage(&lowerLeft, &lowerRight, &upperRight, &upperLeft, &clamp,
                           (unsigned char *)sTdata, fillXsize, 2 + jend - zpatch);
         }
       }
@@ -562,14 +765,22 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   /* Draw Current Y image. */
   if ((sFlags & IMODV_DRAW_CY) && 
       !(a->stereo && a->imageStereo)) {
-    setSliceLimits(ciy, miy, invertY, drawTrans, ystr, yend, idir);
-    setCoordLimits(cix, mix, sXdrawSize, xstr, xend);
-    setCoordLimits(ciz, miz, sZdrawSize, zstr, zend);
-
+    setSliceLimits(iyCur, ysize, invertY, drawTrans, ystr, yend, idir);
+    setCoordLimits(ixCur, xsize, sXdrawSize, xstr, xend);
+    setCoordLimits(izCur, zsize, sZdrawSize, zstr, zend);
+    adjustLimitsForTiles(a, cacheInd, idir, xstr, xend, ystr, yend, zstr, zend, pyrXoffset,
+                         pyrYoffset, pyrZoffset, pyrZscale);
+    // Outer loop on Y
     for (ypatch = ystr; idir * (yend - ypatch) >= 0 ; ypatch += idir) {
       setAlpha(ypatch, ystr, yend, idir);
-      ll.y = lr.y = ur.y = ul.y = ypatch;
+      lowerLeft.y = lowerRight.y = upperRight.y = upperLeft.y = ypatch * pyrXYscale + 
+        pyrYoffset;
+      if (cacheInd >= 0) {
+        if (a->vi->pyrCache->fastPlaneAccess(cacheInd, ypatch, b3dY, segments, startInds))
+          continue;
+      }
 
+      // Loop on patches in Z
       for (zpatch = zstr; zpatch < zend; zpatch += tstep) {
         clamp.y = clampEnd;
         jend = zpatch + tstep;
@@ -577,9 +788,10 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           jend = zend;
           clamp.y = (zend + 1. - zpatch) / (tstep + 2.);
         }
-        lr.z = ll.z = zpatch;
-        ul.z = ur.z = jend;
+        lowerRight.z = lowerLeft.z = zpatch * pyrZscale + pyrZoffset;
+        upperLeft.z = upperRight.z = jend * pyrZscale + pyrZoffset;
 
+        // Loop on patches in X
         for (xpatch = xstr; xpatch < xend; xpatch += tstep) {
           clamp.x = clampEnd;
           iend = xpatch + tstep;
@@ -587,51 +799,57 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             iend = xend;
             clamp.x = (xend + 1. - xpatch) / (tstep + 2.);
           }
-          ul.x = ll.x = xpatch;
-          ur.x = lr.x = iend;
+          upperLeft.x = lowerLeft.x = xpatch * pyrXYscale + pyrXoffset;
+          upperRight.x = lowerRight.x = iend * pyrXYscale + pyrXoffset;
           fillXsize = 2 + iend - xpatch;
           
-          // This one is easier, one outer loop and flipped, non-flipped, or
-          // no data cases for inner loop
-          for (j = zpatch-1; j < jend+1; j++) {
-            v = j - (zpatch-1);
-            if (flipped && imdata[ypatch]) {
-              if (a->vi->ushortStore) {
-                for (i = xpatch-1; i < iend+1; i++) {
-                  u = i - (xpatch-1);
-                  pix = bmap[usimdata[ypatch][i + (j * mix)]];
-                  FILLDATA(pix);
+          if (cacheInd >= 0) {
+            fillPatchFromTiles(segments, startInds, a->vi->ushortStore, bmap, fillXsize,
+                               xpatch-1, iend+1, zpatch-1, jend+1);
+          } else {
+
+            // This one is easier, one outer loop and flipped, non-flipped, or
+            // no data cases for inner loop
+            for (j = zpatch-1; j < jend+1; j++) {
+              v = j - (zpatch-1);
+              if (flipped && imdata[ypatch]) {
+                xconst = (zsize - 1 - j) * xsize;
+                if (a->vi->ushortStore) {
+                  for (i = xpatch-1; i < iend+1; i++) {
+                    u = i - (xpatch-1);
+                    pix = bmap[usimdata[ypatch][i + xconst]];
+                    FILLDATA(pix);
+                  }
+                } else {
+                  for (i = xpatch-1; i < iend+1; i++) {
+                    u = i - (xpatch-1);
+                    pix = imdata[ypatch][i + xconst];
+                    FILLDATA(pix);
+                  }
+                }
+              } else if (!flipped && imdata[j]) {
+                if (a->vi->ushortStore) {
+                  for (i = xpatch-1; i < iend+1; i++) {
+                    u = i - (xpatch-1);
+                    pix = bmap[usimdata[j][i + (ypatch * xsize)]];
+                    FILLDATA(pix);
+                  }
+                } else {
+                  for (i = xpatch-1; i < iend+1; i++) {
+                    u = i - (xpatch-1);
+                    pix = imdata[j][i + (ypatch * xsize)];
+                    FILLDATA(pix);
+                  }
                 }
               } else {
                 for (i = xpatch-1; i < iend+1; i++) {
                   u = i - (xpatch-1);
-                  pix = imdata[ypatch][i + (j * mix)];
-                  FILLDATA(pix);
+                  FILLDATA(0);
                 }
-              }
-            } else if (!flipped && imdata[j]) {
-              if (a->vi->ushortStore) {
-                for (i = xpatch-1; i < iend+1; i++) {
-                  u = i - (xpatch-1);
-                  pix = bmap[usimdata[j][i + (ypatch * mix)]];
-                  FILLDATA(pix);
-                }
-              } else {
-                for (i = xpatch-1; i < iend+1; i++) {
-                  u = i - (xpatch-1);
-                  pix = imdata[j][i + (ypatch * mix)];
-                  FILLDATA(pix);
-                }
-              }
-            } else {
-              for (i = xpatch-1; i < iend+1; i++) {
-                u = i - (xpatch-1);
-                FILLDATA(0);
               }
             }
-
           }
-          imodvDrawTImage(&ll, &lr, &ur, &ul, &clamp,
+          imodvDrawTImage(&lowerLeft, &lowerRight, &upperRight, &upperLeft, &clamp,
                           (unsigned char *)sTdata, fillXsize, 2 + jend - zpatch);
         }
       }
@@ -646,6 +864,72 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
   if (imodDebug('v'))
     imodPrintStderr("Draw time %d  load %.2f draw %.2f\n", drawTime.elapsed(),
                     sWallLoad * 1000., sWallDraw * 1000.);
+}
+
+static void fillPatchFromTiles(std::vector<FastSegment> &segments, 
+                               std::vector<int> &startInds, int ushort,
+                               unsigned char *bmap, int fillXsize, int istart, int iend,
+                               int jstart, int jend)
+{
+  int u, v, j, i, iseg, numSeg, segEnd, nextToFill, uvind, segStart;
+  FastSegment *segp;
+  unsigned char *imdata;
+  unsigned short *usimdata;
+  unsigned char pix;
+
+  for (j = jstart; j < jend; j++) {
+    v = j - jstart;
+    numSeg = startInds[j + 1] - startInds[j];
+    nextToFill = istart;
+      
+    for (iseg = startInds[j]; iseg < startInds[j + 1]; iseg++) {
+      segp = &(segments[iseg]);
+
+      // If segment starts past the end, done with segments
+      if (segp->XorY >= iend)
+        break;
+
+      // If segment ends before the start, skip it
+      if (segp->XorY + segp->length <= istart)
+        continue;
+
+      // If segment starts past next place to fill, need to fill with 0's
+      if (segp->XorY > nextToFill) {
+        for (i = nextToFill; i < segp->XorY; i++) {
+          u = i - istart;
+          FILLDATA(0);
+        }
+      }
+
+      // Fill with segment data
+      segEnd = B3DMIN(segp->XorY + segp->length, iend);
+      segStart = B3DMAX(segp->XorY, istart);
+      imdata = segp->line + segp->stride * (segStart - segp->XorY);
+      if (ushort) {
+        usimdata = (unsigned short *)imdata;
+        for (i = segStart; i < segEnd; i++) {
+          u = i - istart;
+          pix = bmap[*usimdata];
+          usimdata += segp->stride;
+          FILLDATA(pix);
+        }
+      } else {
+        for (i = segStart; i < segEnd; i++) {
+          u = i - istart;
+          pix = *imdata;
+          imdata += segp->stride;
+          FILLDATA(pix);
+        }
+      }
+      nextToFill = segEnd;
+    }
+
+    // Fill past end
+    for (i = nextToFill; i < iend; i++) {
+      u = i - istart;
+      FILLDATA(0);
+    }
+  }
 }
 
 // Load the tile into the texture image and draw it within given coordinates
@@ -737,11 +1021,11 @@ static void endTexMapping()
 {
   sFlags = 0;
   Imodv->texMap = 0;
-  imodvImageCleanup();
+  mvImageCleanup();
 }
 
 // Free up image and texture arrays
-void imodvImageCleanup()
+void mvImageCleanup()
 {
   B3DFREE(sTdata);
   if (sTexImageSize)
@@ -752,14 +1036,15 @@ void imodvImageCleanup()
 
 // THE ImodvImage CLASS IMPLEMENTATION
 
-static const char *buttonLabels[] = {"Done", "Help"};
-static const char *buttonTips[] = {"Close dialog box", "Open help window"};
+static const char *buttonLabels[] = {"Done", "Help", "Fill"};
+static const char *buttonTips[] = {"Close dialog box", "Open help window", 
+                                   "Fill cache for current display zoom and position"};
 static const char *sliderLabels[] = {"X", "Y", "Z", "X size", "Y size", "Z size",
                                "# of slices", "Transparency", 
                                "Black Level", "White Level"};
 
-ImodvImage::ImodvImage(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true, 
+ImodvImage::ImodvImage(QWidget *parent, bool fillBut, const char *name)
+  : DialogFrame(parent, fillBut ? 3 : 2, 1, buttonLabels, buttonTips, true, 
                 ImodPrefs->getRoundedStyle(), "3dmodv Image View", "", name)
 {
   mCtrlPressed = false;
@@ -803,26 +1088,16 @@ ImodvImage::ImodvImage(QWidget *parent, const char *name)
   (mSliders->getLayout())->setSpacing(4);
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
           SLOT(sliderMoved(int, int, bool)));
-  mSliders->getSlider(IIS_X_COORD)->setToolTip(
-                "Set current image X coordinate");
-  mSliders->getSlider(IIS_Y_COORD)->setToolTip(
-                "Set current image Y coordinate");
-  mSliders->getSlider(IIS_Z_COORD)->setToolTip(
-                "Set current image Z coordinate");
-  mSliders->getSlider(IIS_X_SIZE)->setToolTip(
-                "Set image size to display in X");
-  mSliders->getSlider(IIS_Y_SIZE)->setToolTip(
-                "Set image size to display in Y");
-  mSliders->getSlider(IIS_Z_SIZE)->setToolTip(
-                "Set image size to display in Z");
-  mSliders->getSlider(IIS_SLICES)->setToolTip(
-                "Set number of slices to display");
-  mSliders->getSlider(IIS_TRANSPARENCY)->setToolTip(
-                "Set percent transparency");
-  mSliders->getSlider(IIS_BLACK)->setToolTip(
-                "Set minimum black level of contrast ramp");
-  mSliders->getSlider(IIS_WHITE)->setToolTip(
-                "Set maximum white level of contrast ramp");
+  mSliders->getSlider(IIS_X_COORD)->setToolTip("Set current image X coordinate");
+  mSliders->getSlider(IIS_Y_COORD)->setToolTip("Set current image Y coordinate");
+  mSliders->getSlider(IIS_Z_COORD)->setToolTip("Set current image Z coordinate");
+  mSliders->getSlider(IIS_X_SIZE)->setToolTip("Set image size to display in X");
+  mSliders->getSlider(IIS_Y_SIZE)->setToolTip("Set image size to display in Y");
+  mSliders->getSlider(IIS_Z_SIZE)->setToolTip("Set image size to display in Z");
+  mSliders->getSlider(IIS_SLICES)->setToolTip("Set number of slices to display");
+  mSliders->getSlider(IIS_TRANSPARENCY)->setToolTip("Set percent transparency");
+  mSliders->getSlider(IIS_BLACK)->setToolTip("Set minimum black level of contrast ramp");
+  mSliders->getSlider(IIS_WHITE)->setToolTip("Set maximum white level of contrast ramp");
 
   QPushButton *copyBut = diaPushButton("Use 3dmod Black/White", this, mLayout);
   copyBut->setToolTip("Set black and white levels from sliders in 3dmod Info window");
@@ -927,11 +1202,11 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
 
   case IIS_BLACK:
     sBlackLevel = value;
-    mkcmap();
+    makeColorMap();
     break;
   case IIS_WHITE:
     sWhiteLevel = value;
-    mkcmap();
+    makeColorMap();
     break;
   }
 
@@ -951,7 +1226,7 @@ void ImodvImage::copyBWclicked()
   sWhiteLevel = App->cvi->whiteInRange;
   mSliders->setValue(IIS_BLACK, sBlackLevel);
   mSliders->setValue(IIS_WHITE, sWhiteLevel);
-  mkcmap();
+  makeColorMap();
   imodvDraw(Imodv);
 }
 
@@ -959,15 +1234,17 @@ void ImodvImage::copyBWclicked()
 void ImodvImage::falseToggled(bool state)
 {
   sFalsecolor = state ? 1 : 0;
-  mkcmap();
+  makeColorMap();
   imodvDraw(Imodv);
 }
 
 // Action buttons
 void ImodvImage::buttonPressed(int which)
 {
-  if (which)
+  if (which == 1)
     imodShowHelpPage("modvImage.html#TOP");
+  else if (which == 2)
+    imodCacheFill(Imodv->vi, -1);
   else
     close();
 }

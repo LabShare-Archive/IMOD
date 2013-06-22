@@ -5,7 +5,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 #
 # The approach in translating was to retain most of the flags and capabilities
 # in the C code, even when the calls for setting the flags were not included:
@@ -38,16 +37,16 @@ PATH_SEPARATOR = os.sep
 PIP_INTEGER = 1
 PIP_FLOAT = 2
 
-types = ("B","PF","LI","I", "F", "IP", "FP", "IT", "FT", "IA", "FA", "CH","FN")
-typeForUsage = ("Boolean", "File", "List", "Int", "Float", "2 ints", \
+sTypes = ("B","PF","LI","I", "F", "IP", "FP", "IT", "FT", "IA", "FA", "CH","FN")
+sTypeForUsage = ("Boolean", "File", "List", "Int", "Float", "2 ints", \
   "2 floats", "3 ints", "3 floats", "Ints", "Floats", "String", "File", \
   "Unknown argument type")
-numTypes = 13
+sNumTypes = 13
 tokenSep = re.compile("[= \t]")
 nonWhite = re.compile('[^ \t]')
 valueSep = re.compile('[ ,\t/]')
 pipErrno = 0
-
+sQuoteTypes = """'"`"""
 
 
 # The options "structure"; initialize all the values
@@ -63,96 +62,97 @@ class pipOption:
       self.lenShort = 0
       self.nextLinked = []
       self.linked = False
-optTable = None
-tableSize = 0
-numOptions = 0
-nonOptInd = 0
-errorString = None
-exitPrefix = None
-programName  = ""
-errorDest = 0
-nextOption = 0
-nextArgBelongsTo = -1
-numOptionArguments = 0
-allowDefaults = 0
-outputManpage = 0
-printEntries = -1
-defaultDelim = VALUE_DELIM
-valueDelim = defaultDelim
-noCase = 0
-doneEnds = 0
-takeStdIn = 0
-nonOptLines = 0
-noAbbrevs = 0
-notFoundOK = False
-linkedOption = None
+sOptTable = None
+sTableSize = 0
+sNumOptions = 0
+sNonOptInd = 0
+sErrorString = None
+sExitPrefix = None
+sProgramName  = ""
+sErrorDest = 0
+sNextOption = 0
+sNextArgBelongsTo = -1
+sNumOptionArguments = 0
+sAllowDefaults = 0
+sOutputManpage = 0
+sPrintEntries = -1
+sDefaultDelim = VALUE_DELIM
+sValueDelim = sDefaultDelim
+sNoCase = 0
+sDoneEnds = 0
+sTakeStdIn = 0
+sNonOptLines = 0
+sNoAbbrevs = 0
+sNotFoundOK = False
+sLinkedOption = None
+sTestAbbrevForUsage = False
 
 # Initialize for given number of options
 #
 def PipInitialize(numOpts):
-   global numOptions, tableSize, nonOptInd, optTable
-   numOptions = numOpts
-   tableSize = numOpts + 2
-   nonOptInd = numOptions
-   optTable = []
+   global sNumOptions, sTableSize, sNonOptInd, sOptTable
+   sNumOptions = numOpts
+   sTableSize = numOpts + 2
+   sNonOptInd = sNumOptions
+   sOptTable = []
 
    # Initialize the table
-   for i in range(tableSize):
+   for i in range(sTableSize):
       inst = pipOption()
-      optTable.append(inst)
+      sOptTable.append(inst)
 
    # In the last slots, put non-option arguments, and also put the
    #  name for the standard input option for easy checking on duplication
-   optTable[nonOptInd].longName = NON_OPTION_STRING
-   optTable[nonOptInd + 1].shortName = STANDARD_INPUT_STRING
-   optTable[nonOptInd + 1].longName = STANDARD_INPUT_END
-   optTable[nonOptInd].multiple = 1
+   sOptTable[sNonOptInd].longName = NON_OPTION_STRING
+   sOptTable[sNonOptInd + 1].shortName = STANDARD_INPUT_STRING
+   sOptTable[sNonOptInd + 1].longName = STANDARD_INPUT_END
+   sOptTable[sNonOptInd].multiple = 1
    return 0
 
 
 # Free all allocated memory and set state back to initial state (sort of)
 #
 def PipDone():
-   global numOptions, tableSize, nonOptInd, optTable, errorString, nextOption
-   global nextArgBelongsTo, numOptionArguments, allowDefaults
-   del optTable
-   optTable = None
-   tableSize = 0
-   numOptions = 0
-   errorString = None
-   nextOption = 0
-   nextArgBelongsTo = -1
-   numOptionArguments = 0
-   allowDefaults = 0
-   linkedOption = None
+   global sNumOptions, sTableSize, sNonOptInd, sOptTable, sErrorString, sNextOption
+   global sNextArgBelongsTo, sNumOptionArguments, sAllowDefaults
+   del sOptTable
+   sOptTable = None
+   sTableSize = 0
+   sNumOptions = 0
+   sErrorString = None
+   sNextOption = 0
+   sNextArgBelongsTo = -1
+   sNumOptionArguments = 0
+   sAllowDefaults = 0
+   sLinkedOption = None
 
 
 # Set up for Pip to handle exiting on error, with a prefix string
 #
 def PipExitOnError(useStdErr, prefix):
-   global errorDest, exitPrefix
-   errorDest = useStdErr
-   exitPrefix = prefix
+   global sErrorDest, sExitPrefix
+   sErrorDest = useStdErr
+   sExitPrefix = prefix
    return 0
 
 
 # Just set the exit prefix
 #
 def setExitPrefix(prefix):
-   global exitPrefix
-   exitPrefix = prefix
+   global sExitPrefix
+   sExitPrefix = prefix
 
 # Enable the entry ouput
 #
 def PipEnableEntryOutput(val):
-   global printEntries
-   printEntries = val
+   global sPrintEntries
+   sPrintEntries = val
 
 # Set a linked option
 #
 def PipSetLinkedOption(option):
-   global linkedOption
-   linkedOption = option
+   global sLinkedOption
+   sLinkedOption = option
 
 # Return the error number
 #
@@ -164,9 +164,9 @@ def PipGetErrNo():
 # Add an option, with short and long name, type, and help string
 #
 def PipAddOption(optionString):
-   global nextOption, numOptions, optTable, tableSize, nonOptInd
+   global sNextOption, sNumOptions, sOptTable, sTableSize, sNonOptInd
 
-   if (nextOption >= numOptions):
+   if (sNextOption >= sNumOptions):
       PipSetError("Attempting to add more options than were originally"
                   " specified")
       return -1
@@ -176,63 +176,63 @@ def PipAddOption(optionString):
       PipSetError("Option does not have three colons in it:  " + optionString)
       return -1
 
-   optTable[nextOption].shortName = parts[0]
+   sOptTable[sNextOption].shortName = parts[0]
    newSlen = len(parts[0])
-   optTable[nextOption].lenShort = newSlen
-   optTable[nextOption].longName = parts[1]
+   sOptTable[sNextOption].lenShort = newSlen
+   sOptTable[sNextOption].longName = parts[1]
 
    # If type ends in M or L, set multiple flag and strip M or L
    if parts[2].endswith('M') or parts[2].endswith('L'):
-      optTable[nextOption].multiple = 1
-      optTable[nextOption].linked = parts[2].endswith('L')
+      sOptTable[sNextOption].multiple = 1
+      sOptTable[sNextOption].linked = parts[2].endswith('L')
       if len(parts[2]) > 1:
          parts[2] = parts[2][0:len(parts[2]) - 1]
       else:
          parts[2] = ''
 
-   optTable[nextOption].type = parts[2]
-   optTable[nextOption].helpString = parts[3]
+   sOptTable[sNextOption].type = parts[2]
+   sOptTable[sNextOption].helpString = parts[3]
 
-   for ind in range(tableSize):
+   for ind in range(sTableSize):
       # after checking existing ones, skip to NonOptionArg and 
       # StandardInput entries
-      if (ind >= nextOption and ind < nonOptInd):
+      if (ind >= sNextOption and ind < sNonOptInd):
          continue
 
-      oldShort = optTable[ind].shortName
-      oldLong = optTable[ind].longName
-      oldSlen = optTable[ind].lenShort
+      oldShort = sOptTable[ind].shortName
+      oldLong = sOptTable[ind].longName
+      oldSlen = sOptTable[ind].lenShort
       if (((PipStartsWith(parts[0], oldShort) or PipStartsWith(oldShort, parts[0])) and
            ((newSlen > 1 and oldSlen > 1) or (newSlen == 1 and oldSlen == 1))) or \
          PipStartsWith(oldLong, parts[0]) or PipStartsWith(parts[0], oldLong) or \
          PipStartsWith(oldShort, parts[1]) or PipStartsWith(parts[1], oldShort) or \
           PipStartsWith(oldLong, parts[1]) or PipStartsWith(parts[1], oldLong)):
-         tempStr = "Option " + parts[0] + "  " + parts[1] + \
+         sTempStr = "Option " + parts[0] + "  " + parts[1] + \
                    " is ambiguous with option " + oldShort + "  " + oldLong
-         PipSetError(tempStr)
-         sys.stdout.write(tempStr + "\n")
+         PipSetError(sTempStr)
+         sys.stdout.write(sTempStr + "\n")
          return -1
 
-   nextOption += 1
+   sNextOption += 1
    return 0
 
 
 # Call this to process the next argument
 def PipNextArg(argString):
-   global nextArgBelongsTo, optTable, STANDARD_INPUT_STRING
-   global numOptionArguments, nonOptInd, nextOption, notFoundOK
+   global sNextArgBelongsTo, sOptTable, STANDARD_INPUT_STRING
+   global sNumOptionArguments, sNonOptInd, sNextOption, sNotFoundOK
 
    # If we are expecting a value for an option, add string to the option 
-   if (nextArgBelongsTo >= 0):
-      err = AddValueString(nextArgBelongsTo, argString)
+   if (sNextArgBelongsTo >= 0):
+      err = AddValueString(sNextArgBelongsTo, argString)
 
       # Check whether this option was for reading from parameter file
-      if (not err and optTable[nextArgBelongsTo].type == 'PF'):
+      if (not err and sOptTable[sNextArgBelongsTo].type == 'PF'):
          try:
             paramFile = open(argString, "r")
          except:
-            tempStr = "Error opening parameter file " + argString
-            PipSetError(tempStr)
+            sTempStr = "Error opening parameter file " + argString
+            PipSetError(sTempStr)
             return -1
 
          err = ReadParamFile(paramFile)
@@ -240,7 +240,7 @@ def PipNextArg(argString):
             close(paramFile)
          except:
             pass
-      nextArgBelongsTo = -1
+      sNextArgBelongsTo = -1
       return err
 
    # Is it a legal option starting with - or -- ?
@@ -258,27 +258,27 @@ def PipNextArg(argString):
          return err
 
       # Next check if it is a potential numeric non-option arg
-      notFoundOK = 1
+      sNotFoundOK = 1
       for ch in argString[indStart:]:
          if ch != '-' and ch != ','  and ch != '.' and ch != ' ' and not ch.isdigit():
-           notFoundOK = 0
+           sNotFoundOK = 0
            break
 
       # Lookup the option among true defined options 
-      err = LookupOption(argString[indStart:], nextOption)
+      err = LookupOption(argString[indStart:], sNextOption)
 
       # Process as an option unless it could be numeric and was not found
-      if  not (notFoundOK and err == LOOKUP_NOT_FOUND):
-         notFoundOK = 0
+      if  not (sNotFoundOK and err == LOOKUP_NOT_FOUND):
+         sNotFoundOK = 0
          if err < 0:
             return err
 
-         numOptionArguments += 1
+         sNumOptionArguments += 1
 
          # For an option with value, setup to get argument next time and
          # return an indicator that there had better be another
-         if (optTable[err].type != 'B'):
-            nextArgBelongsTo = err
+         if (sOptTable[err].type != 'B'):
+            sNextArgBelongsTo = err
             return 1
          else:
            
@@ -286,29 +286,29 @@ def PipNextArg(argString):
             return AddValueString(err, '1')
 
    # A non-option argument
-   notFoundOK = 0
-   return AddValueString(nonOptInd, argString)
+   sNotFoundOK = 0
+   return AddValueString(sNonOptInd, argString)
 
 
 # return number of option arguments (approximate) and number of non-option
 # arguments 
 #
 def PipNumberOfArgs():
-   global optTable, numOptionArguments, pipErrno
+   global sOptTable, sNumOptionArguments, pipErrno
    pipErrno = 0
-   return (numOptionArguments, optTable[nonOptInd].count)
+   return (sNumOptionArguments, sOptTable[sNonOptInd].count)
 
 # Get a non-option argument, index numbered from 0 here
 #
 def PipGetNonOptionArg(argNo):
-   global optTable, pipErrno
+   global sOptTable, pipErrno
    pipErrno = 0
-   if (argNo >= optTable[nonOptInd].count):
+   if (argNo >= sOptTable[sNonOptInd].count):
       PipSetError("Requested a non-option argument beyond the number" + \
                   " available")
       pipErrno =  -1
       return None
-   return optTable[nonOptInd].values[argNo]
+   return sOptTable[sNonOptInd].values[argNo]
 
 
 # Get a string option
@@ -342,8 +342,8 @@ def PipGetBoolean(option, val):
           strPtr == "off"):
       return 0
    else:
-      tempStr = "Illegal entry for boolean option " + option + ": " + strPtr
-      PipSetError(tempStr)
+      sTempStr = "Illegal entry for boolean option " + option + ": " + strPtr
+      PipSetError(sTempStr)
       pipErrno =  -1
       return None
 
@@ -432,7 +432,8 @@ def PipGetFloatArray(option, numToGet):
 # Print a complete usage statement only
 #
 def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
-   global numOptions, optTable, outputManpage, typeForUsage, types, numTypes
+   global sNumOptions, sOptTable, sOutputManpage, sTypeForUsage, sTypes, sNumTypes
+   global sTestAbbrevForUsage
    numOut = 0
    numReal = 0
    helplim = 74
@@ -441,15 +442,15 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
       out = sys.stderr
    indent4 = "    "
    linePos = 11
-#    descriptions = typeDescriptions
+#    descriptions = sTypeDescriptions
 
-   for i in range(numOptions):
-      if (len(optTable[i].shortName) or len(optTable[i].longName)):
+   for i in range(sNumOptions):
+      if (len(sOptTable[i].shortName) or len(sOptTable[i].longName)):
          numReal += 1
    
-   if (not outputManpage):
+   if (not sOutputManpage):
       out.write("Usage: " + progName + " ")
-      if (numOptions):
+      if (sNumOptions):
          out.write("[Options]")
       if (inputFiles):
          out.write(" input_file")
@@ -463,38 +464,52 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
 
       if (not numReal):
          return 0
+      out.write("Options can be abbreviated, current short name abbreviations are in " +\
+            "parentheses\n")
       out.write("Options:\n")
-      descriptions = typeForUsage
+      descriptions = sTypeForUsage
 
-   for i in range(numOptions):
+   sTestAbbrevForUsage = True
+   for i in range(sNumOptions):
       
-      sname = optTable[i].shortName
-      lname = optTable[i].longName
+      sname = sOptTable[i].shortName
+      lname = sOptTable[i].longName
       indentStr = ""
+
+      # Try to look up an abbreviation of the short name
+      abbrev = None
+      if len(sname):
+         for j in range(1, len(sname)):
+            if LookupOption(sname[:j], sNumOptions) == i:
+               abbrev = sname[:j]
+               break
+                               
       if (len(lname) or len(sname)):
-         if (outputManpage <= 0):
+         if (sOutputManpage <= 0):
             indentStr = indent4
 
          out.write(" ")
          if len(sname):
             out.write("-" + sname)
+         if abbrev:
+            out.write(" (-" + abbrev + ")")
          if len(sname) and len(lname):
-            out.write(" OR ")
+            out.write("  OR  ")
          if len(lname):
             out.write("-" + lname)
-         for j in range(numTypes):
+         for j in range(sNumTypes):
             jj = j
-            if (optTable[i].type == types[j]):
+            if (sOptTable[i].type == sTypes[j]):
                break
             
-         if (optTable[i].type != "B"):
+         if (sOptTable[i].type != "B"):
             out.write("   " + descriptions[jj])
 
       out.write("\n")
 
       # Print help string, breaking up line as needed
-      if len(optTable[i].helpString):
-         sname = optTable[i].helpString
+      if len(sOptTable[i].helpString):
+         sname = sOptTable[i].helpString
          optLen = len(sname)
          newLinePt = sname.find('\n')
          while (optLen > helplim or newLinePt >= 0):
@@ -515,40 +530,41 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
 
          out.write(indentStr + sname + "\n")
 
-      if (optTable[i].multiple):
+      if (sOptTable[i].multiple):
          out.write(indentStr + "(Successive entries accumulate)\n")
 
+   sTestAbbrevForUsage = False
    return 0
 
 
 # Print the entries
 def PipPrintEntries():
-   global numOptions, optTable, printEntries
-   if printEntries < 0:
-      printEntries = 0
+   global sNumOptions, sOptTable, sPrintEntries
+   if sPrintEntries < 0:
+      sPrintEntries = 0
       val = os.getenv(PRINTENTRY_VARIABLE)
       if val != None:
          try:
-            printEntries = int(val)
+            sPrintEntries = int(val)
          except:
-            printEntries = 0
-   if not printEntries:
+            sPrintEntries = 0
+   if not sPrintEntries:
       return
-   sys.stdout.write("\n*** Entries to program " + programName + " ***" + "\n")
-   for i in range(numOptions):
-      sname = optTable[i].shortName
-      lname = optTable[i].longName
-      if (len(lname) or len(sname)) and optTable[i].count:
+   sys.stdout.write("\n*** Entries to program " + sProgramName + " ***" + "\n")
+   for i in range(sNumOptions):
+      sname = sOptTable[i].shortName
+      lname = sOptTable[i].longName
+      if (len(lname) or len(sname)) and sOptTable[i].count:
          name = lname
          if not len(lname):
             name = sname
-         for j in range(optTable[i].count):
-            sys.stdout.write("  " + name + " = " + optTable[i].values[j] + \
+         for j in range(sOptTable[i].count):
+            sys.stdout.write("  " + name + " = " + sOptTable[i].values[j] + \
                              "\n")
-   if optTable[nonOptInd].count:
+   if sOptTable[sNonOptInd].count:
       sys.stdout.write("  Non-option arguments:")
-      for j in range(optTable[nonOptInd].count):
-         sys.stdout.write("   " +  optTable[nonOptInd].values[j])
+      for j in range(sOptTable[sNonOptInd].count):
+         sys.stdout.write("   " +  sOptTable[sNonOptInd].values[j])
       sys.stdout.write('\n')
    sys.stdout.write("*** End of entries ***\n\n")
    
@@ -556,31 +572,31 @@ def PipPrintEntries():
 # Return the error string, or an empty string and an error if there is none
 #
 def PipGetError():
-   global errorString, pipErrno
+   global sErrorString, pipErrno
    pipErrno = 0
-   if (not errorString):
+   if (not sErrorString):
       pipErrno =  -1
       return ''
-   return errorString
+   return sErrorString
 
 
 # Set the error string.
-# If exitPrefix is set, then output an error message to stderr or stdout
+# If sExitPrefix is set, then output an error message to stderr or stdout
 # and exit. 
 def PipSetError(errString):
-   global errorString, exitPrefix
+   global sErrorString, sExitPrefix
    outFile = sys.stdout
-   if errorDest:
+   if sErrorDest:
       outFile = stderr
-   errorString = errString
-   if not errorString and not exitPrefix:
+   sErrorString = errString
+   if not sErrorString and not sExitPrefix:
       pipErrno =  -1
       return None
 
-   if exitPrefix:
-      if not errorString:
-         errorString = "Unspecified error"
-      outFile.write(exitPrefix + errorString + "\n")
+   if sExitPrefix:
+      if not sErrorString:
+         sErrorString = "Unspecified error"
+      outFile.write(sExitPrefix + sErrorString + "\n")
       sys.exit(1)
 
    return 0
@@ -596,42 +612,42 @@ def exitError(errorMess):
 # Return the number of entries for a particular option
 #
 def PipNumberOfEntries(option):
-   global nonOptInd, pipErrno
+   global sNonOptInd, pipErrno
    pipErrno = 0
-   err = LookupOption(option, nonOptInd + 1)
+   err = LookupOption(option, sNonOptInd + 1)
    if (err < 0):
       pipErrno =  err
       return None
     
-   return optTable[err].count
+   return sOptTable[err].count
 
 
 # Return the index of the next non-option arg or linked option that was entered after
 # this option
 #
 def PipLinkedIndex(option):
-   global numOptions, linkedOption, pipErrno, nonOptInd
+   global sNumOptions, sLinkedOption, pipErrno, sNonOptInd
    pipErrno = 0
-   err = LookupOption(option, numOptions)
+   err = LookupOption(option, sNumOptions)
    if (err < 0):
       pipErrno =  err
       return None
 
    ind = 0
-   if optTable[err].multiple:
-      ind = optTable[err].multiple - 1
+   if sOptTable[err].multiple:
+      ind = sOptTable[err].multiple - 1
 
    # Set up to use count from non-option args, but use the count from the linked option
    # instead if it was entered at all.  This allows other non-option args to be used
    which = 0
-   if linkedOption != None:
-      ilink = LookupOption(linkedOption, numOptions)
+   if sLinkedOption != None:
+      ilink = LookupOption(sLinkedOption, sNumOptions)
       if (ilink < 0):
          pipErrno =  ilink
          return None
-      if optTable[ilink].count:
+      if sOptTable[ilink].count:
          which = 1
-   return optTable[err].nextLinked[2 * ind + which]
+   return sOptTable[err].nextLinked[2 * ind + which]
                      
 
 # Top level routine to be called to process options and arguments
@@ -655,36 +671,46 @@ def PipParseInput(argv, options):
    return (PipParseEntries(argv))
 
 
-# Alternative routine to have options read from a file
+# Try to open an autodoc at AUTODOC_DIR or IMOD_DIR/autodoc
 #
-def PipReadOptionFile(progName, helpLevel, localDir):
+def PipOpenInstalledAdoc(progName):
    global OPTDIR_VARIABLE, PATH_SEPARATOR, OPTFILE_DIR, OPTFILE_EXT
-   global optTable, valueDelim, programName
    optFile = None
-   programName = progName
-   
-   # If local directory not set, look for environment variable pointing
-   # directly to where the file should be
-   if (not localDir):
-      pipDir = os.getenv(OPTDIR_VARIABLE)
+   pipDir = os.getenv(OPTDIR_VARIABLE)
+   if (pipDir):
+      bigStr = pipDir + PATH_SEPARATOR + progName + "." + OPTFILE_EXT
+      try:
+         # print "Looking for file " + bigStr
+         optFile = open(bigStr, "r")
+      except:
+         optFile = None
+
+   if (not optFile):
+      pipDir = os.getenv("IMOD_DIR")
       if (pipDir):
-         bigStr = pipDir + PATH_SEPARATOR + progName + "." + OPTFILE_EXT
+         bigStr = pipDir + PATH_SEPARATOR + OPTFILE_DIR +\
+                  PATH_SEPARATOR + progName + "." + OPTFILE_EXT
          try:
-            # print "Looking for file " + bigStr
+            #print "Looking for file " + bigStr
             optFile = open(bigStr, "r")
          except:
             optFile = None
 
-      if (not optFile):
-         pipDir = os.getenv("IMOD_DIR")
-         if (pipDir):
-            bigStr = pipDir + PATH_SEPARATOR + OPTFILE_DIR +\
-                     PATH_SEPARATOR + progName + "." + OPTFILE_EXT
-            try:
-               #print "Looking for file " + bigStr
-               optFile = open(bigStr, "r")
-            except:
-               optFile = None
+   return optFile
+
+
+# Alternative routine to have options read from a file
+#
+def PipReadOptionFile(progName, helpLevel, localDir):
+   global PATH_SEPARATOR, OPTFILE_DIR, OPTFILE_EXT
+   global sOptTable, sValueDelim, sProgramName
+   optFile = None
+   sProgramName = progName
+   
+   # If local directory not set, look for environment variable pointing
+   # directly to where the file should be
+   if (not localDir):
+      optFile = PipOpenInstalledAdoc(progName)
   
    # If local directory set, set up name with ../ as many times as specified
    # and look for file there
@@ -724,7 +750,8 @@ def PipReadOptionFile(progName, helpLevel, localDir):
    longName = shortName = type = ''
    helpStr = ['','','']
    readingOpt = 0
-
+   inQuoteIndex = -1
+   
    while (1):
       (lineLen, bigStr, indst) = PipReadNextLine(optFile, '#', 0, 0)
       if (lineLen == -2):
@@ -739,9 +766,9 @@ def PipReadOptionFile(progName, helpLevel, localDir):
 
       # Look for new keyword-value delimiter before any options
       if (not numOpts):
-         (newDelim, lastInd) = CheckKeyword(textStr, "KeyValueDelimiter", 0)
+         (newDelim, lastInd, inQuoteIndex) = CheckKeyword(textStr, "KeyValueDelimiter", 0)
          if (newDelim):
-            valueDelim = newDelim
+            sValueDelim = newDelim
 
       if (readingOpt and (lineLen == -3 or isOption)):
      
@@ -793,9 +820,9 @@ def PipReadOptionFile(progName, helpLevel, localDir):
       # If reading options, look for the various keywords
       if (readingOpt):
 
-         # If the last string gotten was a help string and the line does not
-         #   contain the value delimiter, then append it to the last string
-         if (lastInd and textStr.find(valueDelim) < 0):
+         # If the last string gotten was a help string and the line does not contain the
+         # value delimiter or we are in a quote, then append it to the last string
+         if lastInd and (inQuoteIndex >= 0 or textStr.find(sValueDelim) < 0):
             if helpStr[lastInd-1].endswith('.'):
                helpStr[lastInd-1] += '  '
             else:
@@ -804,49 +831,70 @@ def PipReadOptionFile(progName, helpLevel, localDir):
             # Replace leading ^ with a newline
             if (textStr[0] == '^'):
                textStr = textStr.replace('^', '\n', 1)
-            helpStr[lastInd-1] += textStr
+
+            # If inside quotes, look for quote at end and say it is the end of accepting
+            # continuation lines, and as a protection, also say a blank line ends it
+            lentx = len(textStr)
+            if inQuoteIndex >= 0 and \
+                   (not lentx or textStr[lentx - 1] == sQuoteTypes[inQuoteIndex]):
+               if lentx:
+                  helpStr[lastInd-1] += textStr[:lentx - 1]
+               lastInd = 0
+               inQuoteIndex = -1
+            else:
+               helpStr[lastInd-1] += textStr
 
          # Otherwise look for each keyword of interest, but zero last index
          else:
             lastInd = 0
             retval = CheckKeyword(textStr, "short", 0)
             if retval[0]:
-               (shortName, lastInd) = retval
+               (shortName, lastInd, inQuoteIndex) = retval
             retval = CheckKeyword(textStr, "long", 0)
             if retval[0]:
-               (longName, lastInd) = retval
+               (longName, lastInd, inQuoteIndex) = retval
             retval = CheckKeyword(textStr, "type", 0)
             if retval[0]:
-               (type, lastInd) = retval
+               (type, lastInd, inQuoteIndex) = retval
 
             # Check for usage if at help level 1 or if we haven't got
             # either of the other strings yet
             if (helpLevel <= 1 or not (helpStr[1] or helpStr[2])):
-               retval = CheckKeyword(textStr, "usage", 1)
+               retval = CheckKeyword(textStr, "usage", 1, 1)
                if retval[0]:
-                  (helpStr[0], lastInd) = retval
+                  (helpStr[0], lastInd, inQuoteIndex) = retval
       
             # Check for tooltip if at level 2 or if at level 1 and haven't 
             # got usage, or at level 3 and haven't got manpage
             if (helpLevel == 2 or (helpLevel <= 1 and not helpStr[0]) or
                (helpLevel >= 3 and not helpStr[2])):
-               retval = CheckKeyword(textStr, "tooltip", 2)
+               retval = CheckKeyword(textStr, "tooltip", 2, 1)
                if retval[0]:
-                  (helpStr[1], lastInd) = retval
+                  (helpStr[1], lastInd, inQuoteIndex) = retval
       
             # Check for manpage if at level 3 or if at level 2 and haven't 
             # got tip, or at level 1 and haven't got tip or usage
             if (helpLevel >= 3 or (helpLevel == 2 and not helpStr[1]) or
                (helpLevel <= 1 and not (helpStr[1] or helpStr[0]))):
-               retval = CheckKeyword(textStr, "manpage", 3)
+               retval = CheckKeyword(textStr, "manpage", 3, 1)
                if retval[0]:
-                  (helpStr[2], lastInd) = retval
+                  (helpStr[2], lastInd, inQuoteIndex) = retval
 
+            # If that was a line with quoted string, check for quote at end of line and
+            # close out the help string if so */
+            if inQuoteIndex >= 0 and lastInd:
+               lentx = len(helpStr[lastInd - 1])
+               if lentx and helpStr[lastInd - 1][lentx - 1] == sQuoteTypes[inQuoteIndex]:
+                  helpStr[lastInd - 1] = helpStr[lastInd - 1][:lentx - 1]
+                  inQuoteIndex = -1
+                  lastInd = 0
+                  
       # But if not reading options, check for a new option token and start 
       # reading if one is found.  But first take a Field value as default 
       # long option name
       elif (isOption > 0):
          lastInd = 0
+         inQuoteIndex = -1
          readingOpt = 1
          isSection = isOption - 1
          if (not isSection):
@@ -873,12 +921,12 @@ def PipReadOptionFile(progName, helpLevel, localDir):
 # defined one way or another
 #
 def PipParseEntries(argv):
-   global takeStdIn, pipErrno
+   global sTakeStdIn, pipErrno
    pipErrno = 0
    argc = len(argv)
 
    # Special case: no arguments and flag set to take stdin automatically
-   if (not argc and takeStdIn):
+   if (not argc and sTakeStdIn):
       err = ReadParamFile(sys.stdin)
       if err:
          pipErrno =  err
@@ -906,7 +954,7 @@ def PipParseEntries(argv):
 #
 def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
                           numOutFiles):
-   global exitPrefix
+   global sExitPrefix
    
    # Startup with fallback
    ierr = PipReadOptionFile(progName, 0, 0)
@@ -925,10 +973,10 @@ def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
 
 
    # Output usage and exit if not enough arguments
-   exitSave = exitPrefix
-   exitPrefix = None
+   exitSave = sExitPrefix
+   sExitPrefix = None
    help = PipGetBoolean('help', 0)
-   exitPrefix = exitSave
+   sExitPrefix = exitSave
    if (help or numOptArgs + numNonOptArgs < minArgs):
       PipPrintHelp(progName, 0, numInFiles, numOutFiles)
       sys.exit(0)
@@ -939,11 +987,11 @@ def PipReadOrParseOptions(argv, options, progName, minArgs, numInFiles,
 # Routine to get input/output file from parameter or non-option args
 #
 def PipGetInOutFile(option, nonOptArgNo):
-   global optTable, pipErrno
+   global sOptTable, pipErrno
    retval = PipGetString(option, '')
    if not pipErrno:
       return retval
-   if (nonOptArgNo >= optTable[nonOptInd].count):
+   if (nonOptArgNo >= sOptTable[sNonOptInd].count):
       pipErrno =  1
       return None
    return PipGetNonOptionArg(nonOptArgNo)
@@ -953,15 +1001,15 @@ def PipGetInOutFile(option, nonOptArgNo):
 # store as options and values 
 #
 def ReadParamFile(pFile):
-   global notFoundOK, numOptionArguments, optTable, nonOptLines, tokenSep
-   global STANDARD_INPUT_STRING, STANDARD_INPUT_END, numOptions
+   global sNotFoundOK, sNumOptionArguments, sOptTable, sNonOptLines, tokenSep
+   global STANDARD_INPUT_STRING, STANDARD_INPUT_END, sNumOptions
    while (1):
 
       # If non-option lines are allowed, set flag that it is OK for
       # LookupOption to not find the option, but only for the given number
       # of lines at the start of the input
-      notFoundOK = not numOptionArguments and \
-                   (optTable[nonOptInd].count < nonOptLines)
+      sNotFoundOK = not sNumOptionArguments and \
+                   (sOptTable[sNonOptInd].count < sNonOptLines)
       (lineLen, lineStr, indst) = PipReadNextLine(pFile,  '#', 0, 1)
       if (lineLen == -3):
          break
@@ -979,24 +1027,24 @@ def ReadParamFile(pFile):
       token = lineStr[indst:indnd]
 
       # Done if it matches end of input string
-      if (token == STANDARD_INPUT_END) or (doneEnds and token == "DONE"):
+      if (token == STANDARD_INPUT_END) or (sDoneEnds and token == "DONE"):
          break
 
       # Look up option
-      optNum = LookupOption(token, numOptions)
+      optNum = LookupOption(token, sNumOptions)
       if (optNum < 0):
 
          # If no option, process special case if in-line non-options allowed
          # or error out
-         if (notFoundOK):
-            err = AddValueString(nonOptInd, lineStr[indst:])
+         if (sNotFoundOK):
+            err = AddValueString(sNonOptInd, lineStr[indst:])
             if err:
                return err
             continue
          else:
             return optNum
 
-      if (optTable[optNum].type == "PF"):
+      if (sOptTable[optNum].type == "PF"):
          PipSetError("Trying to open a parameter file while reading a " +
                      "parameter file or " + STANDARD_INPUT_STRING)
          return -1
@@ -1019,7 +1067,7 @@ def ReadParamFile(pFile):
       # otherwise it is an error
       if (indst < lineLen):
          token = lineStr[indst:]
-      elif (optTable[optNum].type == 'B'):
+      elif (sOptTable[optNum].type == 'B'):
          token = "1"
       else:
          PipSetError("Missing a value on the input line:  " + lineStr)
@@ -1029,9 +1077,9 @@ def ReadParamFile(pFile):
       err = AddValueString(optNum, token)
       if err:
          return err
-      numOptionArguments += 1
+      sNumOptionArguments += 1
 
-   notFoundOK = 0
+   sNotFoundOK = 0
    return 0
 
 
@@ -1110,7 +1158,7 @@ def OptionLineOfValues(option, valType, numToGet):
 # NOTE THAT DEFAULTS CANNOT BE ALLOWED UNLESS AN ARRAY CAN BE SUPPLIED
 #
 def PipGetLineOfValues(option, strPtr, valType, numToGet):
-   global valueSep, allowDefaults, PIP_INTEGER, PIP_FLOAT
+   global valueSep, sAllowDefaults, PIP_INTEGER, PIP_FLOAT
    global pipErrno
    pipErrno = 0
    fullStr = strPtr
@@ -1130,13 +1178,13 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
          # if defaults allowed and a specific number are expected,
          # / means stop processing and mark all values as received
          if (strPtr[0] == '/'):
-            if (allowDefaults and numToGet):
+            if (sAllowDefaults and numToGet):
                numGot = numToGet
                break
       
-            tempStr = "Default entry with a / is not allowed in value entry" +\
+            sTempStr = "Default entry with a / is not allowed in value entry" +\
                       ":  "+ option + "  " + fullStr
-            PipSetError(tempStr)
+            PipSetError(sTempStr)
             pipErrno =  -1
             return None
 
@@ -1146,14 +1194,14 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
             # If already have a comma, skip an array value if defaults
             # allowed
             if (gotComma):
-               if (allowDefaults and numToGet):
+               if (sAllowDefaults and numToGet):
                   numGot += 1
                   if (numGot >= numToGet):
                      break
                else:
-                  tempStr = "Default entries with commas are not allowed " +\
+                  sTempStr = "Default entries with commas are not allowed " +\
                             "in value entry:  " + option + "  " + fullStr
-                  PipSetError(tempStr)
+                  PipSetError(sTempStr)
                   pipErrno =  -1
                   return None
             gotComma = 1
@@ -1174,9 +1222,9 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
             array.append(float(strPtr[0:endPtr]))
          numGot += 1
       except:
-         tempStr = "Illegal character in value entry:  " + \
+         sTempStr = "Illegal character in value entry:  " + \
                    option + "  " + fullStr
-         PipSetError(tempStr)
+         PipSetError(sTempStr)
          pipErrno =  -1
          return None
    
@@ -1193,9 +1241,9 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
 
    # If not enough values found, return error
    if (numToGet > 0 and numGot < numToGet):
-      tempStr = str(numToGet) + " values expected but only " + str(numGot) + \
+      sTempStr = str(numToGet) + " values expected but only " + str(numGot) + \
                 " values found in value entry:  " + option + "  " + fullStr
-      PipSetError(tempStr)
+      PipSetError(sTempStr)
       pipErrno =  -1
       return None
   
@@ -1207,10 +1255,10 @@ def PipGetLineOfValues(option, strPtr, valType, numToGet):
 # If the option allows multiple values, advance the multiple counter
 #
 def GetNextValueString(option):
-   global optTable, nonOptInd, pipErrno
+   global sOptTable, sNonOptInd, pipErrno
    pipErrno = 0
-   err = LookupOption(option, nonOptInd + 1)
-   optp = optTable[err]
+   err = LookupOption(option, sNonOptInd + 1)
+   optp = sOptTable[err]
    if (err < 0):
       pipErrno =  err
       return None
@@ -1229,20 +1277,20 @@ def GetNextValueString(option):
 # Add a string to the set of values for an option whose index is optInd
 #
 def AddValueString(optInd, strPtr):
-   global optTable, pipErrno
-   optp = optTable[optInd]
+   global sOptTable, pipErrno
+   optp = sOptTable[optInd]
 
    # Add the index of the next non-option arg and the index of a linked option if
    # one is defined to the array for these
    if optp.linked:
-      optp.nextLinked.append(optTable[nonOptInd].count)
+      optp.nextLinked.append(sOptTable[sNonOptInd].count)
       ind = 0
-      if linkedOption:
-         err = LookupOption(linkedOption, numOptions)
+      if sLinkedOption:
+         err = LookupOption(sLinkedOption, sNumOptions)
          if (err < 0):
             pipErrno =  err
             return None
-         ind = optTable[err].count
+         ind = sOptTable[err].count
       optp.nextLinked.append(ind)
    
    # If we accept multiple values or have none yet, append;
@@ -1259,15 +1307,15 @@ def AddValueString(optInd, strPtr):
 # Lookup an option in the table, up to the range in maxLookup
 #
 def LookupOption(option, maxLookup):
-   global optTable, LOOKUP_NOT_FOUND, LOOKUP_AMBIGUOUS, notFoundOK, noAbbrevs
+   global sOptTable, LOOKUP_NOT_FOUND, LOOKUP_AMBIGUOUS, sNotFoundOK, sNoAbbrevs
    lenopt = len(option)
    found = LOOKUP_NOT_FOUND
 
    # Look at all of the options specified by maxLookup
    for i in range(maxLookup):
-      sname = optTable[i].shortName
-      lname = optTable[i].longName
-      lenShort = optTable[i].lenShort
+      sname = sOptTable[i].shortName
+      lname = sOptTable[i].longName
+      lenShort = sOptTable[i].lenShort
       starts = PipStartsWith(sname, option)
 
       # First test for single letter short name match - if it passes, skip ambiguity test
@@ -1275,24 +1323,25 @@ def LookupOption(option, maxLookup):
          found = i;
          break
       
-      if (starts and  (not noAbbrevs or lenopt == lenShort)) or \
-             (PipStartsWith(lname, option) and (not noAbbrevs or lenopt == len(lname))):
+      if (starts and  (not sNoAbbrevs or lenopt == lenShort)) or \
+             (PipStartsWith(lname, option) and (not sNoAbbrevs or lenopt == len(lname))):
         
          # If it is found, it's an error if one has already been found
          if (found == LOOKUP_NOT_FOUND):
             found = i
          else:
-            tempStr = "An option specified by \"" + option + \
-                      "\" is ambiguous between option " + sname + " -  " + \
-                      lname + "  and option " +  optTable[found].shortName + \
-                      " -  " + optTable[found].longName
-            PipSetError(tempStr)
+            if not sTestAbbrevForUsage:
+               sTempStr = "An option specified by \"" + option + \
+                   "\" is ambiguous between option " + sname + " -  " + \
+                   lname + "  and option " +  sOptTable[found].shortName + \
+                   " -  " + sOptTable[found].longName
+               PipSetError(sTempStr)
             return LOOKUP_AMBIGUOUS
          
    # Set error string unless flag set that non-options are OK 
-   if (found == LOOKUP_NOT_FOUND and not notFoundOK):
-      tempStr = "Illegal option: " + option
-      PipSetError(tempStr)
+   if (found == LOOKUP_NOT_FOUND and not sNotFoundOK):
+      sTempStr = "Illegal option: " + option
+      PipSetError(sTempStr)
    return found
 
 
@@ -1327,61 +1376,36 @@ def LineIsOptionToken(line):
 #
 # Checks for whether a keyword occurs at the beginning of the line and
 # is followed by the keyword-value delimiter, and if so returns the
-# value string and the supplied index number, otherwise blank string and 0
+# value string and the supplied index number, otherwise blank string and 0.
+# If quoteOK is non-zero, it sees if the string starts with a quote character in
+# sQuoteTypes, strips that, and returns the index in the third element
 #
-def CheckKeyword(line, keyword, index):
-   global valueDelim
+def CheckKeyword(line, keyword, index, quoteOK = 0):
+   global sValueDelim
    lineLen = len(line)
    
    # First make sure line starts with it
    if (not PipStartsWith(line, keyword)):
-      return ('', 0)
+      return ('', 0, -1)
 
    # Now look for delimiter 
-   valStart = line.find(valueDelim)
+   valStart = line.find(sValueDelim)
    if (valStart < 0):
-      return ('', 0)
+      return ('', 0, -1)
 
    # Eat spaces after the delimiter and return if nothing left
    # In other words, a key with no value is the same as having no key at all 
-   valStart += len(valueDelim)
+   valStart += len(sValueDelim)
    while (valStart < lineLen and (line[valStart] == ' ' or
          line[valStart] == '\t')):
       valStart += 1
    if (valStart >= lineLen):
-      return ('', 0)
+      return ('', 0, -1)
 
-   return (line[valStart:], index)
+   # Look for quote if directed to
+   indQuote = -1
+   if quoteOK and line[valStart] in sQuoteTypes:
+      indQuote = sQuoteTypes.find(line[valStart])
+      valStart += 1
 
-# $Log$
-# Revision 1.10  2011/06/16 20:00:53  mast
-# Added ability to have numeric non-option arguments starting with minus
-#
-# Revision 1.9  2011/06/16 15:10:17  mast
-# Added ability to handle linked options
-#
-# Revision 1.8  2011/05/29 22:41:00  mast
-# Allowed single-letter short name to be ambiguous to longer short names
-#
-# Revision 1.7  2011/02/25 22:20:42  mast
-# Changed fallback warning to be generic
-#
-# Revision 1.6  2010/12/01 23:03:13  mast
-# Fixed some formatting and an error message
-#
-# Revision 1.5  2010/12/01 21:02:03  mast
-# Modifications for python 2/3 compatibility
-#
-# Revision 1.4  2009/12/04 20:46:02  mast
-# Added print entries and changed indent to 3
-#
-# Revision 1.3  2009/10/08 22:49:40  mast
-# Removed OR from usage output if only one option name
-#
-# Revision 1.2  2009/09/08 19:03:59  mast
-# Avoid multiline error messages
-#
-# Revision 1.1  2008/01/05 17:19:09  mast
-# Added to package
-#
-#
+   return (line[valStart:], index, indQuote)

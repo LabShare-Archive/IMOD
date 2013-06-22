@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include "imodel.h"
@@ -492,8 +491,8 @@ int istoreConnectNumber(Ilist *list, int index)
 
 /*!
  * Adds an item containing the given [min] and [max], of the given [type]
- * (e.g., GEN_STORE_MINMAX1) to the storage list pointed to by [list].
- * Returns 1 for error.
+ * (e.g., GEN_STORE_MINMAX1) to the storage list pointed to by [list], or updates the
+ * values in such an item if it already exists. Returns 1 for error.
  */
 int istoreAddMinMax(Ilist **list, int type, float min, float max)
 {
@@ -506,8 +505,8 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
   store.flags = (GEN_STORE_FLOAT << 2) | GEN_STORE_FLOAT | GEN_STORE_NOINDEX;
 
   /* Look for an existing entry of the same kind and replace its values */
-  for (i = ilistSize(list) - 1 ; i >= 0; i--) {
-    stp = istoreItem(list, i);
+  for (i = ilistSize(*list) - 1 ; i >= 0; i--) {
+    stp = istoreItem(*list, i);
     if (!(stp->flags & (GEN_STORE_NOINDEX | 3)))
       break;
     if (stp->type == GEN_STORE_MINMAX1 && stp->flags == store.flags) {
@@ -523,8 +522,9 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
 
 /*!
  * Computes the min and max values for all GEN_STORE_VALUE1 items in object
- * [obj] and its contours, and adds a GEN_STORE_MINMAX1 item with these values
- * for the object.
+ * [obj] and its contours, and adds or updates a GEN_STORE_MINMAX1 item with these 
+ * values for the object.  Returns -1 if there are no values in the object, or 1 if
+ * there is an error inserting the min/max in the object store.
  */
 int istoreFindAddMinMax1(Iobj *obj)
 {
@@ -540,7 +540,7 @@ int istoreFindAddMinMax1(Iobj *obj)
       list = obj->store;
     for (i = 0; i < ilistSize(list); i++) {
       store = istoreItem(list, i);
-      if (store->type == GEN_STORE_VALUE1) {
+      if (store->type == GEN_STORE_VALUE1 && !(store->flags & GEN_STORE_REVERT)) {
         min = B3DMIN(min, store->value.f);
         max = B3DMAX(max, store->value.f);
       }
@@ -554,9 +554,9 @@ int istoreFindAddMinMax1(Iobj *obj)
 /*!
  * Looks for a min/max value in the given [list] for values of a given [type]
  * (e.g., GEN_STORE_MINMAX1).  The size of the entity containing this storage 
- * list is provided in [size].  Values are returned in [min] and [max] values 
- * if they are found and the return value is 1; otherwise the function returns
- * 0.
+ * list should be provided in [size], although this entry is currently unused (e.g., 
+ * {contsize} for an object store).  If a min/max entry is found, values are returned 
+ * in [min] and [max] and the return value is 1; otherwise the function returns 0.
  */
 int istoreGetMinMax(Ilist *list, int size, int type, float *min, float *max)
 {
@@ -1942,52 +1942,3 @@ int istoreTransStateMatches(Ilist *list, int state)
 }
 
 /* END_SECTION */
-/*
-
-$Log$
-Revision 3.15  2008/11/12 03:42:42  mast
-Added functoin to find and set min/max for object
-
-Revision 3.14  2008/08/20 19:48:47  mast
-Fixed bug in returned connection value if there is another item at index
-
-Revision 3.13  2008/06/17 20:10:45  mast
-Stopped eliminating later matching starts when inserting a change
-
-Revision 3.12  2006/09/13 02:41:37  mast
-Fixed test on uninitialized variable
-
-Revision 3.11  2006/08/31 22:51:40  mast
-Added value and minmax stuff and reorganized for documentation
-
-Revision 3.10  2006/05/08 16:38:31  mast
-Added function to look up connection #
-
-Revision 3.9  2006/02/27 19:37:20  mast
-Changed comment
-
-Revision 3.8  2006/02/27 15:25:52  mast
-Returned count from istoreCountObjectItems
-
-Revision 3.7  2005/10/13 20:05:03  mast
-Added checksum function
-
-Revision 3.6  2005/09/12 14:16:54  mast
-Fixed return value, added function to clear range
-
-Revision 3.5  2005/09/11 19:16:46  mast
-Additions while implementing solid/trans drawing
-
-Revision 3.4  2005/06/29 05:36:38  mast
-Added copy cont/surf function, returned separate contour/surface state flags
-
-Revision 3.3  2005/06/26 19:33:18  mast
-Lots of changes upon use in 3dmod and testing
-
-Revision 3.2  2005/06/21 13:12:49  mast
-Fix some pointers
-
-Revision 3.1  2005/06/20 22:25:50  mast
-Preliminary checkin
-
-*/

@@ -1,0 +1,2236 @@
+#!/usr/bin/env python
+# batchruntomo - run one or more data sets in batch mode
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'batchruntomo'
+prefix = 'ERROR: ' + progname + ' - '
+
+# Index of batch directives in allDirectives array
+BatInd = 3
+
+# Variables that need to be global, probably superfluous but here as an FYI
+global datasetDir, dualAxis, setName, scanHeader, ifMontage, defocus, pixelSize
+global fidSizeNm, fidSizePix, montFrameData, lightBeads, numSurfaces, haveAaxisAFSbound
+global rawXsize, rawYsize, zsize, fiducialless, contourPieces, coarseBinning
+global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
+global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
+global suppressAbort, absDirectiveFile, userTemplateDir
+
+
+# Abort either an axis or a data set with the error string
+def abortSet(errString):
+   if suppressAbort:
+      return
+   abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS AND SET: ']
+   prnstr(abortStr[axisNum] + errString)
+   if exitOnError:
+      sys.exit(1)
+
+
+# Report the error from running a program and then abort
+def reportImodError(abortText = None):
+   errStrings =  getErrStrings()
+   num = len(errStrings)
+   for ind in range(num):
+      l = errStrings[ind]
+      if ind == num - 1:
+         l = 'ERROR: ' + l
+      prnstr(l, end = '')
+   if abortText:
+      abortSet(abortText)
+
+
+# Print lines starting with tags in a log file.  Tags is an array of duples, the first
+# element of each is the tag itself, the second is the sum of 1 if it is used for
+# multiline messages and 2 if it should be stripped and 4 if it is not at start of a line
+def printTaggedMessages(logfile, tags):
+   global latestMessages
+   latestMessages = []
+   if isinstance(logfile, str):
+      loglines = readTextFile(logfile, 'None', True)
+      if isinstance(loglines, str):
+         prnstr('WARNING: Error ' + loglines)
+         return
+   else:
+      loglines = logfile
+      
+   readingMulti = False
+   for l in loglines:
+      if readingMulti:
+         prnstr(l)
+         latestMessages.append(l)
+         if l.strip() == '':
+            readingMulti = False
+      else:
+         for tag in tags:
+            if tag[1] & 4:
+               match = tag[0] in l
+            else:
+               match = l.startswith(tag[0])
+            if match:
+               latestMessages.append(l)
+               if tag[1] & 2:
+                  prnstr(l[len(tag[0]):].lstrip())
+               else:
+                  prnstr(l)
+               if tag[1] & 1:
+                  readingMulti = True
+               break
+
+
+# Look for a tag in a set of lines, and get the value after the separator
+def findTaggedValue(lines, tag, separator, valType):
+   for l in lines:
+      ind = l.find(separator)
+      if ind > 0 and tag in l and ind < len(l) - 1:
+         valAll = l[ind + 1:].strip()
+         if valType == STRING_VALUE:
+            return valAll
+         vsplit = valAll.split()
+         if not len(vsplit):
+            return None
+         try:
+            if valType == INT_VALUE:
+               value = int(vsplit[0])
+            else:
+               value = float(vsplit[0])
+            return value
+         except:
+            return None
+   return None
+   
+
+# Write a text file and report a returned error
+def writeTextFileReportErr(filename, lines):
+   err = writeTextFile(filename, lines, True)
+   if err:
+      abortSet('Error ' + err)
+   return err
+
+
+# Read a text file and report a returned error and return [] on error
+def readTextFileReportErr(filename, message = None):
+   lines = readTextFile(filename, message, True)
+   if isinstance(lines, str):
+      abortSet('Error ' + lines)
+      return []
+   if len(lines) == 0:
+      abortSet('File ' + filename + ' is empty')
+   return lines
+
+
+# Check existence of stack, rename if necessary
+def checkRenameStack(stack):
+   if not os.path.exists(stack + 'st'):
+      if not os.path.exists(stack + altExtension):
+         abortSet('Stack file does not exist with either name: ' + stack + 'st  or  ' +\
+                     stack + altExtension)
+         return 1
+      try:
+         os.rename(stack + altExtension, stack + 'st')
+         prnstr('Renamed stack from ' + stack + altExtension + ' to ' + stack + 'st')
+      except OSError:
+         abortSet('Error renaming stack from ' + stack + altExtension + ' to ' + stack +\
+                     'st')
+         return 1
+
+
+# Move a stack to the dataset directory
+def deliverStack(axis):
+   stackRoot = setName + axis
+   sourceRoot = os.path.join(currentDirs[0], stackRoot + '.')
+   source = sourceRoot + 'st'
+   dest = os.path.join(datasetDir, stackRoot + '.st')
+
+   # Look for either extension and change it during the move
+   renaming = False
+   if not os.path.exists(source):
+      source = sourceRoot + altExtension
+      if not os.path.exists(source):
+         abortSet('Stack file ' + stackRoot + ' does not exist in ' + \
+                     currentDirs[0] + ' with either extension .st or .' + altExtension)
+         return 1
+      renaming = True
+
+   if os.path.exists(dest):
+      abortSet('Stack file ' + stackRoot + '.st already exists in ' + datasetDir)
+      return 1
+   try:
+      os.rename(source, dest)
+      if renaming:
+         prnstr('Renamed stack from ' + stackRoot + '.st' + ' to ' + stackRoot +\
+                   '.' + altExtension)
+   except OSError:
+      abortSet('Error moving/renaming stack file from ' + source + ' to ' + dest)
+      return 1
+
+   # Move .mdoc files also
+   source += '.mdoc'
+   dest += '.mdoc'
+   if os.path.exists(source) and not os.path.exists(dest):
+      try:
+         os.rename(source, dest)
+      except OSError:
+         abortSet('Error moving metadata file ' + setName + ext + '.mdoc from ' + \
+                     currentDirs[0] + ' to ' + datasetDir)
+         return 1
+
+   return 0
+   
+
+# Print out errors from directive file reading or validation
+def printDirectiveErrors(errors):
+   if errors:
+      prnstr('ERROR: Incorrect directive(s) as listed below:')
+      for l in errors:
+         prnstr(l)
+      prnstr('')
+      abortSet('Bad directives')
+   return len(errors)
+   
+
+# Return an absolute path to a template file of given type; if the path is already
+# absolute, it returns that and 0; otherwise if it is not just a filename, it returns
+# None and -1; otherwise it looks for it in the proper places and returns the
+# path and 1, or None and -2 if it cannot be found
+def absTemplatePath(template, index):
+   global userTemplateDir
+   if imodIsAbsPath(template):
+      return (template, 0)
+   if os.path.dirname(template):
+      return (None, -1)
+
+   # For scope template, just look up in the ImodCalib
+   errval = (None, -2)
+   if index == 0:
+      if 'IMOD_CALIB_DIR' not in os.environ:
+         return errval
+      fullPath = os.path.join(os.environ['IMOD_CALIB_DIR'], 'ScopeTemplate', template)
+      if os.path.exists(fullPath):
+         return (fullPath, 1)
+      return errval
+
+   # For system template, look it up in ImodCalib then in IMOD
+   if index == 1:
+      for rootdir in ('IMOD_CALIB_DIR', 'IMOD_DIR'):
+         if rootdir in os.environ:
+            fullPath = os.path.join(os.environ[rootdir], 'SystemTemplate',
+                                    template)
+            if os.path.exists(fullPath):
+               return (fullPath, 1)
+      return errval
+
+   # For user template, we need to know the directory from .etomo if not the default
+   if not userTemplateDir:
+      if 'HOME' not in os.environ:
+         return errval
+      dirpath = os.path.join(os.environ['HOME'], '.etomotemplate')
+      if os.path.exists(dirpath):
+         userTemplateDir = dirpath
+      dotEtomo = os.path.join(os.environ['HOME'], '.etomo')
+      if os.path.exists(dotEtomo):
+         etomoLines = readTextFile(dotEtomo, None, True)
+         if not isinstance(etomoLines, str) and len(etomoLines) > 0:
+            defsTempl = optionValue(etomoLines, 'Defaults.UserTemplateDir', STRING_VALUE,
+                                    otherSep = '=')
+            if defsTempl:
+               userTemplateDir = defsTempl
+
+   # Now given the directory, look up the user template file
+   if not userTemplateDir or not os.path.exists(userTemplateDir):
+      return errval
+   fullPath = os.path.join(userTemplateDir, template)
+   if os.path.exists(fullPath):
+      return (fullPath, 1)
+   return errval
+
+
+# Read a directive or template file and convert to a dictionary, skipping comment
+# lines and lines without an =
+def readDirectiveOrTemplate(filename, index):
+   global absDirectiveFile
+   directLines = readTextFile(filename, 'directive/template file', True)
+   if isinstance(directLines, str):
+      abortSet('Error ' + directLines)
+      return 1
+
+   # For the batch file, find existing lines of various things
+   if index == BatInd:
+      rewriteBatch = False
+      nodi = (-1, '')
+      lineNumDict = {rootNameText : nodi, dataDirText : nodi, scopeTmplText : nodi,
+                  sysTmplText : nodi, userTmplText : nodi}
+      for ind in range(len(directLines)):
+         line = directLines[ind].lstrip()
+         lsplit = line.split('=')
+         if len(lsplit) < 2:
+            continue
+         lineDirec = lsplit[0].strip()
+         if lineDirec in lineNumDict:
+            lineNumDict[lineDirec] = (ind, lsplit[1].strip())
+         
+
+      rootname = lineNumDict[rootNameText][1]
+      datadir = lineNumDict[dataDirText][1]
+      
+      # Get true root name and fix or add line
+      if numRootOpts:
+         rootname = rootByOption[dfileInd]
+         rootDirect = copyPrefix + 'name = ' + rootname
+         rewriteBatch = True
+         if lineNumDict[rootNameText][0] >= 0:
+            directLines[lineNumDict[rootNameText][0]] = rootDirect
+         else:
+            directLines.append(rootDirect)
+
+      # Take care of the data directory now
+      if numCurrent and rootname:
+         if not deliverDir:
+            datadir = imodAbsPath(currentDirs[dfileInd])
+
+         # If delivery, now we can make the directory
+         # But we can't deliver file(s) until we know about dual/single
+         else:
+            datadir = imodAbsPath(os.path.join(deliverDir, rootname))
+            if not (os.path.exists(datadir) and os.path.isdir(datadir)):
+               if os.path.exists(datadir):
+                  abortSet(datadir + ' already exists and is not a directory')
+                  return 1
+               try:
+                  os.mkdir(datadir)
+               except OSError:
+                  abortSet('Error making directory for dataset, ' + datadir)
+                  return 1
+
+               prnstr('Created dataset directory ' + datadir)
+
+         dataDirect = dataDirText + ' = ' + datadir
+         rewriteBatch = True
+         if lineNumDict[dataDirText][0] >= 0:
+            directLines[lineNumDict[dataDirText][0]] = dataDirect
+         else:
+            directLines.append(dataDirect)
+
+      # Now check and resolve pathless templates
+      for (tmplText, ind) in ((scopeTmplText, 0), (sysTmplText, 1), (userTmplText, 2)):
+         tmplName = lineNumDict[tmplText][1]
+         if tmplName:
+            (absTmplName, err) = absTemplatePath(tmplName, ind)
+            if err == -1:
+               abortSet('Directive for ' + direcFileErrorNames[ind] + ' name must be ' +\
+                           'either an absolute path or just a filename, it is ' +tmplName)
+               return 1
+            if err < 0: 
+               abortSet(direcFileErrorNames[ind] + ' file ' + tmplName + \
+                           ' not found in expected location')
+               return 1
+            if err > 0:
+               rewriteBatch = True
+               directLines[lineNumDict[tmplText][0]] = tmplText + ' = ' +\
+                              absTmplName
+
+      # Rewrite the batch file with all these corrections in the data directory
+      if rewriteBatch:
+         absDirectiveFile = os.path.join(datadir, localBatchCopy)
+         if writeTextFileReportErr(absDirectiveFile, directLines):
+            return 1
+
+   # Back to general processing of all kinds of files
+   validErr = []
+   for ind in range(len(directLines)):
+      line = directLines[ind].lstrip()
+      if line.startswith('#') or line == '':
+         continue
+      lsplit = line.split('=')
+      if len(lsplit) < 2:
+         validErr.append('Directive from ' + filename + ' lacks an = separator: ' + line)
+         continue
+      if lsplit[0].strip() == '':
+         validErr.append('Directive from ' + filename + ' lacks a key: ' + line)
+         continue
+      allDirectives[index][lsplit[0].strip()] = (lsplit[1].strip(), ind)
+
+   return printDirectiveErrors(validErr)
+   
+
+# Look for a directive with the given prefix and "option" (which might include a process)
+# starting in the given directive dictionary, and converting by the type
+def lookupDirective(prefix, option, startDct, valType):
+   bestDict = -1
+   if prefix.startswith(comPrefix):
+      keys = [prefix + '.' + option, prefix + 'a.' + option, prefix + 'b.' + option]
+   else:
+      keys = [prefix + '.any.' + option, prefix + '.a.' + option, prefix + '.b.' + option]
+   keyCheck = [(0, 1), (0, 1), (0, 2)]
+   for dct in range(startDct, BatInd + 1):
+      for keyInd in keyCheck[axisNum]:
+         if keys[keyInd] in allDirectives[dct]:
+            better = True
+            newInd = allDirectives[dct][keys[keyInd]][1]
+
+            # If two entries are equivalent with regard to axis preference, new one is
+            # better if it comes from later dictionary or was later in file
+            equivBetter = dct > bestDict or newInd > bestInd
+            if bestDict >= 0:
+
+               # For dual axis, new one is better if it matches the current axis and
+               # previous one did not; or if they are for same axis and this one is later
+               if dualAxis:
+                  better = (keyInd == axisNum and bestAxis != axisNum) or \
+                      (keyInd == bestAxis and equivBetter)
+               else:
+
+                  # For single axis, all "any" and "a" entries are equivalent
+                  better = equivBetter
+
+            if better:
+               bestDict = dct
+               bestInd = newInd
+               bestKeyInd = keyInd
+
+   # If nothing was found, return None, or 0 for a boolean
+   if bestDict < 0:
+      if valType == BOOL_VALUE:
+         return 0
+      return None
+
+   # Otherwise return 1 for a boolean only if it is specifically 1, or return the
+   # converted value, or the string
+   value = allDirectives[bestDict][keys[bestKeyInd]][0]
+   if valType == BOOL_VALUE:
+      if value == '1':
+         return 1
+      return 0
+   elif valType == INT_VALUE or valType == FLOAT_VALUE:
+      if value == '':
+         return None
+      try:
+         if valType == INT_VALUE:
+            numval = int(value)
+         else:
+            numval = float(value)
+         return numval
+      except ValueError:
+         return 'ERROR'
+   else:
+      return value
+
+
+# Get all the directives for making a com file after the fact
+def laterComDirectives(comfile, process, startInd):
+   lines = []
+   if startInd < 1 and scopeTmplText in allDirectives[BatInd]:
+      lines.append('ChangeParametersFile ' + allDirectives[BatInd][scopeTmplText][0])
+   if startInd < 2 and sysTmplText in allDirectives[BatInd]:
+      lines.append('ChangeParametersFile ' + allDirectives[BatInd][sysTmplText][0])
+   if startInd < 3 and userTmplText in allDirectives[BatInd]:
+      lines.append('ChangeParametersFile ' + allDirectives[BatInd][userTmplText][0])
+   lines.append('ChangeParametersFile ' + absDirectiveFile)
+   return lines
+   
+
+# "Use" a file to replace one in sequence, with options to save previous one as _orig
+# or to make a backup file out of it
+def useFileAsReplacement(useFile, oldFile, saveOrig, makeBackup):
+   (base, ext) = os.path.splitext(oldFile)
+   origname = base + '_orig' + ext
+   try:
+      if saveOrig and not os.path.exists(origname):
+            err = oldFile + ' to ' + origname
+            os.rename(oldFile, origname)
+      elif makeBackup:
+         makeBackupFile(oldFile)
+      else:
+         cleanupFiles([oldFile])
+      err = useFile + ' to ' + oldFile
+      os.rename(useFile, oldFile)
+   except OSError:
+      abortSet('Error renaming ' + err + ' : ' + str(sys.exc_info()[1]))
+      return 1
+
+
+# Run imodtrans to get a boundary model onto (prealigned) stack
+def transformRawBoundaryModel(modelIn, modelOut):
+   try:
+      (panx, pany, panz) = getmrcsize(dataName + '.preali')
+      comstr = fmtstr('imodtrans -i "{}.preali" -2 "{}.prexg" -S {} -tx {} -ty {} "{}"' +
+                      ' "{}"', dataName, dataName, 1. / coarseBinning,
+                      (panx - rawXsize // coarseBinning) / 2.,
+                      (pany - rawYsize // coarseBinning) / 2.,
+                      modelIn, modelOut)
+      prnstr('Transforming ' + modelIn + ' to ' + modelOut + ' with:\n' + comstr)
+      runcmd(comstr)
+   except ImodpyError:
+      reportImodError('Could not transform boundary model to match stack')
+   
+
+# Check for a Q in the check file and just exit, unless some reason to return turns up
+def checkForQuit():
+   if not os.path.exists(checkFile):
+      return False
+   checklines = readTextFile(checkFile, None, True)
+   if isinstance(checklines, str) or len(checklines) < 1:
+      return False
+   if checklines[len(checklines) - 1].startswith('Q'):
+      prnstr('RECEIVED SIGNAL TO QUIT, JUST EXITING')
+      sys.exit(0)
+
+      
+# Runs a com file or com chunks using processchunks
+def runOneProcess(comfile, single = True, usingGPU = False):
+   if (single or 'sirt' not in comfile) and not os.path.exists(comfile):
+      abortSet('Command file ' + comfile + ' does not exist')
+      return 1
+   sleepTime = 0.2
+   startingTimeOut = 60.
+   readErrorTimeout = 30.
+   checkInterval = 10.
+   
+   # Check for quitting then compose the command array
+   checkForQuit()
+   comArray = ['processchunks', '-P', '-g', '-c', checkFile, '-n', str(niceness)]
+   outfile = 'processchunks' + axisLet + '.out'
+   if remoteDataDir:
+      comArray += ['-w', remoteDataDir]
+   machines = cpuList
+   (comroot, ext) = os.path.splitext(comfile)
+   mess = 'Running ' + comfile
+   if single:
+      if not useFirstCPUforSingle:
+         machines = '1'
+      comArray += ['-s', '-e', '1']
+      comuse = comfile
+   else:
+      mess += ' in multiple chunks'
+      comuse = comroot
+   if usingGPU:
+      machines = gpuList
+      mess += ' using GPU'
+   comArray += [machines, comuse]
+
+   # Run the process detached
+   prnstr(mess, flush=True)
+   startTime = time.time()
+   err = bkgdProcess(comArray, outfile, 'stdout', True)
+   if err:
+      prnstr('ERROR: ' + err)
+      abortSet('Cannot start processchunks to run ' + comfile)
+      return 1
+
+   # Monitor the log and wait for completion
+   elapsed = 0.
+   gotLinesAt = -1.
+   opened = False
+   readOK = False
+   finished = 0
+   checkTime = 0.
+   where = None
+   try:
+      while True:
+         try:
+
+            # Keep track of whether it opened and whether it read lines without an error
+            if not opened:
+               out = open(outfile, 'r')
+               opened = True
+            else:
+               where = out.tell()
+               lines = out.readlines()
+               readOK = True
+               if lines:
+
+                  # Keep track of last time lines were gotten without error and look for
+                  # various terminations
+                  gotLinesAt = elapsed
+                  for l in lines:
+                     if l.startswith('ERROR:'):
+                        prnstr('processchunks ' + l, end = '')
+                        finished = -1
+                        break
+                     elif l.startswith('Finished reassembling'):
+                        finished = 1
+                        break
+                     elif 'retain' in l and 'existing' in l:
+                        finished = -2
+                        break
+
+         except IOError:
+            readOK = False
+            pass
+
+         if finished:
+            break
+         # Check for various timeouts and quit
+         if not opened and elapsed > startingTimeOut:
+            abortSet('Timeout occurred before processchunks output file could be ' +\
+                        'opened for monitoring')
+            return 1
+         if readOK and gotLinesAt < 0 and elapsed > startingTimeOut:
+            abortSet('Timeout occurred before processchunks started')
+            return 1
+
+         # If can't get the output, tell processchunks to quit but keep going to next set
+         if opened and not readOK and \
+                elapsed - gotLinesAt > readErrorTimeout:
+            writeTextFile(checkFile, ['Q'], True)
+            time.sleep(5.)
+            abortSet('Unable to read processchunks output file without an error')
+            return 1
+
+         # Check for Q ourselves in case processchunks is lost
+         if elapsed - checkTime > checkInterval:
+            checkTime = elapsed
+            checkForQuit()
+         
+         elapsed += sleepTime
+         time.sleep(sleepTime)
+
+         # Seek to the last location before trying again.  This is a trick from
+         # stackoverflow.com and is needed on Mac
+         try:
+            if where != None:
+               out.seek(where)
+         except IOError:
+            pass
+
+   except KeyboardInterrupt:
+      writeTextFile(checkFile, ['Q'], True)
+      prnstr('Detected keyboard interrupt, told processchunks to quit')
+      sys.exit(1)
+
+   if opened:
+      try:
+         out.close()
+      except Exception:
+         pass
+
+   doPrint = True
+   if finished == 1:
+      for comskip in handlingMessages:
+         if comskip in comroot:
+            doPrint = False
+            break
+      
+   # Get error and warnings from logs
+   if single and doPrint:
+      printTaggedMessages(comroot + '.log', standardTags)
+   else:
+      printTaggedMessages(outfile, [('WARNING:', 0)])
+   
+   # After loop, one last check for quit and some more set aborts
+   checkForQuit()
+   if finished == -1:
+      abortSet('An error occurred running ' + comfile)
+   elif finished == -2:
+      abortSet('Strangely, processchunks quit but Q was not detected in the check file')
+   elif finished == 1:
+      used = time.time() - startTime
+      minutes = int(used / 60.)
+      used -= 60 * minutes
+      seconds = int(used)
+      frac = int(round((used - seconds) * 10))
+      
+      prnstr(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}', comfile, minutes,
+                    seconds, frac), flush=True)
+   return finished < 0
+
+
+# Give lines for running makecomfile, add the output file entry, get  the com file, and
+# run it
+def makeAndRunOneCom(comlines, comfile):
+   comlines.insert(0, 'OutputFile	' + comfile)
+   try:
+      runcmd('makecomfile -StandardInput', comlines)
+   except ImodpyError:
+      reportImodError('Error making ' + comfile)
+      return 1
+
+   if runOneProcess(comfile):
+      return 1
+   return 0
+
+
+# Use the sed commands to modify a command file, write it, and run it
+# Reads the command file first unless lines are supplied in inLines
+def modifyWriteAndRunCom(comfile, sedcom, inLines = None):
+   if not inLines:
+      inLines = readTextFileReportErr(comfile)
+      if not inLines:
+         return 1
+               
+   if pysed(sedcom, inLines, comfile, retErr=True):
+      abortSet('Error modifying ' + comfile)
+      return 1
+   if runOneProcess(comfile):
+      return 1
+   return 0
+   
+
+# Finds and converts a single value after a token like '=' on the given line
+# Throws ValueError if token doesn't exist or value has conversion error
+def getOneValueAfterToken(line, token, valType):
+   ind = line.find(token) + 1
+   if ind < 1:
+      junk = int('=')
+   if valType == INT_VALUE:
+      return int(line[ind:])
+   else:
+      return float(line[ind:])
+
+
+# Analyze tiltalign log file for angle, shift, and thickness
+def analyzeAlignLog(twoSurf, angleArr):
+
+   # Fraction of shift to subtract from fiducial-based thickness to get reconstruction
+   # thickness, and minimum on each side before doing that
+   thickShiftFrac = 1.
+   minFidAdjustThick = 4
+   angleArr[0:5] = 5 * [0.]
+   
+   try:
+      loglines = runcmd('alignlog -a align' + axisLet + '.log')
+   except ImodpyError:
+      reportImodError('Extracting angle analysis from align log')
+      return 1
+   
+   tags = ['Total tilt angle change', 'X axis tilt needed', 'Unbinned thickness',
+           'Incremental unbinned shift', 'Total unbinned shift']
+   numBot, numTop = -1, -1
+   try:
+      for line in loglines:
+         if '# of points' in line:
+            num = getOneValueAfterToken(line, '=', INT_VALUE)
+            if numBot < 0:
+               numBot = num
+            else:
+               numTop = num
+         for ind in range(len(tags)):
+            if tags[ind] in line:
+               angleArr[ind] = getOneValueAfterToken(line, '=', FLOAT_VALUE)
+   except ValueError:
+      abortSet('Error extracting information from align log')
+      return 1
+
+   # For two surfaces, also compute a reconstruction thickness (thickness are floats here)
+   if twoSurf:
+      angleArr[5] = angleArr[2]
+      if numBot >= minFidAdjustThick and numTop >= minFidAdjustThick:
+         angleArr[5] -= thickShiftFrac * math.fabs(angleArr[4])
+   angleArr[6] = numBot
+   angleArr[7] = numTop
+
+   return 0
+
+
+# Determine parameter modifications for a montage
+# Inputs are the raw X and Y size of the montage and the desired aligned stack size
+# Values put into frameArr are:
+# 0,1: actual aligned stack X and Y size
+# 2,3: starting X and Y coordinates for blend
+# 4,5: ending X and Y coordinates for blend
+# 6,7: actual blended raw/prealigned stack size = FULLIMAGE
+# 8,9: SUBSETSTART X and Y
+# This function can be moved to imodpy so etomo can access it from a script
+def montageFrameValues(nxmont, nymont, nxali, nyali, frameArr):
+   try:
+
+      # aligned stacksize
+      goodout = runcmd(fmtstr('goodframe {} {}', nxali, nyali))
+      gsplit = goodout[len(goodout) - 1].split()
+      frameArr[0] = int(gsplit[0])
+      frameArr[1] = int(gsplit[1])
+
+      # raw blended stack size (FULLIMAGE)
+      goodout = runcmd(fmtstr('goodframe {} {}', nxmont, nymont))
+      gsplit = goodout[len(goodout) - 1].split()
+      frameArr[6] = int(gsplit[0])
+      frameArr[7] = int(gsplit[1])
+
+      # starting coordinates X and Y for blend
+      frameArr[2] = -((frameArr[0] - nxmont) // 2)
+      frameArr[3] = -((frameArr[1] - nymont) // 2)
+      
+      # ending for blend, and SUBSETSTART
+      for ind in (0, 1):
+         frameArr[ind + 4] = frameArr[ind + 2] + frameArr[ind] - 1
+         frameArr[ind + 8] = -((frameArr[ind] - frameArr[ind + 6]) // 2)
+
+   except ImodpyError:
+      return 1
+   except Exception:
+      return 2
+   return 0
+
+
+# Common place to fetch the name of com file and process for newstack or blendmont
+def comAndProcessForAlignedStack(prefix):
+   if ifMontage:
+      comRoot = prefix + 'blend'
+      process = 'blendmont'
+   else:
+      comRoot = prefix + 'newst'
+      process = 'newstack'
+   return (comRoot, process)
+
+
+# Run a tilt comfile, splitting it if appropriate
+def splitAndRunTilt(comfile):
+   numProc = 0
+   if parallelGPU > 1:
+      numProc = parallelGPU
+   elif parallelCPU and not useGPU:
+      numProc = parallelCPU
+   if numProc:
+      try:
+         runcmd('splittilt -n ' + str(numProc) + ' ' + comfile)
+      except ImodpyError:
+         reportImodError('Error running splittilt on ' + comfile)
+   return runOneProcess(comfile, numProc == 0, useGPU)
+
+
+# Test whether a step should be run
+def needStep(step):
+   return step >= startingStep and step <= endingStep
+
+
+# SINGLE-CALL FUNCTIONS FOR INITIAL STEPS
+
+# Read in a validation file as a csv and store the directives in dictionaries
+def processValidationFile():
+   comPref = comPrefix[:-1]
+   runPref = runtimePrefix[:-1]
+   try:
+      message = 'Opening '
+      csvfile = open(validateFile, 'r')
+      message = 'Using csv reader on '
+      reader = csv.reader(csvfile)
+      validLines = []
+      for row in reader:
+         validLines.append(row)
+   except Exception:
+      exitError(message + validateFile)
+
+   for line in validLines:
+      if len(line) > 1 and len(line[1]) > 0:
+         lsplit = line[0].split('.')
+         if len(lsplit) < 2:
+            continue
+         batchOK = len(line) > 3 and line[3] == 'Y'
+         templateOK = len(line) > 4 and line[4] == 'Y'
+         isBool = len(line) > 2 and line[2].lower() == 'bool'
+         if lsplit[0] == comPref:
+            if len(lsplit) < 4:
+               continue
+            combase = lsplit[1]
+            if combase not in baseComDict:
+               baseComDict[combase] = combase
+               baseComDict[combase + 'a'] = combase
+               baseComDict[combase + 'b'] = combase
+            key = lsplit[1] + '.' + lsplit[2] + '.' + lsplit[3]
+            validComDict[key.lower()] = (key, templateOK, batchOK, isBool)
+
+         elif lsplit[0] == runPref:
+            if len(lsplit) < 4:
+               continue
+            key = lsplit[1] + '.' + lsplit[3]
+            validRunDict[key.lower()] = (key, templateOK, batchOK, isBool)
+
+         else:
+            validOtherDict[line[0].lower()] = (line[0], templateOK, batchOK, isBool)
+
+            
+# Look for every directive in the lists of valid ones from master file
+def checkAllDirectives(mainFile = 'directive'):
+   errors = []
+   source = direcFileErrorNames[0:3] + [mainFile]
+   types = ['template', 'batch directive']
+   comPref = comPrefix[:-1]
+   runPref = runtimePrefix[:-1]
+   for ind in range(BatInd + 1):
+      dirType = ind // BatInd
+      if mainFile == 'template':
+         dirType = 0
+      for direc in allDirectives[ind]:
+         messfrom = 'irective from ' + source[ind] + ' file'
+         dsplit = direc.split('.')
+         badCase = False
+         OKforFile = True
+         emptyBool = False
+         valNotBool = allDirectives[ind][direc][0] != '0' and \
+             allDirectives[ind][direc][0] != '1'
+         if len(dsplit) < 2 or ((dsplit[0] == comPref or dsplit[0] == runPref) \
+                                   and len(dsplit) < 4):
+            errors.append('D' + messfrom + ' too short: ' + direc)
+
+         # comparam first, start by checking the com file is in list
+         elif dsplit[0] == comPref:
+            comlow = dsplit[1].lower()
+            if comlow not in baseComDict:
+               errors.append('D' + messfrom + ' does not include a known com file: '
+                             + direc)
+            else:
+
+               # Check for a match other than incorrect case
+               combase = baseComDict[comlow]
+               key = dsplit[1] + '.' + dsplit[2] + '.' + dsplit[3]
+               if key.lower() in validComDict:
+                  badCase = key != validComDict[key.lower()][0]
+                  OKforFile = validComDict[key.lower()][dirType + 1]
+                  emptyBool = validComDict[key.lower()][3] and valNotBool
+
+               else:
+
+                  # Look for a process match next
+                  proclow = dsplit[2].lower()
+                  for vkey in validComDict:
+                     vsplit = vkey.split('.')
+                     if vsplit[0] == combase and vsplit[1].lower() == proclow:
+                        badCase =  dsplit[1] not in baseComDict or vsplit[1] != dsplit[2]
+                        
+                        # If the process matches, now try to find and read autodoc
+                        optFile = PipOpenInstalledAdoc(vsplit[1])
+                        errmess = ''
+                        if optFile:
+                           adocLines = readTextFile(optFile, None, True)
+                           if isinstance(adocLines, str):
+                              errmess = 'error reading it'
+                        else:
+                           errmess = 'error opening it at standard location'
+
+                        # If no autodoc, issue a warning because we just can't tell
+                        if errmess:
+                           prnstr('WARNING: Unknown d' + messfrom + ': ' + direc)
+                           prnstr('  Could not check ' + vsplit[1] + '.adoc because of '+\
+                                     errmess)
+                        else:
+
+                           # Otherwise look for a case-insensitive match and report a
+                           # bad case if any, otherwise report error if no match
+                           target = fmtstr(r'\[ *Field *= *{} *\]', dsplit[3])
+                           optMatch = re.compile(target)
+                           optLC = re.compile(target, re.IGNORECASE)
+                           for line in adocLines:
+                              if re.match(optLC, line):
+                                 if not re.match(optMatch, line):
+                                    badCase = True
+                                 break
+                           else:  # ELSE ON FOR
+                              errors.append('Unknown d' + messfrom + ': ' + direc)
+                           
+                        break
+                  else:   # ELSE ON FOR
+                     errors.append('D' + messfrom + ' does not include a known process: '
+                                   + direc)
+
+         # runtime next, check for a/b/any; all else must match
+         elif dsplit[0] == runPref:
+            if dsplit[2] not in ['any', 'a', 'b']:
+               errors.append('D' + messfrom + ' does not include a/b/any: ' + direc)
+            else:
+               key = dsplit[1] + '.' + dsplit[3]
+               if key.lower() in validRunDict:
+                  badCase = key != validRunDict[key.lower()][0]
+                  OKforFile = validRunDict[key.lower()][dirType + 1]
+                  emptyBool = validRunDict[key.lower()][3] and valNotBool
+               else:
+                  errors.append('Unknown d' + messfrom + ': ' + direc)
+
+         # Any other directives must match entirely
+         else:
+            if direc.lower() in validOtherDict:
+               badCase = direc != validOtherDict[direc.lower()][0]
+               OKforFile = validOtherDict[direc.lower()][dirType + 1]
+               emptyBool = validOtherDict[direc.lower()][3] and valNotBool
+            else:
+               errors.append('Unknown d' + messfrom + ': ' + direc)
+            
+         if badCase:
+            errors.append('D' + messfrom + ' has incorrect case: ' + direc)
+         if not OKforFile:
+            errors.append('D' + messfrom + ' is not intended for use in a ' + \
+                             types[dirType] + ' file: ' + direc)
+         if emptyBool:
+            errors.append('D' + messfrom + ' is a boolean and must be 0 or 1: ' + direc)
+
+   return printDirectiveErrors(errors)
+
+
+# Look through directives for templates and basic setup parameters
+def scanSetupDirectives():
+   global datasetDir, dualAxis, setName, scanHeader, ifMontage, defocus, pixelSize
+   global fidSizeNm, fidSizePix
+   source = direcFileErrorNames
+
+   batDirec = allDirectives[BatInd]
+   scanHeader = scanHeadText in batDirec
+   ifMontage = False
+   dualAxis = False
+   pixelSize, fidSizeNm, fidSizePix = 0., 0., 0.
+   datasetDir, setName = '', ''
+   defocus = -1000000.
+   if scopeTmplText in batDirec and \
+          readDirectiveOrTemplate(batDirec[scopeTmplText][0], 0):
+      return 1
+   if sysTmplText in batDirec and \
+          readDirectiveOrTemplate(batDirec[sysTmplText][0], 1):
+      return 1
+   if userTmplText in batDirec and \
+          readDirectiveOrTemplate(batDirec[userTmplText][0], 2):
+      return 1
+   if copyPrefix + 'name' in batDirec:
+      setName = batDirec[copyPrefix + 'name'][0]
+   if dataDirText in batDirec:
+      datasetDir = batDirec[dataDirText][0]
+   for indDir in range(BatInd + 1):
+      direc = allDirectives[indDir]
+      try:
+         if copyPrefix + 'montage' in direc:
+            ifMontage = direc[copyPrefix + 'montage'][0] != '0'
+         if copyPrefix + 'dual' in direc:
+            dualAxis = direc[copyPrefix + 'dual'][0] != '0'
+         if copyPrefix + 'pixel' in direc:
+            ftext = direc[copyPrefix + 'pixel'][0]
+            pixelSize = float(ftext)
+         if copyPrefix + 'gold' in direc:
+            ftext = direc[copyPrefix + 'gold'][0]
+            fidSizeNm = float(ftext)
+         if copyPrefix + 'defocus' in direc:
+            ftext = direc[copyPrefix + 'defocus'][0]
+            defocus = float(ftext)
+
+      except ValueError:
+         abortSet('Error converting the string "' + ftext + '" to float in ' +
+                  source[indDir] + ' file')
+         return 1
+
+   if (not pixelSize and not scanHeader) or not setName or not datasetDir:
+      abortSet('Pixel size, set name, or dataset directory missing from directives')
+      return 1
+   if defocus < -999999 and lookupDirective(runtimePrefix + 'AlignedStack', 'correctCTF',
+                                            0, BOOL_VALUE):
+      abortSet('Defocus must be entered to correct CTF')
+      return 1
+
+   return 0
+
+
+# Get some basic processing flags, prealign binning, and dataset set
+def getAxisInitialParameters():
+   global rawXsize, rawYsize, zsize, fiducialless, coarseBinning, patchTrack
+   fiducialless = lookupDirective(runtimePrefix + 'Fiducials', 'fiducialless', 0,
+                                  BOOL_VALUE)
+   trackMethod = lookupDirective(runtimePrefix + 'Fiducials', 'trackingMethod', 0,
+                                INT_VALUE)
+   patchTrack = isinstance(trackMethod, int) and trackMethod == 1
+
+   (comRoot, process) = comAndProcessForAlignedStack('pre')
+   coarseBinning = lookupDirective(comPrefix + comRoot, process + '.BinByFactor', 0,
+                                   INT_VALUE)
+   if isinstance(coarseBinning, str):
+      abortSet('Error converting binning value in directive to integer')
+      return 1
+   if not coarseBinning:
+      coarseBinning = 1
+   
+   try:
+      if ifMontage:
+         sizeLines = runcmd('montagesize ' + dataName + '.st ' + dataName + '.pl')
+         line = sizeLines[len(sizeLines) - 1]
+         ind = line.find('NZ:')
+         lsplit = line[ind + 3:].split()
+         rawXsize = int(lsplit[0])
+         rawYsize = int(lsplit[1])
+         zsize = int(lsplit[2])
+         
+      else:
+         (rawXsize, rawYsize, zsize) = getmrcsize(dataName + '.st')
+   except ImodpyError:
+      reportImodError('Error getting size of ' + dataName + '.st')
+      return 1
+   except Exception:
+      abortSet('Error getting size of montage for ' + dataName + '.st')
+      return 1
+
+   return 0
+
+
+# SINGLE-CALL FUNCTIONS FOR PROCESSING STEPS
+
+# Operations needed when using fiducialless alignment for final alignment
+def fidlessFileOperations(taLines):
+   global didLocalAlign, madeZfactors
+   didLocalAlign = False
+   madeZfactors = False
+   rotarr = optionValue(taLines, 'RotationAngle', FLOAT_VALUE)
+   if not rotarr:
+      abortSet('Cannot find RotationAngle in align' + axisCom)
+      return 1
+   axisRot = rotarr[0]
+   
+   rotfile = 'rotation' + axisLet + '.xf'
+   sinrot = math.sin(math.radians(axisRot))
+   if writeTextFileReportErr(rotfile, [fmtstr('{0:.6f} {1:.6f} {2:.6f} {0:.6f} 0. 0.',
+                                              math.cos(math.radians(axisRot)), sinrot,
+                                              -sinrot)]):
+      return 1
+
+   try:
+      runcmd('xftoxg -nfit 0 ' + dataName + '.prexf')
+      runcmd(fmtstr('xfproduct {0}.prexg {1} {0}_nonfid.xf', dataName, rotfile))
+      shutil.copyfile(dataName + '_nonfid.xf', dataName + '.xf')
+      shutil.copyfile(dataName + '.rawtlt', dataName + '.tlt')
+   except ImodpyError:
+      reportImodError('Cannot prepare transformations')
+      return 1
+   except Exception:
+      abortSet('Error copying xf or tlt file')
+      return 1
+   return 0
+
+
+# Run tiltxcorr to do patch tracking
+def runPatchTracking():
+   global contourPieces
+   contourPieces = lookupDirective(runtimePrefix + 'PatchTracking',
+                                   'contourPieces', 0, INT_VALUE)
+   if isinstance(contourPieces, str):
+      abortSet('Error converting contour pieces in directive to integer')
+      return 1
+
+   if not lookupDirective(comPrefix + 'xcorr_pt',
+                          'tiltxcorr.SizeOfPatchesXandY', 0, STRING_VALUE):
+      abortSet('Size of patches must be specified to use patch tracking')
+      return 1
+
+   # Start command list for running makecomfile
+   comlines = ['InputFile xcorr' + axisCom,
+               'BinningOfImages ' + str(coarseBinning),
+               'RootNameOfDataFiles ' + dataName]
+   comlines += laterComDirectives('xcorr_pt', 'tiltxcorr', 0)
+
+   # Look for boundary models to transform
+   rawBound = ''
+   if not axisInd:
+      rawBound = lookupDirective(runtimePrefix + 'PatchTracking', 'rawBoundaryModel',
+                                 0, STRING_VALUE)
+   else:
+
+      # A raw model for B has to be specific to the B axis
+      key = runtimePrefix + 'PatchTracking.b.rawBoundaryModel'
+      if key in allDirectives[BatInd]:
+         rawBound = allDirectives[BatInd][key][0]
+   
+   # transform and add to com
+   if rawBound:
+      boundaryMod = dataName + '_ptbound.mod'
+      if transformRawBoundaryModel(rawBound, boundaryMod): 
+         return 1
+
+      comlines.append(fmtstr('OneParameterChange {}xcorr_pt{}.tiltxcorr.' +
+                             'BoundaryModel={}', comPrefix, axisLet, boundaryMod))
+
+   if contourPieces and contourPieces > 1:
+      overlap = 4
+      length = (zsize + (contourPieces - 1) * overlap) // contourPieces
+      comlines.append(fmtstr('OneParameterChange {}xcorr_pt{}.tiltxcorr.' + \
+                                'LengthAndOverlap={},{}', comPrefix, axisLet,
+                             length, overlap))
+   if makeAndRunOneCom(comlines, 'xcorr_pt' + axisCom):
+      return 1
+
+
+# Get fiducial model by seeding and tracking or by RAPTOR
+def makeSeedAndTrack(talines):
+   global lightBeads, haveAaxisAFSbound
+   trackingMethod = lookupDirective(runtimePrefix + 'Fiducials', 'trackingMethod',
+                                    0, INT_VALUE)
+   numBTRuns = lookupDirective(runtimePrefix + 'BeadTracking', 'numberOfRuns',
+                               0, INT_VALUE)
+   seedingMethod = lookupDirective(runtimePrefix + 'Fiducials', 'seedingMethod',
+                                   0, INT_VALUE)
+   
+   if isinstance(trackingMethod, str) or isinstance(numBTRuns, str) or \
+          isinstance(seedingMethod, str):
+      abortSet('Error converting tracking method or number of runs to integer')
+      return 1
+   if not trackingMethod:
+      trackingMethod = 0
+   if trackingMethod < 0 or trackingMethod > 2:
+      abortSet('trackingMethod must be between 0 and 2')
+   if (seedingMethod == None or seedingMethod < 1 or seedingMethod > 3 or \
+          (axisInd == 0 and seedingMethod == 2)) and trackingMethod == 0:
+      abortSet('seedingMethod must be between 1 and 3 and not be 2 for first/only axis')
+      return 1
+
+   # If runs is not there, assume 0 for RAPTOR and 1 for other
+   if numBTRuns == None:
+      if trackingMethod == 2:
+         numBTRuns = 0
+      else:
+         numBTRuns = 1
+   if numBTRuns <= 0 and trackingMethod != 2:
+       abortSet('Number of beadtrack runs must be > 0 unless using RAPTOR')
+       return 1
+
+   # Modify track.com with ImageBinned entry
+   btlines = readTextFileReportErr('track' + axisCom)
+   if not btlines:
+      return 1
+   sedcom = sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputModel')
+   if pysed(sedcom, btlines, 'track' + axisCom, retErr=True):
+      abortSet('Error modifying track' + axisCom)
+      return 1
+   lightBeads = optionValue(btlines, 'LightBeads', BOOL_VALUE)
+
+   # RAPTOR
+   if needStep(4) and trackingMethod == 2:
+      markers = lookupDirective(runtimePrefix + 'RAPTOR', 'numberOfMarkers', 0,
+                                INT_VALUE)
+      if markers == None or isinstance(markers, str) or markers <= 0:
+         abortSet('numberOfMarkers for RAPTOR missing, not positive, or gave ' +\
+                     'conversion error')
+         return 1
+
+      if lookupDirective(runtimePrefix + 'RAPTOR', 'useAlignedStack', 0,
+                         BOOL_VALUE):
+         ext = 'preali'
+         beadint = int(round(fidSizePix / coarseBinning))
+      else:
+         ext = 'st'
+         beadint = int(round(fidSizePix))
+
+      line = fmtstr('$runraptor -mark {} -diam {} {}.{}', markers, beadint, dataName, ext)
+      if writeTextFileReportErr('runraptor' + axisCom,
+                          ['# Command file to run raptor', line]):
+         return 1
+      if runOneProcess('runraptor' + axisCom):
+         return 1
+      if useFileAsReplacement(dataName + '_raptor.fid', dataName + '.fid', False, True):
+         return 1
+
+   # Seed and track:
+   elif needStep(4):
+
+      # Transferfid for axis b
+      skipAuto = False
+      if axisInd > 0 and (seedingMethod & 2) != 0:
+         comlines = ['RootNameOfDataFiles	' + setName]
+         comlines += laterComDirectives('transferfid', 'transferfid', 0)
+         comlines.append(fmtstr('OneParameterChange {}transferfid.transferfid.' +\
+                                   'LowestTiltTransformFile={}_AtoB.xf', comPrefix,
+                                setName))
+         if makeAndRunOneCom(comlines, 'transferfid.com'):
+            return 1
+         printTaggedMessages('transferfid.log',
+                             standardTags + [('fiducials that failed', 4)])
+         numFailed = findTaggedValue(latestMessages, 'fiducials that failed', ':',
+                                     INT_VALUE)
+         if numFailed != None and numFailed == 0:
+            skipAuto = True
+
+      # Autoseed
+      if (seedingMethod & 1) != 0 and not skipAuto:
+         twoSurf = 0
+         if numSurfaces > 1:
+            twoSurf = 1
+
+         # If there is not a specific directive for two surfaces, set it based on
+         # tiltalign entry
+         comlines = laterComDirectives('autofidseed', 'autofidseed', 0)
+         if axisInd > 0 and (seedingMethod & 2) != 0:
+            comlines.append(fmtstr('OneParameterChange {}autofidseedb.autofidseed.' +
+                                   'AppendToSeedModel=1', comPrefix))
+         if lookupDirective(comPrefix + 'autofidseed', 'autofidseed.TwoSurfaces', 0,
+                            STRING_VALUE) == None:
+            comlines.append(fmtstr('OneParameterChange {}autofidseed{}.autofidseed.' +
+                                   'TwoSurfaces={}', comPrefix, axisLet, twoSurf))
+
+         # Boundary model has to be transformed if indicated
+         # A model on A raw stack has to be transformed to preali
+         boundaryMod = ''
+         if not axisInd:
+            rawBound = lookupDirective(runtimePrefix + 'SeedFinding', 'rawBoundaryModel',
+                                       0, STRING_VALUE)
+            haveAaxisAFSbound = rawBound != None and rawBound != ''
+         else:
+
+            # A raw model for B has to be specific to the B axis
+            rawBound = ''
+            key = runtimePrefix + 'SeedFinding.b.rawBoundaryModel'
+            if key in allDirectives[BatInd]:
+               rawBound = allDirectives[BatInd][key][0]
+
+            # But if there is not a raw model for B, see if there was one for A
+            # that can be transferred with the transform
+            if not rawBound and haveAaxisAFSbound and (seedingMethod & 2) != 0:
+               boundaryMod = dataName + '_afsbound.mod'
+               try:
+                  (panx, pany, panz) = getmrcsize(dataName + '.preali')
+                  comstr = fmtstr('imodtrans -2 "{}_AtoB.xf" -l 0 -n {},{},{} ' +
+                                '"{}a_afsbound.mod" "{}"', setName, panx, pany, panz,
+                                  setName, boundaryMod)
+                  prnstr(comstr)
+                  runcmd(comstr)
+               except ImodpyError:
+                  reportImodError('Failed to transform boundary model from A to B')
+                  return 1
+
+         # Transform a raw model
+         if rawBound:
+            boundaryMod = dataName + '_afsbound.mod'
+            if transformRawBoundaryModel(rawBound, boundaryMod): 
+               return 1
+
+         # Add boundary model to com
+         if boundaryMod:
+            comlines.append(fmtstr('OneParameterChange {}autofidseed{}.autofidseed.' +
+                                   'BoundaryModel={}', comPrefix, axisLet, boundaryMod))
+            
+         if makeAndRunOneCom(comlines, 'autofidseed' + axisCom):
+            return 1
+         printTaggedMessages('autofidseed' + axisLet + '.log', standardTags +
+                             [('candidate points, including', 4), ('Final:   total', 0)])
+
+   # Run bead tracking indicated number of times
+   if not needStep(5):
+      numBTRuns = 0
+   for trackInd in range(max(0, numBTRuns)):
+
+      # After first time, save seed as _orig or back it up
+      if (trackInd or trackingMethod == 2) and \
+             useFileAsReplacement(dataName + '.fid', dataName + '.seed', True, True):
+         return 1
+      if runOneProcess('track' + axisCom):
+         return 1
+      printTaggedMessages('track' + axisLet + '.log',
+                          standardTags + [('Total points missing =', 4)])
+      missing = findTaggedValue(latestMessages, 'Total points missing', '=', INT_VALUE)
+      if missing != None and missing == 0:
+         break
+
+      
+# Run tiltalign in 2 or 3 stages
+def runTiltalign(taLines):
+   global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign
+   global madeZfactors, totalDelTilt, suppressAbort
+
+   minTotGlblStretch = 12
+   minSurfGlblStretch = 4
+   minRatioGlblStretch = 0.125
+   minSurfLocalStretch = 1.0
+   
+   # The command file should be configured by various inputs, so let's find out some
+   didLocalAlign = optionValue(taLines, 'LocalAlignments', BOOL_VALUE)
+   patchSizeArr = optionValue(taLines, 'TargetPatchSizeXandY', INT_VALUE, numVal = 2)
+   minFidsArr = optionValue(taLines, 'MinFidsTotalAndEachSurface', INT_VALUE, numVal = 2)
+   if not patchSizeArr or not minFidsArr:
+      abortSet('Problem finding some options in align.com')
+   (nxpatch, nypatch) = patchSizeArr
+   (minFidsTot, minFidsSurf) = minFidsArr
+   alignCom = 'align' + axisCom
+   alignLog = 'align' + axisLet + '.log'
+   doRobust = lookupDirective(comPrefix + 'align', 'tiltalign.RobustFitting', 0,
+                              BOOL_VALUE)
+
+   # Hopefully TEMPORARY suppression of robust for patch tracking and cut up contours
+   if patchTrack and contourPieces and contourPieces > 1:
+      doRobust = 0
+      
+   enableStretch = lookupDirective(runtimePrefix + 'TiltAlignment', 'enableStretching',
+                                   0, BOOL_VALUE)
+   if patchTrack:
+      enableStretch = False
+   
+   # first time, turn off local align and make sure stretch/skew off
+   # But loop twice in case have to turn off robust fitting
+   # This is probably a really bad idea.
+   for loop in (0, 1):
+      suppressAbort = not loop and doRobust
+      sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
+                sedModify('LocalAlignments', 0),
+                sedModify('StretchOption', 0),
+                sedModify('SkewOption', 0)] + \
+                sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile') + \
+                sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
+
+      if modifyWriteAndRunCom(alignCom, sedcom, taLines):
+         if not suppressAbort:
+            return 1
+         suppressAbort = False
+         for line in latestMessages:
+            if 'TOO FEW DATA POINTS TO DO ROBUST' in line:
+               prnstr('Trying again without robust fitting')
+               doRobust = 0
+               break
+         else:
+            return 1
+
+         continue
+
+      messageTags = standardTags + [('Residual error', 4)]
+      printTaggedMessages(alignLog, messageTags)
+      break
+
+   suppressAbort = False
+   angleArr = [0., 0., 0., 0., 0., 0., 0, 0]
+   if analyzeAlignLog(numSurfaces > 1, angleArr):
+      return 1
+   (totalDelTilt, xtiltNeeded, fidThickness, fidIncShift, fidTotalShift, \
+       reconThickness, numBot, numTop) = angleArr
+   if numSurfaces > 1:
+      totalFid = numBot + numTop
+      minOnSurf = min(numBot, numTop)
+   else:
+      totalFid = numBot
+
+   localAlign = 0
+   glbStretch = 0
+   locStretch = 0
+   useMinFids = 0
+   numruns = 1
+   madeZfactors = False
+   if didLocalAlign:
+      localAlign = 1
+      messageTags = standardTags + [('(Global)', 4), ('error local mean:', 4)]
+   if didLocalAlign or enableStretch:
+
+      #are there enough fids for stretch?
+      totalFid = numBot
+      numruns = 2
+      if enableStretch:
+         if totalFid > minTotGlblStretch and \
+                (numSurfaces == 1 or \
+                    (minOnSurf > minSurfGlblStretch and \
+                        min(numBot, numTop) / float(totalFid) > minRatioGlblStretch)):
+            glbStretch = 3
+            madeZfactors = True
+            if didLocalAlign and numSurfaces > 1:
+               mindens = minOnSurf / float(rawXsize * rawYsize)
+               minInArea = mindens * nxpatch * nypatch
+               if minInArea > minSurfLocalStretch:
+                  locStretch = 3
+                  useMinFids = minFidsSurf
+               else:
+                  prnstr('Too few fiducials on minority surface to enable local ' +\
+                            'stretching solution')
+
+         else:
+            prnstr('Too few fiducials on minority surface to enable ' +\
+                            'stretching solution')
+            
+   
+   # Just run alignment once or twice more.  Again, if robust gives a problem, try it
+   # without.
+   for run in range(numruns):
+      for loop in (0, 1):
+         suppressAbort = not loop and doRobust
+         sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
+                   sedModify('LocalAlignments', localAlign),
+                   sedModify('XStretchOption', glbStretch),
+                   sedModify('SkewOption', glbStretch),
+                   sedModify('LocalStretchOption', locStretch),
+                   sedModify('LocalSkewOption', locStretch),
+                   sedModify('MinFidsTotalAndEachSurface', fmtstr('{},{}', minFidsTot,
+                                                                  useMinFids)),
+                   sedModify('AngleOffset', totalDelTilt)] + \
+                   sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile')+\
+                   sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
+
+         if madeZfactors:
+            sedcom += sedDelAndAdd('OutputZFactorFile', dataName + '.zfac',
+                                   'OutputTransformFile')
+                
+         if modifyWriteAndRunCom(alignCom, sedcom, taLines):
+            if not suppressAbort:
+               return 1
+            suppressAbort = False
+            for line in latestMessages:
+               if 'TOO FEW DATA POINTS TO DO ROBUST' in line:
+                  prnstr('Trying again without robust fitting')
+                  doRobust = 0
+                  break
+            else:
+               return 1
+
+            continue
+            
+         printTaggedMessages(alignLog, messageTags)
+         break
+
+      suppressAbort = False
+      if analyzeAlignLog(numSurfaces > 1, angleArr):
+         return 1
+      (totalDelTilt, xtiltNeeded, fidThickness, fidIncShift, fidTotalShift, \
+          reconThickness, numBot, numTop) = angleArr
+
+   return 0
+     
+
+# Make the aligned stack and do optional operations on it
+def makeAndCTFCorrectAlignedStack():
+   global aliBinning, aliXunbinned, aliYunbinned
+   alipre = runtimePrefix + 'AlignedStack'
+   correctCTF = lookupDirective(alipre, 'correctCTF', 0, BOOL_VALUE)
+   aliBinning = lookupDirective(alipre, 'binByFactor', 0, INT_VALUE)
+   linear = lookupDirective(alipre, 'linearInterpolation', 0, BOOL_VALUE)
+   outsizeText = lookupDirective(alipre, 'sizeInXandY', 0, STRING_VALUE)
+   aliXunbinned = rawXsize
+   aliYunbinned = rawYsize
+   if outsizeText:
+      splits = outsizeText.replace(',', ' ').split()
+      try:
+         aliXunbinned = int(splits[0])
+         aliYunbinned = int(splits[1])
+      except:
+         abortSet('Error converting aligned stack output size')
+         return 1
+
+   (comRoot, process) = comAndProcessForAlignedStack('')
+   if ifMontage:
+      err = montageFrameValues(rawXsize, rawYsize, aliXunbinned, aliYunbinned,
+                               montFrameData)
+      if err == 1:
+         reportImodError("Error running goodframe on montage sizes")
+         return 1
+      if err:
+         abortSet("Error converting output of goodframe to integers")
+         return 1
+      sedcom = [sedModify('StartingAndEndingX', fmtstr('{},{}', montFrameData[2],
+                                                       montFrameData[4])),
+                sedModify('StartingAndEndingY', fmtstr('{},{}', montFrameData[3],
+                                                       montFrameData[5])),
+                '/^InterpolationOrder/d']
+      if linear:
+         sedcom.append('/^TransformFile/a/InterpolationOrder    1/')
+                
+      aliXunbinned = montFrameData[0]
+      aliYunbinned = montFrameData[1]
+
+   else:
+      sedcom =  [sedModify('SizeToOutputInXandY',
+                           fmtstr('{},{}', aliXunbinned // aliBinning,
+                                  aliYunbinned // aliBinning))] + \
+                       sedDelAndAdd('LinearInterpolation', linear, 'TransformFile')
+      
+
+   sedcom += sedDelAndAdd('BinByFactor', aliBinning, 'TransformFile')
+   if needStep(6) and modifyWriteAndRunCom(comRoot + axisCom, sedcom):
+      return 1
+
+   if needStep(7) and correctCTF:
+
+      # Note that ctfplotter won't run headless...
+      autofit = lookupDirective(runtimePrefix + 'CTFplotting', 'autoFitRangeAndStep', 0,
+                                STRING_VALUE)
+      if autofit:
+         ctfLines = readTextFileReportErr('ctfplotter' + axisCom)
+         if not ctfLines:
+            return 1
+         sedcom = ['/^ExpectedDefocus/a/SaveAndExit	1/',
+                   '/^ExpectedDefocus/a/AutoFitRangeAndStep	' + autofit + '/',
+                   '/^AngleRange/d']
+
+         # Make existing defocus file a backup to avoid error messages
+         makeBackupFile(dataName + '.defocus')
+         if modifyWriteAndRunCom('ctfplotter_auto' + axisCom, sedcom, ctfLines):
+            return 1
+         sedcom = []
+
+      else:
+         if writeTextFileReportErr(dataName + '_simple.defocus',
+                                   [fmtstr('{} {} 0. 0. {}', zsize // 2, zsize // 2,
+                                           defocus)]):
+            return 1
+         sedcom = [sedModify('DefocusFile', dataName + '_simple.defocus')]
+
+      sedcom.append(sedModify('PixelSize', aliBinning * pixelSize))
+      
+      comfile = 'ctfcorrection' + axisCom
+      ctfLines = readTextFileReportErr(comfile)
+      if not ctfLines:
+         return 1
+      if pysed(sedcom, ctfLines, comfile, retErr=True):
+         abortSet('Error modifying ' + comfile)
+         return 1
+      if parallelCPU > 1:
+         target = 2 * parallelCPU
+         maxSlices = (zsize + target - 1) / target
+         try:
+            runcmd(fmtstr('splitcorrection -m {} {}', maxSlices, comfile))
+         except ImodpyError:
+            reportImodError('Error trying to run ctfcorrection in parallel')
+            return 1
+      
+      if runOneProcess(comfile, parallelCPU < 2):
+         return 1
+
+      if useFileAsReplacement(dataName + '_ctfcorr.ali', dataName + '.ali', False, True):
+         return 1
+
+   return 0
+      
+
+# Optionally erase gold with 3D method and do 2D filtering
+def eraseGoldFilterAlignedStack():
+   eraseGold = lookupDirective(runtimePrefix + 'AlignedStack', 'eraseGold', 0, INT_VALUE)
+   if isinstance(eraseGold, str):
+      abortSet('Error converting eraseGold entry to integer')
+      return 1
+   if eraseGold:
+      extraDiam = lookupDirective(runtimePrefix + 'GoldErasing', 'extraDiameter', 0,
+                                  FLOAT_VALUE)
+      if not extraDiam:
+         extraDiam = 0.
+
+   if eraseGold > 1 and needStep(8):
+      binning = lookupDirective(runtimePrefix + 'GoldErasing', 'binning', 0, INT_VALUE)
+      if not binning:
+         binning = aliBinning
+
+      # Get the aligned stack if binning differs
+      if binning != aliBinning:
+         (comRoot, process) = comAndProcessForAlignedStack('')
+         comlines = ['InputFile ' + comRoot + axisCom,
+                     'BinningOfImages ' + str(binning),
+                     'RootNameOfDataFiles ' + dataName]
+         if not ifMontage:
+            comlines.append(fmtstr('OneParameterChange {}newst_3dfind{}.newstack.' + \
+                                      'SizeToOutputInXandY={},{}', comPrefix, axisLet,
+                                   aliXunbinned // binning, aliYunbinned // binning))
+         comlines += laterComDirectives(comRoot + '_3dfind', process, 0)
+         if makeAndRunOneCom(comlines, comRoot + '_3dfind' + axisCom):
+            return 1
+
+      # Set up to get the reconstruction
+      # use fid alignment if two surfaces, otherwise there needs to be a directive
+      if numSurfaces > 1:
+         thickness = 2 * ((int(round(fidThickness + 4. * fidSizePix)) + 1) // 2)
+      else:
+         thickness = lookupDirective(runtimePrefix + 'GoldErasing', 'thickness', 0,
+                                     INT_VALUE)
+         if not thickness:
+            abortSet('Reconstruction Thickness must be supplied for 3D gold finding')
+            return 1
+
+      # Get the com file
+      comfile = 'tilt_3dfind' + axisCom
+      comlines = ['InputFile tilt' + axisCom,
+                  'OutputFile ' + comfile,
+                  'BinningOfImages ' + str(binning),
+                  'RootNameOfDataFiles ' + dataName,
+                  'ThicknessToMake ' + str(thickness),
+                  'ShiftInY ' + str(fidIncShift)]
+      if binning != aliBinning:
+         comlines.append('Use3dfindAliInput 1')
+      comlines += laterComDirectives('tilt_3dfind', 'tilt', 0)
+
+      try:
+         runcmd('makecomfile -StandardInput', comlines)
+      except ImodpyError:
+         reportImodError('Error making ' + comfile)
+         return 1
+
+      # Make the reconstruction
+      if splitAndRunTilt(comfile):
+         return 1
+
+      # Find the beads
+      comlines = ['RootNameOfDataFiles ' + dataName,
+                  'BinningOfImages ' + str(binning),
+                  'BeadSize ' + str(fidSizePix),
+                  fmtstr('OneParameterChange {}findbeads3d{}.findbeads3d.' + \
+                            'StorageThreshold=-1', comPrefix, axisLet)]
+      if lightBeads:
+         comlines.append(fmtstr('OneParameterChange {}findbeads3d{}.findbeads3d.' + \
+                                   'LightBeads=1', comPrefix, axisLet))
+      comlines += laterComDirectives('findbeads3d', 'findbeads3d', 0)
+      if makeAndRunOneCom(comlines, 'findbeads3d' + axisCom):
+         return 1
+            
+      # Get the reprojection
+      comlines = ['InputFile tilt_3dfind' + axisCom,
+                  'RootNameOfDataFiles ' + dataName]
+      if makeAndRunOneCom(comlines, 'tilt_3dfind_reproject' + axisCom):
+         return 1
+
+   elif eraseGold and needStep(8):
+      if fiducialless:
+         abortset('Cannot erase gold with fiducials after fiducialless processing')
+      try:
+         runcmd(fmtstr('xfmodel -xf {0}.tltxf {0}.fid {0}_erase.fid', dataName))
+      except ImodpyError:
+         reportImodError('Could not transform fiducials for erasing gold')
+         return 1
+
+   # Erase the beads
+   if eraseGold and needStep(8):
+      comlines = ['RootNameOfDataFiles ' + dataName,
+                  'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
+                  fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
+                            'ExpandCircleIterations=2', comPrefix, axisLet)]
+      if makeAndRunOneCom(comlines, 'golderaser' + axisCom):
+         return 1
+      
+      if useFileAsReplacement(dataName + '_erase.ali', dataName + '.ali', False, True):
+         return 1
+      
+   # 2D filtering, very simple
+   if lookupDirective(runtimePrefix + 'AlignedStack', 'filterStack', 0, BOOL_VALUE) and \
+          needStep(9):
+      if runOneProcess('mtffilter' + axisCom):
+         return 1
+      if useFileAsReplacement(dataName + '_filt.ali', dataName + '.ali', False, True):
+         return 1
+
+   return 0
+
+
+# Change many entries in tilt.com for the current situation
+def modifyTiltComFile():
+   comfile = 'tilt' + axisCom
+   comlines = readTextFileReportErr(comfile)
+   if not comlines:
+      return 1
+
+   thickness = lookupDirective(comPrefix + 'tilt', 'tilt.THICKNESS', 0, INT_VALUE)
+   if not thickness:
+      if not reconThickness:
+         abortSet('No thickness was specified and fiducial alignment did not give a ' + \
+                     'thickness to use')
+         return 1
+      thickness = 2 * ((int(round(reconThickness)) + 1) // 2)
+      extra = lookupDirective(runtimePrefix + 'Reconstruction', 'extraThickness', 0,
+                              INT_VALUE)
+      if extra:
+         thickness += extra
+                  
+   if ifMontage:
+      fullx = montFrameData[6]
+      fully = montFrameData[7]
+      sssx = montFrameData[8]
+      sssy = montFrameData[9]
+   else:
+      fullx = rawXsize
+      fully = rawYsize
+      sssx = -((aliXunbinned - rawXsize) // 2)
+      sssy = -((aliYunbinned - rawYsize) // 2)
+
+   gpuVal = -1
+   if useGPU:
+      gpuVal = 0
+   sedcom = [sedModify('IMAGEBINNED', aliBinning),
+             sedModify('XAXISTILT', xtiltNeeded),
+             sedModify('FULLIMAGE', fmtstr('{} {}', fullx, fully)),
+             sedModify('SUBSETSTART', fmtstr('{} {}', sssx, sssy)),
+             sedModify('THICKNESS', thickness)] + \
+             sedDelAndAdd('UseGPU', gpuVal, 'XTILTFILE')
+   if not axisNum:
+      sedcom.append(sedModify('OutputFile', setName + '_full.rec'))
+   if useGPU:
+      sedcom += sedDelAndAdd('ActionIfGPUFails', '1,2', 'XTILTFILE');
+   else:
+      sedcom.append('/^ActionIfGPUFails/d')
+   if didLocalAlign:
+      sedcom += sedDelAndAdd('LOCALFILE', dataName + 'local.xf', 'XTILTFILE')
+   if madeZfactors:
+      sedcom += sedDelAndAdd('ZFACTORFILE', dataName + '.zfac', 'XTILTFILE')
+
+   # Handle change in scaling if they turned off log and did not supply a scale
+   logbase = optionValue(comlines, 'LOG', FLOAT_VALUE)
+   if not logbase and not lookupDirective(comPrefix + 'tilt', '.tilt.SCALE', 0,
+                                          STRING_VALUE):
+      scaleArr = optionValue(comlines, 'SCALE', FLOAT_VALUE)
+      if not scaleArr or len(scaleArr) < 2:
+         abortSet('Cannot modify SCALE value in tilt' + axisLet + '.com for linear ' +\
+                     'scaling')
+         return 1
+
+      # Copytomocoms produces scales from 1000 to 40 depending on X size.
+      # Linear requires scale to be reduced by 5000, giving numbers from 0.2 to 0.008
+      # 3 is a safe dividing point for deciding whether this has already happened
+      if scaleArr[1] > 3.:
+         sedcom.append(sedModify('SCALE', fmtstr('{} {:.3f}',
+                                                 scaleArr[0], scaleArr[1] / 5000.)))
+
+   if pysed(sedcom, comlines, comfile, retErr=True):
+      abortSet('Error modifying ' + comfile)
+      return 1
+   return 0
+   
+
+# Make tomogram by backprojection and/or SIRT
+def generateTomogram():
+   doSIRT = lookupDirective(runtimePrefix + 'Reconstruction', 'useSirt', 0, BOOL_VALUE)
+   doBPalso = lookupDirective(runtimePrefix + 'Reconstruction', 'doBackprojAlso', 0,
+                              BOOL_VALUE)
+   if doBPalso or not doSIRT:
+      if splitAndRunTilt('tilt' + axisCom):
+         return 1
+
+   if doSIRT:
+      comlines = laterComDirectives('sirtsetup', 'sirtsetup', 0)
+      if makeAndRunOneCom(comlines, 'sirtsetup' + axisCom):
+         return 1
+      if runOneProcess('tilt' + axisLet + '_sirt.com', False, useGPU):
+         return 1
+
+   return 0
+   
+
+# Do all the operations on an axis
+def runOneAxis():
+   global xtiltNeeded, fidThickness, fidIncShift, reconThickness
+   global contourPieces, numSurfaces
+   xtiltNeeded, fidThickness, fidIncShift, reconThickness = 0., 0., 0., 0.
+   contourPieces = 0
+   
+   if getAxisInitialParameters():
+      return 1
+   
+   # Xray removal
+   if lookupDirective(runtimePrefix + 'Preprocessing', 'removeXrays', 0, BOOL_VALUE) and \
+          needStep(1):
+   
+      if runOneProcess('eraser' + axisCom):
+         return 1
+
+      # Use fixed stack
+      if useFileAsReplacement(dataName + '_fixed.st', dataName + '.st', True, False):
+         return 1
+
+   # coarse alignment
+   if needStep(2) and runOneProcess('xcorr' + axisCom):
+      return 1
+
+   # Get the tiltalign file regardless, since it will be operated on
+   taLines = readTextFile('align' + axisCom)
+   if not taLines:
+      return 1
+   numSurfaces = optionValue(taLines, 'SurfacesToAnalyze', INT_VALUE, numVal = 1)
+   if not numSurfaces:
+      abortSet('Failed to find SurfacesToAnalyze in align' + axisCom)
+
+   if fiducialless or patchTrack:
+      numSurfaces = 1
+   
+   # For fiducialless, make up the final xf
+   if fiducialless:
+      if fidlessFileOperations(taLines):
+         return 1
+
+   # Otherwise do many things
+   else:
+
+      # Make prealigned stack
+      (comRoot, process) = comAndProcessForAlignedStack('pre')
+      if needStep(3) and runOneProcess(comRoot + axisCom):
+         return 1
+
+      # Patch tracking
+      if needStep(4) and patchTrack:
+         if runPatchTracking():
+            return 1
+
+      # Otherwise various ways of getting a fiducial model
+      else:
+         if makeSeedAndTrack(taLines):
+            return 1
+
+      # Tilt alignment
+      if endingStep >= 5 and runTiltalign(taLines):
+         return 1
+
+      # Iterate patch tracking with angle offset now that it is known, if desired
+      if lookupDirective(runtimePrefix + 'PatchTracking', 'adjustTiltAngles', 0,
+                         BOOL_VALUE) and needStep(4) and patchTrack:
+         sedcom = sedDelAndAdd('AngleOffset', totalDelTilt, 'SizeOfPatchesXandY')
+         if modifyWriteAndRunCom('xcorr_pt' + axisCom, sedcom):
+            return 1
+         if (runTiltalign(taLines)):
+            return 1
+
+   # Make aligned stack and CTF correct it
+   if makeAndCTFCorrectAlignedStack():
+      return 1
+
+   # Set up the tilt com file now that output size is known and montage frame data set
+   if endingStep >= 8 and modifyTiltComFile():
+      return 1
+
+   # Optionally erase gold and filter
+   if eraseGoldFilterAlignedStack():
+      return 1
+
+   # Make the reconstruction
+   if needStep(10) and generateTomogram():
+      return 1
+
+   return 0
+
+   
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, shutil, math, csv, re, time
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except Exception:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+from pysed import *
+
+# Fallbacks from ../manpages/autodoc2man 3 1 batchruntomo
+options = ["directive:DirectiveFile:FNM:", "cpus:CPUMachineList:CH:",
+           "single:SingleOnFirstCPU:B:", "gpus:GPUMachineList:CH:", "nice:NiceValue:I:",
+           "remote:RemoteDirectory:FN:", "check:CheckFile:FN:",
+           "validation:ValidationType:I:", "start:StartingStep:I:", "end:EndingStep:I:",
+           "exit:ExitOnError:B:"]
+
+copyPrefix = 'setupset.copyarg.'
+setupPrefix = 'setupset.'
+runtimePrefix = 'runtime.'
+comPrefix = 'comparam.'
+scopeTmplText = setupPrefix + 'scopeTemplate'
+userTmplText = setupPrefix + 'userTemplate'
+sysTmplText = setupPrefix + 'systemTemplate'
+dataDirText = setupPrefix + 'datasetDirectory'
+rootNameText = copyPrefix + 'name'
+scanHeadText = setupPrefix + 'scanHeader'
+setupBname = 'laterbsetup.com'
+localBatchCopy = 'batchDirective.adoc'
+montFrameData = 10 * [0]
+suppressAbort = False
+altExtension = 'mrc'
+userTemplateDir = ''
+direcFileErrorNames = ['scope template', 'system template', 'user template',
+                       'batch directive']
+
+# List of coms where the runner is handling messages, and the standard tags for messages
+handlingMessages = ['autofidseed', 'transferfid', 'track', 'align']
+standardTags = [('ERROR:', 0), ('WARNING:', 0)]
+
+(opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
+
+# Get the directive file names
+numByArg = PipNumberOfEntries('DirectiveFile')
+numSets = nonopts + numByArg
+dirFiles = []
+if not numSets:
+   exitError('You must enter at least one directive file')
+for ind in range(numSets):
+   if ind < numByArg:
+      dfile = PipGetString('DirectiveFile', '')
+   else:
+      dfile = PipGetNonOptionArg(ind)
+   if not os.path.exists(dfile):
+      exitError('Directive file ' + dfile + ' does not exist')
+   dirFiles.append(dfile)
+
+# Get current directory and delivery directory
+currentDirs = []
+numCurrent = PipNumberOfEntries('CurrentLocation')
+for ind in range(numCurrent):
+   currentDirs.append(PipGetString('CurrentLocation', ''))
+deliverDir = PipGetString('DeliverToDirectory', '')
+if deliverDir and numCurrent != 1:
+   exitError('The -current option must be entered once if -deliver is entered')
+
+# Get the root names if any
+numRootOpts = PipNumberOfEntries('RootName')
+rootByOption = []
+for ind in range(numRootOpts):
+   rootByOption.append(PipGetString('RootName', ''))
+
+# Check validity of these entries and boost the directive file list
+if numRootOpts and numSets > 1 and numSets != numRootOpts:
+   exitError('If you enter root names, you must enter either one directive file or' + \
+             ' one per root name')
+if numRootOpts:
+   for ind in range(numSets, numRootOpts):
+      dirFiles.append(dirFiles[0])
+   numSets = numRootOpts
+
+if not deliverDir and (numRootOpts or numCurrent) and numCurrent != numSets:
+   exitError('The -current option must be entered for each data set')
+
+# Get other options and current directory
+startingDir = os.getcwd()
+
+# For CPU's, validate the number if any, set flag for parallel processing = # of cores
+cpuList = PipGetString('CPUMachineList', '')
+parallelCPU = 0
+if cpuList != '':
+   parallelCPU = len(cpuList.split(','))
+   if parallelCPU == 1:
+      try:
+         numCPU = int(cpuList)
+         parallelCPU = numCPU
+         if numCPU < 2 or numCPU > 128:
+            exitError('A number of cores entered with -cpus must be between 2 and 128')
+      except ValueError:
+         pass
+
+# For GPU's, set useGPU if entered, insist a number is 1, and set flag for parallel GPU
+# if there is an actual machine list to number of GPUs.  Here keep parallelGPU = 1 if
+# it is running without splitting on a single remote machine
+gpuList = PipGetString('GPUMachineList', '')
+useGPU = gpuList != ''
+parallelGPU = 0
+
+if useGPU:
+   parallelGPU = len(gpuList.split(','))
+   if parallelGPU == 1:
+      try:
+         useGPU = int(gpuList)
+         parallelGPU = 0
+         if useGPU != 1:
+            exitError('The entry for -gpus must be 1 to use just the local GPU')
+      except ValueError:
+         pass
+
+niceness = PipGetInteger('NiceValue', 15)
+remoteStartDir = PipGetString('RemoteDirectory', '')
+doOneAxis = PipGetInteger('ProcessOneAxis', 0)
+startingStep = PipGetInteger('StartingStep', 0)
+endingStep = PipGetInteger('EndingStep', 10000000)
+exitOnError = PipGetBoolean('ExitOnError', 0)
+useFirstCPUforSingle = PipGetBoolean('SingleOnFirstCPU',0)
+validation = PipGetInteger('ValidationType', 0)
+remoteDataDir = ''
+
+# Set up check file
+checkFile = PipGetString('CheckFile', '')
+if checkFile:
+   checkFile = imodAbsPath(checkFile)
+else:
+   checkFile = imodAbsPath(os.path.join(startingDir, progname + '.' +
+                                    str(os.getpid()) + '.input'))
+if validation <= 0:
+   prnstr('To quit all processing, place a Q in the file: ' + checkFile)
+
+baseComDict = {}
+validComDict = {}
+validRunDict = {}
+validOtherDict = {}
+fileType = 'directive'
+
+if validation >= 0:
+   validateFile = os.path.join(os.path.join(os.environ['IMOD_DIR'], 'com'), \
+       'directives.csv')
+   if not os.path.exists(validateFile):
+      exitError('Cannot find file for validating directives, ' + validateFile)
+
+   processValidationFile()
+   if validation > 1:
+      fileType = 'template'
+
+# Start looping on the data sets
+for dfileInd in range(numSets):
+   dfile = dirFiles[dfileInd]
+   axisNum = 0
+
+   # Remove check file in case it was used to tell processchunks to quit by us
+   if os.path.exists(checkFile):
+      cleanupFiles([checkFile])
+   os.chdir(startingDir)
+   allDirectives = [{}, {}, {}, {}]
+   absDirectiveFile = imodAbsPath(dfile)
+   if readDirectiveOrTemplate(dfile, BatInd):
+      continue
+
+   prnstr(fmtstr('Beginning to process {} file {}', fileType, dfile))
+
+   # If validating a single template file, do not process it, just run the checks
+   if validation > 1:
+      if not checkAllDirectives('template'):
+         prnstr('Directives all seem OK in that file')
+      continue
+   
+   # Get essential setup items from directives
+   if scanSetupDirectives():
+      continue
+
+   if validation >= 0:
+      if checkAllDirectives():
+         continue
+      if validation > 0:
+         prnstr('Directives all seem OK in that file')
+         continue
+
+   # Deliver stacks to dataset directory
+   if deliverDir:
+      if dualAxis and doOneAxis < 2 and deliverStack('a'):
+         continue
+      if dualAxis and doOneAxis != 1 and deliverStack('b'):
+         continue
+      if not dualAxis and deliverStack(''):
+         continue
+
+   # If there is a remote directory, need to shift it to the dataset dir
+   if remoteStartDir:
+      absDataDir = imodAbsPath(datasetDir)
+      prefix = os.path.commonprefix([startingDir, absDataDir])
+      remoteDataDir = ''
+      if prefix and absDataDir.startswith(prefix) and startingDir.startswith(prefix):
+         startRemnant = startingDir[len(prefix):]
+         dataRemnant = datasetDir[len(prefix):]
+         ind = remoteStartDir.find(startRemnant)
+         if ind > 0:
+            remoteDataDir = os.path.normpath(os.path.join(remoteStartDir[0:ind], \
+                                                             dataRemnant))
+      if not remoteDataDir:
+         abortSet('Cannot translate remote directory entry ' + remoteStartDir + \
+                     ' to work with ' + datasetDir)
+         continue
+
+   try:
+      os.chdir(datasetDir)
+   except OSError:
+      abortSet('Error changing to directory ' + datasetDir)
+      continue
+
+   # Check existence of file(s)
+   stack = setName + '.'
+   numAxes = 1
+   if dualAxis:
+      numAxes = 2
+      stack = setName + 'a.'
+   if checkRenameStack(stack):
+      continue
+   if dualAxis and doOneAxis != 1 and checkRenameStack(setName + 'b.'):
+      continue
+   stack += 'st'
+
+   # Get pixel size if scanHeader set
+   if scanHeader and not pixelSize:
+      try:
+         px = getmrcpixel(stack)
+         pixelSize = px / 10.
+      except ImodpyError:
+         reportImodError('Error getting pixel size from ' + stack)
+         continue
+
+   prnstr('Starting data set ' + setName)
+
+   if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
+   #if False:
+      # Run etomo for setup and try to report errors
+      failed = False
+      errlog = ''
+      try:
+         comline = 'etomo --fromBRT --directive "' + absDirectiveFile + '"'
+         if parallelCPU > 1:
+            comline += ' --cpus "' + cpuList + '"'
+         if gpuList != '':
+            comline += ' --gpus "' + gpuList + '"'
+         etlines = runcmd(comline)
+         for l in etlines:
+            prnstr(l.rstrip())
+            ind = l.find('with log in')
+            if ind > 0:
+               errlog = l[ind + 11:].strip()
+      except ImodpyError:
+         failed = True
+         for l in getErrStrings():
+            ind = l.find('check:')
+            if ind > 0:
+               errlog = l[ind + 7:].strip()
+
+
+      if errlog:
+         if '/' in errlog or '\\' in errlog:
+            try:
+               shutil.copy(errlog, '.')
+            except Exception:
+               prnstr('WARNING: failed to copy ' + errlog + ' to dataset directory')
+         printTaggedMessages(errlog, [('INFO:', 1), ('LOG:', 3)])
+      else:
+         if failed:
+            prnstr('Running etomo failed, no error information available')
+         else:
+            prnstr('Cannot access an error log from running etomo')
+      if failed:
+         reportImodError('etomo setup failed, cannot proceed with this data set')
+         continue
+
+   # temporarily running copytomocoms directly
+   # if startingStep <= 0:
+   #    copyargs = []
+   #    for direc in allDirectives:
+   #       for key in direc:
+   #          if copyPrefix in key:
+   #             arg = key[len(copyPrefix):]
+   #             val = direc[key][0]
+   #             copyargs.append(arg + ' ' + val)
+   #    if scopeTmplText in allDirectives[BatInd]:
+   #       copyargs.append('change ' + allDirectives[BatInd][scopeTmplText][0])
+   #    if sysTmplText in allDirectives[BatInd]:
+   #       copyargs.append('change ' + allDirectives[BatInd][sysTmplText][0])
+   #    if userTmplText in allDirectives[BatInd]:
+   #       copyargs.append('change ' + allDirectives[BatInd][userTmplText][0])
+   #    copyargs.append('change ' + absDirectiveFile)
+   #    try:
+   #       runcmd('copytomocoms -StandardInput', copyargs, 'stdout')
+   #    except ImodpyError:
+   #       reportImodError('Error running copytomocoms')
+   #       continue
+
+
+   fidSizePix = fidSizeNm / pixelSize
+   haveAaxisAFSbound = False
+   
+   # Loop on the axes.  axisInd is 0 or 1, axisNum is 0 for single, 1/2 for a/b
+   for axisInd in range(numAxes):
+      if endingStep <= 0 or (dualAxis and ((axisInd and doOneAxis == 1) or 
+                                           (not axisInd and doOneAxis > 1))):
+         continue
+      axisLet = ''
+      if dualAxis:
+         axisNum = axisInd + 1
+         axisLet = 'a'
+         if axisInd:
+            axisLet = 'b'
+         prnstr('Starting axis ' + axisLet.upper())
+
+      if axisInd and doOneAxis > 1 and os.path.exists(setupBname):
+         if runOneProcess(setupBname):
+            startingStep = 0
+            continue
+            
+      dataName = setName + axisLet
+      axisCom = axisLet + '.com'
+      if startingStep > 100:
+         startingStep -= 100
+         continue
+      if runOneAxis():
+         startingStep = 0
+         continue
+      startingStep = 0
+      if dualAxis:
+         prnstr('Completed axis ' + axisLet.upper() + ' of dataset ' + setName)
+      else:
+         prnstr('Completed dataset ' + setName)
+
+sys.exit(0)
+
+   
+                   

@@ -25,6 +25,8 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -213,68 +215,74 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   private static final String VIEW_SKIP_LIST_LABEL = "View skip list";
   static final String LIGHT_BEADS_LABEL = "Light fiducial markers";
 
+  private final EtomoPanel panelBeadtrackX = new EtomoPanel();
   private final EtomoPanel panelBeadtrack = new EtomoPanel();
   private final JPanel panelBeadtrackBody = new JPanel();
   private final AxisID axisID;
   private final Run3dmodButton btnFixModel;
 
   private final LabeledTextField ltfViewSkipList = new LabeledTextField(
-      VIEW_SKIP_LIST_LABEL + ": ");
+      FieldType.INTEGER_LIST, VIEW_SKIP_LIST_LABEL + ": ");
   private final LabeledTextField ltfAdditionalViewSets = new LabeledTextField(
-      "Separate view groups: ");
+      FieldType.INTEGER_LIST, "Separate view groups: ");
   private final LabeledTextField ltfTiltAngleGroupSize = new LabeledTextField(
-      "Tilt angle group size: ");
+      FieldType.INTEGER, "Tilt angle group size: ");
   private final LabeledTextField ltfTiltAngleGroups = new LabeledTextField(
-      "Non-default tilt angle groups: ");
+      FieldType.INTEGER_TRIPLE, "Non-default tilt angle groups: ");
   private final LabeledTextField ltfMagnificationGroupSize = new LabeledTextField(
-      "Magnification group size: ");
+      FieldType.INTEGER, "Magnification group size: ");
   private final LabeledTextField ltfMagnificationGroups = new LabeledTextField(
-      "Non-default magnification groups: ");
-  private final LabeledTextField ltfNMinViews = new LabeledTextField(
+      FieldType.INTEGER_TRIPLE, "Non-default magnification groups: ");
+  private final LabeledTextField ltfNMinViews = new LabeledTextField(FieldType.INTEGER,
       "Minimum # of views for tilt alignment: ");
   private final LabeledTextField ltfBeadDiameter = new LabeledTextField(
-      "Unbinned bead diameter: ");
+      FieldType.FLOATING_POINT, "Unbinned bead diameter: ");
   private final CheckBox cbLightBeads = new CheckBox(LIGHT_BEADS_LABEL);
   CheckBox cbFillGaps = new CheckBox("Fill seed model gaps");
-  private final LabeledTextField ltfMaxGap = new LabeledTextField("Maximum gap size: ");
+  private final LabeledTextField ltfMaxGap = new LabeledTextField(FieldType.INTEGER,
+      "Maximum gap size: ");
   private final LabeledTextField ltfMinTiltRangeToFindAxis = new LabeledTextField(
-      "Minimum tilt range for finding axis: ");
+      FieldType.FLOATING_POINT, "Minimum tilt range for finding axis: ");
   private final LabeledTextField ltfMinTiltRangeToFindAngle = new LabeledTextField(
-      "Minimum tilt range for finding angles: ");
+      FieldType.FLOATING_POINT, "Minimum tilt range for finding angles: ");
   private final LabeledTextField ltfSearchBoxPixels = new LabeledTextField(
-      "Search box size (pixels): ");
+      FieldType.INTEGER_PAIR, "Search box size (pixels): ");
   private final LabeledTextField ltfMaxFiducialsAvg = new LabeledTextField(
-      "Maximum # of views for fiducial avg.: ");
+      FieldType.INTEGER, "Maximum # of views for fiducial avg.: ");
   private final LabeledTextField ltfFiducialExtrapolationParams = new LabeledTextField(
-      "Fiducial extrapolation limits: ");
+      FieldType.INTEGER_PAIR, "Fiducial extrapolation limits: ");
   private final LabeledTextField ltfRescueAttemptParams = new LabeledTextField(
-      "Rescue attempt criteria: ");
+      FieldType.FLOATING_POINT_PAIR, "Rescue attempt criteria: ");
   private final LabeledTextField ltfMinRescueDistance = new LabeledTextField(
-      "Distance criterion for rescue (pixels): ");
+      FieldType.FLOATING_POINT, "Distance criterion for rescue (pixels): ");
   private final LabeledTextField ltfRescueRelaxtionParams = new LabeledTextField(
-      "Rescue relaxation factors: ");
+      FieldType.FLOATING_POINT_PAIR, "Rescue relaxation factors: ");
   private final LabeledTextField ltfResidualDistanceLimit = new LabeledTextField(
-      "First pass residual limit for deletion: ");
+      FieldType.FLOATING_POINT, "First pass residual limit for deletion: ");
   private final LabeledTextField ltfMeanResidChangeLimits = new LabeledTextField(
-      "Residual change limits: ");
+      FieldType.INTEGER_PAIR, "Residual change limits: ");
   private final LabeledTextField ltfDeletionParams = new LabeledTextField(
-      "Deletion residual parameters: ");
+      FieldType.FLOATING_POINT_PAIR, "Deletion residual parameters: ");
   private final LabeledTextField ltfDensityRelaxationPostFit = new LabeledTextField(
-      "Second pass density relaxation: ");
+      FieldType.FLOATING_POINT, "Second pass density relaxation: ");
   private final LabeledTextField ltfMaxRescueDistance = new LabeledTextField(
-      "Second pass maximum rescue distance: ");
+      FieldType.FLOATING_POINT, "Second pass maximum rescue distance: ");
 
   private final CheckBox cbLocalAreaTracking = new CheckBox("Local tracking");
   private final LabeledTextField ltfLocalAreaTargetSize = new LabeledTextField(
-      "Local area size: ");
+      FieldType.INTEGER, "Local area size: ");
   private final LabeledTextField ltfMinBeadsInArea = new LabeledTextField(
-      "Minimum beads in area: ");
+      FieldType.INTEGER, "Minimum beads in area: ");
   private final LabeledTextField ltfMinOverlapBeads = new LabeledTextField(
-      "Minimum beads overlapping: ");
+      FieldType.INTEGER, "Minimum beads overlapping: ");
   private final LabeledTextField ltfMaxViewsInAlign = new LabeledTextField(
-      "Max. # views to include in align: ");
+      FieldType.INTEGER, "Max. # views to include in align: ");
   private final LabeledTextField ltfRoundsOfTracking = new LabeledTextField(
-      "Rounds of tracking: ");
+      FieldType.INTEGER, "Rounds of tracking: ");
+  private final CheckBox cbSobelFilterCentering = new CheckBox(
+      "Refine center with Sobel filter");
+  private final LabeledTextField ltfKernelSigmaForSobel = new LabeledTextField(
+      FieldType.FLOATING_POINT, "Sigma for kernel filter: ");
 
   private final JPanel pnlCheckbox = new JPanel();
   private final JPanel pnlLightBeads = new JPanel();
@@ -289,8 +297,12 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   private final MultiLineButton btnUseModel = new MultiLineButton(USE_MODEL_LABEL);
   private final BeadtrackPanelActionListener actionListener = new BeadtrackPanelActionListener(
       this);
+  private final JPanel pnlFillGaps = new JPanel();
+  private final JPanel pnlTrack = new JPanel();
 
   private final DialogType dialogType;
+
+  private boolean autofidseedMode = false;
 
   /**
    * Construct a new beadtrack panel.
@@ -311,9 +323,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     header = PanelHeader.getAdvancedBasicInstance("Beadtracker", this, dialogType,
         globalAdvancedButton);
 
+    JPanel pnlSobelFilterCentering = new JPanel();
+
     panelBeadtrackBody.setLayout(new BoxLayout(panelBeadtrackBody, BoxLayout.Y_AXIS));
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
-    panelBeadtrackBody.add(ltfViewSkipList.getContainer());
     panelBeadtrackBody.add(ltfViewSkipList.getContainer());
     panelBeadtrackBody.add(ltfAdditionalViewSets.getContainer());
     panelBeadtrackBody.add(ltfTiltAngleGroupSize.getContainer());
@@ -328,10 +341,13 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     pnlLightBeads.add(cbLightBeads);
     pnlLightBeads.add(Box.createHorizontalGlue());
     panelBeadtrackBody.add(pnlLightBeads);
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y2));
+    panelBeadtrackBody.add(pnlSobelFilterCentering);
+    panelBeadtrackBody.add(ltfKernelSigmaForSobel.getContainer());
+    panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y2));
     pnlCheckbox.setLayout(new BoxLayout(pnlCheckbox, BoxLayout.Y_AXIS));
     pnlCheckbox.setAlignmentX(Component.CENTER_ALIGNMENT);
-    JPanel pnlFillGaps = new JPanel();
-    pnlFillGaps.setLayout(new BoxLayout(pnlFillGaps,BoxLayout.X_AXIS));
+    pnlFillGaps.setLayout(new BoxLayout(pnlFillGaps, BoxLayout.X_AXIS));
     pnlFillGaps.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlFillGaps.add(cbFillGaps);
     pnlFillGaps.add(Box.createHorizontalGlue());
@@ -357,6 +373,12 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     panelBeadtrackBody.add(ltfSearchBoxPixels.getContainer());
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
+    // SobelFilterCentering
+    pnlSobelFilterCentering.setLayout(new BoxLayout(pnlSobelFilterCentering,
+        BoxLayout.X_AXIS));
+    pnlSobelFilterCentering.add(cbSobelFilterCentering);
+    pnlSobelFilterCentering.add(Box.createHorizontalGlue());
+
     pnlExpertParametersBody.setLayout(new BoxLayout(pnlExpertParametersBody,
         BoxLayout.Y_AXIS));
     pnlExpertParametersBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -381,7 +403,6 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     btnTrack.setSize();
     panelBeadtrackBody.add(btnTrack.getComponent());
 
-    JPanel pnlTrack = new JPanel();
     pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
     pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -398,7 +419,54 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     panelBeadtrack.setBorder(BorderFactory.createEtchedBorder());
     panelBeadtrack.add(header);
     panelBeadtrack.add(panelBeadtrackBody);
+
+    panelBeadtrackX.setLayout(new BoxLayout(panelBeadtrackX, BoxLayout.X_AXIS));
+    panelBeadtrackX.add(panelBeadtrack);
     setToolTipText();
+  }
+
+  /**
+   * Changes the display to/from autofidseedMode.  Does nothing if autofidseedMode would
+   * be unchanged.
+   * @param input
+   */
+  void updateAutofidseed(final boolean input) {
+    if (input == autofidseedMode) {
+      return;
+    }
+    autofidseedMode = input;
+    // Change the padding
+    panelBeadtrackX.removeAll();
+    if (autofidseedMode) {
+      panelBeadtrackX.add(Box.createRigidArea(FixedDim.x197_y0));
+    }
+    panelBeadtrackX.add(panelBeadtrack);
+    if (autofidseedMode) {
+      panelBeadtrackX.add(Box.createRigidArea(FixedDim.x197_y0));
+    }
+    // Change visibility of fields
+    ltfTiltAngleGroupSize.setVisible(!autofidseedMode);
+    ltfTiltAngleGroups.setVisible(!autofidseedMode);
+    ltfMagnificationGroupSize.setVisible(!autofidseedMode);
+    ltfMagnificationGroups.setVisible(!autofidseedMode);
+    ltfNMinViews.setVisible(!autofidseedMode);
+    ltfBeadDiameter.setVisible(!autofidseedMode);
+    pnlCheckbox.setVisible(!autofidseedMode);
+    ltfMaxGap.setVisible(!autofidseedMode);
+    pnlFillGaps.setVisible(!autofidseedMode);
+    pnlLocalAreaTracking.setVisible(!autofidseedMode);
+    ltfLocalAreaTargetSize.setVisible(!autofidseedMode);
+    ltfMinBeadsInArea.setVisible(!autofidseedMode);
+    ltfMinOverlapBeads.setVisible(!autofidseedMode);
+    ltfMaxViewsInAlign.setVisible(!autofidseedMode);
+    ltfRoundsOfTracking.setVisible(!autofidseedMode);
+    ltfMinTiltRangeToFindAxis.setVisible(!autofidseedMode);
+    ltfMinTiltRangeToFindAngle.setVisible(!autofidseedMode);
+    ltfSearchBoxPixels.setVisible(!autofidseedMode);
+    pnlExpertParameters.setVisible(!autofidseedMode);
+    btnTrack.setVisible(!autofidseedMode);
+    pnlTrack.setVisible(!autofidseedMode);
+    updateAdvanced(header.isAdvanced());
   }
 
   public static BeadtrackPanel getInstance(ApplicationManager manager, AxisID id,
@@ -414,10 +482,11 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     btnTrack.addActionListener(actionListener);
     btnUseModel.addActionListener(actionListener);
     btnFixModel.addActionListener(actionListener);
+    cbSobelFilterCentering.addActionListener(actionListener);
   }
 
   void setVisible(final boolean visible) {
-    panelBeadtrack.setVisible(visible);
+    panelBeadtrackX.setVisible(visible);
   }
 
   public void expand(GlobalExpandButton button) {
@@ -439,10 +508,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   public void setParameters(BaseScreenState screenState) {
     expertParametersHeader.setButtonStates(screenState, false);
     header.setButtonStates(screenState);
-    //btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
-    //    .getButtonStateKey()));
-    //btnTrack.setButtonState(screenState.getButtonState(btnTrack
-    //   .getButtonStateKey()));
+    // btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
+    // .getButtonStateKey()));
+    // btnTrack.setButtonState(screenState.getButtonState(btnTrack
+    // .getButtonStateKey()));
   }
 
   public void getParameters(BaseScreenState screenState) {
@@ -491,6 +560,8 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     ltfMinOverlapBeads.setText(beadtrackParams.getMinOverlapBeads().toString());
     ltfMaxViewsInAlign.setText(beadtrackParams.getMaxViewsInAlign().toString());
     ltfRoundsOfTracking.setText(beadtrackParams.getRoundsOfTracking().toString());
+    cbSobelFilterCentering.setSelected(beadtrackParams.isSobelFilterCentering());
+    ltfKernelSigmaForSobel.setText(beadtrackParams.getKernelSigmaForSobel());
 
     setEnabled();
   }
@@ -498,242 +569,273 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
   /**
    * Get the field values from the panel filling in the BeadtrackParam object
    */
-  public void getParameters(BeadtrackParam beadtrackParams)
+  public boolean getParameters(BeadtrackParam beadtrackParams, final boolean doValidation)
       throws FortranInputSyntaxException, InvalidEtomoNumberException {
-    beadtrackParams.setFillGaps(cbFillGaps.isSelected());
-    beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
-        manager, axisID, ".preali"));
-    String errorTitle = "FieldInterface Error";
-    String badParameter = "";
-    //handle field that throw FortranInputSyntaxException
     try {
-      badParameter = ltfViewSkipList.getLabel();
-      beadtrackParams.setSkipViews(ltfViewSkipList.getText());
+      beadtrackParams.setSkipViews(ltfViewSkipList.getText(doValidation));
+      beadtrackParams
+          .setAdditionalViewGroups(ltfAdditionalViewSets.getText(doValidation));
+      beadtrackParams.setLightBeads(cbLightBeads.isSelected());
+      beadtrackParams.setSobelFilterCentering(cbSobelFilterCentering.isSelected());
+      beadtrackParams
+          .setKernelSigmaForSobel(ltfKernelSigmaForSobel.getText(doValidation));
+      beadtrackParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
+          manager, axisID, ".preali"));
 
-      badParameter = ltfAdditionalViewSets.getLabel();
-      beadtrackParams.setAdditionalViewGroups(ltfAdditionalViewSets.getText());
+      if (!autofidseedMode) {
+        beadtrackParams.setFillGaps(cbFillGaps.isSelected());
 
-      badParameter = ltfTiltAngleGroups.getLabel();
-      beadtrackParams.setTiltAngleGroups(ltfTiltAngleGroups.getText());
+        String errorTitle = "FieldInterface Error";
+        String badParameter = "";
+        // handle field that throw FortranInputSyntaxException
+        try {
+          badParameter = ltfTiltAngleGroups.getLabel();
+          beadtrackParams.setTiltAngleGroups(ltfTiltAngleGroups.getText(doValidation));
 
-      badParameter = ltfMagnificationGroups.getLabel();
-      beadtrackParams.setMagnificationGroups(ltfMagnificationGroups.getText());
+          badParameter = ltfMagnificationGroups.getLabel();
+          beadtrackParams.setMagnificationGroups(ltfMagnificationGroups
+              .getText(doValidation));
 
-      badParameter = ltfSearchBoxPixels.getLabel();
-      beadtrackParams.setSearchBoxPixels(ltfSearchBoxPixels.getText());
+          badParameter = ltfSearchBoxPixels.getLabel();
+          beadtrackParams.setSearchBoxPixels(ltfSearchBoxPixels.getText(doValidation));
 
-      badParameter = ltfFiducialExtrapolationParams.getLabel();
-      beadtrackParams.setFiducialExtrapolationParams(ltfFiducialExtrapolationParams
-          .getText());
+          badParameter = ltfFiducialExtrapolationParams.getLabel();
+          beadtrackParams.setFiducialExtrapolationParams(ltfFiducialExtrapolationParams
+              .getText(doValidation));
 
-      badParameter = ltfRescueAttemptParams.getLabel();
-      beadtrackParams.setRescueAttemptParams(ltfRescueAttemptParams.getText());
+          badParameter = ltfRescueAttemptParams.getLabel();
+          beadtrackParams.setRescueAttemptParams(ltfRescueAttemptParams
+              .getText(doValidation));
 
-      badParameter = ltfRescueRelaxtionParams.getLabel();
-      beadtrackParams.setRescueRelaxationParams(ltfRescueRelaxtionParams.getText());
+          badParameter = ltfRescueRelaxtionParams.getLabel();
+          beadtrackParams.setRescueRelaxationParams(ltfRescueRelaxtionParams
+              .getText(doValidation));
 
-      badParameter = ltfMeanResidChangeLimits.getLabel();
-      beadtrackParams.setMeanResidChangeLimits(ltfMeanResidChangeLimits.getText());
+          badParameter = ltfMeanResidChangeLimits.getLabel();
+          beadtrackParams.setMeanResidChangeLimits(ltfMeanResidChangeLimits
+              .getText(doValidation));
 
-      badParameter = ltfDeletionParams.getLabel();
-      beadtrackParams.setDeletionParams(ltfDeletionParams.getText());
+          badParameter = ltfDeletionParams.getLabel();
+          beadtrackParams.setDeletionParams(ltfDeletionParams.getText(doValidation));
 
-      //handle fields that display their own messages and throw
-      //InvalidEtomoNumberException
-      try {
-        badParameter = ltfTiltAngleGroupSize.getLabel();
-        String errorMessage = beadtrackParams.setTiltDefaultGrouping(
-            ltfTiltAngleGroupSize.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
+          // handle fields that display their own messages and throw
+          // InvalidEtomoNumberException
+          try {
+            badParameter = ltfTiltAngleGroupSize.getLabel();
+            String errorMessage = beadtrackParams.setTiltDefaultGrouping(
+                ltfTiltAngleGroupSize.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMagnificationGroupSize.getLabel();
+            errorMessage = beadtrackParams.setMagDefaultGrouping(
+                ltfMagnificationGroupSize.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfNMinViews.getLabel();
+            errorMessage = beadtrackParams.setMinViewsForTiltalign(
+                ltfNMinViews.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMaxGap.getLabel();
+            errorMessage = beadtrackParams.setMaxGapSize(ltfMaxGap.getText(doValidation))
+                .validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMaxFiducialsAvg.getLabel();
+            errorMessage = beadtrackParams.setMaxBeadsToAverage(
+                ltfMaxFiducialsAvg.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMinRescueDistance.getLabel();
+            errorMessage = beadtrackParams.setDistanceRescueCriterion(
+                ltfMinRescueDistance.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfResidualDistanceLimit.getLabel();
+            errorMessage = beadtrackParams.setPostFitRescueResidual(
+                ltfResidualDistanceLimit.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfDensityRelaxationPostFit.getLabel();
+            errorMessage = beadtrackParams.setDensityRelaxationPostFit(
+                ltfDensityRelaxationPostFit.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMaxRescueDistance.getLabel();
+            errorMessage = beadtrackParams.setMaxRescueDistance(
+                ltfMaxRescueDistance.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMinTiltRangeToFindAxis.getLabel();
+            errorMessage = beadtrackParams.setMinTiltRangeToFindAxis(
+                ltfMinTiltRangeToFindAxis.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMinTiltRangeToFindAngle.getLabel();
+            errorMessage = beadtrackParams.setMinTiltRangeToFindAngles(
+                ltfMinTiltRangeToFindAngle.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfBeadDiameter.getLabel();
+            errorMessage = beadtrackParams.setBeadDiameter(
+                ltfBeadDiameter.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = cbLocalAreaTracking.getText();
+            errorMessage = beadtrackParams.setLocalAreaTracking(
+                cbLocalAreaTracking.isSelected()).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfLocalAreaTargetSize.getText(doValidation);
+            errorMessage = beadtrackParams.setLocalAreaTargetSize(
+                ltfLocalAreaTargetSize.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMinBeadsInArea.getText(doValidation);
+            errorMessage = beadtrackParams.setMinBeadsInArea(
+                ltfMinBeadsInArea.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMinOverlapBeads.getText(doValidation);
+            errorMessage = beadtrackParams.setMinOverlapBeads(
+                ltfMinOverlapBeads.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfMaxViewsInAlign.getText(doValidation);
+            errorMessage = beadtrackParams.setMaxViewsInAlign(
+                ltfMaxViewsInAlign.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+
+            badParameter = ltfRoundsOfTracking.getText(doValidation);
+            errorMessage = beadtrackParams.setRoundsOfTracking(
+                ltfRoundsOfTracking.getText(doValidation)).validate(badParameter);
+            if (errorMessage != null) {
+              UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle,
+                  axisID);
+              throw new InvalidEtomoNumberException(errorMessage);
+            }
+          }
+          catch (InvalidEtomoNumberException e) {
+            throw e;
+          }
         }
-
-        badParameter = ltfMagnificationGroupSize.getLabel();
-        errorMessage = beadtrackParams.setMagDefaultGrouping(
-            ltfMagnificationGroupSize.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfNMinViews.getLabel();
-        errorMessage = beadtrackParams.setMinViewsForTiltalign(ltfNMinViews.getText())
-            .validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMaxGap.getLabel();
-        errorMessage = beadtrackParams.setMaxGapSize(ltfMaxGap.getText()).validate(
-            badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMaxFiducialsAvg.getLabel();
-        errorMessage = beadtrackParams.setMaxBeadsToAverage(ltfMaxFiducialsAvg.getText())
-            .validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMinRescueDistance.getLabel();
-        errorMessage = beadtrackParams.setDistanceRescueCriterion(
-            ltfMinRescueDistance.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfResidualDistanceLimit.getLabel();
-        errorMessage = beadtrackParams.setPostFitRescueResidual(
-            ltfResidualDistanceLimit.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfDensityRelaxationPostFit.getLabel();
-        errorMessage = beadtrackParams.setDensityRelaxationPostFit(
-            ltfDensityRelaxationPostFit.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMaxRescueDistance.getLabel();
-        errorMessage = beadtrackParams.setMaxRescueDistance(
-            ltfMaxRescueDistance.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMinTiltRangeToFindAxis.getLabel();
-        errorMessage = beadtrackParams.setMinTiltRangeToFindAxis(
-            ltfMinTiltRangeToFindAxis.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMinTiltRangeToFindAngle.getLabel();
-        errorMessage = beadtrackParams.setMinTiltRangeToFindAngles(
-            ltfMinTiltRangeToFindAngle.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfBeadDiameter.getLabel();
-        errorMessage = beadtrackParams.setBeadDiameter(ltfBeadDiameter.getText())
-            .validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = cbLightBeads.getText();
-        errorMessage = beadtrackParams.setLightBeads(cbLightBeads.isSelected()).validate(
-            badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = cbLocalAreaTracking.getText();
-        errorMessage = beadtrackParams.setLocalAreaTracking(
-            cbLocalAreaTracking.isSelected()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfLocalAreaTargetSize.getText();
-        errorMessage = beadtrackParams.setLocalAreaTargetSize(
-            ltfLocalAreaTargetSize.getText()).validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMinBeadsInArea.getText();
-        errorMessage = beadtrackParams.setMinBeadsInArea(ltfMinBeadsInArea.getText())
-            .validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMinOverlapBeads.getText();
-        errorMessage = beadtrackParams.setMinOverlapBeads(ltfMinOverlapBeads.getText())
-            .validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfMaxViewsInAlign.getText();
-        errorMessage = beadtrackParams.setMaxViewsInAlign(ltfMaxViewsInAlign.getText())
-            .validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
-        }
-
-        badParameter = ltfRoundsOfTracking.getText();
-        errorMessage = beadtrackParams.setRoundsOfTracking(ltfRoundsOfTracking.getText())
-            .validate(badParameter);
-        if (errorMessage != null) {
-          UIHarness.INSTANCE.openMessageDialog(manager, errorMessage, errorTitle, axisID);
-          throw new InvalidEtomoNumberException(errorMessage);
+        catch (FortranInputSyntaxException except) {
+          String message = badParameter + " " + except.getMessage();
+          throw new FortranInputSyntaxException(message);
         }
       }
-      catch (InvalidEtomoNumberException e) {
-        throw e;
-      }
+      return true;
     }
-    catch (FortranInputSyntaxException except) {
-      String message = badParameter + " " + except.getMessage();
-      throw new FortranInputSyntaxException(message);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
   }
 
   public JPanel getContainer() {
-    return panelBeadtrack;
+    return panelBeadtrackX;
   }
 
   void buttonAction(String command, Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (command.equals(btnTrack.getActionCommand())) {
-      manager.fiducialModelTrack(axisID, btnTrack, null, dialogType, this);
-    }
-    else if (command.equals(btnUseModel.getActionCommand())) {
-      if (manager.makeFiducialModelSeedModel(axisID)) {
-        manager.fiducialModelTrack(axisID, btnUseModel, null, dialogType, this);
+    try {
+      if (command.equals(btnTrack.getActionCommand())) {
+        manager.fiducialModelTrack(axisID, btnTrack, null, dialogType, this);
       }
-    }
-    else if (command.equals(cbLocalAreaTracking.getText())) {
-      setEnabled();
-    }
-    else if (command.equals(btnFixModel.getActionCommand())) {
-      //Validate skipList
-      String skipList = ltfViewSkipList.getText().trim();
-      if (skipList.length() > 0) {
-        if (skipList.matches(".*\\s+.*")) {
-          UIHarness.INSTANCE.openMessageDialog(manager, VIEW_SKIP_LIST_LABEL
-              + " cannot contain embedded spaces.", "Entry Error", axisID);
-          return;
+      else if (command.equals(btnUseModel.getActionCommand())) {
+        if (manager.makeFiducialModelSeedModel(axisID)) {
+          manager.fiducialModelTrack(axisID, btnUseModel, null, dialogType, this);
         }
       }
-      else {
-        skipList = null;
+      else if (command.equals(cbLocalAreaTracking.getText())
+          || command.equals(cbSobelFilterCentering.getText())) {
+        setEnabled();
       }
-      manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
-          ImodProcess.BeadFixerMode.GAP_MODE, skipList);
+      else if (command.equals(btnFixModel.getActionCommand())) {
+        // Validate skipList
+        String skipList = ltfViewSkipList.getText(true).trim();
+        if (skipList.length() > 0) {
+          if (skipList.matches(".*\\s+.*")) {
+            UIHarness.INSTANCE.openMessageDialog(manager, VIEW_SKIP_LIST_LABEL
+                + " cannot contain embedded spaces.", "Entry Error", axisID);
+            return;
+          }
+        }
+        else {
+          skipList = null;
+        }
+        manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
+            ImodProcess.BeadFixerMode.GAP_MODE, skipList);
+      }
+    }
+    catch (FieldValidationFailedException e) {
+      return;
     }
   }
 
@@ -742,31 +844,27 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
-  void pickSeed() {
-    btnTrack.setVisible(true);
-  }
-
-  void pickRaptor() {
-    btnTrack.setVisible(false);
-  }
-
   private void setEnabled() {
     ltfLocalAreaTargetSize.setEnabled(cbLocalAreaTracking.isSelected());
     ltfMinBeadsInArea.setEnabled(cbLocalAreaTracking.isSelected());
     ltfMinOverlapBeads.setEnabled(cbLocalAreaTracking.isSelected());
+    ltfKernelSigmaForSobel.setEnabled(cbSobelFilterCentering.isSelected());
   }
 
   /**
    * Makes the advanced components visible or invisible
    */
   void updateAdvanced(boolean state) {
+    cbLightBeads.setVisible(state);
+    if (autofidseedMode) {
+      return;
+    }
     ltfTiltAngleGroupSize.setVisible(state);
     ltfTiltAngleGroups.setVisible(state);
     ltfMagnificationGroupSize.setVisible(state);
     ltfMagnificationGroups.setVisible(state);
     ltfNMinViews.setVisible(state);
     ltfBeadDiameter.setVisible(state);
-    cbLightBeads.setVisible(state);
     ltfMaxGap.setVisible(state);
     ltfMinTiltRangeToFindAxis.setVisible(state);
     ltfMinTiltRangeToFindAngle.setVisible(state);
@@ -782,7 +880,7 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
     btnFixModel.removeActionListener(actionListener);
   }
 
-  //  ToolTip string setup
+  // ToolTip string setup
   private void setToolTipText() {
     String text;
     ReadOnlyAutodoc autodoc = null;
@@ -862,6 +960,10 @@ public final class BeadtrackPanel implements Expandable, Run3dmodButtonContainer
         BeadtrackParam.MAX_VIEWS_IN_ALIGN_KEY));
     ltfRoundsOfTracking.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         BeadtrackParam.ROUNDS_OF_TRACKING_KEY));
+    cbSobelFilterCentering.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.SOBEL_FILTER_CENTERING_KEY));
+    ltfKernelSigmaForSobel.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.KERNEL_SIGMA_FOR_SOBEL_KEY));
     btnTrack.setToolTipText("Run Beadtrack to produce fiducial model from seed model.");
     btnFixModel.setToolTipText("Load fiducial model into 3dmod.");
     btnUseModel

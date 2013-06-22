@@ -86,6 +86,8 @@ public abstract class ParsedElement {
   private boolean failed = false;
   private String failedMessage = null;
 
+  final String descr;
+
   public abstract String getRawString();
 
   public abstract String getRawString(int index);
@@ -100,11 +102,11 @@ public abstract class ParsedElement {
 
   abstract ParsedElement getElement(int index);
 
-  abstract void setRawString(int index, float number);
+  abstract void setRawString(int index, double number);
 
   abstract void setRawString(int index, String string);
 
-  abstract String validate();
+  public abstract String validate();
 
   abstract Token parse(Token token, PrimativeTokenizer tokenizer);
 
@@ -113,7 +115,7 @@ public abstract class ParsedElement {
   abstract String getParsableString();
 
   abstract boolean isCollection();
-  
+
   abstract boolean isDescriptor();
 
   abstract void setDefault(EtomoNumber input);
@@ -123,6 +125,10 @@ public abstract class ParsedElement {
   abstract boolean ge(int number);
 
   abstract void clear();
+
+  ParsedElement(final String descr) {
+    this.descr = descr;
+  }
 
   /**
    * Append non-null ParsedNumbers to parsedNumberExpandedArray.  Create
@@ -185,7 +191,7 @@ public abstract class ParsedElement {
 
   final void fail(final String message) {
     failed = true;
-    failedMessage = message;
+    failedMessage = (descr != null ? descr : "") + ": " + message;
   }
 
   final void resetFailed() {
@@ -196,7 +202,7 @@ public abstract class ParsedElement {
   final void setFailed(final boolean failed, final String failedMessage) {
     this.failed = failed;
     if (failed) {
-      this.failedMessage = failedMessage;
+      this.failedMessage = (descr != null ? descr : "") + ": " + failedMessage;
     }
     else {
       this.failedMessage = null;
@@ -216,7 +222,7 @@ public abstract class ParsedElement {
       return null;
     }
     if (failedMessage == null) {
-      return "Unable to parse.";
+      return (descr != null ? descr : "") + ": Unable to parse.";
     }
     return failedMessage;
   }

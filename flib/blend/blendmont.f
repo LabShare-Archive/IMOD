@@ -61,7 +61,7 @@ c
 c       
       integer*4 nedgetmp(5,2)
       integer*4, allocatable :: listz(:),izwant(:), izAllWant(:)
-      logical skipxforms,undistortOnly,xcWriteOut
+      logical skipxforms,undistortOnly,xcWriteOut, sameEdgeShifts
       character dat*9, tim*8
       real*4 edgefrac(2),title(20)
       real*4 edgefracx,edgefracy
@@ -72,7 +72,7 @@ c
       logical active4(3,2)
       logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
       logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
-      logical xcorrDebug,verySloppy,useEdges,edgesIncomplete,adjustOrigin
+      logical xcorrDebug,verySloppy,useEdges,edgesIncomplete,adjustOrigin, useFill
       logical edgesSeparated,fromCorrOnly, samePieces, noFFTsizes, yChunks, doWarp
       real*4, allocatable :: dxgridmean(:,:),dygridmean(:,:)
       real*4, allocatable :: edgedispx(:,:),edgedispy(:,:)
@@ -96,7 +96,7 @@ c
       integer*4 nxtotwant,nytotwant,newxpieces,newypieces,ifoldedge
       integer*4 newxtotpix,newytotpix,newxframe,newyframe,newminxpiece
       integer*4 newminypiece,ifwant,nglist,ierr,nxfrmpneg,nyfrmpneg
-      real*4 dmin,dmax,outmin,outmax,definmin,pixelTot
+      real*4 dmin,dmax,outmin,outmax,definmin,pixelTot, fillVal
       real*4 definmax,curinmin,curinmax,pixscale,pixadd
       real*8 tsum,cursum,grandsum,rnsum
       integer*4 ixfrm,iyfrm,ipc,nshort,nlong,ishort,ilong,indbray
@@ -142,45 +142,41 @@ c
       integer*4 PipGetTwoIntegers, PipGetTwoFloats,PipGetLogical
       integer*4 PipGetInOutFile,PipNumberOfEntries
 c       
-c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
-c       
+c       fallbacks from ../../manpages/autodoc2man -2 2 blendmont
       integer numOptions
-      parameter (numOptions = 64)
+      parameter (numOptions = 71)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
-     &    'imout:ImageOutputFile:FN:@plout:PieceListOutput:FN:@'//
-     &    'rootname:RootNameForEdges:CH:@mode:ModeToOutput:I:@'//
-     &    'float:FloatToRange:B:@xform:TransformFile:FN:@'//
-     &    'center:TransformCenterXandY:FP:@order:InterpolationOrder:I:@'//
-     &    'skip:SkipEdgeModelFile:FN:@nonzero:NonzeroSkippedEdgeUse:I:@'//
+     &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@imout:ImageOutputFile:FN:@'//
+     &    'plout:PieceListOutput:FN:@rootname:RootNameForEdges:CH:@'//
+     &    'oldedge:OldEdgeFunctions:B:@perneg:FramesPerNegativeXandY:IP:@'//
+     &    'missing:MissingFromFirstNegativeXandY:IP:@mode:ModeToOutput:I:@'//
+     &    'float:FloatToRange:B:@fill:FillValue:F:@xform:TransformFile:FN:@'//
+     &    'center:TransformCenterXandY:FP:@unaligned:UnalignedStartingXandY:IP:@'//
+     &    'order:InterpolationOrder:I:@sections:SectionsToDo:LI:@'//
+     &    'xminmax:StartingAndEndingX:IP:@yminmax:StartingAndEndingY:IP:@'//
+     &    'nofft:NoResizeForFFT:B:@origin:AdjustOrigin:B:@bin:BinByFactor:I:@'//
+     &    'maxsize:MaximumNewSizeXandY:IP:@minoverlap:MinimumOverlapXandY:IP:@'//
      &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
      &    'gradient:GradientFile:FN:@adjusted:AdjustedFocus:B:@'//
-     &    'addgrad:AddToGradient:FP:@tiltfile:TiltFile:FN:@'//
-     &    'offset:OffsetTilts:F:@geometry:TiltGeometry:FT:@'//
-     &    'justUndistort:JustUndistort:B:@test:TestMode:B:@'//
-     &    'sloppy:SloppyMontage:B:@very:VerySloppyMontage:B:@'//
-     &    'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
-     &    'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
-     &    'sections:SectionsToDo:LI:@xminmax:StartingAndEndingX:IP:@'//
-     &    'yminmax:StartingAndEndingY:IP:@nofft:NoResizeForFFT:B:@'//
-     &    'origin:AdjustOrigin:B:@bin:BinByFactor:I:@'//
-     &    'maxsize:MaximumNewSizeXandY:IP:@'//
-     &    'minoverlap:MinimumOverlapXandY:IP:@oldedge:OldEdgeFunctions:B:@'//
-     &    'perneg:FramesPerNegativeXandY:IP:@'//
-     &    'missing:MissingFromFirstNegativeXandY:IP:@'//
-     &    'width:BlendingWidthXandY:IP:@boxsize:BoxSizeShortAndLong:IP:@'//
-     &    'grid:GridSpacingShortAndLong:IP:@indents:IndentShortAndLong:IP:@'//
-     &    'goodedge:GoodEdgeLowAndHighZ:IP:@onegood:OneGoodEdgeLimits:IAM:@'//
-     &    'exclude:ExcludeFillFromEdges:B:@parallel:ParallelMode:IP:@'//
-     &    'subset:SubsetToDo:LI:@lines:LineSubsetToDo:IP:@'//
+     &    'addgrad:AddToGradient:FP:@tiltfile:TiltFile:FN:@offset:OffsetTilts:F:@'//
+     &    'geometry:TiltGeometry:FT:@justUndistort:JustUndistort:B:@test:TestMode:B:@'//
+     &    'sloppy:SloppyMontage:B:@very:VerySloppyMontage:B:@shift:ShiftPieces:B:@'//
+     &    'edge:ShiftFromEdges:B:@xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
+     &    'ecdbin:BinningForEdgeShifts:F:@overlap:OverlapForEdgeShifts:IP:@'//
+     &    'skip:SkipEdgeModelFile:FN:@nonzero:NonzeroSkippedEdgeUse:I:@'//
+     &    'robust:RobustFitCriterion:F:@width:BlendingWidthXandY:IP:@'//
+     &    'boxsize:BoxSizeShortAndLong:IP:@grid:GridSpacingShortAndLong:IP:@'//
+     &    'indents:IndentShortAndLong:IP:@goodedge:GoodEdgeLowAndHighZ:IP:@'//
+     &    'onegood:OneGoodEdgeLimits:IAM:@exclude:ExcludeFillFromEdges:B:@'//
+     &    'unsmooth:UnsmoothedPatchFile:FN:@smooth:SmoothedPatchFile:FN:@'//
+     &    'parallel:ParallelMode:IP:@subset:SubsetToDo:LI:@lines:LineSubsetToDo:IP:@'//
      &    'boundary:BoundaryInfoFile:FN:@functions:EdgeFunctionsOnly:I:@'//
-     &    'aspect:AspectRatioForXcorr:F:@pad:PadFraction:F:@'//
-     &    'extra:ExtraXcorrWidth:F:@numpeaks:NumberOfXcorrPeaks:I:@'//
-     &    'radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'//
-     &    'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
-     &    'treat:TreatFillForXcorr:I:@xcdbg:XcorrDebug:B:@'//
-     &    'taper:TaperFraction:F:@param:ParameterFile:PF:@help:usage:B:'
+     &    'aspect:AspectRatioForXcorr:F:@pad:PadFraction:F:@extra:ExtraXcorrWidth:F:@'//
+     &    'numpeaks:NumberOfXcorrPeaks:I:@radius1:FilterRadius1:F:@'//
+     &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
+     &    'treat:TreatFillForXcorr:I:@xcdbg:XcorrDebug:B:@taper:TaperFraction:F:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       initialization of many things
 c       
@@ -216,6 +212,7 @@ c
       adjustOrigin = .false.
       noFFTsizes = .false.
       yChunks = .false.
+      sameEdgeShifts = .false.
       iBinning = 1
       numAngles = 0
       numUseEdge = 0
@@ -255,6 +252,8 @@ c
       verySloppy = .false.
       lmField = 1
       maxFields = 1
+      useFill = .false.
+      memLim = 256
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -357,7 +356,7 @@ c
       limsect = nsect + 1
       allocate(tiltAngles(limsect), dmagPerUm(limsect), rotPerUm(limsect),
      &    listz(limsect),izwant(limsect), izAllWant(limsect), gl(2,3,limsect),
-     &    multineg(limsect), stat = ierr)
+     &    multineg(limsect), izMemList(memLim), lastUsed(memLim), stat = ierr)
       if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS PER PIECE')
       multineg(1:nsect) = multitmp(1:nsect)
 c
@@ -473,6 +472,7 @@ c
         ierr = PipGetInteger('NonzeroSkippedEdgeUse', ifUseAdjusted)
         ierr = PipGetFloat('RobustFitCriterion', robustCrit)
         ierr = PipGetLogical('TestMode', testMode)
+        useFill = PipGetFloat('FillValue', fillVal) .eq. 0
         ierr = PipGetTwoIntegers('GoodEdgeLowAndHighZ', izUseDefLow,
      &      izUseDefHigh)
         ierr = PipNumberOfEntries('OneGoodEdgeLimits', numUseEdge)
@@ -484,14 +484,20 @@ c
           izLowUse(i) = ixpclo(4)
           izHighUse(i) = ixpclo(5)
         enddo
+        ierr = PipGetLogical('SameEdgeShifts', sameEdgeShifts)
         if ((anyneg .or. ioptabs .ne. 0) .and. (shifteach .or. xcreadin)
      &      .and. .not.undistortOnly)
      &      call exitError('YOU CANNOT USE ShiftPieces OR '//
      &      'ReadInXcorrs WITH MULTIPLE NEGATIVES')
         if (fromedge .and. xclegacy .and. .not.undistortOnly) call exitError
      &      ('YOU CANNOT USE BOTH ShiftFromEdges AND ShiftFromXcorrs')
-        if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach) call
-     &      exitError('YOU CANNOT USE GOOD EDGE LIMITS WHEN SHIFTING PIECES')
+        if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach) then
+          if (.not. sameEdgeShifts) call
+     &        exitError('YOU CANNOT USE GOOD EDGE LIMITS WHEN SHIFTING PIECES')
+          if (fromedge)
+     &        call exitError('YOU CANNOT USE ShiftFromEdges WITH GOOD EDGE LIMITS')
+          xclegacy = .true.
+        endif
       else
         if(anyneg)then
           print *,'There are multi-negative specifications in list file'
@@ -720,13 +726,11 @@ c         If no resizing desired, take exactly what is requested in one frame
           newypieces = 1
           newyoverlap = 2
         else
-          if (noFFTsizes)write(*,'(/,a,a)')'WARNING: BLENDMONT - NoResizeFor',
-     &        'FFT IS IGNORED WITH OUTPUT TO MORE THAN ONE FRAME'
           nxtotwant=2*((maxxwant+2-minxwant)/2)
           nytotwant=2*((maxywant+2-minywant)/2)
-          call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
+          call setoverlap(nxtotwant,minxoverlap,noFFTsizes,newxframe,2,newxpieces,
      &        newxoverlap,newxtotpix)
-          call setoverlap(nytotwant,minyoverlap,newyframe,2,newypieces,
+          call setoverlap(nytotwant,minyoverlap,noFFTsizes,newyframe,2,newypieces,
      &        newyoverlap,newytotpix)
         endif
 c         
@@ -829,7 +833,7 @@ c       Allocate data depending on number of pieces (limvar)
       limvar = nxpieces * nypieces
       if (.not. undistortOnly) then
         allocate(bb(2, limvar), ivarpc(limvar), iallVarpc(limvar),
-     &      ivarGroup(limvar), listCheck(limvar), fpsWork(20*limvar),
+     &      ivarGroup(limvar), listCheck(limvar), fpsWork(20*limvar + limvar / 4 + 4),
      &      dxyvar(limvar, 2), rowTmp(limvar*2), stat = ierr)
         if (ierr .ne. 0) call exitError('ALLOCATING ARRAYS FOR FINDING SHIFTS')
 c
@@ -1140,6 +1144,7 @@ c       Do not write ecd file if not all sections are being computed
 c       
 c       Read old .ecd file(s)
       if(xcreadin .and. .not.undistortOnly)then
+        ierr = PipGetFloat('BinningForEdgeShifts', ecdBin)
         iedgeDelX = 0
         iedgeDelY = 0
         if (PipGetTwoIntegers('OverlapForEdgeShifts', iedgeDelX, iedgeDelY)
@@ -1152,7 +1157,6 @@ c       Read old .ecd file(s)
         inquire(file=edgenam,exist=exist)
         iy = 4
         if(.not.exist)then
-          ierr = PipGetFloat('BinningForEdgeShifts', ecdBin)
 c           
 c           If the file does not exist, look for the two separate files
 c           and put second name in a different variable.  Set unit number to
@@ -1755,6 +1759,8 @@ c
           enddo
         enddo
         dmean=cursum/rnsum
+        dfill = dmean
+        if (useFill) dfill = fillVal
         if(iffloat.eq.0)then
           curinmin=definmin
           curinmax=definmax
@@ -1845,10 +1851,10 @@ c
               endif
               nlinesout=indyhi+1-indylo
 c               
-c               fill array with dmean
+c               fill array with dfill
 c               
               do i=1,nxout*nlinesout
-                brray(i + iBufferBase)=dmean
+                brray(i + iBufferBase)=dfill
               enddo
 c               
               do ixfast=1,nxfast
@@ -1972,7 +1978,7 @@ c
 c                       
 c                       get indices of pieces and edges and the weighting
 c                       of each piece: for now, numbers
-                      call getPieceIndicesAndWeighting()
+                      call getPieceIndicesAndWeighting(useEdges)
 c                       
 c                       NOW SORT OUT THE CASES OF 1, 2, 3 or 4 PIECES
 
@@ -2032,7 +2038,7 @@ c                 wasn't the first set of lines, then need to go back and
 c                 fill the lower part of frame with mean values
 c                 
                 if(.not.anylinesout.and.iyfast.gt.1)then
-                  val=dmean*pixscale+pixadd
+                  val=dfill*pixscale+pixadd
                   brray(1:nxout)=val
                   call parWrtPosn(2,numOut,iyOutOffset)
                   do ifill=1,(iyfast-1) * ifastsiz
@@ -3126,12 +3132,13 @@ c
 
 c       GET INDICES OF PIECES AND EDGES AND THE WEIGHTING OF EACH PIECE
 c
-      subroutine getPieceIndicesAndWeighting()
+      subroutine getPieceIndicesAndWeighting(useEdges)
       use blendvars
       implicit none
+      logical*4 useEdges
       real*4 er3,eb3,el4,eb4,fx,fy,dr1,dt1,dl2,dt2,dr3,db3,dl4,db4,dla,dra
       real*4 dba,dta,ax,ay,f12,f13,f34,f24,er1,et1,el2,et2
-      integer*4 ipfrom, ipxto, ipyto, ixyDisjoint, ied, ipc,i, indedg
+      integer*4 ipfrom, ipxto, ipyto, ixyDisjoint, ied, ipc,i, indedg, ixy, jedge
       real*4 bwof, edstart, edend, wsum
 
 c       for now, numbers 1 to 4 represent lower left, lower right, upper left,
@@ -3296,6 +3303,14 @@ c             First find the missing edges and set some indexes
               ipfrom = indp1
               ipxto = indp3
               ipyto = indp2
+            endif
+c             
+c             Replace with used edge numbers
+            if (useEdges) then
+              do ixy = 1, 2
+                call findEdgeToUse(inedge(2, ixy), ixy, jedge)
+                if (jedge .ne. 0) inedge(2, ixy) = jedge
+              enddo
             endif
 c             
 c             Analyze X edge first then Y edge - don't worry if both are bad

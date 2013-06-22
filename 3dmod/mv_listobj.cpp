@@ -65,8 +65,6 @@ static bool grouping = false;
 void imodvObjectListDialog(ImodvApp *a, int state)
 {
   int m;
-  QString qstr;
-  char *window_name;
 
   if (!state){
     if (Oolist_dialog)
@@ -81,7 +79,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
 
   // Get number of buttons, number of columns and number per column
   // Make maximum number of buttons needed for all loaded models
-  for (m = 0; m < a->nm; m++)
+  for (m = 0; m < a->numMods; m++)
     if (numOolistButtons < a->mod[m]->objsize) 
       numOolistButtons = a->mod[m]->objsize; 
   if (numOolistButtons > MAX_OOLIST_BUTTONS)
@@ -123,14 +121,7 @@ void imodvObjectListDialog(ImodvApp *a, int state)
     newHeight = QApplication::desktop()->height() - 100;
   Oolist_dialog->resize(newWidth, newHeight);
 
-  window_name = imodwEithername("3dmodv Object List: ", a->imod->fileName, 1);
-  if (window_name) {
-    qstr = window_name;
-    free(window_name);
-  }
-  if (qstr.isEmpty())
-    qstr = "3dmodv Object List";
-  Oolist_dialog->setWindowTitle(qstr);
+  setModvDialogTitle(Oolist_dialog, "3dmodv Object List: ");
   imodvDialogManager.add((QWidget *)Oolist_dialog, IMODV_DIALOG);
 
   // After getting size with group buttons present, maybe hide them

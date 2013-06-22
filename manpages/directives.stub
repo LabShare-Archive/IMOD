@@ -1,0 +1,69 @@
+<HTML>
+<HEAD>
+<TITLE>Batch/Template Directives</TITLE>
+</HEAD>
+<BODY><A NAME = "TOP">
+INSERT CSV FILE
+<P>
+Notes:
+<OL>
+<LI> The type entries indicate the kind of data expected to be in the field:
+  one or two integers (separated by a comma), one or two floating point
+  numbers, a boolean value of 0 or 1, or a text string.  Text string entries
+  marked as "File" will be shown with a file chooser button in the template
+  editor in eTomo.
+<LI> Template directives must either specify absolute paths or have just a
+  filename with no path.  In the latter case, the files are sought in their
+  default locations:
+<UL>
+<LI> A scope template file is expected to be in $IMOD_CALIB_DIR/ScopeTemplate.
+<LI> For a system template, the program looks in
+  $IMOD_CALIB_DIR/SystemTemplate, and if the file is not there, it looks for it
+  in $IMOD_DIR/SystemTemplate.  Thus, a customized file placed in the
+  IMOD_CALIB_DIR location will override a file of the same name distributed
+  with IMOD.
+<LI> A user template file is expected to be in the user's selected template
+  directory, which is $HOME/.etomotemplate by default and can be changed in
+  the Settings dialog in eTomo.
+</UL>
+<LI> Template and batch directive filenames must end in the extension ".adoc".
+<LI> Rules for the treatment of directives and the format of values are
+  described in the <A HREF="man/batchruntomo.html">man page</A> for
+  Batchruntomo. Some essentials are:
+<UL>
+<LI> Directives are processed in order from scope template, system template,
+  user template, and batch directive files, and later entries override earlier
+  ones. 
+<LI> All boolean directives must have either a 0 or a 1 after the equals sign,
+  to turn the option off or on.
+<LI> For all other kinds of directives, it is possible to have no value after
+  the equals sign, which means that the parameter in question is not set, even
+  if it was set by an earlier directive.  In the case of a "comparam" directive, 
+  an empty value will cause the parameter to be removed from the command file.
+</UL>
+<LI> Directives marked with <B>Y</B> in the <B>Batch</B> column can be included in a
+  batch directive file and will be acted on by Batchruntomo.
+<LI> Directives marked with <B>Y</B> in the <B>Tmplt</B> column can be
+  included in a template file.  The entry in the <B>Batch</B> column
+  determines whether such directives have an effect when the relevant step is run by
+  Batchruntomo.   The entry in the <B>eTomo</B> column determines
+  whether they have an effect when running the relevant step for the first
+  time in eTomo as well as the behavior of the directive editor now under
+  construction.
+<LI> The entry in the <B>eTomo</B> column has these meanings:
+<UL>
+<LI> <B>SD</B>: Saved by default into a directive file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>SO</B>: Optionally saved into a directive file by eTomo, and will have
+  an effect when running in eTomo.
+<LI> <B>Blank</B>: Not saved into a directive file by eTomo, or not visible by
+  default in a directive editor but optionally savable, and will have
+  an effect when running in eTomo.
+<LI> <B>NE</B>: Will not (yet) have any effect if running in eTomo, and either
+  not saved by eTomo or not visible by default in a directive editor.
+<LI> <B>NES</B>: Will not (yet) have any effect if running in eTomo, but optionally
+  saved into a directive file by eTomo.
+</UL> 
+</OL>
+</BODY>
+</HTML>

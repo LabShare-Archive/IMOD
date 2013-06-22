@@ -1,0 +1,268 @@
+#!/usr/bin/env python
+# tomodataplots - Plot selected data from tomogram processing
+#
+# Author: David Mastronarde
+#
+# $Id$
+#
+
+progname = 'tomodataplots'
+prefix = 'ERROR: ' + progname + ' - '
+
+def findLimitingLines(lines, startText, endText, startLook = 0):
+   reStart = re.compile(startText)
+   reEnd = re.compile(endText)
+   startLine = -1
+   for ind in range(startLook, len(lines)):
+      if startLine < 0 and re.search(reStart, lines[ind]):
+         startLine = ind
+      if startLine >= 0 and re.search(reEnd, lines[ind]):
+         return (startLine, ind)
+
+   return (startLine, -1)
+
+#### MAIN PROGRAM  ####
+#
+# load System Libraries
+import os, sys, os.path, signal, re
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import *
+
+tempFile = ''
+defaultColors = ['1,navy', '2,maroon']
+
+# 0 = file type, 1 = columns, 2 = ordinal, 3 = symbols, 4 = connect, 5 = keys
+typeTable = [(0, [5], 1, [7], 1, ['X shift']),
+             (0, [6], 1, [7], 1, ['Y shift']),
+             (0, [5, 6], 1, [7, 9], 1, ['X shift', 'Y shift']),
+             (1, [1, 2], 1, [0, 0], 1, ['Mean error', 'Max error']),
+             (2, [1, 2], 0, [0], 0, ['Rotation']),
+             (2, [1, 4, 7], 0, [0, 0], 1, ['Delta tilt', 'Skew']),
+             (2, [1, 5], 0, [0], 0, ['Mag']),
+             (2, [1, 6], 0, [0], 0, ['X-Stretch (dmag)']),
+             (2, [1, 2], 0, [9, 15], 0, ['Mean residual', '(view is multiple of 5)']),
+             (2, [1, 2], 0, [9, 15], 0, ['Local mean residual',
+                                        '(view is multiple of 5)']),
+             (3, [1], 1, [7], 0, ['Minimum value']),
+             (3, [2], 1, [7], 0, ['Maximum value']),
+             (3, [1, 2], 1, [7, 9], 0, ['Minimum value', 'Maximum value'])]
+tempNeeded = [False, True, True, True]
+axisLabels = ['View number', 'View number', 'View number', 'View number']
+
+# Fallbacks from ../manpages/autodoc2man 3 1 plottomodata
+options = ["input:InputFile:FN:", "type:TypeOfDataToPlot:IA:",
+           "connect:ConnectWithLines:I:", "symbols:SymbolsForGroups:IA:",
+           "hue:HueOfGroup:CHM:"]
+
+(numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
+
+# Get input file, make sure it exists
+dataName = PipGetInOutFile('InputFile', 0)
+if not dataName:
+   exitError('The input file name must be entered')
+if not os.path.exists(dataName):
+   exitError('Input file ' + dataName + ' does not exist')
+
+# Get type of file, and if it needs processing, read the lines and set up for temp file
+dataType = PipGetInteger('TypeOfDataToPlot', 0) - 1
+if dataType < 0 or dataType >= len(typeTable):
+   exitError('A type of data must be entered between 1 and ' + str(len(typeTable)))
+fileType = typeTable[dataType][0]
+plotFile = dataName
+if tempNeeded[fileType]:
+   tempFile = imodTempDir() + '/' + progname + '.' + str(os.getpid())
+   plotFile = tempFile
+   dataLines = readTextFile(dataName)
+
+# Get other options, fall back to defaults for connect
+connect = PipGetInteger('ConnectWithLines', 0)
+connect = max(0, min(1, connect))
+if PipGetErrNo():
+   connect = typeTable[dataType][4]
+symbolsIn = PipGetIntegerArray('SymbolsForGroups', 0)
+numColors = PipNumberOfEntries('HueOfGroup')
+ifTypes = False
+
+# Handle generic option setup into onegenplot
+columns = typeTable[dataType][1]
+symbols = typeTable[dataType][3]
+keys = typeTable[dataType][5]
+axisLabel = axisLabels[fileType]
+if fileType == 3 and dataLines and 'iece' in dataLines[0]:
+   axisLabel = 'Piece number'
+   
+comlines = ['InputDataFile ' + plotFile,
+            'ConnectWithLines ' + str(connect),
+            'XaxisLabel ' + axisLabel]
+if typeTable[dataType][2]:
+   comlines.append('OrdinalsForXvalues')
+   
+# Handle specific file types
+# BLEND
+outLines = []
+if fileType == 1:
+   errMatch = re.compile('^.*mean&max.*after.*:')
+   for l in dataLines:
+      if re.search(errMatch, l):
+         outLines.append(re.sub(errMatch, '', l))
+
+# ALIGN
+elif fileType == 2:
+   (start, end) = findLimitingLines(dataLines, '^ view.*deltilt', '^$')
+   if start < 0 or end < 0:
+      exitError('Could not find global solution table in ' + dataName)
+   if 'residual' not in keys[0]:
+      outLines = dataLines[start + 1 : end]
+
+      # Look for fixed value of second column
+      if len(symbols) > 1:
+         col = columns[len(columns) - 1] - 1
+         colval = ''
+         for l in outLines:
+            lsplit = l.split()
+            if len(lsplit) <= col:
+               exitError('Not enough columns in solution table in ' + dataName)
+            if not colval:
+               colval = lsplit[col]
+            elif colval != lsplit[col]:
+               break
+         else:   # ELSE ON FOR; peel off the last column
+            columns = columns[:len(columns) - 1]
+            symbols = symbols[:len(symbols) - 1]
+            keys = keys[:len(keys) - 1]
+
+   else:
+
+      # Local or global mean residual: first find maximum view in global
+      try:
+         lsplit = dataLines[end - 1].split()
+         lastView = int(lsplit[0])
+      except Exception:
+         exitError('Converting view number in align log')
+      errSum = (lastView + 1) * [0.]
+      numInSum = (lastView + 1) * [0]
+      ifTypes = True
+
+      # Analyze each line, add residual to sum for view
+      while True:
+         local = 'global'
+         if 'Local mean' in keys[0]:
+            local = 'local'
+            (start, end) = findLimitingLines(dataLines, '^ view.*deltilt', '^$', end)
+            if start < 0 or end < 0:
+               break
+         for l in dataLines[start + 1 : end]:
+            try:
+               lsplit = l.split()
+               view = int(lsplit[0])
+               resid = float(lsplit[7])
+            except Exception:
+               exitError('Analyzing ' + local + ' solution in ' + dataName)
+            if view > lastView:
+               exitError('View number higher in local than global solution')
+            errSum[view] += resid
+            numInSum[view] += 1
+
+         if local != 'local':
+            break
+
+      # Make the output lines with means
+      for view in range(lastView + 1):
+         if numInSum[view]:
+            group = 1
+            if view % 5 == 0:
+               group = 2
+            outLines.append(fmtstr('{}  {}  {}', group, view,
+                                   errSum[view] / numInSum[view]))
+      if not outLines:
+         exitError('No local solutions found in ' + dataName)
+         
+# CLIP STATS
+elif fileType == 3:
+   (start, end) = findLimitingLines(dataLines, '----', 'all')
+   if start < 0 or end < 0:
+      exitError('Cannot find starting and ending lines for stats in ' + dataName)
+   for l in dataLines[start + 1 : end]:
+      l = l.replace('*', ' ')
+      try:
+         lsplit = l.split()
+         parsplit = l.split(')')
+         maxsplit = parsplit[1].split()
+         outLines.append(lsplit[1] + '  ' + maxsplit[0])
+      except Exception:
+         exitError('Extracting min and max from lines in ' + dataName)
+   if not outLines:
+      exitError('No min/max data found in ' + dataName)
+
+if tempFile:
+   writeTextFile(tempFile, outLines)
+
+# Now that everything is set, make up columns and symbols input
+colstr = 'ColumnsToPlot '
+for ind in range(len(columns)):
+   if ind:
+      colstr += ','
+   colstr += str(columns[ind])
+comlines.append(colstr)
+if ifTypes:
+   comlines.append('IfTypesInFirstColumn 1')
+   comlines.append('TypesToPlot 1,2')
+
+symstr = 'SymbolsForTypes '
+for ind in range(len(symbols)):
+   sym = symbols[ind]
+   if symbolsIn and ind < len(symbolsIn):
+      sym = symbolsIn[ind]
+   if ind:
+      symstr += ','
+   symstr += str(sym)
+comlines.append(symstr)
+for key in keys:
+   comlines.append('KeyLabels ' + key)
+
+# Start with default colors, take in each entry and replace in default if present
+if len(symbols) > 1:
+   colors = defaultColors
+else:
+   colors = []
+for ind in range(numColors):
+   newColor = PipGetString('HueOfGroup', '')
+   ncsplit = newColor.split(',')
+   for ind in range(len(colors)):
+      dcsplit = colors[ind].split(',')
+      if dcsplit[0] == ncsplit[0]:
+         colors[ind] = newColor
+         break
+   else:  # ELSE ON FOR
+      colors.append(newColor)
+for col in colors:
+   comlines.append('HueOfGroup ' + col)
+
+# Run onegenplot
+try:
+   prnstr('Close graph window to exit', flush = True)
+   runcmd('onegenplot -StandardInput', comlines)
+except ImodpyError:
+   exitFromImodError(progname)
+
+if tempFile:
+   cleanupFiles([tempFile])
+sys.exit(0)

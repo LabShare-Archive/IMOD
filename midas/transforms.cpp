@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -75,6 +74,7 @@ int new_view(MidasView *vw)
   vw->wMeanerr = NULL;
   vw->curWarpFile = -1;
   vw->editWarps = false;
+  vw->drawVectors = false;
   vw->numWarpBackup = 0;
   vw->maxWarpBackup = 0;
   vw->backupXcontrol = NULL;
@@ -2296,12 +2296,16 @@ void crossCorrelate(MidasView *vw)
   float xpeak[MAX_PEAKS], ypeak[MAX_PEAKS], peaks[MAX_PEAKS];
   float ctf[8193], ctfDelta;
   float *mat = vw->tr[vw->cz].mat;
+  float dx, dy, diff1, diff2, xtrans = mat[6], ytrans = mat[7];
   int ix0, ix1, iy0, iy1, i, nxsmooth, nysmooth, minpad;
   int nxuse, nyuse, nxpad, nypad;
   float *array, *brray, *arfilt;
   float xcenter = vw->xcenter;
   float ycenter = vw->ycenter;
-  int ipsave, nsum, imax;
+  float xPeakAdjust =0., yPeakAdjust = 0.;
+  int ixAdjust = 0, iyAdjust = 0;
+  int curSliceType = MIDAS_SLICE_CURRENT;
+  int ipsave, nsum, imax, halfBox = vw->corrBoxSize / 2;
   unsigned char *curImageData, *prevImageData;
   float *xControl, *yControl, *xVector, *yVector;
   Islice *curSlice;
@@ -2316,10 +2320,33 @@ void crossCorrelate(MidasView *vw)
     }
     xcenter = xControl[vw->curControl] / vw->warpScale;
     ycenter = yControl[vw->curControl] / vw->warpScale;
+    xtrans -= xVector[vw->curControl] / vw->warpScale;
+    ytrans -= yVector[vw->curControl] / vw->warpScale;
+    
+    // Determine the average movement of the corners of the correlation box
+    dx = halfBox * mat[0] + halfBox * mat[3] - halfBox;
+    dy = halfBox * mat[1] + halfBox * mat[4] - halfBox;
+    diff1 = (float)sqrt((double)dx * dx + dy * dy);
+    dx = halfBox * mat[0] - halfBox * mat[3] - halfBox;
+    dy = halfBox * mat[1] - halfBox * mat[4] + halfBox;
+    diff2 = (float)sqrt((double)dx * dx + dy * dy);
+
+    // If the movement is low enough, go to the original image instead of the transformed
+    // one and adjust the extracted box and peak positions accordingly
+    // This avoids having to iterate the correlation
+    if (diff1 + diff2 <= 6) {
+      curSliceType = MIDAS_SLICE_OCURRENT;
+      ixAdjust = -B3DNINT(xtrans);
+      iyAdjust = -B3DNINT(ytrans);
+      xPeakAdjust = -xtrans - ixAdjust;
+      yPeakAdjust = -ytrans - iyAdjust;
+    }
+    /*printf("total shift %f %f  adjust %d %d  %f %f\n", xtrans, ytrans, ixAdjust, 
+      iyAdjust, xPeakAdjust, yPeakAdjust);*/
   }
 
-  xcorrRange(vw->xsize, mat[6], xcenter, border, vw->corrBoxSize, ix0,ix1);
-  xcorrRange(vw->ysize, mat[7], ycenter, border, vw->corrBoxSize, iy0,iy1);
+  xcorrRange(vw->xsize, xtrans, xcenter, border, vw->corrBoxSize, ix0, ix1);
+  xcorrRange(vw->ysize, ytrans, ycenter, border, vw->corrBoxSize, iy0, iy1);
   nxuse = ix1 + 1 - ix0;
   nyuse = iy1 + 1 - iy0;
   if (nxuse < 32 || nyuse < 32) {
@@ -2354,7 +2381,7 @@ void crossCorrelate(MidasView *vw)
     vw->fastip = 0;
     flush_xformed(vw);
   }
-  curSlice = midasGetSlice(vw, MIDAS_SLICE_CURRENT);
+  curSlice = midasGetSlice(vw, curSliceType);
   curImageData = curSlice->data.b;
   prevImageData = midasGetPrevImage(vw);
   vw->fastip = ipsave;
@@ -2364,8 +2391,9 @@ void crossCorrelate(MidasView *vw)
                     nxsmooth, nysmooth);
   sliceTaperOutPad(array, SLICE_MODE_FLOAT, nxsmooth, nysmooth, array, 
                    nxpad+2, nxpad, nypad, 0, 0.);
-  sliceTaperInPad(curImageData, SLICE_MODE_BYTE, vw->xsize, ix0, ix1, iy0,
-                  iy1, brray, nxuse, nxuse, nyuse, 0, 0);
+  sliceTaperInPad(curImageData, SLICE_MODE_BYTE, vw->xsize, ix0 + ixAdjust, 
+                  ix1 + ixAdjust, iy0 + iyAdjust, iy1 + iyAdjust, brray, 
+                  nxuse, nxuse, nyuse, 0, 0);
   sliceSmoothOutPad(brray, SLICE_MODE_FLOAT, nxuse, nyuse, brray, nxsmooth, 
                     nxsmooth, nysmooth);
   sliceTaperOutPad(brray, SLICE_MODE_FLOAT, nxsmooth, nysmooth, brray, 
@@ -2407,133 +2435,13 @@ void crossCorrelate(MidasView *vw)
   free(arfilt);
   if (cccmax > -1.) {
     /* printf("Peak %d at %.2f,%.2f   ccc %.4f  raw ratio to first %f\n",imax+1,
-       xpeak[imax], ypeak[imax], cccmax, peaks[0] / peaks[imax]); */
+       xpeak[imax], ypeak[imax], cccmax, peaks[0] / peaks[imax]);  */
     vw->drawCorrBox = 1;
-    vw->midasSlots->translate(xpeak[imax], ypeak[imax]);
+    vw->midasSlots->translate(xpeak[imax] + xPeakAdjust, ypeak[imax] + yPeakAdjust);
     return;
   }
 
   // No peak found, draw box in red
   vw->drawCorrBox = 3;
   vw->midasGL->draw();
-  
 }
-
-
-/*
-
-$Log$
-Revision 3.28  2011/06/10 04:26:53  mast
-Changes for warping
-
-Revision 3.27  2010/12/31 22:03:30  mast
-Add arguments to find shifts call
-
-Revision 3.26  2010/12/28 18:22:22  mast
-Added robust fitting
-
-Revision 3.25  2010/07/16 02:44:41  mast
-Fixed crash when using missing file with pieces
-
-Revision 3.24  2010/07/06 23:41:24  mast
-Comment out debug output
-
-Revision 3.23  2010/06/29 22:34:22  mast
-Switched to new faster solution method for piece shifts, increased size
-of local patches to make that more robust, handled skipped edges, binning
-and correlation
-
-Revision 3.22  2010/06/06 21:13:40  mast
-Add include for gaussj in library
-
-Revision 3.21  2009/12/07 17:09:22  mast
-Initialize edge displacements to zero so input file need not exist
-
-Revision 3.20  2009/01/15 16:30:19  mast
-Qt 4 port
-
-Revision 3.19  2008/11/07 05:32:16  mast
-Fixed auto contrast of reference slice in reference mode
-
-Revision 3.18  2008/10/13 04:36:23  mast
-Added cosine stretching
-
-Revision 3.17  2007/02/04 21:11:33  mast
-Function name changes from mrcslice cleanup
-
-Revision 3.16  2006/07/08 15:32:13  mast
-Changes to implement second fixed point for stretching
-
-Revision 3.15  2006/05/13 22:52:52  mast
-Changes to allow overlay colors to be specified
-
-Revision 3.14  2005/11/08 02:36:36  mast
-Fixed bug in getting local errors when pieces were missing
-
-Revision 3.13  2005/03/10 21:04:15  mast
-Added -q option for use from etomo
-
-Revision 3.12  2004/11/05 18:53:22  mast
-Include local files with quotes, not brackets
-
-Revision 3.11  2004/10/25 18:51:52  mast
-Added optoin to output to different file from input file
-
-Revision 3.10  2004/08/04 22:35:13  mast
-Changed unsigned long to b3dUInt32 for 64-bit use
-
-Revision 3.9  2004/07/12 18:42:43  mast
-Changes for chunk alignment
-
-Revision 3.8  2004/07/07 19:25:31  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.7  2004/02/27 21:37:46  mast
-Fixed treatment of x/ycenter when transforming and rotating, etc.
-
-Revision 3.6  2003/12/17 21:44:19  mast
-Changes to implement global rotations
-
-Revision 3.5  2003/12/04 21:46:04  mast
-Limited x limits before integer truncation to avoid crashes with reset to
-unit transform
-
-Revision 3.4  2003/11/01 16:43:10  mast
-changed to put out virtually all error messages to a window
-
-Revision 3.3  2003/10/24 03:56:19  mast
-fixed array overruns that showed up in Windows/Intel
-
-Revision 3.2  2003/02/21 23:57:51  mast
-Open files in binary mode
-
-Revision 3.1  2003/02/10 20:49:58  mast
-Merge Qt source
-
-Revision 1.1.2.5  2003/01/26 23:20:33  mast
-using new library
-
-Revision 1.1.2.4  2002/12/06 20:45:40  mast
-Forgot to initialize midasWindow to NULL
-
-Revision 1.1.2.3  2002/12/06 19:59:52  mast
-Implement QTextStream for reading piece list
-
-Revision 1.1.2.2  2002/12/06 05:12:15  mast
-Protect quick translate against big shifts
-
-Revision 1.1.2.1  2002/12/05 03:13:02  mast
-New Qt version
-
-Revision 3.3  2002/08/19 04:54:47  mast
-Added declaration for solve_for_shifts
-
-Revision 3.2  2002/08/19 04:50:03  mast
-Made it do a series of local solutions for displacement errors in
-montage fixing mode when there are many pieces.
-
-Revision 3.1  2002/01/16 00:29:14  mast
-Fixed a problem in montage fixing mode when there was only one section,
-an error in Fortran to C translation
-
-*/

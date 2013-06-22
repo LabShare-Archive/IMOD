@@ -11,7 +11,6 @@ import javax.swing.JTextField;
 import etomo.logic.TextFieldState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
-import etomo.type.ParsedArray;
 import etomo.type.ParsedElementType;
 import etomo.type.UITestFieldType;
 
@@ -339,12 +338,12 @@ final class FieldCell extends InputCell implements ActionTarget {
     }
   }
 
-  float getFloatValue() {
+  double getDoubleValue() {
     try {
-      return Float.parseFloat(textField.getText());
+      return Double.parseDouble(textField.getText());
     }
     catch (NumberFormatException e) {
-      return EtomoNumber.FLOAT_NULL_VALUE;
+      return EtomoNumber.DOUBLE_NULL_VALUE;
     }
   }
 
@@ -352,16 +351,8 @@ final class FieldCell extends InputCell implements ActionTarget {
     return state.convertToEtomoNumber(textField.getText());
   }
 
-  ParsedArray getParsedArray() {
-    return state.convertToParsedArray(textField.getText());
-  }
-
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
     return state.convertToEtomoNumber(type, textField.getText());
-  }
-
-  long getLongValue() {
-    return state.convertToLong(textField.getText());
   }
 
   void setForeground() {

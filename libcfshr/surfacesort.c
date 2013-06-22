@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 #include <math.h>
 #include <stdlib.h>
@@ -24,38 +23,76 @@
 #endif
 #define DTOR 0.017453293
 
+
 /* DOC_SECTION PARAMETERS */
-/* DOC_CODE Parameters for surfaceSort */
-/* The numbers in the comments are index values for setSurfSortParam */
+/* DOC_CODE Algorithm and Parameters for surfaceSort */
+/*
+  This routine works as follows: ^
+  First it fits a plane to all of the points and rotates the points to make that plane
+  level.  Analysis proceeds with rotated positions. ^
+  For rapid access to neighboring points, it sets up a grid of squares (at sGridSpacing)
+  and list of delta values to grid positions in successively wider rings around one
+  grid square.  Then it makes lists of points within each grid square. ^
+  For each point (not marked as an outlier by values of -1 in the group array) it then 
+  searches for the neighboring point at the steepest angle with respect to it, looking 
+  at up to sMaxAngleNeigh neighbors. ^
+  Duplicate pairs are allowed to form, and are eliminated after sorting. ^
+  The points are sorted by steepest angle, and then it determines a set of pairs to use 
+  for building clusters, as controlled by parameters sSteepestRatio, sNumMinForAmax, 
+  sAngleMax, sNumMinForArelax, and sAngleRelax. ^
+  Given this set of pairs, it then makes a list of the separation in Z between each pair 
+  and analyzes for MAD-Median outliers with criterion sOutlierCrit.  These outliers are 
+  eliminated from cluster formation, as are the ones identified by the caller.
+  Pairs are always considered in order from the steepest angle downward.  To build a
+  cluster, it starts with the next point that hasn't been added to a cluster yet, putting
+  it and its pair on a list of cluster points to check.  Each point on the cluster list
+  is checked for whether it occurs in a pair at a steep angle, and if so its mate is 
+  then added to the opposite group. ^
+  For each cluster, a central position and an average delta Z are computed. ^
+  Finally, it searches in progressively bigger rings around the clusters for grid
+  squares where there are unassigned points.  When it finds an unassigned point, it
+  collects the nearest assigned points in the neighborhood up to sMaxNumFit or up to
+  a distance of sMaxFitDist.  If this includes points from both surfaces and there are
+  at least sBiplaneMinFit points, it fits a pair of planes to all points; otherwise it
+  fits a single plane to just the points from one surface if there are at least 
+  sPlaneMinFit points for this; otherwise it simply gets a mean of Z positions on the
+  top and bottom if possible.  One way or another this gives an estimate of the top and 
+  bottom Z position at the unassigned point, and it assigns the point based on which Z 
+  it is closer to.  In fact, this process is done in two rounds, and on the first round
+  assignment is deferred if the disparity between the point and estimated surface Z 
+  values as a percentage of the Z separation exceeds sMaxRound1Dist. ^
+  ^
+  The numbers in the comments below are index values for setSurfSortParam */
 
 /* Spacing of squares for sorting points and accessing rings of points */
-static float gridSpacing = 50.; /* 0 */
-/* Maximum neighbors to evalue for finding neighbor with steepest angle */
-static int maxAngleNeigh = 50;  /* 1 */
+static float sGridSpacing = 50.; /* 0 */
+/* Maximum neighbors to evaluate for finding neighbor with steepest angle */
+static int sMaxAngleNeigh = 50;  /* 1 */
 /* Use pairs with angle more than this fraction of very steepest angle */
-static float steepestRatio = 0.5f; /* 2 */
-/* If there are fewer than this number of pairs, take pairs down to angleMax */
-static int numMinForAmax = 10;  /* 3 */
-/* Angle to go down to if steepestRatio doesn't give enough pairs */
-static float angleMax = 20.;    /* 4 */
-/* If fewer than this number of pairs, take pairs down to angelRelax */
-static int numMinForArelax = 3; /* 5 */
-/* Angle to go down to if angleMax doesn't give enough pairs */
-static float angleRelax = 5.;   /* 6 */
+static float sSteepestRatio = 0.5f; /* 2 */
+/* If there are fewer than this number of pairs, take pairs down to sAngleMax */
+static int sNumMinForAmax = 10;  /* 3 */
+/* Angle to go down to if sSteepestRatio doesn't give enough pairs */
+static float sAngleMax = 20.;    /* 4 */
+/* If fewer than this number of pairs, take pairs down to sAngleRelax */
+static int sNumMinForArelax = 3; /* 5 */
+/* Angle to go down to if sAngleMax doesn't give enough pairs */
+static float sAngleRelax = 5.;   /* 6 */
 /* Criterion for MAD-Median outlier elimination based on delta Z of a pair */
-static float outlierCrit = 3.;  /* 7 */
+static float sOutlierCrit = 3.;  /* 7 */
 /* Maximum distance to search for neighboring points in plane fits */
-static float maxFitDist = 2048.; /* 8 */
+static float sMaxFitDist = 2048.; /* 8 */
 /* Maximum number of points in plane fits */
-static int maxNumFit = 15;      /* 9 */
+static int sMaxNumFit = 15;      /* 9 */
 /* Minimum # of points for fitting parallel planes */
-static int biplaneMinFit = 5;   /* 10 */
+static int sBiplaneMinFit = 5;   /* 10 */
 /* Minimum # of points for fitting one plane */
-static int planeMinFit = 4;     /* 11 */
-/* Maximum % distance of Z value between nearest and other plane for deferring to 2nd round: values > 50 disable deferring points */
-static float maxRound1Dist = 100.; /* 12 */
+static int sPlaneMinFit = 4;     /* 11 */
+/* Maximum % distance of Z value between nearest and other plane for deferring to 2nd
+   round: values > 50 disable deferring points */
+static float sMaxRound1Dist = 100.; /* 12 */
 /* 1 for minimal output, 2 for exhaustive output */
-static int debugLevel = 0;      /* 13 */
+static int sDebugLevel = 0;      /* 13 */
 /* END_CODE */
 /* END_SECTION */
 
@@ -65,20 +102,20 @@ static int debugLevel = 0;      /* 13 */
 int setSurfSortParam(int index, float value)
 {
   switch (index) {
-  case 0: gridSpacing = value; break;
-  case 1: maxAngleNeigh = B3DNINT(value); break;
-  case 2: steepestRatio = value; break;
-  case 3: numMinForAmax = B3DNINT(value); break;
-  case 4: angleMax = value; break;
-  case 5: numMinForArelax = B3DNINT(value); break;
-  case 6: angleRelax = value; break;
-  case 7: outlierCrit = value; break;
-  case 8: maxFitDist = value; break;
-  case 9: maxNumFit = B3DNINT(value); break;
-  case 10: biplaneMinFit = B3DNINT(value); break;
-  case 11: planeMinFit = B3DNINT(value); break;
-  case 12: maxRound1Dist = value; break;
-  case 13: debugLevel = B3DNINT(value); break;
+  case 0: sGridSpacing = value; break;
+  case 1: sMaxAngleNeigh = B3DNINT(value); break;
+  case 2: sSteepestRatio = value; break;
+  case 3: sNumMinForAmax = B3DNINT(value); break;
+  case 4: sAngleMax = value; break;
+  case 5: sNumMinForArelax = B3DNINT(value); break;
+  case 6: sAngleRelax = value; break;
+  case 7: sOutlierCrit = value; break;
+  case 8: sMaxFitDist = value; break;
+  case 9: sMaxNumFit = B3DNINT(value); break;
+  case 10: sBiplaneMinFit = B3DNINT(value); break;
+  case 11: sPlaneMinFit = B3DNINT(value); break;
+  case 12: sMaxRound1Dist = value; break;
+  case 13: sDebugLevel = B3DNINT(value); break;
   default:
     return 1;
   }
@@ -95,11 +132,14 @@ int setsurfsortparam(int *index, float *value)
 
 /*!
  * Sorts a set of points in 3D onto two surfaces.  The X, Y, and Z coordinates 
- * of the [numPts] points are packed sequentially into the array [xyz].  The
- * surfaces number, 1 for the bottom one and 2 for the top one, are returned in
+ * of the [numPts] points are packed sequentially into the array [xyz].  If 
+ * [markersInGroup] is nonzero, then the [group] array should be passed in with 0 for 
+ * points eligible to be included in the pairs of points that are used to initiate a 
+ * cluster, or with a -1 for points that should not be used to initiate clusters.  The
+ * surface numbers, 1 for the bottom one and 2 for the top one, are returned in
  * [group].  The return value is 1 for a memory allocation error.
  */
-int surfaceSort(float *xyz, int numPts, int *group)
+int surfaceSort(float *xyz, int numPts, int markersInGroup, int *group)
 {
   int i, numGridX, numGridY, numSquares, numRings, ind, ring, dx, dy, sx, sy;
   float afit, bfit, cfit, zp, xmin, xmax, ymin, ymax, diagonal, pdx, pdy;
@@ -118,23 +158,23 @@ int surfaceSort(float *xyz, int numPts, int *group)
   float xsum, ysum, errsum, errsq, errmax;
 
 
-  /* Copy to rot arrays and fit a plane to all of the points */
-  group[0] = 1;
-  if (numPts > 1) 
-    group[1] = 2;
-  if (numPts < 3)
+  if (numPts < 3) {
+    group[0] = 1;
+    if (numPts > 1) 
+      group[1] = 2;
     return 0;
+  }
 
-  xrot = (float *)malloc(numPts * sizeof(float));
-  yrot = (float *)malloc(numPts * sizeof(float));
-  zrot = (float *)malloc(numPts * sizeof(float));
+  /* Copy to rot arrays and fit a plane to all of the points */
+  xrot = B3DMALLOC(float, numPts);
+  yrot = B3DMALLOC(float, numPts);
+  zrot = B3DMALLOC(float, numPts);
   if (!xrot || !yrot || !zrot)
     return 1;
   for (i = 0; i < numPts; i++) {
     xrot[i] = xyz[3 * i];
     yrot[i] = xyz[3 * i + 1];
     zrot[i] = xyz[3 * i + 2];
-    group[i] = 0;
   }
   lsFit2(xrot, yrot, zrot, numPts, &afit, &bfit, &cfit);
 
@@ -162,25 +202,25 @@ int surfaceSort(float *xyz, int numPts, int *group)
   }
 
   /* Set up grid and get arrays */
-  numGridX = (int)((xmax - xmin) / gridSpacing + 1.);
-  numGridY = (int)((ymax - ymin) / gridSpacing + 1.);
+  numGridX = (int)((xmax - xmin) / sGridSpacing + 1.);
+  numGridY = (int)((ymax - ymin) / sGridSpacing + 1.);
   numSquares = numGridX * numGridY;
   diagonal = sqrt((numGridX-1.) * (numGridX-1.) + (numGridY-1.)*(numGridY-1.));
   numRings = B3DNINT(diagonal) + 1;
-  idx = (short int *)malloc(4 * numSquares * sizeof(short int));
-  idy = (short int *)malloc(4 * numSquares * sizeof(short int));
-  ringStart = (int *)malloc((numRings + 2) * sizeof(int));
-  numInSquare = (int *)malloc(numSquares * sizeof(int));
-  squareInd = (int *)malloc(numSquares * sizeof(int));
-  pointLists = (int *)malloc(numPts * sizeof(int));
-  squareDone = (unsigned char *)malloc(numSquares * sizeof(unsigned char));
-  steepAngle = (float *)malloc(numPts * sizeof(float));
-  steepNeigh = (int *)malloc(numPts * sizeof(int));
-  sortInd = (int *)malloc(numPts * sizeof(int));
-  xfit = (float *)malloc(maxNumFit * sizeof(float));
-  yfit = (float *)malloc(maxNumFit * sizeof(float));
-  zfit = (float *)malloc(maxNumFit * sizeof(float));
-  grpfit = (float *)malloc(maxNumFit * sizeof(float));
+  idx = B3DMALLOC(short int, 4 * numSquares);
+  idy = B3DMALLOC(short int, 4 * numSquares);
+  ringStart = B3DMALLOC(int, (numRings + 2));
+  numInSquare = B3DMALLOC(int, numSquares);
+  squareInd = B3DMALLOC(int, numSquares);
+  pointLists = B3DMALLOC(int, numPts);
+  squareDone = B3DMALLOC(unsigned char, numSquares);
+  steepAngle = B3DMALLOC(float, numPts);
+  steepNeigh = B3DMALLOC(int, numPts);
+  sortInd = B3DMALLOC(int, numPts);
+  xfit = B3DMALLOC(float, sMaxNumFit);
+  yfit = B3DMALLOC(float, sMaxNumFit);
+  zfit = B3DMALLOC(float, sMaxNumFit);
+  grpfit = B3DMALLOC(float, sMaxNumFit);
 
   if (!idx || !idy || !numInSquare || !squareInd || !squareDone || !ringStart
       || !pointLists || !steepAngle || !steepNeigh || !sortInd || !xfit || 
@@ -208,8 +248,8 @@ int surfaceSort(float *xyz, int numPts, int *group)
   for (i = 0; i < numSquares; i++)
     numInSquare[i] = 0;
   for (i = 0; i < numPts; i++) {
-    sx = (int)((xrot[i] - xmin) / gridSpacing);
-    sy = (int)((yrot[i] - ymin) / gridSpacing);
+    sx = (int)((xrot[i] - xmin) / sGridSpacing);
+    sy = (int)((yrot[i] - ymin) / sGridSpacing);
     numInSquare[sx + sy * numGridX]++;
   }
   ind = 0;
@@ -220,8 +260,8 @@ int surfaceSort(float *xyz, int numPts, int *group)
     squareDone[i] = 0;
   }
   for (i = 0; i < numPts; i++) {
-    sx = (int)((xrot[i] - xmin) / gridSpacing);
-    sy = (int)((yrot[i] - ymin) / gridSpacing);
+    sx = (int)((xrot[i] - xmin) / sGridSpacing);
+    sy = (int)((yrot[i] - ymin) / sGridSpacing);
     ind = sx + sy * numGridX;
     pointLists[squareInd[ind] + numInSquare[ind]] = i;
     numInSquare[ind]++;
@@ -239,18 +279,23 @@ int surfaceSort(float *xyz, int numPts, int *group)
       steepAngle[ipt] = -1.;
       steepNeigh[ipt] = -1;
       sortInd[ipt] = ipt;
+      if (markersInGroup && group[ipt] < 0) {
+        if (sDebugLevel > 1) 
+          printf("Skipping search for %d\n", ipt);
+        continue;
+      }
       numNeigh = 0;
-      for (jdxy = 0; jdxy < ringStart[numRings] && numNeigh < maxAngleNeigh;
+      for (jdxy = 0; jdxy < ringStart[numRings] && numNeigh < sMaxAngleNeigh;
            jdxy++) {
         ix = sx + idx[jdxy];
         iy = sy + idy[jdxy]; 
         if (ix < 0 || ix >= numGridX || iy < 0 || iy >= numGridY)
           continue;
         jnd = ix + iy * numGridX;
-        for (jsq = 0; jsq < numInSquare[jnd] && numNeigh < maxAngleNeigh;
+        for (jsq = 0; jsq < numInSquare[jnd] && numNeigh < sMaxAngleNeigh;
              jsq++) {
           jpt = pointLists[squareInd[jnd] + jsq];
-          if (ipt == jpt)
+          if (ipt == jpt || (markersInGroup && group[jpt] < 0))
             continue;
           pdx = xrot[ipt] - xrot[jpt];
           pdy = yrot[ipt] - yrot[jpt];
@@ -266,9 +311,13 @@ int surfaceSort(float *xyz, int numPts, int *group)
     }
   }
 
+  /* Zero group values now that markers have been used, if any */
+  for (i = 0; i < numPts; i++)
+    group[i] = 0;
+
   /* Sort the points by steepest angle */
   rsSortIndexedFloats(steepAngle, sortInd, numPts);
-  if (debugLevel > 1) {
+  if (sDebugLevel > 1) {
     for (i = 0; i < numPts; i++) {
       ipt = sortInd[i];
       printf("pt %d  neigh %d  angle %f\n", ipt, steepNeigh[ipt], 
@@ -284,9 +333,9 @@ int surfaceSort(float *xyz, int numPts, int *group)
     angle = steepAngle[sortInd[ind]];
 
     /* Termination conditions: */
-    if ((angle < steepestRatio * verySteepest && numSteep >= numMinForAmax) ||
-        (angle < angleMax && numSteep >= numMinForArelax) ||
-        (angle < angleRelax))
+    if ((angle < sSteepestRatio * verySteepest && numSteep >= sNumMinForAmax) ||
+        (angle < sAngleMax && numSteep >= sNumMinForArelax) ||
+        (angle < sAngleRelax))
       break;
 
     /* Check for duplicate pair */
@@ -294,10 +343,10 @@ int surfaceSort(float *xyz, int numPts, int *group)
     for (i = ind + 1; i < numPts; i++) {
       if (steepAngle[sortInd[i]] > angle + 1.e-5)
         break;
-      if (sortInd[i] == steepNeigh[sortInd[ind]] && 
+      if (sortInd[i] == steepNeigh[sortInd[ind]] &&
           sortInd[ind] == steepNeigh[sortInd[i]]) {
         ifdup = 1;
-        if (debugLevel > 1) 
+        if (sDebugLevel > 1) 
           printf("Duplicate  %d  %d  %f\n", sortInd[ind], sortInd[i],
                  steepAngle[sortInd[ind]]);
         steepAngle[sortInd[ind]] = -1.;
@@ -313,11 +362,11 @@ int surfaceSort(float *xyz, int numPts, int *group)
   }
 
   /* Collect the delta Z values to get median and outlier evaluation */
-  delZ = (float *)malloc((numPts - firstSteep) * sizeof(float));
-  outlie = (float *)malloc((numPts - firstSteep) * sizeof(float));
-  cluster = (int *)malloc((numPts - firstSteep) * sizeof(int));
-  clusterSX = (int *)malloc((numPts - firstSteep) * sizeof(int));
-  clusterSY = (int *)malloc((numPts - firstSteep) * sizeof(int));
+  delZ = B3DMALLOC(float, (numPts - firstSteep));
+  outlie = B3DMALLOC(float, (numPts - firstSteep));
+  cluster = B3DMALLOC(int, (numPts - firstSteep));
+  clusterSX = B3DMALLOC(int, (numPts - firstSteep));
+  clusterSY = B3DMALLOC(int, (numPts - firstSteep));
   if (!delZ || !outlie || !cluster || !clusterSX || !clusterSY)
     return 1;
   i = 0;
@@ -325,13 +374,13 @@ int surfaceSort(float *xyz, int numPts, int *group)
     if (steepAngle[sortInd[ind]] > 0)
       delZ[i++] = fabs(zrot[sortInd[ind]] - zrot[steepNeigh[sortInd[ind]]]);
   rsMedian(delZ, numSteep, outlie, &medianDelZ);
-  if (debugLevel) 
+  if (sDebugLevel) 
     printf("Steep pairs: n = %d  median delz = %f\n", i, medianDelZ);
   if (numSteep > 2) {
 
     /* If more than 2 points, identify outliers with criterion, and then
        eliminate them too */
-    rsMadMedianOutliers(delZ, numSteep, outlierCrit, outlie);
+    rsMadMedianOutliers(delZ, numSteep, sOutlierCrit, outlie);
     i = 0;
     for (ind = firstSteep; ind < numPts; ind++) {
       if (steepAngle[sortInd[ind]] > 0) {
@@ -367,12 +416,16 @@ int surfaceSort(float *xyz, int numPts, int *group)
     checkInd = 0;
     steepAngle[ipt] = -1.;
     while (checkInd < numInClust) {
+
+      /* To check a point in cluster list, loop on the rest of the best pairs looking
+         for one that includes this point */
       for (jnd = ind - 1; jnd >= firstSteep; jnd--) {
         ipt = sortInd[jnd];
         jpt = steepNeigh[ipt];
-        if (steepAngle[ipt] > 0 && (ipt == cluster[checkInd] ||
-                                    jpt == cluster[checkInd])) {
+        if (steepAngle[ipt] > 0 && 
+            (ipt == cluster[checkInd] || jpt == cluster[checkInd])) {
           
+          /* oldpt is index of one already in cluster, newpt is its pair */
           newpt = ipt;
           oldpt = jpt;
           if (ipt == cluster[checkInd]) {
@@ -395,11 +448,12 @@ int surfaceSort(float *xyz, int numPts, int *group)
               if (newpt == cluster[j]) {
                 ifdup = 1;
                 if (knd != group[newpt])
-                  printf("INCONSISTENCY IN INITIAL STEEP PAIRS IN SURFACE "
-                         "SORT.\n");
+                  printf("INCONSISTENCY IN INITIAL STEEP PAIRS IN SURFACE SORT.\n");
                 break;
               }
             }
+
+            /* Add new point to cluster and set its angle -1 to mark its pair as used */
             if (!ifdup) {
               cluster[numInClust++] = newpt;
               group[newpt] = knd;
@@ -432,14 +486,14 @@ int surfaceSort(float *xyz, int numPts, int *group)
     }
         
     delZ[numCluster] = ztop / ntop - zbot / nbot;
-    clusterSX[numCluster] = (int)((xsum / numInClust - xmin) / gridSpacing);
-    clusterSY[numCluster++] = (int)((ysum / numInClust - ymin) / gridSpacing);
+    clusterSX[numCluster] = (int)((xsum / numInClust - xmin) / sGridSpacing);
+    clusterSY[numCluster++] = (int)((ysum / numInClust - ymin) / sGridSpacing);
     numDone += numInClust;
-    if (debugLevel) 
+    if (sDebugLevel) 
       printf("cluster %d  num  %d  delz  %f  sx, sy %d %d, done %d\n",
              numCluster,numInClust, delZ[numCluster-1],
              clusterSX[numCluster-1], clusterSY[numCluster-1],numDone);
-    if (debugLevel > 1)
+    if (sDebugLevel > 1)
       for (i = 0; i < numInClust; i++)
         printf("%d  %.1f  %.1f  %.1f  %d\n",cluster[i], xrot[cluster[i]], 
                yrot[cluster[i]], zrot[cluster[i]], group[cluster[i]]);
@@ -477,22 +531,22 @@ int surfaceSort(float *xyz, int numPts, int *group)
 
               /* Now do rings around this point to collect identified 
                  neighbors within a certain range up to a certain count */
-              maxRings = B3DNINT(maxFitDist / gridSpacing);
+              maxRings = B3DNINT(sMaxFitDist / sGridSpacing);
               maxRings = B3DMIN(maxRings, numRings);
               nfit = 0;
               grpsum = 0;
-              tx = (int)((xrot[jpt] - xmin) / gridSpacing);
-              ty = (int)((yrot[jpt] - ymin) / gridSpacing);
+              tx = (int)((xrot[jpt] - xmin) / sGridSpacing);
+              ty = (int)((yrot[jpt] - ymin) / sGridSpacing);
               for (jring = 0; (jring < maxRings || nfit < 2) && 
-                     nfit < maxNumFit; jring++) {
+                     nfit < sMaxNumFit; jring++) {
                 for (kdxy = ringStart[jring]; kdxy < ringStart[jring+1] 
-                       && nfit < maxNumFit; kdxy++) {
+                       && nfit < sMaxNumFit; kdxy++) {
                   jx = tx + idx[kdxy];
                   jy = ty + idy[kdxy];
                   if (jx < 0 || jx >= numGridX || jy < 0 || jy >= numGridY)
                     continue;
                   knd = jx + jy * numGridX;
-                  for (isq = 0; isq < numInSquare[knd] && nfit < maxNumFit; 
+                  for (isq = 0; isq < numInSquare[knd] && nfit < sMaxNumFit; 
                        isq++) {
                     kpt = pointLists[squareInd[knd] + isq];
                     if (group[kpt]) {
@@ -505,19 +559,19 @@ int surfaceSort(float *xyz, int numPts, int *group)
                   }
                 }
               }
-              if (debugLevel > 1) 
+              if (sDebugLevel > 1) 
                 printf("For %d  %.1f %.1f  %.1f  nfit %d  ntop %d\n", jpt,
                        xrot[jpt], yrot[jpt], zrot[jpt], nfit, grpsum);
 
               /* Fit a biplane if there are enough points and 2 surfaces */
-              if (nfit >= biplaneMinFit && grpsum && grpsum != nfit) {
+              if (nfit >= sBiplaneMinFit && grpsum && grpsum != nfit) {
                 lsFit3(xfit, yfit, grpfit, zfit, nfit, &a1, &a2, &dzfit, &con);
 
                 /* Get bottom and top predicted values.  Store current DZ as
                    delz for this area if there are at least 2 on each surface*/
                 zbot = a1 * xrot[jpt] + a2 * yrot[jpt] + con;
                 ztop = zbot + dzfit;
-                if (debugLevel > 1) 
+                if (sDebugLevel > 1) 
                   printf("fit3 %f  %f %f %f\n", a1, a2, dzfit, con);
                 if (grpsum > 1 && nfit - grpsum > 1)
                   delZ[ind] = dzfit;
@@ -528,8 +582,8 @@ int surfaceSort(float *xyz, int numPts, int *group)
                 keepGroup = 1;
                 if (grpsum <= nfit / 2)
                   keepGroup = 0;
-                if ((keepGroup && grpsum >= planeMinFit) ||
-                    (!keepGroup && nfit - grpsum >= planeMinFit)) {
+                if ((keepGroup && grpsum >= sPlaneMinFit) ||
+                    (!keepGroup && nfit - grpsum >= sPlaneMinFit)) {
                 
                   /* If this leaves enough points for a fit, repack the array 
                      with that group */
@@ -554,7 +608,7 @@ int surfaceSort(float *xyz, int numPts, int *group)
                     zbot -= delZ[ind];
                   else
                     ztop += delZ[ind];
-                  if (debugLevel > 1) 
+                  if (sDebugLevel > 1) 
                     printf("fit2  %f  %f  %f  zbot %.1f  ztop  %.1f\n",a1,a2,
                            con, zbot,ztop);
                 } else {
@@ -584,7 +638,7 @@ int surfaceSort(float *xyz, int numPts, int *group)
                     ztop = zbot + delZ[ind];
                   if (!nbot && ntop)
                     zbot = ztop - delZ[ind];
-                  if (debugLevel > 1) 
+                  if (sDebugLevel > 1) 
                     printf("means  %d  %d  zbot %.1f  ztop  %.1f\n",nbot,ntop,
                            zbot,ztop);
                 }
@@ -599,8 +653,8 @@ int surfaceSort(float *xyz, int numPts, int *group)
                 group[jpt] = 2;
                 xsum = 100. * (ztop - zrot[jpt]) / (ztop - zbot);
               }
-              if (round || xsum < maxRound1Dist) {
-                if (debugLevel > 1) 
+              if (round || xsum < sMaxRound1Dist) {
+                if (sDebugLevel > 1) 
                   printf("Assign to %d   distance %.1f%%\n", group[jpt], xsum);
                 numDone++;
                 errsum += xsum;
@@ -608,7 +662,7 @@ int surfaceSort(float *xyz, int numPts, int *group)
                 errsq += xsum * xsum;
                 numErr++;
               } else {
-                if (debugLevel > 1) 
+                if (sDebugLevel > 1) 
                   printf("Defer %d because distance is %.1f%%\n", jpt, xsum);
                 group[jpt] = 0;
               }
@@ -619,9 +673,11 @@ int surfaceSort(float *xyz, int numPts, int *group)
     }
   }
   sumsToAvgSD(errsum, errsq, numErr, &xsum, &ysum);
-  if (debugLevel) 
+  if (sDebugLevel) {
     printf("Distance from nearest plane for %d points: mean %.1f%%  SD %.1f%% "
            " max %.1f%%\n", numErr, xsum, ysum, errmax);
+    fflush(stdout);
+  }
   free(xrot);
   free(yrot);
   free(zrot);
@@ -644,19 +700,14 @@ int surfaceSort(float *xyz, int numPts, int *group)
   free(cluster);
   free(clusterSY);
   free(clusterSX);
+  fflush(stdout);
   return 0;
 } 
 
 /*!
  * Fortran wrapper for @surfaceSort, where [xyz] is dimensioned to (3,*)
  */
-int surfacesort(float *xyz, int *numPts, int *group)
+int surfacesort(float *xyz, int *numPts, int *markersInGroup, int *group)
 {
-  return surfaceSort(xyz, *numPts, group);
+  return surfaceSort(xyz, *numPts, *markersInGroup, group);
 }
-
-/*
-
-$Log$
-
-*/

@@ -3,6 +3,8 @@ package etomo.storage;
 import java.io.*;
 import java.util.*;
 
+import etomo.EtomoDirector;
+
 /**
  * <p>Description: Keeps a Properties instance that mirrors a properties file.
  * Loads the properties file once.  Updates the properties instance and saves as
@@ -97,7 +99,7 @@ public final class ParameterStore {
 
   private final Properties properties = new Properties();
 
-  //initialized in initialize()
+  // initialized in initialize()
   private LogFile dataFile = null;
 
   private boolean autoStore = true;
@@ -153,11 +155,16 @@ public final class ParameterStore {
    * @throws IOException
    */
   public void storeProperties() throws LogFile.LockException, IOException {
-    //If the file has not been set, don't save.
+    // If the file has not been set, don't save.
     if (dataFile != null) {
       synchronized (dataFile) {
         if (!dataFile.isDirectory()) {
-          dataFile.backupOnce();
+          if (dataFile.getName().endsWith(EtomoDirector.USER_CONFIG_FILE_EXT)) {
+            dataFile.backupOnce();
+          }
+          else {
+            dataFile.doubleBackupOnce();
+          }
         }
         if (!dataFile.exists()) {
           dataFile.create();
@@ -190,11 +197,13 @@ public final class ParameterStore {
    * @throws IOException
    */
   public void save(Storable storable) throws LogFile.LockException, IOException {
-    //If the file has not been set, don't save.
+    // If the file has not been set, don't save.
     if (dataFile != null) {
       synchronized (dataFile) {
-        //let the storable overwrite its values
-        storable.store(properties);
+        // let the storable overwrite its values
+        if (storable != null) {
+          storable.store(properties);
+        }
         if (autoStore) {
           storeProperties();
         }
@@ -212,9 +221,9 @@ public final class ParameterStore {
    * @param storable
    * @throws IOException
    */
-  public void load(Storable storable)/* throws LogFile.LockException*/ {
+  public void load(Storable storable)/* throws LogFile.LockException */{
     if (dataFile != null) {
-      //If the file has been set, synchronize on it.
+      // If the file has been set, synchronize on it.
       synchronized (dataFile) {
         storable.load(properties);
       }

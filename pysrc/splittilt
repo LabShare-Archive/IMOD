@@ -292,7 +292,8 @@ if direct:
               '/savework/d',
               '/^ *THICKNESS/a/' + slicedel + ' -1 -1/',
               fmtstr("/^ *THICKNESS/a/TOTALSLICES {} {}/", mintotslice,
-                     maxtotslice)]
+                     maxtotslice),
+              sedModify('ActionIfGPUFails', '2,2')]
     sedlines = pysed(sedcom, comlines, None, True)
     sedlines.append('$sync')
     writeTextFile(thiscom, sedlines)
@@ -325,7 +326,8 @@ for num in range(1, numslabs+1):
              fmtstr("/^ *THICKNESS/a/{} {} {}/", slicedel, ubfirst, ublast),
              "/^ *THICKNESS/a/" + oldstyle + "/",
              fmtstr("/{}/a/TOTALSLICES {} {}/", totsed, mintotslice, maxtotslice),
-             "/" + boundsed + "/a/BoundaryInfoFile " + boundfile + "/"]
+             "/" + boundsed + "/a/BoundaryInfoFile " + boundfile + "/",
+             sedModify('ActionIfGPUFails', '2,2')]
    if vsOutFile:
       sedcom.append("/" + boundsed + "/a/VertBoundaryFile " + vsBoundFile + "/")
    sedlines = pysed(sedcom, comlines, None, True)

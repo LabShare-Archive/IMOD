@@ -43,7 +43,7 @@ bn.ok=
 run.function.setup=
 run.function.runtab=
 [[if = test-gui]]
-	run.function.check-prm=
+  run.function.check-prm=
 [[]]
 
 
@@ -345,6 +345,7 @@ wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
 	#test remake averages
   bn.remake-averages=
+  wait.popup.process-warnings=OK
 	wait.process.running-averageall=done
 	bn.open-averages-in-3dmod=
 [[]]
@@ -477,6 +478,9 @@ assert.sp.particles-per-cpu=5
 assert.sp.debug-level=3
 assert.tf.low-frequency-cutoff=0
 assert.tf.sigma=0.05
+assert.tf.average-only-members-of-class=
+#enabled/disabled
+assert.enabled.tf.average-only-members-of-class=
 
 
 [function = check-prm]
@@ -664,9 +668,9 @@ rb.none=
 
 
 [function = number-of-particles-to-average-check-prm]
-tf.additional-numbers=4
+tf.additional-numbers=10
 save=
-assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 4]
+assert.contains.file=%{dataset}.prm|lstThresholds = [3:3:9, 10]
 
 
 [function = optional-advanced-features-check-prm]
@@ -698,6 +702,10 @@ assert.contains.file=%{dataset}.prm|debugLevel = 2
 sp.debug-level=3
 save=
 assert.contains.file=%{dataset}.prm|lowCutoff = {[0, 0.05]}
+tf.average-only-members-of-class=1
+save=
+assert.contains.file=%{dataset}.prm|selectClassID = 1
+tf.average-only-members-of-class=
 
 
 [function = cross-correlation-measure-check-prm]

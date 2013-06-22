@@ -351,8 +351,19 @@ public abstract class MainPanel extends EtomoPanel {
     // axisPanel.setLayout(new BoxLayout(axisPanel, BoxLayout.X_AXIS));
   }
 
-  String getStatusBarText() {
+  public String getStatusBarText() {
     return statusBar.getText();
+  }
+
+  public String getStatus() {
+    String status = statusBar.getText();
+    if (status.equals(STATUS_BAR_EMPTY_TITLE)) {
+      return "";
+    }
+    if (status.startsWith(STATUS_BAR_BASE_TITLE)) {
+      return status.substring(STATUS_BAR_BASE_TITLE.length());
+    }
+    return status;
   }
 
   public void repaint() {
@@ -369,7 +380,7 @@ public abstract class MainPanel extends EtomoPanel {
     }
   }
 
-  void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
+  public void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
     // Set the title of log panel. SetStatusBarText is used by all of the
     // interfaces so this is good place to do it.
     if (logPanel != null) {
@@ -471,17 +482,6 @@ public abstract class MainPanel extends EtomoPanel {
       return;
     }
     axisPanel.setStaticProgressBar(label);
-  }
-
-  public void endThreads() {
-    AxisProcessPanel axisPanel = mapBaseAxis(AxisID.FIRST);
-    if (axisPanel != null) {
-      axisPanel.endThreads();
-    }
-    axisPanel = mapBaseAxis(AxisID.SECOND);
-    if (axisPanel != null) {
-      axisPanel.endThreads();
-    }
   }
 
   public ParallelPanel getParallelPanel(AxisID axisID) {

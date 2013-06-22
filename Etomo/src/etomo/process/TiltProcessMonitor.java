@@ -152,12 +152,15 @@ import etomo.util.MRCHeader;
 class TiltProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
 
+  private final ApplicationManager applicationManager;
+
   private ConstTiltParam tiltParam = null;
   private String processTitle = "Calculating tomogram";
 
   public TiltProcessMonitor(final ApplicationManager appMgr, final AxisID id,
       final ProcessName processName) {
     super(appMgr, id, processName);
+    this.applicationManager = appMgr;
   }
 
   public static TiltProcessMonitor getReconnectInstance(final ApplicationManager appMgr,
@@ -168,25 +171,24 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
   }
 
   /* (non-Javadoc)
-   * @see etomo.process.FileSizeProcessMonitor#calcFileSize()
-   */
+   * @see etomo.process.FileSizeProcessMonitor#calcFileSize() */
   final boolean calcFileSize() throws InvalidParameterException, IOException {
-    long nX;
-    long nY;
-    long nZ;
+    int nX;
+    int nY;
+    int nZ;
     int modeBytes = 4;
 
-    // Get the depth, mode, any mods to the X and Y size from the tilt 
-    // command script and the input and output filenames. 
+    // Get the depth, mode, any mods to the X and Y size from the tilt
+    // command script and the input and output filenames.
     loadTiltParam();
     // Get the header from the aligned stack to use as default nX and
     // nY parameters
-    String alignedFilename = applicationManager.getPropertyUserDir() + "/"
+    String alignedFilename = manager.getPropertyUserDir() + "/"
         + tiltParam.getInputFile();
 
-    MRCHeader alignedStack = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), alignedFilename, axisID);
-    if (!alignedStack.read(applicationManager)) {
+    MRCHeader alignedStack = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        alignedFilename, axisID);
+    if (!alignedStack.read(manager)) {
       return false;
     }
 
@@ -198,24 +200,19 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
       modeBytes = getModeBytes(tiltParam.getMode());
     }
     // Get the imageBinned from prenewst.com script
-    long imageBinned = 1;
+    int imageBinned = 1;
     ConstEtomoNumber number = tiltParam.getImageBinned();
     if (number != null) {
-      imageBinned = number.getLong();
+      imageBinned = number.getInt();
     }
-    //adjust x and y
+    // adjust x and y
     if (tiltParam.hasWidth()) {
       nX = tiltParam.getWidth() / imageBinned;
     }
     if (tiltParam.hasSlice()) {
       int sliceRange = tiltParam.getIdxSliceStop() - tiltParam.getIdxSliceStart() + 1;
       // Divide by the step size if present
-      if (tiltParam.getIncrSlice() == Integer.MIN_VALUE) {
-        nY = sliceRange / imageBinned;
-      }
-      else {
-        nY = sliceRange / tiltParam.getIncrSlice() / imageBinned;
-      }
+      nY = sliceRange / imageBinned;
     }
     long fileSize = 1024 + ((long) nX * nY) * (nZ / imageBinned) * modeBytes;
     nKBytes = (int) (fileSize / 1024);
@@ -224,7 +221,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
       System.err.println("TiltProcessMonitor.calcFileSize:fileSize=" + fileSize + ",nX="
           + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned=" + imageBinned);
     }
-    applicationManager.getMainPanel().setProgressBar(processTitle, nKBytes, axisID);
+    manager.getMainPanel().setProgressBar(processTitle, nKBytes, axisID);
     return true;
   }
 
@@ -237,8 +234,7 @@ class TiltProcessMonitor extends FileSizeProcessMonitor {
   final void reloadWatchedFile() {
     loadTiltParam();
     // Create a file object describing the file to be monitored
-    watchedFile = new File(applicationManager.getPropertyUserDir(), tiltParam
-        .getOutputFile());
+    watchedFile = new File(manager.getPropertyUserDir(), tiltParam.getOutputFile());
   }
 
   private final void loadTiltParam() {

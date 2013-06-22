@@ -77,15 +77,14 @@ public class EtomoAutodoc {
   }
 
   public static String getTooltip(ReadOnlyAutodoc autodoc, String fieldName) {
-    if (autodoc == null) {
+    if (autodoc == null || fieldName == null) {
       return null;
     }
     boolean autodocDebug = autodoc.isDebug();
     if (debug && !autodocDebug) {
       autodoc.setDebug(true);
     }
-    String tooltip = getTooltip(autodoc.getSection(FIELD_SECTION_NAME,
-        fieldName));
+    String tooltip = getTooltip(autodoc.getSection(FIELD_SECTION_NAME, fieldName));
     if (debug) {
       if (!autodocDebug) {
         autodoc.setDebug(false);
@@ -104,8 +103,8 @@ public class EtomoAutodoc {
 
   public static String getTooltip(ReadOnlySection section, String enumValueName) {
     try {
-      String enumTooltip = section.getAttribute("enum").getAttribute(
-          enumValueName).getAttribute(TOOLTIP_ATTRIBUTE_NAME).getMultiLineValue();
+      String enumTooltip = section.getAttribute("enum").getAttribute(enumValueName)
+          .getAttribute(TOOLTIP_ATTRIBUTE_NAME).getMultiLineValue();
       if (enumTooltip == null) {
         return getTooltip(section);
       }
@@ -138,11 +137,13 @@ public class EtomoAutodoc {
       return value;
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       return value;
     }
     try {
       while (value != null && !token.is(Token.Type.EOF)) {
-        //Remove indent formatting whitespace that comes after new-line formatting character.
+        // Remove indent formatting whitespace that comes after new-line formatting
+        // character.
         if (removeIndentFormatting) {
           removeIndentFormatting = false;
           if (token.is(Token.Type.WHITESPACE)) {
@@ -151,17 +152,17 @@ public class EtomoAutodoc {
             continue;
           }
         }
-        //Remove the new-line formatting character ('^' at the beginning of the line).
+        // Remove the new-line formatting character ('^' at the beginning of the line).
         if (startOfLine && token.equals(Token.Type.SYMBOL, NEW_LINE_CHAR)) {
-          //new-line may be followed by indent formatting that should be removed
+          // new-line may be followed by indent formatting that should be removed
           removeIndentFormatting = true;
           startOfLine = false;
         }
-        //Convert end of line to a space.
+        // Convert end of line to a space.
         else if (token.is(Token.Type.EOL)) {
           tooltip.append(' ');
-          //signal the start of the next line, so that new-line formatting
-          //characters can be found
+          // signal the start of the next line, so that new-line formatting
+          // characters can be found
           startOfLine = true;
         }
         else {
@@ -200,13 +201,14 @@ public class EtomoAutodoc {
       return new String[] { value };
     }
     catch (LogFile.LockException e) {
+      e.printStackTrace();
       return new String[] { value };
     }
     try {
       while (token != null && !token.is(Token.Type.EOF)) {
         if (startOfLine) {
           startOfLine = false;
-          //Handle new-line character ('^' at the start of the line).
+          // Handle new-line character ('^' at the start of the line).
           if (token.equals(Token.Type.SYMBOL, NEW_LINE_CHAR)) {
             list.add(buffer.toString());
             buffer = new StringBuffer(128);
@@ -215,17 +217,17 @@ public class EtomoAutodoc {
             continue;
           }
           else if (!firstToken) {
-            //wasn't really the end of the line so convert EOL to a space.
+            // wasn't really the end of the line so convert EOL to a space.
             buffer.append(' ');
           }
           else {
             firstToken = false;
           }
-          //still need to process the current token
+          // still need to process the current token
         }
         if (token.is(Token.Type.EOL)) {
-          //Wait to convert end-of-line to a space.  If the next token is '^', then this
-          //really is the end of a line.
+          // Wait to convert end-of-line to a space. If the next token is '^', then this
+          // really is the end of a line.
           startOfLine = true;
         }
         else {

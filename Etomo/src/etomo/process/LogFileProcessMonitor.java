@@ -2,6 +2,7 @@ package etomo.process;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Date;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
@@ -223,7 +224,6 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   // protected BufferedReader logFileReader;
   int nSections = Integer.MIN_VALUE;
   int currentSection;
-  private int remainingTime;
   private boolean processRunning = true;
   private boolean done = false;
 
@@ -245,6 +245,17 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
 
   final String nSectionsHeader;
   final int nSectionsIndex;
+
+  private double averageSectionTime = 0;
+  private double updatedAverageSectionTime = 0;
+  private double timestamp = 0;
+  private double waitTime = 0;
+  private int doneSections = 0;
+  private long percentDone = 0;
+  private double etc = -1;
+
+  public void dumpState() {
+  }
 
   abstract void initializeProgressBar();
 
@@ -299,7 +310,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       waitForLogFile();
       findNSections();
       initializeProgressBar();
-
+      timestamp = new Date().getTime();
       while (processRunning && !stop) {
         Thread.sleep(UPDATE_PERIOD);
         getCurrentSection();
@@ -435,53 +446,57 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
   }
 
   /**
+   * Calculate the amount of time remaining and percent done.
+  */
+  private void calcRemainingTime() {
+    double newtimeStamp = new Date().getTime();
+    waitTime += newtimeStamp - timestamp;
+    timestamp = newtimeStamp;
+    // Has currentSection been incremented
+    if (doneSections < currentSection - 1) {
+      // Average sections time is the total time over the total number of sections done.
+      averageSectionTime = ((doneSections * averageSectionTime) + waitTime)
+          / (currentSection - 1);
+      doneSections = currentSection - 1;
+      waitTime = 0;
+      updatedAverageSectionTime = averageSectionTime;
+      percentDone = Math.round((double) doneSections / nSections * 100);
+    }
+    else if (waitTime > averageSectionTime) {
+      updatedAverageSectionTime = ((doneSections * averageSectionTime) + waitTime)
+          / (doneSections + 1);
+    }
+    if (updatedAverageSectionTime > 0) {
+      etc = updatedAverageSectionTime * (nSections - doneSections) - waitTime;
+    }
+  }
+
+  /**
    * Update the progress bar with percentage done and estimated time to
    * completion message. 
-   * @param percentage
-   * @param remainingTime
    */
   void updateProgressBar() {
     if (ending) {
       manager.getMainPanel().setProgressBarValue(0, "Ending...", axisID);
       return;
     }
-    // Calculate the percetage done
-    double fractionDone = (double) currentSection / nSections;
-    int percentage = (int) Math.round(fractionDone * 100);
-    if (percentage < 0) {
-      percentage = 0;
+    String message;
+    if (etc >= 0) {
+      // Format the progress bar string
+      message = String.valueOf(percentDone) + "%   ETC: "
+          + Utilities.millisToMinAndSecs(etc);
     }
-    if (percentage > 99) {
-      percentage = 99;
+    else {
+      message = String.valueOf(percentDone) + "%";
     }
-
-    // Convert the remainingTime to minutes and seconds
-    int minutes = (int) Math.floor(remainingTime / 60000);
-    int seconds = (int) Math.floor((remainingTime - minutes * 60000) / 1000.0);
-
-    // Format the progress bar string
-    String message = String.valueOf(percentage) + "%   ETC: "
-        + Utilities.millisToMinAndSecs(remainingTime);
-
     if (processRunning) {
-      manager.getMainPanel().setProgressBarValue(currentSection, message, axisID);
+      manager.getMainPanel().setProgressBarValue(doneSections, message, axisID);
     }
   }
 
   final void haltProcess(final Thread runThread) {
     processRunning = false;
     runThread.interrupt();
-  }
-
-  /**
-   * Calculate the amount of time remaining, this can be overridden if the
-   * derived class has a better way to calculate.
-   *
-   */
-  private final void calcRemainingTime() {
-    double fractionDone = (double) currentSection / nSections;
-    long elapsedTime = System.currentTimeMillis() - processStartTime;
-    remainingTime = (int) (elapsedTime / fractionDone - elapsedTime);
   }
 
   public final void kill(final SystemProcessInterface process, final AxisID axisID) {
@@ -499,5 +514,12 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
 
   public final void pause(final SystemProcessInterface process, final AxisID axisID) {
     throw new IllegalStateException("pause illegal in this monitor");
+  }
+
+  public boolean isPausing() {
+    return false;
+  }
+
+  public void setWillResume() {
   }
 }

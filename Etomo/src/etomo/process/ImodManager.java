@@ -1,6 +1,7 @@
 package etomo.process;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 import java.util.Set;
 import java.util.Iterator;
@@ -20,6 +21,7 @@ import etomo.type.ImageFileType;
 import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.SerialSectionsMetaData;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
@@ -571,6 +573,7 @@ public class ImodManager {
   public static final String FULL_VOLUME_KEY = new String("full volume");
   public static final String COMBINED_TOMOGRAM_KEY = new String("combined tomogram");
   public static final String FIDUCIAL_MODEL_KEY = new String("fiducial model");
+  public static final String SORTED_MODELS_KEY = new String("sorted models");
   public static final String TRIMMED_VOLUME_KEY = new String("trimmed volume");
   public static final String PATCH_VECTOR_MODEL_KEY = new String("patch vector model");
   public static final String MATCH_CHECK_KEY = new String("match check");
@@ -610,6 +613,8 @@ public class ImodManager {
   public static final String FLATTEN_TOOL_OUTPUT_KEY = new String(
       "Flatten tool output file");
   public static final String SIRT_KEY = new String("SIRT output files");
+  public static final String PREBLEND_KEY = new String("Preblend output file");
+  public static final String ALIGNED_STACK_KEY = new String("Aligned stack");
 
   // private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -620,6 +625,7 @@ public class ImodManager {
   private static final String fullVolumeKey = FULL_VOLUME_KEY;
   private String combinedTomogramKey;
   private static final String fiducialModelKey = FIDUCIAL_MODEL_KEY;
+  private static final String sortedModelsKey = SORTED_MODELS_KEY;
   private static final String trimmedVolumeKey = TRIMMED_VOLUME_KEY;
   private static final String patchVectorModelKey = PATCH_VECTOR_MODEL_KEY;
   private static final String matchCheckKey = MATCH_CHECK_KEY;
@@ -652,6 +658,8 @@ public class ImodManager {
   private static final String flattenInputKey = FLATTEN_INPUT_KEY;
   private static final String flattenToolOutputKey = FLATTEN_TOOL_OUTPUT_KEY;
   private static final String sirtKey = SIRT_KEY;
+  private static final String preblendKey = PREBLEND_KEY;
+  private static final String alignedStackKey = ALIGNED_STACK_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -713,6 +721,17 @@ public class ImodManager {
     }
     createPrivateKeys();
     loadJoinMap();
+  }
+
+  public void setMetaData(SerialSectionsMetaData metaData) {
+    metaDataSet = true;
+    axisType = metaData.getAxisType();
+    datasetName = metaData.getName();
+    if (datasetName.equals("")) {
+      new IllegalStateException("DatasetName is empty.").printStackTrace();
+    }
+    createPrivateKeys();
+    loadSerialSectionsMap();
   }
 
   public void setMetaData(ConstPeetMetaData metaData) {
@@ -802,6 +821,22 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
+  public int newImod(String key, final AxisID axisID, final File file)
+      throws AxisTypeException {
+    Vector vector;
+    ImodState imodState;
+    key = getPrivateKey(key);
+    vector = getVector(key, axisID);
+    if (vector == null) {
+      vector = newVector(key, axisID, file);
+      imodMap.put(key, vector);
+      return 0;
+    }
+    imodState = newImodState(key, axisID, file);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
+  }
+
   public int newImod(String key, String[] fileNameArray) throws AxisTypeException {
     Vector vector;
     ImodState imodState;
@@ -838,12 +873,12 @@ public class ImodManager {
 
   public void open(String key) throws AxisTypeException, SystemProcessException,
       IOException {
-    open(key, null, null, null);
+    open(key, null, (String) null, null);
   }
 
   public void open(String key, Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
-    open(key, null, null, menuOptions);
+    open(key, null, (String) null, menuOptions);
     // used for:
     // openCombinedTomogram
   }
@@ -857,7 +892,7 @@ public class ImodManager {
 
   public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
       throws AxisTypeException, SystemProcessException, IOException {
-    open(key, axisID, null, menuOptions);
+    open(key, axisID, (String) null, menuOptions);
   }
 
   public void open(String key, AxisID axisID, String model) throws AxisTypeException,
@@ -867,7 +902,7 @@ public class ImodManager {
 
   public void open(String key, AxisID axisID) throws AxisTypeException,
       SystemProcessException, IOException {
-    open(key, axisID, null, new Run3dmodMenuOptions());
+    open(key, axisID, (String) null, new Run3dmodMenuOptions());
   }
 
   public void open(String key, File file, Run3dmodMenuOptions menuOptions)
@@ -877,6 +912,20 @@ public class ImodManager {
     if (imodState == null) {
       newImod(key, file);
       imodState = get(key);
+    }
+    if (imodState != null) {
+      imodState.open(menuOptions);
+    }
+  }
+
+  public void open(String key, final AxisID axisID, final File file,
+      final Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID, file);
+      imodState = get(key, axisID);
     }
     if (imodState != null) {
       imodState.open(menuOptions);
@@ -912,6 +961,25 @@ public class ImodManager {
       }
       else {
         imodState.open(model, menuOptions);
+      }
+    }
+  }
+  
+  public void open(String key, AxisID axisID, List<String> modelList,
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      if (modelList == null) {
+        imodState.open(menuOptions);
+      }
+      else {
+        imodState.open(modelList, menuOptions);
       }
     }
   }
@@ -1609,6 +1677,10 @@ public class ImodManager {
     return newVector(newImodState(key, file));
   }
 
+  Vector newVector(final String key, final AxisID axisID, final File file) {
+    return newVector(newImodState(key, axisID, file));
+  }
+
   Vector newVector(final String key, final String[] fileNameArray) {
     return newVector(newImodState(key, fileNameArray));
   }
@@ -1641,6 +1713,10 @@ public class ImodManager {
     return newImodState(key, null, null, file, null, null, null);
   }
 
+  ImodState newImodState(final String key, final AxisID axisID, final File file) {
+    return newImodState(key, axisID, null, file, null, null, null);
+  }
+
   ImodState newImodState(String key, String[] fileNameArray) {
     return newImodState(key, null, null, null, fileNameArray, null, null);
   }
@@ -1652,7 +1728,7 @@ public class ImodManager {
   ImodState newImodState(String key, AxisID axisID, String datasetName, File file,
       String[] fileNameArray, String subdirName, final File[] fileList) {
     if (key.equals(RAW_STACK_KEY) && axisID != null) {
-      return newRawStack(axisID);
+      return newRawStack(axisID, file);
     }
     if (key.equals(ERASED_STACK_KEY) && axisID != null) {
       return newErasedStack(axisID);
@@ -1680,6 +1756,9 @@ public class ImodManager {
     }
     if (key.equals(FIDUCIAL_MODEL_KEY) && axisID != null) {
       return newFiducialModel(axisID);
+    }
+    if (key.equals(SORTED_MODELS_KEY) && axisID != null) {
+      return newSortedModels(axisID);
     }
     if (key.equals(TRIMMED_VOLUME_KEY)) {
       return newTrimmedVolume();
@@ -1771,6 +1850,12 @@ public class ImodManager {
     if (key.equals(SIRT_KEY) && axisID != null) {
       return newSirt(fileList, axisID);
     }
+    if (key.equals(PREBLEND_KEY) && axisID != null) {
+      return newPreblend(axisID);
+    }
+    if (key.equals(ALIGNED_STACK_KEY) && axisID != null) {
+      return newAlignedStack(axisID);
+    }
     System.out.println("key=" + key);
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
@@ -1794,7 +1879,7 @@ public class ImodManager {
   }
 
   protected void loadSingleAxisMap() {
-    imodMap.put(rawStackKey, newVector(newRawStack(AxisID.ONLY)));
+    imodMap.put(rawStackKey, newVector(newRawStack(AxisID.ONLY, null)));
     imodMap.put(erasedStackKey, newVector(newErasedStack(AxisID.ONLY)));
     imodMap.put(coarseAlignedKey, newVector(newCoarseAligned(AxisID.ONLY)));
     imodMap.put(fineAlignedKey, newVector(newFineAligned(AxisID.ONLY)));
@@ -1813,6 +1898,9 @@ public class ImodManager {
     imodMap.put(trialJoinKey, newVector(newTrialJoin()));
   }
 
+  protected void loadSerialSectionsMap() {
+  }
+
   protected void loadPeetMap() {
   }
 
@@ -1821,9 +1909,9 @@ public class ImodManager {
 
   protected void loadDualAxisMap() {
     imodMap.put(rawStackKey + AxisID.FIRST.getExtension(),
-        newVector(newRawStack(AxisID.FIRST)));
+        newVector(newRawStack(AxisID.FIRST, null)));
     imodMap.put(rawStackKey + AxisID.SECOND.getExtension(),
-        newVector(newRawStack(AxisID.SECOND)));
+        newVector(newRawStack(AxisID.SECOND, null)));
     imodMap.put(erasedStackKey + AxisID.FIRST.getExtension(),
         newVector(newErasedStack(AxisID.FIRST)));
     imodMap.put(erasedStackKey + AxisID.SECOND.getExtension(),
@@ -1860,9 +1948,15 @@ public class ImodManager {
     imodMap.put(patchVectorCCCModelKey, newVector(newPatchVectorCCCModel()));
   }
 
-  private ImodState newRawStack(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
-    imodState.setLoadAsIntegers();
+  private ImodState newRawStack(final AxisID axisID, final File file) {
+    ImodState imodState;
+    if (file == null) {
+      imodState = new ImodState(manager, axisID, datasetName, ".st");
+      imodState.setLoadAsIntegers();
+    }
+    else {
+      imodState = new ImodState(manager, axisID, file.getName());
+    }
     return imodState;
   }
 
@@ -1944,6 +2038,11 @@ public class ImodManager {
     imodState.setNoMenuOptions(true);
     return imodState;
   }
+  private ImodState newSortedModels(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
+    imodState.addWindowOpenOption(ImodProcess.WindowOpenOption.MODEL_EDIT);
+    return imodState;
+  }
 
   private ImodState newTrimmedVolume() {
     ImodState imodState = new ImodState(manager, datasetName + ".rec", AxisID.ONLY);
@@ -1984,6 +2083,18 @@ public class ImodManager {
   private ImodState newFlattenToolOutput(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID,
         FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, axisID));
+    return imodState;
+  }
+
+  private ImodState newPreblend(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.PREBLEND_OUTPUT_MRC.getFileName(manager, axisID));
+    return imodState;
+  }
+
+  private ImodState newAlignedStack(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID,
+        FileType.ALIGNED_STACK_MRC.getFileName(manager, axisID));
     return imodState;
   }
 

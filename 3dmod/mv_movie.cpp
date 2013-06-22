@@ -11,6 +11,7 @@
  */
 
 #include <qapplication.h>
+#include <QTime>
 #include "formv_movie.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
@@ -19,16 +20,20 @@
 #include "b3dgfx.h"
 #include "mv_gfx.h"
 #include "mv_input.h"
-#include "mv_image.h"
 #include "mv_movie.h"
+#include "mv_image.h"
+#include "mv_objed.h"
+#include "mv_views.h"
 #include "mv_window.h"
 #include "mv_modeled.h"
+#include "formv_sequence.h"
 #include "preferences.h"
 #include "control.h"
 #include "scalebar.h"
 
 // Static variables with new naming convention
 static imodvMovieForm *sDia = NULL;
+static MovieSequenceForm *sSequenceDia = NULL;
 static ImodvApp  *sApp = NULL;
 static int sSaved = 0;
 static int sReverse = 0;
@@ -37,20 +42,27 @@ static int sMontage = 0;
 static int sFile_format = 0;
 static int sFullaxis = 0;
 static int sAbort = 0;
-static int sFrames = 0;
-static int sMontFrames = 0;
-static int sOverlap = 0;
+static int sFrames = 10;
+static int sMontFrames = 2;
+static int sOverlap = 4;
+static int sTrialFPS = 20;
 static IclipPlanes sStartClips;
 static IclipPlanes sEndClips;
+std::vector<MovieSegment> sSegments;
 
 /* Local functions */
-static void imodvMakeMontage(int frames, int overlap);
-static void imodvMakeMovie(int frames);
+static void makeMontage(int frames, int overlap);
+static int makeMovie(int frames, bool fromSequence);
 static void setstep(int index, int frame, int loLim, int hiLim, float *start,
                     float *step);
+static void xinput(void);
+static void setOneStartOrEnd(int startEnd, int index, float value);
+static void setAllStartOrEnd(int startEnd);
+static void readStartEndInts(int index, int &startVal, int &endVal);
+static void setSegmentState(MovieSegment &segment, MovieTerminus *term);
 
 
-void imodvMovieHelp()
+void mvMovieHelp()
 {
   imodShowHelpPage("modelMovie.html#TOP");
 }
@@ -61,116 +73,117 @@ static void xinput(void)
   qApp->processEvents();
 }
 
-// Set the starting values to the current display values
-void imodvMovieSetStart()
+static void setOneStartOrEnd(int startEnd, int index, float value)
+{
+  if (startEnd == IMODV_MOVIE_START_STATE)
+    sDia->setStart(index, value);
+  else
+    sDia->setEnd(index, value);
+}
+
+static void readStartEndInts(int index, int &startVal, int &endVal)
+{
+  float sv, ev;
+  sDia->readStartEnd(index, sv, ev);
+  startVal = B3DNINT(sv);
+  endVal = B3DNINT(ev);
+}
+
+static void setAllStartOrEnd(int startEnd)
 {
   Iview *vw = &Imodv->imod->view[0];
   sFullaxis = 0;
 
-  sDia->setStart(0, vw->rot.x);
-  sDia->setStart(1, vw->rot.y);
-  sDia->setStart(2, vw->rot.z);
-  sDia->setStart(3, vw->trans.x);
-  sDia->setStart(4, vw->trans.y);
-  sDia->setStart(5, vw->trans.z);
-  sDia->setStart(6, vw->rad);
+  setOneStartOrEnd(startEnd, 0, vw->rot.x);
+  setOneStartOrEnd(startEnd, 1, vw->rot.y);
+  setOneStartOrEnd(startEnd, 2, vw->rot.z);
+  setOneStartOrEnd(startEnd, 3, vw->trans.x);
+  setOneStartOrEnd(startEnd, 4, vw->trans.y);
+  setOneStartOrEnd(startEnd, 5, vw->trans.z);
+  setOneStartOrEnd(startEnd, 6, vw->rad);
   if (!Imodv->standalone) {
-    sDia->setStart(7, (int)(Imodv->vi->xmouse + 1.5));
-    sDia->setStart(8, (int)(Imodv->vi->ymouse + 1.5));
-    sDia->setStart(9, (int)(Imodv->vi->zmouse + 1.5));
-    sDia->setStart(10, imodvImageGetTransparency());
-    sDia->setStart(11, imodvImageGetThickness());
+    setOneStartOrEnd(startEnd, 7, (int)(Imodv->vi->xmouse + 1.5));
+    setOneStartOrEnd(startEnd, 8, (int)(Imodv->vi->ymouse + 1.5));
+    setOneStartOrEnd(startEnd, 9, (int)(Imodv->vi->zmouse + 1.5));
+    setOneStartOrEnd(startEnd, 10, mvImageGetTransparency());
+    setOneStartOrEnd(startEnd, 11, mvImageGetThickness());
   }
+}
+
+// Set the starting values to the current display values
+void mvMovieSetStart()
+{
+  Iview *vw = &Imodv->imod->view[0];
+  setAllStartOrEnd(IMODV_MOVIE_START_STATE);
   imodClipsCopy(&vw->clips, &sStartClips);
 }
 
 // Set the ending values to the current display values
-void imodvMovieSetEnd()
+void mvMovieSetEnd()
 {
   Iview *vw = &Imodv->imod->view[0];
-  sFullaxis = 0;
-
-  sDia->setEnd(0, vw->rot.x);
-  sDia->setEnd(1, vw->rot.y);
-  sDia->setEnd(2, vw->rot.z);
-  sDia->setEnd(3, vw->trans.x);
-  sDia->setEnd(4, vw->trans.y);
-  sDia->setEnd(5, vw->trans.z);
-  sDia->setEnd(6, vw->rad);
-  if (!Imodv->standalone) {
-    sDia->setEnd(7, (int)(Imodv->vi->xmouse + 1.5));
-    sDia->setEnd(8, (int)(Imodv->vi->ymouse + 1.5));
-    sDia->setEnd(9, (int)(Imodv->vi->zmouse + 1.5));
-    sDia->setEnd(10, imodvImageGetTransparency());
-    sDia->setEnd(11, imodvImageGetThickness());
-  }
+  setAllStartOrEnd(IMODV_MOVIE_END_STATE);
   imodClipsCopy(&vw->clips, &sEndClips);
 }
 
 // Do full axis rotation: set start and end both to same values
-void imodvMovieFullAxis(int ixy)
+void mvMovieFullAxis(int ixy)
 {
-  imodvMovieSetStart();
-  imodvMovieSetEnd();
+  mvMovieSetStart();
+  mvMovieSetEnd();
   sFullaxis = ixy;
 }
 
+// The dialog reports movie/montage switch so sequence dialog can be updated
+void mvMovieMontSelection(int mont)
+{
+  sMontage = mont;
+  if (sSequenceDia)
+    sSequenceDia->updateEnables(sMontage != 0, sAbort == 0);
+}
+
 // The dialog say it wants to close, so send it close signal
-void imodvMovieQuit()
+void mvMovieQuit()
 {
   sDia->close();
 }
 
 // When the dialog actually closes, get button states, clean up and stop movie
-void imodvMovieClosing()
+void mvMovieClosing()
 {
   sDia->getButtonStates(sLongway, sReverse, sMontage,
-                              sFile_format, sSaved);
+                        sFile_format, sSaved, sTrialFPS);
   sDia->getFrameBoxes(sFrames, sMontFrames);
   imodvDialogManager.remove((QWidget *)sDia);
   sDia = NULL;
   sAbort = 1;
+  if (sSequenceDia)
+    sSequenceDia->updateEnables(false, false);
 }
 
-void imodvMovieStop()
+void mvMovieStop()
 {
   sAbort = 1;
 }
 
-void imodvMovieMake()
+int mvMovieMake(bool fromSequence)
 {
   sDia->getButtonStates(sLongway, sReverse, sMontage,
-                              sFile_format, sSaved);
+                        sFile_format, sSaved, sTrialFPS);
   sDia->getFrameBoxes(sFrames, sMontFrames);
 
   /* DNM: only make if not already making */
   if (sAbort) {
     if (sMontage)
-      imodvMakeMontage(sMontFrames, sOverlap);
+      makeMontage(sMontFrames, sOverlap);
     else
-      imodvMakeMovie(sFrames);
+      return makeMovie(sFrames, fromSequence);
   }
+  return 0;
 }
 
-void imodvMovieDialog(ImodvApp *a, int state)
+void mvMovieDialog(ImodvApp *a, int state)
 {
-  QString qstr;
-  char *window_name;
-  static int first = 1;
-
-  // Initialize first time, save between invocations
-  if (first){
-    sDia = NULL;
-    sReverse = 0;
-    sLongway = 0;
-    sFile_format = 0;
-    sMontage = 0;
-    sFrames = 10;
-    sMontFrames = 2;
-    sOverlap = 4;
-    first = 0;
-  }
-
   if (!state){
     if (sDia) 
       sDia->close();
@@ -194,21 +207,202 @@ void imodvMovieDialog(ImodvApp *a, int state)
   }
 
   // Set title bar
-  window_name = imodwEithername("3dmodv Movie: ", a->imod->fileName, 1);
-  qstr = window_name;
-  if (window_name)
-    free(window_name);
-  if (!qstr.isEmpty())
-    sDia->setWindowTitle(qstr);
+  setModvDialogTitle(sDia, "3dmodv Movie: ");
 
   // Set the states
-  imodvMovieSetStart();
-  imodvMovieSetEnd();
+  mvMovieSetStart();
+  mvMovieSetEnd();
   sDia->setButtonStates(sLongway, sReverse, sMontage,
-                              sFile_format, sSaved);
+                        sFile_format, sSaved, sTrialFPS);
   sDia->setFrameBoxes(sFrames, sMontFrames);
   imodvDialogManager.add((QWidget *)sDia, IMODV_DIALOG);
   adjustGeometryAndShow((QWidget *)sDia, IMODV_DIALOG);
+  sDia->sequenceOpen(sSequenceDia != NULL);
+  if (sSequenceDia)
+    sSequenceDia->updateEnables(!sMontage, false);
+}
+
+void mvMovieSequenceDialog(ImodvApp *a, int state)
+{
+  if (!state) {
+    if (sSequenceDia) 
+      sSequenceDia->close();
+    return;
+  }
+  if (sSequenceDia) {
+    sSequenceDia->raise();
+    return;
+  }
+
+  sSequenceDia = new MovieSequenceForm(imodvDialogManager.parent(IMODV_DIALOG), 
+                                       Qt::Window);
+  if (!sSequenceDia) {
+    dia_err("Failed to create 3dmodv movie sequence window!");
+    return;
+  }
+
+  // Set title bar
+  setModvDialogTitle(sSequenceDia, "3dmodv Movie Sequence: ");
+
+  imodvDialogManager.add(sSequenceDia, IMODV_DIALOG);
+
+  // Height is managed in the init function
+  adjustGeometryAndShow(sSequenceDia, IMODV_DIALOG, false);
+  sSequenceDia->updateEnables(sDia != NULL && !sMontage, sAbort == 0);
+  if (sDia)
+    sDia->sequenceOpen(true);
+}
+
+void mvMovieSequenceClosing()
+{
+  imodvDialogManager.remove(sSequenceDia);
+  sSequenceDia = NULL;
+  if (sDia)
+    sDia->sequenceOpen(false);
+}
+
+// Get all the properties that define a movie segment
+void mvMovieGetSegment(MovieSegment &segment)
+{
+  int i, numObj;
+  sDia->getFrameBoxes(sFrames, sMontFrames);
+  sDia->readStartEnd(0, segment.start.rotation.x, segment.end.rotation.x);
+  sDia->readStartEnd(1, segment.start.rotation.y, segment.end.rotation.y);
+  sDia->readStartEnd(2, segment.start.rotation.z, segment.end.rotation.z);
+  sDia->readStartEnd(3, segment.start.translate.x, segment.end.translate.x);
+  sDia->readStartEnd(4, segment.start.translate.y, segment.end.translate.y);
+  sDia->readStartEnd(5, segment.start.translate.z, segment.end.translate.z);
+  sDia->readStartEnd(6, segment.start.zoomRad, segment.end.zoomRad);
+  if (Imodv->standalone) {
+    segment.imgAxisFlags = 0;
+  } else {
+    mvImageGetMovieState(segment);
+    readStartEndInts(7, segment.start.imgXcenter, segment.end.imgXcenter);
+    readStartEndInts(8, segment.start.imgYcenter, segment.end.imgYcenter);
+    readStartEndInts(9, segment.start.imgZcenter, segment.end.imgZcenter);
+    readStartEndInts(10, segment.start.imgTransparency, segment.end.imgTransparency);
+    readStartEndInts(11, segment.start.imgSlices, segment.end.imgSlices);
+  }
+  segment.numFrames = sFrames;
+  segment.viewNum = Imodv->imod->cview;
+  segment.fullAxis = sFullaxis;
+  segment.numClips = B3DMIN(sStartClips.count, sEndClips.count);
+  segment.clipFlags = sStartClips.flags;
+  for (i = 0; i < segment.numClips; i++) {
+    segment.clipNormal[i] = sStartClips.normal[i];
+    segment.start.clipPoint[i] = sStartClips.point[i];
+    segment.end.clipPoint[i] = sEndClips.point[i];
+  }
+  numObj = B3DMIN(MAX_OBJ_ONOFF, Imodv->imod->objsize);
+  //CLEAR_RESIZE(segment.objStates, unsigned char, numObj);
+  segment.objStates.resize(numObj);
+  for (i = 0; i < numObj; i++)
+    segment.objStates[i] = iobjOff(Imodv->imod->obj[i].flags) ? 0 : 1;
+
+  if (sFullaxis && segment.label.isEmpty()) {
+    segment.label = QString("Full 360 ") + 
+      (sFullaxis == IMODV_MOVIE_FULLAXIS_X ? "X" : "Y");
+  }
+  
+}
+
+// Set the movie drawing parameters completely for a segment
+void mvMovieSetSegment(MovieSegment &segment)
+{
+  int se, i;
+  MovieTerminus *term = &segment.start;
+
+  // Move each endpoint into the dialog
+  for (se = 0; se < 2; se++) {
+    setOneStartOrEnd(se, 0, term->rotation.x);
+    setOneStartOrEnd(se, 1, term->rotation.y);
+    setOneStartOrEnd(se, 2, term->rotation.z);
+    setOneStartOrEnd(se, 3, term->translate.x);
+    setOneStartOrEnd(se, 4, term->translate.y);
+    setOneStartOrEnd(se, 5, term->translate.z);
+    setOneStartOrEnd(se, 6, term->zoomRad);
+    if (segment.imgAxisFlags) {
+      setOneStartOrEnd(se, 7, term->imgXcenter);
+      setOneStartOrEnd(se, 8, term->imgYcenter);
+      setOneStartOrEnd(se, 9, term->imgZcenter);
+      setOneStartOrEnd(se, 10, term->imgTransparency);
+      setOneStartOrEnd(se, 11, term->imgSlices);
+    }
+    term = &segment.end;
+  }
+
+  // Make sure image drawing is set up fully
+  mvImageSetMovieDrawState(segment);
+  sFrames = segment.numFrames;
+  sFullaxis = segment.fullAxis;
+  sDia->setFrameBoxes(sFrames, sMontFrames);
+
+  // Do common display setup, set clip planes to start point
+  setSegmentState(segment, &segment.start);
+ 
+  // Set both sets of clip planes consistently
+  sStartClips.count = sEndClips.count = segment.numClips;
+  sStartClips.flags = sEndClips.flags = segment.clipFlags;
+  for (i = 0; i < segment.numClips; i++) {
+    sStartClips.normal[i] = sEndClips.normal[i] = segment.clipNormal[i];
+    sStartClips.point[i] = segment.start.clipPoint[i];
+    sEndClips.point[i] = segment.end.clipPoint[i];
+  }
+  imodvDraw(Imodv);
+  imodvDrawImodImages();
+  imodvObjedNewView();
+}
+
+// Set the display to the state at one end of a movie segment without affecting the 
+// current movie parameters any more than possible
+void mvMovieSetTerminus(int startEnd, MovieSegment &segment)
+{
+  Iview *vw = &Imodv->imod->view[0];
+  MovieTerminus *term = &segment.start;
+  if (startEnd == IMODV_MOVIE_END_STATE)
+    term = &segment.end;
+
+  // Set the model display state
+  setSegmentState(segment, term);
+  vw->rot.x = term->rotation.x;
+  vw->rot.y = term->rotation.y;
+  vw->rot.z = term->rotation.z;
+  vw->trans.x = term->translate.x;
+  vw->trans.y = term->translate.y;
+  vw->trans.z = term->translate.z;
+  vw->rad = term->zoomRad;
+
+  // Set image drawing state
+  mvImageSetMovieEndState(startEnd, segment);
+
+  imodvDraw(Imodv);
+  imodvDrawImodImages();
+  imodvObjedNewView();
+}
+
+// Common state-setting when setting a movie segment or display to an end state
+// Go to the view, set the object on/off states
+// Set the actual clip planes to the appropriate endpoint
+static void setSegmentState(MovieSegment &segment, MovieTerminus *term)
+{
+  int i;
+  Iview *vw = &Imodv->imod->view[0];
+  imodvAutoStoreView(Imodv);
+  imodvViewsSetView(Imodv, B3DMIN(segment.viewNum, Imodv->imod->viewsize), false, true,
+                    false);
+  for (i = 0; i < B3DMIN(segment.objStates.size(), Imodv->imod->objsize); i++)
+    setOrClearFlags(&Imodv->imod->obj[i].flags, IMOD_OBJFLAG_OFF, 
+                    segment.objStates[i] ? 0 : 1);
+  vw->clips.count = segment.numClips;
+  vw->clips.flags = segment.clipFlags;
+  for (i = 0; i < segment.numClips; i++) {
+    vw->clips.normal[i] = segment.clipNormal[i];
+    vw->clips.point[i] = term->clipPoint[i];
+  }
+}
+
+std::vector<MovieSegment> *mvMovieSegmentArray() {
+  return &sSegments;
 }
 
 static void setstep(int index, int frame, int loLim, int hiLim, float *start,
@@ -244,18 +438,18 @@ static void setstep(int index, int frame, int loLim, int hiLim, float *start,
   }
 }
 
-void imodvMovieUpdate()
+void mvMovieUpdate()
 {
   if (sDia)
     sDia->setNonTifLabel();
 }
 
-static void imodvMakeMovie(int frames)
+static int makeMovie(int frames, bool fromSequence)
 {
   ImodvApp *a = sApp;
   Iview *vw;
-  
-  int frame, pl, nsteps;
+  static int lastMakeNothing = 0;
+  int frame, pl, nsteps, interval;
   float astart, astep;
   float bstart, bstep;
   float gstart, gstep;
@@ -269,13 +463,16 @@ static void imodvMakeMovie(int frames)
   double alpha, beta, gamma;
   Ipoint v;
   Imat *mat, *mati, *matp;
+  QTime drawTimer;
 
   if (frames <= 0)
-    return;
+    return 0;
   nsteps = frames - 1;
   if (!nsteps)
     nsteps = 1;
 
+  if (sSequenceDia)
+    sSequenceDia->updateEnables(true, true);
   xImStep = yImStep = zImStep = 0.;
   setstep(0, nsteps, 0, 0, &astart, &astep);
   setstep(1, nsteps, 0, 0, &bstart, &bstep);
@@ -292,7 +489,7 @@ static void imodvMakeMovie(int frames)
     setstep(11, nsteps, 1, a->vi->zsize, &thickStart, &thickStep);
   }
 
-  a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+  a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
   a->movie = 0;
   a->moveall = 0;
 
@@ -308,15 +505,16 @@ static void imodvMakeMovie(int frames)
   vw->trans.y = ytstart;
   vw->trans.z = ztstart;
   imodClipsCopy(&sStartClips, &vw->clips);
+  imodvObjedNewView();
   mat = imodMatNew(3);
   mati = imodMatNew(3);
   matp = imodMatNew(3);
 
-  if (!a->standalone) {
+  if (!a->standalone && a->texMap) {
     a->vi->xmouse = (int)(xImStart - 0.5);
     a->vi->ymouse = (int)(yImStart - 0.5);
     a->vi->zmouse = (int)(zImStart - 0.5);
-    imodvImageSetThickTrans((int)(thickStart + 0.5), (int)(transpStart + 0.5));
+    mvImageSetThickTrans((int)(thickStart + 0.5), (int)(transpStart + 0.5));
   }
 
   /* get incremental rotation matrix */
@@ -357,10 +555,16 @@ static void imodvMakeMovie(int frames)
       frame = 1;
 
   if (fabs((double)delangle) < 1.e-3 && !frame && !zstep && !xtstep && !ytstep &&
-      !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep)
-    return;
+      !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep && 
+      !fromSequence && lastMakeNothing < 2) {
+    lastMakeNothing = dia_ask_forever("The display will not change.\nAre you sure you"
+                                      " want to make a movie with duplicate pictures?");
+    if (!lastMakeNothing)
+      return 0;
+  }
 
   sAbort = 0;
+  interval = B3DNINT(1000. / sTrialFPS);
   for(frame = 1; frame <= frames; frame++){
     if (sSaved) {
       if (sFile_format == 2)
@@ -369,8 +573,13 @@ static void imodvMakeMovie(int frames)
                           SnapShot_TIF);
       if (sFile_format == 2)
         ImodPrefs->restoreSnapFormat();
-    } else
+    } else {
+      drawTimer.start();
       imodvDraw(a);
+      pl = interval - drawTimer.elapsed();
+      if (pl > 0)
+        b3dMilliSleep(pl);
+    }
 
     xinput(); 
 
@@ -398,11 +607,11 @@ static void imodvMakeMovie(int frames)
       vw->trans.x += xtstep;
       vw->trans.y += ytstep;
       vw->trans.z += ztstep;
-      if (!a->standalone) {
+      if (!a->standalone && a->texMap) {
         a->vi->xmouse = (int)(xImStart + frame * xImStep - 0.5);
         a->vi->ymouse = (int)(yImStart + frame * yImStep - 0.5);
         a->vi->zmouse = (int)(zImStart + frame * zImStep - 0.5);
-        imodvImageSetThickTrans((int)(thickStart + frame * thickStep + 0.5),
+        mvImageSetThickTrans((int)(thickStart + frame * thickStep + 0.5),
                                 (int)(transpStart + frame * transpStep + 0.5));
       }
       for (pl = 0; pl < B3DMIN(sStartClips.count, sEndClips.count); pl++) {
@@ -415,12 +624,16 @@ static void imodvMakeMovie(int frames)
       }
     }
   }
+
+  pl = sAbort;
   sAbort = 1;
+  if (sSequenceDia)
+    sSequenceDia->updateEnables(true, false);
 
   imodMatDelete(mat);
   imodMatDelete(mati);
   imodMatDelete(matp);
-  return;
+  return pl;
 }
 
 typedef struct {
@@ -431,13 +644,13 @@ typedef struct {
 } MontModelData;
 
 /* Routine to make a montage */
-static void imodvMakeMontage(int frames, int overlap)
+static void makeMontage(int frames, int overlap)
 {
   ImodvApp *a = sApp;
   Iview *vw;
   MontModelData *mmd;
   Imat *mat;
-  Ipoint ipt, spt;
+  Ipoint ipt;
   float scrnscale;
   int ix, iy, xFullSize, yFullSize, numChunks, m, mstart, mend;
   float zoom, yzoom;
@@ -467,16 +680,15 @@ static void imodvMakeMontage(int frames, int overlap)
     if (vw->fovy >= 1.0f) {
       imodError(NULL, "%s model has a perspective setting of %d (see "
                 "Edit-Controls window).\nThe montage will not work right "
-                "with perspective.", a->nm > 1 ? "One" : "This", (int)vw->fovy);
+                "with perspective.", a->numMods > 1 ? "One" : "This", (int)vw->fovy);
       return;
     }
   }
 
-  a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
+  a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
   a->movie = 0;
   a->moveall = 0;
-  sAbort = 0;
-  mmd = B3DMALLOC(MontModelData, a->nm);
+  mmd = B3DMALLOC(MontModelData, a->numMods);
   if (!mmd) {
     imodError(NULL, "Failed to get memory for saving data per model.\n");
     return;
@@ -495,6 +707,7 @@ static void imodvMakeMontage(int frames, int overlap)
     free(mmd);
     return;
   }
+  sAbort = 0;
 
   for (m = mstart; m <= mend; m++) {
     vw = a->mod[m]->view;
@@ -536,9 +749,9 @@ static void imodvMakeMontage(int frames, int overlap)
      in regular snapshot) */
   // But 4/6/05: It was needed to prevent getting an out-of-date image for
   // one machine under xorg-6.7.0
-  if (a->db)
+  if (a->dblBuf)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
-  glReadBuffer(a->db ? GL_BACK : GL_FRONT);
+  glReadBuffer(a->dblBuf ? GL_BACK : GL_FRONT);
 
   for (iy = 0; iy < frames; iy++) {
     for (ix = 0; ix < frames; ix++) {
@@ -598,7 +811,7 @@ static void imodvMakeMontage(int frames, int overlap)
   
   utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
   
-  if (a->db) {
+  if (a->dblBuf) {
     imodv_swapbuffers(a);
     a->mainWin->mCurGLw->setBufferSwapAuto(true);
   }

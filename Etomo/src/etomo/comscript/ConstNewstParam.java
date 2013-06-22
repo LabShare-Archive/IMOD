@@ -1,9 +1,5 @@
 package etomo.comscript;
 
-import java.util.Vector;
-
-import etomo.type.AxisID;
-
 /**
  * <p>Description: </p>
  *
@@ -140,15 +136,8 @@ import etomo.type.AxisID;
  * <p> </p>
  */
 
-public  interface ConstNewstParam extends CommandDetails {
+public interface ConstNewstParam extends CommandDetails {
   public static final String rcsid = "$Id$";
-
-  public AxisID getAxisID();
-
-  /**
-   * @return Returns the applyOffsetsFirst.
-   */
-  public boolean isApplyOffsetsFirst();
 
   /**
    * @return Returns the binByFactor.
@@ -156,39 +145,9 @@ public  interface ConstNewstParam extends CommandDetails {
   public int getBinByFactor();
 
   /**
-   * @return Returns the contrastBlackWhite.
-   */
-  public String getContrastBlackWhite();
-
-  /**
-   * @return Returns the distortionField.
-   */
-  public String getDistortionField();
-
-  /**
-   * @return Returns the expandByFactor.
-   */
-  public float getExpandByFactor();
-
-  /**
-   * @return Returns the fileOfInputs.
-   */
-  public String getFileOfInputs();
-
-  /**
-   * @return Returns the fileOfOutputs.
-   */
-  public String getFileOfOutputs();
-
-  /**
    * @return Returns the floatDensities.
    */
   public int getFloatDensities();
-
-  /**
-   * @return Returns the imagesAreBinned.
-   */
-  public int getImagesAreBinned();
 
   /**
    * Backward compatibility with pre PIP structure, just return the first input
@@ -196,12 +155,6 @@ public  interface ConstNewstParam extends CommandDetails {
    * @return Returns the inputFile.
    */
   public String getInputFile();
-
-  /**
-   * Create a defensive copy of the internal object inputFile
-   * @return
-   */
-  public Vector getInputFiles();
 
   /**
    * @return Returns the linearInterpolation.
@@ -214,65 +167,21 @@ public  interface ConstNewstParam extends CommandDetails {
   public int getModeToOutput();
 
   /**
-   * @return Returns the numberToOutput.
-   */
-  public Vector getNumberToOutput();
-
-  /**
-   * @return Returns the offsetsInXandY.
-   */
-  public String getOffsetsInXandY();
-
-  /**
    * Backward compatibility with pre PIP structure, just return the first ouput
    * file
    * @return Returns the inputFile.
    */
   public String getOutputFile();
 
-  /**
-   * @return Returns the parameterFile.
-   */
-  public String getParameterFile();
-
-  /**
-   * @return Returns the rotateByAngle.
-   */
-  public float getRotateByAngle();
-
-  /**
-   * @return Returns the scaleMinAndMax.
-   */
-  public FortranInputString getScaleMinAndMax();
-
-  /**
-   * @return Returns the sectionsToRead.
-   */
-  public Vector getSectionsToRead();
-
-  /**
-   * @return Returns the sizeToOutputInXandY.
-   */
-  public String getSizeToOutputInXandY();
-
   public int getSizeToOutputInX();
 
   public int getSizeToOutputInY();
 
-  /**
-   * @return Returns the testLimits.
-   */
-  public String getTestLimits();
-
-  /**
-   * @return Returns the transformFile.
-   */
-  public String getTransformFile();
-
-  /**
-   * @return Returns the useTransformLines.
-   */
-  public String getUseTransformLines();
-
   public boolean isSizeToOutputInXandYSet();
+
+  public boolean fillValueEquals(int value);
+
+  public String getOffsetInX();
+
+  public String getOffsetInY();
 }

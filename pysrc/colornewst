@@ -1,0 +1,303 @@
+#!/usr/bin/env python
+# colornewst - Wrapper to newstack that will process a color file
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = 'colornewst'
+prefix = 'ERROR: ' + progname + ' - '
+tmproot = ''
+dotiff = False
+infile = ''
+outfile = ''
+outtiff = ''
+
+# Convert sequence to comma-separated ranges that can run in either direction
+def rangeListEntry(numList):
+   inRange = 0
+   outStr = ''
+   endInd = 0
+   startInd = 0
+
+   for curInd in range(1, len(numList)):
+
+      if inRange:
+
+         # If already in a series, and this one continue the series, update end index
+         if numList[curInd] - numList[endInd] == inRange:
+            endInd = curInd
+         else:
+
+            # Otherwise the series is broken, output it and reset to not in series
+            outStr = addRange(numList, startInd, endInd, inRange, outStr)
+            inRange = 0
+            startInd = curInd
+      else:
+
+         # If not in series and this differs by 1 from last, start a series
+         diff = numList[curInd] - numList[startInd]
+         if diff == 1 or diff == -1:
+            inRange = diff
+            endInd = curInd
+         else:
+
+            # Otherwise output the single number and continue
+            outStr = addRange(numList, startInd, endInd, inRange, outStr)
+            startInd = curInd
+
+   # Output whatever is left at the end
+   outStr = addRange(numList, startInd, endInd, inRange, outStr)
+   return outStr
+
+def addRange(numList, startInd, endInd, inRange, outStr):
+   if outStr:
+      outStr += ','
+   if inRange:
+      outStr += fmtstr('{}-{}', numList[startInd], numList[endInd])
+   else:
+      outStr += str(numList[startInd])
+   return outStr
+
+
+# Determine if an entry matches either form of a newstack option
+def matchesOption(arg, shortOpt, longOpt):
+   return ('-' + shortOpt).startswith(arg) or ('-' + longOpt).startswith(arg) or \
+       ('--' + shortOpt).startswith(arg) or ('--' + longOpt).startswith(arg)
+
+
+# Clean up all temporary files
+def cleanupTemp(tiffToo = False):
+   cleanupFiles([tmproot + '.r', tmproot + '.g', tmproot + '.b',
+                tmproot + '.rproc', tmproot + '.gproc', tmproot + '.bproc'])
+   if dotiff and tiffToo:
+      cleanupFiles([infile, outfile])
+
+         
+# load System Libraries
+import os, sys, signal, itertools
+
+#
+# Setup runtime environment
+if sys.platform.find("win32") < 0:
+   try:
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+   except:
+      pass
+if os.getenv('IMOD_DIR') != None:
+   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
+                        os.pathsep + os.environ['PATH']
+   sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+#
+# load IMOD Libraries
+from imodpy import *
+from pip import exitError, setExitPrefix
+
+setExitPrefix(prefix)
+passOnKeyInterrupt(True)
+
+numargs = len(sys.argv)
+if numargs < 4:
+   prnstr("Usage: " + progname + """ [options] input_file output_file
+   Runs newstack on color or gray-scale files
+   Options can include most newstack options (see man page for restrictions), but
+   the input and output files must be entered at end, not with -input/-output
+   Options to """ + progname + """ itself:
+      -cntiff         Treat input as TIFF file, produce TIFF output (not needed
+                         if input file ends in .tif, .tiff, .TIF, or .TIFF)
+      -cntempdir dir  Directory for temporary files
+      -cnmaxtemp #    Maximum amount of temporary space to use in MB
+      -cnverbose      Pass on output from running newstack and tiff conversions
+""")
+   sys.exit(numargs - 1)
+
+newstcom = ""
+graycom = ""
+argind = 1
+infile = sys.argv[numargs - 2]
+outfile = sys.argv[numargs - 1]
+tmpdir = imodTempDir()
+maxTempSize = 1024.
+verbose = None
+seclist = None
+uselist = None
+badopt = None
+onebase = 0
+clipone = ''
+
+if not os.path.exists(infile):
+   exitError('Input file ' + infile + ' (next to last argument) does not exist')
+
+# Build the newstack command string and look for cn arguments
+while argind < numargs - 2:
+   arg = sys.argv[argind]
+   if len(arg) > 2 and matchesOption(arg, 'cntempdir', ''):
+      tmpdir = sys.argv[argind + 1]
+      if argind == numargs - 3:
+         exitError('An entry is missing, either the tempdir or the input or output ' +\
+                      'filename')
+      if not os.path.isdir(tmpdir) or not os.access(tmpdir, os.W_OK):
+         exitError('The tempdir ' + tmpdir + ' either does not exist or is not writable')
+      argind += 1
+
+   elif len(arg) > 2 and matchesOption(arg, 'cnmaxtemp', ''):
+      if argind == numargs - 3:
+         exitError('The value for the max temp size is missing')
+      try:
+         maxTempSize = float(sys.argv[argind + 1])
+      except:
+         exitError('Converting max temp size entry to a number')
+      argind += 1
+
+   elif len(arg) > 2 and matchesOption(arg, 'cnverbose', ''):
+      verbose = 'stdout'
+   elif len(arg) > 2 and matchesOption(arg, 'cntiff', ''):
+      dotiff = True
+      
+   else:
+
+      # It is a newstack option; so look for illegal ones and ones to intercept
+      graycom += '"' + arg + '" '
+      if matchesOption(arg, 'input', 'InputFile') or \
+             matchesOption(arg, 'output', 'OutputFile') or \
+             matchesOption(arg, 'fileinlist', 'FileOfInputs') or \
+             matchesOption(arg, 'fileoutlist', 'FileOfOutputs') or \
+             matchesOption(arg, 'split', 'SplitStartingNumber') or \
+             matchesOption(arg, 'replace', 'ReplaceSections') or \
+             matchesOption(arg, 'numout', 'NumberToOutput') or \
+             matchesOption(arg, 'skip', 'SkipSectionIncrement') or \
+             matchesOption(arg, 'blank', 'BlankOutput') or \
+             matchesOption(arg, 'onexform', 'OneTransformPerFile') or \
+             matchesOption(arg, 'exclude', 'ExcludeSections'):
+         badopt = arg
+
+      elif matchesOption(arg, 'secs', 'SectionsToRead'):
+         if seclist:
+            exitError('You cannot enter more than one section list')
+         argind += 1
+         seclist = parselist(sys.argv[argind])
+         graycom += '"' + sys.argv[argind] + '" '
+
+      elif matchesOption(arg, 'uselines', 'UseTransformLines'):
+         if uselist:
+            exitError('You cannot enter more than one list of transforms to use')
+         argind += 1
+         uselist = parselist(sys.argv[argind])
+         graycom += '"' + sys.argv[argind] + '" '
+         
+      elif matchesOption(arg, 'fromone', 'NumberedFromOne'):
+         onebase = 1
+         newstcom += '"' + arg + '" '
+         clipone = '-1'
+         
+      else:            
+         newstcom += '"' + arg + '" '
+
+   argind += 1
+   
+# Set up the temporary filename
+tmproot = tmpdir + '/' + progname + '.' + str(os.getpid())
+
+# Try to do automatic tiff detection
+(inroot, inext) = os.path.splitext(infile)
+if not dotiff and (inext.lower() == '.tif' or inext.lower() == '.tiff'):
+   try:
+      (nx, ny, nz, mode, px, py, pz) = getmrc(infile)
+   except ImodpyError:
+      dotiff = True
+      prnstr("Treating input file as TIFF and making TIFF output because\n" +\
+                "   it has a TIFF extension and is not an MRC file\n")
+
+try:
+
+   # For TIFF file, switch the names around and convert to mrc
+   if dotiff:
+      intiff = infile
+      outtiff = outfile
+      infile = tmproot + '.mrc'
+      outfile = tmproot + '.join'
+      runcmd(fmtstr('tif2mrc "{}" "{}"', intiff, infile), None, verbose)
+
+   # Test the input file right away and see if it is just a matter of running newstack
+   (nx, ny, nz, mode, px, py, pz) = getmrc(infile)
+   if mode != 16:
+      prnstr("Input file is gray-scale mode; newstack will be run directly on it\n")
+      runcmd(fmtstr('newstack {}"{}" "{}"', graycom, infile, outfile), None, verbose)
+      if dotiff:
+         runcmd(fmtstr('mrc2tif -s "{}" "{}"', outfile, outtiff),  None, verbose)
+         cleanupTemp(True)
+
+      prnstr('Done!')
+      sys.exit(0)
+
+   # Otherwise bad options really are bad
+   if badopt:
+      exitError('You cannot use option ' + badopt + \
+                   ' to process color data with this program')
+
+   # Make up the section list and use lines list
+   # Need to use a list comprehension to get a real list out, otherwise the
+   # slicing below fails for python 3.1
+   if not seclist:
+      seclist = [i for i in range(onebase, nz + onebase)]
+   if not uselist:
+      uselist = seclist
+   numSec = len(seclist)
+   if numSec != len(uselist):
+      exitError('The number of sections to do does not match the number of items in ' +\
+                   'the list of lines to use')
+      
+   # Get the number of sections that can be processed at a time
+   # Since each channel can be deleted after operating on it, need space for 4 bytes/sec
+   tempBytes = int(1024 * 1024 * maxTempSize)
+   maxSections = max(1, tempBytes // (4 * nx * ny))
+   numChunks = (numSec + maxSections - 1) // maxSections
+
+   # Loop on the chunks
+   startind = 0
+   append = ''
+   for chunk in range(numChunks):
+      endind = min(startind + maxSections, numSec)
+
+      # Split
+      runcmd(fmtstr('clip splitrgb -2d {} -iz {} "{}" "{}"', clipone,
+                    rangeListEntry(seclist[startind:endind]), infile, tmproot))
+
+      # Process each channel and remove input
+      for ext in ('.r', '.g', '.b'):
+         onechan = tmproot + ext
+         runcmd(fmtstr('newstack {}-uselines {} "{}" "{}"', newstcom,
+                       rangeListEntry(uselist[startind:endind]), onechan,
+                       onechan + 'proc'), None, verbose)
+         try:
+            os.remove(onechan)
+         except:
+            pass
+
+      # Join it back, appending after the first time
+      runcmd(fmtstr('clip joinrgb {} "{}" "{}" "{}" "{}"', append, tmproot + '.rproc',
+                    tmproot + '.gproc', tmproot + '.bproc', outfile))
+
+      cleanupTemp()
+      append = '-a'
+      startind += maxSections
+
+   # Convert back to tiff
+   if dotiff:
+      runcmd(fmtstr('mrc2tif -s "{}" "{}"', outfile, outtiff),  None, verbose)
+      cleanupTemp(True)
+
+except ImodpyError:
+   cleanupTemp(True)
+   exitFromImodError(progname)
+
+except KeyboardInterrupt:
+   cleanupTemp(True)
+   sys.exit(1)
+
+prnstr('Done!')
+sys.exit(0)

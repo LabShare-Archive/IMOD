@@ -41,7 +41,6 @@ public final class UITests {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(RadioTextFieldTest.class);
-    suite.addTestSuite(SetupDialogExpertTest.class);
     //$JUnit-END$
     return suite;
   }

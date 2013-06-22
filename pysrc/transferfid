@@ -115,7 +115,8 @@ options = ["s:Setname:CH:", "b:TransferBtoA:B:", "ia:AImageFile:FN:",
            "ib:BImageFile:FN:", "f:FiducialModel:FN:", "o:SeedModel:FN:",
            "n:ViewsToSearch:I:", "za:ACenterView:I:", "zb:BCenterView:I:",
            "a:AngleOfRotation:I:", "x:MirrorXaxis:B:", "m:RunMidas:B:",
-           "c:CorrespondingCoordFile:FN:", "t:LeaveTempFiles:B:"]
+           "c:CorrespondingCoordFile:FN:", "lowest:LowestTiltTransformFile:FN:",
+           "t:LeaveTempFiles:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
 passOnKeyInterrupt(True)
@@ -166,6 +167,7 @@ nviews = PipGetInteger('ViewsToSearch', 5)
 zeroa = PipGetInteger('ACenterView', -1)
 zerob = PipGetInteger('BCenterView', -1)
 correspond = PipGetString('CorrespondingCoordFile', '')
+lowestXfFile = PipGetString('LowestTiltTransformFile', '')
 pmstart = 0
 pmend = 1
 angle = PipGetInteger('AngleOfRotation', 0)
@@ -224,13 +226,19 @@ if not imageb or zerob < 0:
    if not imageb:
       exitError(fmtstr('Cannot find the {} image file name in {}', BB, trackb))
 
-# Get the view at minimum tilt one way or angle
+# Get the view at minimum tilt if needed for one reason or another
+zeroAview = zeroa
+zeroBview = zerob
+if zeroa < 0 or lowestXfFile:
+   zeroAview = getMinimumAngle(setname, src, AA, tracklines)
+if zerob < 0 or lowestXfFile:
+   zeroBview = getMinimumAngle(setname, dst, BB, blines)
 if zeroa < 0:
-   zeroa = getMinimumAngle(setname, src, AA, tracklines)
+   zeroa = zeroAview
 if zerob < 0:
-   zerob = getMinimumAngle(setname, dst, BB, blines)
+   zerob = zeroBview
 
-# Make sure image files exists and fid file too
+# Make sure image files exist and fid file too
 for imfile in (imagea, imageb):
    if not os.path.exists(imfile):
       exitError('Image file ' + imfile + ' does not exist')
@@ -263,10 +271,13 @@ ylimit = nyb // 5
 #
 zeroa -= 1
 zerob -= 1
+
 asecstr = zeroa - (nviews // 2)
 asecend = asecstr + nviews - 1
 bsecstr = zerob - (nviews // 2)
 bsecend = bsecstr + nviews - 1
+lowestAsec = min(asecend, max(asecstr, zeroAview - 1))
+lowestBsec = min(bsecend, max(bsecstr, zeroBview - 1))
 
 # Check section numbers
 if asecstr < 0 or asecend >= nza:
@@ -301,6 +312,7 @@ else:
 
 # Loop on section from b, section from a, and -/+90 rotations
 diffmin = 2000000000
+diffLowestTilt = diffmin
 pluswin = 0
 minuswin = 0
 plusbig = 0
@@ -413,7 +425,7 @@ try:
             prnstr(fmtstr('{} {} {} {} rotation {:3d} difference {:11.6f}', AA, asec + 1,
                           BB, bsec + 1, pmangle, diff), end = '')
             if diff < diffmin:
-               prnstr('*')
+               prnstr('*', flush=True)
                diffmin = diff
                asecbest = asec
                bsecbest = bsec
@@ -423,11 +435,21 @@ try:
                   cleanExitError('Taking product of 90 degree and found transform')
 
             else:
-               prnstr(' ')
+               prnstr(' ', flush=True)
 
             #  Accumulate differences from plus and minus
             pmdiffs.append(diff)
             plusminus += 1
+
+            # If XF file at lowest tilt requested, output one for best lowest tilt pair
+            if lowestXfFile and asec == lowestAsec and bsec == lowestBsec and \
+                   diff < diffLowestTilt:
+               diffLowestTilt = diff
+               try:
+                  runcmd(fmtstr('xfproduct "{}" "{}" "{}"', tmprot90, tmpxf2,
+                                lowestXfFile))
+               except ImodpyError:
+                  cleanExitError('Taking product of 90 degree and found transform')
 
          # If there are both plus and minus, count who wins
          # and stop doing a consistent loser, or a big loser sooner
@@ -494,10 +516,12 @@ try:
    modscale = pxa / modpixel
 
    # clip out the model and remap it to z = 1
-   clipcom = [fidfile, tmpclip, '0', '0', '0', '/',
-              fmtstr('{},{}', asecbest - 0.5, asecbest + 0.5), '0']
+   clipcom = ['InputFile ' + fidfile,
+              'OutputFile ' + tmpclip,
+              fmtstr('ZMinAndMax {},{}', asecbest - 0.5, asecbest + 0.5),
+              'KeepEmptyContours']
    try:
-      runcmd('clipmodel', clipcom)
+      runcmd('clipmodel -StandardInput', clipcom)
    except ImodpyError:
       cleanExitError('Clipping out best view from ' + AA + ' fiducial model')
    try:

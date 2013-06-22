@@ -221,8 +221,6 @@ public final class Token {
   /**
    * Returns a string containing all values in the
    * token link list concatenated together.  Null values are converted to ' '.
-   * 
-   * @param includeNext
    * @return
    */
   public String getValues() {
@@ -240,6 +238,12 @@ public final class Token {
     return buffer.toString();
   }
 
+  /**
+   * Returns a string containing all values in the
+   * token link list concatenated together.  Null values are converted to ' '.
+   * Preserves EOL by concatenating a "\n".
+   * @return
+   */
   public String getMultiLineValues() {
     Token token = this;
     StringBuffer buffer = new StringBuffer();

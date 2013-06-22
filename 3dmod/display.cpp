@@ -327,7 +327,7 @@ int imodDraw(ImodView *vw, int flag)
 
   if (flag & (IMOD_DRAW_XYZ | IMOD_DRAW_MOD | IMOD_DRAW_IMAGE)) {
     imod_info_setxyz();
-    needModv = imodvIsosurfaceUpdate();
+    needModv = imodvIsosurfaceUpdate(flag);
   }
 
   ivwControlListDraw(vw, flag);

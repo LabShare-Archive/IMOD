@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.MakecomfileParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -28,6 +29,8 @@ import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 
 /**
@@ -90,8 +93,8 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       this);
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      "Diameter to erase (pixels): ");
-  private final CheckBoxSpinner cbspExpandCircleIterations = new CheckBoxSpinner(
+      FieldType.FLOATING_POINT, "Diameter to erase (pixels): ");
+  private final CheckBoxSpinner cbspExpandCircleIterations = CheckBoxSpinner.getInstance(
       "Iterations to grow circular areas:", 2, 1, 5);
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
@@ -135,7 +138,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
 
   void initialize() {
     ltfFiducialDiameter.setText(manager.calcBinnedBeadDiameterPixels(axisID,
-        FileType.ALIGNED_STACK,1));
+        FileType.ALIGNED_STACK, 1));
   }
 
   private void createPanel() {
@@ -239,19 +242,37 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
     }
   }
 
-  public boolean getParameters(final CCDEraserParam param) {
-    param.setInputFile(DatasetFiles.getFullAlignedStackFileName(manager, axisID));
-    param
-        .setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager, axisID));
-    param.setOutputFile(FileType.ERASED_BEADS_STACK);
-    EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    fiducialDiameter.set(ltfFiducialDiameter.getText());
-    param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
-    if (cbspExpandCircleIterations.isSelected()) {
-      param.setExpandCircleIterations(cbspExpandCircleIterations.getValue());
+  public boolean getParameters(final CCDEraserParam param, final boolean doValidation) {
+    try {
+      param.setInputFile(DatasetFiles.getFullAlignedStackFileName(manager, axisID));
+      param.setModelFile(FileType.CCD_ERASER_BEADS_INPUT_MODEL.getFileName(manager,
+          axisID));
+      param.setOutputFile(FileType.ERASED_BEADS_STACK);
+      EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      fiducialDiameter.set(ltfFiducialDiameter.getText(doValidation));
+      param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
+      if (cbspExpandCircleIterations.isSelected()) {
+        param.setExpandCircleIterations(cbspExpandCircleIterations.getValue());
+      }
+      else {
+        param.resetExpandCircleIterations();
+      }
+      param.setPolynomialOrder(getPolynomialOrder());
+      return param.validate();
     }
-    param.setPolynomialOrder(getPolynomialOrder());
-    return param.validate();
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+  }
+
+  public boolean getParameters(final MakecomfileParam param, final boolean doValidation) {
+    try {
+      param.setBeadSize(ltfFiducialDiameter.getText(doValidation));
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+    return true;
   }
 
   public void action(final Run3dmodButton button,
@@ -264,7 +285,7 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnCcdEraser.getActionCommand())) {
-      manager.ccdEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
+      manager.goldEraser(btnCcdEraser, null, deferred3dmodButton, run3dmodMenuOptions,
           axisID, dialogType, this);
     }
     else if (command.equals(btn3dmodCcdEraser.getActionCommand())) {

@@ -51,6 +51,8 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.DatasetFiles;
 
 /**
@@ -217,21 +219,22 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   // MTF Filter objects
   private final LabeledTextField ltfLowPassRadiusSigma = new LabeledTextField(
-      "Low pass (cutoff,sigma): ");
+      FieldType.FLOATING_POINT_PAIR, "Low pass (cutoff,sigma): ");
   private final ImageIcon iconFolder = new ImageIcon(
       ClassLoader.getSystemResource("images/openFile.gif"));
-  private final LabeledTextField ltfMtfFile = new LabeledTextField(MTF_FILE_LABEL);
+  private final LabeledTextField ltfMtfFile = new LabeledTextField(FieldType.STRING,
+      MTF_FILE_LABEL);
   private final SimpleButton btnMtfFile = new SimpleButton(iconFolder);
   private final LabeledTextField ltfMaximumInverse = new LabeledTextField(
-      "Maximum Inverse: ");
+      FieldType.FLOATING_POINT, "Maximum Inverse: ");
   private final LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
-      "Rolloff (radius,sigma): ");
+      FieldType.FLOATING_POINT_PAIR, "Rolloff (radius,sigma): ");
   private final Run3dmodButton btnFilter;
   private final Run3dmodButton btnViewFilter = Run3dmodButton.get3dmodInstance(
       "View Filtered Stack", this);
   private final MultiLineButton btnUseFilter;
   private final SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
-      "Starting and ending views: ");
+      FieldType.INTEGER_PAIR, "Starting and ending views: ");
 
   // headers should not go into garbage collection
   private final PanelHeader filterHeader = PanelHeader.getAdvancedBasicOnlyInstance(
@@ -253,20 +256,21 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
       .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE, btnAdvanced);
   private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel.getInstance(true);
   private final FileTextField ftfConfigFile = new FileTextField("Config file: ");
-  private final LabeledTextField ltfVoltage = new LabeledTextField("Voltage (KV): ");
+  private final LabeledTextField ltfVoltage = new LabeledTextField(FieldType.INTEGER,
+      "Voltage (KV): ");
   private final LabeledTextField ltfSphericalAberration = new LabeledTextField(
-      "Spherical Aberration (mm): ");
+      FieldType.FLOATING_POINT, "Spherical Aberration (mm): ");
   private final CheckBox cbInvertTiltAngles = new CheckBox("Invert sign of tilt angles");
   private final LabeledTextField ltfAmplitudeContrast = new LabeledTextField(
-      "Amplitude contrast: ");
+      FieldType.FLOATING_POINT, "Amplitude contrast: ");
   private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
-      "Expected defocus (microns): ");
+      FieldType.FLOATING_POINT, "Expected defocus (microns): ");
   private final LabeledTextField ltfOffsetToAdd = new LabeledTextField(
-      "Offset to add to image values: ");
+      FieldType.FLOATING_POINT, "Offset to add to image values: ");
   private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
-      "Interpolation width (pixels): ");
+      FieldType.INTEGER, "Interpolation width (pixels): ");
   private final CheckBox cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
-  private final LabeledTextField ltfDefocusTol = new LabeledTextField(
+  private final LabeledTextField ltfDefocusTol = new LabeledTextField(FieldType.INTEGER,
       "Defocus tolerance (nm): ");
   private final MultiLineButton btnCtfPlotter = new MultiLineButton("Run Ctf Plotter");
   private final Run3dmodButton btnCtfCorrection;
@@ -439,20 +443,21 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     ltfOffsetToAdd.setText(input);
   }
 
-  String getDefocusTol() {
-    return ltfDefocusTol.getText();
+  String getDefocusTol(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfDefocusTol.getText(doValidation);
   }
 
   public void setTiltState(TomogramState state, ConstMetaData metaData) {
     eraseGoldPanel.setTiltState(state, metaData);
   }
 
-  String getExpectedDefocus() {
-    return ltfExpectedDefocus.getText();
+  String getExpectedDefocus(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfExpectedDefocus.getText(doValidation);
   }
 
-  String getOffsetToAdd() {
-    return ltfOffsetToAdd.getText();
+  String getOffsetToAdd(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfOffsetToAdd.getText(doValidation);
   }
 
   void setUseFilterEnabled(boolean enable) {
@@ -491,24 +496,33 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return curTab;
   }
 
-  String getInterpolationWidth() {
-    return ltfInterpolationWidth.getText();
+  String getInterpolationWidth(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfInterpolationWidth.getText(doValidation);
   }
 
-  String getInverseRolloffRadiusSigma() {
-    return ltfInverseRolloffRadiusSigma.getText();
+  String getInverseRolloffRadiusSigma(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfInverseRolloffRadiusSigma.getText(doValidation);
   }
 
-  String getMaximumInverse() {
-    return ltfMaximumInverse.getText();
+  String getMaximumInverse(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfMaximumInverse.getText(doValidation);
   }
 
-  String getLowPassRadiusSigma() {
-    return ltfLowPassRadiusSigma.getText();
+  String getLowPassRadiusSigma(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfLowPassRadiusSigma.getText(doValidation);
   }
 
-  String getMtfFile() {
-    return ltfMtfFile.getText();
+  String getMtfFile(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfMtfFile.getText(doValidation);
+  }
+
+  String getStartingAndEndingZ(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfStartingAndEndingZ.getText(doValidation);
   }
 
   String getStartingAndEndingZ() {
@@ -529,12 +543,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
         .getButtonStateKey()));
   }
 
-  String getVoltage() {
-    return ltfVoltage.getText();
+  String getVoltage(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfVoltage.getText(doValidation);
   }
 
-  String getSphericalAberration() {
-    return ltfSphericalAberration.getText();
+  String getSphericalAberration(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfSphericalAberration.getText(doValidation);
   }
 
   boolean getInvertTiltAngles() {
@@ -592,8 +607,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     return newstackOrBlendmontPanel.getFiducialessParams();
   }
 
-  String getAmplitudeContrast() {
-    return ltfAmplitudeContrast.getText();
+  String getAmplitudeContrast(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfAmplitudeContrast.getText(doValidation);
   }
 
   void getFilterHeaderState(PanelHeaderState state) {
@@ -675,7 +691,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     cbParallelProcess.setEnabled(validAutodoc && !processingMethodLocked);
     ConstEtomoNumber parallel = metaData.getFinalStackCtfCorrectionParallel(axisID);
     if (parallel == null) {
-      setParallelProcess(validAutodoc && metaData.getDefaultParallel().is());
+      setParallelProcess(validAutodoc && metaData.isDefaultParallel());
     }
     else {
       setParallelProcess(validAutodoc && parallel.is());
@@ -708,8 +724,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     eraseGoldPanel.setParameters(param, initialize);
   }
 
+  void initialize() {
+    eraseGoldPanel.initialize();
+  }
+
   void setParameters(ConstTiltalignParam param, boolean initialize) {
     eraseGoldPanel.setParameters(param, initialize);
+  }
+
+  void setOverrideParameters(final ConstMetaData metaData) {
+    eraseGoldPanel.setOverrideParameters(metaData);
   }
 
   void setParameters(ConstNewstParam param) {
@@ -877,31 +901,37 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
   void btnMtfFileAction(ActionEvent event) {
     // Open up the file chooser in the $IMOD_CALIB_DIR/Camera, if available,
     // otherwise open in the working directory
-    String currentMtfDirectory = ltfMtfFile.getText();
-    if (currentMtfDirectory.equals("")) {
-      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
-      File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
-      if (cameraDir.exists()) {
-        currentMtfDirectory = cameraDir.getAbsolutePath();
+    String currentMtfDirectory = null;
+    try {
+      currentMtfDirectory = ltfMtfFile.getText(true);
+      if (currentMtfDirectory.equals("")) {
+        File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
+        File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
+        if (cameraDir.exists()) {
+          currentMtfDirectory = cameraDir.getAbsolutePath();
+        }
+        else {
+          currentMtfDirectory = applicationManager.getPropertyUserDir();
+        }
       }
-      else {
-        currentMtfDirectory = applicationManager.getPropertyUserDir();
+      JFileChooser chooser = new FileChooser(new File(currentMtfDirectory));
+      MtfFileFilter mtfFileFilter = new MtfFileFilter();
+      chooser.setFileFilter(mtfFileFilter);
+      chooser.setPreferredSize(FixedDim.fileChooser);
+      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      int returnVal = chooser.showOpenDialog(rootPanel);
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
+        File mtfFile = chooser.getSelectedFile();
+        try {
+          ltfMtfFile.setText(mtfFile.getAbsolutePath());
+        }
+        catch (Exception excep) {
+          excep.printStackTrace();
+        }
       }
     }
-    JFileChooser chooser = new FileChooser(new File(currentMtfDirectory));
-    MtfFileFilter mtfFileFilter = new MtfFileFilter();
-    chooser.setFileFilter(mtfFileFilter);
-    chooser.setPreferredSize(FixedDim.fileChooser);
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File mtfFile = chooser.getSelectedFile();
-      try {
-        ltfMtfFile.setText(mtfFile.getAbsolutePath());
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-      }
+    catch (FieldValidationFailedException e) {
+      e.printStackTrace();
     }
   }
 
@@ -1077,7 +1107,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     }
     else if (curTab == Tab.CCD_ERASER) {
       if (!eraseBeadsInitialized) {
-        eraseGoldPanel.initialize();
+        eraseGoldPanel.initializeBeads();
         eraseBeadsInitialized = true;
       }
       eraseGoldPanel.registerProcessingMethodMediator();

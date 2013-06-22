@@ -15,6 +15,7 @@ import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
 import etomo.storage.Storable;
@@ -101,6 +102,9 @@ public final class LogPanel implements Storable, LogInterface {
   }
 
   public static LogPanel getInstance(BaseManager manager) {
+    if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      return null;
+    }
     LogPanel instance = new LogPanel(manager);
     instance.addListeners();
     return instance;
@@ -131,7 +135,7 @@ public final class LogPanel implements Storable, LogInterface {
             try {
               readerId = file.openReader();
               String line = file.readLine(readerId);
-              List lineList = new ArrayList();
+              List<String> lineList = new ArrayList<String>();
               while (line != null) {
                 lineList.add(line);
                 line = file.readLine(readerId);
@@ -141,13 +145,13 @@ public final class LogPanel implements Storable, LogInterface {
             }
             catch (LogFile.LockException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog(null,
-                  "Unabled to load " + file.getAbsolutePath(), "System Error");
+              UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to load "
+                  + file.getAbsolutePath(), "System Error");
             }
             catch (IOException e) {
               e.printStackTrace();
-              UIHarness.INSTANCE.openMessageDialog(null,
-                  "Unabled to load " + file.getAbsolutePath(), "System Error");
+              UIHarness.INSTANCE.openMessageDialog((BaseManager) null, "Unabled to load "
+                  + file.getAbsolutePath(), "System Error");
             }
           }
         }
@@ -190,7 +194,12 @@ public final class LogPanel implements Storable, LogInterface {
       return;
     }
     try {
-      file.backup();
+      if (!file.isBackedup()) {
+        file.doubleBackupOnce();
+      }
+      else {
+        file.backup();
+      }
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -233,7 +242,7 @@ public final class LogPanel implements Storable, LogInterface {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog(null,
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
             "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
@@ -244,7 +253,7 @@ public final class LogPanel implements Storable, LogInterface {
       e.printStackTrace();
       if (!writeFailed) {
         writeFailed = true;
-        UIHarness.INSTANCE.openMessageDialog(null,
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
             "Unabled to write to file " + file.getAbsolutePath(), "System Error");
         if (writerId != null && !writerId.isEmpty()) {
           file.closeWriter(writerId);
@@ -271,8 +280,8 @@ public final class LogPanel implements Storable, LogInterface {
         e.printStackTrace();
         if (!fileFailed) {
           fileFailed = true;
-          UIHarness.INSTANCE.openMessageDialog(null, "Unabled to access file " + fileName
-              + " in " + userDir, "System Error");
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
+              "Unabled to access file " + fileName + " in " + userDir, "System Error");
         }
         return false;
       }
@@ -288,7 +297,7 @@ public final class LogPanel implements Storable, LogInterface {
     logger.logMessage(title, axisID, message);
   }
 
-  public void logMessage(String title, AxisID axisID, List message) {
+  public void logMessage(String title, AxisID axisID, List<String> message) {
     logger.logMessage(title, axisID, message);
   }
 

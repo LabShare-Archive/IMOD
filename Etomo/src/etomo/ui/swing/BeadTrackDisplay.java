@@ -25,6 +25,6 @@ import etomo.type.InvalidEtomoNumberException;
 public interface BeadTrackDisplay {
   public static final String rcsid = "$Id$";
 
-  public void getParameters(BeadtrackParam beadtrackParams)
+  public boolean getParameters(BeadtrackParam beadtrackParams, boolean doValidation)
       throws FortranInputSyntaxException, InvalidEtomoNumberException;
 }

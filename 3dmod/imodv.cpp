@@ -42,6 +42,7 @@
 #include "imod_assistant.h"
 #include "sslice.h"
 #include "vertexbuffer.h"
+#include "utilities.h"
 
 #include "b3dicon.xpm"
 
@@ -51,12 +52,11 @@ static int load_models(int n, char **fname, ImodvApp *a);
 static int openWindow(ImodvApp *a);
 static int getVisuals(ImodvApp *a);
 static void initstruct(ImodView *vw, ImodvApp *a);
-static int imodv_init(ImodvApp *a, struct Mod_Draw *md);
+static int imodv_init(ImodvApp *a);
 
 
 // GLOBAL VARIABLES for the imodv and draw structures
 ImodvApp  ImodvStruct;
-struct Mod_Draw Imodv_mdraw;
 ImodvApp *Imodv = &ImodvStruct;
 
 /* A global to indicate if the window is closed */
@@ -106,18 +106,16 @@ static const char *blackString = "black";
 
 /* DEFAULT INITIALIZATION OF THE STRUCTURES
    9/2/02: also called for model view initialization in imod */
-static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
+static int imodv_init(ImodvApp *a)
 {
-  a->nm = 0;
-  a->cm = 0;
+  a->numMods = 0;
+  a->curMod = 0;
   a->mod = NULL;
   a->imod = NULL;
   a->mat  = imodMatNew(3);
   a->rmat  = imodMatNew(3);
-  a->dobj = imodObjectNew();
-  a->obj = a->dobj;
-  a->ob = 0;
-  a->md = md;
+  a->obj = imodObjectNew();
+  a->objNum = 0;
   a->cnear = 0;
   a->cfar = 1000;
   a->fovy = 0;
@@ -141,16 +139,10 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->rbgname = blackString;
   a->rbgcolor = new QColor(0, 0, 0);
 
-  md->xorg = md->yorg = md->zorg = 0;
-  md->xrot = md->yrot = md->zrot = 0;  /* current rotation. */
-  md->zoom = 1.0f;
-  md->arot = 10;
-  md->atrans = 5.0f;
-  md->azoom = 1.05f;
-  md->azscale = 0.2;
-  md->xrotm = 0; /* rotation movie */
-  md->yrotm = 0;
-  md->zrotm = 0;
+  a->deltaRot = 10;
+  a->xrotMovie = 0; /* rotation movie */
+  a->yrotMovie = 0;
+  a->zrotMovie = 0;
 
   /* control flags */
   a->current_subset = 0;
@@ -193,9 +185,9 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   Ipoint imageMax;
   float binScale;
 
-  imodv_init(a, &Imodv_mdraw);
+  imodv_init(a);
 
-  a->nm = 1;
+  a->numMods = 1;
   a->mod = (Imod **)malloc(sizeof(Imod *));
   a->mod[0] = vw->imod;
   a->imod = vw->imod;
@@ -203,15 +195,15 @@ static void initstruct(ImodView *vw, ImodvApp *a)
   /* DNM 8/3/01: start with current object if defined */
   if (a->imod->cindex.object >= 0 && 
       a->imod->cindex.object < a->imod->objsize) {
-    a->ob = a->imod->cindex.object;
-    a->obj = &(a->imod->obj[a->ob]);
+    a->objNum = a->imod->cindex.object;
+    a->obj = &(a->imod->obj[a->objNum]);
   }
 
   /* control flags */
   a->fullscreen = 0;
 
   a->standalone = 0;
-  a->texMap  = imodvImageGetFlags() ? 1 : 0;
+  a->texMap  = mvImageGetFlags() ? 1 : 0;
   a->texTrans = 0;
   a->vi = vw;
 
@@ -380,7 +372,8 @@ static int getVisuals(ImodvApp *a)
                     colorSBst, depthSBst);
 
   // set to double buffer if visual exists
-  a->db = (depthDB >= 0 || depthDBst >= 0 || depthDBal >= 0 || depthDBstAl >= 0) ? 1 : 0;
+  a->dblBuf = (depthDB >= 0 || depthDBst >= 0 || depthDBal >= 0 || depthDBstAl >= 0) ? 
+    1 : 0;
   return 0;
 }
 
@@ -462,8 +455,8 @@ static int load_models(int n, char **fname, ImodvApp *a)
   if (n < 1)
     return(0);
   a->mod = (Imod **)malloc(sizeof(Imod *) * n);
-  a->nm = n;
-  a->cm = 0;
+  a->numMods = n;
+  a->curMod = 0;
   for(i = 0; i < n; i++){
     a->mod[i] = imodRead(LATIN1(QDir::convertSeparators(QString(fname[i]))));
     if (!a->mod[i]){
@@ -471,7 +464,7 @@ static int load_models(int n, char **fname, ImodvApp *a)
       return(-1);
     }
     mod = a->mod[i];
-
+    utilExchangeFlipRotation(mod, FLIP_TO_ROTATION);
 
     /* DNM 6/20/01: find out max time and set current time */
     mod->tmax = 0;
@@ -493,12 +486,12 @@ static int load_models(int n, char **fname, ImodvApp *a)
     imodvViewsInitialize(mod);
   }
 
-  a->imod = (a->mod[a->cm]);
+  a->imod = (a->mod[a->curMod]);
   /* DNM 8/3/01: start with current object if defined */
   if (a->imod->cindex.object >= 0 && 
       a->imod->cindex.object < a->imod->objsize) {
-    a->ob = a->imod->cindex.object;
-    a->obj = &(a->imod->obj[a->ob]);
+    a->objNum = a->imod->cindex.object;
+    a->obj = &(a->imod->obj[a->objNum]);
   }
    
   return(0);
@@ -514,7 +507,7 @@ int imodv_main(int argc, char **argv)
   char *windowKeys = NULL;
   a->standalone = 1;
   diaSetTitle("3dmodv");
-  imodv_init(a, &Imodv_mdraw);
+  imodv_init(a);
 
   // DNM 5/17/03: The Qt application and preferences are already gotten
 
@@ -568,7 +561,7 @@ int imodv_main(int argc, char **argv)
       break;
   }
 
-  a->db        = 1;
+  a->dblBuf        = 1;
 
   // Make a vi structure and initialize extra objects
   a->vi = (ImodView *)malloc(sizeof(ImodView));
@@ -604,7 +597,7 @@ int imodv_main(int argc, char **argv)
     imodPrintStderr("Window id = %u\n", winID);
   }
   if (printID || useStdin)
-    ClipHandler = new ImodClipboard(useStdin);
+    ClipHandler = new ImodClipboard(useStdin, false);
 
   imodvOpenSelectedWindows(windowKeys);
 
@@ -620,7 +613,6 @@ void imodv_open()
 {
   ImodView *vw = App->cvi;
   Imodv = &ImodvStruct;
-  ImodvStruct.md = &Imodv_mdraw;
   ImodvApp *a = Imodv;
 
   Imod *imod = vw->imod;
@@ -731,21 +723,11 @@ void imodvNewModelAngles(Ipoint *rot)
 void imodvSetCaption()
 {
   ImodvApp *a = Imodv;
-  char *window_name;
-  QString str;
   if (ImodvClosed)
     return;
 
-  window_name = imodwEithername((char *)(a->standalone ? "3dmodv:" : 
-                                 "3dmod Model View: "), a->imod->fileName, 1);
-  if (window_name) {
-    str = window_name;
-    free(window_name);
-  } 
-  if (str.isEmpty())
-    str = "3dmod Model View";
-
-  a->mainWin->setWindowTitle(str);
+  setModvDialogTitle(a->mainWin, (char *)(a->standalone ? "3dmodv:" :
+                                          "3dmod Model View: "));
 }
 
 // To call imodDraw if not in standalone mode
@@ -799,7 +781,7 @@ void imodvQuit()
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
   vbCleanupVBD(Imodv->imod);
-  imodvImageCleanup();
+  mvImageCleanup();
 
   if (a->boundBoxExtraObj > 0)
     ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);

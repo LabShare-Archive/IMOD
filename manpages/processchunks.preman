@@ -53,8 +53,15 @@ option and provide the machine name and the name of the command file.
 .SS Running Processchunks
 The machine list provided on the command line should be a list of machine
 names or IP addresses, separated by commas and with no embedded spaces.
-Machines with multiple processors should be entered as many times as the
-number of processors that you want to use.  The local machine on which you are
+Machines with multiple processors can be entered as many times as the
+number of processors that you want to use, or a machine name can be entered
+with a "#" and the number of processors to use.  For example,
+"tubule#4,eclipse#6" would use 4 processors on tubule and 6 on eclipse.  (See
+the 
+.B -G
+option for the different syntax and restrictions when using a GPU and running
+on machines where you want to select specific GPUs.)
+The local machine on which you are
 running Processchunks can be identified by its hostname or as "localhost"; in
 either case the command will be run directly on the machine.  If this is the
 only machine, then it can be identified by a single number specifying the
@@ -83,9 +90,9 @@ with a large list of machines, examine this output,
 then exit and restart after eliminating machines with too much load.
 
 After the confirmation, Processchunks starts jobs on all of the machines and
-watches for completion.  It detects successful completion by adding a command
-to the end of each file to write "CHUNK DONE" into the log.  Jobs are started
-with "nice".  When the job on a
+watches for completion.  It detects successful completion by using a command
+that makes "CHUNK DONE" be written at the end of the log.  Jobs are started
+with a reduced priority specified by the "niceness" entry.  When the job on a
 machine finishes, that machine is given another job and the program reports
 the total number of chunks done so far.  When a job appears to have failed,
 the job is started again.  Initially the job may tend to be restarted on the
@@ -113,6 +120,23 @@ The default name of this file is "processchunks.input" but you can set a
 different name with the 
 .B -c
 option.
+
+Processchunks has mechanism for deciding when a job appears to be hung, at
+which point it will kill it and assign it to a different machine if possible.
+Essentially, it tests for whether the job has taken a criterion amount
+longer than the longest job run so far (where at least 2 prior jobs must have
+completed for this test to be used), and also whether the log file is older
+than a certain amount (see the
+.B -C
+and
+.B -T
+options for details).  By default, no tests are applied to non-sync chunks,
+although this can be enabled.  In addition, the information about times of
+completed jobs is reset after every sync chunk, since different segments of a
+computation may have different intrinsic times. The default settings aim to be
+very conservative, so the operation could easily hang for an hour or more
+until the criteria are met, but this feature should allow overnight runs to
+complete.
 
 .SS Running on a Cluster Queue
 Processchunks can submit all command files to a cluster queue instead of
@@ -207,7 +231,9 @@ environment variable IMOD_PROCESSORS to the number of processors, e.g.,
 .SS Options
 Processchunks uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
-or one per line in a command file (without the -):
+or one per line in a command file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
 INSERT OPTION TEXT HERE
 .TP
 .B -StandardInput
@@ -218,8 +244,9 @@ Log files will be generated for all command files that are run.  The C-shell
 script produced by Vmstocsh for rootname-nnn.com is saved to rootname-nnn.csh.
 This file is removed after the command file completes.
 .SH BUGS
-Ctrl-C cannot be blocked on Windows, so the program needs to be run in the
-background to protect it from being killed inadvertently.
+Ctrl-C cannot be blocked on Windows, at least when running from a mintty
+terminal, so the program needs to be run in the background to protect it from
+being killed inadvertently.
 
 .SH AUTHOR
 Sue Held  <sueh@colorado.edu>

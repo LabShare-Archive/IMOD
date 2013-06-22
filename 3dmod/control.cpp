@@ -32,6 +32,8 @@
 #include "imodv.h"
 #include "control.h"
 #include "xxyz.h"
+#include "xzap.h"
+#include "zap_classes.h"
 #include "sslice.h"
 #include "slicer_classes.h"
 #include "workprocs.h"
@@ -45,6 +47,7 @@ typedef struct imodv_dialog
   int iconified;
   int dlgClass;
   int dlgType;
+  int ctrlId;
   QPoint position;
 } ImodvDialog;
 
@@ -135,7 +138,7 @@ static int removeControl(ImodView *iv, int inCtrlId, int callClose)
       ilistRemove(iv->ctrlist->list, element);
       ctrlPtr = (ImodControl *)ilistFirst(iv->ctrlist->list);
       if (ctrlPtr)
-	iv->ctrlist->top = ctrlPtr->id;
+        iv->ctrlist->top = ctrlPtr->id;
       return(0);
     }
     element++;
@@ -237,10 +240,10 @@ void ivwControlListDraw(ImodView *iv, int reason)
     if (ctrlPtr->id == iv->ctrlist->active){
       iv->ctrlist->active = 0;
       (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData,
-			  reason | IMOD_DRAW_TOP | IMOD_DRAW_ACTIVE);
+                          reason | IMOD_DRAW_TOP | IMOD_DRAW_ACTIVE);
     }else{
       (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, 
-			  reason | IMOD_DRAW_TOP);
+                          reason | IMOD_DRAW_TOP);
     }
   }
 
@@ -248,8 +251,8 @@ void ivwControlListDraw(ImodView *iv, int reason)
   iv->timers->mControlTimer->start(1);
 
   /*     while(NULL != (ctrlPtr = ilistNext(iv->ctrlist->list))){
-	 (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, reason);
-	 }
+         (*ctrlPtr->draw_cb)(iv, ctrlPtr->userData, reason);
+         }
   */
   return;
 }
@@ -285,7 +288,7 @@ void ivwControlKey(/*ImodView *iv, */int released, QKeyEvent *e)
       imodPrintStderr("checking %d\n", ctrlPtr->id);
     if (ctrlPtr->key_cb) {
       if (imodDebug('c'))
-	imodPrintStderr("sending to %d\n", ctrlPtr->id);
+        imodPrintStderr("sending to %d\n", ctrlPtr->id);
       (*ctrlPtr->key_cb)(iv, ctrlPtr->userData, released, e);
       return;
     }
@@ -305,15 +308,14 @@ DialogManager::DialogManager()
 }
 
 // Add a dialog to the list
-void DialogManager::add(QWidget *widget, int dlgClass, int dlgType)
+void DialogManager::add(QWidget *widget, int dlgClass, int dlgType, int ctrlId)
 {
   ImodvDialog dia;
 
   if (!mDialogList) {
     mDialogList = ilistNew(sizeof(ImodvDialog), 4);
     if (!mDialogList) {
-      imodError(NULL, "3DMOD WARNING: Failure to get memory for dialog list\n"
-	      );
+      imodError(NULL, "3DMOD WARNING: Failure to get memory for dialog list\n");
       return;
     }
   }
@@ -322,6 +324,7 @@ void DialogManager::add(QWidget *widget, int dlgClass, int dlgType)
   dia.iconified = 0;
   dia.dlgClass = dlgClass;
   dia.dlgType = dlgType;
+  dia.ctrlId = ctrlId;
   ilistAppend(mDialogList, &dia);
 
   // Set the icon from the appropriate place
@@ -503,44 +506,47 @@ void DialogManager::windowList(QObjectList *objList, int dlgClass, int dlgType)
   }
 }
 
-// Find the window of a given type closest to top of control list
+// Find the window of a given type closest to top of control list, where dlgType
+// can be any of the IMOD_IMAGE types that can open multiple copies
 QObject *DialogManager::getTopWindow(int dlgType)
 {
-  QObjectList objList;
-  XyzWindow *xyz;
-  SlicerFuncs *ss;
-  ImodControl *ctrlPtr;
-  int i, j, topOne, curSave;
-  bool match;
+  int found;
+  return getTopWindow(dlgType, dlgType, found);
+}
 
-  imodDialogManager.windowList(&objList, -1, dlgType);
-  if (!objList.count())
+// Find the first window of either of two types closest to top of control list,
+// where the two types can be any of the IMOD_IMAGE types that can open multiple copies.
+QObject *DialogManager::getTopWindow(int dlgType, int dlgType2, int &typeFound)
+{
+  ImodControl *ctrlPtr;
+  int i, j, curSave;
+  bool match = false;
+  ImodvDialog *dia;
+
+  if (!ilistSize(mDialogList))
     return NULL;
 
-  // Look through the current control list, find first slicer with matching ID
+  // Look through the current control list, find first dialog with matching ID and type
   // Here we MUST save and restore current item to avoid screwing up draws
-  topOne = -1;
+  typeFound = -1;
   curSave = App->cvi->ctrlist->list->current;
-  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
+  for (j = 0; !match && j < ilistSize(App->cvi->ctrlist->list); j++) {
     ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
-    for (i = 0; i < objList.count(); i++) {
-      if (dlgType == XYZ_WINDOW_TYPE) {
-        xyz = ((XyzWindow *)objList.at(i));
-        match = ctrlPtr->id == xyz->mCtrl;
-      } else if (dlgType == SLICER_WINDOW_TYPE) {
-        ss = ((SlicerWindow *)objList.at(i))->mFuncs;
-        match = ctrlPtr->id == ss->mCtrl;
-      }
-      if (match) {
-        topOne = i;
-        break;
+    for (i = 0; i < ilistSize(mDialogList); i++) {
+      dia = (ImodvDialog *)ilistItem(mDialogList, i);
+      if (dia->dlgType == dlgType || dia->dlgType == dlgType2) {
+        match = ctrlPtr->id == dia->ctrlId;
+        if (match) {
+          typeFound = dia->dlgType;
+          break;
+        }
       }
     }
   }
   App->cvi->ctrlist->list->current = curSave;
-  if (topOne < 0)
-    topOne = 0;
-  return objList.at(topOne);
+  if (!match)
+    return NULL;
+  return dia->widget;
 }
 
 // Adjust size 

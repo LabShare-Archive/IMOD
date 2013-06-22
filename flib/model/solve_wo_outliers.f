@@ -176,13 +176,13 @@ c
      &    devavg,devsd, devmax, ipntmax, devxyzmax)
       implicit none
       include 'statsize.inc'
-      real*4 xr(msiz,*), sx(msiz), xm(msiz), sd(msiz), ss(msiz,msiz)
-      real*4 ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz), b(msiz), b1(msiz)
+      real*4 xr(msiz,*), xm(msiz), sd(msiz)
+      real*4 ssd(msiz,msiz), b1(msiz)
       real*4 a(3,*),dxyz(3),devxyz(3),devxyzmax(3),cenloc(3)
       integer*4 ndat,ncolin,ndo,ipntmax,icolfix,icolfixin
       real*4 devavg,devsd,devmax,xmsav(6)
       integer*4 ixyz,i,j,ipnt,ncoldo,k,km
-      real*4 const,rsq,fra,devsum,devsq,devpnt, amat(2,2), funcErr
+      real*4 const,devsum,devsq,devpnt, amat(2,2), funcErr
       real*8 smsq(4,6), aa(3,3), errMin
       integer*4 nullAxis, mSign, ifTrace,nTrial
       common /funccom/nullAxis, mSign, ifTrace, nTrial, errMin, smsq, aa
@@ -275,8 +275,7 @@ c	  print *,'FIT #',ixyz
 c             if (mod(i,10).eq.1)write(*,'(i4,5f9.2)')i,(xr(j,i),j=1,
 c             &		  ncoldo+1)
           enddo
-          call multr(xr,ncoldo+1,ndo,sx,ss,ssd,d,r,xm,sd,b,b1,const,rsq,
-     &        fra)
+          call multRegress(xr,msiz,1,ncoldo,ndo,1,0,b1,msiz,const,xm,sd,ssd)
 c	    print *,'ss:'
 c	    write(*,'(4f12.1)')((ssd(i,j),j=1,4),i=1,4)
           do j=1,ncoldo

@@ -28,6 +28,8 @@ import etomo.type.EtomoVersion;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.HashedArray;
 
 /**
@@ -49,7 +51,7 @@ public final class ParallelPanel implements Expandable, Storable {
   private static final String STORE_PREPEND = "ProcessorTable";
 
   private static final String TITLE = "Parallel Processing";
-  public static final String RESUME_LABEL = "Resume";
+  private static final String RESUME_LABEL = "Resume";
   static final String FIELD_LABEL = "Parallel processing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
   private final String CPUS_SELECTED_LABEL = "CPUs: ";
@@ -62,9 +64,9 @@ public final class ParallelPanel implements Expandable, Storable {
   private final EtomoPanel computerTablePanel = new EtomoPanel();
   private final EtomoPanel queueTablePanel = new EtomoPanel();
   private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
-      CPUS_SELECTED_LABEL);
+      FieldType.INTEGER, CPUS_SELECTED_LABEL);
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
-      "Chunks finished: ");
+      FieldType.INTEGER, "Chunks finished: ");
   private final MultiLineButton btnResume = new MultiLineButton(RESUME_LABEL);
   private final MultiLineButton btnPause = new MultiLineButton("Pause");
   private final MultiLineButton btnSaveDefaults = new MultiLineButton("Save As Defaults");
@@ -228,8 +230,9 @@ public final class ParallelPanel implements Expandable, Storable {
     ltfCPUsSelected.setText(cpusSelected);
   }
 
-  String getCPUsSelected() {
-    return ltfCPUsSelected.getText();
+  String getCPUsSelected(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfCPUsSelected.getText(doValidation);
   }
 
   String getCPUsSelectedLabel() {
@@ -256,9 +259,9 @@ public final class ParallelPanel implements Expandable, Storable {
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
-      manager.resume(axisID, processchunksParam, processResultDisplay, null, rootPanel,
-          null, popupChunkWarnings,
-          mediator.getRunMethodForParallelPanel(getProcessingMethod()), false);
+      manager.resume(axisID, processchunksParam, processResultDisplay, null, null,
+          popupChunkWarnings,
+          mediator.getRunMethodForParallelPanel(getProcessingMethod()), false, null);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -414,75 +417,105 @@ public final class ParallelPanel implements Expandable, Storable {
 
   void msgKillingProcess() {
     btnPause.setEnabled(false);
-    btnResume.setEnabled(true);
+    System.err.println(">>>>>A:msgKillingProcess");
+    btnResume.setEnabled(false);
   }
 
   void msgPausingProcess() {
+    System.err.println(">>>>>B:msgPausingProcess");
     btnResume.setEnabled(true);
   }
 
+  public void msgProcessDone() {
+    System.err.println(">>>>>C:msgProcessDone");
+    btnResume.setEnabled(true);
+  }
+
+  public void msgProcessStarted() {
+    System.err.println(">>>>>D:msgProcessStarted");
+    btnResume.setEnabled(false);
+  }
+
   /**
    * If getting parameters, must not allow the user to change the current table
    * until that parameters have been used.
    * @param param
    */
-  public boolean getResumeParameters(final ProcesschunksParam param) {
-    processingRunning = true;
-    cbQueues.setEnabled(!processingMethodLocked && !processingRunning);
-    param.setResume(true);
-    param.setNice(sNice.getValue());
-    EtomoNumber cpusSelected = new EtomoNumber();
-    cpusSelected.set(ltfCPUsSelected.getText());
-    if (cpusSelected.equals(0)) {
-      UIHarness.INSTANCE.openMessageDialog(manager, getNoCpusSelectedErrorMessage(),
-          "Unable to resume", axisID);
-      return false;
-    }
-    param.setCPUNumber(cpusSelected);
-    param.resetMachineName();
-    currentTable.getParameters(param);
-    return true;
-  }
-
-  public boolean getParameters(final SirtsetupParam param) {
-    EtomoNumber numMachines = new EtomoNumber();
-    numMachines.setNullIsValid(false);
-    numMachines.setValidFloor(1);
-    numMachines.set(ltfCPUsSelected.getText());
-    if (!numMachines.isValid()) {
-      if (numMachines.equals(0)) {
+  public boolean getResumeParameters(final ProcesschunksParam param,
+      final boolean doValidation) {
+    try {
+      processingRunning = true;
+      cbQueues.setEnabled(!processingMethodLocked && !processingRunning);
+      param.setResume(true);
+      param.setNice(sNice.getValue());
+      EtomoNumber cpusSelected = new EtomoNumber();
+      cpusSelected.set(ltfCPUsSelected.getText(doValidation));
+      if (cpusSelected.equals(0)) {
         UIHarness.INSTANCE.openMessageDialog(manager, getNoCpusSelectedErrorMessage(),
-            "Unable to run splittilt", axisID);
+            "Unable to resume", axisID);
         return false;
       }
-      else {
-        UIHarness.INSTANCE.openMessageDialog(manager, getCPUsSelectedLabel() + " "
-            + numMachines.getInvalidReason(), "Unable to run sirtsetup", axisID);
-        return false;
-      }
-    }
-    param.setNumberOfProcessors(numMachines.toString());
-    return true;
-  }
-
-  /**
-   * If getting parameters, must not allow the user to change the current table
-   * until that parameters have been used.
-   * @param param
-   */
-  public boolean getParameters(final ProcesschunksParam param) {
-    processingRunning = true;
-    cbQueues.setEnabled(!processingMethodLocked && !processingRunning);
-    param.setNice(sNice.getValue());
-    param.setCPUNumber(ltfCPUsSelected.getText());
-    currentTable.getParameters(param);
-    String error = param.validate();
-    if (error == null) {
+      param.setCPUNumber(cpusSelected);
+      param.resetMachineName();
+      currentTable.getParameters(param);
       return true;
     }
-    UIHarness.INSTANCE.openMessageDialog(manager,
-        error + "  " + currentTable.getHelpMessage(), "Table Error", axisID);
-    return false;
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+  }
+
+  public boolean getParameters(final SirtsetupParam param, final boolean doValidation) {
+    try {
+      EtomoNumber numMachines = new EtomoNumber();
+      numMachines.setNullIsValid(false);
+      numMachines.setValidFloor(1);
+      numMachines.set(ltfCPUsSelected.getText(doValidation));
+      if (!numMachines.isValid()) {
+        if (numMachines.equals(0)) {
+          UIHarness.INSTANCE.openMessageDialog(manager, getNoCpusSelectedErrorMessage(),
+              "Unable to run splittilt", axisID);
+          return false;
+        }
+        else {
+          UIHarness.INSTANCE.openMessageDialog(manager, getCPUsSelectedLabel() + " "
+              + numMachines.getInvalidReason(), "Unable to run sirtsetup", axisID);
+          return false;
+        }
+      }
+      param.setNumberOfProcessors(numMachines.toString());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
+  }
+
+  /**
+   * If getting parameters, must not allow the user to change the current table
+   * until that parameters have been used.
+   * @param param
+   */
+  public boolean getParameters(final ProcesschunksParam param, final boolean doValidation) {
+    try {
+      processingRunning = true;
+      cbQueues.setEnabled(!processingMethodLocked && !processingRunning);
+      param.setNice(sNice.getValue());
+      param.setCPUNumber(ltfCPUsSelected.getText(doValidation));
+      currentTable.getParameters(param);
+      String error = param.validate();
+      if (error == null) {
+        return true;
+      }
+      else {
+        UIHarness.INSTANCE.openMessageDialog(manager,
+            error + "  " + currentTable.getHelpMessage(), "Table Error", axisID);
+        return false;
+      }
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   public void expand(final GlobalExpandButton button) {

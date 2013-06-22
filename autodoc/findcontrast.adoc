@@ -38,9 +38,18 @@ type = B
 usage = Treat coordinates as coming from volume flipped in 3dmod
 tooltip = 
 manpage = Treat coordinates as coming from a volume that was read into 3dmod
-with Y and Z flipped.  Thus, for a newly created tomogram loaded into 3dmod
-flipped, you can use this option to enter X, Y, and Z coordinates read out
-from 3dmod.
+with Y and Z sizes flipped with the -Y option.  Thus, for a newly created
+tomogram loaded into 3dmod flipped, you can use this option to enter X, Y, and
+Z coordinates read out from 3dmod.  The program assumes that
+flipping occurred by rotating around the X axis, unless the "-old" option is given.
+
+[Field = OldFlipping]
+short = oldflip
+type = B
+usage = Flipping was done with swapping of X and Y axes, not rotation around X.
+tooltip = 
+manpage = Flipped coordinates are based on flipping by swapping X and Y axes,
+not by rotating around X.  This flipping occurred prior to IMOD 4.6.18.
 
 [Field = TruncateBlackAndWhite]
 short = truncate

@@ -7,7 +7,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2010'
+set imod_copyright    = '1994-2012'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
@@ -59,13 +59,14 @@ set tiltalilib      =
 set tilt_dir        = flib/tilt
 set fbpswitch       = fbpswitch-def.inc
 set midas_dir       = midas
-set sendevent_dir   = sendevent
+set sendevent_dir   = qttools/sendevent
 set imod_dir        = 3dmod
-set qtassist_dir    = qtassist
-set sourcedoc_dir   = sourcedoc
+set qtassist_dir    = qttools/qtassist
+set sourcedoc_dir   = qttools/sourcedoc
 set ctfplot_dir     = ctfplotter
 set ctfplot_flibs   = ""
-set prochunk_dir    = processchunks
+set prochunk_dir    = qttools/processchunks
+set mrc2tif_dir     = qttools/mrc2tif
 set plugsrc_dir     = plugs
 set libdiaqt_dir    = libdiaqt
 set etomo_dir       = Etomo
@@ -73,11 +74,12 @@ set pysrc_dir       = pysrc
 set scripts_dir     = scripts
 set midas_qconf     = midas/qconfigure
 set imod_qconf      = 3dmod/qconfigure
-set sendevent_qconf = sendevent/qconfigure
-set qtassist_qconf  = qtassist/qconfigure
-set sourcedoc_qconf = sourcedoc/qconfigure
+set sendevent_qconf = $sendevent_dir/qconfigure
+set qtassist_qconf  = $qtassist_dir/qconfigure
+set sourcedoc_qconf = $sourcedoc_dir/qconfigure
 set ctfplot_qconf   = ctfplotter/qconfigure
-set prochunk_qconf  = processchunks/qconfigure
+set prochunk_qconf  = $prochunk_dir/qconfigure
+set mrc2tif_qconf   = $mrc2tif_dir/qconfigure
 set sourcedoc_exe   = sourcedoc
 set qtdel1          = ""
 set fort_cpplibs    =
@@ -96,9 +98,10 @@ set lifft           = -lifft
 set limesh          = -limesh
 set liwarp          = -liwarp
 set nnvulnflags     = -ffloat-store
-set lapacklibs      = '-llapack -lblas'
+set lapacklibs      = '-lb3dlapk -lb3dblas'
 set lapack_flibs    = ''
 set lapacklink      = '$(CC)'
+set fort_cpplibs     = ''
 set ldfflags        = '$(LDFLAGS)'
 set farflags        = '$(ARFLAGS)'
 set libtrackFlags   = '$(LIBFFLAGS)'
@@ -343,16 +346,19 @@ foreach dir ($qtassist_dir $ctfplot_dir $midas_dir)
     if (! -e $dir/imod_assistant.cpp) \cp $imod_dir/imod_assistant.cpp $dir
     if (! -e $dir/imod_assistant.h) \cp $imod_dir/imod_assistant.h $dir
 end
+\find $mrc2tif_dir -name tiff.c ! -newer mrc/tiff.c -exec \rm -f '{}' \;
+if (! -e $mrc2tif_dir/tiff.c) \cp mrc/tiff.c $mrc2tif_dir
 
 # Make lists of qt directories and project names.  List them in order of
 # the ones that can be treated the same for runscripts, etc, then midas, then
 # oddballs
 #
-set qdir = ($sendevent_dir $qtassist_dir $ctfplot_dir $prochunk_dir \
+set qdir = ($sendevent_dir $qtassist_dir $ctfplot_dir $prochunk_dir $mrc2tif_dir \
   $midas_dir $imod_dir $sourcedoc_dir)
-set qprog = (imodsendevent imodqtassist ctfplotter processchunks midas 3dmod sourcedoc)
+set qprog = (imodsendevent imodqtassist ctfplotter processchunks mrc2tif midas 3dmod \
+  sourcedoc)
 set qconf = ($sendevent_qconf $qtassist_qconf $ctfplot_qconf $prochunk_qconf \
-  $midas_qconf $imod_qconf $sourcedoc_qconf)
+  $mrc2tif_qconf $midas_qconf $imod_qconf $sourcedoc_qconf)
 
 # Manage imodhelp for the qmake without having to delete a good one
 if (! -e $imod_dir/imodhelp.h) touch $imod_dir/imodhelp.h
@@ -616,32 +622,37 @@ endif
 
 if ($shared_libs == false) set inst_lib_dir = $lib_dir
 
-echo "OBJEXT =    $objext" >> $configure
-echo "BINEXT =    $binext" >> $configure
-echo "LIMOD  =    $limod" >> $configure
-echo "LCFSHR =    $lcfshr" >> $configure
-echo "LIIMOD =    $liimod" >> $configure
-echo "LIFFT =     $lifft" >> $configure
-echo "LIMESH =    $limesh" >> $configure
-echo "LIWARP =    $liwarp" >> $configure
-echo "NNVULNFLAGS = $nnvulnflags" >> $configure
-echo "LAPACKLIBS =    $lapacklibs" >> $configure
-echo "LAPACKLINK =    $lapacklink" >> $configure
-echo "LAPACK_FLIBS =    $lapack_flibs" >> $configure
-echo "BLOCKIO =   $blockio"  >> $configure
-echo "IMSUBSOBJ = $imsubsobj"  >> $configure
-echo "TILTALILIB = $tiltalilib"  >> $configure
+cat <<EOF >> $configure
+OBJEXT =    $objext
+BINEXT =    $binext
+LIMOD  =    $limod
+LCFSHR =    $lcfshr
+LIIMOD =    $liimod
+LIFFT =     $lifft
+LIMESH =    $limesh
+LIWARP =    $liwarp
+NNVULNFLAGS = $nnvulnflags
+LAPACKLIBS =    $lapacklibs
+LAPACKLINK =    $lapacklink
+LAPACK_FLIBS =    $lapack_flibs
+FORT_CPPLIBS = $fort_cpplibs
+BLOCKIO =   $blockio
+IMSUBSOBJ = $imsubsobj
+TILTALILIB = $tiltalilib
+BINDIR  = $bin_dir
+INSTBINDIR = $inst_bin_dir
+LIBDIR  = $lib_dir
+INSTLIBDIR = $inst_lib_dir
+INSTDIR = $inst_dir
+HTML_ARCDIR = $source_dir/imod_${imod_version_name}_docs
+INCDIR  = $inc_dir
+IMOD_PLUGIN_DIR = $inst_plug_dir
+PLUG_HELP_DIR = $plughelp_dir
+MOC = $moc
+%.$objext : %.f90
+	\$(FC) -c \$(FFLAGS) \$< -o \$@
 
-echo "BINDIR  = $bin_dir" >> $configure
-echo "INSTBINDIR = $inst_bin_dir"  >> $configure
-echo "LIBDIR  = $lib_dir" >> $configure
-echo "INSTLIBDIR = $inst_lib_dir"  >> $configure
-echo "INSTDIR = $inst_dir"  >> $configure
-echo "HTML_ARCDIR = $source_dir/imod_${imod_version_name}_docs"  >> $configure
-echo "INCDIR  = $inc_dir"          >> $configure
-echo "IMOD_PLUGIN_DIR = $inst_plug_dir" >> $configure
-echo "PLUG_HELP_DIR = $plughelp_dir" >> $configure
-echo "MOC = $moc"     >> $configure
+EOF
 
 # Output the entries for Tilt using GPU or not
 #
@@ -691,9 +702,11 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo LIBS += -L$lib_dir -liimod -limod -liwarp -lcfshr -ldiaqt $ltiff -lifft $midasGL >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
+    echo LIBS += -L$lib_dir -lm -lb3dlapk -lb3dblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
     echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
     echo LIBS += -L$lib_dir -lcfshr >> $prochunk_qconf
+    echo LIBS += -L$lib_dir -liimod -lcfshr $ltiff >> $mrc2tif_qconf
+    
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i
         echo MOC_DIR = tmp >> $i
@@ -704,6 +717,7 @@ if ($machine != cygwin) then
     echo target.path = $inst_bin_dir >! $sendevent_qconf
     echo target.path = $inst_bin_dir >> $qtassist_qconf
     echo target.path = $inst_bin_dir >> $prochunk_qconf
+    echo target.path = $inst_bin_dir >> $mrc2tif_qconf
     echo -n >! $sourcedoc_qconf
 
 
@@ -751,8 +765,8 @@ if [ -e 3dmod ] ; then strip 3dmod ; fi ; rm -f 3dmodv imod imodv ; \
 ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
 
-        @ i = 0    # Loop on imodsendevent imodqtassist ctfplotter pchunk midas
-        while ($i < 5)
+        @ i = 0    # Loop on imodsendevent imodqtassist ctfplotter pchunk mrc2tif midas
+        while ($i < 6)
             @ i++
             cat <<EOF  >> $qconf[$i]
 INSTALLS += strip
@@ -766,7 +780,7 @@ EOF
         # For Mac, copy the run files, also strip (-x needed for 3dmod)
         #
         @ i = 0
-        while ($i < 5)  # Loop on imodsendevent imodqtass ctfplot pchunk midas
+        while ($i < 6)  # Loop on imodsendevent imodqtass ctfplot pchunk mrc2tif midas
             @ i++
             cat <<EOF  >> $qconf[$i]
 INSTALLS += $qrun[$i]

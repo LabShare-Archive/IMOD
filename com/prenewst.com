@@ -4,7 +4,16 @@
 # you will go back to the raw stack to make the final aligned stack
 #
 $xftoxg
-0	global fit
+0
 g5a.prexf
 g5a.prexg
-$newstack -fl 2 -mo 0 -xf g5a.prexg g5a.st g5a.preali
+$newstack -StandardInput
+InputFile	g5a.st
+OutputFile	g5a.preali
+TransformFile	g5a.prexg
+ModeToOutput	0
+FloatDensities 2
+BinByFactor	1
+#DistortionField	.idf
+ImagesAreBinned	1
+#GradientFile	g5a.maggrad

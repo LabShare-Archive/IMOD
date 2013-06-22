@@ -15,6 +15,7 @@
 #include <stdarg.h>
 #include <qcolor.h>
 #include <qicon.h>
+#include <qdir.h>
 #include <qaction.h>
 #include <qtoolbutton.h>
 #include <qpushbutton.h>
@@ -27,6 +28,8 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include "imod.h"
+#include "imodv.h"
+#include "imodplug.h"
 #include "utilities.h"
 #include "b3dgfx.h"
 #include "preferences.h"
@@ -80,10 +83,10 @@ void utilDrawSymbol(int mx, int my, int sym, int size, int flags)
 void utilGetLongestTimeString(ImodView *vi, QString *str)
 {
   int maxlen, time, len, tmax;
-  if (vi->nt){
+  if (vi->numTimes){
     *str = " (999)";
     maxlen = -1;
-    for (time = 1; time < vi->nt; time++) {
+    for (time = 1; time < vi->numTimes; time++) {
       len = strlen(ivwGetTimeIndexLabel(vi, time));
       if (len > maxlen) {
         maxlen = len;
@@ -315,19 +318,17 @@ QAction *utilTBPushButton(const char *text, QWidget *parent, QToolBar *toolBar,
 }  
 
 /*
- * Take two X11 bitmaps in bitList and convert to off and on icons for num
+ * Takes pairs of icon images in fileList and convert to off and on icons for num
  * buttons
  */
-void utilBitListsToIcons(unsigned char *bitList[][2], QIcon *icons[], int num)
+void utilFileListsToIcons(const char *fileList[][2], QIcon *icons[], int num)
 {
   for (int i = 0; i < num; i++) {
     icons[i] = new QIcon();
-    icons[i]->addPixmap
-      (QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT), bitList[i][0]),
-       QIcon::Normal, QIcon::Off);
-    icons[i]->addPixmap
-      (QBitmap::fromData(QSize(BM_WIDTH, BM_HEIGHT), bitList[i][1]), 
-       QIcon::Normal, QIcon::On);
+    icons[i]->addFile(QString(fileList[i][0]), QSize(BM_WIDTH, BM_HEIGHT),
+                      QIcon::Normal, QIcon::Off);
+    icons[i]->addFile(QString(fileList[i][1]), QSize(BM_WIDTH, BM_HEIGHT),
+                      QIcon::Normal, QIcon::On);
   }
 }
 
@@ -531,6 +532,18 @@ float utilWheelToPointSizeScaling(float zoom)
   return wheelScale;
 }
 
+/* Converts a flipped model to a rotated one if direction is FLIP_TO_ROTATION, or
+ * a rotated model to a flipped one if direction is ROTATION_TO_FLIP, otherwise
+ * does nothing */
+void utilExchangeFlipRotation(Imod *imod, int direction)
+{
+  if ((direction == FLIP_TO_ROTATION && !(imod->flags & IMODF_FLIPYZ)) ||
+      (direction == ROTATION_TO_FLIP && !(imod->flags & IMODF_ROT90X)))
+    return;
+  imodInvertZ(imod);
+  setOrClearFlags(&imod->flags, IMODF_ROT90X, direction == FLIP_TO_ROTATION ? 1 : 0);
+  setOrClearFlags(&imod->flags, IMODF_FLIPYZ, direction == ROTATION_TO_FLIP ? 1 : 0);
+}
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -550,6 +563,24 @@ char *imodwEithername(const char *intro, const char *filein, int modelFirst)
   return(retString);
 }
 
+/* Sets the window title of a model view dialog */
+void setModvDialogTitle(QWidget *dia, const char *intro)
+{
+  QString qstr;
+  char *window_name;
+  int ind;
+  window_name = imodwEithername(intro, Imodv->imod->fileName, 1);
+  qstr = window_name;
+  if (window_name)
+    free(window_name);
+  if (qstr.isEmpty()) {
+    qstr = intro;
+    ind = qstr.lastIndexOf(':');
+    if (ind > 0)
+      qstr = qstr.left(ind);
+  }
+  dia->setWindowTitle(qstr);
+}
 
 /* Appends the given name to window name */
 char *imodwGivenName(const char *intro, const char *filein)
@@ -583,11 +614,11 @@ char *imodwfname(const char *intro)
   filename = Imod_imagefile;
 
   /* DNM 7/21/02: if multiple files, output number of image files */
-  if (!filename && App->cvi->nt > 1) {
+  if (!filename && App->cvi->numTimes > 1) {
     filename = (char *)malloc(20 + strlen(intro));
     if (!filename)
       return NULL;
-    sprintf(filename, "%s %d image files", intro, App->cvi->nt);
+    sprintf(filename, "%s %d image files", intro, App->cvi->numTimes);
     return(filename);
   }
   return (imodwGivenName(intro, filename));
@@ -697,6 +728,38 @@ int imodShowHelpPage(const char *page)
     return (ImodHelp->showPage(page) > 0 ? 1 : 0);
   else
     return 1;
+}
+
+/*
+ * Prints a measurement with optional conversion to units 
+ */
+void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area)
+{
+  measure *= imod->pixsize;
+  if (area)
+    measure *= imod->pixsize;
+  if (strcmp("pixels", imodUnits(imod)))
+    wprint("%s, %g %s%s\n", LATIN1(baseMess), measure, imodUnits(imod), area ? "^2" : "");
+  else
+    wprint("%s\n", LATIN1(baseMess));
+}
+
+/*
+ * A replacement for diaOpenFileName that can go to a chooser plugin.
+ * Documented in imodview.h
+ */
+QString utilOpenFileName(QWidget *parent, const char *caption, int numFilters,
+                         const char *filters[])
+{
+  QString qname = QString(Dia_title) + QString(": ") + QString(caption);
+  QString filter;
+  for (int i = 0; i < numFilters; i++)
+    filter += QString(filters[i]) + QString(";;");
+  filter += QString("All Files (*)");
+
+  // Qt 4.4 on Mac required explicit directory entry or it went to last dir
+  qname = imodPlugGetOpenName(parent, qname, QDir::currentPath(), filter);
+  return qname;
 }
 
 /***********************************************************************

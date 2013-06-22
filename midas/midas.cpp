@@ -28,7 +28,6 @@
 #include <qlayout.h>
 #include <qtooltip.h>
 #include <QDoubleSpinBox>
-//Added by qt3to4:
 #include <QKeyEvent>
 #include <QKeySequence>
 #include <QLabel>
@@ -68,8 +67,8 @@ static void usage(void)
   qstr += "   -r <filename>\t Load reference image file\n";
   qstr += "   -rz <section>\t Section # for reference (default 0)\n";
   qstr += "   -p <filename>\t Load piece list file for fixing montages\n";
-  qstr += "   -c <size list>\t Align chunks of sections; list # of sections"
-    " in chunks\n";
+  qstr += "   -c <size list>\t Align chunks of sections; list # of sections in chunks\n";
+  qstr += "   -cs <size list>\t Align chunks of sections; list # of sample slices\n";
   qstr += "   -B <factor>\t Bin images by the given factor\n";
   qstr += "   -C <size>\t Set cache size to given number of sections\n"; 
   qstr += "   -s <min,max>\t Set intensity scaling; min to 0 and max to 255\n";
@@ -95,13 +94,14 @@ int main (int argc, char **argv)
 {
   MidasView midasView, *vw;
   FILE *file;
-  int i, k;
+  int i, k, bottom, top;
   bool doubleBuffer = true;
   int styleSet = 0;
   QStringList chunkList;
   bool ok;
   int chunkErr = 0;
   int oarg = 0;
+  int sampleSlices = -1;
 
 #ifdef NO_IMOD_FORK
   int dofork = 0;
@@ -114,7 +114,7 @@ int main (int argc, char **argv)
   // Prescan for style and debug flags
   for (i = 1; i < argc; i++) {
     if (argv[i][0] == '-' && argv[i][1] == 's' && argv[i][2] == 't'
-	&& argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
+        && argv[i][3] == 'y' && argv[i][4] == 'l' && argv[i][5] == 'e')
       styleSet = 1;
     if (argv[i][0] == '-' && argv[i][1] == 'D')
       dofork = 0;
@@ -147,68 +147,75 @@ int main (int argc, char **argv)
     if (argv[i][0] == '-'){
       switch (argv[i][1]){
       case 'r': /* reference image */
-	if (argv[i][2] == 'z'){
-	  vw->xsec = atoi(argv[++i]);
-	}else{
-	  vw->refname = argv[++i];
-	}
-	break;
-		    
+        if (argv[i][2] == 'z'){
+          vw->xsec = atoi(argv[++i]);
+        }else{
+          vw->refname = argv[++i];
+        }
+        break;
+                    
       case 'p': /* piece list */
-	vw->plname = argv[++i];
-	break;
+        vw->plname = argv[++i];
+        break;
 
       case 'g':
-	vw->xtype = XTYPE_XG;
-	break;
+        vw->xtype = XTYPE_XG;
+        break;
 
       case 'C':
-	vw->cachein = atoi(argv[++i]);
-	break;
+        vw->cachein = atoi(argv[++i]);
+        break;
 
       case 'b':
-	vw->boxsize = atoi(argv[++i]);
-	break;
+        vw->boxsize = atoi(argv[++i]);
+        break;
 
       case 'B':
-	vw->binning = atoi(argv[++i]);
+        vw->binning = atoi(argv[++i]);
         vw->binning = B3DMAX(1, B3DMIN(8, vw->binning));
-	break;
+        break;
 
       case 'e':
-	vw->numTopErr = atoi(argv[++i]);
-	break;
+        vw->numTopErr = atoi(argv[++i]);
+        break;
 
       case 'a':
-	vw->globalRot = atof(argv[++i]);
+        vw->globalRot = atof(argv[++i]);
         vw->rotMode = 1;
-	break;
+        break;
 
       case 't': /* tilt angles */
-	vw->tiltname = argv[++i];
+        vw->tiltname = argv[++i];
         vw->cosStretch = -1;
         vw->rotMode = 1;
-	break;
+        break;
 
       case 's':
-	sscanf(argv[++i], "%f%*c%f", &(vw->sminin), &(vw->smaxin));
-	break;
+        sscanf(argv[++i], "%f%*c%f", &(vw->sminin), &(vw->smaxin));
+        break;
 
       case 'D':
-	Midas_debug = 1;
-	break;
+        Midas_debug = 1;
+        break;
 
       case 'q':
-	vw->quiet = 1;
-	break;
+        vw->quiet = 1;
+        break;
 
       case 'S':
-	doubleBuffer = false;
-	break;
+        doubleBuffer = false;
+        break;
 
       case 'c':
+        if (sampleSlices >= 0) {
+          printf("ERROR: midas - You cannot enter both -c and -cs\n");
+          exit(1);
+        }
+        sampleSlices = argv[i][2] == 's' ? 1 : 0;
         chunkList = QString(argv[++i]).split(",", QString::SkipEmptyParts);
         vw->numChunks = chunkList.count();
+        if (sampleSlices)
+          vw->numChunks = chunkList.count() / 2 + 1;
         break;
 
       case 'o':
@@ -220,9 +227,9 @@ int main (int argc, char **argv)
         break;
 
       default:
-        printf("Illegal option entered: %s\n", argv[i]);
-	usage();
-	break;
+        printf("ERROR: midas - Illegal option entered: %s\n", argv[i]);
+        usage();
+        break;
       }
     }else 
       break;
@@ -245,8 +252,8 @@ int main (int argc, char **argv)
     } else {
       /* Otherwise give warning that new file will be used */
       fprintf(stderr, "Transform file (%s) not found;\n"
-	      " transforms will be saved in a "
-	      "new file by that name.\n", vw->xname);
+              " transforms will be saved in a "
+              "new file by that name.\n", vw->xname);
     }
   }
 
@@ -301,18 +308,18 @@ int main (int argc, char **argv)
     if (vw->xtype == XTYPE_XG)
       dia_puts("The -g option has no effect when fixing montage overlaps.");
     vw->xtype = XTYPE_MONT;
-  }	       
+  }            
 
   // Check features if doing reference mode or chunk mode
   if (vw->refname || vw->numChunks) {
     if (vw->rotMode)
       dia_puts("The -a or -t options have no effect with alignment to a "
-	      "reference section or in chunk mode.");
+              "reference section or in chunk mode.");
     vw->rotMode = 0;
     vw->cosStretch = 0;
     if (vw->xtype == XTYPE_XG)
       dia_puts("The -g option has no effect with alignment to a "
-	      "reference section or in chunk mode.");
+              "reference section or in chunk mode.");
     if (vw->refname)
       vw->xtype = XTYPE_XREF;
   }
@@ -324,21 +331,49 @@ int main (int argc, char **argv)
   if (vw->numChunks) {
     if (vw->refname)
       midas_error("Chunk alignment cannot be done in reference alignment mode", "", 1);
+    if (sampleSlices && chunkList.count() % 2)
+      midas_error("A list of sample slices must have an even number of values", "", 1);
     vw->chunk = (Midas_chunk *)malloc((vw->numChunks + 1) * sizeof(Midas_chunk));
     if (!vw->chunk)
       midas_error("Error getting memory for chunk data.", "", 3);
 
-    vw->chunk[0].start = 0;
-    for (k = 0; k < vw->numChunks; k++) {
-      vw->chunk[k].size = chunkList[k].toInt(&ok);
-      if (vw->chunk[k].size <= 0 || !ok)
+    // Check the entries for positive integers
+    for (k = 0; k < vw->numChunks; k++)
+      if (chunkList[k].toInt(&ok)<= 0 || !ok)
         chunkErr = 1;
-      vw->chunk[k + 1].start = vw->chunk[k].start + vw->chunk[k].size;
+    if (chunkErr || vw->numChunks < 2) 
+      midas_error(sampleSlices ? "The -cs option must be followed by a comma-separated "
+                  "list" : "The -c option must be followed by a comma-separated list",
+                  sampleSlices ? "of the number of slices in each bottom and top sample."
+                  : "of the number of sections in each chunk.", 1);
+
+    vw->chunk[0].start = 0;
+    if (sampleSlices) {
+
+      // Interpret the input for sample slices, which is top/bottom&top/.../bottom
+      for (k = 0; k < vw->numChunks; k++) {
+        bottom = 0;
+        if (k)
+          bottom = chunkList[2 * k - 1].toInt(&ok);
+        top = 0;
+        if (k < vw->numChunks - 1)
+          top = chunkList[2 * k].toInt(&ok);
+        vw->chunk[k].size = bottom + top;
+        vw->chunk[k + 1].start = vw->chunk[k].start + vw->chunk[k].size;
+        vw->chunk[k].minRefSec = vw->chunk[k].start + bottom;
+        vw->chunk[k].maxCurSec = vw->chunk[k].minRefSec - 1;
+      }
+    } else {
+      
+      // Or process chunk sizes
+      for (k = 0; k < vw->numChunks; k++) {
+        vw->chunk[k].size = chunkList[k].toInt(&ok);
+        vw->chunk[k + 1].start = vw->chunk[k].start + vw->chunk[k].size;
+        vw->chunk[k].minRefSec = vw->chunk[k].start;
+        vw->chunk[k].maxCurSec = vw->chunk[k + 1].start - 1;
+      }
     }
 
-    if (chunkErr || vw->numChunks < 2) 
-      midas_error("The -c option must be followed by a comma-separated list",
-                  " of the number of sections in each chunk.", 1);
   }
   VW->warpingOK = VW->xtype != XTYPE_XG && VW->xtype != XTYPE_MONT && !VW->rotMode;
 
@@ -697,9 +732,9 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
 
   // Connect mappers to slots
   QObject::connect(paramMapper, SIGNAL(mapped(int)), VW->midasSlots,
-		   SLOT(slotParameter(int)));
+                   SLOT(slotParameter(int)));
   QObject::connect(incMapper, SIGNAL(mapped(int)), VW->midasSlots,
-		   SLOT(slotIncrement(int)));
+                   SLOT(slotIncrement(int)));
 
   if (VW->xtype != XTYPE_MONT) {
     VW->anglescale = diaSlider(-900, 900, 100, 0, NULL, col);
@@ -710,7 +745,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
     VW->anglelabel = diaLabel("0.0", NULL, slideBox);
     VW->anglelabel->setAlignment(Qt::AlignRight);
     QObject::connect(VW->anglescale, SIGNAL(valueChanged(int)),
-		     VW->midasSlots, SLOT(slotAngle(int)));
+                     VW->midasSlots, SLOT(slotAngle(int)));
     VW->anglescale->setToolTip("Set angle at which new stretch is applied"
                                  " (hot keys ] and \\)");
     VW->labelsToGray[5] = slideName;
@@ -740,6 +775,26 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
   VW->corrLimitSpin->setToolTip("Maximum shift in X or Y to search for "
                               "correlation peak");
 
+  if (VW->warpingOK) {
+    makeSeparator(col, 1);
+    QSignalMapper *selectMapper = new QSignalMapper(col);
+    QHBoxLayout *selectBox = diaHBoxLayout(col);
+    VW->wSelectLabel = diaLabel("Select:", NULL, selectBox);
+    VW->wSelectBiggest = diaPushButton("Biggest Warp", NULL, selectBox);
+    VW->wSelectBiggest->setToolTip("Select warp point with biggest shift");
+    makeTwoArrows(selectBox, 1, 1, selectMapper, true, "Select warp point with next "
+                  "bigger shift", "Select warp point with next smaller shift",
+                  &VW->wSelectMore, &VW->wSelectLess);
+    selectBox->addStretch();
+    selectMapper->setMapping(VW->wSelectBiggest, 0);
+    QObject::connect(VW->wSelectBiggest, SIGNAL(clicked()), selectMapper, SLOT(map()));
+    QObject::connect(selectMapper, SIGNAL(mapped(int)), VW->midasSlots,
+                     SLOT(slotSelectWarpPointBySize(int)));
+    VW->wDrawVectors = diaCheckBox("Draw warp vectors", NULL, col);
+    QObject::connect(VW->wDrawVectors, SIGNAL(toggled(bool)), VW->midasSlots,
+                     SLOT(slotDrawVectors(bool)));
+    VW->wDrawVectors->setToolTip("Draw lines for shifts at warp points");
+  }
   if (VW->xtype != XTYPE_MONT) {
     if (VW->rotMode) {
       makeSeparator(col, 1);
@@ -809,7 +864,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
       VW->wToperr[i]->setFocusPolicy(Qt::NoFocus);
     }
     QObject::connect(mapper, SIGNAL(mapped(int)), 
-		     VW->midasSlots, SLOT(slotTop_error(int)));
+                     VW->midasSlots, SLOT(slotTop_error(int)));
 
     VW->wCurerr = diaLabel("This edge: -50.00, -50.00", NULL, col);
     VW->wCurerr->setAlignment(Qt::AlignLeft);
@@ -818,7 +873,7 @@ void MidasWindow::createParameterDisplay(QVBoxLayout *col)
 
     VW->wApplyLeave = diaPushButton("Apply Leave-out Error", NULL, col);
     QObject::connect(VW->wApplyLeave, SIGNAL(clicked()), VW->midasSlots,
-		     SLOT(slotLeave_out()));
+                     SLOT(slotLeave_out()));
     VW->wApplyLeave->setToolTip("Set this edge shift to value implied by "
                                 "all the other edge shifts");
 
@@ -912,7 +967,7 @@ void MidasWindow::createSectionControls(QVBoxLayout *parent)
     VW->wXedge = diaRadioButton("X", NULL, VW->edgeGroup, row, 0, NULL);
     VW->wYedge = diaRadioButton("Y", NULL, VW->edgeGroup, row, 1, NULL);
     QObject::connect(VW->edgeGroup, SIGNAL(buttonClicked(int)),
-		     VW->midasSlots, SLOT(slotXory(int)));
+                     VW->midasSlots, SLOT(slotXory(int)));
     VW->wXedge->setToolTip("Select edges between adjacent pieces in X");
     VW->wYedge->setToolTip("Select edges between adjacent pieces in Y");
 
@@ -963,12 +1018,12 @@ void MidasWindow::createZoomBlock(QVBoxLayout *parent)
     (parent, "Zoom  1.00", &VW->zoomlabel, false, "Increase the display zoom "
      "(hot key =)", "Decrease the display zoom (hot key -)");
   QObject::connect(mapper, SIGNAL(mapped(int)), VW->midasSlots,
-		     SLOT(slotZoom(int)));
+                     SLOT(slotZoom(int)));
 
   QCheckBox *check = diaCheckBox("Interpolate", NULL, parent);
   check->setChecked(VW->fastip == 0);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
-		     SLOT(slotInterpolate(bool)));
+                     SLOT(slotInterpolate(bool)));
   check->setToolTip("Transform image by linear interpolation instead of block"
                     " copies or nearest point interpolation");
 }
@@ -979,7 +1034,7 @@ void MidasWindow::createViewToggle(QVBoxLayout *parent)
   VW->overlaytoggle = diaCheckBox("Overlay view", NULL, parent);
   VW->overlaytoggle->setChecked(VW->vmode == MIDAS_VIEW_COLOR);
   QObject::connect(VW->overlaytoggle, SIGNAL(toggled(bool)), VW->midasSlots,
-		   SLOT(slotOverlay(bool)));
+                   SLOT(slotOverlay(bool)));
   VW->overlaytoggle->setToolTip("Show both images in two-color overlay (hot "
                                 "keys Insert or Delete)");
 
@@ -988,9 +1043,9 @@ void MidasWindow::createViewToggle(QVBoxLayout *parent)
 
   QPushButton *button = diaPushButton("Toggle Ref/Cur", NULL, parent);
   QObject::connect(button, SIGNAL(pressed()), VW->midasSlots,
-		     SLOT(slotAlign_arm()));
+                     SLOT(slotAlign_arm()));
   QObject::connect(button, SIGNAL(released()), VW->midasSlots,
-		     SLOT(slotAlign_disarm()));
+                     SLOT(slotAlign_disarm()));
   button->setToolTip("Toggle between current image and reference image");
 }
 
@@ -1004,11 +1059,11 @@ void MidasWindow::createContrastControls(QVBoxLayout *parent)
   VW->wBlacklevel = diaSlider(0, 255, 1, 0, NULL, row);
   VW->wBlackval = diaLabel("000", NULL, row);
   QObject::connect(VW->wBlacklevel, SIGNAL(valueChanged(int)),
-		   VW->midasSlots, SLOT(slotBlacklevel(int)));
+                   VW->midasSlots, SLOT(slotBlacklevel(int)));
   QObject::connect(VW->wBlacklevel, SIGNAL(sliderPressed()),
-		   VW->midasSlots, SLOT(slotBlackPressed()));
+                   VW->midasSlots, SLOT(slotBlackPressed()));
   QObject::connect(VW->wBlacklevel, SIGNAL(sliderReleased()),
-		   VW->midasSlots, SLOT(slotBlackReleased()));
+                   VW->midasSlots, SLOT(slotBlackReleased()));
   VW->wBlacklevel->setToolTip("Set lower end of contrast ramp (hot keys F1 "
                               "and F2)");
 
@@ -1019,29 +1074,29 @@ void MidasWindow::createContrastControls(QVBoxLayout *parent)
   row->addWidget(VW->wWhitelevel);
   VW->wWhiteval = diaLabel("255", NULL, row);
   QObject::connect(VW->wWhitelevel, SIGNAL(valueChanged(int)),
-		   VW->midasSlots, SLOT(slotWhitelevel(int)));
+                   VW->midasSlots, SLOT(slotWhitelevel(int)));
   QObject::connect(VW->wWhitelevel, SIGNAL(sliderPressed()),
-		   VW->midasSlots, SLOT(slotWhitePressed()));
+                   VW->midasSlots, SLOT(slotWhitePressed()));
   QObject::connect(VW->wWhitelevel, SIGNAL(sliderReleased()),
-		   VW->midasSlots, SLOT(slotWhiteReleased()));
+                   VW->midasSlots, SLOT(slotWhiteReleased()));
   VW->wWhitelevel->setToolTip("Set upper end of contrast ramp (hot keys F3 "
                               "and F4)");
      
   QCheckBox *check = diaCheckBox("Apply to only one sec.", NULL, parent);
   check->setChecked(false);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
-		     SLOT(slotApplyone(bool)));
+                     SLOT(slotApplyone(bool)));
   check->setToolTip("Adjust contrast independently for the current section");
 
   VW->reversetoggle = diaCheckBox("Reverse contrast", NULL, parent);
   VW->reversetoggle->setChecked(false);
   QObject::connect(VW->reversetoggle, SIGNAL(toggled(bool)), VW->midasSlots,
-		     SLOT(slotReverse(bool)));
+                     SLOT(slotReverse(bool)));
   VW->reversetoggle->setToolTip("Show images in inverted contrast");
 
   QPushButton *button = diaPushButton("Auto Contrast", NULL, parent);
   QObject::connect(button, SIGNAL(clicked()), VW->midasSlots,
-		     SLOT(slotAutoContrast()));
+                     SLOT(slotAutoContrast()));
   button->setToolTip("Adjust contrast to standard level based on mean/SD of "
                      "image (hot key Ctrl-A)");
 }

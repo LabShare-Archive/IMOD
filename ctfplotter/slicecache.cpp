@@ -4,9 +4,9 @@
 *  Authors: Quanren Xiong and David Mastronarde
 *
 *  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
-*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
-* 
+*
 *  $Id$
 */
 
@@ -14,14 +14,14 @@
   (When it was a class for holding slices)
   1) initCache() to init the class;
   2) whatIsNeeded() to tell the class what slices will be needed;
-  3) mAccessOrder=optimalAccessOrder(). It needs to be called before whenever
-     getSlice() is called. 
+  3) mAccessOrder=optimalAccessOrder(). It needs to be called before
+     getSlice() is called.
   4) use getSlice(mAccessOrder[i]), getAngle(mAccessOrder[i])
      to read slices starting from mAccessOrder[0].
 
   *************************************************************/
 #include <math.h>
-#include<vector>
+#include <vector>
 #include "mrcslice.h"
 #include "parse_params.h"
 #include "slicecache.h"
@@ -31,16 +31,43 @@
 
 #define MY_PI 3.1415926
 
-SliceCache::SliceCache(int cacheSize)
-{ 
-  mFpStack=NULL;
-  mMaxCacheSize=cacheSize;
+SliceCache::SliceCache(int cacheSize, MyApp *app)
+{
+  mApp = app;
+  mFpStack = NULL;
+  mMaxCacheSize = cacheSize;
   mSliceData = NULL;
   mTile = NULL;
   mPsTmp = NULL;
   mFreqCount = NULL;
   mTileToPsInd = NULL;
-} 
+}
+
+SliceCache::~SliceCache()
+{
+  for (int i = 0; i < (int)mCachedPS.size(); i++) {
+    free(mCachedPS[i]);
+    free(mCachedTileDone[i]);
+    free(mCachedMeans[i]);
+  }
+  if (mTile)
+    free(mTile);
+  if (mTileToPsInd)
+    free(mTileToPsInd);
+  if (mFreqCount)
+    free(mFreqCount);
+  if (mSliceData)
+    free(mSliceData);
+  if (mPsTmp)
+    free(mPsTmp);
+
+  // Clear cache components
+  mCachedPS.clear();
+  mCachedMeans.clear();
+  mCachedTileDone.clear();
+  mSliceAngles.clear();
+  mCachedSliceMap.clear();
+}
 
 //init SliceCache and clear its old contents
 //It needs to be called whenever the tomogram it manages changes.
@@ -49,22 +76,22 @@ void SliceCache::initCache(const char *fnStack, int dim,
 {
   int dsize, csize;
   mDataOffset = 0.;
-  if(mFpStack)
-    fclose(mFpStack); 
-  if( (mFpStack=fopen(fnStack, "rb"))==0 )
+  if (mFpStack)
+    fclose(mFpStack);
+  if ((mFpStack = fopen(fnStack, "rb")) == 0)
     exitError("could not open input file %s", fnStack);
 
-  /* read mHeader */	
-  if (mrc_head_read(mFpStack, &mHeader)) 
+  /* read mHeader */
+  if (mrc_head_read(mFpStack, &mHeader))
     exitError("could not read header of input file %s",  fnStack);
   mSliceMode = sliceModeIfReal(mHeader.mode);
-  if (mSliceMode < 0) 
-   exitError("File mode is %d; only byte, short, integer allowed\n",
-             mHeader.mode);
+  if (mSliceMode < 0)
+    exitError("File mode is %d; only byte, short, integer allowed\n",
+              mHeader.mode);
   mrc_getdcsize(mHeader.mode, &dsize, &csize);
-  nx=mHeader.nx;
-  ny=mHeader.ny;
-  nz=mHeader.nz;
+  nx = mHeader.nx;
+  ny = mHeader.ny;
+  nz = mHeader.nz;
   mPsDim = (dim + 1) * hyper + 1;
   if (mFreqCount)
     free(mFreqCount);
@@ -88,8 +115,8 @@ void SliceCache::clearAndSetSize(int dim, int hyper, int tSize)
   numXtiles = mHeader.nx / (tSize / 2) - 1;
   mNumYtiles = mHeader.ny / (tSize / 2) - 1;
   mPsArraySize = numXtiles * mNumYtiles * mPsDim;
-  mMaxSliceNum=mMaxCacheSize*1024*1024/(mPsArraySize * sizeof(float));
-  for (i = 0; i < mCachedPS.size(); i++) {
+  mMaxSliceNum = mMaxCacheSize * 1024 * 1024 / (mPsArraySize * sizeof(float));
+  for (i = 0; i < (int)mCachedPS.size(); i++) {
     free(mCachedPS[i]);
     free(mCachedTileDone[i]);
     free(mCachedMeans[i]);
@@ -111,13 +138,13 @@ void SliceCache::clearAndSetSize(int dim, int hyper, int tSize)
   freqInc = 1. / ((mNDim - 1) * hyper);
   for (i = 0; i < mPsDim; i++)
     mFreqCount[i] = 0;
-  for (i = 0; i < fftXdim-1; i++) {
+  for (i = 0; i < fftXdim - 1; i++) {
     for (j = 0; j < fftXdim; j++) {
 
       // Here make bins with integer truncation
-      rIndex=(int)(sqrt((double)(i*i + j*j)) / (fftXdim-1) / freqInc );
+      rIndex = (int)(sqrt((double)(i * i + j * j)) / (fftXdim - 1) / freqInc);
       rIndex = B3DMIN(rIndex, mPsDim - 1);
-      mTileToPsInd[i*fftXdim + j] = rIndex;
+      mTileToPsInd[i * fftXdim + j] = rIndex;
       mFreqCount[rIndex] += 2;
     }
   }
@@ -131,62 +158,62 @@ void SliceCache::clearAndSetSize(int dim, int hyper, int tSize)
   mCachedTileDone.clear();
   mSliceAngles.clear();
   mCachedSliceMap.clear();
-  mOldestIdx=-1;
+  mOldestIdx = -1;
 
-  if(debugLevel>=2)
-   printf("cacheSize is set to %d \n", mMaxSliceNum);
+  if (debugLevel >= 2)
+    printf("cacheSize is set to %d \n", mMaxSliceNum);
 }
 
 // Used to read in angle from file, now get from array
 float  SliceCache::readAngle(int whichSlice)
 {
- if( whichSlice < 0 || whichSlice >= mHeader.nz )
-   exitError("Slice index is out of range");
- 
- float currAngle;
- float *angles = ((MyApp *)qApp)->getTiltAngles();
- if(angles){
-   currAngle = angles[whichSlice];
-   if( debugLevel>=1)
-    printf("Slice %d is included, tilt angle is %f degrees. \n", whichSlice, 
-           currAngle);
-   return currAngle*MY_PI/180.0;
- }else{
-   if( debugLevel>=1)
-    printf("No angle is specified, set to 0.0\n");
-   return 0.0;
- }
+  if (whichSlice < 0 || whichSlice >= mHeader.nz)
+    exitError("Slice index is out of range");
+
+  float currAngle;
+  float *angles = mApp->getTiltAngles();
+  if (angles) {
+    currAngle = angles[whichSlice];
+    if (debugLevel >= 1)
+      printf("Slice %d is included, tilt angle is %f degrees. \n", whichSlice,
+             currAngle);
+    return currAngle * MY_PI / 180.0;
+  } else {
+    if (debugLevel >= 1)
+      printf("No angle is specified, set to 0.0\n");
+    return 0.0;
+  }
 }
 
 //store needed slices in mNeededSlices.
 //It needs to be called whenever the angle range changes.
-void SliceCache::whatIsNeeded(float lowLimit, float highLimit, int &start, int
-    &end)
+void SliceCache::whatIsNeeded(float lowLimit, float highLimit, int &start,
+                              int &end)
 {
   mNeededSlices.clear();
 
   int k;
   float eps = 0.02f;
   float currAngle;
-  float *angles = ((MyApp *)qApp)->getTiltAngles();
+  float *angles = mApp->getTiltAngles();
   for (k = 0; k < mHeader.nz; k++) {
     if (angles) {
       currAngle = angles[k];
     } else {
       currAngle = 0.0;
     }
-    if (currAngle < lowLimit - eps || currAngle > highLimit + eps) 
+    if (currAngle < lowLimit - eps || currAngle > highLimit + eps)
       continue;
     mNeededSlices.push_back(k);
   }
-  
-  int totalSlice=mNeededSlices.size(); 
-  if( totalSlice>0){
-    start=mNeededSlices[0];
-    end=mNeededSlices[totalSlice-1];
-  }else{
-    end=-1;
-    start=-1;
+
+  int totalSlice = mNeededSlices.size();
+  if (totalSlice > 0) {
+    start = mNeededSlices[0];
+    end = mNeededSlices[totalSlice - 1];
+  } else {
+    end = -1;
+    start = -1;
   }
 }
 
@@ -194,58 +221,56 @@ void SliceCache::whatIsNeeded(float lowLimit, float highLimit, int &start, int
 //return -1, if the slice is not in cache;
 int SliceCache::cacheIndex(int whichSlice)
 {
-  int currSliceNum=mCachedPS.size();
-  for(int i=0;i<currSliceNum;i++)
-  {
-    if( mCachedSliceMap[i]==whichSlice )
+  int currSliceNum = mCachedPS.size();
+  for (int i = 0; i < currSliceNum; i++) {
+    if (mCachedSliceMap[i] == whichSlice)
       return i;
   }
   return -1;
 }
 
-std::vector<int> & SliceCache::optimalAccessOrder()
+std::vector<int> &SliceCache::optimalAccessOrder()
 {
-   mAccessOrder.clear();
+  mAccessOrder.clear();
 
-   int neededSliceNum=mNeededSlices.size();
-   for(int i=0; i<neededSliceNum;i++)
-   {
-     if( cacheIndex( mNeededSlices[i] )>-1 )
-       mAccessOrder.insert( mAccessOrder.begin(), mNeededSlices[i] );
-     else
-       mAccessOrder.push_back( mNeededSlices[i] );
-   }
-   return mAccessOrder;
+  int neededSliceNum = mNeededSlices.size();
+  for (int i = 0; i < neededSliceNum; i++) {
+    if (cacheIndex(mNeededSlices[i]) > -1)
+      mAccessOrder.insert(mAccessOrder.begin(), mNeededSlices[i]);
+    else
+      mAccessOrder.push_back(mNeededSlices[i]);
+  }
+  return mAccessOrder;
 }
 
-float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice, 
+float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
                               double &mean)
 {
-  if( whichSlice<0 || whichSlice>=mHeader.nz )
+  if (whichSlice < 0 || whichSlice >= mHeader.nz)
     exitError("slice Num is out of range");
-  int sliceIdx=cacheIndex(whichSlice);
-  int currCacheSize=mCachedPS.size();
+  int sliceIdx = cacheIndex(whichSlice);
+  int currCacheSize = mCachedPS.size();
   int tileIdx = tileX + tileY * numXtiles;
   float *retPS;
-  int halfSize=mTileSize/2;
+  int halfSize = mTileSize / 2;
   int tileXdim = mTileSize + 2;
   int fftXdim = tileXdim / 2;
   int idir = 0; //FFT direction;
   int ii, jj, ind, ind2, ix0, iy0;
-  
+
   if (sliceIdx > -1) { // already in cache
-    /*if (debugLevel >= 2)
-      printf("Slice %d is in cache and is included\n", whichSlice); */
-    
+    //if (debugLevel >= 2)
+    //  printf("Slice %d is in cache and is included\n", whichSlice);
+
   } else if (currCacheSize < mMaxSliceNum) { //not in cache and cache not full
     float *newPS = (float *)malloc(mPsArraySize * sizeof(float));
     int *newDone = (int *)malloc(numXtiles * mNumYtiles * sizeof(int));
     float *newMeans = (float *)malloc(numXtiles * mNumYtiles * sizeof(double));
-    if(!newPS || !newDone || !newMeans) 
+    if (!newPS || !newDone || !newMeans)
       exitError("Allocating memory for power spectra");
 
-    if( debugLevel>=2)
-       printf("Slice %d is NOT in cache and is included \n", whichSlice);
+    if (debugLevel >= 2)
+      printf("Slice %d is NOT in cache and is included \n", whichSlice);
 
     for (ii = 0; ii < numXtiles * mNumYtiles; ii++)
       newDone[ii] = 0;
@@ -256,19 +281,19 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
     mCachedSliceMap.push_back(whichSlice);
     mSliceAngles.push_back(readAngle(whichSlice));
 
-    if(mOldestIdx==-1)
-      mOldestIdx=currCacheSize;
+    if (mOldestIdx == -1)
+      mOldestIdx = currCacheSize;
     sliceIdx = currCacheSize;
 
   } else { // not in cache and cache is full
-    if( debugLevel>=2)
+    if (debugLevel >= 2)
       printf("Slice %d is NOT in cache and replaces slice %d \n", whichSlice,
              mCachedSliceMap[mOldestIdx]);
 
-    mCachedSliceMap[mOldestIdx]=whichSlice;
-    mSliceAngles[mOldestIdx]=readAngle(whichSlice);
+    mCachedSliceMap[mOldestIdx] = whichSlice;
+    mSliceAngles[mOldestIdx] = readAngle(whichSlice);
     sliceIdx = mOldestIdx;
-    mOldestIdx=(mOldestIdx+1)%mMaxSliceNum; 
+    mOldestIdx = (mOldestIdx + 1) % mMaxSliceNum;
   }
 
   fflush(stdout);
@@ -278,46 +303,44 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
     return retPS;
   }
 
-  // Have to compute the PS
+  // Have to compute the power spectrum
   // Read in slice if needed
   if (mCurSlice != whichSlice) {
+    // Reallocate as floating point when necessary
+    if (mDataOffset && mSliceMode != MRC_MODE_FLOAT) {
+      free(mSliceData);
+      mSliceData = (float *)malloc(mHeader.nx * mHeader.ny * 4);
+      if (!mSliceData)
+	exitError("Allocating memory for floating point image slice");
+      mSliceMode = MRC_MODE_FLOAT;
+    }
+
     if (mrc_read_slice(mSliceData, mFpStack, &mHeader, whichSlice, 'Z'))
       exitError("Reading slice %d", whichSlice);
 
-    // Apply offset if needed
+    // Apply any offset needed. Done as float to avoid over/underflow.
     if (mDataOffset) {
       unsigned char *bdata = (unsigned char *)mSliceData;
       b3dUInt16 *usdata = (b3dUInt16 *)mSliceData;
       b3dInt16 *sdata = (b3dInt16 *)mSliceData;
 
-      // The first time this happens, reallocate the array to be larger for floats
-      if (mSliceMode != MRC_MODE_FLOAT) {
-        free(mSliceData);
-        mSliceData = (float *)malloc(mHeader.nx * mHeader.ny * 4);
-        if (!mSliceData)
-          exitError("Allocating memory for floating point image slice");
-        mSliceMode = MRC_MODE_FLOAT;
-      }
-
-      // Add the offset and put result into floats since we have no idea if shorts
-      // would stay in range
       switch (mHeader.mode) {
       case MRC_MODE_BYTE:
-        for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
-          mSliceData[ii] = bdata[ii] + mDataOffset;
-        break;
+	for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
+	  mSliceData[ii] = bdata[ii] + mDataOffset;
+	break;
       case MRC_MODE_USHORT:
-        for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
-          mSliceData[ii] = usdata[ii] + mDataOffset;
-        break;
+	for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
+	  mSliceData[ii] = usdata[ii] + mDataOffset;
+	break;
       case MRC_MODE_SHORT:
-        for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
-          mSliceData[ii] = sdata[ii] + mDataOffset;
-        break;
+	for (ii = mHeader.nx * mHeader.ny - 1; ii >= 0; ii--)
+	  mSliceData[ii] = sdata[ii] + mDataOffset;
+	break;
       case MRC_MODE_FLOAT:
-        for (ii = 0; ii < mHeader.nx * mHeader.ny; ii++)
-          mSliceData[ii] += mDataOffset;
-        break;
+	for (ii = 0; ii < mHeader.nx * mHeader.ny; ii++)
+	  mSliceData[ii] += mDataOffset;
+	break;
       }
     }
     mCurSlice = whichSlice;
@@ -327,15 +350,15 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
   ix0 = tileX * halfSize;
   iy0 = tileY * halfSize;
   sliceTaperInPad(mSliceData, mSliceMode, mHeader.nx, ix0, ix0 + mTileSize - 1,
-                  iy0, iy0 + mTileSize - 1, mTile,tileXdim,mTileSize,mTileSize,
-                  9,9);
+                  iy0, iy0 + mTileSize - 1, mTile, tileXdim, mTileSize, mTileSize,
+                  9, 9);
 
   // Get its mean and save it
-  mean=0.0;
+  mean = 0.0;
   for (ii = 0; ii < mTileSize; ii++)
     for (jj = 0; jj < mTileSize; jj++)
-      mean += mTile[ii*tileXdim + jj];
-  mean /= (mTileSize*mTileSize);
+      mean += mTile[ii * tileXdim + jj];
+  mean /= (mTileSize * mTileSize);
   mCachedMeans[sliceIdx][tileIdx] = mean;
 
   // FFT and sum into the PS curve
@@ -343,14 +366,14 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
 
   for (ii = 0; ii < mPsDim; ii++)
     mPsTmp[ii] = 0.;
-  for (ii = 0; ii < mTileSize/2; ii++) {
+  for (ii = 0; ii < mTileSize / 2; ii++) {
     for (jj = 0; jj < fftXdim; jj++) {
       ix0 = ii * fftXdim + jj;
       ind = ii * tileXdim + 2 * jj;
-      ind2 = (mTileSize-1-ii) * tileXdim + 2 * jj;
-      mPsTmp[mTileToPsInd[ix0]] += 
-        mTile[ind] * mTile[ind] + mTile[ind+1] * mTile[ind+1] +
-        mTile[ind2] * mTile[ind2] + mTile[ind2+1] * mTile[ind2+1];
+      ind2 = (mTileSize - 1 - ii) * tileXdim + 2 * jj;
+      mPsTmp[mTileToPsInd[ix0]] +=
+        mTile[ind] * mTile[ind] + mTile[ind + 1] * mTile[ind + 1] +
+        mTile[ind2] * mTile[ind2] + mTile[ind2 + 1] * mTile[ind2 + 1];
     }
   }
 
@@ -365,7 +388,7 @@ float *SliceCache::getHyperPS(int tileX, int tileY, int whichSlice,
 
 float SliceCache::getAngle(int whichSlice)
 {
-  int sliceIdx=cacheIndex(whichSlice);
+  int sliceIdx = cacheIndex(whichSlice);
 
   if (sliceIdx >= 0)
     return mSliceAngles[sliceIdx];

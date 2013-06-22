@@ -25,7 +25,7 @@ class SlicerCube;
 class QKeyEvent;
 class QMouseEvent;
 
-struct ViewInfo;
+typedef struct ViewInfo ImodView;
 typedef struct b3d_ci_image B3dCIImage;
 typedef struct imodel_matrix Imat;
 typedef struct Mod_Point Ipoint;
@@ -33,13 +33,14 @@ typedef struct Mod_Point Ipoint;
 class SlicerFuncs {
 
  public:
-  SlicerFuncs(struct ViewInfo *vi);
+  SlicerFuncs(ImodView *vi);
   ~SlicerFuncs() {};
   void help();
   void stepZoom(int dir);
   void stepTime(int dir);
   void enteredZoom(float newZoom);
   void showSlice();
+  void fillCache();
   void stateToggled(int index, int state);
   void angleChanged(int axis, int value, int dragging);
   void Zscale(int item);
@@ -62,17 +63,18 @@ class SlicerFuncs {
   void checkMovieLimits();
   void setCurrentOrNewRow(bool newrow);
   void setAnglesFromRow();
-  void externalDraw(struct ViewInfo *vi, int drawflag);
+  void externalDraw(ImodView *vi, int drawflag);
   void draw();
   int synchronizeSlicers(bool draw = false);
   void changeCenterIfLinked();
+  void getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
 
  private:
   void cubeDraw();
   void drawSelfAndLinked();
   int setxyz(int x, int y);
   int getxyz(int x, int y, float &xm, float &ym, float &zm);
-  void attachPoint(int x, int y);
+  void attachPoint(int x, int y, int ctrlDown);
   void insertPoint(int x, int y, int ctrl);
   void modifyPoint(int x, int y, int ctrl);
   void updateImage();
@@ -98,7 +100,7 @@ class SlicerFuncs {
 
  public:
   SlicerWindow *mQtWindow;
-  struct ViewInfo *mVi;
+  ImodView *mVi;
   float mCx, mCy, mCz;  /* current x, y, z */
   float mTang[3];       /* transform angles */
   int mLocked;
@@ -175,7 +177,7 @@ class SlicerFuncs {
 
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
                        int ilimshort, int jlimshort, int minval, int maxval, int intData);
-int sslice_open(struct ViewInfo *vi);
+int sslice_open(ImodView *vi);
 int slicerAnglesOpen();
 void slicerAnglesClosing();
 void slicerPixelViewState(bool state);

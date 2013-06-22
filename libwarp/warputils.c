@@ -65,7 +65,7 @@ void interpolateGrid(float x, float y, float *dxGrid, float *dyGrid, int ixgDim,
  * Finds the point that a grid maps to [x], [y] by iteration.  Returns the coordinates
  * of that point in [xnew], [ynew] (which can be the same as [x], [y]) and the 
  * interpolated grid values at that point in [dx] and [dy].  Grid parameters are the same 
- * as in @interpolateGrid.
+ * as in @@interpolateGrid@.
  */
 void findInversePoint(float x, float y, float *dxGrid, float *dyGrid, int ixgDim,
                       int nxGrid, int nyGrid, float xGridStart, float yGridStart, 
@@ -96,7 +96,7 @@ void findInversePoint(float x, float y, float *dxGrid, float *dyGrid, int ixgDim
  * is specified in [xcen], [ycen].  The linear component of the inverse is returned in
  * [xfInv] and the inverse warp displacements of the inverse are returned in [dxInv], 
  * [dyInv].  [rows] specifies the number of rows of the transform (2 or 3; omitted when
- * calling from Fortran).  Grid parameters are the same as in @interpolateGrid.
+ * calling from Fortran).  Grid parameters are the same as in @@interpolateGrid@.
  */
 void invertWarpGrid(float *dxGrid, float *dyGrid, int ixgDim, int nxGrid, int nyGrid,
                     float xGridStart, float yGridStart, float xGridIntrv, 
@@ -689,7 +689,7 @@ void extrapolateDone()
 
 /*!
  * Expand a grid to a larger area by shifting it and then extrapolating it with
- * @extrapolateGrid.  ^
+ * @@extrapolateGrid@.  ^
  * [dxGrid], [dyGrid] - grid arrays with displacements in X and Y ^
  * [xdim], [ydim] - X and Y dimensions of arrays ^
  * [nxGrid], [nyGrid] - call with original number of grid points in X and Y, returned 

@@ -78,6 +78,15 @@ inaccurate at high tilt.  Sharper correlations can be obtained by adding this
 angle offset, which is the same as the offset needed in Tiltalign(1) or
 Tilt(1) to make the specimen flat in the reconstruction.
 
+[Field = ReverseOrder]
+short = reverse
+type = B
+usage = Reverse order of processing when all views have same tilt angle
+tooltip = 
+manpage = Reverse order of processing when all views have same tilt angle.
+Specifically, this will cause the program to start with the last view at
+minimum tilt instead of the first one.
+
 [Field = FilterRadius1]
 short = radius1
 type = F
@@ -134,10 +143,13 @@ tooltip = Limit on distance in X and Y to search for correlation peak, in
 pixels.  Images or patch centers will not shift by more than this amount
 between views.
 manpage = Limit on distance in X and Y to search for correlation peak, in
-pixels.  This option can be used to prevent a spurious correlation peak outside
-these limits from giving a bad alignment.  If the program does not find an
-actual peak, i.e. a pixel higher than all its neighbors, within these limits,
-then it will give a zero shift.
+pixels before binning is applied internally.  This option can be used to
+prevent a spurious correlation peak outside these limits from giving a bad
+alignment.  If the program does not find an actual peak, i.e. a pixel higher
+than all its neighbors, within these limits, then it will give a zero shift.
+If cumulative correlations are being used, the program will seek a peak within
+this distance of the peak for the previous view and assign that view's shift
+instead of zero if no peak is found.
 
 [Field = BordersInXandY]
 short = border
@@ -190,15 +202,32 @@ but with this option only the given object will be used.
 [Field = BinningToApply]
 short = binning
 type = I
-usage = Binning to apply to the trimmed, padded images
+usage = Binning or other reduction to apply to the trimmed, padded images
 tooltip = 
-manpage = Binning to apply to the trimmed, padded images.  By default, a
-binning will be selected that makes the maximum dimension of the trimmed,
-padded image be no more than 1180 pixels, up to a binning of 4.  Binning will
-increased above 4 only to the extent needed to make the image fit in the 
-arrays.  This default behavior might result in more binning
-than desired, and the binning might change when the amount of trimming
-is changed.  This option allows direct control of the binning instead.
+manpage = Binning or other reduction to apply to the trimmed, padded images.
+Ordinary binning is used unless the -antialias option is given.
+By default, a reduction will be selected that makes the maximum dimension of the
+trimmed, padded image be no more than 1180 pixels, up to a reduction of 4.
+Reduction will be increased above 4 only to the extent needed to make the image
+fit in the arrays.  This default behavior might result in more reduction
+than desired, and the reduction might change when the amount of trimming
+is changed.  This option allows direct control of the reduction instead.
+
+[Field = AntialiasFilter]
+short = antialias
+type = I
+usage = Type of antialiasing filter to reduce images with instead of binning
+tooltip =
+manpage = Type of antialiasing filter to use for image reduction instead of
+binning.  Antialiasing becomes important when the images contain a strong
+noise component at the high frequencies being eliminated by the image
+reduction.  Ordinary binning reduces aliasing, but not as much as these filters
+do.  As in Newstack(1), the available types here are:
+^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    3: Triangle - fast but smooths more than Blackman
+^    4: Mitchell - good at antialiasing, smooths a bit
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
+^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
 
 [Field = LeaveTiltAxisShifted]
 short = leaveaxis
@@ -266,7 +295,8 @@ the previous one and a unit transform is written for the listed view.
 However, the following view will be aligned to the
 listed view, and nothing will be aligned to the previous view.  This
 breaks the chain of alignment through the series of views.  This option
-cannot be used with patch tracking.
+cannot be used with tilt series patch tracking, but can be used when finding
+warping.
 
 [Field = CumulativeCorrelation]
 short = cumulative
@@ -404,6 +434,54 @@ tooltip =
 manpage = The current binning of the images relative to the unaligned stack.
 This entry is needed to scale the transforms supplied with the -prexf option
 if the binning is not 1.
+
+[Field = UnalignedSizeXandY]
+short = unali
+type = IP
+usage = Size of unaligned stack in X and Y
+tooltip =
+manpage = The full size of the unaligned stack that was transformed to create
+the images being aligned with patch tracking.  This entry is needed if 
+an output size was specified when creating the stack being aligned and if
+transforms are supplied with the -prexf option.
+
+[Field = FindWarpTransforms]
+short = warp
+type = B
+usage = Use patch correlations to find and save warping transformations
+tooltip = 
+manpage = Use patch correlations to find and save warping transformations
+between successive images.  The output file will be a file with warp
+transforms, not a model.  Tilt angles cannot be entered with this option, nor can
+the -reverse option.  Unlike with tilt series patch tracking, you can break
+the alignment at views as well as skip views.  Limits in X and Y and a
+boundary model can be used to constrain patch locations, but there must be at
+least 3 patches in the area defined by all the boundary contours.
+
+[Field = RawAndAlignedPair]
+short = pair
+type = IP
+usage = View # being aligned and total # of views for finding warp between aligned
+and raw image
+tooltip =
+manpage = After transforms relating each section to the previous have been
+obtained, this option can be used to find a warping alignment between a pair
+of sections, where the first is an unaligned image and the second is a section
+transformed into linear alignment with it.  The option specifies the view
+number (numbered from 1, as usual) of the second view of the pair and the
+total number of sections.  If this option is entered, the file of
+section-to-section transforms must be entered with the -prexf option.  The
+input images must not be binned or resized from the ones on which those
+transforms are based.  This option is used by Xfalign(1).
+
+[Field = AppendToWarpFile]
+short = append
+type = B
+usage = Add warp transform from pair to an existing output file
+tooltip = 
+manpage = When doing a raw and aligned pair, this option can be used to add
+the warp transform from the pair to an existing file.  The output file must be
+a valid warp transform file.
 
 [Field = TestOutput]
 short = test

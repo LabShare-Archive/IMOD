@@ -93,6 +93,8 @@ import etomo.type.AxisID;
 public final class AutodocFactory {
   public static final String rcsid = "$Id$";
 
+  public static final String EXTENSION = ".adoc";
+  
   public static final String VERSION = "1.2";
   public static final String TILTXCORR = "tiltxcorr";
   public static final String MTF_FILTER = "mtffilter";
@@ -115,6 +117,10 @@ public final class AutodocFactory {
   public static final String FIND_BEADS_3D = "findbeads3d";
   public static final String TILT = "tilt";
   public static final String SIRTSETUP = "sirtsetup";
+  public static final String BLENDMONT = "blendmont";
+  public static final String XFTOXG = "xftoxg";
+  public static final String XFALIGN = "xfalign";
+  public static final String AUTOFIDSEED = "autofidseed";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -141,6 +147,10 @@ public final class AutodocFactory {
   private static Autodoc FIND_BEADS_3D_INSTANCE = null;
   private static Autodoc TILT_INSTANCE = null;
   private static Autodoc SIRTSETUP_INSTANCE = null;
+  private static Autodoc BLENDMONT_INSTANCE = null;
+  private static Autodoc XFTOXG_INSTANCE = null;
+  private static Autodoc XFALIGN_INSTANCE = null;
+  private static Autodoc AUTOFIDSEED_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -307,7 +317,7 @@ public final class AutodocFactory {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  public static Autodoc getInstance(BaseManager manager, File directory,
+  public static Autodoc getTestInstance(BaseManager manager, File directory,
       String autodocFileName, AxisID axisID) throws FileNotFoundException, IOException,
       LogFile.LockException {
     if (autodocFileName == null) {
@@ -328,6 +338,32 @@ public final class AutodocFactory {
     autodoc = new Autodoc(stripFileExtension(autodocFileName));
     UITEST_AXIS_MAP.put(autodocFile, autodoc);
     autodoc.initializeUITestAxis(manager, LogFile.getInstance(autodocFile), axisID);
+    return autodoc;
+  }
+
+  /**
+   * open and return an autodoc without a type.
+   * @param autodocFile
+   * @param axisID
+   * @return
+   * @throws FileNotFoundException
+   * @throws IOException
+   */
+  public static Autodoc getInstance(final BaseManager manager, final File autodocFile,
+      final AxisID axisID) throws FileNotFoundException, IOException,
+      LogFile.LockException {
+    if (autodocFile == null) {
+      return null;
+    }
+    AutodocFilter filter = new AutodocFilter();
+    if (!filter.accept(autodocFile)) {
+      throw new IllegalArgumentException(autodocFile + " is not an autodoc.");
+    }
+    if (EtomoDirector.INSTANCE.getArguments().isTest()) {
+      System.err.println("autodoc file:" + autodocFile.getAbsolutePath());
+    }
+    Autodoc autodoc = new Autodoc(stripFileExtension(autodocFile.getName()));
+    autodoc.initialize(manager, LogFile.getInstance(autodocFile), axisID);
     return autodoc;
   }
 
@@ -420,6 +456,18 @@ public final class AutodocFactory {
     if (name.equals(SIRTSETUP)) {
       return SIRTSETUP_INSTANCE;
     }
+    if (name.equals(BLENDMONT)) {
+      return BLENDMONT_INSTANCE;
+    }
+    if (name.equals(XFTOXG)) {
+      return XFTOXG_INSTANCE;
+    }
+    if (name.equals(XFALIGN)) {
+      return XFALIGN_INSTANCE;
+    }
+    if (name.equals(AUTOFIDSEED)) {
+      return AUTOFIDSEED_INSTANCE;
+    }
     throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");
   }
 
@@ -493,6 +541,18 @@ public final class AutodocFactory {
     }
     else if (name.equals(SIRTSETUP)) {
       SIRTSETUP_INSTANCE = null;
+    }
+    else if (name.equals(BLENDMONT)) {
+      BLENDMONT_INSTANCE = null;
+    }
+    else if (name.equals(XFTOXG)) {
+      XFTOXG_INSTANCE = null;
+    }
+    else if (name.equals(XFALIGN)) {
+      XFALIGN_INSTANCE = null;
+    }
+    else if (name.equals(AUTOFIDSEED)) {
+      AUTOFIDSEED_INSTANCE = null;
     }
     else {
       throw new IllegalArgumentException("Illegal autodoc name: " + name + ".");

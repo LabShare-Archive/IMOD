@@ -34,6 +34,7 @@
 #define IOBJ_EXSIZE 16
 #define IMOD_CLIPSIZE  6
 #define ANGLE_STRSIZE 32
+#define VIEW_STRSIZE  32
 
 /* Units for pixel size. */
 #define IMOD_UNIT_PIXEL 0
@@ -110,6 +111,7 @@
 #define IMOD_ERROR_MEMORY  50
 
 /* model flags. */
+#define IMODF_ROT90X (1l << 17)  /* Model is rotated by 90 about X (internal to 3dmod) */
 #define IMODF_FLIPYZ (1l << 16)  /* data is stored with y,z coords flipped. */
 #define IMODF_TILTOK (1l << 15)  /* current tilt angles properly stored */
 #define IMODF_OTRANS_ORIGIN (1l << 14)  /* otrans has image origin values */
@@ -269,7 +271,7 @@ typedef struct
   b3dFloat mat[16];
 
   b3dUInt32 world;       /* flags */
-  b3dByte  label[32];   /* Label for view */
+  b3dByte  label[VIEW_STRSIZE];   /* Label for view */
 
   b3dFloat dcstart, dcend;  /* Depth cue start and end */
   b3dFloat lightx, lighty;  /* Light position X and Y */
@@ -493,67 +495,7 @@ typedef struct Mod_Model
   Ilist  *groupList;      /* Object group lists */
 }Imod;
 
-
-
-
-/* Used for drawing models, imodv */
-typedef struct Mod_Draw
-{
-  b3dInt32 llx;      /* Used for drawing 2d models to sub area */
-  b3dInt32 lly;     
-  b3dInt32 urx;
-  b3dInt32 ury;
-  b3dInt32 llz;
-  b3dInt32 urz;
-  b3dFloat xorg;     /* Offset for 2d, translation for 3d models. */
-  b3dFloat yorg;
-  b3dFloat zorg;
-  b3dInt32 xrot;     /* Amount to rotate model */
-  b3dInt32 yrot;
-  b3dInt32 zrot;
-  b3dFloat xtrans;   /* Amount to translate model */
-  b3dFloat ytrans;
-  b3dFloat ztrans;
-  b3dInt32 axis;     /* Axis to rotate.         */
-  b3dInt32 cmapbase; /* Where to start colormap */
-  b3dFloat left,
-    right,
-    bottom,
-    top;
-  b3dInt32    cnear, /* Clipping planes */
-    cfar;
-  b3dInt32   dc;     /* min depth cue factor  range x/1 to x/16*/
-  b3dFloat zoom;     /* Mag factor for displaying */
-  b3dFloat cdist;    /* Distence for center of model to far corner */
-  b3dFloat edist;    /* Distence from center of model to eye.      */
-  b3dInt32 xrotm;    /* xyz movie amounts */
-  b3dInt32 yrotm;
-  b3dInt32 zrotm;
-  b3dInt32 arot;     /* amount of change in rotation */
-  b3dFloat azoom;
-  b3dFloat atrans;
-  b3dFloat azscale;
-} Idraw;
-
-
-typedef struct Mod_Transform
-{
-  b3dFloat x;       /* input x, y and z. */
-  b3dFloat y;
-  b3dFloat z;
-  b3dFloat xout;    /* output values after transformation. */
-  b3dFloat yout;
-  b3dFloat zout;
-  b3dFloat xtrans;  /* amount to translate x, y and z. */
-  b3dFloat ytrans;
-  b3dFloat ztrans;
-  b3dFloat xrot;    /* amount to rotate x, y, and z. */
-  b3dFloat yrot;
-  b3dFloat zrot;
-  b3dFloat xscale;  /* amount to scale x, y and z. */
-  b3dFloat yscale;
-  b3dFloat zscale;
-}Itrans;
+/* 5/3/12: eliminated unused Itrans and virtually unused Idraw structures */
 
 typedef struct slicer_angles
 {
@@ -596,6 +538,8 @@ extern "C" {
   int   imodDefault(Imod *imod);
   void  imodCleanSurf(Imod *imod);
   void  imodFlipYZ(Imod *imod);
+  void imodInvertZ(Imod *imod);
+  void imodRot90X(Imod *imod, int toNative);
   int imodSetRefImage(Imod *imod, MrcHeader *hdata);
   void imodTransForSubsetLoad(Imod *imod, MrcHeader *hdata, IloadInfo *li);
   int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale);
@@ -643,7 +587,6 @@ extern "C" {
   int     imodel_unlock(Imod *mod);
   int     imodel_transform_slice(Imod *model, float *mat, 
                                  int slice);
-  int     imodel_transform(struct Mod_Transform *tr);
   int     imodel_model_clean(Imod *mod, int keepEmptyObjs);
 
   /***************************************************************************/

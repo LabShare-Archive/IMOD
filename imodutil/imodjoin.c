@@ -8,64 +8,61 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */
 
 #include "imodel.h"
 #include "b3dutil.h"
 #include "mrcfiles.h"
+#include "parse_params.h"
 
 static void usage()
 {
   imodVersion("imodjoin");
   imodCopyright();
-  fprintf(stderr, "Usage: imodjoin [options] model_1 [-o list]"
+  printf("Usage: imodjoin [options] model_1 [-o list]"
           " model_2 [more models] out_model\n");
-  fprintf(stderr, "Options (before first model):\n");
-  fprintf(stderr, "\t-o list\tList of objects to take from particular model "
+  printf("Options (before first model):\n");
+  printf("\t-o list\tList of objects to take from particular model "
           "(default is all)\n");
-  fprintf(stderr, "\t-r list\tList of objects in model 1 to REPLACE with "
+  printf("\t-r list\tList of objects in model 1 to REPLACE with "
           "objects from model 2\n");
-  fprintf(stderr, "\t-c\tChange colors of objects being copied to first model"
+  printf("\t-c\tChange colors of objects being copied to first model"
           "\n");
-  fprintf(stderr, "\t-d\tModels are from different volumes\n");
-  fprintf(stderr, "\t-i file\tTransform all models to match this image file "
+  printf("\t-d\tModels are from different volumes\n");
+  printf("\t-i file\tTransform all models to match this image file "
           "(implies -d)\n");
-  fprintf(stderr, "\t-s\tIgnore scale differences between models from "
+  printf("\t-s\tIgnore scale differences between models from "
           "different volumes\n");
-  fprintf(stderr, "\t-f\tRetain original flip state of each model\n");
-  fprintf(stderr, "\t-n\tDo not transforms models at all\n");
-  /*fprintf(stderr, "\t-\t\n");*/
+  printf("\t-f\tRetain original flip state of each model\n");
+  printf("\t-n\tDo not transforms models at all\n");
+  /*printf("\t-\t\n");*/
   exit(3);
 }
 
 static void parserr(int mod)
 {
-  fprintf(stderr, "ERROR: imodjoin - Error parsing object list before "
+  printf("ERROR: imodjoin - Error parsing object list before "
           "model %d\n", mod);
   usage();
 }
 static void optionerr(int mod)
 {
-  fprintf(stderr, "ERROR: imodjoin - Invalid option before model %d\n", mod);
+  printf("ERROR: imodjoin - Invalid option before model %d\n", mod);
   usage();
 }
 static void doublerr(void)
 {
-  fprintf(stderr, "ERROR: imodjoin - You cannot use both -o and -r with "
+  printf("ERROR: imodjoin - You cannot use both -o and -r with "
           "model 1\n");
   usage();
 }
 static void readerr(int mod)
 {
-  fprintf(stderr, "ERROR: imodjoin - Error reading file for model %d\n", mod);
-  exit(1);
+  exitError("Error reading file for model %d", mod);
 }
 static void objerr(int ob, int mod)
 {
-  fprintf(stderr, "ERROR: imodjoin - Invalid object number %d for model %d\n",
-          ob, mod);
-  exit (1);
+  exitError("Invalid object number %d for model %d", ob, mod);
 }
 
 int main(int argc, char **argv)
@@ -96,6 +93,10 @@ int main(int argc, char **argv)
   Ipoint newmax;
   Ipoint unitPt = {1., 1., 1.};
   Ipoint zeroPt = {0., 0., 0.};
+  char *progname = imodProgName(argv[0]);
+  char prefix[100];
+  sprintf(prefix, "ERROR: %s - ", progname);
+  setExitPrefix(prefix);
     
   if (argc < 4) usage();
 
@@ -135,16 +136,11 @@ int main(int argc, char **argv)
         break;
 
       case 'i':
-        if (NULL == (fin = fopen(argv[++iarg], "rb"))){
-          fprintf(stderr, "ERROR: imodjoin - Couldn't open %s\n", argv[iarg]);
-          exit(3);
-        }
+        if (NULL == (fin = fopen(argv[++iarg], "rb")))
+          exitError("Couldn't open %s", argv[iarg]);
 
-        if (mrc_head_read(fin, &hdata)) {
-          fprintf(stderr, "ERROR: imodjoin - Reading header from %s.\n",
-                  argv[iarg]);
-          exit(3);
-        }
+        if (mrc_head_read(fin, &hdata)) 
+          exitError("Reading header from %s", argv[iarg]);
         fclose(fin);
         diffVols = 2;
         break;
@@ -162,8 +158,7 @@ int main(int argc, char **argv)
     doublerr();
 
   if (suppress && diffVols) {
-    fprintf(stderr, "ERROR: imodjoin - it makes no sense to use -n with -d "
-            "or -i\n");
+    printf("ERROR: imodjoin - it makes no sense to use -n with -d or -i\n");
     usage();
   }
 
@@ -176,13 +171,10 @@ int main(int argc, char **argv)
   if (!modRefp) {
     noRef1 = 1;
     inModel->refImage = (IrefImage *) malloc (sizeof(IrefImage));
-    if (!inModel->refImage) {
-      fprintf(stderr, "ERROR: imodjoin - Getting IrefImage structure for "
-              "output model.\n");
-      exit(3);
-    }
+    if (!inModel->refImage)
+      exitError("Getting IrefImage structure for output model");
 
-    fprintf(stderr, "WARNING: Model 1 has no image reference data; "
+    printf("WARNING: Model 1 has no image reference data; "
             "transformations may be wrong\n");
     modRefp = inModel->refImage;
     modRefp->otrans = zeroPt;
@@ -245,7 +237,7 @@ int main(int argc, char **argv)
       useRef.otrans.y = modRefp->ctrans.y - modRefp->otrans.y;
       useRef.otrans.z = modRefp->ctrans.z - modRefp->otrans.z;
     } else
-      fprintf(stderr, "WARNING: Model 1 has no image origin data; "
+      printf("WARNING: Model 1 has no image origin data; "
               "transformations may be wrong\n");
 
     flipState = keepFlip ? (inModel->flags & IMODF_FLIPYZ) : 0;
@@ -319,11 +311,8 @@ int main(int argc, char **argv)
 
     if (iarg + 1 >= argc) usage();
 
-    if (njoin > 2 && replace) {
-      fprintf(stderr, "ERROR: imodjoin - You cannot use -r with more than 2 "
-              "input models\n");
-      exit(1);
-    }
+    if (njoin > 2 && replace) 
+      exitError("You cannot use -r with more than 2 input models");
 
     nlist2 = 0;
     if (*argv[iarg] == '-') {
@@ -357,14 +346,14 @@ int main(int argc, char **argv)
           useRef.otrans.y = modRefp->ctrans.y - modRefp->otrans.y;
           useRef.otrans.z = modRefp->ctrans.z - modRefp->otrans.z;
         } else
-          fprintf(stderr, "WARNING: Model %d has no image origin data; "
+          printf("WARNING: Model %d has no image origin data; "
                   "transformations may be wrong\n", njoin);
         useRef.oscale = modRefp->cscale;
         if (keepScale)
           useRef.cscale = useRef.oscale;
         imodTransFromRefImage(joinModel, &useRef, unitPt);
       } else
-        fprintf(stderr, "WARNING: Model %d has no image reference data and "
+        printf("WARNING: Model %d has no image reference data and "
                 "will not be transformed\n", njoin);
       
     } else if (!suppress) {
@@ -378,7 +367,7 @@ int main(int argc, char **argv)
         useRef.oscale = modRefp->cscale;
         imodTransFromRefImage(joinModel, &useRef, unitPt);
       } else
-        fprintf(stderr, "WARNING: Model %d has no image reference data and "
+        printf("WARNING: Model %d has no image reference data and "
                 "will not be transformed\n", njoin);
     }
 
@@ -505,54 +494,8 @@ int main(int argc, char **argv)
   }
 
   imodBackupFile(argv[argc - 1]);
-  if (imodOpenFile(argv[argc - 1], "wb", inModel)) {
-    fprintf(stderr, "ERROR: imodjoin - Fatal error opening new model\n");
-    exit (1);
-  }
+  if (imodOpenFile(argv[argc - 1], "wb", inModel))
+    exitError("Fatal error opening new model");
   imodWriteFile(inModel);
   exit(0);
 }
-
-/*
-
-$Log$
-Revision 3.12  2008/11/29 01:35:03  mast
-Added option to change object colors
-
-Revision 3.11  2006/06/26 14:48:49  mast
-Added b3dutil include for parselist
-
-Revision 3.10  2005/10/17 15:18:02  mast
-Fixed calls to imodTransFrom
-
-Revision 3.9  2005/10/17 04:37:30  mast
-Added model transformation to common coordinate system
-
-Revision 3.8  2005/03/20 19:56:05  mast
-Eliminating duplicate functions
-
-Revision 3.7  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.6  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.5  2004/06/16 21:06:42  mast
-Forgot to delete copies of library functions from debugging
-
-Revision 3.4  2004/06/11 02:29:59  mast
-Fixed bug with trying to use the zero-th view when there are no real views
-
-Revision 3.3  2003/10/24 03:05:24  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.2  2003/07/31 21:45:47  mast
-Transfer object views appropriately from each model file, add new
-views from later files if they have more views than the first file,
-and stop big memory leaks by deleting contours and meshes of unused
-objects.
-
-Revision 3.1  2003/02/21 23:18:03  mast
-Open output file in binary mode
-
-*/

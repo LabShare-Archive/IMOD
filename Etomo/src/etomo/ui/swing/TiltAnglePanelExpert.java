@@ -3,9 +3,14 @@ package etomo.ui.swing;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 
+import etomo.BaseManager;
+import etomo.logic.DatasetTool;
+import etomo.storage.DirectiveFileCollection;
+import etomo.type.AxisID;
 import etomo.type.TiltAngleSpec;
 import etomo.type.TiltAngleType;
 import etomo.type.UserConfiguration;
+import etomo.ui.FieldValidationFailedException;
 
 /**
  * <p>Description: </p>
@@ -32,9 +37,14 @@ import etomo.type.UserConfiguration;
 final class TiltAnglePanelExpert {
   public static final String rcsid = "$Id$";
 
+  final BaseManager manager;
+  final AxisID axisID;
+
   private final TiltAnglePanel panel;
 
-  TiltAnglePanelExpert() {
+  TiltAnglePanelExpert(final BaseManager manager, final AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
     panel = new TiltAnglePanel(this);
   }
 
@@ -66,18 +76,24 @@ final class TiltAnglePanelExpert {
     panel.setStepEnabled(enable);
   }
 
-  void getFields(final TiltAngleSpec tiltAngleSpec) {
-    if (panel.isExtractSelected()) {
-      tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+  boolean getFields(final TiltAngleSpec tiltAngleSpec, final boolean doValidation) {
+    try {
+      if (panel.isExtractSelected()) {
+        tiltAngleSpec.setType(TiltAngleType.EXTRACT);
+      }
+      if (panel.isSpecifySelected()) {
+        tiltAngleSpec.setType(TiltAngleType.RANGE);
+      }
+      if (panel.isFileSelected()) {
+        tiltAngleSpec.setType(TiltAngleType.FILE);
+      }
+      tiltAngleSpec.setRangeMin(panel.getMin(doValidation));
+      tiltAngleSpec.setRangeStep(panel.getStep(doValidation));
+      return true;
     }
-    if (panel.isSpecifySelected()) {
-      tiltAngleSpec.setType(TiltAngleType.RANGE);
+    catch (FieldValidationFailedException e) {
+      return false;
     }
-    if (panel.isFileSelected()) {
-      tiltAngleSpec.setType(TiltAngleType.FILE);
-    }
-    tiltAngleSpec.setRangeMin(panel.getMin());
-    tiltAngleSpec.setRangeStep(panel.getStep());
   }
 
   /**
@@ -86,16 +102,13 @@ final class TiltAnglePanelExpert {
    * complete error message.
    * @return partial error message
    */
-  String getErrorMessage() {
-    if (panel.isSpecifySelected()) {
-      if (panel.isMinEmpty()) {
-        return new String("Starting angle cannot be empty");
-      }
-      if (panel.isStepEmpty()) {
-        return new String("Increment cannot be empty");
-      }
-    }
-    return null;
+  boolean validate(final String errorTitle) {
+    return DatasetTool.validateTiltAngle(manager, AxisID.ONLY, errorTitle, axisID,
+        panel.isSpecifySelected(), panel.getMin(), panel.getStep());
+  }
+
+  void updateTemplateValues(final DirectiveFileCollection directiveFileCollection) {
+    panel.updateTemplateValues(directiveFileCollection, axisID);
   }
 
   /**

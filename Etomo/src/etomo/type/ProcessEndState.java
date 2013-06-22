@@ -31,9 +31,18 @@ public class ProcessEndState {
   private final String name;
   private final int index;
 
+  public void dumpState() {
+    System.err.print("[name:" + name + ",index:" + index + "]");
+  }
+
   private ProcessEndState(int index) {
     this.index = index;
     name = toString(index);
+  }
+
+  public static boolean isValid(final String string) {
+    return DONE.equals(string) || FAILED.equals(string) || KILLED.equals(string)
+        || PAUSED.equals(string);
   }
 
   /**
@@ -84,6 +93,10 @@ public class ProcessEndState {
       return PAUSED_NAME;
     }
     return "";
+  }
+
+  public boolean equals(final String string) {
+    return name.equals(string);
   }
 
   public static ProcessEndState getInstance(String name) {

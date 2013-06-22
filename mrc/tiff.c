@@ -250,7 +250,7 @@ unsigned char *tiff_read_file(FILE *fp, Tf_info *tiff)
 }
 
 /* DNM: general routine to open file with the given mode */
-int tiff_open_file(char *filename, char *mode, Tf_info *tiff)
+int tiff_open_file(char *filename, char *mode, Tf_info *tiff, int anyTifPixel)
 {
   /* first try to open file; return error if fails */
   tiff->fp = fopen(filename, mode);
@@ -262,7 +262,8 @@ int tiff_open_file(char *filename, char *mode, Tf_info *tiff)
   if (tiff->iifile) {
     tiff->iifile->fp = tiff->fp;
     tiff->iifile->filename = strdup(filename);
-    tiff->iifile->fmode = mode;
+    tiff->iifile->fmode = strdup(mode);
+    tiff->iifile->anyTiffPixSize = anyTifPixel;
     if (iiTIFFCheck(tiff->iifile)) {
 
       /* If this fails, reset the iifile entry to indicate that, 

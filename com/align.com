@@ -45,6 +45,7 @@ XStretchOption	0
 SkewOption	0
 XStretchDefaultGrouping	7
 SkewDefaultGrouping	11
+BeamTiltOption	0
 # 
 # Criterion # of S.D's above mean residual to report (- for local mean)
 #
@@ -52,10 +53,12 @@ ResidualReportCriterion	3.0
 SurfacesToAnalyze	2
 MetroFactor	.25
 MaximumCycles	1000
+KFactorScaling	1.
 #
 # ADD a recommended amount to shift up to the existing AxisZShift value
 #
 AxisZShift	0.
+ShiftZFromOriginal      1
 #
 # Set to 1 to do local alignments
 #

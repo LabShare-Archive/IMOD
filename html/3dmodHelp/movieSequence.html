@@ -1,0 +1,96 @@
+<head>
+<title>Model Movie Sequence Dialog</title>
+</head>
+<A NAME = "TOP"><H3>Model Movie Sequence Dialog</H3></A>
+<H4>Movie Segments and Sequences</H4>
+This dialog allows you to save a series of movie parameters that have been set
+up in the <A HREF="modelMovie.html">Model Movie</A> dialog, then run all of the
+movies in sequence.  The series of images produced by pressing
+the <B>Make</B> button in the Movie dialog is referred 
+to as a movie segment, and a series of such movie segments is referred to as a
+movie sequence.  Each time that a segment is saved in the Sequence dialog, the
+parameters governing that segment are stored internally, and the segment is
+represented by a new row in the table.
+<P>
+Several pieces of information are stored for each segment
+in addition to all of the values shown in the Movie dialog. They are:
+<UL>
+<LI> <B>View number.</B> Different model views can be created with
+  the <A HREF="modvViewEdit.html">View Editing</A> dialog.  The current view
+  number is stored for each segment, and that view is switched to when playing
+  that segment.  Having different views for different segments provides the
+  most powerful control over the display, and is necessary if you want to
+  change object color, transparency, clipping planes, or most other object
+  properties.  However, it is not necessary if you just want to turn some
+  objects on or off, or change global clipping planes.
+<LI> <B>Object On/Off states.</B> The current On/Off state of each object is
+  saved when a segment is saved.  When the segment is run, objects will be
+  turned on or off as appropriate.  This occurs after the change in view (if
+  any) and thus overrides the On/Off states stored in the view.
+<LI> <B>Global clipping planes</B> The rotation angles and on/off states of all
+  global clipping planes are recorded when a segment is saved, as well as the
+  positions of the plane at the start and end of the segment.  Again, these
+  parameters are imposed after the change in view, if any.
+<LI> <B>Image display settings</B>  If image display is turned on, all of the
+  parameters in the <A HREF="modvImage.html">Image View</A> dialog are
+  recorded, including which image planes to display, the size in each
+  dimension, the black and white levels, and whether to use false color.
+</UL>
+<H4>Controls in the Movie Sequence Dialog</H4>
+The controls are organized in 3 sections.  The top row of buttons modify the
+segments stored in the table by taking information from the Movie dialog or by
+deleting a segment.  The second row of buttons operate in the reverse
+direction, applying settings in the currenly selected segment either to the
+Movie dialog or directly to the display.  The bottom row of buttons operates
+on all segments, running them, saving them to file, or loading from a file.
+<UL>
+<LI> <B>Add After.</B> This button adds a segment based on the current
+  parameters in the Movie dialog and other display settings.  It is added
+  after the segment selected in the table, or simply added if the table is
+  empty.
+<LI> <B>Add Before.</B> This button adds a segment before instead of after
+  the segment selected in the table.
+<LI> <B>Replace.</B> This button modifies the segment selected in the table 
+  based on the current parameters in the Movie dialog and other display
+  settings.
+<LI> <B>Delete.</B> This button removes the segment selected in the table.
+<LI> <B>Use as Movie.</B> Press this button to restore the settings needed to
+  play the selected segment as a movie again from the Movie dialog.  The Start
+  and End fields in the Movie dialog will be filled in with these settings,
+  but these settings will not be applied to the display.
+  However, the view number, On/Off states, and image display settings will be changed,
+  and clip planes will be set to their starting positions. 
+  applied to the model display.  This feature is useful for revising a movie
+  segment.
+<LI> <B>Set to Start.</B> Press this button to change the display to match the
+  start of the selected segment.  All settings in the segment will be applied,
+  but the fields in the Movie dialog
+  will <I>not</I> be modified.  The feature is useful for setting the endpoint
+  of a segment to be added before the selected one.
+<LI> <B>Set to End.</B> Press this button to change the display to match the
+  end of the selected segment.  Again, fields in the Movie dialog
+  will <I>not</I> be modified.  The feature is useful for setting the starting
+  point of a segment to be added after the selected one.
+<LI> <B>Table Fields.</B> Each row has 3 columns: the number of frames, the
+  view number, and a text label.  Any cell can be edited by clicking in it and
+  typing new text, or double clicking and editing the existing text.  A row is
+  selected by clicking on a cell or by pressing one of the numbered buttons on
+  the left.
+<LI> <B>Run All.</B> This button plays the full sequence of movie segments.
+  Files are written only if the <B>Write</B> checkbox is turned on in the
+  Movie dialog.  The sequence can be stopped with the <B>Stop</B> button in the
+  Movie dialog.  If a segment produces no change in the display, the frames
+  will be saved without your having to confirm it, unlike when running Make
+  for the segment itself from the Movie dialog.
+<LI> <B>Save.</B> Press this button to save the table to a file.  The data are
+  saved in a text file in the BL3DEMC autodoc format, which consists of
+  key-value pairs.
+<LI> <B>Load.</B> Press this button to read a sequence back from a file.  If
+  the table contains unsaved information, you will be asked whether you want
+  to save it first.
+<LI> <B>Done.</B> Press this button to close the dialog.  If
+  the table contains unsaved information, you will be asked whether you want
+  to save it first.  The table will be empty when the dialog is reopened.
+<LI> <B>Help.</B> This button brings up this help page.
+<P>
+<A HREF="index.html#TOP">Help Index</A>

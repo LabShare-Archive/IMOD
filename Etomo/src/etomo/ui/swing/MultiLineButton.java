@@ -257,6 +257,13 @@ class MultiLineButton implements ProcessResultDisplay {
   private boolean debug = false;
   private String unformattedLabel = null;
 
+  public void dumpState() {
+    System.err.print("[toggleButton:" + toggleButton + ",stateKey:" + stateKey
+        + ",\nmanualName:" + manualName + ",buttonForeground:" + buttonForeground
+        + ",\nbuttonHighlightForeground:" + buttonHighlightForeground + ",debug:" + debug
+        + ",\nunformattedLabel:" + unformattedLabel + "]");
+  }
+
   MultiLineButton() {
     this(null, false, null, false);
   }
@@ -444,7 +451,7 @@ class MultiLineButton implements ProcessResultDisplay {
     if (label.toLowerCase().startsWith("<html>")) {
       return label;
     }
-    label = "<html><b>".concat(label).concat("</b>");
+    label = "<html><b><center>".concat(label).concat("</center></b>");
     if (debug) {
       System.err.println("label=" + label);
     }
@@ -506,6 +513,13 @@ class MultiLineButton implements ProcessResultDisplay {
   final void setAlignmentY(float alignmentY) {
     button.setAlignmentY(alignmentY);
   }
+  
+  /**
+   * @return a label suitable for a message - in single quotes and truncated at the colon.
+   */
+  String getQuotedLabel() {
+    return Utilities.quoteLabel(unformattedLabel);
+  }
 
   final String getText() {
     return button.getText();
@@ -526,6 +540,12 @@ class MultiLineButton implements ProcessResultDisplay {
    */
   final void setSize() {
     setSize(false);
+  }
+  
+  final void setSingleLineSize() {
+    Dimension size = UIParameters.INSTANCE.getButtonSingleLineDimension();
+    button.setPreferredSize(size);
+    button.setMaximumSize(size);
   }
 
   final void setSize(boolean setMinimum) {

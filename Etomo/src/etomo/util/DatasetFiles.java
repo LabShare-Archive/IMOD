@@ -4,9 +4,11 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.storage.autodoc.AutodocFactory;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
+import etomo.type.DataFileType;
 import etomo.type.ProcessName;
 
 /**
@@ -26,11 +28,7 @@ public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
   public static final String TILT_FILE_EXT = ".tlt";
-  public static final String JOIN_DATA_FILE_EXT = ".ejf";
-  public static final String RECON_DATA_FILE_EXT = ".edf";
   public static final String MATLAB_PARAM_FILE_EXT = ".prm";
-  public static final String PARALLEL_DATA_FILE_EXT = ".epp";
-  public static final String PEET_DATA_FILE_EXT = ".epe";
   public static final String ROTATED_TOMO_EXT = ".rot";
   public static final String COMSCRIPT_EXT = ".com";
   public static final String TOMO_EXT = ".rec";
@@ -415,7 +413,7 @@ public final class DatasetFiles {
   }
 
   final static String getAutodocName(String name) {
-    return name + ".adoc";
+    return name + AutodocFactory.EXTENSION;
   }
 
   public static File getShellScript(BaseManager manager, String commandName, AxisID axisID) {
@@ -496,15 +494,15 @@ public final class DatasetFiles {
   }
 
   public static String getParallelDataFileName(String rootName) {
-    return rootName + PARALLEL_DATA_FILE_EXT;
+    return rootName + DataFileType.PARALLEL.extension;
   }
 
   public static String getPeetDataFileName(String rootName) {
-    return rootName + PEET_DATA_FILE_EXT;
+    return rootName + DataFileType.PEET.extension;
   }
 
   public static String getPeetRootName(String fileName) {
-    return fileName.substring(0, fileName.indexOf(PEET_DATA_FILE_EXT));
+    return fileName.substring(0, fileName.indexOf(DataFileType.PEET.extension));
   }
 
   public static File getPeetDataFile(String path, String rootName) {

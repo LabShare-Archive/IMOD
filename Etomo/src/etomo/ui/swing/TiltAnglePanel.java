@@ -9,6 +9,12 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 
+import etomo.storage.DirectiveFileCollection;
+import etomo.type.AxisID;
+import etomo.type.TiltAngleSpec;
+import etomo.type.TiltAngleType;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.TooltipFormatter;
 
 /**
@@ -87,8 +93,10 @@ final class TiltAnglePanel {
   private final JPanel pnlAngle = new JPanel();
   private final RadioButton rbSpecify = new RadioButton(
       "Specify the starting angle and step (degrees)");
-  private final LabeledTextField ltfMin = new LabeledTextField("Starting angle:");
-  private final LabeledTextField ltfStep = new LabeledTextField("Increment:");
+  private final LabeledTextField ltfMin = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Starting angle:");
+  private final LabeledTextField ltfStep = new LabeledTextField(FieldType.FLOATING_POINT,
+      "Increment:");
   private final RadioButton rbFile = new RadioButton(EXISTING_RAWTILT_FILE);
 
   private final TiltAnglePanelExpert expert;
@@ -112,7 +120,7 @@ final class TiltAnglePanel {
     pnlSource.setAlignmentX(Component.CENTER_ALIGNMENT);
 
     //
-    //  Build button group
+    // Build button group
     //
     ButtonGroup bgSource = new ButtonGroup();
     bgSource.add(rbExtract.getAbstractButton());
@@ -124,6 +132,19 @@ final class TiltAnglePanel {
     rbExtract.addActionListener(tiltAlignRadioButtonListener);
     rbFile.addActionListener(tiltAlignRadioButtonListener);
     rbSpecify.addActionListener(tiltAlignRadioButtonListener);
+  }
+
+  void updateTemplateValues(final DirectiveFileCollection directiveFileCollection, final AxisID axisID) {
+    if (directiveFileCollection.containsTiltAngleSpec(axisID)) {
+      TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
+      directiveFileCollection.getTiltAngleFields(axisID, tiltAngleSpec, false);
+      if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
+        rbExtract.setSelected(true);
+      }
+      else if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
+        rbFile.setSelected(true);
+      }
+    }
   }
 
   Component getComponent() {
@@ -174,16 +195,16 @@ final class TiltAnglePanel {
     return ltfMin.getText();
   }
 
-  boolean isMinEmpty() {
-    return ltfMin.isEmpty();
+  String getMin(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfMin.getText(doValidation);
   }
 
   String getStep() {
     return ltfStep.getText();
   }
 
-  boolean isStepEmpty() {
-    return ltfStep.isEmpty();
+  String getStep(final boolean doValidation) throws FieldValidationFailedException {
+    return ltfStep.getText(doValidation);
   }
 
   void setSourceEnabled(final boolean enable) {

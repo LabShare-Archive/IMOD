@@ -146,6 +146,11 @@ final class LogFrame extends JFrame {
       }
       setPreferredSize(properties.getFrameSize());
       setLocation(properties.getFrameLocationX(), properties.getFrameLocationY());
+      try {
+        Thread.sleep(20);
+      }
+      catch (InterruptedException e) {
+      }
       setVisible(curLogPanel.isFrameVisible());
       if (isVisible()) {
         refresh();

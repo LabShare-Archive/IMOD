@@ -47,7 +47,8 @@
 #include "mv_input.h"
 #include "imodv.h"
 #include "scalebar.h"
-
+#include "cachefill.h"
+#include "pyramidcache.h"
 
 /* internal functions. */
 static void slicerKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -248,7 +249,7 @@ int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
   center->x = ss->mCx;
   center->y = ss->mCy;
   center->z = ss->mCz;
-  time = ss->mTimeLock ? ss->mTimeLock : ss->mVi->ct;
+  time = ss->mTimeLock ? ss->mTimeLock : ss->mVi->curTime;
   return 0;
 }
 
@@ -259,7 +260,7 @@ int getTopSlicerTime(bool &continuous)
   if (!ss)
     return -1;
   continuous = ss->mContinuous;
-  return ss->mTimeLock ? ss->mTimeLock : ss->mVi->ct;
+  return ss->mTimeLock ? ss->mTimeLock : ss->mVi->curTime;
 }
 
 // Notify the slicer angle dialog of a new time or general need to refresh
@@ -400,7 +401,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
     mQtWindow->mTimeBar->setWindowTitle(imodCaption("Slicer Time Toolbar"));
 	
   mCtrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb, (void *)this);
-  imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, SLICER_WINDOW_TYPE);
+  imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, SLICER_WINDOW_TYPE, mCtrl);
 
   // Set up cursor
   if (mMousemode == IMOD_MMODEL)
@@ -703,6 +704,15 @@ void SlicerFuncs::showSlice()
   mDrawModView = 0;
 }
 
+/* 
+ * Fill the cache around the current location
+ */
+void SlicerFuncs::fillCache()
+{
+  ivwControlPriority(mVi, mCtrl);
+  imodCacheFill(mVi, 1);
+}
+
 /*
  * Toolbar Toggle buttons
  */
@@ -744,7 +754,7 @@ void SlicerFuncs::stateToggled(int index, int state)
     break;
 
   case SLICER_TOGGLE_TIMELOCK:
-    mTimeLock = state ? mVi->ct : 0;
+    mTimeLock = state ? mVi->curTime : 0;
     if (!state)
       draw();
     break;
@@ -912,12 +922,26 @@ int SlicerFuncs::synchronizeSlicers(bool draw)
   return num;
 }
 
+// Return approximate limits of what could be displayed in the current window based on
+// the zoom, center and window size
+void SlicerFuncs::getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse)
+{
+  int xend, yend;
+  ixStart = (int)B3DMAX(0, mCx - 0.7 * mWinx / mZoom);
+  xend = (int)B3DMIN(mVi->xsize, mCx + 0.7 * mWinx / mZoom);
+  nxUse = xend - ixStart;
+  iyStart = (int)B3DMAX(0, mCy - 0.7 * mWiny / mZoom);
+  yend = (int)B3DMIN(mVi->ysize, mCy + 0.7 * mWiny / mZoom);
+  nyUse = yend - iyStart;
+}
+
+
 // Tell the slicer angle dialog to set current angles into current row, or
 // into new row if necessary or if flag is set
 void SlicerFuncs::setCurrentOrNewRow(bool newrow)
 {
   ivwControlPriority(mVi, mCtrl);
-  sliceAngDia->setCurrentOrNewRow(mTimeLock ? mTimeLock : mVi->ct,
+  sliceAngDia->setCurrentOrNewRow(mTimeLock ? mTimeLock : mVi->curTime,
                                   newrow);
 }
 
@@ -925,7 +949,7 @@ void SlicerFuncs::setCurrentOrNewRow(bool newrow)
 void SlicerFuncs::setAnglesFromRow()
 {
   ivwControlPriority(mVi, mCtrl);
-  sliceAngDia->setAnglesFromRow(mTimeLock ? mTimeLock : mVi->ct);
+  sliceAngDia->setAnglesFromRow(mTimeLock ? mTimeLock : mVi->curTime);
 }
 
 /* 
@@ -1004,6 +1028,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
   int docheck = 0;
   int keypad = event->modifiers() & Qt::KeypadModifier;
   float unit, dist3d;
+  QString str;
   Ipoint *p1, *p2, *pnt;
   int ob, co, pt, axis, start, end, ix, iy;
   Icont *cont;
@@ -1097,10 +1122,10 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
     scale.y = vi->imod->yscale * vi->xybin;
     scale.z = vi->imod->zscale * vi->zbin;
     dist3d  = imodPoint3DScaleDistance(pnt, &moupt, &scale);
-    wprint("From (%.1f, %.1f, %.1f) to (%.1f, %.1f, %.1f) ="
-           " %.1f %spixels, %g %s\n", pnt->x+1., pnt->y+1., pnt->z+1., moupt.x+1., 
-           moupt.y+1., moupt.z+1., dist3d, vi->zbin * vi->xybin > 1 ? "unbinned " : "",
-           dist3d * vi->imod->pixsize, imodUnits(vi->imod));
+    str.sprintf("From (%.1f, %.1f, %.1f) to (%.1f, %.1f, %.1f) = %.1f %spixels", 
+                pnt->x+1., pnt->y+1., pnt->z+1., moupt.x+1., moupt.y+1., moupt.z+1., 
+                dist3d, vi->zbin * vi->xybin > 1 ? "unbinned " : "");
+    utilWprintMeasure(str, vi->imod, dist3d);
 
     break;
 
@@ -1354,7 +1379,7 @@ void SlicerFuncs::mousePress(QMouseEvent *event)
   lastmy = firstmy = event->y();
   if (event->buttons() & ImodPrefs->actualButton(1)) {
     if (mClassic) {
-      attachPoint(event->x(), event->y());
+      attachPoint(event->x(), event->y(), ctrl);
     } else {
       but1downt.start();
     }
@@ -1379,7 +1404,7 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
       mousePanning = 0;
       drawSelfAndLinked();
     } else
-      attachPoint(event->x(), event->y());
+      attachPoint(event->x(), event->y(), event->modifiers() & Qt::ControlModifier);
   }
   if (mouseRotating) {
     mouseRotating = 0;
@@ -1503,14 +1528,14 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
 }
 
 // Process first mouse button - attach in model, set current point in movie
-void SlicerFuncs::attachPoint(int x, int y)
+void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
 {
   Ipoint pnt, norm;
   float delta;
   float distance;
   ImodView *vi = mVi;
   Imod *imod = vi->imod;
-  Iindex index;
+  Iindex index, indSave;
   float selsize = IMOD_SELSIZE / mZoom;
   int drawflag = IMOD_DRAW_XYZ;
 
@@ -1520,8 +1545,11 @@ void SlicerFuncs::attachPoint(int x, int y)
     pnt.y = vi->ymouse;
     pnt.z = vi->zmouse;
     setForwardMatrix();
+    indSave = vi->imod->cindex;
 
     distance = imodAllObjNearest(vi, &index , &pnt, selsize, mMat);
+    if (distance >= 0.)
+      imodSelectionNewCurPoint(vi, imod, indSave, ctrlDown);
 
     if (imod->cindex.point >= 0 && !mClassic) {
       
@@ -2639,6 +2667,7 @@ void SlicerFuncs::updateImage()
 void SlicerFuncs::paint()
 {
   int i, ival, sliceScaleThresh = 4;
+  int ixStart, iyStart, nxUse, nyUse;
   int mousing = mousePanning + mouseRotating +
     (ImodPrefs->speedupSlider() ? sliderDragging : 0);
   if (!mImage)
@@ -2664,7 +2693,14 @@ void SlicerFuncs::paint()
 
   if (mImageFilled <= 0) {
 
-    // If filling array, first assess mean and SD for scaling multiple slices
+    // If filling array, first get this section loaded into a tile cache
+    if (mVi->pyrCache) {
+      getSubsetLimits(ixStart, iyStart, nxUse, nyUse);
+      mVi->pyrCache->loadTilesContainingArea(mVi->pyrCache->getBaseIndex(), ixStart,
+                                             iyStart, nxUse, nyUse, B3DNINT(mCz));
+    }
+
+    // Then assess mean and SD for scaling multiple slices
     // to single slice, then fill array for real and update angles
     if (!mousing && !mVi->colormapImage && mNslice > sliceScaleThresh && !mVi->rgbStore)
       fillImageArray(0, 1, 0);
@@ -2693,7 +2729,7 @@ void SlicerFuncs::paint()
     mDrawnZmouse = mVi->zmouse;
     if (sliceAngDia && (getTopSlicer() == this))
       sliceAngDia->topSlicerDrawing(mTang, mCx, mCy, mCz, 
-                                    mTimeLock ? mTimeLock : mVi->ct, 
+                                    mTimeLock ? mTimeLock : mVi->curTime, 
                                     sliderDragging + mousing, mContinuous);
   }
 
@@ -2725,8 +2761,8 @@ void SlicerFuncs::paint()
   mScaleBarSize = scaleBarDraw(mWinx, mWiny, mZoom, 0);
 
   // Update toolbar for time
-  if (mVi->nt) {
-    int time = mTimeLock ? mTimeLock : mVi->ct;
+  if (mVi->numTimes) {
+    int time = mTimeLock ? mTimeLock : mVi->curTime;
     if (mToolTime != time){
       mToolTime = time;
       mQtWindow->setTimeLabel(time, QString(ivwGetTimeIndexLabel(mVi, time)));

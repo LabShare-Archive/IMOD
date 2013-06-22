@@ -31,8 +31,8 @@
  * not npixels*filterwidth*filterheight as with direct 2-D convolution.
  *
  * An important fine point on terminology: there are two kinds of pixel coords:
- *	DISCRETE COORDINATES take on integer values at pixel centers
- *	CONTINUOUS COORDINATES take on integer values halfway between pixels
+ *  DISCRETE COORDINATES take on integer values at pixel centers
+ *  CONTINUOUS COORDINATES take on integer values halfway between pixels
  * For example, an image with discrete coordinate range [0..511] has a
  * continuous coordinate range of [0..512].  The pixel with
  * discrete coords (x,y) has its center at continuous coords (x+.5,y+.5)
@@ -42,8 +42,8 @@
  *
  * conversion:
  * if c = continuous coord and d = discrete coord, then
- *	c = d+.5
- *	d = floor(c)
+ *  c = d+.5
+ *  d = floor(c)
  *
  * Notation: prefix 'a' denotes source coords, 'b' denotes destination coords
  *
@@ -57,12 +57,16 @@
 
 #ifdef F77FUNCAP
 #define selectzoomfilter SELECTZOOMFILTER
+#define selectzoomfilterxy SELECTZOOMFILTERXY
 #define zoomwithfilter ZOOMWITHFILTER
 #define zoomfiltinterp ZOOMFILTINTERP
+#define zoomfiltvalue ZOOMFILTVALUE
 #else
 #define selectzoomfilter selectzoomfilter_
+#define selectzoomfilterxy selectzoomfilterxy_
 #define zoomwithfilter zoomwithfilter_
 #define zoomfiltinterp zoomfiltinterp_
+#define zoomfiltvalue zoomfiltvalue_
 #endif
 
 typedef double (*fn_proc)(double x);
@@ -84,12 +88,12 @@ typedef struct { /* SAMPLED FILTER WEIGHT TABLE */
 #define PI 3.14159265358979323846264338
 
 #define CHANBITS   8
-#define WEIGHTBITS  14			/* # bits in filter coefficients */
+#define WEIGHTBITS  14          /* # bits in filter coefficients */
 #define FINALSHIFT  (2*WEIGHTBITS-CHANBITS) /* shift after x&y filter passes */
-#define WEIGHTONE  (1<<WEIGHTBITS)	/* filter weight of one */
+#define WEIGHTONE  (1<<WEIGHTBITS)  /* filter weight of one */
 
-static void interpLimits(int na, int nb, float cen, float trans, float *aOff, int *bSize,
-                         int *bOff);
+static void interpLimits(int na, int nb, float cen, float trans, double scale, 
+                         float *aOff, int *bSize, int *bOff);
 static void scanline_accum(unsigned char *lineb, int dtype, int aXsize, 
                            b3dInt32 *accumBuf, b3dInt16 sweight, float dweight);
 static void scanline_filter(b3dInt32 *lineb, int dtype, int aXsize, 
@@ -97,7 +101,8 @@ static void scanline_filter(b3dInt32 *lineb, int dtype, int aXsize,
 static void scanline_remap(unsigned char *filtBuf, int dtype, int bXsize, 
                            unsigned char *obufb, b3dUInt32 *cindex, 
                            unsigned char *bindex);
-static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wtab);
+static void make_weighttab(int b, double cen, int len, double scale, double support, 
+                           int dtype, Weighttab *wtab);
 static void mitchell_init(double b, double c);
 static double filt_binning(double x);
 static double filt_mitchell(double x);
@@ -118,20 +123,21 @@ static Filt filters[NUM_FILT] = {
   {filt_lanczos3, 3.}
 };
 
-static int zoom_debug = 0;	/* debug level: 0=none, 2=filters */
+static int zoom_debug = 0;  /* debug level: 0=none, 2=filters */
 
 /* ZOOM-SPECIFIC FILTER PARAMETERS */
-static double support;   /* filter scale (spacing between centers in a space) */
-static double scale;     /* scaled filter support radius */
-static int width;        /* filter width: max number of nonzero samples */
+static double sXsupport, sYsupport;  /* scaled filter support radius */
+static double sXscale, sYscale;    /* filter scale (spacing between centers in a space) */
+static int sXwidth, sYwidth;       /* filter width: max number of nonzero samples */
+static float sValueScaling = 1.0;  /* Scaling factor for image values */
 
 /* The selected filter function */
-static fn_proc filt_func = NULL;
-static double mitchP0, mitchP2, mitchP3, mitchQ0, mitchQ1, mitchQ2, mitchQ3;
+static fn_proc sFilt_func = NULL;
+static double sMitchP0, sMitchP2, sMitchP3, sMitchQ0, sMitchQ1, sMitchQ2, sMitchQ3;
 
 /*!
  * Selects which filter to use in image reduction with [type] and sets the scaling factor
- * with [zoom], a value less that must be less than 1.  The type can be 0 for a box 
+ * with [zoom], a value that must be less than 1.  The type can be 0 for a box 
  * (equivalent to binning), 1 for a Blackman window, 2 for a triangle filter, 3 for a
  * Mitchell filter, or 4 or 5 for Lanczos 2 or Lanczos 3.  The total 
  * width of the filter in the source image is returned in [outWidth].  Returns 1 for
@@ -139,16 +145,16 @@ static double mitchP0, mitchP2, mitchP3, mitchQ0, mitchQ1, mitchQ2, mitchQ3;
  */
 int selectZoomFilter(int type, double zoom, int *outWidth)
 {
-  filt_func = NULL;
+  sFilt_func = NULL;
   if (type < 0 || type >= NUM_FILT)
     return 1;
   if (zoom >= 1. || zoom <= 0.)
     return 2;
-  filt_func = filters[type].func;
-  scale = 1. / zoom;
-  support = filters[type].supp * scale;
-  width = (int)ceil(2. * support);
-  *outWidth = width;
+  sFilt_func = filters[type].func;
+  sXscale = sYscale = 1. / zoom;
+  sXsupport = sYsupport = filters[type].supp * sXscale;
+  sXwidth = sYwidth = (int)ceil(2. * sXsupport);
+  *outWidth = sXwidth;
   if (type == 3)
     mitchell_init(1./3., 1./3.);
   return 0;
@@ -163,13 +169,50 @@ int selectzoomfilter(int *type, float *zoom, int *outWidth)
 }
 
 /*!
+ * Like @selectZoomFilter but it allows separate zooms in X and Y given by [xzoom] and
+ * [yzoom], with respective filter widths returned in [outWidthX] and [outWidthY].
+ */
+int selectZoomFilterXY(int type, double xzoom, double yzoom, int *outWidthX, 
+                       int *outWidthY)
+{
+  int err = selectZoomFilter(type, xzoom, outWidthX);
+  if (err)
+    return err;
+  sYscale = 1. / yzoom;
+  sYsupport = filters[type].supp * sYscale;
+  sYwidth = (int)ceil(2. * sYsupport);
+  *outWidthY = sYwidth;
+  return 0;
+}
+
+/*!
+ * Fortran wrapper for @selectZoomFilterXY
+ */
+int selectzoomfilterXY(int *type, float *xzoom, float *yzoom, int *outWidthX,
+                       int *outWidthY)
+{
+  return selectZoomFilterXY(*type, (double)(*xzoom), (double)(*yzoom), outWidthX, 
+                          outWidthY);
+}
+
+/*!
+ * Sets a factor for scaling the output values from image reduction of data types other
+ *  than bytes and RGB.
+ */
+void setZoomValueScaling(float factor)
+{
+  sValueScaling = factor;
+}
+
+/*!
  * Reduces an image using the interpolation filter and zoom specified in 
- * @selectZoomFilter. ^
+ * @@selectZoomFilter@. ^
  * [slines] - array of line pointers for the input image ^
  * [aXsize], [aYsize] - size of input image ^
- * [aXoff], [aYoff] - coordinate in the input image at which the lower left pixel of the 
- * output starts ^
- * [bXsize], [bYsize] - size output image to be created, potentially from a subset of 
+ * [aXoff], [aYoff] - coordinate in the input image at which the lower left edge of the 
+ * lower left pixel of the output starts, where input coordinates are zero at the lower
+ * left edge of the first input pixel ^
+ * [bXsize], [bYsize] - size of output image to be created, potentially from a subset of 
  * the input in X or Y and into a subset of the output array ^
  * [bXdim] - X dimension of the full output image array ^
  * [bXoff] - Index of first pixel in X to fill in output array ^
@@ -192,9 +235,9 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
                    float aYoff, int bXsize, int bYsize, int bXdim, int bXoff, int dtype,
                    void *outData, b3dUInt32 *cindex, unsigned char *bindex)
 {
-  Weighttab *xweights;	/* sampled filter at each dst x pos; for xfilt*/
-  b3dInt16 *xweightSbuf, *xwp;	/* big block of memory addressed by xweights */
-  Weighttab yweight[MAX_THREADS];		/* a single sampled filter for current y pos */
+  Weighttab *xweights;  /* sampled filter at each dst x pos; for xfilt*/
+  b3dInt16 *xweightSbuf, *xwp;  /* big block of memory addressed by xweights */
+  Weighttab yweight[MAX_THREADS];       /* a single sampled filter for current y pos */
   b3dFloat *xweightFbuf, *xwfp;
   b3dInt32 *accumBuf[MAX_THREADS];
   unsigned char *filtBuf[MAX_THREADS];
@@ -205,7 +248,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
   float fweight = 0.;
   b3dInt16 sweight = 0;
 
-  if (!filt_func)
+  if (!sFilt_func)
     return 1;
 
   psizeAccum = 4;
@@ -239,11 +282,11 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
     return 2;
   }
 
-  if (aXoff < 0. || aYoff < 0. || (int)(aXoff + bXsize * scale) > aXsize ||
-      (int)(aYoff + bYsize * scale) > aYsize) {
+  if (aXoff < 0. || aYoff < 0. || (int)(aXoff + bXsize * sXscale) > aXsize ||
+      (int)(aYoff + bYsize * sYscale) > aYsize) {
     /* printf("axo %f bxs %d sc %f xe %f axs %d   ayo %f bys %d ye %f ays %d\n", aXoff,
-           bXsize, scale, aXoff + bXsize * scale, aXsize, aYoff, bYsize,
-           aYoff + bYsize * scale, aYsize); */
+           bXsize, sXscale, aXoff + bXsize * sXscale, aXsize, aYoff, bYsize,
+           aYoff + bYsize * sYscale, aYsize); */
     return 4;
   }
 
@@ -252,7 +295,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
 
   /* Allocate accumulation, filter output, and weight buffers */
   xweights = B3DMALLOC(Weighttab, bXsize);
-  xweightSbuf = (b3dInt16 *)malloc(bXsize * width * psizeWgt);
+  xweightSbuf = (b3dInt16 *)malloc(bXsize * sXwidth * psizeWgt);
   if (!xweightSbuf || !xweights) {
     B3DFREE(xweights);
     B3DFREE(xweightSbuf);
@@ -262,7 +305,7 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
   for (i = 0; i < numThreads; i++) {
     filtBuf[i] = NULL;
     accumBuf[i] = (b3dInt32 *)malloc(aXsize * psizeAccum);
-    yweight[i].weight.s = (b3dInt16 *)malloc(width * psizeWgt);
+    yweight[i].weight.s = (b3dInt16 *)malloc(sYwidth * psizeWgt);
     if (mapping)
       filtBuf[i] = (unsigned char *)malloc(bXsize * psizeFilt);
     if (!accumBuf[i] || !yweight[i].weight.s || (mapping && !filtBuf[i])) {
@@ -282,42 +325,44 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
    */
   xwfp = xweightFbuf;
   xwp = xweightSbuf;
-  for (bx = 0; bx < bXsize; bx++, xwp += width, xwfp += width) {
+  for (bx = 0; bx < bXsize; bx++, xwp += sXwidth, xwfp += sXwidth) {
     if (psizeWgt == 4)
       xweights[bx].weight.f = xwfp;
     else
       xweights[bx].weight.s = xwp;
-	make_weighttab(bx, aXoff + (bx + 0.5) * scale, aXsize, dtype, &xweights[bx]);
+    make_weighttab(bx, aXoff + (bx + 0.5) * sXscale, aXsize, sXscale, sXsupport, dtype,
+                   &xweights[bx]);
   }
 
 #pragma omp parallel for num_threads(numThreads)                    \
-  shared(bYsize, aYoff, scale, aYsize, dtype, yweight, psizeAccum, accumBuf, \
+  shared(bYsize, aYoff, sYscale, aYsize, dtype, yweight, psizeAccum, accumBuf, \
          aXsize, slines, outData, psizeFilt, bXsize, mapping, filtBuf, xweights, \
-         cindex, bindex)                                                \
+         cindex, bindex, sValueScaling, sYsupport)                     \
   private(by, thr, i, ayf, sweight, fweight, lineb, obufb)
   for (by = 0; by < bYsize; by++) {
     thr = b3dOMPthreadNum();
-
-	/* prepare a weighttab for dest y position by */
-	make_weighttab(by, aYoff + (by + 0.5) * scale, aYsize, dtype, &yweight[thr]);
-
+    
+    /* prepare a weighttab for dest y position by */
+    make_weighttab(by, aYoff + (by + 0.5) * sYscale, aYsize, sYscale, sYsupport, dtype,
+                   &yweight[thr]);
+    
     /* Zero the scanline accum buffer */
     for (i = 0; i < aXsize * psizeAccum / 4; i++)
       accumBuf[thr][i] = 0;
-
-	/* loop over source scanlines that influence this dest scanline */
-	for (ayf = yweight[thr].i0; ayf < yweight[thr].i1; ayf++) {
+    
+    /* loop over source scanlines that influence this dest scanline */
+    for (ayf = yweight[thr].i0; ayf < yweight[thr].i1; ayf++) {
       if (psizeWgt == 2)
         sweight = yweight[thr].weight.s[ayf-yweight[thr].i0];
       else
-        fweight = yweight[thr].weight.f[ayf-yweight[thr].i0];
+        fweight = yweight[thr].weight.f[ayf-yweight[thr].i0] * sValueScaling;
       
       lineb = (unsigned char *)slines[ayf];
       /* add weighted tbuf into accum (these do yfilt) */
       scanline_accum(lineb, dtype, aXsize, accumBuf[thr], sweight, fweight);
     }
-
-	/* and filter it into the appropriate line of output or into filtBuf */
+    
+    /* and filter it into the appropriate line of output or into filtBuf */
     obufb = (unsigned char *)outData + psizeFilt * (by * bXdim + bXoff);
     if (mapping)
       obufb = filtBuf[thr];
@@ -325,14 +370,14 @@ int zoomWithFilter(unsigned char **slines, int aXsize, int aYsize, float aXoff,
       printf("%.1f ", *((float *)accumBuf[thr] + i));
       printf("\n"); */
     scanline_filter(accumBuf[thr], dtype, aXsize, obufb, bXsize, xweights, FINALSHIFT);
-
+    
     /* Map to RGBA output, always 4 bytes, if index tables provided */
     if (mapping) {
       obufb = (unsigned char *)outData + 4 * (by * bXdim + bXoff);
       scanline_remap(filtBuf[thr], dtype, bXsize, obufb, cindex, bindex);
     }
   }    
-
+  
   B3DFREE(xweights);
   B3DFREE(xweightSbuf);
   for (by = 0; by < numThreads; by++) {
@@ -383,8 +428,8 @@ int zoomFiltInterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb
   unsigned char **linePtrs = makeLinePointers(array, nxa, nya, 4);
   if (!linePtrs)
     return 5;
-  interpLimits(nxa, nxb, xc, xt, &aXoff, &bXsize, &bXoff);
-  interpLimits(nya, nyb, yc, yt, &aYoff, &bYsize, &bYoff);
+  interpLimits(nxa, nxb, xc, xt, sXscale, &aXoff, &bXsize, &bXoff);
+  interpLimits(nya, nyb, yc, yt, sYscale, &aYoff, &bYsize, &bYoff);
   /* printf("%f %d %d  %f %d %d\n", aXoff, bXsize, bXoff, aYoff, bYsize, bYoff); */
   if (bXsize > 0 && bYsize > 0) {
     i = zoomWithFilter(linePtrs, nxa, nya, aXoff, aYoff, bXsize, bYsize, nxb, bXoff,
@@ -421,11 +466,35 @@ int zoomfiltinterp(float *array, float *bray, int *nxa, int *nya, int *nxb,
   return zoomFiltInterp(array, bray, *nxa, *nya, *nxb, *nyb, *xc, *yc, *xt, *yt, *dmean);
 }
 
+/*!
+ * Returns the normalized value of the filter selected by @selectZoomFilter at the 
+ * distance [radius] from the center of the filter.  Returns 0 if no filter was selected.
+ */
+double zoomFiltValue(float radius)
+{
+  double den = 0.;
+  int i, lim;
+  if (!sFilt_func)
+    return 0.;
+  lim = (sXwidth + 1) / 2;
+  for (i = -lim; i <= lim; i++)
+    den += sFilt_func(i / sXscale);
+  return sFilt_func(radius / sXscale) / den;
+}
+
+/*!
+ * Fortran wrapper for @zoomFiltValue
+ */
+double zoomfiltvalue(float *radius)
+{
+  return zoomFiltValue(*radius);
+}
+
 /*
  * Compute the limits of usable data in one dimension for calling from the interp function
  */
-static void interpLimits(int na, int nb, float cen, float trans, float *aOff, int *bSize,
-                         int *bOff)
+static void interpLimits(int na, int nb, float cen, float trans, double scale, 
+                         float *aOff, int *bSize, int *bOff)
 {
   float bcStart, bcEnd;
   int bdStart, bdEnd;
@@ -618,7 +687,8 @@ static void scanline_remap(unsigned char *filtBuf, int dtype, int bXsize,
  * WEIGHTONE, store as shorts, and trim leading and trailing zeros for.
  * b is the dest coordinate (for diagnostics).
  */
-static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wtab)
+static void make_weighttab(int b, double cen, int len, double scale, double support, 
+                           int dtype, Weighttab *wtab)
 {
   int i0, i1, i, sum, t, stillzero, lastnonzero;
   short *wp;
@@ -633,8 +703,8 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
   if (i1 > len) 
     i1 = len;
   /*if (i0 >= i1) {
-	fprintf(stderr, "make_weighttab: null filter at %d\n", b);
-	exit(1);
+    fprintf(stderr, "make_weighttab: null filter at %d\n", b);
+    exit(1);
     }*/
 
   /* the range of source samples to buffer: */
@@ -643,7 +713,7 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
 
   /* find scale factor sc to normalize the filter */
   for (den = 0, i = i0; i < i1; i++)
-	den += filt_func((i + .5 - cen) / scale);
+    den += sFilt_func((i + .5 - cen) / scale);
 
   /* set sc so that sum of sc*func() is approximately WEIGHTONE */
   if (shortWgts)
@@ -658,33 +728,33 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
   rsum = 0.;
   for (sum = 0, wp = wtab->weight.s, i=i0; i<i1; i++) {
 
-	/* evaluate the filter function: */
-	tr = sc * filt_func((i + .5 - cen) / scale);
+    /* evaluate the filter function: */
+    tr = sc * sFilt_func((i + .5 - cen) / scale);
     rsum += tr;
 
-	/* if (tr<MINSHORT || tr>MAXSHORT) {
+    /* if (tr<MINSHORT || tr>MAXSHORT) {
       fprintf(stderr, "tr=%g at %d\n", tr, b);
       exit(1);
       } */
     if (shortWgts) {
       t = (int) floor(tr+.5);
       if (stillzero && t==0) 
-        i0++;	/* find first nonzero */
+        i0++;   /* find first nonzero */
       else {
         stillzero = 0;
-        *wp++ = t;			/* add weight to table */
+        *wp++ = t;          /* add weight to table */
         sum += t;
         if (t != 0)
-          lastnonzero = i;	/* find last nonzero */
+          lastnonzero = i;  /* find last nonzero */
       }
     } else
       wtab->weight.f[i-i0] = tr;
   }
 
   if ((shortWgts && sum == 0) || rsum == 0.) {
-	/* fprintf(stderr, "sum=0 at %d\n", b); */
-	wtab->i0 = (wtab->i0+wtab->i1) >> 1;
-	wtab->i1 = wtab->i0+1;
+    /* fprintf(stderr, "sum=0 at %d\n", b); */
+    wtab->i0 = (wtab->i0+wtab->i1) >> 1;
+    wtab->i1 = wtab->i0+1;
     if (shortWgts)
       wtab->weight.s[0] = WEIGHTONE;
     else
@@ -694,7 +764,7 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
     /* set wtab->i0 and ->i1 to the nonzero support of the filter */
     wtab->i0 = i0;
     wtab->i1 = i1 = lastnonzero+1;
-	if (sum != WEIGHTONE) {
+    if (sum != WEIGHTONE) {
       /*
        * Fudge the center slightly to make sum=WEIGHTONE exactly.
        * Is this the best way to normalize a discretely sampled
@@ -708,18 +778,18 @@ static void make_weighttab(int b, double cen, int len, int dtype, Weighttab *wta
       t = WEIGHTONE - sum;
       if (zoom_debug>1) 
         fprintf(stderr,"[%d]+=%d ", i, t);
-      wtab->weight.s[i-i0] += t;	/* fudge center sample */
-	}
+      wtab->weight.s[i-i0] += t;    /* fudge center sample */
+    }
   }
   if (zoom_debug>1) {
-	fprintf(stderr,"\t");
+    fprintf(stderr,"\t");
     if (shortWgts) 
       for (wp = wtab->weight.s, i=i0; i<i1; i++, wp++)
         fprintf(stderr,"%5d ", *wp);
     else
       for (i = i0; i < i1; i++)
         fprintf(stderr,"%.4f ", wtab->weight.f[i-i0]);
-	fprintf(stderr,"\n");
+    fprintf(stderr,"\n");
   }
 }
 
@@ -733,13 +803,13 @@ static double filt_binning(double x)
 
 static void mitchell_init(double b, double c)
 {
-  mitchP0 = (  6. -  2.*b        ) / 6.;
-  mitchP2 = (-18. + 12.*b +  6.*c) / 6.;
-  mitchP3 = ( 12. -  9.*b -  6.*c) / 6.;
-  mitchQ0 = (	     8.*b + 24.*c) / 6.;
-  mitchQ1 = (	  - 12.*b - 48.*c) / 6.;
-  mitchQ2 = (	     6.*b + 30.*c) / 6.;
-  mitchQ3 = (     -     b -  6.*c) / 6.;
+  sMitchP0 = (  6. -  2.*b        ) / 6.;
+  sMitchP2 = (-18. + 12.*b +  6.*c) / 6.;
+  sMitchP3 = ( 12. -  9.*b -  6.*c) / 6.;
+  sMitchQ0 = (       8.*b + 24.*c) / 6.;
+  sMitchQ1 = (    - 12.*b - 48.*c) / 6.;
+  sMitchQ2 = (       6.*b + 30.*c) / 6.;
+  sMitchQ3 = (     -     b -  6.*c) / 6.;
 }
 
 static double filt_mitchell(double x)
@@ -751,17 +821,17 @@ static double filt_mitchell(double x)
   if (x < -2.) 
     return 0.;
   if (x < -1.)
-    return mitchQ0-x*(mitchQ1-x*(mitchQ2-x*mitchQ3));
+    return sMitchQ0-x*(sMitchQ1-x*(sMitchQ2-x*sMitchQ3));
   if ( x < 0.) 
-    return mitchP0+x*x*(mitchP2-x*mitchP3);
+    return sMitchP0+x*x*(sMitchP2-x*sMitchP3);
   if (x < 1.) 
-    return mitchP0+x*x*(mitchP2+x*mitchP3);
+    return sMitchP0+x*x*(sMitchP2+x*sMitchP3);
   if (x < 2.) 
-    return mitchQ0+x*(mitchQ1+x*(mitchQ2+x*mitchQ3));
+    return sMitchQ0+x*(sMitchQ1+x*(sMitchQ2+x*sMitchQ3));
   return 0.;
 }
 
-static double filt_blackman(double x)	/* Blackman window */
+static double filt_blackman(double x)   /* Blackman window */
 {
   return .42+.50*cos(PI*x)+.08*cos(2.*PI*x);
 }

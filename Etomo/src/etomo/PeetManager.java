@@ -15,8 +15,6 @@ import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
 import etomo.process.ProcessData;
-import etomo.process.ProcessResultDisplayFactoryBlank;
-import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.AveragedFileNames;
 import etomo.storage.ComFileFilter;
@@ -30,10 +28,8 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
-import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
-import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.InterfaceType;
@@ -45,6 +41,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldValidationFailedException;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
@@ -53,6 +50,7 @@ import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.PeetDialog;
 import etomo.ui.swing.PeetStartupDialog;
 import etomo.ui.swing.ProcessDisplay;
+import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
@@ -336,7 +334,6 @@ public final class PeetManager extends BaseManager {
 
   private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
-  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   private final PeetMetaData metaData;
   private final PeetProcessManager processMgr;
@@ -346,6 +343,7 @@ public final class PeetManager extends BaseManager {
   private MatlabParam matlabParam = null;
   private MainPeetPanel mainPanel;
   private PeetStartupDialog peetStartupDialog = null;
+  private LoadState loadState = null;
   /**
    * valid is for handling failure before the manager key is set in EtomoDirector.
    */
@@ -375,7 +373,9 @@ public final class PeetManager extends BaseManager {
 
   static PeetManager getInstance(final String paramFileName) {
     PeetManager instance = new PeetManager(paramFileName);
-    instance.openDialog();
+    if (instance.loadState != LoadState.EXIT) {
+      instance.openDialog();
+    }
     return instance;
   }
 
@@ -403,7 +403,7 @@ public final class PeetManager extends BaseManager {
   }
 
   public boolean isValid() {
-    return valid;
+    return valid && loadState != LoadState.EXIT;
   }
 
   void initializeUIParameters(final String paramFileName, final AxisID axisID) {
@@ -413,14 +413,10 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public boolean isInManagerFrame() {
-    return false;
-  }
-
   static public boolean isInterfaceAvailable() {
     if (!EnvironmentVariable.INSTANCE.exists(null,
         EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY)) {
-      UIHarness.INSTANCE.openMessageDialog(null,
+      UIHarness.INSTANCE.openMessageDialog((BaseManager) null,
           "PEET is an optional package for particle averaging, which has "
               + "not been installed and correctly configured.  See the "
               + "PEET link under Other Programs at " + "http://bio3d.colorado.edu/.",
@@ -428,19 +424,6 @@ public final class PeetManager extends BaseManager {
       return false;
     }
     return true;
-  }
-
-  public boolean canChangeParamFileName() {
-    return false;
-  }
-
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
-      final AxisID axisID) {
-    return processResultDisplayFactory;
-  }
-
-  public boolean canSnapshot() {
-    return false;
   }
 
   public void pack() {
@@ -484,16 +467,8 @@ public final class PeetManager extends BaseManager {
     return metaData.getName();
   }
 
-  public void kill(final AxisID axisID) {
-    processMgr.kill(axisID);
-  }
-
   public PeetState getState() {
     return state;
-  }
-
-  public void pause(final AxisID axisID) {
-    processMgr.pause(axisID);
   }
 
   /**
@@ -588,11 +563,14 @@ public final class PeetManager extends BaseManager {
       BaseProcessManager.touch(destMatlabFile.getAbsolutePath(), this);
     }
     // Load the .prm file
-    MatlabParam param = new MatlabParam(this, AXIS_ID, destMatlabFile, false);
-    if (param.read(this)) {
+    MatlabParam param = loadMatlabParam(destMatlabFile, false);
+    if (loadState == LoadState.SUCCESS) {
       param.setFnOutput(fnOutput);
       param.setFile(destDir.getAbsolutePath());
       param.write(this);
+    }
+    else if (loadState == LoadState.EXIT) {
+      return;
     }
 
     // load the dateset into the manager and dialog
@@ -627,7 +605,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public void setParamFile(final File paramFile) {
+  public boolean setParamFile(final File paramFile) {
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
     }
@@ -637,20 +615,16 @@ public final class PeetManager extends BaseManager {
       metaData.setName(rootName);
       imodManager.setMetaData(metaData);
       setMatlabParam(false);
+      if (loadState == LoadState.EXIT) {
+        return false;
+      }
       if (peetDialog != null) {
         peetDialog.setDirectory(paramFile.getParent());
         peetDialog.setFnOutput(rootName);
         peetDialog.updateDisplay(true);
       }
     }
-  }
-
-  /**
-   * The param file should already be set.
-   * @return
-   */
-  public boolean setParamFile() {
-    return loadedParamFile;
+    return true;
   }
 
   /**
@@ -695,6 +669,9 @@ public final class PeetManager extends BaseManager {
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     if (matlabParam == null) {
       setMatlabParam(true);
+      if (loadState == LoadState.EXIT) {
+        return false;
+      }
     }
     if (peetDialog != null) {
       peetDialog.updateDisplay(true);
@@ -711,7 +688,9 @@ public final class PeetManager extends BaseManager {
     try {
       if (super.exitProgram(axisID)) {
         endThreads();
-        saveParamFile();
+        if (loadState != LoadState.EXIT) {
+          saveParamFile();
+        }
         return true;
       }
       return false;
@@ -722,10 +701,11 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  public void save() throws LogFile.LockException, IOException {
+  public boolean save() throws LogFile.LockException, IOException {
     super.save();
     mainPanel.done();
-    savePeetDialog(false);
+    savePeetDialog(false, false);
+    return true;
   }
 
   public int getParallelProcessingDefaultNice() {
@@ -802,13 +782,13 @@ public final class PeetManager extends BaseManager {
 
   public void peetParser(ProcessSeries processSeries, final DialogType dialogType,
       final ProcessingMethod peetProcessingMethod) {
-    if (processMgr.inUse(AxisID.ONLY, null)) {
+    if (processMgr.inUse(AxisID.ONLY, null, true)) {
       return;
     }
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!savePeetDialog(true)) {
+    if (!savePeetDialog(true, true)) {
       return;
     }
     if (matlabParam == null) {
@@ -846,7 +826,7 @@ public final class PeetManager extends BaseManager {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
-    if (!savePeetDialog(true)) {
+    if (!savePeetDialog(true, true)) {
       return;
     }
     if (matlabParam == null) {
@@ -890,39 +870,18 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  void updateDialog(final ProcessName processName, final AxisID axisID) {
-  }
-
-  void processSucceeded(final AxisID axisID, final ProcessName processName) {
-  }
-
   public BaseState getBaseState() {
     return state;
   }
 
-  public String getFileSubdirectoryName() {
-    return null;
-  }
-
-  void createProcessTrack() {
-  }
-
   void createMainPanel() {
-    mainPanel = new MainPeetPanel(this);
-  }
-
-  void createComScriptManager() {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      mainPanel = new MainPeetPanel(this);
+    }
   }
 
   public BaseProcessManager getProcessManager() {
     return processMgr;
-  }
-
-  BaseProcessTrack getProcessTrack() {
-    return null;
-  }
-
-  void getProcessTrack(final Storable[] storable, final int index) {
   }
 
   Storable[] getStorables(final int offset) {
@@ -937,13 +896,20 @@ public final class PeetManager extends BaseManager {
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(final AxisID axisID, final ProcessSeries.Process process,
+  boolean startNextProcess(final UIComponent uiComponent, final AxisID axisID,
+      final ProcessSeries.Process process,
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final DialogType dialogType, final ProcessDisplay display) {
+    if (super.startNextProcess(uiComponent, axisID, process, processResultDisplay,
+        processSeries, dialogType, display)) {
+      return true;
+    }
     if (process.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(processSeries, process.getOutputImageFileType(),
-          process.getProcessingMethod());
+          process.getProcessingMethod(), dialogType);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -953,9 +919,42 @@ public final class PeetManager extends BaseManager {
     if (!loadedParamFile || matlabParam != null || paramFile == null) {
       return;
     }
-    matlabParam = new MatlabParam(this, AXIS_ID, DatasetFiles.getMatlabParamFile(this),
-        newFile);
-    matlabParam.read(this);
+    matlabParam = loadMatlabParam(DatasetFiles.getMatlabParamFile(this), newFile);
+  }
+
+  public MatlabParam loadMatlabParam(final File matlabFile, final boolean newFile) {
+    MatlabParam param = null;
+    do {
+      // Load the .prm file
+      param = new MatlabParam(this, AXIS_ID, matlabFile, newFile);
+      List<String> errorList = new ArrayList<String>();
+      if (param.read(this, errorList)) {
+        loadState = LoadState.SUCCESS;
+      }
+      else if (!errorList.isEmpty()) {
+        // Handle error in the .prm file
+        List<String> message = new ArrayList();
+        message.add("Unable to successfully parse " + matlabFile.getAbsolutePath() + ".");
+        message.add("");
+        message
+            .add("Fix the .prm file and press Yes to reload.  Or press No to exit from this dataset.");
+        message.add("");
+        message.add("Error(s):");
+        errorList.addAll(0, message);
+        if (UIHarness.INSTANCE.openYesNoDialog(this,
+            errorList.toArray(new String[errorList.size()]), AxisID.ONLY)) {
+          // The .prm file has been fixed - must reload.
+          loadState = LoadState.RELOAD;
+        }
+        else {
+          // Must exit from etomo without saving to the .prm file, if the .prm can't be
+          // fixed.
+          loadState = LoadState.EXIT;
+          EtomoDirector.INSTANCE.closeCurrentManager(AxisID.ONLY, false);
+        }
+      }
+    } while (loadState == LoadState.RELOAD);
+    return param;
   }
 
   private void createState() {
@@ -967,7 +966,7 @@ public final class PeetManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
-    reconnect(processMgr.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, true);
+    reconnect(axisProcessData.getSavedProcessData(AxisID.ONLY), AxisID.ONLY, true);
   }
 
   /**
@@ -1021,9 +1020,15 @@ public final class PeetManager extends BaseManager {
     openPeetDialog(startupData);
     if (startupData.isCopyFrom()) {
       copyDataset(startupData);
+      if (loadState == LoadState.EXIT) {
+        return;
+      }
     }
     else {
       setParamFile(startupData);
+      if (loadState == LoadState.EXIT) {
+        return;
+      }
     }
     if (!loadedParamFile) {
       mainPanel.stopProgressBar(AXIS_ID, ProcessEndState.FAILED);
@@ -1053,7 +1058,7 @@ public final class PeetManager extends BaseManager {
     }
   }
 
-  private boolean savePeetDialog(final boolean forRun) {
+  private boolean savePeetDialog(final boolean forRun, final boolean doValidation) {
     if (peetDialog == null) {
       return false;
     }
@@ -1067,9 +1072,11 @@ public final class PeetManager extends BaseManager {
     }
     peetDialog.getParameters(metaData);
     saveStorables(AXIS_ID);
-    if (!peetDialog.getParameters(matlabParam, forRun))
+    if (!peetDialog.getParameters(matlabParam, forRun, doValidation))
       return false;
-    matlabParam.write(this);
+    if (loadState != LoadState.EXIT) {
+      matlabParam.write(this);
+    }
     return true;
   }
 
@@ -1077,21 +1084,37 @@ public final class PeetManager extends BaseManager {
    * Run processchunks.
    * @param axisID
    */
-  private void processchunks(final ConstProcessSeries processSeries,
-      final FileType outputImageFileType, final ProcessingMethod processingMethod) {
+  private void processchunks(final ProcessSeries processSeries,
+      final FileType outputImageFileType, final ProcessingMethod processingMethod,
+      final DialogType dialogType) {
     if (peetDialog == null) {
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
-        peetDialog.getFnOutput(), outputImageFileType);
-    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
-    peetDialog.getParameters(param);
-    if (!parallelPanel.getParameters(param)) {
-      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+    try {
+      ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
+          peetDialog.getFnOutput(true), outputImageFileType);
+      ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
+      peetDialog.getParameters(param);
+      if (!parallelPanel.getParameters(param, true)) {
+        getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+        return;
+      }
+      // param should never be set to resume
+      parallelPanel.getParallelProgressDisplay().resetResults();
+      processchunks(AxisID.ONLY, param, null, processSeries, false, processingMethod,
+          true, dialogType);
+    }
+    catch (FieldValidationFailedException e) {
       return;
     }
-    // param should never be set to resume
-    parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null, processSeries, false, processingMethod, true);
+  }
+
+  private static final class LoadState {
+    private static final LoadState SUCCESS = new LoadState();
+    private static final LoadState RELOAD = new LoadState();
+    private static final LoadState EXIT = new LoadState();
+
+    private LoadState() {
+    }
   }
 }

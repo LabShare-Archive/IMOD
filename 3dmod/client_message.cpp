@@ -16,6 +16,7 @@
 #include <qdir.h>
 #include <qregexp.h>
 #include <qtimer.h>
+#include <QTime>
 #include <qapplication.h>
 #include <qclipboard.h>
 #include "imod.h"
@@ -38,40 +39,43 @@
 #include "zap_classes.h"
 #include "sslice.h"
 
-//  Module variables
-static int message_action = MESSAGE_NO_ACTION;
-static QStringList messageStrings;
-static int message_stamp = -1;
+//  Module static variables
+static int sMessageAction = MESSAGE_NO_ACTION;
+static QStringList sMessageStrings;
+static int sMessageStamp = -1;
+static bool sInitialLoad;
 
 #define STDIN_INTERVAL  50
 #define MAX_LINE 256
-static char threadLine[MAX_LINE];
-static bool gotLine = false;
-static int lineLen;
+static char sThreadLine[MAX_LINE];
+static int sLineLen;
 
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
-static QMutex mutex;
-static StdinThread *stdThread = NULL;
+static QMutex sMutex;
+static StdinThread *sStdThread = NULL;
+static bool sGotLine = false;
 #endif
 
 static int readLine(char *line);
 
-ImodClipboard::ImodClipboard(bool useStdin)
+ImodClipboard::ImodClipboard(bool useStdin, bool doingInitialLoad)
   : QObject()
 {
   QClipboard *cb = QApplication::clipboard();
   //cb->setSelectionMode(false);
   mHandling = false;
-  mExiting = false;
+  mDeferredHandling = false;
+  mExiting = 0;
   mDisconnected = false;
   mClipHackTimer = NULL;
   mStdinTimer = NULL;
   mUseStdin = useStdin;
+  sInitialLoad = doingInitialLoad;
 
   if (useStdin) {
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
-    stdThread = new StdinThread();
-    stdThread->start();
+    sStdThread = new StdinThread();
+    sStdThread->start();
 #endif
     mStdinTimer = new QTimer(this);
     connect(mStdinTimer, SIGNAL(timeout()), this, SLOT(stdinTimeout()));
@@ -100,7 +104,7 @@ ImodClipboard::ImodClipboard(bool useStdin)
 void ImodClipboard::startDisconnect()
 {
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
-  if (mUseStdin && stdThread->isRunning())
+  if (mUseStdin && sStdThread->isRunning())
     imodPrintStderr("REQUEST STOP LISTENING\n");
 #endif
 }
@@ -110,12 +114,12 @@ int ImodClipboard::waitForDisconnect()
 {
 #if defined(_WIN32) && defined(QT_THREAD_SUPPORT)
   int timeout = 5000;
-  if (mUseStdin && stdThread->isRunning()) {
-    if (stdThread->wait(timeout))
+  if (mUseStdin && sStdThread->isRunning()) {
+    if (sStdThread->wait(timeout))
       return 0;
     dia_err("3dmod is stuck listening for input and is unable to terminate"
             " cleanly\nYou need to kill it in Task Manager or with Ctrl C");
-    stdThread->terminate();
+    sStdThread->terminate();
   }
   return 1;
 #else
@@ -123,6 +127,23 @@ int ImodClipboard::waitForDisconnect()
 #endif
 }
 
+/*
+ * Called when load is done and model is initialized.  Now messages can be processed
+ */
+void ImodClipboard::doneWithLoad()
+{
+  sInitialLoad = false;
+  if (sMessageStrings.count()) {
+    mDeferredHandling = -1;
+
+    // If somehow a message is being processed right now, come back in a bit
+    if (mHandling) {
+      QTimer::singleShot(100, this, SLOT(clipTimeout()));
+    } else {
+      clipTimeout();
+    }
+  }
+}
 
 /*
  * Clipboard change event slot and timeout for performing actions
@@ -152,19 +173,32 @@ void ImodClipboard::clipTimeout()
 {
   // If exiting flag is set, then finally quit
   if (mExiting) {
+    
+    // But during initial load, it may need two chances to get the message out.
+    if (sInitialLoad && mExiting < 2) {
+      mExiting++;
+      QTimer::singleShot(50, this, SLOT(clipTimeout()));
+      return;
+    }
     if (ImodvClosed || !Imodv->standalone)
       imod_quit();
     else
       imodvQuit();
 
   } else {
-    
+
+    // If it time to do deferred handling, now set the flag positive
+    if (mDeferredHandling < 0) {
+      mDeferredHandling = 1;
+      mHandling = true;
+    }
+
     // Otherwise, execute the message
     if (executeMessage()) {
 
       // If it returns true, set the exiting flag and start another timer
       // 100 ms is too short on SGI
-      mExiting = true;
+      mExiting = 1;
       QTimer::singleShot(200, this, SLOT(clipTimeout()));
     } 
     mHandling = false;
@@ -193,12 +227,12 @@ void ImodClipboard::stdinTimeout()
   // See if the thread got a line
   // Copy the line while we have the mutex
   bool gotOne;
-  mutex.lock();
-  gotOne = gotLine;
-  gotLine = false;
+  sMutex.lock();
+  gotOne = sGotLine;
+  sGotLine = false;
   if (gotOne)
-     text = threadLine;
-  mutex.unlock();
+     text = sThreadLine;
+  sMutex.unlock();
   if (!gotOne)
     return;
 #else
@@ -214,11 +248,11 @@ void ImodClipboard::stdinTimeout()
   if (select(1, &readfds, &writefds, &exceptfds, &timeout) <= 0)
     return;
 
-  lineLen = readLine(threadLine);
-  text = threadLine;
+  sLineLen = readLine(sThreadLine);
+  text = sThreadLine;
 #endif
 
-  if (!lineLen) {
+  if (!sLineLen) {
     mStdinTimer->stop();
     disconnect(mStdinTimer);
     //delete mStdinTimer;
@@ -227,8 +261,11 @@ void ImodClipboard::stdinTimeout()
     mDisconnected = true;
     return;
   }
-
-  messageStrings = text.split(" ", QString::SkipEmptyParts);
+  
+  if (sInitialLoad)
+    sMessageStrings += text.split(" ", QString::SkipEmptyParts);
+  else
+    sMessageStrings = text.split(" ", QString::SkipEmptyParts);
 
   // Start timer to execute message just as for clipboard
   mHandling = true;
@@ -238,7 +275,8 @@ void ImodClipboard::stdinTimeout()
 // Parse the message, see if it is for us, and save in local variables
 bool ImodClipboard::handleMessage()
 {
-  int newStamp;
+  int newStamp, arg;
+  QStringList tmpStrings;
   if (!ImodInfoWin && ImodvClosed)
     return false;
 
@@ -257,21 +295,28 @@ bool ImodClipboard::handleMessage()
 
   // Split the string, ignoring multiple spaces, and return false if fewer
   // than 3 elements
-  messageStrings = text.split(" ", QString::SkipEmptyParts);
-  if (messageStrings.count() < 3)
+  tmpStrings = text.split(" ", QString::SkipEmptyParts);
+  if (tmpStrings.count() < 3)
     return false;
 
   // Return false if this is not our info window ID
-  if (messageStrings[0].toInt() != ourWindowID())
+  if (tmpStrings[0].toUInt() != ourWindowID())
     return false;
 
   // If we see the same message again, send the last response again
-  newStamp = messageStrings[1].toInt();
-  if (newStamp == message_stamp) {
+  newStamp = tmpStrings[1].toInt();
+  if (newStamp == sMessageStamp) {
     sendResponse(-1);
     return false;
   }
-  message_stamp = newStamp;
+  sMessageStamp = newStamp;
+
+  // Clear out the list or accumulate it in initial load, then strip ID and stamp
+  if (!sInitialLoad)
+    sMessageStrings.clear();
+  for (arg = 2; arg < tmpStrings.count(); arg++)
+    sMessageStrings << tmpStrings[arg];
+    
   return true;
 }
 
@@ -297,26 +342,42 @@ bool ImodClipboard::executeMessage()
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
   int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3};
-  int numArgs = messageStrings.count();
+  int numArgs = sMessageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
-  for (arg = mUseStdin ? 0 : 2; arg < numArgs; arg++) {
+  for (arg = 0; arg < numArgs; arg++) {
     imod = App->cvi->imod;
 
     // Get the action, then check that there are enough values for it
-    message_action = messageStrings[arg].toInt();
-    if (message_action < sizeof(requiredArgs) / sizeof(int) &&
-        arg + requiredArgs[message_action] >= numArgs) {
+    sMessageAction = sMessageStrings[arg].toInt();
+    if (sMessageAction < sizeof(requiredArgs) / sizeof(int) &&
+        arg + requiredArgs[sMessageAction] >= numArgs) {
         imodPrintStderr("imodExecuteMessage: not enough values sent"
-                " with action command %d\n", message_action);
+                " with action command %d\n", sMessageAction);
         succeeded = 0;
         break;
     }
 
+    // If still in initial load, skip the arguments (and one more if model mode message)
+    if (sInitialLoad) {
+      arg += requiredArgs[sMessageAction];
+      if (arg < numArgs - 1 && sMessageAction == MESSAGE_MODEL_MODE)
+        arg++;
+
+      // Stop processing after a plugin message because the length is unknown
+      // and stop after seeing a quit
+      if (sMessageAction == MESSAGE_PLUGIN_EXECUTE || sMessageAction == MESSAGE_QUIT) 
+        arg = numArgs;
+      continue;
+    }
+
     if (Imod_debug) {
-      wprint("Executing message action %d\n", message_action);
-      imodPrintStderr("imodHCM in executeMessage: executing message action "
-                      "%d\n", message_action);
+      QTime curTime = QTime::currentTime();
+      wprint("%02d:%02d.%03d: Executing message action %d\n", 
+             curTime.minute(), curTime.second(), curTime.msec(), sMessageAction);
+      imodPrintStderr("%02d:%02d.%03d: imodHCM in executeMessage: executing message "
+                      "action %d\n", 
+                      curTime.minute(), curTime.second(), curTime.msec(), sMessageAction);
       if (imodDebug('C')) {
         newCheck = imodChecksum(App->cvi->imod);
         wprint("Checksum before = %d\n", newCheck);
@@ -327,12 +388,12 @@ bool ImodClipboard::executeMessage()
     }
 
     if (ImodvClosed || !Imodv->standalone) {
-      switch (message_action) {
+      switch (sMessageAction) {
         
       case MESSAGE_OPEN_MODEL:
       case MESSAGE_OPEN_KEEP_BW:
         curdir = new QDir();
-        convName = curdir->cleanPath(messageStrings[++arg]);
+        convName = curdir->cleanPath(sMessageStrings[++arg]);
         delete curdir;
     
         // Since this could open a dialog with an indefinite delay, just send
@@ -343,7 +404,7 @@ bool ImodClipboard::executeMessage()
 
         // DNM 6/3/04: switch to keeping BW values in the first place
         returnValue = openModel(LATIN1(convName), 
-                                message_action == MESSAGE_OPEN_KEEP_BW, false);
+                                sMessageAction == MESSAGE_OPEN_KEEP_BW, false);
         if(returnValue == IMOD_IO_SUCCESS) {
           wprint("%s loaded.\n", 
                  LATIN1(QDir::convertSeparators(QString(Imod_filename))));
@@ -368,7 +429,7 @@ bool ImodClipboard::executeMessage()
           }
           else {
             wprint("Could not create a new model %s.\n", 
-                   LATIN1(messageStrings[arg]));
+                   LATIN1(sMessageStrings[arg]));
             arg = numArgs;
           }
         }
@@ -407,7 +468,7 @@ bool ImodClipboard::executeMessage()
       case MESSAGE_MODEL_MODE:
         movieVal = 1;
         if (arg < numArgs - 1)
-        movieVal = messageStrings[++arg].toInt();
+          movieVal = sMessageStrings[++arg].toInt();
         if (movieVal > 0)
           imod_set_mmode(IMOD_MMODEL);
         else {
@@ -445,14 +506,14 @@ bool ImodClipboard::executeMessage()
       case MESSAGE_NEWOBJ_PROPERTIES:
       case MESSAGE_OBJ_PROPS_2:
       case MESSAGE_NEWOBJ_PROPS_2:
-        props1 = message_action == MESSAGE_OBJ_PROPERTIES ||
-          message_action == MESSAGE_NEWOBJ_PROPERTIES;
-        objNum = messageStrings[++arg].toInt();
-        type = messageStrings[++arg].toInt();
-        symbol = messageStrings[++arg].toInt();
-        symSize = messageStrings[++arg].toInt();
+        props1 = sMessageAction == MESSAGE_OBJ_PROPERTIES ||
+          sMessageAction == MESSAGE_NEWOBJ_PROPERTIES;
+        objNum = sMessageStrings[++arg].toInt();
+        type = sMessageStrings[++arg].toInt();
+        symbol = sMessageStrings[++arg].toInt();
+        symSize = sMessageStrings[++arg].toInt();
         if (props1)
-          ptSize = messageStrings[++arg].toInt();
+          ptSize = sMessageStrings[++arg].toInt();
 
         // Object is numbered from 1, so decrement and test for substituting
         // current object
@@ -468,8 +529,8 @@ bool ImodClipboard::executeMessage()
         obj = &imod->obj[objNum];
 
         // If object has contours, skip for NEWOBJ message
-        if (obj->contsize && (message_action == MESSAGE_NEWOBJ_PROPERTIES ||
-                              message_action == MESSAGE_NEWOBJ_PROPS_2))
+        if (obj->contsize && (sMessageAction == MESSAGE_NEWOBJ_PROPERTIES ||
+                              sMessageAction == MESSAGE_NEWOBJ_PROPS_2))
           break;
 
         if (props1) {
@@ -531,17 +592,17 @@ bool ImodClipboard::executeMessage()
         break;
 
       case MESSAGE_GHOST_MODE:
-        mode = messageStrings[++arg].toInt();
-        mask = messageStrings[++arg].toInt();
+        mode = sMessageStrings[++arg].toInt();
+        mask = sMessageStrings[++arg].toInt();
         App->cvi->ghostmode = (App->cvi->ghostmode & ~mask) | (mode & mask);
-        interval = messageStrings[++arg].toInt();
+        interval = sMessageStrings[++arg].toInt();
         if (interval >= 0)
           App->cvi->ghostdist = interval;
         imodDraw(App->cvi, IMOD_DRAW_MOD);
         break;
         
       case MESSAGE_ZAP_HQ_MODE:
-        mode = messageStrings[++arg].toInt() != 0 ? 1 : 0;
+        mode = sMessageStrings[++arg].toInt() != 0 ? 1 : 0;
         zap = getTopZapWindow(false);
         if (zap) {
           zap->stateToggled(ZAP_TOGGLE_RESOL, mode);
@@ -552,7 +613,7 @@ bool ImodClipboard::executeMessage()
 
       case MESSAGE_PLUGIN_EXECUTE:
         arg++;
-        if (imodPlugMessage(App->cvi, &messageStrings, &arg)) {
+        if (imodPlugMessage(App->cvi, &sMessageStrings, &arg)) {
           succeeded = 0;
           arg = numArgs;
           break;
@@ -561,14 +622,14 @@ bool ImodClipboard::executeMessage()
 
       default:
         imodPrintStderr("imodExecuteMessage: action %d not recognized\n"
-                        , message_action);
+                        , sMessageAction);
         succeeded = 0;
         arg = numArgs;
       }
     } else {
       
       // Messages for 3dmodv
-      switch (message_action) {
+      switch (sMessageAction) {
       case MESSAGE_QUIT:
         arg = numArgs;
         break;
@@ -579,7 +640,7 @@ bool ImodClipboard::executeMessage()
         
       default:
         imodPrintStderr("imodExecuteMessage: action %d not recognized by"
-                        " 3dmodv\n" , message_action);
+                        " 3dmodv\n" , sMessageAction);
         succeeded = 0;
         arg = numArgs;
       }
@@ -593,10 +654,14 @@ bool ImodClipboard::executeMessage()
     checkSum = newCheck;
   }
 
-  // Now set the clipboard with the response
-  if (succeeded >= 0)
+  // Now set the clipboard with the response as long as we aren't doing deferred
+  if (succeeded >= 0 && mDeferredHandling <= 0)
     sendResponse(succeeded);
-  return message_action == MESSAGE_QUIT;
+
+  // Only do deferred handling once
+  if (mDeferredHandling > 0)
+    mDeferredHandling = 0;
+  return sMessageAction == MESSAGE_QUIT;
 }
 
 // Send response to clipboard or standard error
@@ -632,9 +697,9 @@ void StdinThread::run()
   bool gotOne;
   bool quit;
   while (1) {
-    mutex.lock();
-    gotOne = gotLine;
-    mutex.unlock();
+    sMutex.lock();
+    gotOne = sGotLine;
+    sMutex.unlock();
 
     // Do not go for another line until the main thread has cleared the flag
     if (gotOne) {
@@ -642,11 +707,11 @@ void StdinThread::run()
       continue;
     }
     
-    lineLen = readLine(threadLine);
-    quit = (strlen(threadLine) == 1 && threadLine[0] == '4') || !lineLen;
-    mutex.lock();
-    gotLine = true;
-    mutex.unlock();
+    sLineLen = readLine(sThreadLine);
+    quit = (strlen(sThreadLine) == 1 && sThreadLine[0] == '4') || !sLineLen;
+    sMutex.lock();
+    sGotLine = true;
+    sMutex.unlock();
     if (quit)
       break;
   }

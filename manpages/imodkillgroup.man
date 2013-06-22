@@ -1,0 +1,71 @@
+.na
+.nh
+.TH imodkillgroup 1 4.6.1 BL3DEMC
+.SH NAME
+imodkillgroup -\ Kill process group or process tree given one process ID
+.SH SYNOPSIS
+imodkillgroup [-t | -v] pid [pid...]
+.SH DESCRIPTION
+Imodkillgroup is a Python script to kill one or more sets of related
+processes.  It works in two different ways. 1) For a given process ID (PID), it
+can find the ID of the process group that it belongs to and issue a command to
+kill the whole process group.  2) Given the PID of a parent of a set of
+processes, it can find the tree of child processes and kill each member of the
+tree.  The program operates differently depending on the operating system and
+type of Python being run:
+.P
+.B Linux or Mac OS X: 
+Group-killing is done by default, and tree-killing is done if the 
+.B -t
+option is given.  With tree-killing, the program stops all processes at one level
+before issuing a ps command to find children of those processes.  Tree-killing
+is needed when killing processes run by Processchunks(1) on the local host,
+because they have the same group ID as Processchunks itself.
+.P
+.B Cygwin Python: 
+Group-killing is done by default, and tree-killing is done if the 
+.B -t
+option is given.  With tree-killing, the program does not stop any processes before
+killing them because
+current Cygwin has trouble killing processes after stopping them.  It is thus
+vulnerable to a process starting a new child after the list has been
+constructed and before it has been killed.  Do not use this option unless it
+is essential for killing just some members of a process group.  In any case,
+this option is not needed when killing from Processchunks(1).  Killing can be
+troublesome in Cygwin if the computer is heavily loaded.  By default, the
+program will issue a second kill command for a particular group if there is
+any kind of error message returned from the first kill.  If the second kill
+results in a "No such process" error or no error, then no error is reported
+and the program exists with a 0 status.
+.P
+The option
+.B -s
+can also be used in Cygwin to get a process status listing with ps and find
+all the members of the groups before killing.  The program will then run a new
+ps after issuing the kill commands and, if there are any group members still
+running, it will issue new kill commands as needed.  This process is repeated
+up to 5 times.  However, if the system is heavily loaded, the initial ps may
+fail, and the program falls back to issuing a second kill for all groups,
+treating errors similarly to the default behavior.
+.P
+In summary, just use the default method with Cygwin Python.
+.P
+.B Windows Python:
+The psutil module must be installed to use this program with Windows
+Python. Only process trees can be killed, and the
+.B -t
+option is not needed.  The program stops all processes at one level before
+finding their children.  This seems to work fine, unlike in Cygwin.  However,
+this program cannot be run with Windows Python to kill a process group where
+Cygwin Python was used to run jobs.
+.P
+The option
+.B -v
+can be used to get verbose output on the progress of the program.
+.SH AUTHOR
+David Mastronarde,  mast@colorado.edu
+.SH SEE ALSO
+processchunks(1)
+.SH BUGS
+The program is much more complicated than it should be thanks to the problems
+in Cygwin.

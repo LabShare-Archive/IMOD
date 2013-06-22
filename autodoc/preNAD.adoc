@@ -1,0 +1,71 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputStack]
+short = input
+type = FN
+usage = Input image file with tilt projections
+tooltip = 
+manpage = Input image file with tilt projections. PreNAD algorithm will be
+applied to this image.
+
+[Field = OutputFileName]
+short = output
+type = FN
+usage = Output filtered image file
+tooltip = 
+manpage = Output filtered image file
+
+[Field = AnglesFile]
+short = angles
+type = FN
+usage = Tilt angles file
+tooltip = 
+manpage = File with tilt angles, one per line. This file has usually a .tlt
+extension.
+
+[Field = MaskedVarianceDifference]
+short = MVD
+type = F
+usage = User-defined Masked Variance Difference (MVD)
+tooltip = 
+manpage =  User-defined Masked Variance Difference (MVD). MVD is an
+image-dependent parameter which defines a stopping condition for preNAD. The
+user-defined MVD is optional. However, generic users are suggested to ignore
+this parameter and use MinIterations/MaxIterations for an automatic estimation
+of the MVD.
+
+
+[Field = sigma]
+short = s
+type = F
+usage = Initial sigma for smoothing structure tensor (in pixels, default 1)
+tooltip = 
+manpage = Initial sigma for smoothing the structure tensor (in pixels).
+Default initial sigma is 1 pixel.
+
+[Field = MinIterations]
+short = minite
+type = I
+usage = Minimum Number of Iterations
+tooltip = 
+manpage =  Minimum Number of Iterations allowed for each tilt projection.
+
+
+[Field = MaxIterations]
+short = maxite
+type = I
+usage = Maximum Number of Iterations
+tooltip = 
+manpage =  Maximum Number of Iterations allowed for each tilt projection.
+
+
+[Field = ViewsToProcess]
+short = views
+type = LI
+usage = List of views to process from input file, numbered from 1.
+tooltip =  
+manpage = List of views to process from input file, numbered from 1. List
+should be in the form 1,3-6,9,19.
+
+

@@ -339,7 +339,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     rowList.resetResults();
   }
 
-  long getTotalSuccesses() {
+  int getTotalSuccesses() {
     return rowList.getTotalSuccesses();
   }
 
@@ -353,6 +353,10 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
 
   public void msgKillingProcess() {
     parent.msgKillingProcess();
+  }
+
+  public void msgProcessStarted() {
+    parent.msgProcessStarted();
   }
 
   public void msgPausingProcess() {
@@ -717,8 +721,8 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       }
     }
 
-    private long getTotalSuccesses() {
-      long successes = 0;
+    private int getTotalSuccesses() {
+      int successes = 0;
       for (int i = 0; i < size(); i++) {
         successes += get(i).getSuccesses();
       }

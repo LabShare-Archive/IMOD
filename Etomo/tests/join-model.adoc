@@ -2,6 +2,18 @@ Version = 1.2
 
 [function = main]
 copy.file = %{dataset}_refine.mod
+[[if = test-gui]]
+  #test values
+  assert.tf.boundaries-to-analyze=
+  #test enabled/disabled
+  assert.enabled.tf.boundaries-to-analyze=
+  #test field validation
+  tf.boundaries-to-analyze=abc
+  bn.find-transformations=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.boundaries-to-analyze=
+[[]]
 bn.find-transformations=
 wait.process.xfjointomo=done
 [[if = test-gui]]

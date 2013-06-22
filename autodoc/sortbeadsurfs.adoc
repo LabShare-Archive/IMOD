@@ -13,11 +13,21 @@ for this file.
 [Field = OutputFile]
 short = output
 type = FN
-usage = Output file for processed model
+usage = Output file for processed model or surface information
 tooltip = 
-manpage = Output file for processed model.
+manpage = Output file for processed model or surface information
 If this option is not entered, the second non-option argument will be used
 for this file.
+
+[Field = TextFileWithSurfaces]
+short = text
+type = FN
+usage = Name of text file to output with top/bottom assignments
+tooltip =
+manpage = Output a text file with the original contour
+number and the top/bottom assignments (values 1 and 2) for each point.  This
+is meant to be used by Pickbestseed(1), so input data should have only one object
+and only one point per contour.
 
 [Field = FlipYandZ]
 short = flipyz
@@ -43,6 +53,16 @@ be divided into non-overlapping subregions of approximately the given size in
 each dimension.  Each will be analyzed separately to sort all of the beads
 between the two surfaces.  Make this value as large as possible, since the
 analysis can easily fail if there are only ~10 beads in any of the subareas.
+
+[Field = PickAreasMinNumAndSize]
+short = pick
+type = IP
+usage = Minimum bead number and area size for having program pick subarea size
+tooltip = 
+manpage = The program can divide the analysis in to subareas automatically if
+this option is used to enter the minimum number of beads required in each area
+and the minimum subarea size allowed.  The program will pick the smallest
+possible subarea size that fits these constraints.
 
 [Field = MajorityObjectOnly]
 short = majority
@@ -170,6 +190,30 @@ and if the sorting matches the program just exits with 0 status; if there is
 a mismatch it prints the number of incorrect points and exits with an error
 status.
 
+[Field = ValuesToRestrainSorting]
+short = values
+type = I
+usage = Use general values of points to exclude some points from initial pairings
+tooltip =
+manpage = Use the general values of the points or contours in the model to
+identify a fraction of points as outliers that should be excluded from the
+initial pairing of points at steep angles to each other.  Enter 1 to exclude
+points with particularly high values (e.g., for mean residual values from
+Beadtrack(1)), or -1 to exclude points with low values (e.g., for peak values
+from imodFindBeads(1)).
+
+[Field = OutlierCriterionDeviation]
+short = outlier
+type = F
+usage = Criterion value for MAD-Median outlier identification from values
+tooltip =
+manpage = When the -values option is entered, the values of points are
+analyzed to determine the normalized median absolute deviation (MADN) from the
+median value.  Points with an absolute deviation from the median bigger than
+a criterion times the MADN are identified as outliers and excluded from
+initial pairing.  Use this option to change the criterion, whose default is
+2.24.
+
 [Field = SetSurfaceSortParam]
 short = set
 type = FPM
@@ -177,7 +221,8 @@ usage = Set given parameter (0-13) to given value in surfaceSort routine
 tooltip =
 manpage = Set one parameter specified by the first number to the value
 specified by the second number in the surfaceSort routine.  See the library
-documentation of surfaceSort (or the code) for a list of the parameters.
+documentation of surfaceSort (in libcfshr - "Other utilty functions") for an
+explanation and a list of the parameters.
 To set the verbose level, use "-set 13,1" or "-set 13,2".
 
 [Field = usage]

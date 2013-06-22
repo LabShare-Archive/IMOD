@@ -51,44 +51,104 @@ public final class ProcessMessages {
   private LogFile.ReaderId logFileReaderId = null;
   private int index = -1;
   private String line = null;
-  private Vector infoList = null;
-  private Vector warningList = null;
-  private Vector errorList = null;
-  private Vector chunkErrorList = null;
+  private List<String> infoList = null;
+  private List<String> warningList = null;
+  private List<String> errorList = null;
+  private List<String> chunkErrorList = null;
   private String successTag1 = null;
   private String successTag2 = null;
   private boolean success = false;
   // multi line error, warning, and info strings; terminated by an empty line
   // may be turned off temporarily
-  private boolean multiLineMessages = false;
+  private boolean multiLineAllMessages = false;
+  private boolean multiLineWarning = false;
+  private boolean multiLineInfo = false;
+  private String messagePrependTag = null;
+  private String messagePrepend = null;
+
+  public void dumpState() {
+    System.err.print("[chunks:" + chunks + ",processOutputString:" + processOutputString
+        + ",processOutputStringArray:");
+    if (processOutputStringArray != null) {
+      System.err.print("{");
+      for (int i = 0; i < processOutputStringArray.length; i++) {
+        System.err.print(processOutputStringArray[i]);
+        if (i < processOutputStringArray.length - 1) {
+          System.err.print(",");
+        }
+      }
+      System.err.print("}");
+    }
+    System.err.print(",index:" + index + ",line:" + line + ",infoList:");
+    if (infoList != null) {
+      System.err.println(infoList.toString());
+    }
+    System.err.print(",warningList:");
+    if (warningList != null) {
+      System.err.println(warningList.toString());
+    }
+    System.err.print(",errorList:");
+    if (errorList != null) {
+      System.err.println(errorList.toString());
+    }
+    System.err.print(",chunkErrorList:");
+    if (chunkErrorList != null) {
+      System.err.println(chunkErrorList.toString());
+    }
+    System.err.print(",successTag1:" + successTag1 + ",successTag2:" + successTag2
+        + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineAllMessages + "]");
+  }
 
   static ProcessMessages getInstance() {
-    return new ProcessMessages(false, false, null, null);
+    return new ProcessMessages(false, false, null, null, false, false);
   }
 
-  static ProcessMessages getInstance(String successTag) {
-    return new ProcessMessages(false, false, successTag, null);
+  static ProcessMessages getInstance(final String successTag) {
+    return new ProcessMessages(false, false, successTag, null, false, false);
   }
 
-  static ProcessMessages getInstance(String successTag1, String successTag2) {
-    return new ProcessMessages(false, false, successTag1, successTag2);
+  static ProcessMessages getInstance(final String successTag1, String successTag2) {
+    return new ProcessMessages(false, false, successTag1, successTag2, false, false);
   }
 
-  final static ProcessMessages getMultiLineInstance() {
-    return new ProcessMessages(true, false, null, null);
+  static ProcessMessages getMultiLineInstance() {
+    return new ProcessMessages(true, false, null, null, false, false);
   }
 
-  final static ProcessMessages getInstanceForParallelProcessing(
-      final boolean multiLineMessages) {
-    return new ProcessMessages(multiLineMessages, true, null, null);
+  static ProcessMessages getInstanceForParallelProcessing(final boolean multiLineMessages) {
+    return new ProcessMessages(multiLineMessages, true, null, null, false, false);
   }
 
-  private ProcessMessages(boolean multiLineMessages, boolean chunks, String successTag1,
-      String successTag2) {
-    this.multiLineMessages = multiLineMessages;
+  static ProcessMessages getMultiLineInstance(final boolean multiLineWarning,
+      final boolean multiLineInfo) {
+    return new ProcessMessages(false, false, null, null, multiLineWarning, multiLineInfo);
+  }
+
+  private ProcessMessages(final boolean multiLineMessages, final boolean chunks,
+      final String successTag1, final String successTag2, final boolean multiLineWarning,
+      final boolean multiLineInfo) {
+    this.multiLineAllMessages = multiLineMessages;
+    this.multiLineWarning = multiLineWarning;
+    this.multiLineInfo = multiLineInfo;
     this.chunks = chunks;
     this.successTag1 = successTag1;
     this.successTag2 = successTag2;
+  }
+
+  /**
+   * While messagePrependTag is set, the most recent line containing the tag will be
+   * saved to messagePrepend and added to the beginning of the next error/warning message.
+   * MessagePrepend will be deleted after it is used.  If no error or warning message
+   * appears, messagePrepend will not be used and the tag will have no effect.  All other
+   * types of message tags take precedence over this tag.  Passing null to this function
+   * will cause both messagePrependTag and messagePrepend to be set to null.
+   * @param tag
+   */
+  void setMessagePrependTag(final String tag) {
+    messagePrependTag = tag;
+    if (messagePrependTag == null) {
+      messagePrepend = null;
+    }
   }
 
   /**
@@ -97,7 +157,7 @@ public final class ProcessMessages {
    * parse processOutput.
    * @param processOutput: OutputBufferManager
    */
-  synchronized final void addProcessOutput(OutputBufferManager processOutput) {
+  synchronized void addProcessOutput(final OutputBufferManager processOutput) {
     outputBufferManager = processOutput;
     nextLine();
     while (outputBufferManager != null) {
@@ -111,7 +171,7 @@ public final class ProcessMessages {
    * parse processOutput.
    * @param processOutput: String[]
    */
-  synchronized final void addProcessOutput(String[] processOutput) {
+  synchronized void addProcessOutput(final String[] processOutput) {
     processOutputStringArray = processOutput;
     nextLine();
     while (processOutputStringArray != null) {
@@ -126,7 +186,7 @@ public final class ProcessMessages {
    * @param processOutput: File
    * @throws FileNotFoundException
    */
-  synchronized final void addProcessOutput(File processOutput)
+  synchronized void addProcessOutput(final File processOutput)
       throws FileNotFoundException {
     // Open the file as a stream
     InputStream fileStream = new FileInputStream(processOutput);
@@ -137,7 +197,7 @@ public final class ProcessMessages {
     }
   }
 
-  synchronized final void addProcessOutput(LogFile processOutput)
+  synchronized void addProcessOutput(final LogFile processOutput)
       throws LogFile.LockException, FileNotFoundException {
     // Open the log file
     logFile = processOutput;
@@ -154,20 +214,26 @@ public final class ProcessMessages {
    * parse processOutput.  Temporarily turns off multi-line messages.
    * @param processOutput: String
    */
-  synchronized final void addProcessOutput(String processOutput) {
+  synchronized void addProcessOutput(final String processOutput) {
     // Open the file as a stream
     processOutputString = processOutput;
-    boolean oldMultiLineMessages = multiLineMessages;
-    multiLineMessages = false;
+    boolean oldMultiLineMessages = multiLineAllMessages;
+    multiLineAllMessages = false;
+    boolean oldMultiLineWarning = multiLineWarning;
+    multiLineWarning = false;
+    boolean oldMultiLineInfo = multiLineInfo;
+    multiLineInfo = false;
     nextLine();
     // processOutput may be broken up into multiple lines
     if (line != null) {
       parse();
     }
-    multiLineMessages = oldMultiLineMessages;
+    multiLineAllMessages = oldMultiLineMessages;
+    multiLineWarning = oldMultiLineWarning;
+    multiLineInfo = oldMultiLineInfo;
   }
 
-  synchronized final void add(ProcessMessages processMessages) {
+  synchronized void add(final ProcessMessages processMessages) {
     addError(processMessages);
     if (processMessages.warningList != null && processMessages.warningList.size() > 0) {
       getWarningList().addAll(processMessages.warningList);
@@ -181,19 +247,19 @@ public final class ProcessMessages {
     }
   }
 
-  synchronized final void addError(String error) {
+  synchronized void addError(final String error) {
     getErrorList().add(error);
   }
 
-  synchronized final void addError() {
+  synchronized void addError() {
     getErrorList().add("");
   }
 
-  synchronized final void addWarning() {
+  synchronized void addWarning() {
     getWarningList().add("");
   }
 
-  synchronized void addError(String[] errors) {
+  synchronized void addError(final String[] errors) {
     if (errors == null || errors.length == 0) {
       return;
     }
@@ -202,13 +268,13 @@ public final class ProcessMessages {
     }
   }
 
-  synchronized void addError(ProcessMessages processMessages) {
+  synchronized void addError(final ProcessMessages processMessages) {
     if (processMessages.errorList != null && processMessages.errorList.size() > 0) {
       getErrorList().addAll(processMessages.getErrorList());
     }
   }
 
-  synchronized void addWarning(String warning) {
+  synchronized void addWarning(final String warning) {
     getWarningList().add(warning);
   }
 
@@ -233,25 +299,25 @@ public final class ProcessMessages {
     return infoList.size();
   }
 
-  public final String getError(int errorIndex) {
+  public String getError(final int errorIndex) {
     if (errorList == null || errorIndex < 0 || errorIndex >= errorList.size()) {
       return null;
     }
-    return (String) errorList.get(errorIndex);
+    return errorList.get(errorIndex);
   }
 
-  public final String getWarning(int warningIndex) {
+  public String getWarning(final int warningIndex) {
     if (warningList == null || warningIndex < 0 || warningIndex >= warningList.size()) {
       return null;
     }
-    return (String) warningList.get(warningIndex);
+    return warningList.get(warningIndex);
   }
 
-  public final String getInfo(int infoIndex) {
+  public String getInfo(final int infoIndex) {
     if (infoList == null || infoIndex < 0 || infoIndex >= infoList.size()) {
       return null;
     }
-    return (String) infoList.get(infoIndex);
+    return infoList.get(infoIndex);
   }
 
   /**
@@ -259,14 +325,14 @@ public final class ProcessMessages {
    * @param matchString
    * @return
    */
-  public List getInfoList(String matchString) {
+  public List<String> getInfoList(final String matchString) {
     if (!isInfo()) {
       return null;
     }
-    List matches = new ArrayList();
-    Iterator i = infoList.iterator();
+    List<String> matches = new ArrayList<String>();
+    Iterator<String> i = infoList.iterator();
     while (i.hasNext()) {
-      String message = (String) i.next();
+      String message = i.next();
       if (message.indexOf(matchString) != -1) {
         matches.add(message);
       }
@@ -281,14 +347,14 @@ public final class ProcessMessages {
     if (chunkErrorList == null || chunkErrorList.size() == 0) {
       return null;
     }
-    return (String) chunkErrorList.get(chunkErrorList.size() - 1);
+    return chunkErrorList.get(chunkErrorList.size() - 1);
   }
 
   public String getLastWarning() {
     if (warningList == null || warningList.size() == 0) {
       return null;
     }
-    return (String) warningList.get(warningList.size() - 1);
+    return warningList.get(warningList.size() - 1);
   }
 
   final void print() {
@@ -299,10 +365,6 @@ public final class ProcessMessages {
 
   boolean isError() {
     return errorList != null && errorList.size() > 0;
-  }
-
-  boolean isMultiLineMessages() {
-    return multiLineMessages;
   }
 
   public boolean isInfo() {
@@ -318,7 +380,7 @@ public final class ProcessMessages {
       return;
     }
     for (int i = 0; i < errorList.size(); i++) {
-      System.err.println((String) errorList.get(i));
+      System.err.println(errorList.get(i));
     }
   }
 
@@ -327,7 +389,7 @@ public final class ProcessMessages {
       return;
     }
     for (int i = 0; i < warningList.size(); i++) {
-      System.err.println((String) warningList.get(i));
+      System.err.println(warningList.get(i));
     }
   }
 
@@ -336,7 +398,7 @@ public final class ProcessMessages {
       return;
     }
     for (int i = 0; i < infoList.size(); i++) {
-      System.err.println((String) infoList.get(i));
+      System.err.println(infoList.get(i));
     }
   }
 
@@ -349,7 +411,7 @@ public final class ProcessMessages {
       return;
     }
     if (chunks) {
-      if (multiLineMessages) {
+      if (multiLineAllMessages) {
         if (parseMultiLineChunkError()) {
           return;
         }
@@ -360,7 +422,7 @@ public final class ProcessMessages {
         }
       }
     }
-    if (multiLineMessages) {
+    if (multiLineAllMessages) {
       if (parseMultiLineMessage()) {
         return;
       }
@@ -374,9 +436,20 @@ public final class ProcessMessages {
     if (parseSuccessLine()) {
       return;
     }
+    parseMessagePrepend();
     // parse functions go to the next line only when they find something
     // if all parse functions failed, call nextLine()
     nextLine();
+  }
+
+  /**
+   * Sets messagePrepend.  Never called nextLine.
+   */
+  private void parseMessagePrepend() {
+    if (line != null && messagePrependTag != null
+        && line.indexOf(messagePrependTag) != -1) {
+      messagePrepend = line;
+    }
   }
 
   /**
@@ -443,12 +516,16 @@ public final class ProcessMessages {
       return false;
     }
     // create message starting at pip warning tag.
-    StringBuffer pipWarning = null;
+    StringBuffer pipWarning = new StringBuffer();
+    if (messagePrepend != null) {
+      pipWarning.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
     if (pipWarningIndex > 0) {
-      pipWarning = new StringBuffer(line.substring(pipWarningIndex));
+      pipWarning.append(line.substring(pipWarningIndex));
     }
     else {
-      pipWarning = new StringBuffer(line);
+      pipWarning.append(line);
     }
     // check for a one line pip warning.
     int pipWarningEndTagIndex = line.indexOf(PIP_WARNING_END_TAG);
@@ -527,7 +604,13 @@ public final class ProcessMessages {
     }
     int chunkErrorIndex = line.indexOf(CHUNK_ERROR_TAG);
     int warningIndex = line.indexOf(WARNING_TAG);
+    if (warningIndex != -1 && multiLineWarning) {
+      return parseMultiLineMessage();
+    }
     int infoIndex = line.indexOf(INFO_TAG);
+    if (infoIndex != -1 && multiLineInfo) {
+      return parseMultiLineMessage();
+    }
     // error is true if ERROR: found, but not CHUNK ERROR:
     boolean error = errorIndex != -1 && errorTagIndex != -1
         && !(chunks && chunkErrorIndex != -1);
@@ -537,14 +620,21 @@ public final class ProcessMessages {
       return false;
     }
     // message found - add to list
+    StringBuffer buffer = new StringBuffer();
+    if (messagePrepend != null) {
+      buffer.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
+    buffer.append(line);
     if (error) {
-      addElement(getErrorList(), line, errorIndex, ERROR_TAGS[errorTagIndex].length());
+      addElement(getErrorList(), buffer.toString(), errorIndex,
+          ERROR_TAGS[errorTagIndex].length());
     }
     else if (warning) {
-      addElement(getWarningList(), line, warningIndex, WARNING_TAG.length());
+      addElement(getWarningList(), buffer.toString(), warningIndex, WARNING_TAG.length());
     }
     else if (info) {
-      addElement(getInfoList(), line, infoIndex, INFO_TAG.length());
+      addElement(getInfoList(), buffer.toString(), infoIndex, INFO_TAG.length());
     }
     nextLine();
     return true;
@@ -578,6 +668,10 @@ public final class ProcessMessages {
       }
       else {
         StringBuffer buffer = new StringBuffer();
+        if (messagePrepend != null) {
+          buffer.append(messagePrepend + "\n");
+          messagePrepend = null;
+        }
         buffer.append(line.substring(0, errorIndex) + "\n");
         while (errorIndex != -1) {
           int nextErrorIndex = line.indexOf(ERROR_TAG, errorIndex + ERROR_TAG.length());
@@ -650,12 +744,16 @@ public final class ProcessMessages {
       messageIndex = infoIndex;
     }
     // create the message starting from the message tag
-    StringBuffer messageBuffer = null;
+    StringBuffer messageBuffer = new StringBuffer();
+    if (messagePrepend != null) {
+      messageBuffer.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
     if (messageIndex > 0) {
-      messageBuffer = new StringBuffer(line.substring(messageIndex));
+      messageBuffer.append(line.substring(messageIndex));
     }
     else {
-      messageBuffer = new StringBuffer(line);
+      messageBuffer.append(line);
     }
     boolean moreLines = nextLine();
     int count = 0;
@@ -676,7 +774,7 @@ public final class ProcessMessages {
         return true;
       }
       else {// add current line to the message
-        messageBuffer.append(" " + line);
+        messageBuffer.append("\n" + line);
         moreLines = nextLine();
         count++;
       }
@@ -718,12 +816,16 @@ public final class ProcessMessages {
       messageIndex = chunkErrorIndex;
     }
     // create the message starting from the message tag
-    StringBuffer messageBuffer = null;
+    StringBuffer messageBuffer = new StringBuffer();
+    if (messagePrepend != null) {
+      messageBuffer.append(messagePrepend + "\n");
+      messagePrepend = null;
+    }
     if (messageIndex > 0) {
-      messageBuffer = new StringBuffer(line.substring(messageIndex));
+      messageBuffer.append(line.substring(messageIndex));
     }
     else {
-      messageBuffer = new StringBuffer(line);
+      messageBuffer.append(line);
     }
     boolean moreLines = nextLine();
     int count = 0;
@@ -738,7 +840,7 @@ public final class ProcessMessages {
         return true;
       }
       else {// add current line to the message
-        messageBuffer.append(" " + line);
+        messageBuffer.append("\n" + line);
         moreLines = nextLine();
         count++;
       }
@@ -756,7 +858,7 @@ public final class ProcessMessages {
    * corresponding nextLine function.
    * @return
    */
-  private final boolean nextLine() {
+  private boolean nextLine() {
     boolean retval = false;
     if (outputBufferManager != null) {
       retval = nextOutputBufferManagerLine();
@@ -785,7 +887,7 @@ public final class ProcessMessages {
    * Return false, sets outputBufferManager and line to null, and sets index to
    * -1 when there is nothing left in outputBufferManager.
    */
-  private final boolean nextOutputBufferManagerLine() {
+  private boolean nextOutputBufferManagerLine() {
     index++;
     if (index >= outputBufferManager.size()) {
       index = -1;
@@ -804,7 +906,7 @@ public final class ProcessMessages {
    * Return false, sets processOutputStringArray and line to null, and sets index to
    * -1 when there is nothing left in processOutputStringArray.
    */
-  private final boolean nextStringArrayLine() {
+  private boolean nextStringArrayLine() {
     index++;
     if (index >= processOutputStringArray.length) {
       index = -1;
@@ -824,7 +926,7 @@ public final class ProcessMessages {
    * nothing left in bufferedReader.
    * Does not change index.
    */
-  private final boolean nextBufferedReaderLine() {
+  private boolean nextBufferedReaderLine() {
     try {
       if ((line = bufferedReader.readLine()) == null) {
         bufferedReader = null;
@@ -840,7 +942,7 @@ public final class ProcessMessages {
     return true;
   }
 
-  private final boolean nextLogFileLine() {
+  private boolean nextLogFileLine() {
     try {
       if ((line = logFile.readLine(logFileReaderId)) == null) {
         logFile.closeRead(logFileReaderId);
@@ -874,7 +976,8 @@ public final class ProcessMessages {
    * @param line
    * @param startIndex
    */
-  private final void addElement(Vector list, String line, int startIndex, int tagSize) {
+  private void addElement(final List<String> list, final String line,
+      final int startIndex, final int tagSize) {
     if (startIndex + tagSize < line.length()) {
       if (startIndex > 0) {
         list.add(line.substring(startIndex));
@@ -889,9 +992,9 @@ public final class ProcessMessages {
    * Returns errorList.  Never returns null.  
    * @return
    */
-  private final Vector getErrorList() {
+  private List<String> getErrorList() {
     if (errorList == null) {
-      errorList = new Vector();
+      errorList = new Vector<String>();
     }
     return errorList;
   }
@@ -900,9 +1003,9 @@ public final class ProcessMessages {
    * Returns warningList.  Never returns null.  
    * @return
    */
-  private final Vector getWarningList() {
+  private List<String> getWarningList() {
     if (warningList == null) {
-      warningList = new Vector();
+      warningList = new Vector<String>();
     }
     return warningList;
   }
@@ -911,9 +1014,9 @@ public final class ProcessMessages {
    * Returns infoList.  Never returns null.  
    * @return
    */
-  private Vector getInfoList() {
+  private List<String> getInfoList() {
     if (infoList == null) {
-      infoList = new Vector();
+      infoList = new Vector<String>();
     }
     return infoList;
   }
@@ -922,9 +1025,9 @@ public final class ProcessMessages {
    * Returns chunkErrorList.  Never returns null.  
    * @return
    */
-  private Vector getChunkErrorList() {
+  private List<String> getChunkErrorList() {
     if (chunkErrorList == null) {
-      chunkErrorList = new Vector();
+      chunkErrorList = new Vector<String>();
     }
     return chunkErrorList;
   }

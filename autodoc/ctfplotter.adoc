@@ -67,7 +67,9 @@ fit to, and the defocus value in nanometers (underfocus positive).  If this
 file already exists when the program starts, it will be read in and the
 results displayed in a table in the Angle Range and Tile Selection dialog.
 The previous version will become a backup file (with ~ added to its name) when
-new results are saved to this file.
+new results are saved to this file.  If you supply an initial defocus file
+with more than line, be sure to use the exact angles from the tilt angle file;
+do not round to one decimal place.
 
 [Field = AxisAngle]
 short = aAngle
@@ -184,7 +186,7 @@ short = range
 type = FP
 usage = Starting and ending tilt angles for initial analysis or autofitting
 tooltip =
-manpage = When the -autoFit option is not entered, this entry set the starting
+manpage = When the -autoFit option is not entered, this entry sets the starting
 and ending tilt angles for the initial analysis and is a required entry.  Views with a
 tilt angle within this range are used to compute the CTF curve.  When -autoFit
 is entered, this entry sets the extent over which steps will be taken in autofitting.
@@ -196,7 +198,7 @@ usage = Range of angles and step between ranges for initial autofitting
 tooltip =
 manpage = Do initial autofitting over the whole tilt series with the given
 range of angles and step size between ranges.  A value of zero for the step
-will make it fit to each single image separate, regardless of the value for
+will make it fit to each single image separately, regardless of the value for
 the range.  This autofitting differs from that invoked through the Angles
 dialog in several respects: 1) All tiles will be used for fits; the "All
 tiles" radio button will be selected at the end. 2) Three fitting iterations
@@ -244,3 +246,16 @@ type = PF
 usage = Read parameter entries from file
 tooltip = 
 manpage = Read parameter entries from this file.
+
+[Field = FocalPairDefocusOffset]
+short = fpOffset
+type = F
+usage = Defocus offset in nanometers for a focal pair of aligned stacks
+tooltip = 
+manpage = Normally, ctfplotter processes a single stack whose name is
+given by InputStack. It can optionally process a pair of stacks with
+identical til angles and mutually aligned projections, taken with a
+constant defocus offset between them. If, for example, InputStack is 
+myData.st, one could place a stack with 6 um underfocus in myData_1.st and
+a stack with 2.175 um underfocus in myData_2.st and specify an
+ExpectedDefocus of 6000 and a FocalPairDefocusOffset of -3825.

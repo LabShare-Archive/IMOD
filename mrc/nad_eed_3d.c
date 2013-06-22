@@ -5,13 +5,13 @@
  *
  * Copyright Max-Planck-Institut for Biochemistry, Martinsried, Germany
  * Incorporated into IMOD with permission
- * Changes for IMOD are confined to main() amd associated routines at end
+ * Changes for IMOD are confined to two includes just below, the section on 
+ * "Calculating eigenvectors and eigenvalues", diff_tensor(), main() and associated
+ * routines at the end
  *
  *  $Id$
- *  Log at end
  */
 
-/* IMOD modifications above here */
 /*--------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -20,6 +20,8 @@
 #include <math.h>
 #include <time.h>
 #include "nrutil.h"
+#include "dsyev3.h"
+#include "cfsemshare.h"
 
 /* 
 Edge enhancing Diffusion
@@ -421,7 +423,11 @@ return;
 /* ------------------------------------------------------------------------ */
 /* Calculating eigenvectors and eigenvalues */
 
+/* Changes for IMOD: jacobi() and eigsrt() from Numerical recipes removed, */
+/* read_struct_tens() and read_ei() changed to use the vectors from dsyevq3()
+
 /* Define the struct_tens matrix */
+
 void read_struct_tens
    (float    v_dxx,     /* 11 element of structure tensor */
     float    v_dxy,     /* 12 element of structure tensor */
@@ -429,141 +435,25 @@ void read_struct_tens
     float    v_dyy,     /* 22 element of structure tensor */
     float    v_dyz,     /* 23 element of structure tensor */
     float    v_dzz,     /* 33 element of structure tensor */
-    float    **a)       /* Structure Tensor in complete matrix form */ 
+    double   a[3][3])   /* Structure Tensor in complete matrix form */ 
 
 {
-   a[1][1]=v_dxx;
-   a[1][2]=v_dxy;
-   a[1][3]=v_dxz;
-   a[2][1]=v_dxy;
-   a[2][2]=v_dyy;
-   a[2][3]=v_dyz;
-   a[3][1]=v_dxz;
-   a[3][2]=v_dyz;
-   a[3][3]=v_dzz;
-
+  /* DNM: This loads the upper triangle of matrix */
+   a[0][0]=v_dxx;
+   a[0][1]=v_dxy;
+   a[0][2]=v_dxz;
+   a[1][1]=v_dyy;
+   a[1][2]=v_dyz;
+   a[2][2]=v_dzz;
 
 return;
 }
 
-/* Calculating eigenvalues and eigenvectors */
-
-
-#define NRANSI
-#define ROTATE(a,i,j,k,l) g=a[i][j];h=a[k][l];a[i][j]=g-s*(h+g*tau);\
-	a[k][l]=h+s*(g-h*tau);
-
-void jacobi(float **a, int n, float d[], float **v, float *nrot)
-{
-	int j,iq,ip,i;
-	float tresh,theta,tau,t,sm,s,h,g,c,*b,*z;      
-
-
-	b=vector(1,n);
-	z=vector(1,n);
-	for (ip=1;ip<=n;ip++) {
-		for (iq=1;iq<=n;iq++) v[ip][iq]=0.0;
-		v[ip][ip]=1.0;
-	}
-	for (ip=1;ip<=n;ip++) {
-		b[ip]=d[ip]=a[ip][ip];
-		z[ip]=0.0;
-	}
-	*nrot=0;
-	for (i=1;i<=50;i++) {
-		sm=0.0;
-		for (ip=1;ip<=n-1;ip++) {
-			for (iq=ip+1;iq<=n;iq++)
-				sm += fabs(a[ip][iq]);
-		}
-		if (sm == 0.0) {
-			free_vector(z,1,n);
-			free_vector(b,1,n);
-			return;
-		}
-		if (i < 4)
-			tresh=0.2*sm/(n*n);
-		else
-			tresh=0.0;
-		for (ip=1;ip<=n-1;ip++) {
-			for (iq=ip+1;iq<=n;iq++) {
-				g=100.0*fabs(a[ip][iq]);
-				if (i > 4 && (float)(fabs(d[ip])+g) == (float)fabs(d[ip])
-					&& (float)(fabs(d[iq])+g) == (float)fabs(d[iq]))
-					a[ip][iq]=0.0;
-				else if (fabs(a[ip][iq]) > tresh) {
-					h=d[iq]-d[ip];
-					if ((float)(fabs(h)+g) == (float)fabs(h))
-						t=(a[ip][iq])/h;
-					else {
-						theta=0.5*h/(a[ip][iq]);
-						t=1.0/(fabs(theta)+sqrt(1.0+theta*theta));
-						if (theta < 0.0) t = -t;
-					}
-					c=1.0/sqrt(1+t*t);
-					s=t*c;
-					tau=s/(1.0+c);
-					h=t*a[ip][iq];
-					z[ip] -= h;
-					z[iq] += h;
-					d[ip] -= h;
-					d[iq] += h;
-					a[ip][iq]=0.0;
-					for (j=1;j<=ip-1;j++) {
-						ROTATE(a,j,ip,j,iq)
-					}
-					for (j=ip+1;j<=iq-1;j++) {
-						ROTATE(a,ip,j,j,iq)
-					}
-					for (j=iq+1;j<=n;j++) {
-						ROTATE(a,ip,j,iq,j)
-					}
-					for (j=1;j<=n;j++) {
-						ROTATE(v,j,ip,j,iq)
-					}
-					++(*nrot);
-				}
-			}
-		}
-		for (ip=1;ip<=n;ip++) {
-			b[ip] += z[ip];
-			d[ip]=b[ip];
-			z[ip]=0.0;
-		}
-	}
-	nrerror("Too many iterations in routine jacobi");
-}
-#undef ROTATE
-#undef NRANSI
-
-void eigsrt(float d[], float **v, int n)
-{
-	int k,j,i;
-	float p;
-
-	for (i=1;i<n;i++) {
-		p=d[k=i];
-		for (j=i+1;j<=n;j++)
-			if (d[j] >= p) p=d[k=j];
-		if (k != i) {
-			d[k]=d[i];
-			d[i]=p;
-			for (j=1;j<=n;j++) {
-				p=v[j][i];
-				v[j][i]=v[j][k];
-				v[j][k]=p;
-			}
-		}
-	}
-}
-
-
-
 /* read the eigenvalue and eigenvectors */
 void read_ei
 
-  (float  *d,     /* Input, eigenvalues in descending order */
-   float  **e_vec,     /* Input, corresponding eigenvectors */
+  (double  *w,      /* Input, eigenvalues in ascending order */
+   double  a[3][3], /* Input, corresponding eigenvectors */
    float  *ev11,   /* 1. comp. of 1. eigenvector */ 
    float  *ev12,   /* 2. comp. of 1. eigenvector */ 
    float  *ev13,   /* 3. comp. of 1. eigenvector */
@@ -579,24 +469,24 @@ void read_ei
     
 {
 /* Output */
-*ev11=e_vec[1][1];
-*ev12=e_vec[2][1];
-*ev13=e_vec[3][1];
-*ev21=e_vec[1][2];
-*ev22=e_vec[2][2];
-*ev23=e_vec[3][2];
-*ev31=e_vec[1][3];
-*ev32=e_vec[2][3];
-*ev33=e_vec[3][3];
+*ev11=a[0][0];
+*ev12=a[1][0];
+*ev13=a[2][0];
+*ev21=a[0][1];
+*ev22=a[1][1];
+*ev23=a[2][1];
+*ev31=a[0][2];
+*ev32=a[1][2];
+*ev33=a[2][2];
 
-*lam1=d[1];
-*lam2=d[2];
-*lam3=d[3];
+*lam1=w[0];
+*lam2=w[1];
+*lam3=w[2];
 
 return;
 }
 
-/* End Diffinition of the structure tensor */
+/* End Definition of the structure tensor */
 
 
 /* ----------------------------------------------------------------------- */
@@ -643,7 +533,6 @@ return;
 } /* PA_backtrans */
 
 /*--------------------------------------------------------------------------*/
-
 void diff_tensor 
      
      (float    lambda,/* edge enhancing diffusion coefficient */
@@ -664,41 +553,36 @@ void diff_tensor
 /*
  Calculates the diffusion tensor of CED by means of the structure tensor.
 */
-
+/* Changes for IMOD: eigenvector input and output arrays replaced by a, q, w and 
+   dsyevq3 and eigenSort are used from libcfshr. */
 {
-long    i, j, k;                   /* loop variables */
-float   *ev11, *ev12, *ev13;       /* specify first eigenvector */
-float   *ev21, *ev22, *ev23;       /* specify second eigenvector */
-float   *ev31, *ev32, *ev33;       /* specify third eigenvector */
-float   *mu1, *mu2, *mu3;          /* eigenvalues of structure tensor */
-float   lam1, lam2, lam3;          /* eigenvalues of diffusion tensor */
-float   ***v;                     /* image */
-float   **aa;                      /* real tensor matrix */
-float   *d;                        /* matrix with unordered eigenvalues */
-float   **v_norm;                  /* matrix with unordered eigenvectors */
-float   *nrot;                     /* Number of Iterations that were required */
-
-
+  long    i, j, k;                   /* loop variables */
+  float   *ev11, *ev12, *ev13;       /* specify first eigenvector */
+  float   *ev21, *ev22, *ev23;       /* specify second eigenvector */
+  float   *ev31, *ev32, *ev33;       /* specify third eigenvector */
+  float   *mu1, *mu2, *mu3;          /* eigenvalues of structure tensor */
+  float   lam1, lam2, lam3;          /* eigenvalues of diffusion tensor */
+  float   ***v;                      /* image */
+  double  a[3][3];                   /* Matrix for real tensors */
+  double  q[3][3];                   /* Matrix for eigenvectors */
+  double  w[3];                      /* Array with unordered eigenvalues */
 
 
 v=f3tensor(0, nx+1, 0 , ny+1,0, nz+1);
-aa=matrix(0,3,0,3);
 ev11=vector(0,0);ev12=vector(0,0);ev13=vector(0,0);ev21=vector(0,0);ev22=vector(0,0);
 ev23=vector(0,0);ev31=vector(0,0);ev32=vector(0,0);ev33=vector(0,0);
 mu1=vector(0,0);mu2=vector(0,0);mu3=vector(0,0);
-d=vector(0,3);
-v_norm=matrix(0,3,0,3);nrot=vector(0,0);
 
 
 for (i=1; i<=nx; i++)
  for (j=1; j<=ny; j++)
   for (k=1; k<=nz; k++)
      {
-        read_struct_tens(dxx[i][j][k], dxy[i][j][k], dxz[i][j][k], dyy[i][j][k], dyz[i][j][k], dzz[i][j][k], aa);
-        jacobi(aa, 3, d, v_norm, nrot);
-        eigsrt(d,v_norm,3);
-        read_ei(d,v_norm, ev11, ev12, ev13, ev21, ev22, ev23, ev31, ev32, ev33,  mu1, mu2, mu3);
-         
+        read_struct_tens(dxx[i][j][k], dxy[i][j][k], dxz[i][j][k], dyy[i][j][k], dyz[i][j][k], dzz[i][j][k], a);
+        dsyevq3(a, q, w);
+        eigenSort(w, &q[0][0], 3, 3, 1, 0);
+        read_ei(w, q, ev11, ev12, ev13, ev21, ev22, ev23, ev31, ev32, ev33,  mu1, mu2, mu3);
+
         if (grd[i][j][k] > 0.0)
          {
          lam1 = 1.0 - exp (-3.31488 / pow(grd[i][j][k]/lambda,16.0)); 
@@ -717,13 +601,9 @@ for (i=1; i<=nx; i++)
 
 free_f3tensor(v, 0, nx+1, 0 , ny+1,0, nz+1);
 
-free_matrix(aa,0,3,0,3);
 free_vector(ev11,0,0);free_vector(ev12,0,0);free_vector(ev13,0,0);free_vector(ev21,0,0);free_vector(ev22,0,0);
 free_vector(ev23,0,0);free_vector(ev31,0,0);free_vector(ev32,0,0);free_vector(ev33,0,0);
 free_vector(mu1,0,0);free_vector(mu2,0,0);free_vector(mu3,0,0);
-free_vector(d,0,3);
-free_matrix(v_norm,0,3,0,3);free_vector(nrot,0,0);
-
 
 return;
 
@@ -1044,6 +924,8 @@ int main (int argc, char **argv)
         break;
       case 'i':
         writeList = parselist(argv[++iarg], &nWrite);
+        if (!writeList)
+          exitError("Bad entry in iteration list");
         writeArg = iarg;
         break;
       case 'P':
@@ -1261,59 +1143,3 @@ int main (int argc, char **argv)
   exit(0);
 }
 
-/*  
-    
-$Log$
-Revision 3.17  2011/03/05 03:42:22  mast
-Allow environment variable to prevent backing up file
-
-Revision 3.16  2011/03/01 22:56:01  mast
-Switch to PID printing function
-
-Revision 3.15  2010/09/29 17:58:12  mast
-Fixed writing when input data has extra header
-
-Revision 3.14  2010/06/23 17:42:10  mast
-Switch to new pid function.  Couldn't figure out how this compiled in win
-
-Revision 3.13  2010/01/07 19:40:14  mast
-Add flush
-
-Revision 3.12  2009/04/09 02:44:13  mast
-Fixed some longs to ints, complaints by intel compiler
-
-Revision 3.11  2009/01/03 03:29:57  mast
-Fixed a pointer type
-
-Revision 3.10  2007/12/11 00:11:51  mast
-Eliminated usage statement if argument processing gets out of sync, and
-added proper error messages when an option is missing a value
-
-Revision 3.9  2007/11/06 23:16:04  mast
-etomo needed Shell PID:
-
-Revision 3.8  2007/11/02 22:37:15  mast
-Added process ID option
-
-Revision 3.7  2007/10/03 22:57:46  mast
-Fixed usage string
-
-Revision 3.6  2007/10/03 22:54:33  mast
-Added support for mode 6 using new function
-
-Revision 3.5  2006/06/26 14:42:04  mast
-Removed imodel include
-
-Revision 3.4  2005/03/14 18:32:18  mast
-Fixed crash with bad argument
-
-Revision 3.3  2005/03/12 15:50:45  mast
-Added imodel.h include for parselist
-
-Revision 3.2  2005/03/11 22:33:48  mast
-Added output mode option and slice # and iterations to title
-
-Revision 3.1  2005/03/11 19:42:16  mast
-Added to package
-
-*/

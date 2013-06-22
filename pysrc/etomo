@@ -69,7 +69,7 @@ except ImodpyError:
    prnstr("""There is no java runtime in the current search path.  A Java runtime
 environment needs to be installed and the command search path needs
 to be defined to locate the java command.""")
-   sys.exit(0)
+   sys.exit(1)
 
 for line in verslines:
    if line.find('GNU') >= 0:
@@ -79,7 +79,7 @@ command search path"""
       if os.getenv('IMOD_JAVADIR') != None:
          errstr += " or make a link to it from " + os.environ['IMOD_JAVADIR']
       prnstr(errstr)
-      sys.exit(0)
+      sys.exit(1)
 
    if re.search(r'ersion.*1\.4', line):
       errstr = "You are trying to run a 1.4 version of Java"
@@ -94,7 +94,7 @@ put it on your command search path, or point IMOD_JAVADIR to it"""
       if os.getenv('IMOD_JAVADIR') != None:
          errstr += " or make a link to it from " + os.environ['IMOD_JAVADIR']
       prnstr(errstr)
-      sys.exit(0)
+      sys.exit(1)
 
 # In cygwin, put bin on front of path and make sure python is installed
 cygbin = ''
@@ -125,7 +125,7 @@ if cygbin and not os.path.exists(os.path.join(cygbin, 'python.exe')):
          prnstr('It does not work to have a Cygwin link from python to python2.x.exe')
    else:
       prnstr("You must have python installed in Cygwin in order to use eTomo")
-   sys.exit(0)
+   sys.exit(1)
 
 if cygbin:
    try:
@@ -147,7 +147,7 @@ help = 0
 foreground = 0
 if '-h' in sys.argv or '--help' in sys.argv:
    help = 1
-if '--fg' in sys.argv:
+if '--fg' in sys.argv or '--directive' in sys.argv:
    foreground = 1
 
 # Build the common java command
@@ -158,8 +158,11 @@ if userhome:
    comArray.append(userhome)
 comArray += ['-cp', IMOD_DIR + '/bin/etomo', '-jar', IMOD_DIR + '/bin/etomo.jar']
 for ind in range(1, len(sys.argv)):
-   javacom += ' "' + sys.argv[ind] + '"'
-   comArray.append(sys.argv[ind])
+   arg = sys.argv[ind]
+   javacom += ' "' + arg + '"'
+   comArray.append(arg)
+   if arg.startswith('-') and not arg.startswith('--'):
+      prnstr('WARNING: YOU ENTERED AN ARGUMENT WITH A SINGLE DASH: ' + arg)
 
 #prnstr(javacom)
 
@@ -196,9 +199,11 @@ if ETOMO_LOG_DIR and os.access(ETOMO_LOG_DIR, os.W_OK):
    timestamp = d.strftime('%b-%d-%H%M%S')
    errlog = ETOMO_LOG_DIR + '/etomo_err_' + timestamp + '.log'
 
-   # Get a sorted list by modification time (from good old stackoverflow!)
-   mtime = lambda f: os.stat(os.path.join(ETOMO_LOG_DIR, f)).st_mtime
-   loglist = list(sorted(os.listdir(ETOMO_LOG_DIR), key=mtime))
+   # Get a sorted list by modification time (now from Python 2.3 docs!)
+   loglist = os.listdir(ETOMO_LOG_DIR)
+   tmplist = [(os.stat(os.path.join(ETOMO_LOG_DIR, x)).st_mtime, x) for x in loglist]
+   tmplist.sort()
+   loglist = [x for (key, x) in tmplist]
 
    # Go through list from newest backwards, look for matches, and start removing
    # after the purge number is reached
@@ -262,6 +267,10 @@ else:
    except Exception:
       prnstr('An error occurred opening the standard output or error output log file')
       sys.exit(1)
-   runcmd(javacom, None, outfile, errfile)
+   try:
+      runcmd(javacom, None, outfile, errfile)
+   except ImodpyError:
+      prnstr('ERROR: etomo exited with an error status, check: ' + errlog)
+      sys.exit(1)
 
 sys.exit(0)

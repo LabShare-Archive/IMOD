@@ -284,7 +284,7 @@ int imod_object_edit_draw(void)
                                    (int)obj->symsize);
   Ioew_dialog->setLineWidth((int)obj->linewidth2);
   Ioew_dialog->setTimeBox((obj->flags & IMOD_OBJFLAG_TIME) != 0,
-                          App->cvi->nt != 0);
+                          App->cvi->numTimes != 0);
   Ioew_dialog->setOnSecBox((obj->flags & IMOD_OBJFLAG_PNT_ON_SEC) != 0);
 
   if (obj->flags & IMOD_OBJFLAG_SCAT)

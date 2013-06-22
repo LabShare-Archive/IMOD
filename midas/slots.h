@@ -1,12 +1,10 @@
 /* slots.h - include file for slots class
  *
  *  $Id$
- *  Log at end of file
  */
 #ifndef MIDASSLOTS_H
 #define MIDASSLOTS_H
 #include "midas.h"
-//Added by qt3to4:
 #include <QLabel>
 #include <QKeyEvent>
 
@@ -86,6 +84,8 @@ class MidasSlots : public QObject
   void slotCorrelate();
   void slotCorrBoxSize(int value);
   void slotCorrShiftLimit(int value);
+  void slotSelectWarpPointBySize(int direction);
+  void slotDrawVectors(bool state);
   void slotMidas_quit();
 
  private:
@@ -124,25 +124,3 @@ class MidasSlots : public QObject
 };
 
 #endif
-/*
-  
-$Log$
-Revision 3.11  2010/12/28 18:23:10  mast
-Added robust fitting and checkbox to exclude edges
-
-Revision 3.10  2010/06/30 14:14:40  mast
-Fix duplicate parameter
-
-Revision 3.9  2010/06/29 22:29:26  mast
-changes for numerous improvements
-
-Revision 3.8  2009/01/15 16:30:19  mast
-Qt 4 port
-
-Revision 3.7  2008/10/13 04:36:23  mast
-Added cosine stretching
-
-Revision 3.6  2007/10/03 21:36:10  mast
-Added ImodAssistant help object
-
-*/

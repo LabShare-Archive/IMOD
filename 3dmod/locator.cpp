@@ -30,6 +30,7 @@
 #include "b3dgfx.h"
 #include "locator.h"
 #include "xzap.h"
+#include "pyramidcache.h"
 #include "preferences.h"
 #include "control.h"
 
@@ -306,7 +307,9 @@ void LocatorGL::timerEvent(QTimerEvent * e )
  */
 void LocatorGL::paintGL()
 {
-  int time, xdraw, ydraw;
+  int time, xdraw, ydraw, imXsize, imYsize, tileScale, status;
+  float xOffset, yOffset;
+  double zoom;
   unsigned char **imageData;
 
   // Schedule a second draw the first time
@@ -316,10 +319,10 @@ void LocatorGL::paintGL()
   // Get zoom and drawing limits, figure out whether to flush the image
   b3dSetCurSize(mWinx, mWiny);
   mZoom = B3DMIN((double)mWinx / mVi->xsize, (double)mWiny / mVi->ysize);
-  xdraw = (int)(mZoom * mVi->xsize);
-  ydraw = (int)(mZoom * mVi->ysize);
-  mXborder = (mWinx - xdraw) / 2;
-  mYborder = (mWiny - ydraw) / 2;
+  zoom = mZoom;
+  imXsize = mVi->xsize;
+  imYsize = mVi->ysize;
+
   mSection = B3DNINT(mVi->zmouse);
   ivwGetTime(mVi, &time);
   if (time != mTime || mVi->black != mBlack || mVi->white != mWhite)
@@ -330,13 +333,24 @@ void LocatorGL::paintGL()
   mWhite = mVi->white;
 
   // Get image data, draw outside box and image
-  imageData = ivwGetZSectionTime(mVi, mSection, time);
-  b3dDrawBoxout(mXborder, mYborder, mXborder + xdraw, mYborder + ydraw);
+  if (mVi->pyrCache) {
+    imageData = mVi->pyrCache->getSectionArea(mSection, 0, 0, mVi->xsize, mVi->ysize,
+                                              mZoom, false, imXsize, imYsize, xOffset,
+                                              yOffset, tileScale, status);
+    zoom = mZoom * tileScale;
+  } else 
+    imageData = ivwGetZSectionTime(mVi, mSection, time);
+
   /* imodPrintStderr("%d %d %d %d %d %d\n", mXborder, mYborder, xdraw, ydraw,
      mWinx, mWiny); */
-  b3dDrawGreyScalePixelsHQ(imageData, mVi->xsize, mVi->ysize, 0, 0,
-                           mXborder, mYborder, mVi->xsize, mVi->ysize, mImage,
-                           mVi->rampbase, mZoom, mZoom, 1, mSection, 
+  xdraw = (int)(zoom * imXsize);
+  ydraw = (int)(zoom * imYsize);
+  mXborder = (mWinx - xdraw) / 2;
+  mYborder = (mWiny - ydraw) / 2;
+  b3dDrawBoxout(mXborder, mYborder, mXborder + xdraw, mYborder + ydraw);
+  b3dDrawGreyScalePixelsHQ(imageData, imXsize, imYsize, 0, 0,
+                           mXborder, mYborder, imXsize, imYsize, mImage,
+                           mVi->rampbase, zoom, zoom, 1, mSection, 
                            App->rgba);
 
   // Get limits and draw the locator box

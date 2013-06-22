@@ -26,8 +26,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <errno.h>
+#include <qdir.h>
 #include "info_setup.h"
-#include <qfiledialog.h>
 #include "imod.h"
 #include "display.h"
 #include "xcramp.h"
@@ -40,16 +40,17 @@
 #include "imod_io.h"
 #include "mv_views.h"
 #include "vertexbuffer.h"
+#include "utilities.h"
 #include "preferences.h"
 
 //  Module private functions
-static void initModelData(Imod *newModel, bool keepBW);
 static const char *datetime(void);
 static void imod_undo_backup(void);
 static void imod_finish_backup(void);
 static void imod_make_backup(const char *filename);
 static int mapErrno(int errorCode);
 static void setSavedModelState(Imod *mod);
+static void restoreSavedModelState(Imod *mod);
 static int writeModel(Imod *mod, FILE *fout, QString qname);
 static Imod *LoadModelFile(const char *filename) ;
 
@@ -77,6 +78,8 @@ static const char *datetime()
 int imod_model_changed(Imod *imodel)
 {
   int checksum;
+  if (!imodel)
+    return(0);
 
   checksum = imodChecksum(imodel);
   if (checksum == imodel->csum)
@@ -211,6 +214,7 @@ int imod_autosave(Imod *mod)
     timestr = datetime();
     wprint("Saved autosave file %s\n", timestr);
   }
+  restoreSavedModelState(Model);
 
   // 9/28/11: get a new checksum, it may have just changed
   last_checksum = imodChecksum(mod);
@@ -294,7 +298,7 @@ int SaveasModel(Imod *mod)
 
   lastError = IMOD_IO_SUCCESS;
      
-  qname = QFileDialog::getSaveFileName(NULL, "Model Save File:");
+  qname = imodPlugGetSaveName(NULL, "Model Save File:");
   if (qname.isEmpty()) {
     // OLD NOTE ABOUT dia_filename
     /* this dialog doesn't return if no file selected, so this is a cancel
@@ -342,6 +346,7 @@ static int writeModel(Imod *mod, FILE *fout, QString qname)
   setSavedModelState(mod);
   retval = imodWrite(mod, fout);
   fclose(fout);
+  restoreSavedModelState(mod);
 
   // Issue messages and perform post tasks
   /* DNM: save the checksum and cleanup autosaves only if the save is
@@ -372,6 +377,9 @@ static int writeModel(Imod *mod, FILE *fout, QString qname)
  */ 
 static void setSavedModelState(Imod *mod)
 {
+
+  // Do not save rotated models, no one knows what they are.  Save as flipped for now
+  utilExchangeFlipRotation(mod, ROTATION_TO_FLIP);
   mod->blacklevel = App->cvi->black;
   mod->whitelevel = App->cvi->white;
   mod->xmax = App->cvi->xUnbinSize;
@@ -380,6 +388,15 @@ static void setSavedModelState(Imod *mod)
   mod->xybin = App->cvi->xybin;
   mod->zbin = App->cvi->zbin;
   setOrClearFlags(&mod->flags, IMODF_NEW_TO_3DMOD, 0);
+}
+
+// Restore the original maxes and get it back to rotated state if flipped
+static void restoreSavedModelState(Imod *mod)
+{
+  mod->xmax = App->cvi->xsize;
+  mod->ymax = App->cvi->ysize;
+  mod->zmax = App->cvi->zsize;
+  utilExchangeFlipRotation(mod, FLIP_TO_ROTATION);
 }
 
 /* 
@@ -452,7 +469,7 @@ static Imod *LoadModelFile(const char *filename)
 
   /* DNM 2/24/03: change to not destroy existing Imod_filename */
   if (filename == NULL) {
-    qname = diaOpenFileName(NULL, "Select Model file to LOAD", 1, filter);
+    qname = utilOpenFileName(NULL, "Select Model file to LOAD", 1, filter);
   
     if (qname.isEmpty()) {
       lastError = IMOD_IO_READ_CANCEL;
@@ -501,7 +518,7 @@ int openModel(const char *modelFilename, bool keepBW, bool saveAs)
   int err;
   int answer;
 
-  if (imod_model_changed(Model)){
+  if (imod_model_changed(Model)) {
     answer = dia_choice
       ((char *)(saveAs ? "The model has changed.  Save to new file before "
                 "reloading?" : "Save current model?"), "Yes", "No", "Cancel");
@@ -519,17 +536,11 @@ int openModel(const char *modelFilename, bool keepBW, bool saveAs)
   }
   imod_cleanup_autosave();
 
-  /*	  mode = App->cvi->imod->mousemode; */
-  tmod = (Imod *)LoadModelFile(modelFilename);
+  tmod = LoadModelFile(modelFilename);
 
-  /* DNM 9/12/03: need to check checksum here, not in load model routines */
-  if (tmod){
-    initModelData(tmod, keepBW);
-    tmod->csum = imodChecksum(tmod);
-    if (imodDebug('C'))
-      wprint("openModel set checksum %d\n", tmod->csum);
-  }
-  else {
+  if (tmod) {
+    initReadInModelData(tmod, keepBW);
+  } else {
     return lastError;
   }
 
@@ -543,59 +554,64 @@ int openModel(const char *modelFilename, bool keepBW, bool saveAs)
 //  Description:
 //  initModelData initializes the global ImodApp structure (App) with the new
 //  model information and frees the old model data structures
-//  10/14/05: called only from openModel
+//  called from openModel and initializeFlipAndModel
 //
-static void initModelData(Imod *newModel, bool keepBW) 
+void initReadInModelData(Imod *newModel, bool keepBW) 
 {
+  ViewInfo *vi = App->cvi;
+
   /* DNM 1/23/03: no longer free or allocate object colors */
   /* DNM: no longer causes a crash once we notify imodv of the new model.
      10/13/05: but we have to invalidate imodv's model until all is ready */
   imodv_new_model(NULL);
-  vbCleanupVBD(App->cvi->imod);
-  imodDelete(App->cvi->imod);
+  vbCleanupVBD(vi->imod);
+  imodDelete(vi->imod);
 	       
-  Model = App->cvi->imod = newModel;
+  Model = vi->imod = newModel;
 
   /* DNM 6/3/04: avoid two draws by keeping levels in the first place */
   if (!keepBW && !(newModel->flags & IMODF_NEW_TO_3DMOD)) {
-    ivwSetBlackWhiteFromModel(App->cvi);
+    ivwSetBlackWhiteFromModel(vi);
   }
 
   /* DNM 6/3/04: removed commented out code on setting object colors */
   if (!App->rgba)
-    imod_cmap(App->cvi->imod);	  
+    imod_cmap(vi->imod);	  
 
   /* set up model name and make sure model is on */
-  MaintainModelName(App->cvi->imod);
+  MaintainModelName(vi->imod);
   newModel->drawmode = 1;
 
   /* Scale model then notify imodv about the model.  5/3/11: Do this before setting
-   black/white because that will cause a draw */
-  if (!App->cvi->fakeImage)
-    ivwTransModel(App->cvi);
+   black/white because that will cause a draw.  12/31/12: do it unconditionally for
+   fake image too, that will handle setting up the trans and flipping */
+  ivwTransModel(vi);
+  utilExchangeFlipRotation(vi->imod, FLIP_TO_ROTATION);
   imodv_new_model(newModel);
 
   /* DNM: select the first color ramp; call xcramp_setlevels, 
      not xcramp_ramp, and set the sliders too */
-  xcrampSelectIndex(App->cvi->cramp, 0);
-  xcramp_setlevels(App->cvi->cramp, App->cvi->black, App->cvi->white);
-  imod_info_setbw(App->cvi->black, App->cvi->white);
+  xcrampSelectIndex(vi->cramp, 0);
+  xcramp_setlevels(vi->cramp, vi->black, vi->white);
+  imod_info_setbw(vi->black, vi->white);
 
   /* DNM: check wild flags here, after any changes in model */
   ivwCheckWildFlag(newModel);
+  vi->imod->ctime = vi->curTime;
 
   /* DNM: model should never start out in model mode! */
   imod_set_mmode(IMOD_MMOVIE);
+  newModel->csum = imodChecksum(newModel);
+  if (imodDebug('C'))
+    wprint("initReadInModelData set checksum %d\n", newModel->csum);
 
   /* DNM: needs to set object color of object 1 */
   imod_info_setobjcolor();
   imod_info_setocp();
   slicerNewTime(true);
-  imodPlugCall(App->cvi, 0, IMOD_REASON_NEWMODEL);
-
-  /* DNM: try eliminating this, since the setting of mode did it */
-  /* imodDraw(App->cvi, IMOD_DRAW_MOD); */
-
+  
+  if (!vi->doingInitialLoad)
+    imodPlugCall(vi, 0, IMOD_REASON_NEWMODEL);
 }
 
 //  createNewModel  create a new model data structure and optionally give the
@@ -606,37 +622,40 @@ static void initModelData(Imod *newModel, bool keepBW)
 //  and cleaned up.  A new model is then allocated, if the modelFilename
 //  argument is non-NULL then the filename for the model is set.  Finally, the
 //  App data structure is initialized for the new model.
-//  10/14/05: Called from imod_menu and imod_client_message
+//  Called from imod_menu and imod_client_message and imodview
 //
 int createNewModel(const char *modelFilename)
 {
+  ViewInfo *vi = App->cvi;
   int mode;
   int err, answer;
 
   lastError = IMOD_IO_SUCCESS;
 
-  if (imod_model_changed(Model)){
-    answer = dia_choice("Save current model?", "Yes", "No", "Cancel");
-    if (answer == 1) {
-
-      /* DNM 12/2/02: it comes back with a valid error now, so give message
-         only if not a cancel, and return actual error */
-      if ((err = SaveModel(App->cvi->imod))){
-        if (err != IMOD_IO_SAVE_CANCEL)
-          wprint("\aError Saving Model. New model aborted.\n");
-        lastError = err;
-        return err;
-      }
-    } else if (answer != 2)
-      return IMOD_IO_SAVE_CANCEL;
+  if (!vi->doingInitialLoad) {
+    if (imod_model_changed(Model)){
+      answer = dia_choice("Save current model?", "Yes", "No", "Cancel");
+      if (answer == 1) {
+        
+        /* DNM 12/2/02: it comes back with a valid error now, so give message
+           only if not a cancel, and return actual error */
+        if ((err = SaveModel(vi->imod))){
+          if (err != IMOD_IO_SAVE_CANCEL)
+            wprint("\aError Saving Model. New model aborted.\n");
+          lastError = err;
+          return err;
+        }
+      } else if (answer != 2)
+        return IMOD_IO_SAVE_CANCEL;
+    }
+    imod_cleanup_autosave();
   }
-  imod_cleanup_autosave();
 
-  mode = App->cvi->imod->mousemode;
+  mode = vi->doingInitialLoad ? IMOD_MMOVIE : vi->imod->mousemode;
 
   /* DNM 1/23/03: no longer free or allocate object colors */
-  vbCleanupVBD(App->cvi->imod);
-  imodDelete(App->cvi->imod);
+  vbCleanupVBD(vi->imod);
+  imodDelete(vi->imod);
   
   //  Allocate the new model
   Model = imodNew();
@@ -645,40 +664,45 @@ int createNewModel(const char *modelFilename)
     return lastError;
   }
 
-  App->cvi->imod = Model;
+  vi->imod = Model;
 
   //  Copy the modelFilename into Imod_filename and then execute
   //  MaintainModelName to update the model structure and main window
-  if (modelFilename != NULL)
+  if (modelFilename != NULL && modelFilename[0] != 0x00)
     setImod_filename(modelFilename);
   else
     Imod_filename[0] = '\0';
   
-  initNewModel(App->cvi->imod);
-  App->cvi->reloadable = 0;
-  MaintainModelName(App->cvi->imod);
+  initNewModel(vi->imod);
+  vi->reloadable = 0;
+  MaintainModelName(vi->imod);
 
-  App->cvi->imod->mousemode = mode;
-  imod_cmap(App->cvi->imod);
+  // 12/30/12: Moved the setModelTrans up and converted to rotation before the draw
+  // Also need to get the flipped state right before this call
+  ivwFlipModel(vi);
+  ivwSetModelTrans(vi);
+  utilExchangeFlipRotation(vi->imod, FLIP_TO_ROTATION);
+
+  vi->imod->mousemode = mode;
+  imod_cmap(vi->imod);
+  vi->imod->ctime = vi->curTime;
 
   imod_info_setobjcolor();
-  imodDraw(App->cvi, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
+  if (!vi->doingInitialLoad)
+    imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
 
   imod_info_setocp();
-  ivwSetModelTrans(App->cvi);
-
-  /* 1/13/06: eliminate as redundant */
-  /* imod_cmap(App->cvi->imod); */
 
   /* DNM: notify imodv of new model after scaling*/
   imodv_new_model(Model);
   slicerNewTime(true);
-  imodPlugCall(App->cvi, 0, IMOD_REASON_NEWMODEL);
+  if (!vi->doingInitialLoad)
+    imodPlugCall(vi, 0, IMOD_REASON_NEWMODEL);
 
   /* Set the checksum to avoid save requests */
-  App->cvi->imod->csum = imodChecksum(App->cvi->imod);
+  vi->imod->csum = imodChecksum(vi->imod);
   if (imodDebug('C'))
-    wprint("createNewModel set checksum %d\n", App->cvi->imod->csum);
+    wprint("createNewModel set checksum %d\n", vi->imod->csum);
      
   return IMOD_IO_SUCCESS;
 }
@@ -692,7 +716,7 @@ void initNewModel(Imod *imod)
 
   /* DNM 5/16/02: if multiple image files, set time flag by default */
   obj = imodObjectGet(imod);
-  if (App->cvi->nt)
+  if (App->cvi->numTimes)
     obj->flags |= IMOD_OBJFLAG_TIME;
   setModelScalesFromImage(imod, true);
 }

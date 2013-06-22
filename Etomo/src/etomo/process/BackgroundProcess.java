@@ -1,15 +1,15 @@
 package etomo.process;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import etomo.BaseManager;
+import etomo.ProcessSeries;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
-import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -308,9 +308,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   public static final String rcsid = "$Id$";
 
-  private final ArrayList commandArrayList;
+  private final List<String> commandArrayList;
   private final ProcessData processData;
-  private final ConstProcessSeries processSeries;
+  private final ProcessSeries processSeries;
   private final BaseProcessManager processManager;
   private final AxisID axisID;
   private final BaseManager manager;
@@ -336,10 +336,10 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private ProcessResultDisplay processResultDisplay = null;
   private boolean popupChunkWarnings = true;
 
-  BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
+  BackgroundProcess(BaseManager manager, List<String> commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArrayList = commandArrayList;
@@ -350,7 +350,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     processDetails = null;
@@ -361,7 +362,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      ConstProcessSeries processSeries, boolean popupChunkWarnings) {
+      ProcessSeries processSeries, boolean popupChunkWarnings) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -373,7 +374,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -383,7 +385,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -393,7 +395,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -404,7 +407,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = commandDetails;
@@ -414,7 +417,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -426,7 +430,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     command = commandDetails;
@@ -439,7 +443,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
@@ -449,7 +454,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
-      ProcessName processName, ConstProcessSeries processSeries) {
+      ProcessName processName, final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -460,7 +465,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -471,7 +477,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -483,7 +489,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -495,7 +502,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -506,7 +513,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -518,7 +526,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID, ProcessName processName,
-      ConstProcessSeries processSeries) {
+      final ProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -527,7 +535,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -539,7 +548,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID, boolean forceNextProcess,
-      ProcessResultDisplay processResultDisplay, ConstProcessSeries processSeries,
+      ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
@@ -552,7 +561,8 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processData.setDisplayKey(processResultDisplay);
     if (processSeries != null) {
       processData.setDialogType(processSeries.getDialogType());
-      processData.setLastProcess(processSeries.getLastProcess());
+      processData.setLastProcess(processSeries, processName == null ? false
+          : processName.resumable);
     }
     this.processSeries = processSeries;
     commandArrayList = null;
@@ -581,7 +591,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     }
   }
 
-  public final ConstProcessSeries getProcessSeries() {
+  public final ProcessSeries getProcessSeries() {
     return processSeries;
   }
 
@@ -639,9 +649,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   public boolean isNohup() {
     return false;
   }
-  
+
   public boolean isDone() {
-    if (program==null) {
+    if (program == null) {
       return false;
     }
     return program.isDone();
@@ -690,7 +700,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       else if (commandArrayList != null) {
         buffer = new StringBuffer();
         for (int i = 0; i < commandArrayList.size(); i++) {
-          buffer.append((String) commandArrayList.get(i) + " ");
+          buffer.append(commandArrayList.get(i) + " ");
         }
         commandLine = buffer.toString();
       }
@@ -718,6 +728,14 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     }
     String[] words = getCommandLine().split("\\s");
     return words[0];
+  }
+
+  final String getCommandAction() {
+    String commandAction = null;
+    if (program == null || (commandAction = program.getCommandAction()) == null) {
+      return getCommandName();
+    }
+    return commandAction;
   }
 
   /**
@@ -892,6 +910,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
    * @return String[]
    */
   public final String[] getStdError() {
+    if (program == null) {
+      return null;
+    }
     stdError = program.getStdError();
     return stdError;
   }
@@ -901,6 +922,9 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
    * @return String[]
    */
   public final String[] getStdOutput() {
+    if (program == null) {
+      return null;
+    }
     stdOutput = program.getStdOutput();
     return stdOutput;
   }

@@ -39,6 +39,10 @@ mtk$(E): $(MTKOBJS)
 sda$(E): $(SDAOBJS)
 	$(FC)  -o sda $(SDAOBJS) $(LDFLG) $(LIBS)
 
+ndmtksubs.$(O): scrnvars.mod
+
+scrnvars.mod: ../subrs/graphics/screenpak.f90
+	$(FC) -c $(LIBFFLAGS) ../subrs/graphics/screenpak.f90
 
 $(INCOBJS): sda.inc
 mtkmodel.$(O): $(INCDIR)/model.inc mtk.inc
@@ -55,6 +59,6 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ nda mtk sda
+	-\rm -f *.$(OBJEXT) *.exe *~ nda mtk sda *.mod
 
 

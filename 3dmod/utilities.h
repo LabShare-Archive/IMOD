@@ -9,6 +9,8 @@
 #include <qstring.h>
 
 #define TB_AUTO_RAISE true
+#define FLIP_TO_ROTATION 0
+#define ROTATION_TO_FLIP 1
 class ToolEdit;
 class QToolBar;
 class QWidget;
@@ -47,7 +49,7 @@ QAction *utilTBToolButton(QWidget *parent, QToolBar *toolBar,
                           QToolButton **button, const char *toolTip);
 QAction *utilTBPushButton(const char *text, QWidget *parent, QToolBar *toolBar,
                           QPushButton **button, const char *toolTip);
-void utilBitListsToIcons(unsigned char *bitList[][2], QIcon *icons[], int num);
+void utilFileListsToIcons(const char *fileList[][2], QIcon *icons[], int num);
 QAction *utilSetupToggleButton(QWidget *parent, QToolBar *toolBar, 
                                QBoxLayout *layout, QSignalMapper *mapper,
                                QIcon *icons[], const char *tips[], 
@@ -67,8 +69,11 @@ void utilFinishMontSnap(unsigned char **linePtrs,
 void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks, 
                             unsigned char *framePix, unsigned char **linePtrs);
 float utilWheelToPointSizeScaling(float zoom);
+void utilExchangeFlipRotation(Imod *imod, int direction);
+void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area = false);
 char *imodwfname(const char *intro);
 char *imodwEithername(const char *intro, const char *filein, int modelFirst);
+void setModvDialogTitle(QWidget *dia, const char *intro);
 char *imodwGivenName(const char *intro, const char *filein);
 QString imodCaption(const char *intro);
 #endif

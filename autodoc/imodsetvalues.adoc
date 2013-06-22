@@ -1,0 +1,52 @@
+Version = 1.0
+Pip = 1
+
+[Field = ValueFile]
+short = values
+type = FN
+usage = Input values file
+tooltip = 
+manpage = Input file containing values to be stored in the model. 
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file to clone. If this option is not entered, 
+the first non-option argument will be used for the input file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output model file to create
+tooltip = 
+manpage = Name to give the output model. If this option is not entered,
+the second non-option argument will be used.
+
+[Field = ColumnNumber]
+short = column
+type = I
+usage = Column number containing the values to be set.
+tooltip = 
+manpage = Specify a particular column in a multi-column values file 
+which contains the values to associate with each point in the model. 
+The result is equivalent to having constructed a single-column values
+file containing only these entries. 
+
+[Field = MinMaxFile]
+short = minMax
+type = FN
+usage = Per object min and max values for pseudo-coloring
+tooltip = 
+manpage = Input file giving the minimum and maximum values for 
+pseudo-coloring specific objects.
+
+[Field = SkipLines]
+short = skip
+type = I
+usage = Number of header lines to skip
+tooltip = 
+manpage = Number of lines to ignore at beginning of the values file.
+Useful for skipping over header / comment lines.
+

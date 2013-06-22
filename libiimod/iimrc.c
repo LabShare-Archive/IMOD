@@ -8,7 +8,6 @@
  *   Colorado.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -105,6 +104,7 @@ int iiMRCCheck(ImodImageFile *iif)
   iif->headerSize = 1024;
   iif->sectionSkip = 0;
   iif->header = (char *)hdr;
+  iif->hasPieceCoords = iiMRCcheckPCoord(hdr);
 
   iif->readSection = iiMRCreadSection;
   iif->readSectionByte = iiMRCreadSectionByte;
@@ -122,7 +122,7 @@ void iiMRCdelete(ImodImageFile *inFile)
 
 int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
-  struct LoadInfo li;
+  IloadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
   mrc_init_li(&li, NULL);
@@ -167,7 +167,7 @@ int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
 
 static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, int outmax)
 {
-  struct LoadInfo li;
+  IloadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
   mrc_init_li(&li, NULL);
@@ -205,22 +205,14 @@ static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, in
 #define TILT_FLAG    1
 #define MONTAGE_FLAG 2
 
-int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
-                    int nz)
+/* Return 1 if file has piece coordinates in header, 0 if not */
+int iiMRCcheckPCoord(MrcHeader *hdr)
 {
-  int i;
-  b3dUInt16 pcoordxy[2];
-  b3dInt16 pcoordz;
   int extra_bytes[32];
-  int extratot = 0;
-  int offset=1024;
-  int nread = nz;
-  MrcHeader *hdr = (MrcHeader *)inFile->header;     
   int iflag = hdr->nreal;
   int nbytes = hdr->nint;
-  int nextra = hdr->next;
-  int flag_count;
-  if(!nextra || !(iflag & MONTAGE_FLAG))
+  int i, extratot = 0, flag_count;
+  if(!hdr->next || !(iflag & MONTAGE_FLAG))
     return 0;
 
    b3dHeaderItemBytes(&flag_count, &extra_bytes[0]);
@@ -234,8 +226,26 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
     if (iflag & (1 << i))
       extratot += extra_bytes[i];
 
-  if (extratot != nbytes || hdr->creatid == -16224 || 
-      iflag >= (1 << flag_count))
+  if (extratot != nbytes || hdr->creatid == -16224 || iflag >= (1 << flag_count))
+    return 0;
+  return 1;
+}
+
+
+int iiMRCLoadPCoord(ImodImageFile *inFile, IloadInfo *li, int nx, int ny,
+                    int nz)
+{
+  int i;
+  b3dUInt16 pcoordxy[2];
+  b3dInt16 pcoordz;
+  int offset=1024;
+  int nread = nz;
+  MrcHeader *hdr = (MrcHeader *)inFile->header;     
+  int iflag = hdr->nreal;
+  int nbytes = hdr->nint;
+  int nextra = hdr->next;
+
+  if (!iiMRCcheckPCoord(hdr))
     return 0;
 
   if (iflag & TILT_FLAG)
@@ -278,56 +288,3 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
   li->plist = nread;
   return(mrc_plist_proc(li, nx, ny, nz));
 }
-
-/*
-
-$Log$
-Revision 3.16  2008/01/11 17:20:42  mast
-Mac warning cleanup
-
-Revision 3.15  2007/06/13 17:11:26  sueh
-bug# 1019 In iiMRCCheck, setting iif->sectionSkip to 0.
-
-Revision 3.14  2006/09/03 22:17:59  mast
-Reorganized and switched to IIERR codes
-
-Revision 3.13  2005/12/20 01:39:36  mast
-Changed piece coordinates to unsigned shorts
-
-Revision 3.12  2005/11/11 22:15:23  mast
-Changes for unsigned file mode
-
-Revision 3.11  2005/10/13 20:06:26  mast
-Fixed scale setting when mx/my/mz are zero
-
-Revision 3.10  2004/11/05 18:53:04  mast
-Include local files with quotes, not brackets
-
-Revision 3.9  2004/11/04 17:10:27  mast
-libiimod.def
-
-Revision 3.8  2004/03/18 17:56:43  mast
-Changed to calling central routine with extra header byte counts
-
-Revision 3.7  2004/03/17 05:38:19  mast
-Corrected byte count for 5th extra header entry (now one short)
-
-Revision 3.6  2004/01/05 17:40:14  mast
-Renamed imin/imax to outmin/outmax, and returned errors from mrcRead... calls
-
-Revision 3.5  2003/11/01 16:42:16  mast
-changed to use new error processing routine
-
-Revision 3.4  2003/02/27 17:06:50  mast
-Changed tests on upper coordinates to respect a value of 0
-
-Revision 3.3  2002/09/14 00:59:38  mast
-Fixed computation of scales to use mx indtead of nx
-
-Revision 3.2  2002/02/26 22:56:32  mast
-Improved protection against erroneous identification as montage
-
-Revision 3.1  2001/12/17 18:54:45  mast
-Added protections against non-Boulder files being recognized as montages
-
-*/

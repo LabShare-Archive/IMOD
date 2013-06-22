@@ -18,11 +18,13 @@
 #include "mrcslice.h"
 #include<vector>
 
+class MyApp;
+
 class SliceCache
 {
 
   public:
-   SliceCache(int cacheSize);
+  SliceCache(int cacheSize, MyApp *app);
    void initCache(const char *fnStack, int dim, int hyper,
                   int tSize, int& nx, int &ny, int &nz);
    void setDataOffset(float inval) {mDataOffset = inval;};
@@ -35,8 +37,10 @@ class SliceCache
    void clearAndSetSize(int dim, int hyper, int tSize);
    int *getFreqCount() {return mFreqCount;};
    MrcHeader *getHeader() {return &mHeader;};
+   ~SliceCache();
       
   private:
+   MyApp *mApp;
    int mMaxCacheSize; // in megs;
    int mMaxSliceNum;
    FILE *mFpStack;

@@ -29,6 +29,8 @@ static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info);
 static int checkDM3(FILE *fp, char *filename, RawImageInfo *info);
 static int checkEM(FILE *fp, char *filename, RawImageInfo *info);
 static int checkPif(FILE *fp, char *filename, RawImageInfo *info);
+static char *foundDMtag(char *buf, const char *tag, const char *fullTag, int dmind,
+                        int dm4Offset);
 
 /* The resident check list */
 static Ilist *checkList = NULL;
@@ -105,6 +107,8 @@ int iiLikeMRCCheck(ImodImageFile *inFile)
   info.swapBytes = 0;
   info.sectionSkip = 0;
   info.yInverted = 0;
+  info.pixel = 0.;
+  info.zPixel = 0.;
 
   if (!inFile) 
     return IIERR_BAD_CALL;
@@ -160,6 +164,11 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   hdr->yInverted = info->yInverted;
   hdr->bytesSigned = info->type == RAW_MODE_SBYTE ? 1 : 0;
   hdr->fp = inFile->fp;
+  if (info->pixel) {
+    inFile->xscale = inFile->yscale = inFile->zscale = info->pixel;
+    if (info->zPixel)
+      inFile->zscale = info->zPixel;
+  }
 
   /* Set flags for type of data */
   switch(info->type) {
@@ -390,28 +399,43 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   return 0;  
 }
 
+/* DocumentObjectList so far seen to end before 208 */
+#define DOC_CHECK_BUF 832
 /*
  * Check for the DigitalMicrograph format
  */
 static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
 {
-  unsigned char bvals[12];
-  int err, dmtype, dmf;
-  int applicOff[2] = {21, 29};
+  unsigned char bvals[DOC_CHECK_BUF];
+  int err, dmtype, dmf, i;
+  unsigned char bsave;
+  char *testString = "DocumentObjectList";
+  int testLen = strlen(testString);
 
+  /* Check for 3 or 4 in the fourth byte */
   rewind(fp);
   if (fread(bvals, 1, 4, fp) != 4)
     return IIERR_IO_ERROR;
   if (bvals[3] != 3 && bvals[3] != 4)
     return IIERR_NOT_FORMAT;
   dmf = (int)bvals[3];
-  if (fseek(fp, applicOff[bvals[3] - 3], SEEK_SET))
-    return IIERR_IO_ERROR;
-  if (fread(bvals, 1, 11, fp) != 11) 
+  if (fread(bvals, 1, DOC_CHECK_BUF, fp) != DOC_CHECK_BUF) 
     return IIERR_IO_ERROR;
 
-  bvals[11] = 0x00;
-  if (strcmp((char *)bvals, "Application"))
+  /* Look for the test string */
+  err = 1;
+  for (i = 0; i < DOC_CHECK_BUF - testLen - 4; i++) {
+    if (bvals[i] == testString[0]) {
+      bsave = bvals[i + testLen];
+      bvals[i + testLen] = 0x00;
+      if (!strcmp((char *)(&bvals[i]), testString)) {
+        err = 0;
+        break;
+      }
+      bvals[i + testLen] = bsave;
+    }
+  }
+  if (err)
     return IIERR_NOT_FORMAT;
 
   if ((err = analyzeDM3(fp, filename, dmf, info, &dmtype)))
@@ -448,11 +472,12 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
 #define BUFSIZE 1000000
 #define MAX_TYPES 12
 /*!
- * Analyzes a file known to be a DigitalMicrograph version 3; the file pointer
- * is in [fp] and the filename in [filename].  Returns size, type, and other
- * information in [info]; specifically the {nx}, {ny}, {nz}, {swapBytes},
- * {headerSize}, and {type} members.  Returns IOERR_IO_ERROR for errors reading
- * the file or IOERR_NO_SUPPORT for other errors in analyzing the file.
+ * Analyzes a file known to be a DigitalMicrograph version 3 or 4, as indicated in
+ * [dmformat]; the file pointer is in [fp] and the filename in [filename].  Returns size,
+ * type, and other information in [info]; specifically the {nx}, {ny}, {nz}, {swapBytes},
+ * {headerSize}, and {type} members.  Returns the DM data type number in [dmtype].
+ * Returns IOERR_IO_ERROR for errors reading the file or IOERR_NO_SUPPORT for other 
+ * errors in analyzing the file.
  */
 int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *dmtype)
 {
@@ -460,8 +485,9 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
   char buf[BUFSIZE];
   char *found;
   int lowbyte, hibyte;
-  int offset, type, xsize, ysize, zsize;
-  off_t typeOffset, maxread;
+  int offset, type, xsize, ysize, zsize, gotCal, gotDim, gotScale, gotMeta, gotDimInfo;
+  float scale, tmpPixel, pixel = 0., zPixel = 0.;
+  off_t typeOffset, maxread, plausibleOff;
   struct stat statbuf;
 
   /* The type-dependent values that were found after 
@@ -475,6 +501,8 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
   int zsizeOff[2] = {69, 129};
   int dtypeOff[2] = {20, 36};
   int dataOff[2] = {24, 48};
+  int scaleOff[2] = {17, 33};
+  int unitsOff[2] = {25, 49};
 
   offset = 0;
   xsize = 0;
@@ -556,7 +584,7 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
     return IIERR_NO_SUPPORT;
   }
       
-  /* Now look for the Data string in the front of the file */
+  /* Now look for the Data string in the front of the file and pixel size */
   rewind(fp);
   if (!fread(buf, 1, maxread, fp)) {
     b3dError(stderr, "ERROR: analyzeDM3 - Reading beginning of %s\n",
@@ -564,23 +592,19 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
     return IIERR_IO_ERROR;
   }
 
+  plausibleOff = typeOffset - (off_t)(xsize * ysize) * zsize * dataSize[type];
   buf[maxread - 1] = 0x00;
+  gotCal = gotDim = gotScale = gotMeta = gotDimInfo = 0;
   for (c = 0; c < maxread; c++) {
     if (buf[c] == 68) {
-      if (dmind)  {
-        found = strstr(&buf[c], "Data");
-        if (found && !strstr(&buf[c + 12], "%%%%"))
-          found = NULL;
-      } else
-        found = strstr(&buf[c], "Data%%%%");
+      found = foundDMtag(&buf[c], "Data", "Data%%%%", dmind, 12);
       if (found) {
         toffset = found + dataOff[dmind] - buf;
 
         /* If this is the first data string, or any data
            string that could still be far enough in front of the datatype
            string, save the offset */
-        if (!offset || toffset <= 
-            typeOffset - (off_t)(xsize * ysize) * zsize * dataSize[type])
+        if (!offset || toffset <= plausibleOff)
           offset = toffset;
              
         /* It used to be done with code types but that turned out to be
@@ -591,7 +615,58 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
           offset = toffset;
           break; 
           } */        
+      } else if (gotMeta && strstr(&buf[c], "Dimension info")) {
+        gotDimInfo = 1;
       }
+
+      /* Always look for start of the Calibrations sequence */
+    } else if (buf[c] == 67) {
+      if (strstr(&buf[c], "Calibrations")) {
+        gotCal = 1;
+        gotDim = gotScale = gotMeta = gotDimInfo = 0;
+      }
+      
+      /* Look for \tDimension if have Calibrations, or always look for Meta Data */
+    } else if (buf[c] == '\t') {
+      
+      if (gotCal && !gotDim && strstr(&buf[c], "\tDimension"))
+        gotDim = 1;
+      if (strstr(&buf[c], "\tMeta Data")) {
+        gotMeta = 1;
+        gotCal = gotDim = gotScale = gotDimInfo = 0;
+      }
+
+      /* Look for Scale if have Dimension or Dimension info */
+    } else if ((gotDim || gotDimInfo) && !gotScale && buf[c] == 'S') {
+      found = foundDMtag(&buf[c], "Scale", "Scale%%%%", dmind, 13);
+      if (found) {
+
+        /* Always copy a scale over */
+        gotScale = 1;
+        memcpy(&scale, &buf[c + scaleOff[dmind]], 4);
+#ifndef B3D_LITTLE_ENDIAN
+        mrc_swap_longs((b3dInt32 *)(&scale), 1);
+#endif
+      }
+
+      /* If we have a scale, make sure it is valid and at a plausible location and
+         if so set the pixel size, overriding an earlier one */
+    } else if (gotScale &&  buf[c] == 'U') {
+      found = foundDMtag(&buf[c], "Units", "Units%%%%", dmind, 13);
+      toffset = found - buf;
+      if ((gotDim && !pixel) || (gotDimInfo && !zPixel) || toffset <= plausibleOff) {
+        if (buf[c + unitsOff[dmind] + 2] == 'm') {
+          if (buf[c + unitsOff[dmind]] == 'n')
+            tmpPixel = scale * 10.;
+          else if ((unsigned char)buf[c + unitsOff[dmind]] == 181)
+            tmpPixel = scale * 10000.;
+          if (gotDimInfo)
+            zPixel = tmpPixel;
+          else
+            pixel = tmpPixel;
+        }
+      }
+      gotCal = gotDim = gotScale = gotMeta = gotDimInfo = 0;
     }
   }
   if (!offset) {
@@ -605,6 +680,8 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
   info->nz = zsize;
   info->headerSize = offset;
   info->yInverted = 1;
+  info->pixel = pixel;
+  info->zPixel = zPixel;
   *dmtype = type;
 #ifdef B3D_LITTLE_ENDIAN
   info->swapBytes = 0;
@@ -612,6 +689,19 @@ int analyzeDM3(FILE *fp, char *filename, int dmformat, RawImageInfo *info, int *
   info->swapBytes = 1;
 #endif
   return 0;
+}
+
+static char *foundDMtag(char *buf, const char *tag, const char *fullTag, int dmind,
+                        int dm4Offset)
+{
+  char *found;
+  if (dmind)  {
+    found = strstr(buf, tag);
+    if (found && !strstr(buf + dm4Offset, "%%%%"))
+      found = NULL;
+  } else
+    found = strstr(buf, fullTag);
+  return found;
 }
 
 /*

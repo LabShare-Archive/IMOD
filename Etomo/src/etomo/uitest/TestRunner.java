@@ -180,7 +180,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
                     + command + ")", sectionType);
             // Create an autodoc tester for this autodoc.
             AutodocTester autodocTester = AutodocTester.getAutodocTester(this, helper,
-                AutodocFactory.getInstance(null, dir, value, AxisID.ONLY), dir,
+                AutodocFactory.getTestInstance(null, dir, value, AxisID.ONLY), dir,
                 sectionType, axisID, this);
             autodocTesterList.add(autodocTester);
             // Assuming that AxisID can be a unique key for the testers
@@ -429,6 +429,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     // make the test directory path
     testDir = new File(JfcUnitTests.TEST_ROOT_DIR, testDirName);
     variableMap.put(UITestSubjectType.TESTDIR.toString(), testDir.getAbsolutePath());
+    variableMap.put(UITestSubjectType.TESTDIR.toString() + "-name", testDir.getName());
     keepDatasetDir = command.getModifierType() == UITestModifierType.KEEP;
     if (keepDatasetDir) {
       variableMap.put("keep-dataset-dir", "");

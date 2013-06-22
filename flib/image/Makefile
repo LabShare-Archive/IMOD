@@ -10,7 +10,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  avgstack$(E) calc$(E) checkxforms$(E) combinefft$(E) edgemtf$(E) \
  densmatch$(E) edpiecepoint$(E) enhance$(E) eraser$(E) excise$(E) \
  extposition$(E) extracttilts$(E) extractpieces$(E) extstack$(E) fftrans$(E) \
- filltomo$(E) findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
+ findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
  header$(E) matchvol$(E) montagesize$(E) mtdetect$(E) mtteach$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tomopieces$(E) \
@@ -40,6 +40,9 @@ avgstack$(E): avgstack.$(O)
 
 binvol$(E): binvol.$(O)
 	$(FC) -o binvol binvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+binvol.$(O): binvol.f90
+	$(FC) $(FFLAGS) $(OPENMPF) -c binvol.f90
 
 calc$(E): calc.$(O)
 	$(FC) -o calc calc.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -95,9 +98,6 @@ fixboundaries$(E): fixboundaries.$(O)
 
 fftrans$(E): fftrans.$(O) giantfft.$(O)
 	$(FC) -o fftrans fftrans.$(O) giantfft.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
-
-filltomo$(E): filltomo.$(O)
-	$(FC) -o filltomo filltomo.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 findcontrast$(E): findcontrast.$(O)
 	$(FC) -o findcontrast findcontrast.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -205,7 +205,7 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *~ *.mod *.exe $(PROGS)
+	-\rm -f *.$(OBJEXT) *~ *.mod *.exe $(PROGS)
 
 rotatevol.$(O): rotmatwarp.$(O)
 matchvol.$(O): rotmatwarp.$(O)

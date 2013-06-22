@@ -76,6 +76,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   ADD_ACTION(file, "&Zero Snap File #", VFILE_MENU_ZEROSNAP);
   ADD_ACTION(file, "S&et Snap Dir...", VFILE_MENU_SNAPDIR);
   ADD_ACTION_KEY(file, "&Movie/Montage...", VFILE_MENU_MOVIE, Qt::Key_M);
+  ADD_ACTION_KEY(file, "Movie Seque&nce...", VFILE_MENU_SEQUENCE, Qt::Key_N);
 
   ADD_ACTION_KEY(file, a->standalone ? "&Quit" : "&Close", VFILE_MENU_QUIT,
                  Qt::CTRL + Qt::Key_Q);
@@ -199,7 +200,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
     mSBw = addGLWidgetToStack(&glFormat, false, a->enableDepthSB, false, false);
     if (!numWidg) {
       mCurGLw = mSBw;
-      a->db = 0;
+      a->dblBuf = 0;
     }
     numWidg++;
   }
@@ -208,14 +209,14 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
     mSBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthSBst, true, false);
     if (!numWidg) {
       mCurGLw = mSBstw;
-      a->db = 0;
+      a->dblBuf = 0;
     }
     numWidg++;
   }
-  a->dbPossible = a->db;
+  a->dbPossible = a->dblBuf;
 
   if (a->transBkgd) {
-    if (a->db && a->enableDepthDBal >= 0) {
+    if (a->dblBuf && a->enableDepthDBal >= 0) {
       mCurGLw = mDBalw;
       a->alphaVisual = 1;
     } else {
@@ -225,11 +226,11 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
 
   // Set the topmost widget of the stack
   mStack->setCurrentWidget(mCurGLw);
-  mActions[VVIEW_MENU_DB]->setChecked(a->db > 0);
-  mActions[VVIEW_MENU_DB]->setEnabled(a->db > 0 && a->enableDepthSB >= 0 && 
+  mActions[VVIEW_MENU_DB]->setChecked(a->dblBuf > 0);
+  mActions[VVIEW_MENU_DB]->setEnabled(a->dblBuf > 0 && a->enableDepthSB >= 0 && 
                                       !a->transBkgd);
   mActions[VVIEW_MENU_TRANSBKGD]->setChecked(a->transBkgd > 0);
-  mActions[VVIEW_MENU_TRANSBKGD]->setEnabled(a->db > 0 && (a->enableDepthDBal >= 0 || 
+  mActions[VVIEW_MENU_TRANSBKGD]->setEnabled(a->dblBuf > 0 && (a->enableDepthDBal >= 0 || 
                                                            a->enableDepthDBstAl >= 0));
 
   mTimer = new QTimer(this);
@@ -315,7 +316,7 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo, int alpha)
   }
 
   // Remove vertex buffer data from all models
-  for (int m = 0; m < a->nm; m++)
+  for (int m = 0; m < a->numMods; m++)
     vbCleanupVBD(a->mod[m]);
 
   // Get the desired widget to top of stack

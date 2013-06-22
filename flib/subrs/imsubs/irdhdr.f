@@ -65,7 +65,7 @@ c
       integer*4 i,j,k,l,ier,lenrec,nbs,ispg,istream,imode,idtype,lens
       integer*4 nints,nreal,ifshorts,nblockunits,iblocksize,nblocks
       integer*4 nleft,iblock,nbread,indconv,nl,ml,ntflag,jstream
-      integer*4 itype,lensnum,n1,n2,istart,nextra,mbsym
+      integer*4 itype,lensnum,n1,n2,istart,nextra,mbsym, iflags, ifImod
       integer*4 itype1,itype2,m,jextra
       real*4 dmin,dmax,dmean,vd1,vd2,v1,v2,xorig,yorig,zorig,rmsval,baseMMM
       integer*4 readBytesSigned, writeBytesSigned, imodGetStamp
@@ -124,6 +124,9 @@ c         11/27/11: if the map indexes are wrong just fix them
             mapcrs(k,j) = k
           enddo
         endif
+
+c         Zero out the flags if it is not an IMOD file
+        if (istuff(17, j) .ne. imodGetStamp()) istuff(18, j) = 0
       else
 c         
 c         for SPIDER file, read first 9 words, get file dimensions and
@@ -178,6 +181,13 @@ c       1/12/12: Eliminated zeroing of nbsym if ispg was not between 0 and 220!
         enddo
       endif
 c       
+c       12/9/12: fix a zero Z cell to give same pixel size as X
+c       0 pixel size was seen in files from GMS v 2.14
+      if (cel(3, j) < 1.e-5) cel(3, j) = max(1, nxyz(3,j)) * cel(1, j) / nxyz(1, j)
+      do k = 1,3
+        delt(k) = cel(mapcrs(k,j),j)/max(1,nxyz(mapcrs(k,j),j))
+      enddo
+c       
 c       DNM 6/3/03: replace null in titles with space to avoid binary output
 c       
       do k = 1,nlab(j)
@@ -209,10 +219,6 @@ C
 C       Write out header information
 c       DNM 7/30/01: eliminate wavelength
 C       
-      do k = 1,3
-        delt(k) = 1.0
-        delt(k) = cel(mapcrs(k,j),j)/nxyz(mapcrs(k,j),j)
-      enddo
       call move(idat,stuff(19,j),12)
       idtype = idat(1)
       lens = idat(2)
@@ -350,15 +356,15 @@ c
 c       
 20    FLAG(J) = .FALSE.
       istuff(17,j) = imodGetStamp()
-      istuff(18,j) = 0
       istuff(3,j) = 0
+      istuff(18,j) = iand(istuff(18,j), not(1))
       baseMMM = 0.
       DENMMM(1,J) = DMIN
       DENMMM(2,J) = DMAX
       DENMMM(3,J) = DMEAN
       if (mode(j) .eq. 0) then
         if (bytesSigned(j)) then
-          istuff(18,j) = istuff(18,j) + 1
+          istuff(18,j) = ior(istuff(18,j), 1)
           baseMMM = 128.
         endif
         DENMMM(1,J) = max(0., DMIN) - baseMMM
@@ -738,6 +744,15 @@ c       Change flag to write bytes as signed
       j = lstream(istream)
       bytesSigned(j) = ntflag .ne. 0
       return
+c       
+c       *ialImodFlags
+c       
+c       Sets the imodFlags component
+c
+      entry ialImodFlags(istream, iflags)
+      J = LSTREAM(ISTREAM)
+      istuff(18,j) = iflags
+      return
 C       
 C       
 C       *IALLAB
@@ -1033,6 +1048,17 @@ C
       CALL MOVE(EXTRA,STUFF(ISTART+2,J),NBW*JEXTRA)
 C       
       RETURN
+c       
+c       *irtImodFlags
+c       
+c       Return the imodFlags component and whether the file has the IMOD stamp
+c
+      entry irtImodFlags(istream, iflags, ifImod)
+      J = LSTREAM(ISTREAM)
+      iflags = istuff(18,j)
+      ifImod = 0
+      if (istuff(17,j) .eq. imodGetStamp()) ifImod = 1
+      return
 C       
 C       
 C       *IRTLAB

@@ -20,7 +20,7 @@ if ($fprogs[1] == "") exit 0
 #
 # get the sendevent contents directory
 #
-set imsecont = sendevent/imodsendevent.app/Contents
+set imsecont = qttools/sendevent/imodsendevent.app/Contents
 
 #
 # Loop on programs, copy PkgInfo, and Info.plist with possible name change

@@ -118,9 +118,9 @@ public class ComScript {
 
   private boolean parseComments = true;
 
-  private boolean commandLoaded = false; //true when at least one command has be found or
+  private boolean commandLoaded = false; // true when at least one command has be found or
 
-  //created
+  // created
 
   public ComScript(File comFile) {
     this.comFile = comFile;
@@ -154,10 +154,11 @@ public class ComScript {
     if (!comFile.exists()) {
       return;
     }
-    BufferedReader in = new BufferedReader(new FileReader(comFile));
+    BufferedReader in = null;
+    in = new BufferedReader(new FileReader(comFile));
 
-    //  Read in the lines of the command file, assigning each one to the correct
-    //  list
+    // Read in the lines of the command file, assigning each one to the correct
+    // list
     boolean flgContinuation = false;
     ComScriptCommand currentScriptCommand = null;
     ArrayList currentCommentBlock = new ArrayList();
@@ -167,17 +168,17 @@ public class ComScript {
     while ((line = in.readLine()) != null) {
       lineNumber++;
 
-      //  If the first character is a pound place on the comment list
+      // If the first character is a pound place on the comment list
       if (line.startsWith("#")) {
         currentCommentBlock.add(line);
       }
 
-      //  If the first character is a $ not followed by !
-      //    create a new ComScriptCommand object and insert onto scriptCommands
-      //    insert the current comment block into the header comments then clear
-      //      the current comment block
-      //    parse the command line setting the command and command line
-      //      arguments
+      // If the first character is a $ not followed by !
+      // create a new ComScriptCommand object and insert onto scriptCommands
+      // insert the current comment block into the header comments then clear
+      // the current comment block
+      // parse the command line setting the command and command line
+      // arguments
       else if (line.matches("^\\$[^!].*")) {
         currentScriptCommand = new ComScriptCommand(caseInsensitive, separateWithASpace);
         scriptCommands.add(currentScriptCommand);
@@ -189,14 +190,14 @@ public class ComScript {
           currentCommentBlock.clear();
         }
 
-        //  Split the line into tokens at whitespace boundaries
+        // Split the line into tokens at whitespace boundaries
         String noDollarSign = line.substring(1);
         noDollarSign = noDollarSign.trim();
         String[] tokens = noDollarSign.split("\\s+");
         currentScriptCommand.setCommand(tokens[0]);
         commandLoaded = true;
 
-        //  Check to if see if this line is continued
+        // Check to if see if this line is continued
         int nShrink = 1;
         if (tokens[tokens.length - 1].equals("\\")) {
           nShrink = 2;
@@ -215,8 +216,8 @@ public class ComScript {
         }
       }
 
-      //  Otherwise the line is assumed to be an input parmeter to the current
-      //  command or a continuation line
+      // Otherwise the line is assumed to be an input parmeter to the current
+      // command or a continuation line
       else {
         if (flgContinuation) {
           // Get any comments associated with the continuation line and add
@@ -229,7 +230,7 @@ public class ComScript {
           }
 
           // Split the line into tokens checking to see if the last token is
-          // another line continuation 
+          // another line continuation
           String[] tokens = line.trim().split("\\s+");
           int nShrink = 0;
           if (tokens[tokens.length - 1].equals("\\")) {
@@ -251,6 +252,9 @@ public class ComScript {
           if (currentScriptCommand == null) {
             String description = "Input parameter found before command in "
                 + comFile.getAbsoluteFile() + " line: " + String.valueOf(lineNumber);
+            if (in != null) {
+              in.close();
+            }
             throw new BadComScriptException(description);
           }
 
@@ -269,8 +273,7 @@ public class ComScript {
         }
       }
     }
-
-    //  Close the com script
+    // Close the com script
     in.close();
   }
 
@@ -450,24 +453,24 @@ public class ComScript {
     if (!EtomoDirector.INSTANCE.isMemoryAvailable()) {
       return;
     }
-    //TEMP
+    // TEMP
     System.err.println("write " + comFile.getName());
     // Open the com file for writing using a buffered writer
     BufferedWriter out = new BufferedWriter(new FileWriter(comFile));
 
-    //  Write out the the list of sript commands
+    // Write out the the list of sript commands
     Iterator cmdIterator = scriptCommands.iterator();
     while (cmdIterator.hasNext()) {
       ComScriptCommand scriptCommand = (ComScriptCommand) cmdIterator.next();
 
-      //  Write out the header comments if they exist
+      // Write out the header comments if they exist
       String[] headerComments = scriptCommand.getHeaderComments();
       for (int i = 0; i < headerComments.length; i++) {
         out.write(headerComments[i]);
         out.newLine();
       }
 
-      //  Write out the the command and any command line arguments
+      // Write out the the command and any command line arguments
       out.write("$" + scriptCommand.getCommand());
       String[] commandArguments = scriptCommand.getCommandLineArgs();
       for (int i = 0; i < commandArguments.length; i++) {
@@ -475,7 +478,7 @@ public class ComScript {
       }
       out.newLine();
 
-      //  Write the input arguments for the command
+      // Write the input arguments for the command
       ComScriptInputArg[] inputArgs = scriptCommand.getInputArguments();
       for (int i = 0; i < inputArgs.length; i++) {
         String[] argComments = inputArgs[i].getComments();
@@ -496,7 +499,7 @@ public class ComScript {
    * @param scriptCommand the new ScriptCommand object.
    */
   public void setScriptComand(int index, ComScriptCommand newScriptCommand) {
-    //  make a defensive copy of the scriptCommand object
+    // make a defensive copy of the scriptCommand object
     scriptCommands.set(index, new ComScriptCommand(newScriptCommand));
   }
 

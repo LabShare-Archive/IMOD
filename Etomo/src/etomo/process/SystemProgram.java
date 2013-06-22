@@ -287,8 +287,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -300,28 +300,28 @@ public class SystemProgram implements Runnable {
   public static final String rcsid = "$Id$";
 
   private final String propertyUserDir;
-
   private final BaseManager manager;
+  private final String[] commandArray;
+  private final AxisID axisID;
+  private final ProcessMessages processMessages;
 
   private boolean debug = false;
   private int exitValue = Integer.MIN_VALUE;
-  private final String[] commandArray;
   private String[] stdInput = null;
-  OutputBufferManager stdout = null;
-  OutputBufferManager stderr = null;
+  private OutputBufferManager stdout = null;
+  private OutputBufferManager stderr = null;
   private File workingDirectory = null;
   private String exceptionMessage = "";
   private boolean started = false;
   private boolean done = false;
   private Date runTimestamp = null;
-  private final AxisID axisID;
   private OutputStream cmdInputStream = null;
   private BufferedWriter cmdInBuffer = null;
   private boolean acceptInputWhileRunning = false;
-  private final ProcessMessages processMessages;
   private StringBuffer commandLine = null;
   private Process process = null;
   private boolean collectOutput = true;
+  private String commandAction = null;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -332,15 +332,15 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(BaseManager manager, String propertyUserDir, ArrayList command,
-      AxisID axisID) {
+  public SystemProgram(final BaseManager manager, final String propertyUserDir,
+      final List<String> command, final AxisID axisID) {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getMultiLineInstance();
     commandArray = new String[command.size()];
     for (int i = 0; i < command.size(); i++) {
-      commandArray[i] = (String) command.get(i);
+      commandArray[i] = command.get(i);
       // System.out.print(commandArray[i]+" ");
     }
     // System.out.println();
@@ -353,12 +353,21 @@ public class SystemProgram implements Runnable {
    *  run.
    * 	
    */
-  public SystemProgram(BaseManager manager, String propertyUserDir, String[] cmdArray,
-      AxisID axisID) {
+  public SystemProgram(final BaseManager manager, final String propertyUserDir,
+      final String[] cmdArray, final AxisID axisID) {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getInstance();
+    commandArray = cmdArray;
+  }
+  
+  public SystemProgram(final BaseManager manager, final String propertyUserDir,
+      final String[] cmdArray, final AxisID axisID,final boolean multilineWarning, final boolean multilineInfo) {
+    this.manager = manager;
+    this.propertyUserDir = propertyUserDir;
+    this.axisID = axisID;
+    processMessages = ProcessMessages.getMultiLineInstance( multilineWarning,   multilineInfo);
     commandArray = cmdArray;
   }
 
@@ -367,11 +376,37 @@ public class SystemProgram implements Runnable {
    * @param programInput A string array containing the standard input to the
    * program each string should contain one line of input for the program.
    */
-  public void setStdInput(String[] programInput) {
+  public void setStdInput(final String[] programInput) {
     stdInput = programInput;
   }
 
-  public void setCurrentStdInput(String input) throws IOException {
+  void clearStdError() {
+    if (stderr != null) {
+      stderr.clear();
+    }
+  }
+
+  String[] getStdError(final Object listenerKey) {
+    if (stderr == null) {
+      return null;
+    }
+    return stderr.get(listenerKey);
+  }
+
+  String[] getStdOutput(final Object listenerKey) {
+    if (stdout == null) {
+      return null;
+    }
+    return stdout.get(listenerKey);
+  }
+
+  void dropStdOutputListener(final Object listenerKey) {
+    if (stdout != null) {
+      stdout.dropListener(listenerKey);
+    }
+  }
+
+  void setCurrentStdInput(final String input) throws IOException {
     if (cmdInBuffer != null) {
       cmdInBuffer.write(input);
       cmdInBuffer.newLine();
@@ -387,7 +422,7 @@ public class SystemProgram implements Runnable {
    * directory is not specified then current user.dir is the default.
    * @param workingDirectory a File object specifying the working directory
    */
-  public void setWorkingDirectory(File workingDirectory) {
+  public void setWorkingDirectory(final File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
 
@@ -436,8 +471,7 @@ public class SystemProgram implements Runnable {
       Utilities.timestamp(timestampString.toString(), Utilities.STARTED_STATUS);
       runTimestamp = new Date();
 
-      String actionMessage = Utilities
-          .prepareCommandActionMessage(commandArray, stdInput);
+      commandAction = Utilities.getCommandAction(commandArray, stdInput);
       if (workingDirectory == null) {
         process = Runtime.getRuntime().exec(commandArray, null);
       }
@@ -526,8 +560,10 @@ public class SystemProgram implements Runnable {
         System.err.println("done");
 
       exitValue = getProcessExitValue(process);
-      if (actionMessage != null && exitValue == 0) {
-        System.err.println(actionMessage);
+      String msg = null;
+      if (exitValue == 0
+          && (msg = Utilities.getCommandActionMessage(commandAction)) != null) {
+        System.err.println(msg);
       }
 
       if (debug)
@@ -656,21 +692,21 @@ public class SystemProgram implements Runnable {
     process.destroy();
   }
 
-  OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
+  private OutputBufferManager newOutputBufferManager(final BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
     bufferManager.setDebug(debug);
     bufferManager.setCollectOutput(collectOutput);
     return bufferManager;
   }
 
-  OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
+  private OutputBufferManager newErrorBufferManager(final BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
     bufferManager.setDebug(debug);
     bufferManager.setCollectOutput(collectOutput);
     return bufferManager;
   }
 
-  void setCollectOutput(boolean input) {
+  void setCollectOutput(final boolean input) {
     collectOutput = input;
   }
 
@@ -685,7 +721,7 @@ public class SystemProgram implements Runnable {
    * @param process
    * @return
    */
-  int getProcessExitValue(Process process) {
+  int getProcessExitValue(final Process process) {
     return process.exitValue();
   }
 
@@ -721,11 +757,23 @@ public class SystemProgram implements Runnable {
     return stdErrorString;
   }
 
+  public String getStdOutputString() {
+    String[] array = getStdOutput();
+    if (array == null) {
+      return null;
+    }
+    String string = null;
+    for (int i = 0; i < array.length; i++) {
+      string = array[i] + "\n";
+    }
+    return string;
+  }
+
   public int getExitValue() {
     return exitValue;
   }
 
-  public void setExitValue(int value) {
+  public void setExitValue(final int value) {
     exitValue = value;
   }
 
@@ -739,8 +787,11 @@ public class SystemProgram implements Runnable {
     return commandLine.toString();
   }
 
-  public String getExceptionMessage() {
-    return exceptionMessage;
+  public String getCommandAction() {
+    if (commandAction == null) {
+      return getCommandLine();
+    }
+    return commandAction;
   }
 
   public AxisID getAxisID() {
@@ -748,19 +799,15 @@ public class SystemProgram implements Runnable {
   }
 
   /**
-   * @return
-   */
-  public boolean isDebug() {
-    return debug;
-  }
-
-  /**
    * @param b
    */
-  public void setDebug(boolean state) {
+  public void setDebug(final boolean state) {
     debug = state;
   }
-
+  
+ public void setMessagePrependTag( final String tag) {
+   processMessages.setMessagePrependTag(tag);
+ }
   /**
    * Return true if this thread has ever been started
    * @return
@@ -792,7 +839,7 @@ public class SystemProgram implements Runnable {
    * 
    * @param acceptInputWhileRunning
    */
-  void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
+  void setAcceptInputWhileRunning(final boolean acceptInputWhileRunning) {
     this.acceptInputWhileRunning = acceptInputWhileRunning;
   }
 }

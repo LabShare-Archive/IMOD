@@ -153,19 +153,20 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   private boolean debug = false;
 
   ParsedArrayDescriptor(final EtomoNumber.Type etomoNumberType, boolean debug,
-      EtomoNumber defaultValue, final boolean allowNan) {
+      EtomoNumber defaultValue, final boolean allowNan, final String descr) {
     super(ParsedElementType.MATLAB_ARRAY_DESCRIPTOR, etomoNumberType, debug,
-        defaultValue, allowNan);
+        defaultValue, allowNan, descr);
     setDebug(debug);
   }
 
-  public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType) {
-    return new ParsedArrayDescriptor(etomoNumberType, false, null, true);
+  public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType,
+      final String descr) {
+    return new ParsedArrayDescriptor(etomoNumberType, false, null, true, descr);
   }
 
   public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType,
-      final boolean allowNan) {
-    return new ParsedArrayDescriptor(etomoNumberType, false, null, allowNan);
+      final boolean allowNan, final String descr) {
+    return new ParsedArrayDescriptor(etomoNumberType, false, null, allowNan, descr);
   }
 
   public void setRawStringEnd(final String input) {
@@ -228,7 +229,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   /**
    * Set number at index if index between 0 and 2.
    */
-  void setRawString(final int index, float number) {
+  void setRawString(final int index, double number) {
     if (index < 0) {
       return;
     }
@@ -260,7 +261,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     super.setRawString(index, string);
   }
 
-  String validate() {
+  public String validate() {
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       String errorMessage = null;
@@ -342,7 +343,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(getType(), getEtomoNumberType(),
-          debug, getDefault(), allowNan);
+          debug, getDefault(), allowNan, descr);
     }
     ParsedNumber start = (ParsedNumber) descriptor.get(START_INDEX);
     ParsedNumber end = (ParsedNumber) descriptor.get(END_INDEX);
@@ -382,7 +383,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     boolean increasing = !increment.isNegative();
     while ((increasing && current.lt(last)) || (!increasing && current.gt(last))) {
       ParsedNumber parsedCurrent = ParsedNumber.getInstance(getType(),
-          getEtomoNumberType(), debug, getDefault(), allowNan);
+          getEtomoNumberType(), debug, getDefault(), allowNan, descr);
       parsedCurrent.setRawString(current.getNumber());
       parsedNumberExpandedArray.add(parsedCurrent);
       current = new EtomoNumber(current);

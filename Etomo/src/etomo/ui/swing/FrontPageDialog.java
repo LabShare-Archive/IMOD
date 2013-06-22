@@ -1,11 +1,15 @@
 package etomo.ui.swing;
 
-import java.awt.Container;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.PeetManager;
 import etomo.type.AxisID;
@@ -72,26 +76,30 @@ import etomo.type.ToolType;
 public final class FrontPageDialog {
   public static final String rcsid = "$Id$";
 
-  private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
-  private final MultiLineButton btnRecon = MultiLineButton.getDebugInstance("New "
-      + EtomoMenu.RECON_LABEL);
-  private final MultiLineButton btnJoin = new MultiLineButton("New "
-      + EtomoMenu.JOIN_LABEL);
-  private final MultiLineButton btnNad = new MultiLineButton("New " + EtomoMenu.NAD_LABEL);
-  private final MultiLineButton btnGeneric = new MultiLineButton("New "
-      + EtomoMenu.GENERIC_LABEL);
-  private final MultiLineButton btnPeet = new MultiLineButton("New "
-      + EtomoMenu.PEET_LABEL);
+  private final JPanel pnlRoot = new JPanel();
+  private final MultiLineButton btnRecon = MultiLineButton
+      .getDebugInstance(EtomoMenu.RECON_LABEL);
+  private final MultiLineButton btnJoin = new MultiLineButton(EtomoMenu.JOIN_LABEL);
+  private final MultiLineButton btnNad = new MultiLineButton(EtomoMenu.NAD_LABEL);
+  private final MultiLineButton btnGeneric = new MultiLineButton(EtomoMenu.GENERIC_LABEL);
+  private final MultiLineButton btnPeet = new MultiLineButton(EtomoMenu.PEET_LABEL);
+  private final MultiLineButton btnSerialSections = new MultiLineButton(
+      EtomoMenu.SERIAL_SECTIONS_LABEL);
   private final MultiLineButton btnFlattenVolume = new MultiLineButton(
       EtomoMenu.FLATTEN_VOLUME_LABEL);
   private final MultiLineButton btnGpuTiltTest = new MultiLineButton(
       EtomoMenu.GPU_TILT_TEST_LABEL);
 
-  private FrontPageDialog() {
+  private final BaseManager manager;
+  private final AxisID axisID;
+
+  private FrontPageDialog(final BaseManager manager, final AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
   }
 
-  public static FrontPageDialog getInstance() {
-    FrontPageDialog instance = new FrontPageDialog();
+  public static FrontPageDialog getInstance(final BaseManager manager, final AxisID axisID) {
+    FrontPageDialog instance = new FrontPageDialog(manager, axisID);
     instance.createPanel();
     instance.setTooltips();
     instance.addListeners();
@@ -99,40 +107,50 @@ public final class FrontPageDialog {
   }
 
   private void createPanel() {
-    // local panels
-    SpacedPanel pnlButtonRow1 = SpacedPanel.getInstance();
-    SpacedPanel pnlButtonRow2 = SpacedPanel.getInstance();
-    SpacedPanel pnlButtonRow3 = SpacedPanel.getInstance();
-    SpacedPanel pnlButtonRow4 = SpacedPanel.getInstance();
+    // panels
+    JPanel pnlProjectLabel = new JPanel();
+    JPanel pnlProjects = new JPanel();
+    JPanel pnlToolLabel = new JPanel();
+    JPanel pnlTools = new JPanel();
     // initialize
     btnRecon.setSize();
     btnJoin.setSize();
     btnNad.setSize();
     btnGeneric.setSize();
     btnPeet.setSize();
+    btnSerialSections.setSize();
     btnFlattenVolume.setSize();
     btnGpuTiltTest.setSize();
     // root panel
-    pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlRoot.add(pnlButtonRow1);
-    pnlRoot.add(pnlButtonRow2);
-    pnlRoot.add(pnlButtonRow3);
-    pnlRoot.add(pnlButtonRow4);
-    // button row 1 panel
-    pnlButtonRow1.setBoxLayout(BoxLayout.X_AXIS);
-    pnlButtonRow1.add(btnRecon.getComponent());
-    pnlButtonRow1.add(btnJoin.getComponent());
-    // button row 2 panel
-    pnlButtonRow2.setBoxLayout(BoxLayout.X_AXIS);
-    pnlButtonRow2.add(btnNad.getComponent());
-    pnlButtonRow2.add(btnGeneric.getComponent());
-    // button row 3 panel
-    pnlButtonRow3.setBoxLayout(BoxLayout.X_AXIS);
-    pnlButtonRow3.add(btnPeet.getComponent());
-    pnlButtonRow3.add(btnFlattenVolume.getComponent());
-    // button row 4 panel
-    pnlButtonRow4.setBoxLayout(BoxLayout.X_AXIS);
-    pnlButtonRow4.add(btnGpuTiltTest.getComponent());
+    pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
+    pnlRoot.setAlignmentX(Box.LEFT_ALIGNMENT);
+    pnlRoot.add(pnlProjectLabel);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlRoot.add(pnlProjects);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlRoot.add(pnlToolLabel);
+    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y3));
+    pnlRoot.add(pnlTools);
+    // project label
+    pnlProjectLabel.setLayout(new BoxLayout(pnlProjectLabel, BoxLayout.X_AXIS));
+    pnlProjectLabel.add(new JLabel("New project:"));
+    pnlProjectLabel.add(Box.createHorizontalGlue());
+    // projects
+    pnlProjects.setLayout(new GridLayout(3, 2, 7, 7));
+    pnlProjects.add(btnRecon.getComponent());
+    pnlProjects.add(btnJoin.getComponent());
+    pnlProjects.add(btnPeet.getComponent());
+    pnlProjects.add(btnSerialSections.getComponent());
+    pnlProjects.add(btnNad.getComponent());
+    pnlProjects.add(btnGeneric.getComponent());
+    // tool label
+    pnlToolLabel.setLayout(new BoxLayout(pnlToolLabel, BoxLayout.X_AXIS));
+    pnlToolLabel.add(new JLabel("Tools:"));
+    pnlToolLabel.add(Box.createHorizontalGlue());
+    // tools
+    pnlTools.setLayout(new GridLayout(1, 2, 7, 7));
+    pnlTools.add(btnFlattenVolume.getComponent());
+    pnlTools.add(btnGpuTiltTest.getComponent());
   }
 
   private void addListeners() {
@@ -142,42 +160,42 @@ public final class FrontPageDialog {
     btnNad.addActionListener(actionListener);
     btnGeneric.addActionListener(actionListener);
     btnPeet.addActionListener(actionListener);
+    btnSerialSections.addActionListener(actionListener);
     btnFlattenVolume.addActionListener(actionListener);
     btnGpuTiltTest.addActionListener(actionListener);
   }
 
-  public Container getContainer() {
-    return pnlRoot.getContainer();
-  }
-
-  public void reconActionForAutomation() {
-    EtomoDirector.INSTANCE.openTomogramAndDoAutomation(true, AxisID.ONLY);
+  public void show() {
+    manager.getMainPanel().showProcess(pnlRoot, axisID);
   }
 
   private void action(ActionEvent actionEvent) {
     String actionCommand = actionEvent.getActionCommand();
     if (actionCommand.equals(btnRecon.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openTomogram(true, axisID);
     }
     else if (actionCommand.equals(btnJoin.getActionCommand())) {
-      EtomoDirector.INSTANCE.openJoin(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openJoin(true, axisID);
     }
     else if (actionCommand.equals(btnNad.getActionCommand())) {
-      EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openAnisotropicDiffusion(true, axisID);
     }
     else if (actionCommand.equals(btnGeneric.getActionCommand())) {
-      EtomoDirector.INSTANCE.openGenericParallel(true, AxisID.ONLY);
+      EtomoDirector.INSTANCE.openGenericParallel(true, axisID);
     }
     else if (actionCommand.equals(btnPeet.getActionCommand())) {
       if (PeetManager.isInterfaceAvailable()) {
-        EtomoDirector.INSTANCE.openPeet(true, AxisID.ONLY);
+        EtomoDirector.INSTANCE.openPeet(true, axisID);
       }
     }
+    else if (actionCommand.equals(btnSerialSections.getActionCommand())) {
+      EtomoDirector.INSTANCE.openSerialSections(true, axisID);
+    }
     else if (actionCommand.equals(btnFlattenVolume.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.FLATTEN_VOLUME);
+      EtomoDirector.INSTANCE.openTools(ToolType.FLATTEN_VOLUME);
     }
     else if (actionCommand.equals(btnGpuTiltTest.getActionCommand())) {
-      EtomoDirector.INSTANCE.openTools(AxisID.ONLY, ToolType.GPU_TILT_TEST);
+      EtomoDirector.INSTANCE.openTools(ToolType.GPU_TILT_TEST);
     }
   }
 

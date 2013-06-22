@@ -22,6 +22,21 @@ machine in machine list).  The command file is not required to be numbered.
 The rootname given on the command line can be either the full name or the name
 excluding ".com".
 
+[Field = G]
+type = B
+usage = Distribute jobs to multiple or specific GPUs on each machine
+tooltip = 
+manpage = Distribute jobs to multiple or specific GPUs on each machine.  With
+this option, each machine name can be followed by a colon and one or more
+specific GPU device numbers separated by colons.  Devices are numbered from 1
+and the numbers must be positive.  The program will run each job with the
+environment variable IMOD_USE_GPU2 set to the given GPU number, or set to 0 for a
+machine where no GPU numbers were entered (0 requests the best available
+GPU on that machine.)  No machine name can be entered more than once, and the "#"
+syntax cannot be used to specify multiple CPUs.  For example,
+"tubule:2:1,eclipse:2,druid" would use two GPUs on tubule, a specific one one
+eclipse, and the best or only one on druid.
+
 [Field = g]
 type = B
 usage = Go process, without asking for confirmation after probing machines
@@ -60,6 +75,39 @@ tooltip =
 manpage = Quit if a chunk gives a processing error (as opposed to failing to
 start) this number of times.  All running jobs will be killed.  The
 default limit is 5.
+
+[Field = C]
+type = FT
+usage = Criterion for chunk too slow within one machine, factors for between
+machines and for sync
+tooltip = 
+manpage = This option enters three factors that control the program's decision
+to kill a chunk that appears to have hung up.  They are: 1) A criterion for
+how much longer a chunk can take than the slowest chunk so far on the same
+machine.  The default is 4; this criterion needs to reflect the intrinsic
+variability among chunks and extent to which machine performance could vary
+during a run.  A value of 0 completely disables chunk timing tests.
+2) A multiplier to that criterion when comparing a
+chunk time with the slowest time so far on any machine.  The default is 3, so the
+default overall criterion is 12; this factor needs to reflect the intrinsic
+spread in machine capabilities.  3) A multiplier for both of these criteria
+when considering sync chunks.  The default is 0, for no testing for sync
+chunks; the factor could be 1 if sync chunks are comparable or faster than
+non-sync chunks.
+
+[Field = T]
+type = IP
+usage = Timeouts for log file activity for non-sync and sync chunks (seconds)
+tooltip = 
+manpage = Timeouts for log file activity for non-sync and sync chunks, in
+seconds.  The default is 300,0.  A value of 0 disables this test.  A non-sync
+chunk is killed if it is too slow by the timing tests controlled with the "-C"
+option, AND if it log is older than the first number entered here.  The same
+dual test is applied for a sync chunk if the log activity test is enabled with
+the second number here and the timing test is enabled with a non-zero factor
+in the third number of the "-C" entry.  However, if the log activity test is
+enabled and the timing test is not enabled, non-sync chunks will be killed
+solely on the basis of the log becoming too old.
 
 [Field = c]
 type = FN
@@ -104,12 +152,14 @@ manpage =
 
 [Field = V]
 type = CH
-usage = ?|?,2|class,[function,[...]][,2]|2  Debugging output from specific function.
+usage = ?|?,2|class[,function[,...]][,2]|2  Debugging output from specific function.
 tooltip = 
 manpage = This option enables debugging output from a specific class or
 function.  It has no effect if "-v" is not entered too.  The entry has the
-form "?|?,2|class,[function,[...]][,2]|2" where 2 means more verbose and ? lists
-the functions that have information to print.
+form "?|?,2|class[,function[,...]][,2]|2" where 2 means more verbose and ? or
+function[,...] lists the functions that have information to print.  The
+matching to class and function names is case-insensitive and to the end of the
+name, rather than to the whole name.
 
 [Field = help]
 type = B

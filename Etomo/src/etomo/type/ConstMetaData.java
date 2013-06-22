@@ -365,9 +365,9 @@ public interface ConstMetaData {
 
   public ConstEtomoNumber getCombineVolcombineParallel();
 
-  public ConstEtomoNumber getDefaultParallel();
+  public boolean isDefaultParallel();
 
-  public ConstEtomoNumber getDefaultGpuProcessing();
+  public boolean isDefaultGpuProcessing();
 
   public String getFirstAxisPrepend();
 
@@ -390,6 +390,8 @@ public interface ConstMetaData {
   public int getPosBinning(AxisID axisID);
 
   public int getStackBinning(AxisID axisID);
+
+  public boolean isStack3dFindBinningSet(AxisID axisID);
 
   public int getStack3dFindBinning(AxisID axisID);
 
@@ -518,4 +520,28 @@ public interface ConstMetaData {
   public String getPostTrimvolZMax();
 
   public boolean isEraseBeadsInitialized();
+
+  public boolean isTrackSeedModelManual(AxisID axisID);
+
+  public boolean isTrackSeedModelAuto(AxisID axisID);
+
+  public boolean isTrackSeedModelTransfer(AxisID axisID);
+
+  public boolean isTrackExcludeInsideAreas(AxisID axisID);
+
+  public String getTrackTargetNumberOfBeads(AxisID axisID);
+
+  public String getTrackTargetDensityOfBeads(AxisID axisID);
+
+  public boolean isTrackClusteredPointsAllowedElongated(AxisID axisID);
+
+  public int getTrackClusteredPointsAllowedElongatedValue(AxisID axisID);
+
+  public boolean isTrackAdvanced(AxisID axisID);
+
+  public boolean isStack3dFindThicknessSet(AxisID axisID);
+
+  public String getStack3dFindThickness(AxisID axisID);
+
+  public boolean isSetFEIPixelSize();
 }

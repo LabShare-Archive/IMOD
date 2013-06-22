@@ -25,8 +25,19 @@ DDEESSCCRRIIPPTTIIOONN
   If multiple file names are entered, then all of the header entries will be
   printed for one file, then for the next, etc.
 
+  If the program finds that the file has an extended header from SerialEM, it
+  will report what items are stored there and summarize the commands needed to
+  extract them.  If the file has an Agard/FEI-style extended header, the
+  program will report a pixel size and rotation angle from there.  In such a
+  case, if the pixel spacing in the standard header is 2, 3, or 4, the program
+  will assume that this represents bininng that was applied in IMOD, and it
+  will report the original pixel size times this binning.  If the file came
+  from the FEI acquisition software, the sign of the rotation angle is
+  inverted to conform with the conventions used in IMOD.
+
   The options are processed by the PIP package (see man page for pip(1)).
-  They are:
+  Options can be abbreviated to unique letters; the currently valid
+  abbreviations for short names are shown in parentheses.  They are:
 
 INSERT OPTION TEXT HERE
 

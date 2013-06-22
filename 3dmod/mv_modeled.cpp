@@ -96,7 +96,7 @@ int imodvSelectModel(ImodvApp *a, int ncm)
   static int selecting = 0;
 
   if (selecting) 
-    return a->cm;
+    return a->curMod;
   selecting = 1;
 
   // Before changing model, get current scale text and autostore view
@@ -107,15 +107,15 @@ int imodvSelectModel(ImodvApp *a, int ncm)
 
   if (ncm < 0)
     ncm = 0;
-  if (ncm > a->nm - 1)
-    ncm = a->nm - 1;
+  if (ncm > a->numMods - 1)
+    ncm = a->numMods - 1;
 
-  a->cm = ncm;
+  a->curMod = ncm;
 
-  a->imod = a->mod[a->cm];
-  if (a->ob >= a->imod->objsize)
-    a->ob = 0;
-  a->obj = &(a->imod->obj[a->ob]);
+  a->imod = a->mod[a->curMod];
+  if (a->objNum >= a->imod->objsize)
+    a->objNum = 0;
+  a->obj = &(a->imod->obj[a->objNum]);
 
   // If stansalone, maintain items in the fake vi: clear out undo and selection
   // list
@@ -135,7 +135,7 @@ int imodvSelectModel(ImodvApp *a, int ncm)
   imodvDraw(a);
 
   selecting = 0;
-  return(a->cm);
+  return(a->curMod);
 }
 
 // User selects a new model number through dialog
@@ -162,6 +162,16 @@ void imodvModeledView(int item)
 void imodvModeledEdit(int item)
 {
   Imodv->crosset = item;
+}
+
+// User wants models at same scale
+void imodvModeledSameScale()
+{
+  if (!Imodv->standalone)
+    return;
+  for (int m = 0; m < Imodv->numMods; m++)
+    Imodv->mod[m]->view->rad = Imodv->imod->view->rad;
+  imodvDraw(Imodv);
 }
 
 // User changes the name
@@ -216,7 +226,7 @@ static void updateWorkArea(void)
   else
     scale.sprintf("%g", Imodv->imod->pixsize);
 
-  med->dia->setModel(med->a->cm + 1, med->a->nm, fileStr, internalName, scale);
+  med->dia->setModel(med->a->curMod + 1, med->a->numMods, fileStr, internalName, scale);
 }
 
 // The drawing selection has been changed elsewhere; change dialog
@@ -235,17 +245,17 @@ void imodvPixelChanged()
 // Returns starting and ending models to draw based on value of drawall option
 void imodvModelDrawRange(ImodvApp *a, int &mstart, int &mend)
 {
-  mstart = mend = a->cm;
+  mstart = mend = a->curMod;
   switch (a->drawall) {
   case 2:
-    mend = B3DMIN(a->cm + 1, a->nm - 1);
+    mend = B3DMIN(a->curMod + 1, a->numMods - 1);
     break;
   case 1:
-    mstart = B3DMAX(a->cm - 1, 0);
+    mstart = B3DMAX(a->curMod - 1, 0);
     break;
   case 3:
     mstart = 0;
-    mend = a->nm - 1;
+    mend = a->numMods - 1;
     break;
   }
 }

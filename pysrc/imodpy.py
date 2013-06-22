@@ -11,32 +11,38 @@
 This module provides the following functions:
   runcmd(cmd[, input][,outfile][, inStderr]) - spawn a command with optional input,
                                    return its output or print to stdout or a file
-  bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
-                                                   with optional redirection
+  bkgdProcess(commandArr, [outfile] [, errfile] [, returnOnErr]) - Run a process
+                                    in background with optional redirection
   getmrcsize(file)     - run the 'header' command on <file>.
                          returns a triple of x,y,z size integers
   getmrc(file, doAll)  - run the 'header' command on <file>.
                          returns a 'tuple' of x,y,z,mode,px,py,pz,
                          plus ox,oy,oz,min,max,mean if doAll is True
+   getmrcpixel(file)   - run the 'header' command on <file>
+                         returns just a single pixel size, using extended header value
+                         if any
   makeBackupFile(file)   - renames file to file~, deleting old file~
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
   parselist(line)      -  convert list entry in <line> into list of integers
-  readTextFile(filename[ , descrip])  - reads in text file, strips line endings
-                                        returns a list of strings
-  writeTextFile(filename, strings) - writes set of strings to a text file
-  optionValue(linelist, option, type, ignorecase = False) - finds option value
-                                                              in list of lines
+  readTextFile(filename[ , descrip] [, returnOnErr]) - reads in text file, strips
+                                       line endings, returns a list of strings
+  writeTextFile(filename, strings [, returnOnErr]) - writes set of strings to a text file
+  optionValue(linelist, option, type, ignorecase = False, numVal = 0, otherSep = None) -
+                                           finds option value in list of lines
   convertToInteger(valstr, description) - Convert string to int with error 
                                            message if it fails
   completeAndCheckComFile(comfile) - returns complete com file name and root
   cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
   cleanupFiles(files) - Removes a list of files with multiple trials if it fails
+  getCygpath(windows, path) - Returns path, or windows path if windows is not None
+  imodIsAbsPath(path) - Tests whether the path is an absolute path (works in Cygwin)
+  imodAbsPath(path) - Returns absolute path, converted to windows format if on Windows
   imodNice(niceInc) - Sets niceness of process, even on Windows
   imodTempDir() - returns a temporary directory: IMOD_TEMPDIR, /usr/tmp, or /tmp
   setLibPath() - Set path variables for executing Qt programs
   fmtstr(string, *args) - formats a string with replacement fields
-  prnstr(string, file = sys.stdout, end = '\n') - replaces print function
+  prnstr(string, file = sys.stdout, end = '\n', flush = False) - replaces print function
 """
 
 # other modules needed by imodpy
@@ -47,6 +53,9 @@ pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
 
 if pyVersion < 300:
    import exceptions
+
+# Variables used like an enum for selecting optionValue type
+STRING_VALUE, INT_VALUE, FLOAT_VALUE, BOOL_VALUE = 0, 1, 2, 3
 
 # The global place to stash error strings and last exit status
 errStrings = []
@@ -120,7 +129,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
          prnstr('   With input:')
          for l in input:
             prnstr(l)
-   
+      sys.stdout.flush()
+
    if outfile:
       collect = 0
       if isinstance(outfile, str) and outfile == 'stdout':
@@ -241,7 +251,7 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
          prnstr('    Output:')
          for l in output:
             prnstr(l, end='')
-      prnstr('-------------------------')
+      prnstr('-------------------------', flush = True)
       
    if ec:
       # look thru the output for 'ERROR' line(s) and put them before this
@@ -282,7 +292,7 @@ def getLastExitStatus():
 
 
 # Run a process in background with optional redirection of all output
-def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
+def bkgdProcess(commandArr, outfile=None, errfile='stdout', returnOnErr = False):
    """bkgdProcess(commandArr, [outfile] [, errfile]) - Run a process in background
    with optional redirection of standard output to a file, and of standard error
    to a separate file or to standard out by default.
@@ -304,7 +314,10 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
             errf = open(errfile, 'w')
             errToFile = True
       except IOError:
-         exitError(action + "  - " + str(sys.exc_info()[1]))
+         errString = action + "  - " + str(sys.exc_info()[1])
+         if returnOnErr:
+            return errString
+         exitError(errString)
 
       # Use detached flag on Windows, although it may not be needed
       # In fact, unless stderr is going to a file it keeps it from running there
@@ -314,7 +327,7 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
                creationflags=DETACHED_PROCESS)
       else:
          Popen(commandArr, shell=False, stdout=outf, stderr=errf)
-      return
+      return None
 
    # Otherwise use system call: wrap all args in quotes and add the redirects
    comstr = commandArr[0]
@@ -328,6 +341,7 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout'):
       comstr += ' 2> "' + errfile + '"'
    comstr += ' &'
    os.system(comstr)
+   return None
          
 
 # Get essential data from the header of an MRC file
@@ -388,6 +402,44 @@ def getmrcsize(file):
    (ix,iy,iz,mode,px,py,pz) = getmrc(file)
    return(ix,iy,iz)
 
+# Get one pixel size from an MRC file, based on FEI/Agard value if present
+def getmrcpixel(file):
+   """getmrcpixel(file)    - run the 'header' command on <file>
+   Returns just a single pixel size, based on value in extended header if appropriate"""
+
+   global errStrings
+   input = ["InputFile " + file]
+   hdrout = runcmd("header -StandardInput", input)
+   pixel = -1.
+   for line in hdrout:
+      try:
+         if 'Pixel spacing' in line:
+            dotInd = line.find('.. ') + 2
+            if dotInd < 3:
+               errStrings = ["header " + file + ": cannot find pixel sizes"]
+               raise ImodpyError(errStrings)
+            lsplit = line[dotInd:].strip().split()
+            if len(lsplit) < 3:
+               errStrings = ["header " + file + ": pixel sizes not interpretable"]
+               raise ImodpyError(errStrings)
+            pixel = float(lsplit[0])
+
+         if 'size in nanometers =' in line:
+            ind = line.find('=') + 1
+            lsplit = line[ind:].strip().split()
+            if len(lsplit):
+               pixel = 10. * float(lsplit[0])
+
+      except ValueError:
+         errStrings = ["header " + file + ": error converting pixel size to float"]
+         raise ImodpyError(errStrings)
+
+   if pixel < 0:
+      errStrings = ["header " + file + ": cannot find pixel size"]
+      raise ImodpyError(errStrings)
+
+   return pixel
+
 
 # Make a backup file
 def makeBackupFile(filename):
@@ -429,27 +481,29 @@ def parselist (line):
    that the minus sign immediately precedes the number.  E.g.: -3 - -1
    or -3--1 will give -3,-2,-1; -3, -1,1 or -3,-1,1 will give -3,-1,1. """
 
-   list = [];
-   dashlast = False;
-   negnum = False;
-   gotcomma = False;
+   list = []
+   dashlast = False
+   negnum = False
+   gotcomma = False
+   gotnum = False
    nchars = len(line);
 
    if not nchars:
       return list
    if (line[0] == '/'):
       return None
-   nlist = 0;
-   ind = 0;
-   lastnum = 0;
+   nlist = 0
+   ind = 0
+   lastnum = 0
 
    #   find next digit and look for '-', but error out on non -,space
    while (ind < nchars):
-      next = line[ind];
+      next = line[ind]
       if (next.isdigit()):
 
          #   got a digit: save ind, find next non-digit
-         numst = ind;
+         gotnum = True
+         numst = ind
          while (1):
             ind += 1
             next = ''
@@ -465,11 +519,11 @@ def parselist (line):
          number = int(line[numst:ind])
 
          # set up loop to add to list
-         loopst = number;
-         idir = 1;
+         loopst = number
+         idir = 1
          if (dashlast):
             if (lastnum > number):
-               idir = -1;
+               idir = -1
             loopst = lastnum + idir
             
          
@@ -479,56 +533,70 @@ def parselist (line):
             nlist += 1
             i += idir
 
-         lastnum = number;
-         negnum = False;
-         dashlast = False;
-         gotcomma = False;
-         continue;
+         lastnum = number
+         negnum = False
+         dashlast = False
+         gotcomma = False
+         continue
    
       if (next != ',' and next != ' ' and next != '-'):
          return None
       if (next == ','):
-         gotcomma = True;
+         gotcomma = True
       if (next == '-'):
-         if (dashlast or (ind == 0) or gotcomma):
-            negnum = True;
+         if (dashlast or (not gotnum) or gotcomma):
+            negnum = True
          else:
-            dashlast = True;
+            dashlast = True
    
       ind += 1
 
-   return list;
+   return list
 
 
 # Function to read in a text file and strip line endings
-def readTextFile(filename, descrip = None):
+def readTextFile(filename, descrip = None, returnOnErr = False):
    """readTextFile(filename[ , descrip])  - read in text file, strip endings
 
-   Reads in the text file in <filename>, strips the line endings and blanks
+   Reads in the text file in <filename> if this is a string, or reads from it
+   as an open file object if not, strips the line endings and blanks
    from the end of each line, and returns a list of strings.  Exits with
    exitError on an error opening or reading the file, and adds the optional
-   description in <descrip> to the error message
+   description in <descrip> to the error message.  Or, if returnOnErr is True,
+   it returns the error string itself
    """
    if not descrip:
       descrip = " "
    try:
       errString = "Opening"
-      textfile = open(filename, 'r')
+      if isinstance(filename, str):
+         textfile = open(filename, 'r')
+      else:
+         textfile = filename
       errString = "Reading"
       lines = textfile.readlines()
    except IOError:
-      exitError(fmtstr("{} {} {}: {}", errString, descrip, filename, \
-                       str(sys.exc_info()[1])))
+      errString = fmtstr("{} {} {}: {}", errString, descrip, filename, \
+                       str(sys.exc_info()[1]))
+      if returnOnErr:
+         try:
+            textfile.close()
+         except:
+            pass
+         return errString
+      exitError(errString)
+
    textfile.close()
    for i in range(len(lines)):
       lines[i] = lines[i].rstrip(' \t\r\n')
    return lines
 
 # Function to write a text file with lines that have no endings
-def writeTextFile(filename, strings):
+def writeTextFile(filename, strings, returnOnErr = False):
    """writeTextFile(filename, strings) - write set of strings to a text file
    Opens the file <filename> and writes the set of strings in the list
-   <strings>, adding a line ending to each.  Exits with exitError upon error.
+   <strings>, adding a line ending to each.  Exits with exitError upon error,
+   or returns an error string if returnOnErr is True.
    """
    try:
       action = 'Opening'
@@ -538,31 +606,47 @@ def writeTextFile(filename, strings):
          prnstr(line, file=comf)
       comf.close()
    except IOError:
-      exitError(action + " file: " + filename + "  - " + str(sys.exc_info()[1]))
-
+      errString = action + " file: " + filename + "  - " + str(sys.exc_info()[1])
+      if returnOnErr:
+         try:
+            comf.close()
+         except:
+            pass
+         return errString
+      exitError(errString)
 
 
 # Function to find an option value from a list of strings
-def optionValue(linelist, option, type, ignorecase = False):
-   """optionValue(linelist, option, type[, nocase]) - get option value in strings
-
+def optionValue(linelist, option, type, ignorecase = False, numVal = 0, otherSep = None):
+   """optionValue(linelist, option, type[, nocase] [, numVal] [,otherSep]) - get option
+   value in strings
    Given a list of strings in <linelist>, searches for one(s) that contain the
-   text in <option> and that are not commented out.  The search is
+   text in <option> and that are not commented out.  A white space separator between the
+   option and the value is assumed unless another separator is supplied in optional
+   argument <otherSep>. The search is
    case-insensitive if optional argument <nocase> is supplied and is not False
    or None.  The return value depends on the value of <type>:
-   0 : a string with white space stripped and a comment removed from the end
-   1 : an array of integers
-   2 : an array of floats
-   3 : a boolean value, True or false
-   It returns None if the option is not found or if its value is empty or
-   contains inappropriate characters; in the latter case it issues a WARNING:.
-   If the option occurs more than once, the latest value applies.
+   0 = STRING_VALUE: a string with white space stripped and a comment removed from the end
+   1 = INT_VALUE: an array of integers, or one integer if numVal = 1
+   2 = FLOAT_VALUE: an array of floats, or one float if numVal = 1
+   3 = BOOL_VALUE: a boolean value, True or false
+   It returns all values found if numVal = 0, otherwise it returns just the indicated
+   number of values.  Values may be separated by commas or whitespace (commas will be
+   converted to spaces before splitting).
+   It returns None if the option is not found or if its value is empty, has fewer than
+   numVal values, or contains inappropriate characters; in the latter case it issues a
+   WARNING:.
+   If the option occurs more than once, the latest value applies unless there is an
+   error return from the first occurrence.
    """
    flags = 0
    if ignorecase:
       flags = re.IGNORECASE
+   sep = r'\s'
+   if otherSep:
+      sep = r'\s*' + otherSep
    optre = re.compile(r'^\s*' + option, flags)
-   subre = re.compile('.*' + option + r'[^\s]*([^#]*).*', flags)
+   subre = re.compile('.*' + option + r'[^\s]*' + sep + r'([^#]*).*', flags)
    comre = re.compile(r'\s*#\s*' + option, flags)
    retval = None
    for line in linelist:
@@ -585,9 +669,15 @@ def optionValue(linelist, option, type, ignorecase = False):
             retval = valstr
          else:
             retval = []
-            splits = valstr.split()
+            splits = valstr.replace(',', ' ').split()
             try:
-               for val in splits:
+               numConv = len(splits)
+               if numVal:
+                  if numConv < numVal:
+                     return None
+                  numConv = numVal
+               for ind in range(numConv):
+                  val = splits[ind]
                   if type == 1:
                      retval.append(int(val))
                   else:
@@ -595,6 +685,10 @@ def optionValue(linelist, option, type, ignorecase = False):
             except Exception:
                prnstr("WARNING: optionValue - Bad character in numeric " + \
                      "entry in: " + line)
+               return None
+
+            if numVal == 1:
+               retval = retval[0]
                
    return retval
 
@@ -690,6 +784,26 @@ def getCygpath(windows, path):
    return path
 
 
+# Tests whether the path is an absolute path
+def imodIsAbsPath(path):
+   if 'cygwin' in sys.platform:
+      try:
+         pathlines = runcmd('cygpath "' + path + '"')
+         if len(pathlines):
+            path = pathlines[0]
+      except Exception:
+         pass
+   return os.path.isabs(path)
+
+
+# Return an absolute path, converted to windows format if on Windows
+def imodAbsPath(path):
+   absp = os.path.abspath(path)
+   if 'win32' in sys.platform or 'cygwin' in sys.platform:
+      absp = getCygpath(True, absp)
+   return absp
+      
+      
 # Function to increment nice value of current process; for Windows Python it uses psutil
 # and sets to below normal priority between 4 and 15, idle priority above 15
 def imodNice(niceInc):
@@ -851,13 +965,16 @@ def fmtstr(stringIn, *args):
       
 
 # Function to replace print, with same format as new print function
-def prnstr(string, file = sys.stdout, end = '\n'):
-   """prnstr(string, file = sys.stdout, end = '\n') - replaces print function
+def prnstr(string, file = sys.stdout, end = '\n', flush = False):
+   """prnstr(string, file = sys.stdout, end = '\n', flush = False) - replaces
+   print function
    This function can be called like the new print function to write to a file,
    or to stdout by default, and add a line ending by default.  If end='',
    then it will not write a space after writing the line, so it can be used to
    write strings with line endings as the old print did.  If end=' ' it will
-   write a space after the string as the new print function does.
+   write a space after the string as the new print function does.  If flush
+   is True or the file is open in binary mode, flush() is called after the
+   write.
    """
    binary = 'b' in str(file.mode)
    if pyVersion >= 300 and binary:
@@ -867,5 +984,5 @@ def prnstr(string, file = sys.stdout, end = '\n'):
       file.write(string)
    else:
       file.write(string + end)
-   if binary:
+   if binary or flush:
       file.flush()

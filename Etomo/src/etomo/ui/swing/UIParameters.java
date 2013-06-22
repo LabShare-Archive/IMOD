@@ -98,18 +98,19 @@ public final class UIParameters {
   public static final String rcsid = "$Id$";
 
   public static final UIParameters INSTANCE = new UIParameters();
-  private static final float DEFAULT_FONT_SIZE = 12;
+  private static final double DEFAULT_FONT_SIZE = 12;
   private static final double DEFAULT_HEIGHT = 21;
 
   private final Dimension dimButton = new Dimension();
+  private final Dimension dimButtonSingleLine = new Dimension();
   private final Dimension dimNarrowButton = new Dimension();
   private final Dimension dimSpinner = new Dimension();
   private final Dimension dimFileField = new Dimension();
   private final Dimension dimFileChooser = new Dimension();
   private final Dimension dimAxisButton = new Dimension();
 
-  private float fontSize = DEFAULT_FONT_SIZE;
-  private float fontSizeAdjustment = 1;
+  private double fontSize = DEFAULT_FONT_SIZE;
+  private double fontSizeAdjustment = 1;
   private int numericWidth;
   private int wideNumericWidth;
   private int sectionsWidth;
@@ -137,8 +138,12 @@ public final class UIParameters {
     return new Dimension(dimButton);
   }
 
+  Dimension getButtonSingleLineDimension() {
+    return new Dimension(dimButtonSingleLine);
+  }
+
   Dimension getNarrowButtonDimension() {
-    //  Return a safe copy of the Dimension
+    // Return a safe copy of the Dimension
     return new Dimension(dimNarrowButton);
   }
 
@@ -198,7 +203,7 @@ public final class UIParameters {
    * Get the amount to adjust a fields based on the current font size
    * @return
    */
-  float getFontSizeAdjustment() {
+  double getFontSizeAdjustment() {
     return fontSizeAdjustment;
   }
 
@@ -208,7 +213,7 @@ public final class UIParameters {
    */
   private void calcSizes() {
     double height;
-    //  Create a temporary check box and get its height
+    // Create a temporary check box and get its height
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       JCheckBox temp = new JCheckBox();
       height = temp.getPreferredSize().getHeight();
@@ -218,6 +223,7 @@ public final class UIParameters {
     }
     fontSizeAdjustment = fontSize / DEFAULT_FONT_SIZE;
     dimButton.setSize(7 * height * fontSizeAdjustment, 2 * height * fontSizeAdjustment);
+    dimButtonSingleLine.setSize(7 * height * fontSizeAdjustment, 1.25 * height * fontSizeAdjustment);
     dimNarrowButton.setSize(4 * height * fontSizeAdjustment, 1.25 * height
         * fontSizeAdjustment);
     dimAxisButton.setSize(3.6 * height * fontSizeAdjustment, 1.25 * height

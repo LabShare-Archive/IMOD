@@ -208,7 +208,13 @@ continuation line should not have \fB#\fR or \fB[\fR as its first non-white
 space character, nor should it contain the key-value delimiter.  Lines are
 added to a help string until a line with the delimiter is encountered.  If
 you want to use = in help strings, change the delimiter to ==
-as shown above.  Use \fB^\fR at the beginning of a continuation line to
+as shown above, or enclose the entire (possibly multiline) string in quotes.
+The quote can be a single quote, double quote, or backtick character.  PIP
+will look for a matching quote only at the end of a line, but other autodoc
+parsers may be confused by a matching quote embedded in the line, so it is
+best to use a quote that is not used literally in the string.  
+
+Use \fB^\fR at the beginning of a continuation line to
 start a new line before outputting the text on the line.  Spaces after 
 the \fB^\fR will be retained, so that lines can be indented in a man page.
 
@@ -233,9 +239,9 @@ itself and exit with an error status.
 .nh
 .ft B
 .nf
-int PipExitOnError(int \fIuseStdErr\fB, char *\fIprefix\fB);
+int PipExitOnError(int \fIuseStdErr\fB, const char *\fIprefix\fB);
 
-integer*4 function PipExitOnError(int \fIuseStdErr\fB, char *\fIprefix\fB)
+integer*4 function PipExitOnError(\fIuseStdErr\fB, \fIprefix\fB)
 integer*4 \fIuseStdErr\fB
 character*N \fIprefix\fB
 .ft R
@@ -297,7 +303,7 @@ retaining the old input code, but none of this should be needed elsewhere.
 
 .ft B
 .nf
-int PipSetLinkedOption(char * \fIoption\fB);
+int PipSetLinkedOption(const char *\fIoption\fB);
 
 integer*4 function PipSetLinkedOption(\fIoption\fB)
 character*N \fIoption\fB
@@ -309,9 +315,9 @@ each entry of other options.
 
 .ft B
 .nf
-int PipParseInput(int \fIargc\fB, char \fI*argv[]\fB, char \fI*options[]\fB,
-                  int \fInumOptions\fB, int \fI*numOptArgs\fB, 
-                  int \fI*numNonOptArgs\fB);
+int PipParseInput(int \fIargc\fB, char *\fIargv[]\fB, const char *\fIoptions[]\fB,
+                  int \fInumOptions\fB, int *\fInumOptArgs\fB, 
+                  int *\fInumNonOptArgs\fB);
 
 integer*4 function PipParseInput(\fIoptions\fB, \fInumOptions\fB, \fIseparator\fB,
                                  \fInumOptArg\fB, \fInumNonOptArg\fB)
@@ -348,7 +354,7 @@ to 1 and make its length be big enough for the entire string.
 
 .ft B
 .nf
-int PipReadOptionFile(char \fI*progName\fB, int \fIhelpLevel\fB, int \fIlocalDir\fB)
+int PipReadOptionFile(const char *\fIprogName\fB, int \fIhelpLevel\fB, int \fIlocalDir\fB)
 
 integer*4 function PipReadOptionFile(\fIprogName\fB, \fIhelpLevel\fB, \fIlocalDir\fB)
 character*N \fIprogName\fB
@@ -384,8 +390,8 @@ string, or the usage string if neither tooltip nor manpage is available.
 
 .ft B
 .nf
-int PipParseEntries(int \fIargc\fB, char \fI*argv[]\fB, int \fI*numOptArgs\fB, 
-                    int \fI*numNonOptArgs\fB);
+int PipParseEntries(int \fIargc\fB, char *\fIargv[]\fB, int *\fInumOptArgs\fB, 
+                    int *\fInumNonOptArgs\fB);
 
 integer*4 function PipParseEntries(\fInumOptArg\fB, \fInumNonOptArg\fB)
 integer*4 \fInumOptArg\fB, \fInumNonOptArg\fB    [Returned arguments]
@@ -436,11 +442,12 @@ The option \fBhelp\fR must therefore be defined.
 
 .ft B
 .nf
-void PipReadOrParseOptions(int \fIargc\fB, char \fI*argv[]\fB, char \fI*options[]\fB,
-                           int \fInumOptions\fB, char \fI*progName\fB, 
-                           int \fIminArgs\fB, int \fInumInFiles\fB, 
-                           int \fInumOutFiles\fB, int \fI*numOptArgs\fB, 
-                           int \fI*numNonOptArgs\fB, void (\fIheaderFunc\fB)(char *));
+void PipReadOrParseOptions(int \fIargc\fB, char *\fIargv[]\fB, 
+                           const char *\fIoptions[]\fB, int \fInumOptions\fB, 
+                           const char *\fIprogName\fB, int \fIminArgs\fB, 
+                           int \fInumInFiles\fB, int \fInumOutFiles\fB, 
+                           int *\fInumOptArgs\fB, int *\fInumNonOptArgs\fB, 
+                           void (\fIheaderFunc\fB)(const char *));
 .ft R
 .fi
 
@@ -472,7 +479,7 @@ options given in \fInumOpts\fR.
 
 .ft B
 .nf
-int PipAddOption(char *\fIoptionString\fB);
+int PipAddOption(const char *\fIoptionString\fB);
 
 integer*4 function PipAddOption(\fIoptionString\fB)
 character*N \fIoptionString\fB
@@ -484,7 +491,7 @@ This function is used to add one option at a time to PIP's table of options.
 
 .ft B
 .nf
-int PipNextArg(char *\fIargString\fB);
+int PipNextArg(const char *\fIargString\fB);
 
 integer*4 function PipNextArg(\fIargString\fB)
 character*N \fIargString\fB
@@ -516,7 +523,7 @@ arguments in \fInumOptArg\fR and the number of non-option arguments in
 .nh
 .ft B
 .nf
-int PipNumberOfEntries(char *\fIoption\fB, int *\fInumEntries\fB);
+int PipNumberOfEntries(const char *\fIoption\fB, int *\fInumEntries\fB);
 
 integer*4 function PipNumberOfEntries(\fIoption\fB, \fInumEntries\fB);
 character*N \fIoption\fB
@@ -532,7 +539,7 @@ retrieve all of the entered values.
 .nh
 .ft B
 .nf
-int PipLinkedIndex(char *\fIoption\fB, int *\Iindex\fB);
+int PipLinkedIndex(const char *\fIoption\fB, int *\Iindex\fB);
 
 integer*4 function PipLinkedIndex(\fIoption\fB, \fIindex\fB);
 character*N \fIoption\fB
@@ -566,7 +573,7 @@ string is allocated with malloc() and should be freed with free().
 
 .ft B
 .nf
-int PipGetString(char *\fIoption\fB, char **\fIstring\fB);
+int PipGetString(const char *\fIoption\fB, char **\fIstring\fB);
 
 integer*4 function PipGetString(\fIoption\fB, \fIstring\fB)
 character*N \fIoption\fB
@@ -582,13 +589,13 @@ with malloc() and should be freed with free().
 
 .ft B
 .nf
-int PipGetInteger(char *\fIoption\fB, int *\fIval\fB);
+int PipGetInteger(const char *\fIoption\fB, int *\fIval\fB);
 
 integer*4 function PipGetInteger(\fIoption\fB, \fIval\fB)
 character*N \fIoption\fB
 integer*4 \fIval\fB             [Returned argument]
 
-int PipGetFloat(char *\fIoption\fB, float *\fIval\fB);
+int PipGetFloat(const char *\fIoption\fB, float *\fIval\fB);
 
 integer*4 function PipGetFloat(\fIoption\fB, \fIval\fB)
 character*N \fIoption\fB
@@ -603,13 +610,13 @@ enter this option.
 
 .ft B
 .nf
-int PipGetTwoIntegers(char *\fIoption\fB, int *\fIval1\fB, int *\fIval2\fB);
+int PipGetTwoIntegers(const char *\fIoption\fB, int *\fIval1\fB, int *\fIval2\fB);
 
 integer*4 function PipGetInteger(\fIoption\fB, \fIval1\fB, \fIval2\fB)
 character*N \fIoption\fB
 integer*4 \fIval1, val2\fB             [Returned arguments]
 
-int PipGetTwoFloats(char *\fIoption\fB, float *\fIval1\fB, float *\fIval2\fB);
+int PipGetTwoFloats(const char *\fIoption\fB, float *\fIval1\fB, float *\fIval2\fB);
 
 integer*4 function PipGetTwoFloats(\fIoption\fB, \fIval1\fB, \fIval2\fB)
 character*N \fIoption\fB
@@ -625,14 +632,14 @@ The return value is 1 if the user did not enter this option.
 
 .ft B
 .nf
-int PipGetThreeIntegers(char *\fIoption\fB, int *\fIval1\fB, int*\fIval2\fB,
+int PipGetThreeIntegers(const char *\fIoption\fB, int *\fIval1\fB, int*\fIval2\fB,
                         int*\fIval3\fB,);
 
 integer*4 function PipGetInteger(\fIoption\fB, \fIval1\fB, \fIval2\fB, \fIval3\fB)
 character*N \fIoption\fB
 integer*4 \fIval1, val2, val3\fB             [Returned arguments]
 
-int PipGetThreeFloats(char *\fIoption\fB, float *\fIval1\fB, float*\fIval2\fB,
+int PipGetThreeFloats(const char *\fIoption\fB, float *\fIval1\fB, float*\fIval2\fB,
                       float*\fIval3\fB);
 
 integer*4 function PipGetThreeFloats(\fIoption\fB, \fIval1\fB, \fIval2\fB, \fIval3\fB)
@@ -649,7 +656,7 @@ The return value is 1 if the user did not enter this option.
 
 .ft B
 .nf
-int PipGetBoolean(char *\fIoption\fB, int *\fIval\fB);
+int PipGetBoolean(const char *\fIoption\fB, int *\fIval\fB);
 
 integer*4 function PipGetBoolean(\fIoption\fB, \fIval\fB)
 character*N \fIoption\fB
@@ -677,7 +684,7 @@ enter this option.
 
 .ft B
 .nf
-int PipGetIntegerArray(char *\fIoption\fB, int *\fIarray\fB, int *\fInumToGet\fB,
+int PipGetIntegerArray(const char *\fIoption\fB, int *\fIarray\fB, int *\fInumToGet\fB,
                        int \fIarraySize\fB);
 
 integer*4 function PipGetIntegerArray(\fIoption\fB, \fIarray\fB, \fInumToGet\fB, 
@@ -687,7 +694,7 @@ integer*4 \fIarray\fB(N)        [Returned argument]
 integer*4 \fInumToGet\fB        [Returned argument if initially 0]
 integer*4 \fIarraySize\fB
 
-int PipGetFloatArray(char *\fIoption\fB, float *\fIarray\fB, int *\fInumToGet\fB,
+int PipGetFloatArray(const char *\fIoption\fB, float *\fIarray\fB, int *\fInumToGet\fB,
                      int \fIarraySize\fB);
 
 integer*4 function PipGetFloatArray(\fIoption\fB, \fIarray\fB, \fInumToGet\fB,
@@ -709,7 +716,8 @@ option.
 
 .nf
 .ft B
-int PipGetInOutFile(char *\fIoption\fB, int \fInonOptArgNo\fB, char **\fIfilename\fB)
+int PipGetInOutFile(const char *\fIoption\fB, int \fInonOptArgNo\fB, 
+                    char **\fIfilename\fB)
 
 integer*4 function PipGetInOutFile(\fIoption\fB, \fInonOptArgNo\fB, \fIprompt\fB,
                                    \fIfilename\fB)
@@ -757,7 +765,21 @@ to \fBPipReadOrParseOptions\fR.
 .nh
 .ft B
 .nf
-int PipPrintHelp(char *\fIprogName\fB, int \fIuseStdErr\fB, int \fIinputFiles\fB,
+int PipSetUsageString(const char *usage);
+
+integer*4 function PipSetUsageString(\fIusage\fB)
+character*N \fIusage\fB
+.ft R
+.fi
+
+This function allows you set a custom usage string to replace the default
+output entirely.  PIP will print a newline after this string so it need not be
+included.  A multiline string can be supplied with embedded newlines.
+
+.nh
+.ft B
+.nf
+int PipPrintHelp(const char *\fIprogName\fB, int \fIuseStdErr\fB, int \fIinputFiles\fB,
                  int \fIoutputFiles\fB);
 
 integer*4 function PipPrintHelp(\fIprogName\fB, \fIuseStdErr\fB, \fIinputFiles\fB,
@@ -831,7 +853,7 @@ with malloc() and can be freed with free().
 
 .ft B
 .nf
-int PipMemoryError(void *\fIptr\fB, char *\fIroutine\fB);
+int PipMemoryError(void *\fIptr\fB, const char *\fIroutine\fB);
 .ft R
 .fi
 
@@ -841,7 +863,7 @@ an error string including the name given in \fIroutine\fR and calls
 
 .ft B
 .nf
-int PipSetError(char *\fIerrString\fB);
+int PipSetError(const char *\fIerrString\fB);
 .ft R
 .fi
 
@@ -850,12 +872,12 @@ an error message and exits.
 
 .ft B
 .nf
-void exitError(char *\fIformat\fB, ...);
+void exitError(const char *\fIformat\fB, ...);
 
 subroutine exitError(\fIerrString\fB)
 character*N \fIerrString\fB
 
-void setExitPrefix(char *\fIprefix\fB);
+void setExitPrefix(const char *\fIprefix\fB);
 
 subroutine setExitPrefix(\fIprefix\fB)
 character*N \fIprefix\fB

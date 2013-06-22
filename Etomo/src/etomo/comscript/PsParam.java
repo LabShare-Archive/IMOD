@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.Network;
 import etomo.type.AxisID;
 import etomo.type.OSType;
@@ -36,9 +37,8 @@ public final class PsParam {
   private static final String USER_ID_HEADER = "UID";
 
   private final String startTimeHeader;
-  private final String startTimeCommand;
 
-  private final ArrayList command = new ArrayList();
+  private final List<String> command = new ArrayList<String>();
   private final ArrayList valuesArray = new ArrayList();
 
   private String[] output = null;
@@ -66,7 +66,7 @@ public final class PsParam {
   private boolean userIdColumn = false;
   private boolean startTimeColumn = true;
 
-  private int debug = 0;
+  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   /**
    * Builds the ps commmand.  Uses the pid to limit the output to one process.
@@ -77,7 +77,6 @@ public final class PsParam {
   public PsParam(BaseManager manager, AxisID axisID, String pid, OSType osType,
       String hostName, boolean willRunOnWorkerThread) {
     startTimeHeader = osType == OSType.WINDOWS ? "STIME" : "STARTED";
-    startTimeCommand = osType == OSType.MAC ? "start" : "lstart";
     if (hostName != null
         && !hostName.matches("\\*")
         && !hostName.equals(Network.getLocalHostName(manager, axisID,
@@ -86,11 +85,11 @@ public final class PsParam {
       // of this constructor promises to run the command in a worker thread. An
       // ssh on the main thread can lock up the user interface.
       if (willRunOnWorkerThread || SshParam.INSTANCE.isTimeoutAvailable(manager)) {
-        List sshCommand = SshParam.INSTANCE.getCommand(manager, true, hostName);
+        List<String> sshCommand = SshParam.INSTANCE.getCommand(manager, true, hostName);
         if (sshCommand != null) {
-          Iterator iterator = sshCommand.iterator();
+          Iterator<String> iterator = sshCommand.iterator();
           while (iterator.hasNext()) {
-            Object element = iterator.next();
+            String element = iterator.next();
             if (element != null && !element.equals("")) {
               command.add(element);
             }
@@ -116,15 +115,15 @@ public final class PsParam {
     }
     if (osType != OSType.WINDOWS) {
       command.add("-o");
+      command.add("pid,pgid,lstart");
     }
-    command.add("pid,pgid," + startTimeCommand);
   }
 
   public Row getRow() {
     return new Row(this);
   }
 
-  public ArrayList getCommandArray() {
+  public List<String> getCommandArray() {
     return command;
   }
 
@@ -185,6 +184,9 @@ public final class PsParam {
       return;
     }
     for (int i = 1; i < output.length; i++) {
+      if (debug >= 4) {
+        System.err.println(output[i]);
+      }
       if (output[i] != null)
         if (output[i] != null && output[i].length() >= startTimeEndIndex) {
           valuesArray.add(new Values(output[i]));
@@ -213,14 +215,14 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
-    if (debug > 1) {
+    if (debug >= 4) {
       System.err.println("Looking for a ps row with pid=" + pid + ",groupPid=" + groupPid
           + ",startTime=" + startTime);
     }
     for (int i = 0; i < valuesArray.size(); i++) {
       Values values = (Values) valuesArray.get(i);
       if (values.getPid().equals(pid) && values.getGroupPid().equals(groupPid)) {
-        if (debug > 1) {
+        if (debug >= 4) {
           System.err.println("Checking the startTime of a ps row with pid=" + pid
               + ",groupPid=" + groupPid + ",startTime=" + startTime);
         }
@@ -336,10 +338,18 @@ public final class PsParam {
     }
 
     public String getGroupPid() {
+      if (debug >= 2) {
+        System.err.println("psParam.getGroupPid(" + index + "):"
+            + psParam.getGroupPid(index));
+      }
       return psParam.getGroupPid(index);
     }
 
     public Time getStartTime() {
+      if (debug >= 2) {
+        System.err.println("psParam.getStartTime(" + index + "):"
+            + psParam.getStartTime(index));
+      }
       return psParam.getStartTime(index);
     }
   }

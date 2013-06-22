@@ -38,6 +38,10 @@ kXstacked = 'xStacked'
 kYstacked = 'yStacked'
 kGoodlim = 'goodLimits'
 kPatchParam = 'patchParams'
+kEcdStub = 'ecdStub'
+kBlendShift = 'blendShift'
+kOrigShift = 'originalShift'
+kLastShift = 'lastCorrShift'
 
 smpref = "ERROR: readMontInfo - "
 backedUp = False
@@ -200,12 +204,14 @@ def readMontInfo(filename, predata, slices, pieces, edges):
 
          elif inEdge:
             checkDuplicate(edge, key, 'edge' + edge['name'])
-            if key == kShift:            
-               edge[key] = convertValues(line, value,3, float, False)
-            elif key == kLower:
+            if key == kShift or key == kOrigShift:
+               edge[key] = convertValues(line, value, 3, float, False)
+            elif key == kLower or key == kLastShift:
                edge[key] = convertValues(line, value, 3, int, False)
             elif key == kGoodlim or key == kZlimit:
                edge[key] = convertValues(line, value, 2, int, False)
+            elif key == kBlendShift:
+               edge[key] = convertValues(line, value, 2, float, False)
             else:
                edge[key] = value
 
@@ -265,8 +271,7 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
          if key == 'file':
             pass
          elif key == kFrame or key == kSize:
-            prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]),
-                   file=out)
+            prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]), file=out)
          elif key == kZlimit:
             prnstr(fmtstr('{} = {} {}', key, val[0], val[1]), file=out)
          else:
@@ -279,17 +284,18 @@ def writeMontInfo(filename, predata, slices, pieces, edges):
          val = edge[key]
          if key == 'name':
             pass
-         elif key == kLower:
-            prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]),
-                   file=out)
-         elif key == kShift:
-            prnstr(fmtstr('{} = {:f} {:f} {:f}', key, val[0], val[1], val[2]),
-                   file=out)
-         elif key == kZlimit:
+         elif key == kLower or key == kLastShift:
+            prnstr(fmtstr('{} = {} {} {}', key, val[0], val[1], val[2]), file=out)
+         elif key == kShift or key == kOrigShift:
+            prnstr(fmtstr('{} = {:f} {:f} {:f}', key, val[0], val[1], val[2]), file=out)
+         elif key == kZlimit or key == kGoodlim:
             prnstr(fmtstr('{} = {} {}', key, val[0], val[1]), file=out)
+         elif key == kBlendShift:
+            prnstr(fmtstr('{} = {:f} {:f}', key, val[0], val[1]), file=out)
          else:
             prnstr(fmtstr('{} = {}', key, val), file=out)
 
+            
 # Function to get min and max of pieces, and list of Z values
 def montMinMax(pieces):
    xmin, ymin, zmin = 10000, 10000, 10000
@@ -306,21 +312,25 @@ def montMinMax(pieces):
          zlist.append( piece[kFrame][2])
    return xmin, xmax, ymin, ymax, zmin, zmax, zlist
 
-#
-#  $Log$
-#  Revision 1.5  2009/12/10 21:26:05  mast
-#  Added the update patch from model function
-#
-#  Revision 1.4  2009/09/08 23:28:29  mast
-#  Added some keys, added extension function, made it backup file only once
-#
-#  Revision 1.3  2008/12/18 06:24:00  mast
-#  Fixed problem reading Frame with only 2 numbers
-#
-#  Revision 1.2  2007/04/11 15:45:25  mast
-#  Added Z limits for edges, wrote out Z limits for pieces properly
-#
-#  Revision 1.1  2007/04/08 16:23:57  mast
-#  Added to package
-#
 
+# Function to build a piece map and also return needed sizes
+def buildPieceMap(pieces, xmin, xmax, ymin, ymax, zmin, zmax, addedData):
+   xsize = xmax + 1 - xmin
+   xysize = xsize * (ymax + 1 - ymin)
+   maxPieces = (zmax + 1 - zmin) * xysize
+
+   pieceMap = []
+   for i in range(maxPieces):
+      pieceMap.append(-1)
+   for i in range(len(pieces)):
+      fxyz = pieces[i][kFrame]
+      pieceMap[fxyz[0] - xmin + xsize * (fxyz[1] - ymin) + \
+             xysize * (fxyz[2] - zmin)] = i
+      if not kSize in pieces[i]:
+         addedData = 1
+         try:
+            pieces[i][kSize] = getmrcsize(pieces[i]['file'])
+         except ImodpyError:
+            exitFromImodError(progname)
+
+   return (xsize, xysize, addedData, pieceMap)

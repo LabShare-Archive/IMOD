@@ -109,6 +109,10 @@ DDEESSCCRRIIPPTTIIOONN
   of iterations before writing it out and going on to the next slice.  Further
   details are given under the SIRTIterations options.
 
+  Backprojection works with angles up to and beyond 90 degrees on both the CPU
+  and GPU.  Both reprojection and internal SIRT should work for such data sets
+  provided that local alignments are not used.
+
   Tilt uses the PIP package for input (see the manual page for pip(1)) but
   it has several special features to maintain compatibility with the old
   input method and old command files.  1) Options are case-insensitive and can
@@ -121,7 +125,8 @@ DDEESSCCRRIIPPTTIIOONN
 
   The following options can be specified either as command line arguments
   (with the -) or one per line in a command file or parameter file (without
-  the -):
+  the -).  Options can be abbreviated to unique letters; the currently valid
+  abbreviations for short names are shown in parentheses.
 
 INSERT OPTION TEXT HERE
 

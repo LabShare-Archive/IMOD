@@ -14,7 +14,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <qfiledialog.h>
 #include <qdir.h>
 #include <qaction.h>
 #include <qtimer.h>
@@ -180,8 +179,7 @@ void InfoWindow::fileSlot(int item)
       imod_info_forbid();
       imod_info_input();
       releaseKeyboard();
-      qname = QFileDialog::getSaveFileName
-        (ImodInfoWin, "TIFF File to save section from memory:");
+      qname = imodPlugGetSaveName(ImodInfoWin, "TIFF File to save section from memory:");
       imod_info_enable();
       if (qname.isEmpty())
         break;
@@ -235,8 +233,7 @@ void InfoWindow::fileWriteSlot(int item)
 
   case FWRITE_MENU_IMOD: /* write imod */
     releaseKeyboard();
-    qname = QFileDialog::getSaveFileName(ImodInfoWin,
-                                         "File to save as Imod:");
+    qname = imodPlugGetSaveName(ImodInfoWin, "File to save as Imod:");
     if (qname.isEmpty())
       break;
     fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "wb");
@@ -253,8 +250,7 @@ void InfoWindow::fileWriteSlot(int item)
 
   case FWRITE_MENU_WIMP: /* write wimp */
     releaseKeyboard();
-    qname = QFileDialog::getSaveFileName(ImodInfoWin,
-                                         "File to save as Wimp:");
+    qname = imodPlugGetSaveName(ImodInfoWin, "File to save as Wimp:");
     if (qname.isEmpty())
       break;
     fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
@@ -266,8 +262,7 @@ void InfoWindow::fileWriteSlot(int item)
 
   case FWRITE_MENU_NFF: /* write NFF */
     releaseKeyboard();
-    qname = QFileDialog::getSaveFileName(ImodInfoWin, 
-                                         "File to save as NFF:");
+    qname = imodPlugGetSaveName(ImodInfoWin, "File to save as NFF:");
     if (qname.isEmpty())
       break;
     fout =  fopen(LATIN1(QDir::convertSeparators(qname)), "w");
@@ -1182,7 +1177,7 @@ void InfoWindow::imageSlot(int item)
 
   case IMAGE_MENU_GRAPH: /* graph */
     /* DMN 2/25/01: do not open with fake image */
-    if (!App->cvi->fakeImage || !App->cvi->rgbStore)
+    if (!App->cvi->fakeImage && !App->cvi->rgbStore)
       xgraphOpen(App->cvi);
     break;
 
@@ -1196,8 +1191,7 @@ void InfoWindow::imageSlot(int item)
     break;
 
   case IMAGE_MENU_LOCATOR: /* locator */
-    if (!App->cvi->rgbStore)
-      locatorOpen(App->cvi);
+    locatorOpen(App->cvi);
     break;
 
   case IMAGE_MENU_MODV: /* model view */

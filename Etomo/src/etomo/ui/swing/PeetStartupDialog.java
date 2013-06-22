@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,11 +16,14 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import etomo.PeetManager;
+import etomo.logic.DatasetTool;
 import etomo.logic.PeetStartupData;
 import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
+import etomo.type.DataFileType;
 import etomo.type.UITestFieldType;
+import etomo.ui.FieldType;
 import etomo.util.Utilities;
 
 /**
@@ -37,7 +41,7 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public final class PeetStartupDialog {
+public final class PeetStartupDialog implements UIComponent {
   public static final String rcsid = "$Id:$";
 
   private static final String COPY_FROM_LABEL = "Copy project from ";
@@ -45,7 +49,8 @@ public final class PeetStartupDialog {
 
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbCopyFrom = new CheckBox(COPY_FROM_LABEL);
-  private final LabeledTextField ltfBaseName = new LabeledTextField("Base name: ");
+  private final LabeledTextField ltfBaseName = new LabeledTextField(FieldType.STRING,
+      "Base name: ");
   private final MultiLineButton btnOk = new MultiLineButton("OK");
   private final MultiLineButton btnCancel = new MultiLineButton("Cancel");
 
@@ -89,10 +94,12 @@ public final class PeetStartupDialog {
     ftfDirectory.setAdjustedFieldWidth(175);
     ftfDirectory.setFileSelectionMode(FileChooser.DIRECTORIES_ONLY);
     ftfDirectory.setAbsolutePath(true);
+    ftfDirectory.setOriginEtomoRunDir(true);
     ftfDirectory.setFile(new File(""));
     ftfCopyFrom.setAdjustedFieldWidth(225);
     ftfCopyFrom.setFileFilter(new PeetAndMatlabParamFileFilter());
     ftfCopyFrom.setAbsolutePath(true);
+    ftfCopyFrom.setOriginEtomoRunDir(true);
     updateDisplay();
     // dialog
     dialog.getContentPane().add(pnlRoot);
@@ -160,8 +167,12 @@ public final class PeetStartupDialog {
     dialog.dispose();
   }
 
+  public Component getComponent() {
+    return dialog;
+  }
+
   /**
-   * Returns filleed peet startup data instance.  Does not do validation.
+   * Returns filled peet startup data instance.  Does not do validation.
    * @return
    */
   private PeetStartupData getStartupData() {
@@ -233,9 +244,13 @@ public final class PeetStartupDialog {
       }
     }
     if (errorMessage == null) {
+      if (!DatasetTool.validateDatasetName(manager, this, axisID, ftfDirectory.getFile(),
+          ltfBaseName.getText(), DataFileType.PEET, null, true)) {
+        return false;
+      }
       return true;
     }
-    UIHarness.INSTANCE.openMessageDialog(manager, dialog, errorMessage, "Entry Error",
+    UIHarness.INSTANCE.openMessageDialog(manager, this, errorMessage, "Entry Error",
         axisID);
     return false;
   }
@@ -255,8 +270,8 @@ public final class PeetStartupDialog {
       PeetStartupData startupData = getStartupData();
       String errorMessage = startupData.validate();
       if (errorMessage != null) {
-        UIHarness.INSTANCE
-            .openMessageDialog(manager, errorMessage, "Entry Error", axisID);
+        UIHarness.INSTANCE.openMessageDialog(manager, this, errorMessage, "Entry Error",
+            axisID);
         return;
       }
       dispose();

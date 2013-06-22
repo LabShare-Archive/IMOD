@@ -2,6 +2,8 @@ package etomo.storage;
 
 import java.io.File;
 
+import etomo.storage.autodoc.AutodocFactory;
+
 /**
  * <p>Description: </p>
  * 
@@ -21,14 +23,14 @@ public class AutodocFilter extends javax.swing.filechooser.FileFilter implements
   public static final String rcsid = "$Id$";
 
   public boolean accept(File f) {
-    if (!f.isFile()) {
+    if (!f.exists()) {
+      System.err.println("Warning: " + f.getAbsolutePath() + " does not exist");
       return false;
     }
-    String name = f.getName();
-    if (name.endsWith(".adoc")) {
-      return true;
+    if (f.isFile()) {
+      return f.getName().endsWith(AutodocFactory.EXTENSION);
     }
-    return false;
+    return true;
   }
 
   public String getDescription() {

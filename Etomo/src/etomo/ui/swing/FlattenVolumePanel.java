@@ -20,12 +20,14 @@ import etomo.ToolsManager;
 import etomo.comscript.ConstWarpVolParam;
 import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.WarpVolParam;
+import etomo.logic.DatasetTool;
 import etomo.storage.LogFile;
 import etomo.storage.TomogramFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
+import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoBoolean2;
@@ -34,6 +36,8 @@ import etomo.type.ImageFileType;
 import etomo.type.MetaData;
 import etomo.type.PanelId;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.FieldType;
+import etomo.ui.FieldValidationFailedException;
 import etomo.util.FrontEndLogic;
 
 /**
@@ -121,11 +125,11 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       "Make Surface Model", this);
   private final CheckBox cbOneSurface = new CheckBox("Contours are all on one surface");
   private final LabeledTextField ltfWarpSpacingX = new LabeledTextField(
-      WARP_SPACING_X_LABEL + ": ");
-  private final LabeledTextField ltfWarpSpacingY = new LabeledTextField(" "
-      + WARP_SPACING_Y_LABEL + ": ");
+      FieldType.FLOATING_POINT, WARP_SPACING_X_LABEL + ": ");
+  private final LabeledTextField ltfWarpSpacingY = new LabeledTextField(
+      FieldType.FLOATING_POINT, " " + WARP_SPACING_Y_LABEL + ": ");
   private final LabeledTextField ltfLambdaForSmoothing = new LabeledTextField(
-      LAMBDA_FOR_SMOOTHING_LABEL + ": ");
+      FieldType.FLOATING_POINT_ARRAY, LAMBDA_FOR_SMOOTHING_LABEL + ": ");
   ActionListener actionListener = new FlattenVolumeActionListener(this);
   private final ButtonGroup bgInputFile = new ButtonGroup();
   private final RadioButton rbInputFileTrimVol = new RadioButton(
@@ -133,7 +137,7 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   private final RadioButton rbInputFileSqueezeVol = new RadioButton(
       "Flatten the squeezevol output", bgInputFile);
   private final CheckBox cbInterpolationOrderLinear = new CheckBox("Linear interpolation");
-  private final LabeledTextField ltfOutputSizeZ = new LabeledTextField(
+  private final LabeledTextField ltfOutputSizeZ = new LabeledTextField(FieldType.INTEGER,
       OUTPUT_SIZE_Z_LABEL + ": ");
   private final Run3dmodButton btnImodFlatten = Run3dmodButton.get3dmodInstance(
       "Open Flattened Tomogram", this);
@@ -355,48 +359,60 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     return true;
   }
 
-  public boolean getParameters(final FlattenWarpParam param) {
-    String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing.getText());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in "
-          + LAMBDA_FOR_SMOOTHING_LABEL + ":  " + errorMessage, "Entry Error", axisID);
+  public boolean getParameters(final FlattenWarpParam param, final boolean doValidation) {
+    try {
+      String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing
+          .getText(doValidation));
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Error in "
+            + LAMBDA_FOR_SMOOTHING_LABEL + ":  " + errorMessage, "Entry Error", axisID);
+        return false;
+      }
+      param.setOneSurface(cbOneSurface.isSelected());
+      errorMessage = param.setWarpSpacingX(ltfWarpSpacingX.getText(doValidation));
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + WARP_SPACING_X_LABEL
+            + ":  " + errorMessage, "Entry Error", axisID);
+        return false;
+      }
+      errorMessage = param.setWarpSpacingY(ltfWarpSpacingY.getText(doValidation));
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + WARP_SPACING_Y_LABEL
+            + ":  " + errorMessage, "Entry Error", axisID);
+        return false;
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
       return false;
     }
-    param.setOneSurface(cbOneSurface.isSelected());
-    errorMessage = param.setWarpSpacingX(ltfWarpSpacingX.getText());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + WARP_SPACING_X_LABEL
-          + ":  " + errorMessage, "Entry Error", axisID);
-      return false;
-    }
-    errorMessage = param.setWarpSpacingY(ltfWarpSpacingY.getText());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + WARP_SPACING_Y_LABEL
-          + ":  " + errorMessage, "Entry Error", axisID);
-      return false;
-    }
-    return true;
   }
 
-  public boolean getParameters(final WarpVolParam param) {
-    param.setInterpolationOrderLinear(cbInterpolationOrderLinear.isSelected());
-    String errorMessage = param.setOutputSizeZ(ltfOutputSizeZ.getText());
-    if (errorMessage != null) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + OUTPUT_SIZE_Z_LABEL
-          + ":  " + errorMessage, "Entry Error", axisID);
+  public boolean getParameters(final WarpVolParam param, final boolean doValidation) {
+    try {
+      param.setInterpolationOrderLinear(cbInterpolationOrderLinear.isSelected());
+      String errorMessage = param.setOutputSizeZ(ltfOutputSizeZ.getText(doValidation));
+      if (errorMessage != null) {
+        UIHarness.INSTANCE.openMessageDialog(manager, "Error in " + OUTPUT_SIZE_Z_LABEL
+            + ":  " + errorMessage, "Entry Error", axisID);
+        return false;
+      }
+      // The model contains coordinates so it can match either input file.
+      if (panelId == PanelId.POST_FLATTEN_VOLUME) {
+        param.setInputFile(getInputFileType());
+        param.setOutputFile(ImageFileType.FLATTEN_OUTPUT.getFileName(manager));
+      }
+      else if (panelId == PanelId.TOOLS_FLATTEN_VOLUME) {
+        param.setInputFile(ftfInputFile.getFile());
+        param.setOutputFile(FileType.FLATTEN_TOOL_OUTPUT
+            .getFileName(manager, AxisID.ONLY));
+      }
+      param.setTemporaryDirectory(ftfTemporaryDirectory.getText());
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
       return false;
     }
-    // The model contains coordinates so it can match either input file.
-    if (panelId == PanelId.POST_FLATTEN_VOLUME) {
-      param.setInputFile(getInputFileType());
-      param.setOutputFile(ImageFileType.FLATTEN_OUTPUT.getFileName(manager));
-    }
-    else if (panelId == PanelId.TOOLS_FLATTEN_VOLUME) {
-      param.setInputFile(ftfInputFile.getFile());
-      param.setOutputFile(FileType.FLATTEN_TOOL_OUTPUT.getFileName(manager, AxisID.ONLY));
-    }
-    param.setTemporaryDirectory(ftfTemporaryDirectory.getText());
-    return true;
   }
 
   /**
@@ -423,12 +439,14 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     return cbOneSurface.isSelected();
   }
 
-  public String getWarpSpacingX() {
-    return ltfWarpSpacingX.getText();
+  public String getWarpSpacingX(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfWarpSpacingX.getText(doValidation);
   }
 
-  public String getWarpSpacingY() {
-    return ltfWarpSpacingY.getText();
+  public String getWarpSpacingY(final boolean doValidation)
+      throws FieldValidationFailedException {
+    return ltfWarpSpacingY.getText(doValidation);
   }
 
   public void action(final Run3dmodButton button,
@@ -469,25 +487,34 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       if (command.equals(ftfInputFile.getActionCommand())) {
         inputFileAction();
       }
-      else if (command.equals(btnFlatten.getActionCommand())) {
-        toolsManager.flatten(btnFlatten, null, deferred3dmodButton, run3dmodMenuOptions,
-            dialogType, axisID, this);
-      }
-      else if (command.equals(btnImodFlatten.getActionCommand())) {
-        toolsManager.imodFlatten(run3dmodMenuOptions, axisID);
-      }
-      else if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
-        toolsManager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
-            btnMakeSurfaceModel.getBinningInXandY(), ftfInputFile.getFile());
-      }
-      else if (command.equals(btnFlattenWarp.getActionCommand())) {
-        if (validateFlattenWarp()) {
-          toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+      else {
+        // Must keep checking the dataset directory because a tools interface cannot
+        // take pocession of a directory.
+        File file = ftfInputFile.getFile();
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file,
+            DataFileType.TOOLS, null)) {
+          return;
+        }
+        if (command.equals(btnFlatten.getActionCommand())) {
+          toolsManager.flatten(btnFlatten, null, deferred3dmodButton,
               run3dmodMenuOptions, dialogType, axisID, this);
         }
-      }
-      else {
-        throw new IllegalStateException("Unknown command " + command);
+        else if (command.equals(btnImodFlatten.getActionCommand())) {
+          toolsManager.imodFlatten(run3dmodMenuOptions, axisID);
+        }
+        else if (command.equals(btnMakeSurfaceModel.getActionCommand())) {
+          toolsManager.imodMakeSurfaceModel(run3dmodMenuOptions, axisID,
+              btnMakeSurfaceModel.getBinningInXandY(), ftfInputFile.getFile());
+        }
+        else if (command.equals(btnFlattenWarp.getActionCommand())) {
+          if (validateFlattenWarp()) {
+            toolsManager.flattenWarp(btnFlattenWarp, null, deferred3dmodButton,
+                run3dmodMenuOptions, dialogType, axisID, this);
+          }
+        }
+        else {
+          throw new IllegalStateException("Unknown command " + command);
+        }
       }
     }
     else {
@@ -511,13 +538,21 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
       if (file == null || file.isDirectory() || !file.exists()) {
         return;
       }
-      if (toolsManager != null && toolsManager.isConflictingDatasetName(axisID, file)) {
-        return;
+      if (toolsManager != null) {
+        if (!DatasetTool.validateDatasetName(toolsManager, axisID, file,
+            DataFileType.TOOLS, null)) {
+          return;
+        }
+        if (toolsManager.isConflictingDatasetName(axisID, file)) {
+          return;
+        }
       }
       try {
         ftfInputFile.setText(file.getAbsolutePath());
         ftfInputFile.setButtonEnabled(false);
-        toolsManager.setName(file);
+        if (toolsManager != null) {
+          toolsManager.setName(file);
+        }
         UIHarness.INSTANCE.pack(manager);
         checkRotated(file);
       }

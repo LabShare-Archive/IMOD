@@ -18,11 +18,11 @@
 #include "ilist.h"
 #include "parse_params.h" //for exitError()
 
-AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
+AngleDialog::AngleDialog(MyApp *app, QWidget *parent): QDialog(parent)
 {
   int width, i;
   mParamsOpen = true;
-  mApp = (MyApp *)qApp;
+  mApp = app;
   setWindowTitle(tr("Angle Range & Tile Selection"));
   mDefocusLabel = new QLabel(tr("E&xpected defocus (um): "), this);
   mDefocusEdit = new QLineEdit("6.0", this);
@@ -52,7 +52,9 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   mStepDownButton->setFixedWidth(width);
   mStepUpButton->setFixedWidth(width);
  
-  mAutofitButton = new QPushButton( tr("Autofit A&ll Steps"), this);
+  mAutofitButton = new QPushButton(mApp->getFitSingleViews() ? 
+                                   tr("Autofit A&ll Single Views") : 
+                                   tr("Autofit A&ll Steps"), this);
   mAutofitButton->setEnabled(false);
   mAutofitButton->setToolTip("Fit to all tilt angle ranges that fit within limits below");
 
@@ -76,6 +78,10 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   mAutoToLabel->setBuddy(mAutoToEdit);
   mAutoToEdit->setToolTip("Ending angle of range to cover with autofitting to "
                             "stepped ranges");
+
+  mFitSingleBox = new QCheckBox(tr("Fit each view separately"), this);
+  mFitSingleBox->setToolTip("Fit every view in the range separately");
+  mFitSingleBox->setChecked(mApp->getFitSingleViews());
 
   QFrame *line = new QFrame(this);
   line->setFrameShape( QFrame::HLine );
@@ -201,6 +207,7 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   mStepUpButton->setFocusPolicy(Qt::NoFocus);
   mStepDownButton->setFocusPolicy(Qt::NoFocus);
   mAutofitButton->setFocusPolicy(Qt::NoFocus);
+  mFitSingleBox->setFocusPolicy(Qt::NoFocus);
   mDeleteButton->setFocusPolicy(Qt::NoFocus);
   mReturnButton->setFocusPolicy(Qt::NoFocus);
   mToFileButton->setFocusPolicy(Qt::NoFocus);
@@ -233,11 +240,14 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   connect(mStepUpButton, SIGNAL(clicked()), this, SLOT(stepUpClicked()) );
   connect(mAutofitButton, SIGNAL(clicked()), this, SLOT(autofitClicked()) );
   connect(mStepDownButton, SIGNAL(clicked()), this, SLOT(stepDownClicked()) );
+  connect(mFitSingleBox, SIGNAL(toggled(bool)), this, SLOT(fitSingleToggled(bool)));
   connect(mCloseButton, SIGNAL(clicked()), this, SLOT(close()) );
   connect(mSaveButton, SIGNAL(clicked()), mApp, SLOT(saveCurrentDefocus()) );
   connect(mDeleteButton, SIGNAL(clicked()), this, SLOT(deleteClicked()) );
   connect(mReturnButton, SIGNAL(clicked()), this, SLOT(setAnglesClicked()) );
   connect(mToFileButton, SIGNAL(clicked()), mApp, SLOT(writeDefocusFile()) );
+  connect(mTable, SIGNAL(cellDoubleClicked(int, int)), this, 
+          SLOT(rowDoubleClicked(int, int)));
 
   QHBoxLayout *defHLayout = new QHBoxLayout;
   defHLayout->addWidget(mDefocusLabel);
@@ -306,6 +316,7 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   leftVLayout->addWidget(line2);
   leftVLayout->addWidget(mAutofitButton);
   leftVLayout->addLayout(autoRangeHLayout);
+  leftVLayout->addWidget(mFitSingleBox);
   leftVLayout->addWidget(line3);
   leftVLayout->addLayout(tileParamHLayout);
   leftVLayout->addLayout(defTolHLayout);
@@ -329,6 +340,7 @@ AngleDialog::AngleDialog(QWidget *parent): QDialog(parent)
   QVBoxLayout *mainVLayout = new QVBoxLayout(this);
   mainVLayout->addLayout(topHLayout);
   mainVLayout->addWidget(mTable);
+  mainVLayout->setStretchFactor(mTable, 100);
   mainVLayout->addLayout(tabHLayout);
   mainVLayout->addLayout(bottomHLayout);
 }
@@ -377,6 +389,14 @@ void AngleDialog::stepDownClicked()
 {
   anglesSet(-1);
 }
+
+void AngleDialog::fitSingleToggled(bool state)
+{
+  mApp->setFitSingleViews(state);
+  mAutofitButton->setText(state ? tr("Autofit A&ll Single Views") :
+                         tr("Autofit A&ll Steps"));
+}
+
 
 /*
  * This is called after Apply or general Enter on text fields, and by the step buttons
@@ -645,6 +665,11 @@ void AngleDialog::setAnglesClicked()
   mHighAngleEdit->setText(str);
   qApp->processEvents();
   anglesSet(0);
+}
+
+void AngleDialog::rowDoubleClicked(int row, int column)
+{
+  setAnglesClicked();
 }
 
 void AngleDialog::closeEvent( QCloseEvent *e )

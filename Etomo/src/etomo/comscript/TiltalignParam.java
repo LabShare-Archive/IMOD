@@ -147,6 +147,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
           localOutputOptions);
       beamTiltOption.parse(scriptCommand);
       fixedOrInitialBeamTilt.parse(scriptCommand);
+      robustFitting.parse(scriptCommand);
+      kFactorScaling.parse(scriptCommand);
       String param = scriptCommand.getValue(OUTPUT_X_AXIS_TILT_FILE_KEY);
       if (param == null || param.matches("\\s*")) {
         outputXAxisTiltFile = DatasetFiles.getXTiltFileName(manager, axisID);
@@ -434,6 +436,8 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
     ParamUtilities.updateScriptParameter(scriptCommand, LOCAL_SKEW_NONDEFAULT_GROUP_KEY,
         localSkewNondefaultGroup);
     beamTiltOption.updateComScript(scriptCommand, true);
+    robustFitting.updateComScript(scriptCommand);
+    kFactorScaling.updateComScript(scriptCommand);
     //Only using FixedOrInitialBeamTilt for fixed beam tilt
     if (beamTiltOption.equals(FIXED_OPTION) && !fixedOrInitialBeamTilt.isDefault()) {
       fixedOrInitialBeamTilt.updateComScript(scriptCommand);
@@ -474,7 +478,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
     this.imageFile = imageFile;
   }
 
-  public void setImagesAreBinned(final long imagesAreBinned) {
+  public void setImagesAreBinned(final int imagesAreBinned) {
     this.imagesAreBinned.set(imagesAreBinned);
   }
 
@@ -853,6 +857,14 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
   public void setSurfacesToAnalyze(int surfacesToAnalyze) {
     this.surfacesToAnalyze.set(surfacesToAnalyze);
   }
+  
+  public void setRobustFitting(boolean input) {
+    robustFitting.set(input);
+  }
+  
+  public void setKFactorScaling(String input) {
+    kFactorScaling.set(input);
+  }
 
   /**
    * @param tiltDefaultGrouping The tiltDefaultGrouping to set.
@@ -908,7 +920,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
    * @param binning
    * @return true if changes where made
    */
-  public boolean upgradeOldVersion(long correctionBinning, long currentBinning) {
+  public boolean upgradeOldVersion(int correctionBinning, int currentBinning) {
     if (!isOldVersion()) {
       return false;
     }

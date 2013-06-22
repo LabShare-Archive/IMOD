@@ -110,8 +110,12 @@ public final class DialogType {
 
   public static final int TOTAL_PEET = peetIndex + 1;
 
-  //Storable names cannot be changed without handling the resulting backwards
-  //compatibility errors.
+  private static final int serialSectionsIndex = 1;
+
+  public static final int TOTAL_SERIAL_SECTIONS = serialSectionsIndex + 1;
+
+  // Storable names cannot be changed without handling the resulting backwards
+  // compatibility errors.
   private static final String SETUP_RECON_NAME = "SetupRecon";
   private static final String PRE_PROCESSING_NAME = "PreProc";
   private static final String COARSE_ALIGNMENT_NAME = "CoarseAlign";
@@ -129,6 +133,7 @@ public final class DialogType {
   private static final String PEET_STARTUP_NAME = "PeetStart";
   private static final String PEET_NAME = "Peet";
   private static final String TOOLS_NAME = "Tools";
+  private static final String DIRECTIVE_EDITOR_NAME = "DirectiveEditor";
 
   private final String name;
   private final int index;
@@ -198,7 +203,14 @@ public final class DialogType {
   public static final DialogType PEET_STARTUP = new DialogType(DataFileType.PEET, 0);
   public static final DialogType PEET = new DialogType(DataFileType.PEET, peetIndex);
 
+  public static final DialogType SERIAL_SECTIONS_STARTUP = new DialogType(
+      DataFileType.SERIAL_SECTIONS, 0);
+  public static final DialogType SERIAL_SECTIONS = new DialogType(
+      DataFileType.SERIAL_SECTIONS, serialSectionsIndex);
+
   public static final DialogType TOOLS = new DialogType(DataFileType.TOOLS, 0);
+  public static final DialogType DIRECTIVE_EDITOR = new DialogType(
+      DataFileType.DIRECTIVE_EDITOR, 0);
 
   private String toString(DataFileType dataFileType, int index) {
     if (dataFileType == DataFileType.RECON) {
@@ -227,7 +239,7 @@ public final class DialogType {
         return "Clean Up";
       }
     }
-    else if (dataFileType ==DataFileType.JOIN) {
+    else if (dataFileType == DataFileType.JOIN) {
       switch (index) {
       case joinIndex:
         return "Join";
@@ -253,6 +265,12 @@ public final class DialogType {
       switch (index) {
       case 0:
         return "Tools";
+      }
+    }
+    else if (dataFileType == DataFileType.DIRECTIVE_EDITOR) {
+      switch (index) {
+      case 0:
+        return "Directive Editor";
       }
     }
     return "";
@@ -314,6 +332,12 @@ public final class DialogType {
         return "Tools";
       }
     }
+    else if (dataFileType == DataFileType.DIRECTIVE_EDITOR) {
+      switch (index) {
+      case 0:
+        return "Dir-Ed";
+      }
+    }
     return "";
   }
 
@@ -373,6 +397,12 @@ public final class DialogType {
       switch (index) {
       case 0:
         return TOOLS_NAME;
+      }
+    }
+    else if (dataFileType == DataFileType.DIRECTIVE_EDITOR) {
+      switch (index) {
+      case 0:
+        return DIRECTIVE_EDITOR_NAME;
       }
     }
     return "";
@@ -461,6 +491,9 @@ public final class DialogType {
     if (storableName.equals(TOOLS_NAME)) {
       return TOOLS;
     }
+    if (storableName.equals(DIRECTIVE_EDITOR_NAME)) {
+      return DIRECTIVE_EDITOR;
+    }
     return null;
   }
 
@@ -477,8 +510,8 @@ public final class DialogType {
   public static DialogType load(DataFileType dataFileType, Properties props) {
     DialogType defaultType = getDefault(dataFileType);
     if (defaultType != null) {
-      return getInstance(props.getProperty(DialogType.PROPERTIES_KEY, defaultType
-          .toString()));
+      return getInstance(props.getProperty(DialogType.PROPERTIES_KEY,
+          defaultType.toString()));
     }
     return getInstance(props.getProperty(DialogType.PROPERTIES_KEY));
   }
@@ -489,6 +522,9 @@ public final class DialogType {
     }
     if (dataFileType == DataFileType.PEET) {
       return PEET;
+    }
+    if (dataFileType == DataFileType.DIRECTIVE_EDITOR) {
+      return DIRECTIVE_EDITOR;
     }
     return null;
   }

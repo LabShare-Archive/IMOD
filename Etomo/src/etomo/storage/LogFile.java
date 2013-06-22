@@ -16,6 +16,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Properties;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
@@ -56,8 +57,8 @@ import etomo.util.Utilities;
 public final class LogFile {
   public static final String rcsid = "$Id$";
 
-  private static final long NO_ID = -1;
-  public static final long NO_WAIT_LIMIT = -1;
+  private static final int NO_ID = -1;
+  public static final int NO_WAIT_LIMIT = -1;
   private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease make a copy "
       + "of the current etomo_err.log file and inform the software developer.";
 
@@ -69,12 +70,25 @@ public final class LogFile {
 
   private File file = null;
   private File backupFile = null;
+  private File doubleBackupFile = null;
   private FileWriter fileWriter = null;
   private BufferedWriter bufferedWriter = null;
   private FileInputStream inputStream = null;
   private FileOutputStream outputStream = null;
   private boolean backedUp = false;
   private boolean debug = false;
+
+  public void dumpState() {
+    System.err.println("[fileAbsolutePath:" + fileAbsolutePath + ",file:");
+    if (file != null) {
+      System.err.println(file.getAbsolutePath());
+    }
+    System.err.println(",backupFile:");
+    if (backupFile != null) {
+      System.err.println(backupFile.getAbsolutePath());
+    }
+    System.err.println(",backedUp:" + backedUp + ",debug:" + debug + "]");
+  }
 
   private LogFile(File file) {
     lock = new Lock(this);
@@ -157,6 +171,33 @@ public final class LogFile {
     return logFile;
   }
 
+  public static String getLineContaining(final File file, final String searchString) {
+    LogFile logFile = null;
+    ReaderId id = null;
+    try {
+      logFile = getInstance(file);
+      id = logFile.openReader();
+      if (id != null && !id.isEmpty()) {
+        String line = logFile.getLineContaining(id, searchString);
+        logFile.closeRead(id);
+        return line;
+      }
+    }
+    catch (LockException e) {
+      e.printStackTrace();
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    if (logFile != null && id != null && !id.isEmpty()) {
+      logFile.closeRead(id);
+    }
+    return null;
+  }
+
   /**
    * Try to do a backup and set backedUp to true.  This prevents more then one backup to
    * be done on the file during the lifetime of the instance.  This prevents the
@@ -177,6 +218,38 @@ public final class LogFile {
     return backupResult;
   }
 
+  public boolean isBackedup() {
+    return backedUp;
+  }
+
+  public synchronized boolean doubleBackupOnce() throws LockException {
+    if (backedUp) {
+      return false;
+    }
+    boolean backupResult = false;
+    doubleBackup();
+    backupResult = backup();
+    backedUp = true;
+    return backupResult;
+  }
+
+  private void doubleBackup() throws LockException {
+    createBackupFile();
+    createDoubleBackupFile();
+    backup(backupFile, doubleBackupFile);
+    backupFile = null;
+    doubleBackupFile = null;
+  }
+
+  public synchronized boolean backup() throws LockException {
+    createFile();
+    createBackupFile();
+    boolean retval = backup(file, backupFile);
+    file = null;
+    backupFile = null;
+    return retval;
+  }
+
   /**
    * Delete the current backup file and rename the current file to be the new
    * backup file.  The current backup file will not be deleted unless the
@@ -185,17 +258,16 @@ public final class LogFile {
    * @return true if backup() successful or already backed up
    * @throws FileException
    */
-  public synchronized boolean backup() throws LockException {
+  public synchronized boolean backup(final File file, final File backupFile)
+      throws LockException {
     if (backedUp) {
       return false;
     }
-    createFile();
     if (!file.exists()) {
       return false;
     }
     FileId fileId = new FileId();
     lock.lock(LockType.FILE, fileId);
-    createBackupFile();
     if (!file.exists()) {
       // nothing to backup
       try {
@@ -259,8 +331,6 @@ public final class LogFile {
       System.err.println(actionMessage);
     }
     // reset the File variables sinces the file names may have changed.
-    file = null;
-    backupFile = null;
     try {
       lock.unlock(LockType.FILE, fileId);
     }
@@ -486,7 +556,7 @@ public final class LogFile {
   }
 
   /**
-   * Run open(long) with no wait limit.  This function can cause deadlock.
+   * Run open with no wait limit.  This function can cause deadlock.
    * @see waitForLock()
    * @return
    */
@@ -750,6 +820,33 @@ public final class LogFile {
     }
   }
 
+  /**
+   * Returns the first line that contains searchString
+   * @param id
+   * @param searchString
+   * @return
+   * @throws LockException
+   * @throws IOException
+   */
+  public synchronized String getLineContaining(ReaderId id, String searchString)
+      throws LockException, IOException {
+    if (!lock.isLocked(LockType.READ, id)) {
+      throw new LockException(this, id);
+    }
+    createFile();
+    Reader reader = readingTokenList.getReader(ReadingTokenList.makeKey(id));
+    if (reader != null) {
+      String line = reader.readLine();
+      while (line != null) {
+        if (line.indexOf(searchString) != -1) {
+          return line;
+        }
+        line = reader.readLine();
+      }
+    }
+    return null;
+  }
+
   public synchronized void load(Properties properties, InputStreamId inputStreamId)
       throws LockException, IOException {
     if (inputStream == null || !lock.isLocked(LockType.WRITE, inputStreamId)) {
@@ -830,6 +927,14 @@ public final class LogFile {
       return;
     }
     backupFile = new File(fileAbsolutePath + DatasetFiles.BACKUP_CHAR);
+  }
+
+  private void createDoubleBackupFile() {
+    if (doubleBackupFile != null) {
+      return;
+    }
+    doubleBackupFile = new File(fileAbsolutePath + DatasetFiles.BACKUP_CHAR
+        + DatasetFiles.BACKUP_CHAR);
   }
 
   private void createWriter(final boolean append) throws IOException {
@@ -940,6 +1045,13 @@ public final class LogFile {
   /**
    * @return true if the open variabled is locked.
    */
+  synchronized boolean isOpen() {
+    return lock.isLocked();
+  }
+
+  /**
+   * @return true if the open variabled is locked.
+   */
   synchronized boolean isOpen(LockType lockType, Id id) {
     return lock.isLocked(lockType, id);
   }
@@ -1013,9 +1125,9 @@ public final class LogFile {
 
     private boolean warningDisplayed = false;
     private boolean locked = false;
-    private long currentId = NO_ID;
-    private long writeId = NO_ID;
-    private long fileId = NO_ID;
+    private int currentId = NO_ID;
+    private int writeId = NO_ID;
+    private int fileId = NO_ID;
 
     private Lock(final LogFile logFile) {
       this.logFile = logFile;
@@ -1030,14 +1142,14 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         return null;
       }
       return id.toString();
     }
 
-    private static String makeKey(final long id) {
+    private static String makeKey(final int id) {
       return String.valueOf(id);
     }
 
@@ -1057,7 +1169,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         if (throwException) {
           throw idNull;
@@ -1094,7 +1206,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         if (throwException) {
           throw idNull;
@@ -1122,7 +1234,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1131,6 +1243,10 @@ public final class LogFile {
         locked = false;
       }
       return;
+    }
+
+    private boolean isLocked() {
+      return locked;
     }
 
     private boolean isLocked(final LockType lockType, final Id id) {
@@ -1162,7 +1278,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1186,7 +1302,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1210,7 +1326,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         if (throwException) {
           throw idNull;
@@ -1226,7 +1342,7 @@ public final class LogFile {
           // Popups from this class appear rarely and the class is used everywhere.
           // It is not a good idea to pass the manager to this class in order to
           // get the message behave perfectly.
-          UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+          UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
               + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         }
       }
@@ -1250,12 +1366,12 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, e.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, e.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
       }
     }
 
-    private long getWriteId() {
+    private int getWriteId() {
       return writeId;
     }
   }
@@ -1276,7 +1392,7 @@ public final class LogFile {
         // Popups from this class appear rarely and the class is used everywhere.
         // It is not a good idea to pass the manager to this class in order to
         // get the message behave perfectly.
-        UIHarness.INSTANCE.openMessageDialog(null, idNull.getMessage()
+        UIHarness.INSTANCE.openMessageDialog((BaseManager) null, idNull.getMessage()
             + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
         return "";
       }
@@ -1520,17 +1636,17 @@ public final class LogFile {
   }
 
   static class Id {
-    private long id = NO_ID;
+    private int id = NO_ID;
 
-    void set(long input) {
+    void set(int input) {
       this.id = input;
     }
 
-    long get() {
+    int get() {
       return id;
     }
 
-    private boolean equals(long input) {
+    private boolean equals(int input) {
       return id == input;
     }
 
@@ -1539,7 +1655,7 @@ public final class LogFile {
     }
 
     public String toString() {
-      return Long.toString(get());
+      return Integer.toString(get());
     }
   }
 

@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
@@ -28,6 +27,7 @@ static void expandIndexToRGB(unsigned char **datap, ImodImageFile *iifile,
 static void convertLongToFloat(unsigned char *tifdata, ImodImageFile *iifile);
 static void manageMode(Tf_info *tiff, int keepUshort, int forceSigned, 
                        int makegray, int *pixSize, int *mode);
+static int manageTVIPSdata(ImodImageFile *iifile, char *label, float *tiltAngle);
 
 int main( int argc, char *argv[])
 {
@@ -54,18 +54,24 @@ int main( int argc, char *argv[])
   int forceSigned = 0;
   int readFirst = 0;
   int useNTSC = 0;
-  int xsize, ysize;
-  int mrcxsize = 0, mrcysize = 0, mrcsizeset;
-  float userFill, fillVal, mean, tmean, pixelSize = 1.;
+  int anyTifPixel = 0;
+  int pixelEntered = 0;
+  int invertStack = 0;
+  int xsize, ysize, iread, inSection;
+  int mrcxsize = 0, mrcysize = 0;
+  float userFill, fillVal, mean, tmean, tiltAngle, pixelSize = 1., yPixelSize = 1.;
   float chunkCriterion = 100.;
   b3dInt16 *sptr;
   b3dInt16 *bgshort;
-  int bgBits, bgxsize, bgysize, xoffset, yoffset, y, ydo;
+  int bgBits, bgxsize, bgysize, xoffset, yoffset, y, ydo, firstFileInd;
   int doChunks, chunk, numChunks, linesPerChunk, nlines, linesDone;
   unsigned char *fillPtr;
   unsigned char byteFill[3];
   b3dInt16 shortFill;
   b3dUInt16 ushortFill;
+  char label[MRC_LABEL_SIZE];
+  char *tiltFile = NULL;
+  FILE *tiltfp;
   char *openmode = "rb";
   char *bgfile;
   char *progname = imodProgName(argv[0]);
@@ -78,31 +84,28 @@ int main( int argc, char *argv[])
   mean = 0;
   min = 100000;
   max = -100000;
+  label[0] = 0x00;
 
   if (argc < 3){
-    printf("Tif2mrc Version %s %s %s\n" , VERSION_NAME,
-            __DATE__, __TIME__);
+    printf("Tif2mrc Version %s %s %s\n" , VERSION_NAME, __DATE__, __TIME__);
     imodCopyright();
     printf("Usage: %s [options] <tiff files...> <mrcfile>\n" , progname);
     printf("Options:\n");
     printf("\t-g      Convert 24-bit RGB to 8-bit grayscale\n");
-    printf("\t-G      Convert 24-bit RGB to 8-bit grayscale with NTSC"
-            " scaling\n");
-    printf("\t-u      Convert unsigned 16-bit values by "
-            "subtracting 32768\n");
-    printf("\t-d      Convert unsigned 16-bit values by "
-            "dividing by 2\n");
-    printf("\t-k      Keep unsigned 16-bit values; store in unsigned "
-            "integer mode\n");
-    printf("\t-s      Store as signed integers (mode 1) even if data "
-            "are unsigned\n");
+    printf("\t-G      Convert 24-bit RGB to 8-bit grayscale with NTSC scaling\n");
+    printf("\t-u      Convert unsigned 16-bit values by subtracting 32768\n");
+    printf("\t-d      Convert unsigned 16-bit values by dividing by 2\n");
+    printf("\t-k      Keep unsigned 16-bit values; store in unsigned integer mode\n");
+    printf("\t-s      Store as signed integers (mode 1) even if data are unsigned\n");
+    printf("\t-i      Invert order of sections in output stack\n");
     printf("\t-p  #   Set pixel spacing in MRC header to given #\n");
+    printf("\t-P      Set pixel spacing in MRC header from resolution in TIFF file\n");
+    printf("\t-T file Output tilt angles from TVIPS input files to given file\n");
     printf("\t-f      Read only first image of multi-page file\n");
     printf("\t-o x,y  Set output file size in X and Y\n");
     printf("\t-F  #   Set value to fill areas with no image data to given #\n");
     printf("\t-b file Background subtract image in given file\n");
-    printf("\t-t #    Set criterion in megabytes for reading files in "
-           "chunks\n");
+    printf("\t-t #    Set criterion in megabytes for reading files in chunks\n");
     printf("\t-m      Turn off file-to-memory mapping in libtiff\n");
 
     exit(3);
@@ -140,10 +143,21 @@ int main( int argc, char *argv[])
         forceSigned = 1;
         break;
  
+      case 'i': /* Invert output stack */
+        invertStack = 1;
+        break;
+
       case 'p': /* Insert pixel size in header */
         pixelSize = atof(argv[++iarg]);
         if (pixelSize <= 0.)
           pixelSize = 1.;
+        else
+          pixelEntered = 1;
+        yPixelSize = pixelSize;
+        break;
+
+      case 'P': /* Use resolution from TIFF file regardless of value */
+        anyTifPixel = 1;
         break;
 
       case 'f': /* read only first image */
@@ -173,6 +187,9 @@ int main( int argc, char *argv[])
         chunkCriterion = atof(argv[++iarg]);
         break;
 
+      case 'T':
+        tiltFile = strdup(argv[++iarg]);
+
       default:
         break;
       }
@@ -193,6 +210,14 @@ int main( int argc, char *argv[])
     forceSigned = 1;
   tiffFilterWarnings();
   chunkCriterion *= 1024 * 1024;
+  if (pixelEntered && anyTifPixel)
+    exitError("You cannot enter both -p and -P");
+  if (tiltFile) {
+    imodBackupFile(tiltFile);
+    tiltfp = fopen(tiltFile, "w");
+    if (!tiltfp)
+      exitError("Opening tilt angle file %s", tiltFile);
+  }
 
   if (iarg == (argc - 2) && !readFirst){
 
@@ -200,7 +225,7 @@ int main( int argc, char *argv[])
     /* Open the TIFF file. */
     int tiffPages;
 
-    if (tiff_open_file(argv[iarg], openmode, &tiff))
+    if (tiff_open_file(argv[iarg], openmode, &tiff, anyTifPixel))
       exitError("Couldn't open %s.", argv[iarg]);
        
     tiffp = tiff.fp;
@@ -251,15 +276,15 @@ int main( int argc, char *argv[])
              tiffPages, xsize, ysize);
 
       for (section = 0; section < tiffPages; section++) {
+        inSection = invertStack ? tiffPages - 1 - section : section;
           
-        tifdata = (unsigned char *)tiff_read_section
-          (tiffp, &tiff, section);
+        tifdata = (unsigned char *)tiff_read_section(tiffp, &tiff, inSection);
 
         if (!tifdata)
-          exitError("Failed to get image data for section %d", section);
+          exitError("Failed to get image data for section %d", inSection);
 
         if (tiff.PhotometricInterpretation == 3)
-          expandIndexToRGB(&tifdata, tiff.iifile, section);
+          expandIndexToRGB(&tifdata, tiff.iifile, inSection);
 
         /* convert RGB to gray scale */
         if (tiff.PhotometricInterpretation / 2 == 1 && makegray)
@@ -268,9 +293,7 @@ int main( int argc, char *argv[])
         /* Convert long ints to floats */
         convertLongToFloat(tifdata, tiff.iifile);
 
-         
-        mean += minmaxmean(tifdata, mode, unsign, divide, xsize, 
-                           ysize, &min, &max);
+        mean += minmaxmean(tifdata, mode, unsign, divide, xsize, ysize, &min, &max);
 
         mrc_big_seek( mrcfp, 1024, section * xsize, ysize * pixSize, SEEK_SET);
      
@@ -281,13 +304,17 @@ int main( int argc, char *argv[])
         free(tifdata);
       }
       /* write more info to mrc header. 1/17/04 eliminate unneeded rewind */
+      if (tiff.iifile && !pixelEntered) {
+        pixelSize = tiff.iifile->xscale;
+        yPixelSize = tiff.iifile->yscale;
+      }
       hdata.nx = xsize;
       hdata.ny = ysize;
       hdata.mx = hdata.nx;
       hdata.my = hdata.ny;
       hdata.mz = hdata.nz;
       hdata.xlen = hdata.nx * pixelSize;
-      hdata.ylen = hdata.ny * pixelSize;
+      hdata.ylen = hdata.ny * yPixelSize;
       hdata.zlen = hdata.nz * pixelSize;
       if (mode == MRC_MODE_RGB) {
         hdata.amax = 255;
@@ -313,10 +340,9 @@ int main( int argc, char *argv[])
   
   /* read in bg file */
   if (bg){
-    if (tiff_open_file(bgfile, openmode, &tiff))
+    if (tiff_open_file(bgfile, openmode, &tiff, anyTifPixel))
       exitError("Couldn't open %s.", bgfile);
     bgfp = tiff.fp;
-
     bgdata = (unsigned char *)tiff_read_file(bgfp, &tiff);
     if (!bgdata)
       exitError("Reading %s.", bgfile);
@@ -365,17 +391,23 @@ int main( int argc, char *argv[])
   mrc_head_new(&hdata, xsize, ysize, argc - iarg - 1, mode);
   mrc_head_write(mrcfp, &hdata);
 
-  mrcsizeset = iarg;
-
   /* Loop through all the tiff files adding them to the MRC stack. */
+  firstFileInd = iarg;
   for (; iarg < argc - 1 ; iarg++){
+    iread = invertStack ? firstFileInd + argc - 2 - iarg : iarg;
        
     /* Open the TIFF file. */
-    if (tiff_open_file(argv[iarg], openmode, &tiff))
-      exitError("Couldn't open %s.", argv[iarg]);
-    printf("Opening %s for input\n", argv[iarg]);
+    if (tiff_open_file(argv[iread], openmode, &tiff, anyTifPixel))
+      exitError("Couldn't open %s.", argv[iread]);
+    printf("Opening %s for input\n", argv[iread]);
     fflush(stdout);
     tiffp = tiff.fp;
+    k = manageTVIPSdata(tiff.iifile, label, &tiltAngle);
+    if (tiltFile) {
+      if (k)
+        exitError("There is no tilt angle value in this file");
+      fprintf(tiltfp, "%7.2f\n", tiltAngle);
+    }
 
     /* Decide whether to set up chunks */
     doChunks = 0;
@@ -407,19 +439,25 @@ int main( int argc, char *argv[])
       /* Read in tiff file */
       tifdata = (unsigned char *)tiff_read_file(tiffp, &tiff);
       if (!tifdata)
-        exitError("Reading %s.", argv[iarg]);
+        exitError("Reading %s.", argv[iread]);
 
       xsize = tiff.directory[WIDTHINDEX].value;
       ysize = tiff.directory[LENGTHINDEX].value;
       if (!nlines)
         nlines = ysize;
 
-      if (!chunk && mrcsizeset == iarg){
+      if (!chunk && firstFileInd == iarg){
         if (!mrcxsize || !mrcysize) {
           mrcxsize = xsize;
           mrcysize = ysize;
         }
         manageMode(&tiff, keepUshort, forceSigned, makegray, &pixSize, &mode);
+
+        /* Collect the pixel size the first time */
+        if (tiff.iifile && !pixelEntered) {
+          pixelSize = tiff.iifile->xscale;
+          yPixelSize = tiff.iifile->yscale;
+        }
       }
 
       if ((tiff.BitsPerSample == 16 && mode != MRC_MODE_SHORT && 
@@ -485,7 +523,7 @@ int main( int argc, char *argv[])
         b3dFwrite(tifdata , pixSize * xsize, nlines, mrcfp);
 
       } else {
-        printf("WARNING: tif2mrc - File %s not same size.\n", argv[iarg]);
+        printf("WARNING: tif2mrc - File %s not same size.\n", argv[iread]);
         
         /* Unequal sizes: set the fill value and pointer */
         fillVal = fillEntered ? userFill : tmean;
@@ -549,7 +587,7 @@ int main( int argc, char *argv[])
   hdata.my = hdata.ny;
   hdata.mz = hdata.nz;
   hdata.xlen = hdata.nx * pixelSize;
-  hdata.ylen = hdata.ny * pixelSize;
+  hdata.ylen = hdata.ny * yPixelSize;
   hdata.zlen = hdata.nz * pixelSize;
   if (mode == MRC_MODE_RGB) {
     hdata.amax = 255;
@@ -563,12 +601,19 @@ int main( int argc, char *argv[])
   }
   hdata.mode = mode;
   mrc_head_label(&hdata, "tif2mrc: Converted to MRC format.");
+  if (label[0] != 0x00) {
+    for (k = strlen(label); k < MRC_LABEL_SIZE; k++)
+      label[k] = ' ';
+    memcpy(&hdata.labels[hdata.nlabl], label, MRC_LABEL_SIZE);
+    hdata.nlabl++;
+  }
   mrc_head_write(mrcfp, &hdata);
 
   /* cleanup */
   if (mrcfp)
     fclose(mrcfp);
-
+  if (tiltFile)
+    fclose(tiltfp);
   exit(0);
 
 }
@@ -752,59 +797,66 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
   return (tmean / (xysize));
 }
 
-/* 
-   $Log$
-   Revision 3.25  2011/07/26 17:41:51  mast
-   Fixed test for files having same mode to include byte output
+static int manageTVIPSdata(ImodImageFile *iifile, char *label, float *tiltAngle)
+{
+  float axisAngle, spotFloat;
+  static float lastAxis;
+  int spotInt, binning;
+  static int lastSpot, lastBinning;
+  static int sameSpot = -1, sameBin = -1, sameAxis = -1;
+  if (!iifile || !iifile->userData || iifile->userCount < 4260 || 
+      !(iifile->userFlags & IIFLAG_TVIPS_DATA))
+    return 1;
 
-   Revision 3.24  2011/07/25 02:53:10  mast
-   Fix name of byte shifting function
+  /* Fetch the items and swap them if necessary */
+  memcpy(&axisAngle, &iifile->userData[3704], 4);
+  memcpy(tiltAngle, &iifile->userData[3564], 4);
+  memcpy(&spotFloat, &iifile->userData[3624], 4);
+  memcpy(&binning, &iifile->userData[3944], 4);
+  if (iifile->userFlags & IIFLAG_BYTES_SWAPPED) {
+    mrc_swap_floats(&axisAngle, 1);
+    mrc_swap_floats(tiltAngle, 1);
+    mrc_swap_floats(&spotFloat, 1);
+    mrc_swap_longs(&binning, 1);
+  }
+  spotInt = B3DNINT(spotFloat);
 
-   Revision 3.23  2011/07/25 02:45:17  mast
-   Changes for working with signed bytes
+  /* Keep track of whether items have been the same every time */
+  if (spotInt < 1)
+    sameSpot = 0;
+  if (binning < 1)
+    sameBin = 0;
+  if (sameSpot < 0)
+    sameSpot = 1;
+  else if (sameSpot > 0 && spotInt != lastSpot)
+    sameSpot = 0;
+  if (sameBin < 0)
+    sameBin = 1;
+  else if (sameBin > 0 && binning != lastBinning)
+    sameBin = 0;
+  if (sameAxis < 0)
+    sameAxis = 1;
+  else if (sameAxis > 0 && fabs((double)axisAngle - lastAxis) > 1.e-5)
+    sameAxis = 0;
+  lastAxis = axisAngle;
+  lastSpot = spotInt;
+  lastBinning = binning;
 
-   Revision 3.22  2011/03/05 03:42:02  mast
-   Allow environment variable to prevent backing up file
+  /* Convert to angle relative to Y and print out whatever matches */
+  axisAngle -= 90.;
+  if (axisAngle < -180.)
+    axisAngle += 360.;
+  if (axisAngle > 180.)
+    axisAngle -= 360.;
 
-   Revision 3.21  2011/01/31 17:35:14  mast
-   Fixed stacking of files of different sizes
-
-   Revision 3.20  2010/12/18 18:47:08  mast
-   Added ability to read in chunks and made it work with > 2 GB files.
-
-   Revision 3.19  2009/06/19 20:49:31  mast
-   Added ability to read integer files
-
-   Revision 3.18  2009/04/01 00:00:47  mast
-   Suppress warnings on unrecognized tags, add pixel size option
-
-   Revision 3.17  2008/05/23 22:56:08  mast
-   Added float support, NTSC gray option, standardized error output
-
-   Revision 3.16  2007/10/15 21:42:57  mast
-   Fixed log setup
-
-   Revision 3.15  2007/10/15 21:36:24  mast
-   Fixed output of unequal sized data to use b3dFwrite instead of fputc, made
-   it put out centered data and work for all modes, added output size option
-
-   Revision 3.14  2006/08/28 05:26:44  mast
-   Added abiity to handle colormapped images
-   
-   Revision 3.13  2006/01/13 05:00:50  mast
-   Added option to suppress reading of multiple pages.
-   
-   Revision 3.12  2005/11/11 21:55:28  mast
-   Outputs unsigned file mode
-   
-   Revision 3.11  2005/02/11 01:42:34  mast
-   Warning cleanup: implicit declarations, main return type, parentheses, etc.
-   
-   Revision 3.10  2004/11/05 18:53:10  mast
-   Include local files with quotes, not brackets
-   
-   Revision 3.9  2004/09/10 21:33:31  mast
-   Eliminated long variables
-   
-*/
-
+  if (sameAxis > 0 && sameSpot > 0 && sameBin > 0)
+    sprintf(label, "    Tilt axis angle = %.1f, binning = %d  spot = %d", axisAngle, 
+            binning, spotInt);
+  else if (sameAxis > 0 && sameBin > 0)
+    sprintf(label, "    Tilt axis angle = %.1f, binning = %d", axisAngle, binning);
+  else if (sameAxis > 0)
+    sprintf(label, "    Tilt axis angle = %.1f", axisAngle);
+  else
+    label[0] = 0x00;
+  return 0;
+}

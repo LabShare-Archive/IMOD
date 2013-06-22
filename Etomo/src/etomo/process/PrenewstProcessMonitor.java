@@ -104,11 +104,14 @@ import etomo.util.MRCHeader;
 
 public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
+  
+  private final ApplicationManager applicationManager;
 
   private String dataSetPath = null;
 
   public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id, ProcessName.PRENEWST);
+    this.applicationManager=appMgr;
   }
 
   /**
@@ -124,9 +127,9 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the header from the raw stack to calculate the aligned stack size
     loadDataSetPath();
-    MRCHeader rawStack = MRCHeader.getInstance(applicationManager.getPropertyUserDir(),
+    MRCHeader rawStack = MRCHeader.getInstance(manager.getPropertyUserDir(),
         dataSetPath + ".st", axisID);
-    if (!rawStack.read(applicationManager)) {
+    if (!rawStack.read(manager)) {
       return false;
     }
 
@@ -149,7 +152,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     }
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes,
+    manager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes,
         axisID);
     return true;
   }
@@ -164,7 +167,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     if (dataSetPath != null) {
       return;
     }
-    dataSetPath = applicationManager.getPropertyUserDir() + "/"
+    dataSetPath = manager.getPropertyUserDir() + "/"
         + applicationManager.getMetaData().getDatasetName() + axisID.getExtension();
   }
 }

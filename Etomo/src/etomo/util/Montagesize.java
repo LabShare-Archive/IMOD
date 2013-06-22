@@ -29,17 +29,18 @@ import etomo.type.EtomoNumber;
  */
 public class Montagesize {
   public static final String rcsid = "$Id$";
-  private static final String fileExtension = ".st";
+  
+  private static final String EXT = ".pl";
   //
-  //n'ton member variables
+  // n'ton member variables
   //
   private static Hashtable instances = new Hashtable();
   //
-  //member variables to prevent unnecessary reads
+  // member variables to prevent unnecessary reads
   //
   private FileModifiedFlag modifiedFlag;
   //
-  //other member variables
+  // other member variables
   //
   private EtomoNumber x = new EtomoNumber(EtomoNumber.Type.INTEGER);
   private EtomoNumber y = new EtomoNumber(EtomoNumber.Type.INTEGER);
@@ -51,9 +52,11 @@ public class Montagesize {
 
   private boolean fileExists = false;
   String[] commandArray = null;
+  private boolean ignorePieceListFile = false;
+  private int exitValue = -1;
 
   //
-  //n'ton functions
+  // n'ton functions
   //
   /**
    * private constructor
@@ -72,13 +75,15 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  public static Montagesize getInstance(BaseManager manager, AxisID axisID) {
+  public static Montagesize getInstance(BaseManager manager, AxisID axisID,
+      final String fileExtension) {
     File keyFile = Utilities.getFile(manager, axisID, fileExtension);
     String key = makeKey(keyFile);
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
       return createInstance(manager.getPropertyUserDir(), key, keyFile, axisID);
     }
+    montagesize.setToDefaults();
     return montagesize;
   }
 
@@ -97,6 +102,7 @@ public class Montagesize {
     if (montagesize == null) {
       return createInstance(fileLocation, key, keyFile, axisID);
     }
+    montagesize.setToDefaults();
     return montagesize;
   }
 
@@ -134,7 +140,7 @@ public class Montagesize {
   }
 
   //
-  //other functions
+  // other functions
   //
   /**
    * construct a piece list file
@@ -142,11 +148,15 @@ public class Montagesize {
    */
   private File makePieceListFile() {
     String filePath = file.getAbsolutePath();
-    int extensionIndex = filePath.lastIndexOf(fileExtension);
-    if (extensionIndex == -1) {
-      throw new IllegalStateException("bad file name: file=" + file.getAbsolutePath());
+    int extensionIndex = filePath.lastIndexOf(".");
+    if (extensionIndex == -1 || extensionIndex == 0) {
+      return new File(filePath + EXT);
     }
-    return new File(filePath.substring(0, extensionIndex) + ".pl");
+    return new File(filePath.substring(0, extensionIndex) + EXT);
+  }
+
+  public boolean pieceListFileExists() {
+    return makePieceListFile().exists();
   }
 
   /**
@@ -159,6 +169,7 @@ public class Montagesize {
     y.reset();
     z.reset();
     commandArray = null;
+    exitValue = -1;
   }
 
   private final void buildCommand() {
@@ -169,7 +180,7 @@ public class Montagesize {
       return;
     }
     File pieceListFile = makePieceListFile();
-    if (pieceListFile.exists()) {
+    if (pieceListFile.exists() && !ignorePieceListFile) {
       commandArray = new String[3];
     }
     else {
@@ -177,10 +188,26 @@ public class Montagesize {
     }
     commandArray[0] = ApplicationManager.getIMODBinPath() + "montagesize";
     commandArray[1] = file.getAbsolutePath();
-    if (pieceListFile.exists()) {
-      //bug# 1336
+    if (pieceListFile.exists() && !ignorePieceListFile) {
+      // bug# 1336
       commandArray[2] = pieceListFile.getAbsolutePath();
     }
+  }
+
+  private void setToDefaults() {
+    setIgnorePieceListFile(false);
+  }
+
+  public synchronized void setIgnorePieceListFile(final boolean input) {
+    if (ignorePieceListFile != input) {
+      modifiedFlag.reset();
+      reset();
+    }
+    ignorePieceListFile = input;
+  }
+
+  public int getExitValue() {
+    return exitValue;
   }
 
   /**
@@ -199,13 +226,13 @@ public class Montagesize {
       return false;
     }
     fileExists = true;
-    //If the file hasn't been modified, don't reread
+    // If the file hasn't been modified, don't reread
     if (!modifiedFlag.isModifiedSinceLastRead()) {
       return false;
     }
-    //put first timestamp after decide to read
+    // put first timestamp after decide to read
     Utilities.timestamp("read", "montagesize", file, Utilities.STARTED_STATUS);
-    //Run the montagesize command on the file.
+    // Run the montagesize command on the file.
     buildCommand();
     SystemProgram montagesize = new SystemProgram(manager, propertyUserDir, commandArray,
         axisID);
@@ -213,7 +240,8 @@ public class Montagesize {
     modifiedFlag.setReadingNow();
     montagesize.run();
 
-    if (montagesize.getExitValue() != 0) {
+    exitValue = montagesize.getExitValue();
+    if (exitValue != 0) {
       String[] stdOutput = montagesize.getStdOutput();
       if (stdOutput != null && stdOutput.length > 0) {
         ProcessMessages messages = montagesize.getProcessMessages();
@@ -249,8 +277,8 @@ public class Montagesize {
     }
 
     for (int i = 0; i < stdOutput.length; i++) {
-      //  Parse the size of the data
-      //  Note the initial space in the string below
+      // Parse the size of the data
+      // Note the initial space in the string below
       String outputLine = stdOutput[i].trim();
       if (outputLine.startsWith("Total NX, NY, NZ:")) {
         String[] tokens = outputLine.split("\\s+");
@@ -317,7 +345,7 @@ public class Montagesize {
   }
 
   //
-  //self test functions
+  // self test functions
   //
   void selfTestInvariants() {
     if (!Utilities.isSelfTest()) {
