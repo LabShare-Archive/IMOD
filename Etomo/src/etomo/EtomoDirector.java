@@ -103,64 +103,62 @@ public class EtomoDirector {
   }
 
   public static void main(String[] args) {
-    SwingUtilities.invokeLater(new Setup(args));
+    EtomoDirector.INSTANCE.arguments.parse(args);
+    if (EtomoDirector.INSTANCE.arguments.isHeadless()) {
+      setup(args);
+    }
+    else {
+      SwingUtilities.invokeLater(new Setup(args));
+    }
   }
 
-  private static final class Setup implements Runnable {
-    private final String[] args;
-
-    private Setup(final String[] args) {
-      this.args = args;
-    }
-
-    public void run() {
-      try {
-        EtomoDirector.INSTANCE.arguments.parse(args);
-        if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
-          // Print out java properties
-          Enumeration enumeration = System.getProperties().propertyNames();
-          while (enumeration.hasMoreElements()) {
-            Object key = enumeration.nextElement();
-            System.err.println(key + ":  " + System.getProperty((String) key));
-          }
+  private static void setup(final String[] args) {
+    try {
+      EtomoDirector.INSTANCE.arguments.parse(args);
+      if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
+        // Print out java properties
+        Enumeration enumeration = System.getProperties().propertyNames();
+        while (enumeration.hasMoreElements()) {
+          Object key = enumeration.nextElement();
+          System.err.println(key + ":  " + System.getProperty((String) key));
         }
-        if (EtomoDirector.INSTANCE.arguments.isDebug()) {
-          // print more environment info
+      }
+      if (EtomoDirector.INSTANCE.arguments.isDebug()) {
+        // print more environment info
+        System.err.println();
+        Map env = System.getenv();
+        Set keys = env.keySet();
+        Iterator iterator = keys.iterator();
+        while (iterator.hasNext()) {
+          Object key = iterator.next();
+          System.err.println(key + ":  " + env.get(key));
+        }
+        if (EtomoDirector.INSTANCE.arguments.getDebugLevel() > 1) {
           System.err.println();
-          Map env = System.getenv();
-          Set keys = env.keySet();
-          Iterator iterator = keys.iterator();
-          while (iterator.hasNext()) {
-            Object key = iterator.next();
-            System.err.println(key + ":  " + env.get(key));
-          }
-          if (EtomoDirector.INSTANCE.arguments.getDebugLevel() > 1) {
-            System.err.println();
-            System.err.println("Java lib:");
-            File libDir = new File(new File(System.getProperty("java.home")), "lib");
-            String[] libDirList = libDir.list();
-            if (libDirList != null) {
-              for (int i = 0; i < libDirList.length; i++) {
-                System.err.println(libDirList[i]);
-              }
+          System.err.println("Java lib:");
+          File libDir = new File(new File(System.getProperty("java.home")), "lib");
+          String[] libDirList = libDir.list();
+          if (libDirList != null) {
+            for (int i = 0; i < libDirList.length; i++) {
+              System.err.println(libDirList[i]);
             }
           }
         }
-        if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
-          Utilities.dateTimeStamp();
-          Utilities.setStartTime();
-        }
-        INSTANCE.initialize();
-        // automation must be done last in main, otherwise initialization may not
-        // complete normally.
-        EtomoDirector.INSTANCE.doAutomation();
       }
-      catch (OutOfMemoryError e) {
-        e.printStackTrace();
-        UIHarness.INSTANCE.openMessageDialog(null, "WARNING:  Ran out of memory."
-            + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
-        throw e;
+      if (!EtomoDirector.INSTANCE.arguments.isHelp()) {
+        Utilities.dateTimeStamp();
+        Utilities.setStartTime();
       }
+      INSTANCE.initialize();
+      // automation must be done last in main, otherwise initialization may not
+      // complete normally.
+      EtomoDirector.INSTANCE.doAutomation();
+    }
+    catch (OutOfMemoryError e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(null, "WARNING:  Ran out of memory."
+          + "\nPlease close open log file windows or exit Etomo.", "Out of Memory");
+      throw e;
     }
   }
 
@@ -1127,6 +1125,18 @@ public class EtomoDirector {
 
   private void setAdvanced(boolean state) {
     isAdvanced = state;
+  }
+
+  private static final class Setup implements Runnable {
+    private final String[] args;
+
+    private Setup(final String[] args) {
+      this.args = args;
+    }
+
+    public void run() {
+      setup(args);
+    }
   }
 
   private final class UtilityThread implements Runnable {
