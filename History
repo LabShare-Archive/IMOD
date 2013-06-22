@@ -1,7 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/21/13: Placed all of eTomo's initialization into the Swing event loop in
-order make eTomo work with Java for Mac 1.6.0_51 (update 16).(Bug# 1717)
+6/22/13: Placed all of eTomo's initialization into the Swing event loop in
+order make eTomo work with Java for Mac 1.6.0_51 (update 16) (In 4.5).
+(Bug# 1717)
 
 6/20/13: IMOD_4-6-22
 6/18/13: Made a subm script to start submfg in the background in cases where
