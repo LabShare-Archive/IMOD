@@ -65,13 +65,14 @@ final class MaskingPanel implements UIComponent, SwingComponent {
   private static final String INSIDE_MASK_RADIUS_LABEL = "Inner radius: ";
   private static final String OUTSIDE_MASK_RADIUS_LABEL = "Outer radius: ";
   public static final String MAST_TYPE_LABEL = "Masking";
+  private static final String MAST_TYPE_FILE_LABEL = "User supplied binary file:";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgMaskType = new ButtonGroup();
   private final RadioButton rbMaskTypeNone = new RadioButton("None",
       MatlabParam.MaskType.NONE, bgMaskType);
-  private final RadioButton rbMaskTypeFile = new RadioButton(
-      "User supplied binary file:", MatlabParam.MaskType.VOLUME, bgMaskType);
+  private final RadioButton rbMaskTypeFile = new RadioButton(MAST_TYPE_FILE_LABEL,
+      MatlabParam.MaskType.VOLUME, bgMaskType);
   private final RadioButton rbMaskTypeSphere = new RadioButton("Sphere",
       MatlabParam.MaskType.SPHERE, bgMaskType);
   private final RadioButton rbMaskTypeCylinder = new RadioButton("Cylinder",
@@ -95,7 +96,7 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     this.manager = manager;
     this.parent = parent;
     ftfMaskTypeFile = FileTextField2.getUnlabeledPeetInstance(manager,
-        MatlabParam.MaskType.VOLUME.getLabel());
+        MAST_TYPE_FILE_LABEL);
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -359,17 +360,16 @@ final class MaskingPanel implements UIComponent, SwingComponent {
     // Masking
     // volume
     if (rbMaskTypeFile.isSelected() && ftfMaskTypeFile.isEmpty()) {
-      return "In " + MAST_TYPE_LABEL + ", "
-          + MatlabParam.MaskType.VOLUME.getLabel() + " is required when "
-          + MatlabParam.MaskType.VOLUME.getLabel() + " " + MAST_TYPE_LABEL
-          + " is selected. ";
+      return "In " + MAST_TYPE_LABEL + ", " + MatlabParam.MaskType.VOLUME.getLabel()
+          + " is required when " + MatlabParam.MaskType.VOLUME.getLabel() + " "
+          + MAST_TYPE_LABEL + " is selected. ";
     }
     // validate radii
     if (((rbMaskTypeSphere.isSelected() || rbMaskTypeCylinder.isSelected()))
         && ltfInsideMaskRadius.isEnabled() && ltfInsideMaskRadius.isEmpty()
         && ltfOutsideMaskRadius.isEnabled() && ltfOutsideMaskRadius.isEmpty()) {
-      return "In " + MAST_TYPE_LABEL + ", " + INSIDE_MASK_RADIUS_LABEL
-          + " and/or " + OUTSIDE_MASK_RADIUS_LABEL + " are required when either "
+      return "In " + MAST_TYPE_LABEL + ", " + INSIDE_MASK_RADIUS_LABEL + " and/or "
+          + OUTSIDE_MASK_RADIUS_LABEL + " are required when either "
           + MatlabParam.MaskType.SPHERE.getLabel() + " or "
           + MatlabParam.MaskType.CYLINDER.getLabel() + " is selected.";
     }
