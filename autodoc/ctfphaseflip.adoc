@@ -55,7 +55,10 @@ defocus value, if the angle is beyond the range of the available midpoint
 angles.  To correct a tilt series with a single value of defocus, supply a
 file with a single line containing "20 20 0. 0. defocus_value".  If you prepare
 a defocus file with more than line, be sure to use the exact angles from the
-tilt angle file; do not round to one decimal place.
+tilt angle file specified with the -angleFn option; do not round to one
+decimal place.  Alternatively, add the number "2" as an extra value at the end
+of the first line of the file; this will prevent the program from thinking
+that the view numbers might be off by one.
 
 [Field = TransformFile]
 short = xform
