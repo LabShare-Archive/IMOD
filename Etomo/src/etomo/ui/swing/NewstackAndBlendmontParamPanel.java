@@ -9,7 +9,6 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
@@ -100,8 +99,8 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   static final String BINNING_LABEL = "Aligned image stack binning";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
-  private final LabeledSpinner spinBinning = new LabeledSpinner(BINNING_LABEL + ": ",
-      new SpinnerNumberModel(1, 1, 8, 1), 1);
+  private final LabeledSpinner spinBinning = LabeledSpinner.getInstance(BINNING_LABEL
+      + ": ", 1, 1, 8, 1);
 
   private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
       FieldType.INTEGER_PAIR, SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");

@@ -9,9 +9,9 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.ProcessDisplay;
-import etomo.ui.swing.UIComponent;
 
 /**
  * <p>Description: Represents a series of processes to be executed.</p>

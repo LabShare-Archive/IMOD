@@ -157,7 +157,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
@@ -208,9 +207,8 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes, BoxLayout.Y_AXIS));
 
     // Construct the binning spinner
-    SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
-    spinBinning = new LabeledSpinner("Coarse aligned image stack binning ", integerModel,
-        1);
+    spinBinning = LabeledSpinner.getInstance("Coarse aligned image stack binning ", 1, 1,
+        8, 1);
     spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
     // if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
     // spinBinning.setEnabled(false);

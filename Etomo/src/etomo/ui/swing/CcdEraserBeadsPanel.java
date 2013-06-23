@@ -379,6 +379,10 @@ final class CcdEraserBeadsPanel implements Run3dmodButtonContainer, CcdEraserDis
       return value;
     }
 
+    public String getLabel() {
+      return null;
+    }
+
     public boolean isDefault() {
       return this == DEFAULT;
     }

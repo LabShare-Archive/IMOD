@@ -9,7 +9,6 @@ import java.io.File;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.ToolsManager;
 import etomo.comscript.GpuTiltTestParam;
@@ -42,8 +41,8 @@ public class GpuTiltTestPanel implements ToolPanel, ContextMenu {
   private final JPanel pnlRoot = new JPanel();
   private final LabeledTextField ltfNMinutes = new LabeledTextField(
       FieldType.FLOATING_POINT, "# of minutes: ");
-  private final LabeledSpinner spGpuNumber = new LabeledSpinner("GPU #: ",
-      new SpinnerNumberModel(0, 0, 8, 1), 0);
+  private final LabeledSpinner spGpuNumber = LabeledSpinner.getInstance("GPU #: ", 0, 0,
+      8, 1);
   private final MultiLineButton btnRunTest = new MultiLineButton("Run GPU Test");
 
   private final ToolsManager manager;

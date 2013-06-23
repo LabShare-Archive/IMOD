@@ -979,8 +979,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   }
 
   public void setParameters(final ConstMetaData metaData) {
-    TrackingMethod method = TrackingMethod.getInstance(metaData
-        .getTrackMethod(axisID));
+    TrackingMethod method = TrackingMethod.getInstance(metaData.getTrackMethod(axisID));
     if (method == TrackingMethod.SEED) {
       rbMethodSeed.setSelected(true);
     }
@@ -1329,74 +1328,27 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       dialog.changeRunRaptorTab();
     }
   }
-/*
-  public static final class MethodEnumeratedType implements EnumeratedType {
-    public static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0,
-        "Seed");
-    public static final MethodEnumeratedType PATCH_TRACKING = new MethodEnumeratedType(
-        false, 1, "PatchTracking");
-    public static final MethodEnumeratedType RAPTOR = new MethodEnumeratedType(false, 2,
-        "Raptor");
 
-    private static final int NUM = 3;
-
-    private final boolean isDefault;
-    private final EtomoNumber value = new EtomoNumber();
-    private final String string;
-
-    private MethodEnumeratedType(final boolean isDefault, final int value,
-        final String string) {
-      this.isDefault = isDefault;
-      this.value.set(value);
-      this.string = string;
-    }
-
-    private static MethodEnumeratedType getInstance(final String value) {
-      if (value == null) {
-        return null;
-      }
-      if (SEED.value.equals(value)) {
-        return SEED;
-      }
-      if (PATCH_TRACKING.value.equals(value)) {
-        return PATCH_TRACKING;
-      }
-      if (RAPTOR.value.equals(value)) {
-        return RAPTOR;
-      }
-      return null;
-    }
-
-    public static MethodEnumeratedType getInstance(
-        final DirectiveFile.FiducialsTrackingMethod trackingMethod) {
-      if (trackingMethod == null) {
-        return null;
-      }
-      if (trackingMethod == DirectiveFile.FiducialsTrackingMethod.SEED_AND_TRACK) {
-        return SEED;
-      }
-      if (trackingMethod == DirectiveFile.FiducialsTrackingMethod.PATCH_TRACK) {
-        return PATCH_TRACKING;
-      }
-      if (trackingMethod == DirectiveFile.FiducialsTrackingMethod.RAPTOR) {
-        return RAPTOR;
-      }
-      return null;
-    }
-
-    public boolean isDefault() {
-      return isDefault;
-    }
-
-    public ConstEtomoNumber getValue() {
-      return value;
-    }
-
-    public String toString() {
-      return string;
-    }
-  }
-*/
+  /*public static final class MethodEnumeratedType implements EnumeratedType { public
+   * static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0, "Seed");
+   * public static final MethodEnumeratedType PATCH_TRACKING = new MethodEnumeratedType(
+   * false, 1, "PatchTracking"); public static final MethodEnumeratedType RAPTOR = new
+   * MethodEnumeratedType(false, 2, "Raptor"); private static final int NUM = 3; private
+   * final boolean isDefault; private final EtomoNumber value = new EtomoNumber(); private
+   * final String string; private MethodEnumeratedType(final boolean isDefault, final int
+   * value, final String string) { this.isDefault = isDefault; this.value.set(value);
+   * this.string = string; } private static MethodEnumeratedType getInstance(final String
+   * value) { if (value == null) { return null; } if (SEED.value.equals(value)) { return
+   * SEED; } if (PATCH_TRACKING.value.equals(value)) { return PATCH_TRACKING; } if
+   * (RAPTOR.value.equals(value)) { return RAPTOR; } return null; } public static
+   * MethodEnumeratedType getInstance( final DirectiveFile.FiducialsTrackingMethod
+   * trackingMethod) { if (trackingMethod == null) { return null; } if (trackingMethod ==
+   * DirectiveFile.FiducialsTrackingMethod.SEED_AND_TRACK) { return SEED; } if
+   * (trackingMethod == DirectiveFile.FiducialsTrackingMethod.PATCH_TRACK) { return
+   * PATCH_TRACKING; } if (trackingMethod == DirectiveFile.FiducialsTrackingMethod.RAPTOR)
+   * { return RAPTOR; } return null; } public boolean isDefault() { return isDefault; }
+   * public ConstEtomoNumber getValue() { return value; } public String toString() {
+   * return string; } } */
   public static final class SeedModelEnumeratedType implements EnumeratedType {
     private static final SeedModelEnumeratedType MANUAL = new SeedModelEnumeratedType(
         true, 0, "Manual");
@@ -1436,6 +1388,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
 
     public boolean isDefault() {
       return isDefault;
+    }
+
+    public String getLabel() {
+      return null;
     }
 
     public ConstEtomoNumber getValue() {

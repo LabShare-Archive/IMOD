@@ -27,4 +27,6 @@ public interface EnumeratedType {
   public ConstEtomoNumber getValue();
   
   public String toString();
+  
+  public String getLabel();
 }

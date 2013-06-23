@@ -6,7 +6,7 @@ import etomo.EtomoDirector;
 import etomo.type.EtomoNumber;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
-import etomo.ui.swing.UIComponent;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
 
 /**

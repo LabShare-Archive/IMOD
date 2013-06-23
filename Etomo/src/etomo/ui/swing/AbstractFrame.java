@@ -22,6 +22,7 @@ import etomo.type.FrameType;
 import etomo.type.UITestActionType;
 import etomo.type.UITestSubjectType;
 import etomo.type.UserConfiguration;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -38,7 +39,7 @@ import etomo.util.Utilities;
  * @version $Revision$
  *   
  */
-abstract class AbstractFrame extends JFrame implements UIComponent {
+abstract class AbstractFrame extends JFrame implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private static final int MAX_MESSAGE_LINES = 20;
@@ -74,6 +75,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
   abstract void saveAs();
 
   abstract void close();
+
+  public SwingComponent getUIComponent() {
+    return this;
+  }
 
   public Component getComponent() {
     return this;
@@ -165,14 +170,19 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
     openMessageDialog(manager, axisID, message, title);
   }
 
-  void displayMessage(final BaseManager manager, final UIComponent uiComponent,
+  void displayMessage(final BaseManager manager, final Component parentcComponent,
       final String message, final String title, final AxisID axisID) {
-    openMessageDialog(manager, uiComponent, axisID, message, title);
+    openMessageDialog(manager, parentcComponent, axisID, message, title);
   }
 
-  void displayMessage(final BaseManager manager, final UIComponent uiComponent,
+  void displayWarningMessage(final BaseManager manager, final Component parentcComponent,
+      final String message, final String title, final AxisID axisID) {
+    openWarningMessageDialog(manager, parentcComponent, axisID, message, title);
+  }
+
+  void displayMessage(final BaseManager manager, final Component parentcComponent,
       final String[] message, final String title, final AxisID axisID) {
-    openMessageDialog(manager, uiComponent, axisID, message, title);
+    openMessageDialog(manager, parentcComponent, axisID, message, title);
   }
 
   /**
@@ -237,15 +247,22 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
         JOptionPane.ERROR_MESSAGE);
   }
 
-  void openMessageDialog(final BaseManager manager, final UIComponent uiComponent,
+  void openMessageDialog(final BaseManager manager, final Component parentcComponent,
       final AxisID axisID, final String message, final String title) {
-    showOptionPane(manager, uiComponent, axisID, wrap(manager, message), title,
+    showOptionPane(manager, parentcComponent, axisID, wrap(manager, message), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
-  void openMessageDialog(final BaseManager manager, final UIComponent uiComponent,
+  void openWarningMessageDialog(final BaseManager manager,
+      final Component parentcComponent, final AxisID axisID, final String message,
+      final String title) {
+    showOptionPane(manager, parentcComponent, axisID, wrap(manager, message), title,
+        JOptionPane.WARNING_MESSAGE);
+  }
+
+  void openMessageDialog(final BaseManager manager, final Component parentcComponent,
       final AxisID axisID, final String[] message, final String title) {
-    showOptionPane(manager, uiComponent, axisID, wrap(manager, message), title,
+    showOptionPane(manager, parentcComponent, axisID, wrap(manager, message), title,
         JOptionPane.ERROR_MESSAGE);
   }
 
@@ -454,10 +471,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
         messageType, null, null, new String[] { OK });
   }
 
-  private void showOptionPane(final BaseManager manager, final UIComponent uiComponent,
-      final AxisID axisID, final String[] message, final String title,
-      final int messageType) {
-    showOptionPane(manager, uiComponent, axisID, message, title,
+  private void showOptionPane(final BaseManager manager,
+      final Component parentcComponent, final AxisID axisID, final String[] message,
+      final String title, final int messageType) {
+    showOptionPane(manager, parentcComponent, axisID, message, title,
         JOptionPane.DEFAULT_OPTION, messageType, null, null, new String[] { OK });
   }
 
@@ -469,11 +486,11 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
     return result;
   }
 
-  private int showOptionPane(final BaseManager manager, final UIComponent uiComponent,
+  private int showOptionPane(final BaseManager manager, final Component parentComponent,
       final AxisID axisID, final String[] message, final String title,
       final int optionType, final int messageType, final Object[] options,
       final Object initialValue, final String[] optionStrings) {
-    int result = showOptionDialog(manager, axisID, uiComponent, message, title,
+    int result = showOptionDialog(manager, axisID, parentComponent, message, title,
         optionType, messageType, null, options, initialValue, optionStrings);
     return result;
   }
@@ -494,7 +511,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
    * @throws HeadlessException
    */
   private int showOptionDialog(BaseManager manager, AxisID axisID,
-      UIComponent uiComponent, String[] message, String title, int optionType,
+      Component parentComponent, String[] message, String title, int optionType,
       int messageType, Icon icon, Object[] options, Object initialValue,
       String[] optionStrings) throws HeadlessException {
     if (manager != null) {
@@ -511,14 +528,10 @@ abstract class AbstractFrame extends JFrame implements UIComponent {
         initialValue);
 
     pane.setInitialValue(initialValue);
-    Component component = null;
-    if (uiComponent != null) {
-      component = uiComponent.getComponent();
-    }
-    pane.setComponentOrientation(((component == null) ? JOptionPane.getRootFrame()
-        : component).getComponentOrientation());
+    pane.setComponentOrientation(((parentComponent == null) ? JOptionPane.getRootFrame()
+        : parentComponent).getComponentOrientation());
 
-    JDialog dialog = pane.createDialog(component, title);
+    JDialog dialog = pane.createDialog(parentComponent, title);
 
     pane.selectInitialValue();
     String name = Utilities.convertLabelToName(title);

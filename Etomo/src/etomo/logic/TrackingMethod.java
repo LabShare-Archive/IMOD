@@ -92,6 +92,10 @@ public final class TrackingMethod implements EnumeratedType {
     return isDefault;
   }
 
+  public String getLabel() {
+    return null;
+  }
+
   public ConstEtomoNumber getValue() {
     return value;
   }

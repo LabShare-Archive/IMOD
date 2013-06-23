@@ -1,5 +1,6 @@
 package etomo.logic;
 
+import etomo.type.EtomoNumber;
 import junit.framework.TestCase;
 
 /**
@@ -40,13 +41,17 @@ public class MultiparticleReferenceTest extends TestCase {
   }
 
   public void testConvertLevelToIndex() {
-    assertEquals("result is corrected", 0,
-        MultiparticleReference.convertLevelToIndex("-1"));
-    assertEquals("result is corrected", 8,
-        MultiparticleReference.convertLevelToIndex("100"));
-    assertEquals("k starts at 2", 2, MultiparticleReference.convertLevelToIndex("4"));
-    assertEquals("k starts at 2", 4, MultiparticleReference.convertLevelToIndex("6"));
-    assertEquals("k starts at 2", 6, MultiparticleReference.convertLevelToIndex("8"));
+    EtomoNumber index = new EtomoNumber();
+    MultiparticleReference.convertLevelToIndex("-1", index);
+    assertEquals("result is corrected", 0, index.getInt());
+    MultiparticleReference.convertLevelToIndex("100", index);
+    assertEquals("result is corrected", 8, index.getInt());
+    MultiparticleReference.convertLevelToIndex("4", index);
+    assertEquals("k starts at 2", 2, index.getInt());
+    MultiparticleReference.convertLevelToIndex("6", index);
+    assertEquals("k starts at 2", 4, index.getInt());
+    MultiparticleReference.convertLevelToIndex("8", index);
+    assertEquals("k starts at 2", 6, index.getInt());
 
     assertEquals("result is corrected", 0, MultiparticleReference.convertLevelToIndex(-1));
     assertEquals("result is corrected", 8,

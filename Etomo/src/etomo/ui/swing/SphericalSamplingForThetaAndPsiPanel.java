@@ -10,8 +10,10 @@ import javax.swing.ButtonGroup;
 
 import etomo.BaseManager;
 import etomo.storage.MatlabParam;
+import etomo.ui.FieldLabels;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 
 /**
  * <p>Description: </p>
@@ -40,22 +42,19 @@ import etomo.ui.FieldValidationFailedException;
  * <p> bug# 1286 Factored out of PeetDialog.
  * <p> </p>
  */
-final class SphericalSamplingForThetaAndPsiPanel {
+final class SphericalSamplingForThetaAndPsiPanel implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
-  private static final String SPHERICAL_SAMPLING_LABEL = "Spherical Sampling for Theta and Psi";
-  private static final String SAMPLE_SPHERE_FULL_LABEL = "Full sphere";
-  private static final String SAMPLE_SPHERE_HALF_LABEL = "Half sphere";
   private static final String SAMPLE_INTERVAL_LABEL = "Sample interval";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgSampleSphere = new ButtonGroup();
   private final RadioButton rbSampleSphereNone = new RadioButton("None",
       MatlabParam.SampleSphere.NONE, bgSampleSphere);
-  private final RadioButton rbSampleSphereFull = new RadioButton(
-      SAMPLE_SPHERE_FULL_LABEL, MatlabParam.SampleSphere.FULL, bgSampleSphere);
-  private final RadioButton rbSampleSphereHalf = new RadioButton(
-      SAMPLE_SPHERE_HALF_LABEL, MatlabParam.SampleSphere.HALF, bgSampleSphere);
+  private final RadioButton rbSampleSphereFull = new RadioButton("Full sphere",
+      MatlabParam.SampleSphere.FULL, bgSampleSphere);
+  private final RadioButton rbSampleSphereHalf = new RadioButton("Half sphere",
+      MatlabParam.SampleSphere.HALF, bgSampleSphere);
   private final LabeledTextField ltfSampleInterval = new LabeledTextField(
       FieldType.FLOATING_POINT, SAMPLE_INTERVAL_LABEL + " (degrees) : ");
 
@@ -91,7 +90,7 @@ final class SphericalSamplingForThetaAndPsiPanel {
     ltfSampleInterval.setPreferredWidth(60);
     // root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
-    pnlRoot.setBorder(new EtchedBorder(SPHERICAL_SAMPLING_LABEL).getBorder());
+    pnlRoot.setBorder(new EtchedBorder(FieldLabels.SAMPLE_SPHERE_LABEL).getBorder());
     pnlRoot.add(Box.createRigidArea(FixedDim.x20_y0));
     pnlRoot.add(rbSampleSphereNone.getComponent());
     pnlRoot.add(Box.createRigidArea(FixedDim.x10_y0));
@@ -103,7 +102,11 @@ final class SphericalSamplingForThetaAndPsiPanel {
     pnlRoot.add(Box.createHorizontalGlue());
   }
 
-  Component getComponent() {
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public Component getComponent() {
     return pnlRoot;
   }
 
@@ -129,7 +132,7 @@ final class SphericalSamplingForThetaAndPsiPanel {
    * @param matlabParamFile
    */
   void setParameters(final MatlabParam matlabParam) {
-    MatlabParam.SampleSphere sampleSphere = matlabParam.getSampleSphere();
+    MatlabParam.SampleSphere sampleSphere = matlabParam.getSampleSphere(this);
     if (sampleSphere == MatlabParam.SampleSphere.NONE) {
       rbSampleSphereNone.setSelected(true);
     }
@@ -174,10 +177,11 @@ final class SphericalSamplingForThetaAndPsiPanel {
     // If full sphere or half sphere is selected, sample interval is required.
     if ((rbSampleSphereFull.isSelected() || rbSampleSphereHalf.isSelected())
         && ltfSampleInterval.isEnabled() && ltfSampleInterval.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(manager, "In " + SPHERICAL_SAMPLING_LABEL
-          + ", " + SAMPLE_INTERVAL_LABEL + " is required when either "
-          + SAMPLE_SPHERE_FULL_LABEL + " or " + SAMPLE_SPHERE_HALF_LABEL
-          + " is selected.", "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog(manager, "In "
+          + FieldLabels.SAMPLE_SPHERE_LABEL + ", " + SAMPLE_INTERVAL_LABEL
+          + " is required when either " + MatlabParam.SampleSphere.FULL.getLabel()
+          + " or " + MatlabParam.SampleSphere.HALF.getLabel() + " is selected.",
+          "Entry Error");
       return false;
     }
     return true;

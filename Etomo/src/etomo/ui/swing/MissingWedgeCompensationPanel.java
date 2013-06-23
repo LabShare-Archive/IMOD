@@ -10,8 +10,10 @@ import javax.swing.BoxLayout;
 import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
+import etomo.ui.FieldLabels;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 
 /**
  * <p>Description: </p>
@@ -37,7 +39,7 @@ import etomo.ui.FieldValidationFailedException;
  * <p> bug# 1285 Factored out MissingWedgeCompensation.
  * <p> </p>
  */
-final class MissingWedgeCompensationPanel {
+final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private static final String VOLUME_SIZE_LABEL = "Volume Size";
@@ -45,18 +47,18 @@ final class MissingWedgeCompensationPanel {
 
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
   private final LabeledTextField ltfVolumeSizeX = new LabeledTextField(FieldType.INTEGER,
-      "X: ",PeetDialog.SETUP_LOCATION_DESCR);
+      "X: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfVolumeSizeY = new LabeledTextField(FieldType.INTEGER,
-      "Y: ",PeetDialog.SETUP_LOCATION_DESCR);
+      "Y: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfVolumeSizeZ = new LabeledTextField(FieldType.INTEGER,
-      "Z: ",PeetDialog.SETUP_LOCATION_DESCR);
+      "Z: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final CheckBox cbMissingWedgeCompensation = new CheckBox("Enabled");
-  private final Spinner sEdgeShift = Spinner.getLabeledInstance("Edge shift: ",
-      MatlabParam.EDGE_SHIFT_DEFAULT, MatlabParam.EDGE_SHIFT_MIN,
-      MatlabParam.EDGE_SHIFT_MAX);
-  private final Spinner sNWeightGroup = Spinner.getLabeledInstance("Weight groups: ",
-      MatlabParam.N_WEIGHT_GROUP_DEFAULT, MatlabParam.N_WEIGHT_GROUP_MIN,
-      MatlabParam.N_WEIGHT_GROUP_MAX);
+  private final Spinner sEdgeShift = Spinner.getLabeledInstance(
+      FieldLabels.EDGE_SHIFT_LABEL + ": ", MatlabParam.EDGE_SHIFT_DEFAULT,
+      MatlabParam.EDGE_SHIFT_MIN, MatlabParam.EDGE_SHIFT_MAX);
+  private final Spinner sNWeightGroup = Spinner.getLabeledInstance(
+      FieldLabels.N_WEIGHT_GROUP_LABEL + ": ", MatlabParam.N_WEIGHT_GROUP_DEFAULT,
+      MatlabParam.N_WEIGHT_GROUP_MIN, MatlabParam.N_WEIGHT_GROUP_MAX);
   /**
    * @deprecated
    * Replaced by cbMissingWedgeCompensation
@@ -131,7 +133,11 @@ final class MissingWedgeCompensationPanel {
     pnlEnabled.add(sNWeightGroup.getContainer());
   }
 
-  Component getComponent() {
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public Component getComponent() {
     return pnlRoot.getContainer();
   }
 

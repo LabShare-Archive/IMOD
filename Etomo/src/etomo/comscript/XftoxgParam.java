@@ -254,6 +254,10 @@ public final class XftoxgParam implements Command {
       return false;
     }
 
+    public String getLabel() {
+      return null;
+    }
+
     public String toString() {
       return value.toString();
     }
@@ -278,6 +282,10 @@ public final class XftoxgParam implements Command {
 
     public boolean isDefault() {
       return false;
+    }
+    
+    public String getLabel() {
+      return null;
     }
 
     public String toString() {

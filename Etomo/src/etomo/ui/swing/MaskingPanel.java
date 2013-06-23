@@ -25,6 +25,7 @@ import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.util.FilePath;
 
 /**
@@ -58,36 +59,33 @@ import etomo.util.FilePath;
  * <p> bug# 1286 Factored MaskingPanel out of PeetDialog.
  * <p> </p>
  */
-final class MaskingPanel {
+final class MaskingPanel implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id$";
 
   private static final String INSIDE_MASK_RADIUS_LABEL = "Inner radius: ";
   private static final String OUTSIDE_MASK_RADIUS_LABEL = "Outer radius: ";
-
-  static final String MASK_TYPE_LABEL = "Masking";
-  private static final String MASK_TYPE_FILE_LABEL = "User supplied binary file:";
-  static final String MASK_TYPE_SPHERE_LABEL = "Sphere";
-  static final String MASK_TYPE_CYLINDER_LABEL = "Cylinder";
+  public static final String MAST_TYPE_LABEL = "Masking";
+  private static final String MAST_TYPE_FILE_LABEL = "User supplied binary file:";
 
   private final EtomoPanel pnlRoot = new EtomoPanel();
   private final ButtonGroup bgMaskType = new ButtonGroup();
   private final RadioButton rbMaskTypeNone = new RadioButton("None",
       MatlabParam.MaskType.NONE, bgMaskType);
-  private final RadioButton rbMaskTypeFile = new RadioButton(MASK_TYPE_FILE_LABEL,
+  private final RadioButton rbMaskTypeFile = new RadioButton(MAST_TYPE_FILE_LABEL,
       MatlabParam.MaskType.VOLUME, bgMaskType);
-  private final RadioButton rbMaskTypeSphere = new RadioButton(MASK_TYPE_SPHERE_LABEL,
+  private final RadioButton rbMaskTypeSphere = new RadioButton("Sphere",
       MatlabParam.MaskType.SPHERE, bgMaskType);
-  private final RadioButton rbMaskTypeCylinder = new RadioButton(
-      MASK_TYPE_CYLINDER_LABEL, MatlabParam.MaskType.CYLINDER, bgMaskType);
+  private final RadioButton rbMaskTypeCylinder = new RadioButton("Cylinder",
+      MatlabParam.MaskType.CYLINDER, bgMaskType);
   private final FileTextField2 ftfMaskTypeFile;
   private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, INSIDE_MASK_RADIUS_LABEL,PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.INTEGER, INSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
-      FieldType.INTEGER, OUTSIDE_MASK_RADIUS_LABEL,PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.INTEGER, OUTSIDE_MASK_RADIUS_LABEL, PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfZRotation = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Z Rotation: ",PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, "Z Rotation: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final LabeledTextField ltfYRotation = new LabeledTextField(
-      FieldType.FLOATING_POINT, "Y Rotation: ",PeetDialog.SETUP_LOCATION_DESCR);
+      FieldType.FLOATING_POINT, "Y Rotation: ", PeetDialog.SETUP_LOCATION_DESCR);
   private final CheckBox cbCylinderOrientation = new CheckBox(
       "Manual Cylinder Orientation");
 
@@ -98,7 +96,7 @@ final class MaskingPanel {
     this.manager = manager;
     this.parent = parent;
     ftfMaskTypeFile = FileTextField2.getUnlabeledPeetInstance(manager,
-        MASK_TYPE_FILE_LABEL);
+        MAST_TYPE_FILE_LABEL);
   }
 
   static MaskingPanel getInstance(BaseManager manager, MaskingParent parent) {
@@ -136,7 +134,7 @@ final class MaskingPanel {
     ftfMaskTypeFile.setAdjustedFieldWidth(190);
     // root panel
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
-    pnlRoot.setBorder(new EtchedBorder(MASK_TYPE_LABEL).getBorder());
+    pnlRoot.setBorder(new EtchedBorder(MAST_TYPE_LABEL).getBorder());
     pnlRoot.add(pnlMaskType);
     pnlRoot.add(pnlSphereCylinder);
     // mask type
@@ -208,7 +206,11 @@ final class MaskingPanel {
     pnlCylinderRotation.add(Box.createRigidArea(FixedDim.x10_y0));
   }
 
-  Component getComponent() {
+  public SwingComponent getUIComponent() {
+    return this;
+  }
+
+  public Component getComponent() {
     return pnlRoot;
   }
 
@@ -358,18 +360,18 @@ final class MaskingPanel {
     // Masking
     // volume
     if (rbMaskTypeFile.isSelected() && ftfMaskTypeFile.isEmpty()) {
-      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + MASK_TYPE_FILE_LABEL
-          + " is required when " + MASK_TYPE_FILE_LABEL + " "
-          + MaskingPanel.MASK_TYPE_LABEL + " is selected. ";
+      return "In " + MAST_TYPE_LABEL + ", " + MatlabParam.MaskType.VOLUME.getLabel()
+          + " is required when " + MatlabParam.MaskType.VOLUME.getLabel() + " "
+          + MAST_TYPE_LABEL + " is selected. ";
     }
     // validate radii
     if (((rbMaskTypeSphere.isSelected() || rbMaskTypeCylinder.isSelected()))
         && ltfInsideMaskRadius.isEnabled() && ltfInsideMaskRadius.isEmpty()
         && ltfOutsideMaskRadius.isEnabled() && ltfOutsideMaskRadius.isEmpty()) {
-      return "In " + MaskingPanel.MASK_TYPE_LABEL + ", " + INSIDE_MASK_RADIUS_LABEL
-          + " and/or " + OUTSIDE_MASK_RADIUS_LABEL + " are required when either "
-          + MaskingPanel.MASK_TYPE_SPHERE_LABEL + " or "
-          + MaskingPanel.MASK_TYPE_CYLINDER_LABEL + " is selected.";
+      return "In " + MAST_TYPE_LABEL + ", " + INSIDE_MASK_RADIUS_LABEL + " and/or "
+          + OUTSIDE_MASK_RADIUS_LABEL + " are required when either "
+          + MatlabParam.MaskType.SPHERE.getLabel() + " or "
+          + MatlabParam.MaskType.CYLINDER.getLabel() + " is selected.";
     }
     // validate cylinder orientation
     EtomoNumber rotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);

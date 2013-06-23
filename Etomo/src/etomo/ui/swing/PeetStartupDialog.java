@@ -24,6 +24,7 @@ import etomo.type.AxisID;
 import etomo.type.DataFileType;
 import etomo.type.UITestFieldType;
 import etomo.ui.FieldType;
+import etomo.ui.UIComponent;
 import etomo.util.Utilities;
 
 /**
@@ -41,7 +42,7 @@ import etomo.util.Utilities;
 * 
 * <p> $Log$ </p>
 */
-public final class PeetStartupDialog implements UIComponent {
+public final class PeetStartupDialog implements UIComponent, SwingComponent {
   public static final String rcsid = "$Id:$";
 
   private static final String COPY_FROM_LABEL = "Copy project from ";
@@ -165,6 +166,10 @@ public final class PeetStartupDialog implements UIComponent {
   private void dispose() {
     dialog.setVisible(false);
     dialog.dispose();
+  }
+
+  public SwingComponent getUIComponent() {
+    return this;
   }
 
   public Component getComponent() {

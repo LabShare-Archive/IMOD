@@ -382,5 +382,9 @@ final class FindBeads3dPanel implements FindBeads3dDisplay, Expandable,
       }
       return false;
     }
+
+    public String getLabel() {
+      return null;
+    }
   }
 }

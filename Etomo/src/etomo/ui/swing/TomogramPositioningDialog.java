@@ -9,7 +9,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.storage.TomopitchLog;
@@ -382,8 +381,8 @@ final class TomogramPositioningDialog extends ProcessDialog implements ContextMe
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private final LabeledTextField ltfRotation = new LabeledTextField(
       FieldType.FLOATING_POINT, "Tilt axis rotation:");
-  private final LabeledSpinner spinBinning = new LabeledSpinner("   Binning ",
-      new SpinnerNumberModel(3, 1, 8, 1), 3);
+  private final LabeledSpinner spinBinning = LabeledSpinner.getInstance("   Binning ", 3,
+      1, 8, 1);
   private final CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
   private final Run3dmodButton btnCreateBoundary = Run3dmodButton.get3dmodInstance(
       "Create Boundary Model", this);

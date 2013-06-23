@@ -232,6 +232,9 @@ public final class ParsedQuotedString extends ParsedElement {
   }
 
   public String validate() {
+    if (isFailed()) {
+      return getFailedMessage();
+    }
     return null;
   }
 

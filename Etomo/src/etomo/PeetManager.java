@@ -42,6 +42,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldValidationFailedException;
+import etomo.ui.UIComponent;
 import etomo.ui.swing.LogInterface;
 import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
@@ -50,7 +51,6 @@ import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.PeetDialog;
 import etomo.ui.swing.PeetStartupDialog;
 import etomo.ui.swing.ProcessDisplay;
-import etomo.ui.swing.UIComponent;
 import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
@@ -928,7 +928,7 @@ public final class PeetManager extends BaseManager {
       // Load the .prm file
       param = new MatlabParam(this, AXIS_ID, matlabFile, newFile);
       List<String> errorList = new ArrayList<String>();
-      if (param.read(this, errorList)) {
+      if (param.read(this, errorList, peetDialog)) {
         loadState = LoadState.SUCCESS;
       }
       else if (!errorList.isEmpty()) {
@@ -986,7 +986,7 @@ public final class PeetManager extends BaseManager {
       peetDialog = PeetDialog.getInstance(this, AXIS_ID);
     }
     setPeetDialogParameters(null, true);
-    mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
+    mainPanel.showProcess(peetDialog.getComponent(), AXIS_ID);
     String actionMessage = Utilities.prepareDialogActionMessage(DialogType.PEET,
         AxisID.ONLY, null);
     if (actionMessage != null) {

@@ -24,6 +24,7 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
+import etomo.ui.FieldLabels;
 
 /**
  * <p>Description: </p>
@@ -140,10 +141,7 @@ import etomo.type.EtomoAutodoc;
 final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
   static final String D_PHI_D_THETA_D_PSI_HEADER1 = "Angular Search Range";
-  static final String D_PHI_HEADER2 = "Phi";
   static final String INCR_HEADER3 = "Step";
-  static final String D_THETA_HEADER2 = "Theta";
-  static final String D_PSI_HEADER2 = "Psi";
   static final String SEARCH_RADIUS_HEADER1 = "Search";
   static final String SEARCH_RADIUS_HEADER2 = "Distance";
   static final String LABEL = "Iteration Table";
@@ -169,9 +167,9 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header3IterationNumber = new HeaderCell();
   private final HeaderCell header1DPhiDThetaDPsi = new HeaderCell(
       D_PHI_D_THETA_D_PSI_HEADER1);
-  private final HeaderCell header2DPhi = new HeaderCell(D_PHI_HEADER2);
-  private final HeaderCell header2DTheta = new HeaderCell(D_THETA_HEADER2);
-  private final HeaderCell header2DPsi = new HeaderCell(D_PSI_HEADER2);
+  private final HeaderCell header2DPhi = new HeaderCell(FieldLabels.D_PHI_LABEL);
+  private final HeaderCell header2DTheta = new HeaderCell(FieldLabels.D_THETA_LABEL);
+  private final HeaderCell header2DPsi = new HeaderCell(FieldLabels.D_PSI_LABEL);
   private final HeaderCell header3DPhiMax = new HeaderCell(MAX_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPhiIncrement = new HeaderCell(INCR_HEADER3,
@@ -211,7 +209,7 @@ final class IterationTable implements Highlightable {
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Dup");
   private final CheckBox cbFlgRemoveDuplicates = new CheckBox(
-      "Remove duplicate particles after each iteration");
+      FieldLabels.FLG_REMOVE_DUPLICATES_LABEL);
   private final JPanel pnlTableAndCheckbox = new JPanel();
   private final JPanel pnlFlgRemoveDuplicates = new JPanel();
 

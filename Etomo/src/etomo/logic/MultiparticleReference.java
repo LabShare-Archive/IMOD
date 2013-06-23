@@ -55,38 +55,43 @@ public final class MultiparticleReference {
   }
 
   /**
-   * Returns the index of the reference in the list of particle counts.
+   * Calculates the index of the reference in the list of particle counts.
    * @param reference
-   * @return
+   * @param index - parameter for returning the index (must not be null)
+   * @return known value (no warning)
    */
-  public static int convertLevelToIndex(final String level) {
+  public static boolean convertLevelToIndex(final String level, final EtomoNumber index) {
     if (level == null) {
-      return getDefaultIndex();
+      index.set(getDefaultIndex());
+      return true;
     }
     EtomoNumber nLevel = new EtomoNumber();
     nLevel.setCeiling(MAX_LEVEL);
     nLevel.setFloor(MIN_LEVEL);
     nLevel.set(level);
     if (!nLevel.isValid()) {
-      return getDefaultIndex();
+      index.set(getDefaultIndex());
+      return true;
     }
-    return nLevel.getInt() - MIN_LEVEL;
+    // calculate index
+    index.set(nLevel.getInt() - MIN_LEVEL);
+    if (nLevel.isValueAltered()) {
+      return false;
+    }
+    return true;
   }
-  
 
   /**
-   * Returns the index of the reference in the list of particle counts.
+   * Calculates the index of the reference in the list of particle counts.
    * @param reference
-   * @return
+   * @return int
    */
   public static int convertLevelToIndex(final int level) {
     EtomoNumber nLevel = new EtomoNumber();
     nLevel.setCeiling(MAX_LEVEL);
     nLevel.setFloor(MIN_LEVEL);
     nLevel.set(level);
-    if (!nLevel.isValid()) {
-      return getDefaultIndex();
-    }
+    // calculate index
     return nLevel.getInt() - MIN_LEVEL;
   }
 
