@@ -49,6 +49,14 @@ tooltip = Angles to rotate about Z, Y, and X axes.  Rotations will be
 applied in that order; first around Z, then Y, then X.
 manpage = 
 
+[Field = BackRotate]
+short = back
+type = B
+usage = Apply inverse of transformation specified by the entered angles
+tooltip = 
+manpage = Back-transform the volume by using the inverse of the transformation 
+specified by the entered angles.
+
 [Field = InterpolationOrder]
 short = order
 type = I

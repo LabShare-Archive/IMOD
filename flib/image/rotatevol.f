@@ -37,7 +37,7 @@ c
       character*80 titlech
       integer*4 i, ix, iy, kti, interpOrder, ierr, idiry, idirz
       real*4 dminin, dmaxin, devmx, xcen, ycen, zcen
-      logical*4 query
+      logical*4 query, backRotate
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -48,21 +48,21 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  rotatevol
 c       
       integer numOptions
-      parameter (numOptions = 13)
+      parameter (numOptions = 14)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FN:@output:OutputFile:FN:@'//
-     &    'tempdir:TemporaryDirectory:CH:@size:OutputSizeXYZ:IT:@'//
-     &    'center:RotationCenterXYZ:FT:@angles:RotationAnglesZYX:FT:@'//
-     &    'order:InterpolationOrder:I:@query:QuerySizeNeeded:B:@'//
-     &    'fill:FillValue:F:@memory:MemoryLimit:I:@verbose:VerboseOutput:I:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'input:InputFile:FN:@output:OutputFile:FN:@tempdir:TemporaryDirectory:CH:@'//
+     &    'size:OutputSizeXYZ:IT:@center:RotationCenterXYZ:FT:@'//
+     &    'angles:RotationAnglesZYX:FT:@back:BackRotate:B:@order:InterpolationOrder:I:@'//
+     &    'query:QuerySizeNeeded:B:@fill:FillValue:F:@memory:MemoryLimit:I:@'//
+     &    'verbose:VerboseOutput:I:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults here
 c       
       interpOrder = 2
       tempdir = ' '
       query = .false.
+      backRotate = .false.
 c       
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -103,6 +103,7 @@ c
         ierr = PipGetThreeFloats('RotationAnglesZYX', angles(3), angles(2),
      &      angles(1))
         ierr = PipGetFloat('FillValue', dmeanin)
+        ierr = PipGetLogical('BackRotate', backRotate)
       else
 c         
         write(*,'(1x,a,/,a,$)')'Enter path name of directory for '//
@@ -128,8 +129,14 @@ c
 c       
 c       get matrices for forward and inverse rotations
 c       
-      call icalc_matrix(angles,mfor)
-      call inv_matrix(mfor,minv)
+      if (backRotate) then
+        call icalc_matrix(angles,minv)
+        call inv_matrix(minv,mfor)
+        call icalc_angles(angles, mfor)
+      else
+        call icalc_matrix(angles,mfor)
+        call inv_matrix(mfor,minv)
+      endif
 c       
 c       Compute maximum dimensions required if requested
 c       
