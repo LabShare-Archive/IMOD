@@ -82,21 +82,6 @@ final class InterfaceSection extends Assert {
   }
 
   /**
-   * Get the unique panel command from the section.  Used to get the main frame
-   * for the current axis.
-   * @return
-   * @throws FileNotFoundException
-   * @throws IOException
-   * @throws LogFile.ReadException
-   */
-  Command getOpenFrameCommand(AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.LockException {
-    readSection();
-    return (Command) commandMap.get(UITestActionType.OPEN.toString()
-        + UITestSubjectType.FRAME.toString() + axisID.getExtension());
-  }
-
-  /**
    * Get the open = interface subsection.
    * @return
    * @throws FileNotFoundException
