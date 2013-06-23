@@ -316,6 +316,29 @@ program beadtrack
   xdelt = 1.
   ydelt = 1.
   !
+  ! Check for multiple points on a view
+  do iobj = 1, max_mod_obj
+    numInObj = npt_in_obj(iobj)
+    if (numInObj > 0) then
+      ibase = ibase_obj(iobj)
+      ivList = 0
+      do ipt = 1, numInObj
+        iz = nint(p_coord(3, object(ipt + ibase)) + 1.)
+        if (iz > 0 .and. iz <= nviewAll) then
+          if (ivList(iz) > 0) then
+            call objToCont(iobj, obj_color, ibase, numInObj)
+            write(*,'(/,a,i5,a,i5,a,i5,a,i5,a,i4)') &
+                'ERROR: BEADTRACK - TWO POINTS (#', ivList(iz), ' AND', ipt, &
+                ') ON VIEW', iz, ' IN CONTOUR', numInObj, ' OF OBJECT', ibase
+            call exit(1)
+          else
+            ivList(iz) = ipt
+          endif
+        endif
+      enddo
+    endif
+  enddo
+  !
   if (PipGetInOutFile('OutputModel', 2, 'Output model file', modelFile) &
       .ne. 0) call errorExit('NO OUTPUT MODEL FILE SPECIFIED', 0)
   !
