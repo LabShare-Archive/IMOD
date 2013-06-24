@@ -43,6 +43,8 @@ Etomo/Makefile
 Etomo/jar_dir
 Etomo/jar
 Etomo/.settings
+mrc2tif/Makefile
+mrc2tif/tiff.c
 flib/subrs/smallmodel
 .distname
 .options
