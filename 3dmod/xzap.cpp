@@ -1364,8 +1364,20 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   case Qt::Key_Down: 
   case Qt::Key_Right: 
   case Qt::Key_Left: 
-    // Translate with keypad in movie mode or regular arrows in model mode
-    if ((!keypad && imod->mousemode != IMOD_MMOVIE) ||
+
+    // If arrows scroll and it is not keypad, call the appropriate routine for up/down
+    if (!keypad && (keysym == Qt::Key_Down || keysym == Qt::Key_Up) && 
+        ImodPrefs->arrowsScrollZap()) {
+      if (mLock == 2)
+        lockedPageUpOrDown(shifted, keysym == Qt::Key_PageUp ? 1 : -1);
+      else {
+        ivwControlActive(vi, 0);
+        inputPageUpOrDown(vi, shifted, keysym == Qt::Key_Up ? 1 : -1);
+      }
+      handled = 1;
+
+      // Translate with keypad in movie mode or regular arrows in model mode
+    } else if ((!keypad && imod->mousemode != IMOD_MMOVIE) ||
         (keypad && imod->mousemode == IMOD_MMOVIE)) {
       if (keysym == Qt::Key_Left)
         translate(-trans, 0);
@@ -1411,20 +1423,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
 
       // with regular keys, handle specially if locked
     } else if (!keypad && mLock == 2){
-      if (shifted) {
-        obj = imodObjectGet(imod);
-        mSection = utilNextSecWithCont(vi, obj, mSection, 
-                                           keysym == Qt::Key_PageUp ? 1 : -1);
-      } else {
-        if (keysym == Qt::Key_PageDown)
-          mSection--;
-        else
-          mSection++;
-      }
-      if (mSection < 0) mSection = 0;
-      if (mSection >= vi->zsize) 
-        mSection = vi->zsize -1;
-      draw();
+      lockedPageUpOrDown(shifted, keysym == Qt::Key_PageUp ? 1 : -1);
       handled = 1;
     }
     break;
@@ -1722,6 +1721,19 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     ivwControlActive(vi, 0);
     inputQDefaultKeys(event, vi);
   }
+}
+
+void ZapFuncs::lockedPageUpOrDown(int shifted, int direction)
+{
+  Iobj *obj;
+  if (shifted) {
+    obj = imodObjectGet(mVi->imod);
+    mSection = utilNextSecWithCont(mVi, obj, mSection, direction);
+  } else {
+    mSection += direction;
+  }
+  B3DCLAMP(mSection, 0, mVi->zsize -1);
+  draw();
 }
 
 /*

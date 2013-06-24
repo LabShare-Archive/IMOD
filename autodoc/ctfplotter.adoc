@@ -63,13 +63,17 @@ tooltip =
 manpage = File to store found defocuses.  Each entry in the file will consist
 of the starting and ending view number of the range of views being fit to
 (numbered from 1), the starting and ending angle of the tilt angle range being
-fit to, and the defocus value in nanometers (underfocus positive).  If this
-file already exists when the program starts, it will be read in and the
-results displayed in a table in the Angle Range and Tile Selection dialog.
-The previous version will become a backup file (with ~ added to its name) when
-new results are saved to this file.  If you supply an initial defocus file
-with more than line, be sure to use the exact angles from the tilt angle file;
-do not round to one decimal place.
+fit to, and the defocus value in nanometers (underfocus positive).  When the
+program writes a new defocus file, it puts a version number (currently 2) at
+the end of the first line.  If this file already exists when the program
+starts, it will be read in and the results displayed in a table in the Angle
+Range and Tile Selection dialog. The previous version will become a backup
+file (with ~ added to its name) when new results are saved to this file.  If
+you supply an initial defocus file with more than line, be sure to use the
+exact angles from the tilt angle file specified with -angleFn; do not round to
+one decimal place.  Alternatively, add the number "2" as an extra value at the
+end of the first line of the file; this will prevent the program from thinking
+that the view numbers might be off by one.
 
 [Field = AxisAngle]
 short = aAngle

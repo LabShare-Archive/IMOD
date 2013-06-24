@@ -146,6 +146,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->silentBeepDflt = false;
   prefs->classicSlicerDflt = false;
   prefs->startInHQDflt = true;
+  prefs->arrowsScrollZapDflt = false;
   //prefs->tooltipsOnDflt = true;
   prefs->startAtMidZDflt = true;
   prefs->autoConAtStartDflt = 1;
@@ -212,6 +213,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   if (prefs->classicSlicer)
     mClassicWarned = true;
   READBOOL(startInHQ);
+  READBOOL(arrowsScrollZap);
   //READBOOL(tooltipsOn);
   //QToolTip::setGloballyEnabled(prefs->tooltipsOn);
   READNUM(autoConAtStart);
@@ -558,6 +560,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(classicSlicer);
   settings->setValue("classicWarned", mClassicWarned);
   WRITE_IF_CHANGED(startInHQ);
+  WRITE_IF_CHANGED(arrowsScrollZap);
   //WRITE_IF_CHANGED(tooltipsOn);
   WRITE_IF_CHANGED(autoConAtStart);
   WRITE_IF_CHANGED(startAtMidZ);
@@ -721,6 +724,7 @@ void ImodPreferences::donePressed()
   curp->slicerNewSurfChgd |= !equiv(newp->slicerNewSurf, oldp->slicerNewSurf);
   curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
   curp->startInHQChgd |= !equiv(newp->startInHQ, oldp->startInHQ);
+  curp->arrowsScrollZapChgd |= !equiv(newp->arrowsScrollZap, oldp->arrowsScrollZap);
   /*if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
     //QToolTip::setGloballyEnabled(curp->tooltipsOn);
@@ -851,6 +855,7 @@ void ImodPreferences::defaultPressed()
     prefs->autoConAtStart = prefs->autoConAtStartDflt;
     prefs->startAtMidZ = prefs->startAtMidZDflt;
     prefs->startInHQ = prefs->startInHQDflt;
+    prefs->arrowsScrollZap = prefs->arrowsScrollZapDflt;
     prefs->loadUshorts = prefs->loadUshortsDflt;
     prefs->attachToOnObj = prefs->attachToOnObjDflt;
     prefs->slicerNewSurf = prefs->slicerNewSurfDflt;

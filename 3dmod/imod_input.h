@@ -27,6 +27,7 @@ void inputInsertPoint(ImodView *vw);
 void inputModifyPoint(ImodView *vw);
 void inputNextz(ImodView *vw, int step = 1);
 void inputPrevz(ImodView *vw, int step = 1);
+void inputPageUpOrDown(ImodView *vi, int shifted, int direction);
 void inputNexty(ImodView *vw);
 void inputPrevy(ImodView *vw);
 void inputNextx(ImodView *vw);

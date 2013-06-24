@@ -116,6 +116,7 @@ class ZapFuncs
   int bandMinimum();
   B3dCIImage *getNewCIImage(B3dCIImage *image);
   void allocateToPanels(int num, int winSize, int gutter, int &panelSize, int &border);
+  void lockedPageUpOrDown(int shifted, int direction);
 
  public:
   ImodView    *mVi;  /* Pointer to view structure. */

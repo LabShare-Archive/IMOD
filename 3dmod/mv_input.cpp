@@ -273,16 +273,6 @@ void imodvKeyPress(QKeyEvent *event)
       mvMovieSequenceDialog(Imodv, 1);
     break;
 
-  case Qt::Key_I:
-    if (shifted && imodvByteImagesExist())
-      mvImageEditDialog(Imodv, 1);
-    break;
-
-  case Qt::Key_U:
-    if (shifted && imodvByteImagesExist())
-      imodvIsosurfaceEditDialog(Imodv, 1);
-    break;
-
   case Qt::Key_V:
     if (shifted && ctrl && a->vertBufOK >= 0) {
       a->vertBufOK = 1 - a->vertBufOK;
@@ -359,15 +349,50 @@ void imodvKeyPress(QKeyEvent *event)
     break;
   case Qt::Key_5:
   case Qt::Key_Enter:
-    if (!keypad)
+  case Qt::Key_U:
+    if (shifted && keysym == Qt::Key_U) {
+      if (imodvByteImagesExist())
+        imodvIsosurfaceEditDialog(Imodv, 1);
       break;
+    }
+    if (!keypad && keysym != Qt::Key_U)
+      break;
+    if (ctrl && keysym == Qt::Key_U) {
+      imodv_rotate_model(a, 0, -a->deltaRot, 0);
+      break;
+    }
     if (!a->movie){
       a->xrotMovie = a->yrotMovie = a->zrotMovie =0;
       a->movie = 1;
-    }else{
+    } else {
       a->movie = 0;
       a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
     }
+    break;
+  case Qt::Key_7:
+    imodv_rotate_model(a, -a->deltaRot, 0, 0);
+    break;
+  case Qt::Key_J:
+    imodv_rotate_model(a, a->deltaRot, 0, 0);
+    break;
+  case Qt::Key_Y:
+    if (ctrl) 
+      inputUndoRedo(a->vi, 1);
+    else
+      imodv_rotate_model(a, 0, -a->deltaRot, 0);
+    break;
+  case Qt::Key_I:
+    if (shifted) {
+      if (imodvByteImagesExist())
+        mvImageEditDialog(Imodv, 1);
+    } else
+      imodv_rotate_model(a, 0, a->deltaRot, 0);
+    break;
+  case Qt::Key_6:
+    imodv_rotate_model(a, 0, 0, -a->deltaRot);
+    break;
+  case Qt::Key_H:
+    imodv_rotate_model(a, 0, 0, a->deltaRot);
     break;
 
   case Qt::Key_Delete:
@@ -430,11 +455,6 @@ void imodvKeyPress(QKeyEvent *event)
       imodvStereoUpdate();
       imodvDraw(a);
     }
-    break;
-
-  case Qt::Key_Y:
-    if (ctrl) 
-      inputUndoRedo(a->vi, 1);
     break;
 
   case Qt::Key_R:

@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_behavior.h"
@@ -72,6 +71,7 @@ void BehaviorForm::update()
   diaSetChecked(silenceBox, mPrefs->silentBeep);
   diaSetChecked(classicBox, mPrefs->classicSlicer);
   diaSetChecked(startInHQBox, mPrefs->startInHQ);
+  diaSetChecked(arrowsScrollZapBox, mPrefs->arrowsScrollZap);
   //  diaSetChecked(tooltipBox, mPrefs->tooltipsOn);
   diaSetChecked(startAtMidZBox, mPrefs->startAtMidZ);
   diaSetChecked(loadUshortBox, mPrefs->loadUshorts);
@@ -95,6 +95,7 @@ void BehaviorForm::unload()
   mPrefs->silentBeep = silenceBox->isChecked();
   mPrefs->classicSlicer = classicBox->isChecked();
   mPrefs->startInHQ = startInHQBox->isChecked();
+  mPrefs->arrowsScrollZap = arrowsScrollZapBox->isChecked();
   //  mPrefs->tooltipsOn = tooltipBox->isChecked();
   mPrefs->startAtMidZ = startAtMidZBox->isChecked();
   mPrefs->loadUshorts = loadUshortBox->isChecked();
@@ -119,24 +120,4 @@ void BehaviorForm::toolTipsToggled( bool state )
   mPrefs->tooltipsOn = state;
   //QToolTip::setGloballyEnabled(mPrefs->tooltipsOn);
 }
-*/
-/*
-
-$Log$
-Revision 4.5  2011/02/12 04:46:20  mast
-Added option for starting in HQ mode
-
-Revision 4.4  2010/12/15 06:13:13  mast
-Changes for new snapshot preference panel
-
-Revision 4.3  2009/11/21 23:06:43  mast
-Setting to control slicer new surfaces
-
-Revision 4.2  2009/02/26 20:03:32  mast
-Add paging by big steps
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
 */

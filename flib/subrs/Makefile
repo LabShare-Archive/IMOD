@@ -20,7 +20,8 @@ LIBS = $(LIBHVEM) $(LIBMRCIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS) \
 
 all : $(LIBS)
 
-$(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f statsubs/*.f90
+$(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f hvem/*.f90 xfsubs/*.f statsubs/*.f \
+	statsubs/*.f90 
 	(cd piecesubs ; $(MAKE) all)
 	(cd hvem ; $(MAKE) all)
 	(cd xfsubs ; $(MAKE) all)
