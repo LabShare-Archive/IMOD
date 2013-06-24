@@ -195,8 +195,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       
     case Qt::Key_Up:
       if( plug.useArrowKeys )
-				edit_changeZTopZap( 1 );
-        //edit_changeSelectedSlice( 1,false, false );
+				//edit_changeZTopZap( 1 );
+        edit_changeSelectedSlice( 1,false, false );
       else
         return 0;
       break;
