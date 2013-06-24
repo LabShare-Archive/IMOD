@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/24/13: Added 6-7-y-u-i-h-j hot keys as an alternative to the keypad in 3dmod
+model view for rotating the model or clipping planes.
+
 6/23/13: Added an option in 3dmod preferences to use up and down arrows just
 like PageUp/PageDown.
 
