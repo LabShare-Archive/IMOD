@@ -1088,25 +1088,11 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
       handled = 0;
     break;
 
-  case Qt::Key_PageDown:
-    if (!keypad && !shifted)
-      inputPrevz(vi);
-    else if (!keypad && shifted) {
-      obj = imodObjectGet(vi->imod);
-      vi->zmouse = utilNextSecWithCont(vi, obj, B3DNINT(vi->zmouse), -1);
-      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
-    } else
-      handled = 0;
-    break;
-
   case Qt::Key_PageUp:
-    if (!keypad && !shifted)
-      inputNextz(vi);
-    else if (!keypad && shifted) {
-      obj = imodObjectGet(vi->imod);
-      vi->zmouse = utilNextSecWithCont(vi, obj, B3DNINT(vi->zmouse), 1);
-      imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
-    } else
+  case Qt::Key_PageDown:
+    if (!keypad)
+      inputPageUpOrDown(vi, shifted, keysym == Qt::Key_PageUp ? 1 : -1);
+    else
       handled = 0;
     break;
 
@@ -1491,6 +1477,19 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
   else
     event->ignore();
 
+}
+
+void inputPageUpOrDown(ImodView *vi, int shifted, int direction)
+{
+  Iobj *obj;
+  if (shifted) {
+    obj = imodObjectGet(vi->imod);
+    vi->zmouse = utilNextSecWithCont(vi, obj, B3DNINT(vi->zmouse), direction);
+    imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+  } else if (direction > 0)
+    inputNextz(vi);
+  else
+    inputPrevz(vi);
 }
 
 /* Convert numeric keypad keys that come through as numbers because NumLock is

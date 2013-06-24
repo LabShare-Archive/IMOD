@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/13: Added an option in 3dmod preferences to use up and down arrows just
+like PageUp/PageDown.
+
 6/23/13: Rotatevol has an option to rotate by the inverse of the specified
 angles.
 

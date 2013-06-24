@@ -77,7 +77,8 @@ typedef struct imod_pref_struct
   //  TRIPLET(bool, tooltipsOn);         // Enable tool tips
   TRIPLET(bool, classicSlicer);       // Use classic slicer
   TRIPLET(bool, startInHQ);          // Start windows in HQ mode
-  TRIPLET(bool, startAtMidZ);         // Go to middle Z at start
+  TRIPLET(bool, arrowsScrollZap);    // Use arrows for Page Up/Down in Zap
+  TRIPLET(bool, startAtMidZ);        // Go to middle Z at start
   TRIPLET(int, autoConAtStart);      // Do autocontrast at start
   TRIPLET(bool, attachToOnObj);      // Attach to ON objects only
   TRIPLET(bool, slicerNewSurf);      // Slicer make new surfaces automatically 
@@ -160,6 +161,7 @@ class ImodPreferences : public QObject
   bool silentBeep() {return mCurrentPrefs.silentBeep;};
   bool classicSlicer() {return mCurrentPrefs.classicSlicer;};
   bool startInHQ() {return mCurrentPrefs.startInHQ;};
+  bool arrowsScrollZap() {return mCurrentPrefs.arrowsScrollZap;};
   bool classicWarned();
   bool attachToOnObj() {return mCurrentPrefs.attachToOnObj;};
   bool slicerNewSurf() {return mCurrentPrefs.slicerNewSurf;};
