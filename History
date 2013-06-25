@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/24/13: In eTomo - PEET, added a warning popup when a value in the .prm file
+will be overridden.(Bug# 1486)
+
 6/24/13: Made Sirtsetup turn GPU failure from warning to error.
 
 6/24/13: Added 6-7-y-u-i-h-j hot keys as an alternative to the keypad in 3dmod
