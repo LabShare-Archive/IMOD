@@ -337,7 +337,8 @@ int ivwPlistBlank(ImodView *vi, int cz)
 /* Read a section of data into the cache */
 void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
 {
-  int zread;
+  int zread, i, fill;
+  b3dUInt16 *usbuf = (b3dUInt16 *)buf;
 
   /* Image in not a stack but loaded into pieces. */
   if (vi->li->plist) {
@@ -362,8 +363,20 @@ void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
     /* DNM: make the buffer the size of input pieces */
     bxy = nxbin * nybin;
 
-    /* Clear image buffer we will write to. */
-    memset(buf, 127, mxy * pixSize);
+    // Clear image buffer we will write to with scaled value of image mean for real data
+    // Otherwise just set to midrange
+    if (vi->image->format == IIFORMAT_LUMINANCE) {
+      fill = (int)(vi->image->amean * vi->image->slope + vi->image->offset);
+      if (vi->ushortStore) {
+        B3DCLAMP(fill, 0, 65535);
+        for (i = 0; i < mxy; i++)
+          usbuf[i] = fill;
+      } else {
+        B3DCLAMP(fill, 0, 255);
+        memset(buf, fill, mxy * pixSize);
+      }
+    } else
+      memset(buf, 127, mxy * pixSize);
 
     /* Setup load buffer. */
     if (plistBufSize < bxy) {
