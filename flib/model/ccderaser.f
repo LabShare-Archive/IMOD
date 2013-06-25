@@ -26,7 +26,7 @@ c
 c
 c       Keep isdim synchronized to limpatch, mxd sync'd to cleanarea mxd
       parameter (mxd=300,limpatch=10000,limptout=25*limpatchout)
-      real*4 title(20)
+      real*4 title(20), delta(3), origin(3)
       real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
@@ -861,6 +861,8 @@ c
       else
         print *,'New minimum and maximum density would be:',tmin, tmax
       endif
+      call irtorg(1, origin(1), origin(2), origin(3))
+      call irtdel(1, delta)
       call imclose(imfilout)
       
 c       
@@ -900,6 +902,8 @@ c
           call putsymtype(i, 0)
           call putsymsize(i, 5)
         enddo
+        call putImageRef(delta, origin)
+        call putImodMaxes(nx, ny, nz)
         call write_wmod(modelout)
         write(*,105)maxObjectsOut,maxObjectsOut,maxObjectsOut-1
 105     format('In the output model, contours have been sorted into',i3,
