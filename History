@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/24/13: Added option to Boxstartend to taper incomplete boxes near edge of
+volume inside or outside of the image data boundary.
+
+6/24/13: Based fill value when displaying incomplete or spread-out montage on
+the image mean.
+
 6/24/13: In eTomo - PEET, added a warning popup when a value in the .prm file
 will be overridden.(Bug# 1486)
 
