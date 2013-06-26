@@ -1,5 +1,6 @@
 #!/bin/csh -f
 # Script to package fortran graphics programs in individual .app directories
+# Sadly, also does some install tasks needed for install without dist
 #
 #  $Id$
 
@@ -8,6 +9,16 @@
 #
 set instdir = `sed -n '/INSTDIR/s/^.*= *//p' configure`
 \cp .version $instdir/VERSION
+
+# Copy the system templates
+\rm -rf SystemTemplate
+mkdir -p SystemTemplate
+set templates = `\find dist -name '*.adoc' -print`
+if ($#templates > 0) then
+    foreach i ($templates)
+        \cp $i SystemTemplate
+    end
+endif
 
 #
 # Get the list of programs needing packaging
