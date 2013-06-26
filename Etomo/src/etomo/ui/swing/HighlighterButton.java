@@ -58,13 +58,13 @@ final class HighlighterButton {
   private HighlighterButton(final Highlightable parent, final Highlightable group) {
     this.parent = parent;
     this.group = group;
-    //group
+    // group
     if (group != null) {
       groupLists.put(group, this);
     }
-    //button
-    cell = HeaderCell.getToggleInstance("=>", (int) (40 * UIParameters.INSTANCE
-        .getFontSizeAdjustment()));
+    // button
+    cell = HeaderCell.getToggleInstance("=>",
+        (int) (40 * UIParameters.INSTANCE.getFontSizeAdjustment()));
     cell.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
     cell.setEnabled(true);
     cell.addActionListener(new HBActionListener(this));
@@ -111,14 +111,19 @@ final class HighlighterButton {
     cell.remove();
   }
 
-  void action() {
+  void setSelected(final boolean select) {
+    cell.setSelected(select);
+    action();
+  }
+
+  private void action() {
     boolean highlight = cell.isSelected();
     parent.highlight(highlight);
     if (group == null) {
       return;
     }
-    //If turning on the highlight, all other highlighters in the group must be
-    //turned off
+    // If turning on the highlight, all other highlighters in the group must be
+    // turned off
     ArrayList list = groupLists.get(group);
     if (list == null) {
       throw new IllegalStateException("Should be in the list.  group=" + group);
@@ -129,11 +134,8 @@ final class HighlighterButton {
         highlighterButton.turnOffHighlight();
       }
     }
-    //The group may also need to respond to the highlight
+    // The group may also need to respond to the highlight
     group.highlight(highlight);
-    if (!highlight) {
-      return;
-    }
   }
 
   final Component getComponent() {

@@ -631,6 +631,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   private void deleteRow(VolumeRow row) {
     rowList.remove();
     int index = rowList.delete(row, this, pnlTable, layout, constraints);
+    rowList.highlight(index);
     viewport.adjustViewport(index);
     rowList.display(viewport);
     refreshVerticalPadding();
@@ -840,7 +841,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
   }
 
   private static final class RowList {
-    private final List list = new ArrayList();
+    private final List<VolumeRow> list = new ArrayList<VolumeRow>();
     private ConstPeetMetaData metaData = null;
 
     private int size() {
@@ -853,10 +854,19 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
     private void remove() {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).remove();
+        list.get(i).remove();
       }
     }
-
+    
+    /**
+     * Returns the index where the row used to be (points to the next row).
+     * @param row
+     * @param parent
+     * @param panel
+     * @param layout
+     * @param constraints
+     * @return
+     */
     private synchronized int delete(VolumeRow row, final Highlightable parent,
         final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints) {
@@ -865,7 +875,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         index = row.getIndex();
         list.remove(index);
         for (int i = index; i < list.size(); i++) {
-          ((VolumeRow) list.get(i)).setIndex(i);
+          list.get(i).setIndex(i);
         }
       }
       return index;
@@ -918,13 +928,13 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
     private void convertCopiedPaths(final String origDatasetDir) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).convertCopiedPaths(origDatasetDir);
+        list.get(i).convertCopiedPaths(origDatasetDir);
       }
     }
 
     private boolean isIncorrectPaths() {
       for (int i = 0; i < list.size(); i++) {
-        if (((VolumeRow) list.get(i)).isIncorrectPaths()) {
+        if (list.get(i).isIncorrectPaths()) {
           return true;
         }
       }
@@ -938,7 +948,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
      */
     private boolean fixIncorrectPaths(boolean choosePathEveryRow) {
       for (int i = 0; i < list.size(); i++) {
-        if (!((VolumeRow) list.get(i)).fixIncorrectPaths(choosePathEveryRow)) {
+        if (!list.get(i).fixIncorrectPaths(choosePathEveryRow)) {
           return false;
         }
       }
@@ -949,17 +959,27 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
      * Swap two rows.
      */
     private void moveRowUp(final int rowIndex) {
-      Object rowMoveUp = list.remove(rowIndex);
-      Object rowMoveDown = list.remove(rowIndex - 1);
+      VolumeRow rowMoveUp = list.remove(rowIndex);
+      VolumeRow rowMoveDown = list.remove(rowIndex - 1);
       list.add(rowIndex - 1, rowMoveUp);
       list.add(rowIndex, rowMoveDown);
     }
 
     private void moveRowDown(final int rowIndex) {
-      Object rowMoveUp = list.remove(rowIndex + 1);
-      Object rowMoveDown = list.remove(rowIndex);
+      VolumeRow rowMoveUp = list.remove(rowIndex + 1);
+      VolumeRow rowMoveDown = list.remove(rowIndex);
       list.add(rowIndex, rowMoveUp);
       list.add(rowIndex + 1, rowMoveDown);
+    }
+
+    /**
+     * Highlight the row in list at rowIndex.
+     * @param rowIndex
+     */
+    private void highlight(final int rowIndex) {
+      if (rowIndex >= 0 && rowIndex < list.size()) {
+        list.get(rowIndex).setHighlighterSelected(true);
+      }
     }
 
     /**
@@ -968,7 +988,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
      */
     private void reindex(final int startIndex) {
       for (int i = startIndex; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).setIndex(i);
+        list.get(i).setIndex(i);
       }
     }
 
@@ -981,7 +1001,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         return "Must enter at least one row in " + LABEL;
       }
       for (int i = 0; i < list.size(); i++) {
-        VolumeRow row = (VolumeRow) list.get(i);
+        VolumeRow row = list.get(i);
         String errorMessage = row.validateRun(tiltRangeRequired);
         if (errorMessage != null) {
           return errorMessage;
@@ -995,7 +1015,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       metaData.resetTiltRangeMin();
       metaData.resetTiltRangeMax();
       for (int i = 0; i < list.size(); i++) {
-        VolumeRow row = (VolumeRow) list.get(i);
+        VolumeRow row = list.get(i);
         row.getParameters(metaData);
       }
     }
@@ -1003,7 +1023,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     private void getParameters(final MatlabParam matlabParamFile) {
       matlabParamFile.setVolumeListSize(list.size());
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).getParameters(matlabParamFile);
+        list.get(i).getParameters(matlabParamFile);
       }
     }
 
@@ -1021,31 +1041,31 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
     private void display(Viewport viewport) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).display(i, viewport);
+        list.get(i).display(i, viewport);
       }
     }
 
     private void expandFnVolume(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).expandFnVolume(expanded);
+        list.get(i).expandFnVolume(expanded);
       }
     }
 
     private void expandFnModParticle(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).expandFnModParticle(expanded);
+        list.get(i).expandFnModParticle(expanded);
       }
     }
 
     private void expandInitMotl(final boolean expanded) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).expandInitMotlFile(expanded);
+        list.get(i).expandInitMotlFile(expanded);
       }
     }
 
     private boolean isHighlighted() {
       for (int i = 0; i < list.size(); i++) {
-        if (((VolumeRow) list.get(i)).isHighlighted()) {
+        if (list.get(i).isHighlighted()) {
           return true;
         }
       }
@@ -1054,7 +1074,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
     private VolumeRow getHighlightedRow() {
       for (int i = 0; i < list.size(); i++) {
-        VolumeRow row = (VolumeRow) list.get(i);
+        VolumeRow row = list.get(i);
         if (row.isHighlighted()) {
           return row;
         }
@@ -1065,15 +1085,14 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     private int getMaxRowTextSize() {
       int maxRowTextSize = 0;
       for (int i = 0; i < list.size(); i++) {
-        maxRowTextSize = Math
-            .max(((VolumeRow) list.get(i)).getTextSize(), maxRowTextSize);
+        maxRowTextSize = Math.max(list.get(i).getTextSize(), maxRowTextSize);
       }
       return maxRowTextSize;
     }
 
     private int getHighlightedRowIndex() {
       for (int i = 0; i < list.size(); i++) {
-        VolumeRow row = (VolumeRow) list.get(i);
+        VolumeRow row = list.get(i);
         if (row.isHighlighted()) {
           return i;
         }

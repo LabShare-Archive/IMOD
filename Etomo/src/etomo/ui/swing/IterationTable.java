@@ -377,7 +377,8 @@ final class IterationTable implements Highlightable {
 
   private void deleteRow(IterationRow row) {
     rowList.remove();
-    rowList.delete(row, this, pnlTable, layout, constraints);
+    int index = rowList.delete(row, this, pnlTable, layout, constraints);
+    rowList.highlight(index);
     rowList.display();
     updateDisplay();
     refreshVerticalPadding();
@@ -465,7 +466,7 @@ final class IterationTable implements Highlightable {
     SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.add(pnlTable);
-    //checkbox
+    // checkbox
     pnlFlgRemoveDuplicates.add(cbFlgRemoveDuplicates);
     // table and checkbox
     pnlTableAndCheckbox.setLayout(new BoxLayout(pnlTableAndCheckbox, BoxLayout.Y_AXIS));
@@ -584,7 +585,7 @@ final class IterationTable implements Highlightable {
   }
 
   private static final class RowList {
-    private final List list = new ArrayList();
+    private final List<IterationRow> list = new ArrayList<IterationRow>();
     private final BaseManager manager;
     private final IterationTable table;
 
@@ -606,11 +607,11 @@ final class IterationTable implements Highlightable {
     private void getParameters(final MatlabParam matlabParamFile) {
       matlabParamFile.setIterationListSize(list.size());
       for (int i = 0; i < list.size(); i++) {
-        ((IterationRow) list.get(i)).getParameters(matlabParamFile);
+         list.get(i).getParameters(matlabParamFile);
       }
     }
 
-    private synchronized void delete(IterationRow row, final Highlightable parent,
+    private synchronized int delete(IterationRow row, final Highlightable parent,
         final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints) {
       int index = row.getIndex();
@@ -618,6 +619,7 @@ final class IterationTable implements Highlightable {
       for (int i = index; i < list.size(); i++) {
         getRow(i).setIndex(i);
       }
+      return index;
     }
 
     private boolean validateRun() {
@@ -627,7 +629,7 @@ final class IterationTable implements Highlightable {
         return false;
       }
       for (int i = 0; i < list.size(); i++) {
-        IterationRow row = (IterationRow) list.get(i);
+        IterationRow row =  list.get(i);
         if (!row.validateRun()) {
           return false;
         }
@@ -643,7 +645,7 @@ final class IterationTable implements Highlightable {
     private void updateDisplay(final boolean sampleSphere,
         final boolean flgRemoveDuplicates) {
       for (int i = 0; i < list.size(); i++) {
-        IterationRow row = (IterationRow) list.get(i);
+        IterationRow row =  list.get(i);
         row.updateDisplay(sampleSphere, flgRemoveDuplicates);
       }
     }
@@ -670,7 +672,7 @@ final class IterationTable implements Highlightable {
 
     private void display() {
       for (int i = 0; i < list.size(); i++) {
-        ((IterationRow) list.get(i)).display();
+         list.get(i).display();
       }
     }
 
@@ -678,12 +680,12 @@ final class IterationTable implements Highlightable {
       if (index < 0 || index >= list.size()) {
         return null;
       }
-      return (IterationRow) list.get(index);
+      return  list.get(index);
     }
 
     private IterationRow getHighlightedRow() {
       for (int i = 0; i < list.size(); i++) {
-        IterationRow row = (IterationRow) list.get(i);
+        IterationRow row =  list.get(i);
         if (row.isHighlighted()) {
           return row;
         }
@@ -695,11 +697,21 @@ final class IterationTable implements Highlightable {
 
     private int getHighlightIndex() {
       for (int i = 0; i < list.size(); i++) {
-        if (((IterationRow) list.get(i)).isHighlighted()) {
+        if ( list.get(i).isHighlighted()) {
           return i;
         }
       }
       return -1;
+    }
+    
+    /**
+     * Highlight the row in list at rowIndex.
+     * @param rowIndex
+     */
+    private void highlight(final int rowIndex) {
+      if (rowIndex >= 0 && rowIndex < list.size()) {
+        list.get(rowIndex).setHighlighterSelected(true);
+      }
     }
 
     /**
@@ -707,8 +719,8 @@ final class IterationTable implements Highlightable {
      * @param rowIndex
      */
     private void moveRowUp(final int rowIndex) {
-      Object rowMoveUp = list.remove(rowIndex);
-      Object rowMoveDown = list.remove(rowIndex - 1);
+      IterationRow rowMoveUp = list.remove(rowIndex);
+      IterationRow rowMoveDown = list.remove(rowIndex - 1);
       list.add(rowIndex - 1, rowMoveUp);
       list.add(rowIndex, rowMoveDown);
     }
@@ -718,8 +730,8 @@ final class IterationTable implements Highlightable {
      * @param rowIndex
      */
     private void moveRowDown(final int rowIndex) {
-      Object rowMoveUp = list.remove(rowIndex + 1);
-      Object rowMoveDown = list.remove(rowIndex);
+      IterationRow rowMoveUp = list.remove(rowIndex + 1);
+      IterationRow rowMoveDown = list.remove(rowIndex);
       list.add(rowIndex, rowMoveUp);
       list.add(rowIndex + 1, rowMoveDown);
     }
@@ -730,7 +742,7 @@ final class IterationTable implements Highlightable {
      */
     private void reindex(final int startIndex) {
       for (int i = startIndex; i < list.size(); i++) {
-        ((IterationRow) list.get(i)).setIndex(i);
+         list.get(i).setIndex(i);
       }
     }
   }

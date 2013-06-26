@@ -226,6 +226,10 @@ final class IterationRow implements Highlightable {
     duplicateAngularTolerance.setHighlight(highlight);
   }
 
+  void setHighlighterSelected(final boolean select) {
+    btnHighlighter.setSelected(select);
+  }
+
   /**
    * In the first row, turn off theta and psi when sampleSphere is on.  In all
    * rows turn off duplicates columns when flgRemoveDuplicates is off.
