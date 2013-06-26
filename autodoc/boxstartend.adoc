@@ -151,6 +151,17 @@ manpage = Back-transform the points with the inverse of the transforms
 entered with -xforms.  These options could be used to take coordinates from an
 aligned model and extract images from unaligned images.
 
+[Field = TaperAtFill]
+short = taper
+type = IP
+usage = Distance to taper incomplete box, and 0/1 for tapering outside/inside
+tooltip = 
+manpage = Use this option to taper the image in boxes that fall partially
+outside the input volume.  Enter the number of pixels over which to taper the
+image, and a 0 for tapering outside or 1 for tapering inside the border of the
+real image data.  Tapering is to the mean of the input image file.  Boxes will
+be tapered in Z as well as in X and Y.
+
 [Field = BlankBetweenImages]
 short = blank
 type = I

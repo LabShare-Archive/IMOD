@@ -29,6 +29,7 @@ program boxstartend
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
   logical exist
   character*320 modelFile
+  real*4, allocatable :: dminTmp(:), dmaxTmp(:), dmeanTmp(:)
   real*4 delta(3), origin(3), cell(6), title(20), offset(3)
   integer*4 ixPcList(LIMPCL), iyPcList(LIMPCL), izPcList(LIMPCL)
   integer*4 listz(LIMPCL)
@@ -39,7 +40,7 @@ program boxstartend
   data nxyzst/0, 0, 0/
   character*9 dateStrn
   character*8 timeStrn
-  common / bigarr / agvArray
+  common /bigarr/ agvArray
   !
   character*80 titlech
   character*6 textStrtEnd
@@ -53,12 +54,13 @@ program boxstartend
   integer*4 ifStartEnd, numPixBox, numPixSq, npixLeft, npixRight, ibBase, ipnt, ilist
   integer*4 iaBase, nzBefore, nzAfter, nzClip, ifSeries, ifAverage, numFile
   integer*4 numPredict, iobj, numGutter, nzOut, numClip, loopStart, loopEnd, loop
-  integer*4 indLeft, indRight, indBot, indTop, indZlo, indZhi, indZ, indg
+  integer*4 indLeft, indRight, indBot, indTop, indZlo, indZhi, indZ, indg, izAtStart
   integer*4 indar, ipc, ixpc, iypc, ipcXstart, ipcYstart, ipcXend, ipcYend, kti, jnd
   integer*4 newYpiece, newXpiece, indX, indY, iz, nyPixBox, nzPixBox, npixBot, npixTop
-  real*4 tmean, dmean2, xyScale, zScale, xofs, yofs, zofs
-  logical*4 backXform
-  integer*4 getImodObjSize, getImodFlags, getImodHead
+  integer*4 numTaper, insideTaper, indZfirst, indZlast, izLoad, nzFileOut
+  real*4 tmean, dmean2, xyScale, zScale, xofs, yofs, zofs, atten, atten2
+  logical*4 backXform, needXYtaper
+  integer*4 getImodObjSize, getImodFlags, getImodHead, taperAtFill
   logical*4 readSmallMod, getModelObjectList
   !
   logical pipInput
@@ -87,6 +89,7 @@ program boxstartend
   numGutter = 5
   backXform = .false.
   ifXform = 0
+  numTaper = 0
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   call PipReadOrParseOptions(options, numOptions, 'boxstartend', &
@@ -238,6 +241,13 @@ program boxstartend
       nyPixBox = numPixBox
       nzPixBox = numPixBox
     endif
+    if (PipGetTwoIntegers('TaperAtFill', numTaper, insideTaper) .eq. 0) then
+      if (insideTaper < 0 .or. insideTaper > 1)  &
+          call exitError('VALUE FOR WHETHER TO TAPER INSIDE MUST BE 0 OR 1')
+      if (numTaper < 0 .or. numTaper > min(numPixBox, nyPixBox, nzPixBox) - 2) &
+          call exitError('NUMBER OF PIXELS TO TAPER MUST BE POSITIVE AND LESS '// &
+          'THAN THE SMALLEST BOX DIMENSION')
+    endif
   else
     write(*,'(1x,a,$)') 'Clip out starts (0) or ends (1) or all points (-1): '
     read(*,*) ifStartEnd
@@ -247,6 +257,7 @@ program boxstartend
     nyPixBox = numPixBox
     nzPixBox = numPixBox
   endif
+  !
   numPixSq = numPixBox * nyPixBox
   npixLeft = (numPixBox - 1) / 2
   npixRight = numPixBox - npixLeft - 1
@@ -273,6 +284,8 @@ program boxstartend
       call exitError('BOX SIZE AND NUMBER OF SLICES MUST BE POSITIVE')
   offset(3) = 0.
   if (mod(nzBefore, 2) == mod(nzAfter, 2)) offset(3) = -0.495
+  allocate(dminTmp(nzClip), dmaxTmp(nzClip), dmeanTmp(nzClip), stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR MIN/MAX/MEAN')
   !
   ! Manage the Z limits if none entered
   if (indZmin == -99999) indZmin = listz(1) - nzBefore
@@ -353,6 +366,7 @@ program boxstartend
   ! set up for loop on model objects
   !
   nzOut = 0
+  nzFileOut = 0
   numClip = 0
   numFile = 0
   dsum = 0.
@@ -409,10 +423,14 @@ program boxstartend
             dsum = 0.
             dmin2 = 1.e30
             dmax2 = -1.e30
+            nzFileOut = 0
           endif
           !
           ! loop on sections
           !
+          izAtStart = nzFileOut
+          indZfirst = -1
+          indZlast = -1
           do indZ = indZlo, indZhi
             if (ifXform .ne. 0) then
               indg = 0
@@ -434,6 +452,7 @@ program boxstartend
             !
             ! zero out the box
             !
+            needXYtaper = numTaper > 0
             do iy = 1, numPixSq
               brray(iy + ibBase) = dmean
             enddo
@@ -450,13 +469,21 @@ program boxstartend
                 ipcYend = min(indTop, iypc + ny - 1)
                 if (ipcXstart <= ipcXend .and. ipcYstart <= ipcYend) then
                   !
-                  ! if it intersects, read in intersecting part, move it
-                  ! into appropriate part of array
+                  ! if it intersects, read in intersecting part,
                   !
                   call imposn(1, ipc - 1, 0)
                   call irdpas(1, array(iaBase + 1), numPixBox, nyPixBox,  &
                       ipcXstart - ixpc, ipcXend - ixpc, ipcYstart - iypc,  &
                       ipcYend - iypc,*99)
+                  !
+                  ! cancel tapering if the whole area is filled, record last image that
+                  ! has data and first one if not set yet
+                  if (ipcXend + 1 - ipcXstart .eq. numPixBox .and.  &
+                      ipcYend + 1 - ipcYstart .eq. nyPixBox) needXYtaper = .false.
+                  indZlast = indZ
+                  if (indZfirst < 0) indZfirst = indZ
+                  !
+                  ! move it into appropriate part of array
                   do iy = 1, ipcYend + 1 - ipcYstart
                     do ix = 1, ipcXend + 1 - ipcXstart
                       brray(ibBase + ix + ipcXstart - indLeft +  &
@@ -468,16 +495,21 @@ program boxstartend
               endif
             enddo
             !
+            ! Taper if called for and one box didn't fill it
+            if (needXYtaper) then
+              if (taperAtFill(brray(ibBase + 1), numPixBox, nyPixBox, numtaper, &
+                  insideTaper) .ne. 0) call exitError('MEMORY ERROR TAPERING SLICE')
+            endif
+            !
             ! write piece list and slice
             !
             if (pieceFile2 .ne. ' ') write(4, '(3i6)') indLeft, indBot, indZ
-            call iclden(brray(ibBase + 1), numPixBox, nyPixBox, 1, numPixBox, 1, &
-                nyPixBox, tmin, tmax, tmean)
-            dmin2 = min(dmin2, tmin)
-            dmax2 = max(dmax2, tmax)
-            dsum = dsum + tmean
+            ix = indZ + 1 - indZlo
+            Call iclden(brray(ibBase + 1), numPixBox, nyPixBox, 1, numPixBox, 1, &
+                nyPixBox, dminTmp(ix), dmaxTmp(ix), dmeanTmp(ix))
             call iwrsec(2, brray(ibBase + 1))
             nzOut = nzOut + 1
+            nzFileOut = nzFileOut + 1
             !
             ! Add to average only if flag set
             if (ifAverage .ne. 0) then
@@ -488,7 +520,62 @@ program boxstartend
             endif
           enddo
           !
-          ! Done with Z loop, close up particle file
+          ! Done with Z loop, see if anything needs Z tapering and if so, loop on all Z's
+          if (numTaper > 0 .and. indZfirst > -1 .and. (indZfirst > indZlo   .or. &
+              indZlast < indZhi)) then
+            do indZ = indZlo, indZhi
+              atten = 1.
+              !
+              ! Evaluate smallest attenuation value based on nearest boundary for an
+              ! inside taper and set up to load this Z
+              if (insideTaper > 0) then
+                atten2 = 1.
+                if (indZfirst > indZlo .and. indZ >= indZfirst .and.  &
+                    indZ < indZfirst + numTaper)  &
+                    atten = (indZ + 1. - indZfirst) / (numTaper + 1.)
+                if (indZlast < indZhi .and. indZ <= indZlast .and.  &
+                    indZ > indZlast - numTaper) &
+                    atten2 = (indZlast + 1. - indZ) / (numTaper + 1.)
+                atten = min(atten, atten2)
+                izLoad = izAtStart + indZ - indZlo
+              else 
+                !
+                ! Or find which boundary the Z is past for an outside taper and set up
+                ! to load that boundary slice
+                if (indZ >= indZfirst - numTaper .and. indZ < indZfirst) then
+                  izLoad = izAtStart + indZfirst - indZlo
+                  atten = 1. - (indZfirst - indZ) / (numTaper + 1.)
+                elseif (indZ <= indZlast + numTaper .and. indZ > indZlast) then
+                  izLoad = izAtStart + indZlast - indZlo
+                  atten = 1. - (indZ - indZlast) / (numTaper + 1.)
+                endif
+              endif
+              if (atten > 0. .and. atten < 1.) then
+                !
+                ! Load the slice, attenuate it, rewrite and fix mean
+                call imposn(2, izLoad, 0)
+                call irdsec(2, brray(ibBase + 1), *99)
+                do ix = 1, numPixSq
+                  brray(ibBase + ix) = atten * brray(ibBase + ix) + (1. - atten) * dmean
+                enddo
+                call imposn(2, izAtStart + indZ - indZlo, 0)
+                ix = indZ + 1 - indZlo
+                call iclden(brray(ibBase + 1), numPixBox, nyPixBox, 1, numPixBox, 1, &
+                    nyPixBox, dminTmp(ix), dmaxTmp(ix), dmeanTmp(ix))
+                 call iwrsec(2, brray(ibBase + 1))
+              endif
+            enddo
+            call imposn(2, nzFileOut, 0)
+          endif
+          !
+          ! Maintain min/max/mean
+          do ix = 1, nzClip
+            dmin2 = min(dmin2, dminTmp(ix))
+            dmax2 = max(dmax2, dmaxTmp(ix))
+            dsum = dsum + dmeanTmp(ix)
+          enddo
+          !
+          ! Close up particle file
           if (ifSeries .ne. 0) then
             dmean2 = dsum / nzClip
             do i = 1, 3

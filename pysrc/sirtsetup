@@ -488,7 +488,8 @@ sedbase = [r'/^\s*SLICE/d',
            fmtstr(r'/^\s*MODE.*/s//MODE   {}/', mode),
            fmtstr(r'/^\s*SHIFT.*/s//SHIFT 0.0 {}/', zshift),
            fmtstr(r'/^\s*SUBSETSTART.*/s//SUBSETSTART   {} {}/', ssXstart, ssYstart),
-           fmtstr('/THICKNESS/a/SLICE  0 {}/', lastslice)]
+           fmtstr('/THICKNESS/a/SLICE  0 {}/', lastslice),
+           sedModify('ActionIfGPUFails', '2,2')]
 
 if startfirst:
          

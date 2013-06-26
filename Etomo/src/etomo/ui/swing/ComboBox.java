@@ -147,6 +147,10 @@ final class ComboBox {
     comboBox.removeAllItems();
   }
 
+  public boolean isEnabled() {
+    return comboBox.isEnabled();
+  }
+
   public void setEnabled(final boolean enabled) {
     comboBox.setEnabled(enabled);
   }

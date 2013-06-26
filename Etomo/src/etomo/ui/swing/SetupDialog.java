@@ -248,8 +248,19 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   void updateTemplateValues() {
     DirectiveFileCollection directiveFileCollection = templatePanel
         .getDirectiveFileCollection();
-    rbDualAxis.setSelected(directiveFileCollection.isDual());
-    rbMontage.setSelected(directiveFileCollection.isMontage());
+    //Handle dual differently because the dual is the default.
+    if (!directiveFileCollection.containsDual() || directiveFileCollection.isDual()) {
+      rbDualAxis.setSelected(true);
+    }
+    else {
+      rbSingleAxis.setSelected(true);
+    }
+    if (directiveFileCollection.isMontage()) {
+      rbMontage.setSelected(true);
+    }
+    else {
+      rbSingleView.setSelected(true);
+    }
     if (directiveFileCollection.containsPixel()) {
       ltfPixelSize.setText(directiveFileCollection.getPixelSize(false));
     }
