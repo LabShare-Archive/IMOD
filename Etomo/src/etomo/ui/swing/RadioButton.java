@@ -19,6 +19,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.EtomoBoolean2;
 import etomo.type.UITestFieldType;
 import etomo.util.Utilities;
 
@@ -42,6 +43,7 @@ final class RadioButton implements RadioButtonInterface {
   private final EnumeratedType enumeratedType;
 
   private boolean debug = false;
+  private EtomoBoolean2 checkpointValue = null;
 
   RadioButton(final String text) {
     this(text, null, null);
@@ -103,6 +105,20 @@ final class RadioButton implements RadioButtonInterface {
 
   public String toString() {
     return radioButton.getText() + ": " + (radioButton.isSelected() ? "On" : "Off");
+  }
+
+  void checkpoint() {
+    if (checkpointValue == null) {
+      checkpointValue = new EtomoBoolean2();
+    }
+    checkpointValue.set(isSelected());
+  }
+
+  boolean isCheckpointValue() {
+    if (checkpointValue == null) {
+      return false;
+    }
+    return checkpointValue.is();
   }
 
   void setText(final String text) {
