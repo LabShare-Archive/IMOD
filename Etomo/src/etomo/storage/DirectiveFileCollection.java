@@ -43,9 +43,15 @@ public class DirectiveFileCollection implements SetupReconInterface {
   private final BaseManager manager;
   private final AxisID axisID;
 
+  private boolean debug = false;
+
   public DirectiveFileCollection(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
+  }
+
+  public void setDebug(final boolean input) {
+    debug = input;
   }
 
   /**
@@ -57,10 +63,9 @@ public class DirectiveFileCollection implements SetupReconInterface {
   private boolean containsAttribute(final DirectiveFile.AttributeName parentName,
       final String name) {
     for (int i = 0; i < directiveFileArray.length; i++) {
-      if (directiveFileArray[i] != null) {
-        if (directiveFileArray[i].containsAttribute(parentName, name)) {
-          return true;
-        }
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].containsAttribute(parentName, name)) {
+        return true;
       }
     }
     return false;
@@ -233,6 +238,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
         DirectiveFile.DUAL_NAME));
   }
 
+  public boolean containsDual() {
+    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.DUAL_NAME);
+  }
+
   public boolean isDualAxisSelected() {
     return isDual();
   }
@@ -240,6 +250,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public boolean isMontage() {
     return DirectiveFile.toBoolean(getValue(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.MONTAGE_NAME));
+  }
+
+  public boolean containsMontage() {
+    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.MONTAGE_NAME);
   }
 
   public boolean isGpuProcessingSelected(final String propertyUserDir) {
