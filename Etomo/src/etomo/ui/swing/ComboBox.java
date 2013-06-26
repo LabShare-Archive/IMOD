@@ -96,26 +96,26 @@ final class ComboBox {
     }
   }
 
-  public void addActionListener(final ActionListener listener) {
+  void addActionListener(final ActionListener listener) {
     comboBox.addActionListener(listener);
   }
 
-  public void addFocusListener(final FocusListener listener) {
+  void addFocusListener(final FocusListener listener) {
     comboBox.addFocusListener(listener);
   }
 
-  public void addItem(final Object input) {
+  void addItem(final Object input) {
     if (addEmptyChoice && comboBox.getItemCount() == 0) {
       comboBox.addItem(null);
     }
     comboBox.addItem(input);
   }
 
-  public String getActionCommand() {
+  String getActionCommand() {
     return comboBox.getActionCommand();
   }
 
-  public Component getComponent() {
+  Component getComponent() {
     if (pnlRoot != null) {
       return pnlRoot;
     }
@@ -127,7 +127,7 @@ final class ComboBox {
    * that it starts from zero.  If the empty choice was selected it returns -1.
    * @return
    */
-  public int getSelectedIndex() {
+  int getSelectedIndex() {
     int index = comboBox.getSelectedIndex();
     if (addEmptyChoice && index > -1) {
       return index - 1;
@@ -135,31 +135,27 @@ final class ComboBox {
     return index;
   }
 
-  public Object getSelectedItem() {
+  Object getSelectedItem() {
     return comboBox.getSelectedItem();
   }
 
-  public void removeAll() {
-    comboBox.removeAll();
-  }
-
-  public void removeAllItems() {
+  void removeAllItems() {
     comboBox.removeAllItems();
   }
 
-  public boolean isEnabled() {
+  boolean isEnabled() {
     return comboBox.isEnabled();
   }
 
-  public void setEnabled(final boolean enabled) {
+  void setEnabled(final boolean enabled) {
     comboBox.setEnabled(enabled);
   }
 
-  public void setEditable(final boolean editable) {
+  void setEditable(final boolean editable) {
     comboBox.setEditable(editable);
   }
 
-  public void setName(String text) {
+  void setName(String text) {
     String name = Utilities.convertLabelToName(text);
     comboBox.setName(UITestFieldType.COMBO_BOX.toString()
         + AutodocTokenizer.SEPARATOR_CHAR + name);
@@ -174,14 +170,14 @@ final class ComboBox {
    * refers to first non-empty choice.
    * @param index
    */
-  public void setSelectedIndex(int index) {
+  void setSelectedIndex(int index) {
     if (addEmptyChoice) {
       index++;
     }
     comboBox.setSelectedIndex(index);
   }
 
-  public void setToolTipText(final String tooltip) {
+  void setToolTipText(final String tooltip) {
     comboBox.setToolTipText(tooltip);
   }
 }
