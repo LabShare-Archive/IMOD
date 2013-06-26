@@ -370,6 +370,17 @@ final class LabeledTextField implements UIComponent, SwingComponent {
       nCheckpointValue.set(checkpointValue);
     }
   }
+  
+  /**
+   * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
+   */
+  void resetToCheckpoint() {
+    if (checkpointValue == null) {
+      return;
+    }
+    setText(checkpointValue);
+  }
+
 
   public void addActionListener(ActionListener listener) {
     textField.addActionListener(listener);
