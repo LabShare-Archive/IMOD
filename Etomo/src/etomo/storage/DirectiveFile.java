@@ -41,7 +41,7 @@ public final class DirectiveFile {
 
   static final String A_AXIS_NAME = "a";
   private static final String ALIGNED_STACK_NAME = "AlignedStack";
- public static final String ANY_AXIS_NAME = "any";
+  public static final String ANY_AXIS_NAME = "any";
   private static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
   static final String B_AXIS_NAME = "b";
   private static final String BIN_BY_FACTOR_NAME = "binByFactor";
@@ -89,6 +89,8 @@ public final class DirectiveFile {
   public static final String USER_TEMPLATE_NAME = "userTemplate";
   public static final String VOLTAGE_NAME = "voltage";
   private static final String WHOLE_TOMOGRAM_NAME = "wholeTomogram";
+
+  private static boolean debug = false;
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -445,6 +447,10 @@ public final class DirectiveFile {
   public boolean containsReconstructionUseSirt(final AxisID axisID) {
     return containsAttribute(AttributeName.RUN_TIME, RECONSTRUCTION_NAME, axisID,
         USE_SIRT_NAME);
+  }
+
+  public static void setDebug(final boolean input) {
+    debug = input;
   }
 
   public String getAlignedStackBinByFactor(final AxisID axisID) {
