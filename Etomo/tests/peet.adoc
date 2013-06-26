@@ -367,7 +367,8 @@ wait.process.processchunks-%{dataset}=done
 	assert.enabled.tf.iteration-table-2-duplicate=
 	assert.enabled.tf.iteration-table-2-duplicate.1=
 	#remove extra row
-	mb.iteration-table-2-run-#=
+	# TODO 1689
+	#mb.iteration-table-2-run-#=
 	bn.delete=
 	cb.remove-duplicate-particles-after-each-iteration=off
 [[]]
