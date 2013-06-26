@@ -355,7 +355,7 @@ final class IterationTable implements Highlightable {
       if (row == null) {
         return;
       }
-      deleteRow(row);// TODO 1689
+      deleteRow(row);
     }
     else if (actionCommand.equals(btnMoveUp.getActionCommand())) {
       moveRowUp();
@@ -704,7 +704,6 @@ final class IterationTable implements Highlightable {
       return -1;
     }
     
-    // TODO 1689
     /**
      * Highlight the row in list at rowIndex.
      * @param rowIndex
