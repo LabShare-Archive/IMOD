@@ -226,7 +226,6 @@ final class IterationRow implements Highlightable {
     duplicateAngularTolerance.setHighlight(highlight);
   }
 
-  // TODO 1689
   void setHighlighterSelected(final boolean select) {
     btnHighlighter.setSelected(select);
   }
