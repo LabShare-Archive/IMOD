@@ -604,7 +604,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       openTiltFile();
     }
     else if (command.equals(btnDeleteRow.getActionCommand())) {
-      deleteRow(rowList.getHighlightedRow());// TODO 1689
+      deleteRow(rowList.getHighlightedRow());
     }
     else if (command.equals(r3bVolume.getActionCommand())) {
       imodVolume(run3dmodMenuOptions);
@@ -630,7 +630,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private void deleteRow(VolumeRow row) {
     rowList.remove();
-    int index = rowList.delete(row, this, pnlTable, layout, constraints);// TODO 1689
+    int index = rowList.delete(row, this, pnlTable, layout, constraints);
     rowList.highlight(index);
     viewport.adjustViewport(index);
     rowList.display(viewport);
@@ -857,8 +857,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         list.get(i).remove();
       }
     }
-
-    // TODO 1689
+    
     /**
      * Returns the index where the row used to be (points to the next row).
      * @param row
@@ -973,7 +972,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       list.add(rowIndex + 1, rowMoveDown);
     }
 
-    // TODO 1689
     /**
      * Highlight the row in list at rowIndex.
      * @param rowIndex
@@ -1065,7 +1063,6 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       }
     }
 
-    // TODO 1689
     private boolean isHighlighted() {
       for (int i = 0; i < list.size(); i++) {
         if (list.get(i).isHighlighted()) {
