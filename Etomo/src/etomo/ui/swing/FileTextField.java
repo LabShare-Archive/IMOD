@@ -119,6 +119,7 @@ final class FileTextField implements FileTextFieldInterface {
   private String propertyUserDir = null;
   private Component parent = null;
   private int fileSelectionMode = -1;
+  private String checkpointValue = null;
 
   /**
    * Causes the file and the field to be out of sync, since the field no longer
@@ -241,6 +242,20 @@ final class FileTextField implements FileTextFieldInterface {
   void clear() {
     file = null;
     field.setText("");
+  }
+
+  void checkpoint() {
+    checkpointValue = getText();
+  }
+  
+  /**
+   * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
+   */
+  void resetToCheckpoint() {
+    if (checkpointValue == null) {
+      return;
+    }
+    setText(checkpointValue);
   }
 
   void setFieldEditable(final boolean editable) {
