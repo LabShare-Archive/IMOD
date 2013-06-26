@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.AutodocFilter;
 import etomo.type.UserConfiguration;
@@ -59,7 +58,7 @@ public final class ConfigTool {
    * @return
    */
   public static File[] getSystemTemplateFiles() {
-    File[] fileArray = new File(BaseManager.getIMODBinPath(), DEFAULT_SYSTEM_TEMPLATE_DIR)
+    File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODDirectory(), DEFAULT_SYSTEM_TEMPLATE_DIR)
         .listFiles(new AutodocFilter());
     SortedMap<String, File> map = null;
     if (fileArray != null) {
