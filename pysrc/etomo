@@ -159,6 +159,8 @@ if userhome:
 comArray += ['-cp', IMOD_DIR + '/bin/etomo', '-jar', IMOD_DIR + '/bin/etomo.jar']
 for ind in range(1, len(sys.argv)):
    arg = sys.argv[ind]
+   if arg == '-h':
+      arg = '--help'
    javacom += ' "' + arg + '"'
    comArray.append(arg)
    if arg.startswith('-') and not arg.startswith('--'):
