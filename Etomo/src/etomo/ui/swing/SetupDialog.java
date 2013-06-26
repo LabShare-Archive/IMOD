@@ -245,49 +245,117 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     templatePanel.setParameters(userConfig);
   }
 
+  private void resetRadioButtons(final RadioButton rb1, final RadioButton rb2) {
+    if (rb1.isCheckpointValue()) {
+      rb1.setSelected(true);
+    }
+    else if (rb2.isCheckpointValue()) {
+      rb2.setSelected(true);
+    }
+    else {
+      rb1.setSelected(false);
+      rb2.setSelected(false);
+    }
+  }
+
+  void checkpoint() {
+    ftfDataset.checkpoint();
+    ftfBackupDirectory.checkpoint();
+    rbSingleAxis.checkpoint();
+    rbDualAxis.checkpoint();
+    rbSingleView.checkpoint();
+    rbMontage.checkpoint();
+    ltfPixelSize.checkpoint();
+    ltfFiducialDiameter.checkpoint();
+    ltfImageRotation.checkpoint();
+    ftfDistortionFile.checkpoint();
+    spnBinning.checkpoint();
+    ftfMagGradientFile.checkpoint();
+    cbParallelProcess.checkpoint();
+    cbGpuProcessing.checkpoint();
+    ltfExcludeListA.checkpoint();
+    cbAdjustedFocusA.checkpoint();
+    ltfExcludeListB.checkpoint();
+    cbAdjustedFocusB.checkpoint();
+  }
+
   void updateTemplateValues() {
     DirectiveFileCollection directiveFileCollection = templatePanel
         .getDirectiveFileCollection();
-    //Handle dual differently because the dual is the default.
-    if (!directiveFileCollection.containsDual() || directiveFileCollection.isDual()) {
-      rbDualAxis.setSelected(true);
+    // Handle dual differently because the dual is the default.
+    if (directiveFileCollection.containsDual()) {
+      if (directiveFileCollection.isDual()) {
+        rbDualAxis.setSelected(true);
+      }
+      else {
+        rbSingleAxis.setSelected(true);
+      }
     }
     else {
-      rbSingleAxis.setSelected(true);
+      resetRadioButtons(rbDualAxis, rbSingleAxis);
     }
-    if (directiveFileCollection.isMontage()) {
-      rbMontage.setSelected(true);
+    if (directiveFileCollection.containsMontage()) {
+      if (directiveFileCollection.isMontage()) {
+        rbMontage.setSelected(true);
+      }
+      else {
+        rbSingleView.setSelected(true);
+      }
     }
     else {
-      rbSingleView.setSelected(true);
+      resetRadioButtons(rbSingleView, rbMontage);
     }
     if (directiveFileCollection.containsPixel()) {
       ltfPixelSize.setText(directiveFileCollection.getPixelSize(false));
     }
+    else {
+      ltfPixelSize.resetToCheckpoint();
+    }
     if (directiveFileCollection.containsGold()) {
       ltfFiducialDiameter.setText(directiveFileCollection.getFiducialDiameter(false));
+    }
+    else {
+      ltfFiducialDiameter.resetToCheckpoint();
     }
     if (directiveFileCollection.containsRotation()) {
       ltfImageRotation.setText(directiveFileCollection.getImageRotation(AxisID.FIRST,
           false));
     }
+    else {
+      ltfImageRotation.resetToCheckpoint();
+    }
     expert.updateTiltAnglePanelTemplateValues(directiveFileCollection);
     if (directiveFileCollection.containsDistort()) {
       ftfDistortionFile.setText(directiveFileCollection.getDistortionFile());
     }
+    else {
+      ftfDistortionFile.resetToCheckpoint();
+    }
     if (directiveFileCollection.containsBinning()) {
       spnBinning.setValue(directiveFileCollection.getIntBinning(BINNING_DEFAULT));
     }
+    else {
+      spnBinning.resetToCheckpoint();
+    }
     if (directiveFileCollection.containsGradient()) {
       ftfMagGradientFile.setText(directiveFileCollection.getMagGradientFile());
+    }
+    else {
+      ftfMagGradientFile.resetToCheckpoint();
     }
     if (directiveFileCollection.containsFocus(AxisID.FIRST)) {
       cbAdjustedFocusA.setSelected(directiveFileCollection
           .isAdjustedFocusSelected(AxisID.FIRST));
     }
+    else {
+      cbAdjustedFocusA.resetToCheckpoint();
+    }
     if (directiveFileCollection.containsFocus(AxisID.SECOND)) {
       cbAdjustedFocusB.setSelected(directiveFileCollection
           .isAdjustedFocusSelected(AxisID.SECOND));
+    }
+    else {
+      cbAdjustedFocusB.resetToCheckpoint();
     }
   }
 
