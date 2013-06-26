@@ -1,4 +1,4 @@
-!****    CCDERASER.for
+!***    CCDERASER.for
 !
 ! This program replaces deviant pixels with interpolated values from
 ! surrounding pixels.  It is designed to correct defects in electron
@@ -18,20 +18,27 @@
 !
 ! $Id$
 !
+module ccdvars
+  implicit none
+  integer MAXDEV, LIMPATCH, LIMPTOUT, LIMDIFF, LIMPATCHOUT
+  parameter (LIMDIFF = 512, LIMPATCHOUT = 40000)
+  parameter (MAXDEV = 300, LIMPATCH = 10000, LIMPTOUT = 25 * LIMPATCHOUT)
+  integer*4 numPixBorder, iorder, ifIncludeAdj, iScanSize, numEdgePixels, ifVerbose
+  integer*4 matSize, maxInDiffPatch
+  integer*4 nxyz(3), nx, ny, nz
+  equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
+  real *4 scanOverlap, critScan, critGrow
+  integer*4 ixFix(LIMPATCH), iyFix(LIMPATCH)
+end module ccdvars
+
 program ccderaser
+  use ccdvars
   implicit none
   include 'model.inc90'
-  integer mxd, limPatch, LIMPTOUT, LIMDIFF, LIMPATCHOUT
-  parameter (LIMDIFF = 512, LIMPATCHOUT = 40000)
-  !
-  ! Keep isdim synchronized to limpatch, mxd sync'd to cleanarea mxd
-  parameter (mxd = 300, limPatch = 10000, LIMPTOUT = 25 * LIMPATCHOUT)
-  real*4 title(20)
+  real*4 title(20), delta(3), origin(3)
   real*4 diffArr(LIMDIFF, LIMDIFF), exceedCrit(LIMPATCHOUT)
-  integer*4 nxyz(3), mxyz(3), nx, ny, nz
-  equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
+  integer*4 mxyz(3)
   character*320 inFile, outFile, pointFile, modelOut
-  integer*4 ixFix(limPatch), iyFix(limPatch)
   integer*4 ixOut(LIMPTOUT), iyOut(LIMPTOUT), izOut(LIMPTOUT)
   integer*4 indPatch(LIMPATCHOUT)
   integer*4, allocatable :: iobjline(:), iobjDoAll(:), iobjBound(:), iobjCircle(:)
@@ -45,20 +52,21 @@ program ccderaser
   character dat * 9, tim * 8
   character*1024 line
   !
-  integer*4 mode, imFileOut, i, j, numObjDoAll, numObjLine, numPixBorder, iorder, imSize, limObj
-  integer*4 ifIncludeAdj, iobj, ibase, itype, imodObj, imodCont, ip, ipt, jtype, jobj
+  integer*4 mode, imFileOut, i, j, numObjDoAll, numObjLine
+  integer*4 imSize, limObj, limPcList
+  integer*4 iobj, ibase, itype, imodObj, imodCont, ip, ipt, jtype, jobj
   real*4 dmin, dmax, dmean, tmin, tmax, tsum, dminTmp, dmaxTmp, dmeant, tmean
   real*4 zmin, zmax, xmin, xmax, yMin, ymax, diamMerge
-  integer*4 izSect, numFix, lineFix, ip1, ip2, ix1, ix2, iy1, iy2, kti, numInObj, limPcList
+  integer*4 izSect, numFix, lineFix, ip1, ip2, ix1, ix2, iy1, iy2, kti, numInObj
   integer*4 ierr, ierr2, numPtOut, numPatchOut, numObjOrig, ifMerge
-  real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
-  real*4 scanOverlap, annulusWidth, radSq, sizeMax, size, xcen, ycen, dist
-  integer*4 ifPeakSearch, iScanSize, ifVerbose, numPatch, numPixels, ifTouch
-  integer*4 ifTrialMode, numEdgePixels, maxObjectsOut, maxInDiffPatch, ifGrew
+  real*4 critMain, critDiff, radiusMax, outerRadius
+  real*4 annulusWidth, radSq, sizeMax, size, xcen, ycen, dist
+  integer*4 ifPeakSearch, numPatch, numPixels, ifTouch
+  integer*4 ifTrialMode, maxObjectsOut, ifGrew
   integer*4 jp1, jp2, jx1, jx2, jy1, jy2, iborder, jBordLow, jBordHigh, idir, jbase
   integer*4 numObjBound, numObjCircle, numBetterIn, numCircleObj, numExpandIter
   integer*4 indFree, indCont, numSizes, loopStart, loopEnd, loop, numConSize
-  integer*4 ixFixMin, ixfmax, iyFixMin, iyFixMax, numGrowIter, taperedPatchCrit
+  integer*4 ixFixMin, ixFixMax, iyFixMin, iyFixMax, numGrowIter, taperedPatchCrit
   integer*4 maxSizes, limSizes, maxBound, numTapering, numPcList, minXpiece, numXpieces
   integer*4 nxOverlap, minYpiece, numYpieces, nyOverlap, newXoverlap, newYoverlap
   integer*4 indx, indy, indz, ipcx, ipcy, ipcz
@@ -208,8 +216,8 @@ program ccderaser
         call lookup_piece(ixPcList, iyPcList, izPcList, numPcList, nx, ny, indx, indy, &
             indz, ipcx, ipcy, ipcz)
         if (ipcx < 0) then
-          write(pointFile, '(a, 3i6, a)') 'THE MODEL POINT AT', indx + 1, indy + 1, indz + 1, &
-              ' IS NOT LOCATED WITHIN A PIECE'
+          write(pointFile, '(a, 3i6, a)') 'THE MODEL POINT AT', indx + 1, indy + 1,  &
+              indz + 1, ' IS NOT LOCATED WITHIN A PIECE'
           call exitError(pointFile)
         endif
         p_coord(1, ipt) = ipcx + p_coord(1, ipt) - indx
@@ -333,6 +341,7 @@ program ccderaser
   !
   numPixBorder = min(5, max(1, numPixBorder))
   iorder = min(3, max(0, iorder))
+  matSize = 2 + (iorder * (iorder + 3)) / 2
   iScanSize = min(LIMDIFF - 10, max(20, iScanSize))
   radiusMax = min(10., max(0.5, radiusMax))
   outerRadius = min(radiusMax + 10., max(radiusMax + 0.75, outerRadius))
@@ -445,7 +454,7 @@ program ccderaser
         yMin = zmin
         ymax = zmax
         numInObj = npt_in_obj(iobj)
-        if (numInObj > limPatch) then
+        if (numInObj > LIMPATCH) then
           write(*,107) imodObj, imodCont, 'has too many points for arrays'
           call exit(1)
         endif
@@ -458,7 +467,7 @@ program ccderaser
           zmin = min(zmin, p_coord(3, ipt))
           zmax = max(zmax, p_coord(3, ipt))
         enddo
-        if (xmax - xmin >= mxd / 2 .or. ymax - yMin >= mxd / 2) then
+        if (xmax - xmin >= MAXDEV / 2 .or. ymax - yMin >= MAXDEV / 2) then
           write(*,107) imodObj, imodCont, &
               'has points too far apart, so patch is too large'
           call exit(1)
@@ -511,7 +520,7 @@ program ccderaser
   enddo
   if (ifVerbose .ne. 0 .and. sizeMax > 0) &
       print *,'Maximum point size', sizeMax
-  if (3.1416 * sizeMax**2 + 5 > limPatch) call exitError( &
+  if (3.1416 * sizeMax**2 + 5 > LIMPATCH) call exitError( &
       'THE LARGEST CIRCLE RADIUS IS TOO BIG FOR THE ARRAYS')
   !
   ! start looping on sections; need to read regardless
@@ -624,7 +633,7 @@ program ccderaser
           if (circleCont) loopEnd  = npt_in_obj(iobj)
           do loop = loopStart, loopEnd
             ixFixMin = 100000000
-            ixfmax = -100000000
+            ixFixMax = -100000000
             iyFixMin = 100000000
             iyFixMax = -100000000
             if (circleCont) then
@@ -635,19 +644,19 @@ program ccderaser
               numInObj = 0
               size = sizes(indSize(iobj) + loop - 1)
               if (nint(p_coord(3, ipt)) == izSect .and. size > 0) &
-                  call addCircleToPatch(iobj, loop, size, nx, ny, ixFix, &
-                  iyFix, numInObj, ixFixMin, ixfmax, iyFixMin, iyFixMax, limPatch)
-              diamMerge = mxd
+                  call addCircleToPatch(iobj, loop, size, numInObj, ixFixMin, ixFixMax, &
+                  iyFixMin, iyFixMax)
+              diamMerge = MAXDEV
             else
               !
               ! Or add contour points to patch
-              numInObj = min(npt_in_obj(iobj), limPatch)
+              numInObj = min(npt_in_obj(iobj), LIMPATCH)
               do ip = 1, numInObj
                 ipt = object(ibase + ip)
                 ixFix(ip) = p_coord(1, ipt) + 1.01
                 iyFix(ip) = p_coord(2, ipt) + 1.01
                 ixFixMin = min(ixFixMin, ixFix(ip))
-                ixfmax = max(ixfmax, ixFix(ip))
+                ixFixMax = max(ixFixMax, ixFix(ip))
                 iyFixMin = min(iyFixMin, iyFix(ip))
                 iyFixMax = max(iyFixMax, iyFix(ip))
               enddo
@@ -665,7 +674,7 @@ program ccderaser
               !
               ! The radius criterion for being too large is based on the
               ! maximum radius entry unless there is a circle in the merge,
-              ! tehn it is based on the mxd parameter
+              ! then it is based on the MAXDEV parameter
               radSq = diamMerge**2
               ifGrew = 1
               do while (ifGrew > 0)
@@ -683,11 +692,11 @@ program ccderaser
                       if (nint(p_coord(3, ipt)) == izSect .and. &
                           size > 0 .and. &
                           (i .ne. iobj .or. loop .ne. ip1) .and. &
-                          numInObj + 3.1416 * size**2 + 5 <= limPatch) then
+                          numInObj + 3.1416 * size**2 + 5 <= LIMPATCH) then
                         xcen = p_coord(1, ipt)
                         ycen = p_coord(2, ipt)
                         if (xcen + size + 1 >= ixFixMin .and. &
-                            xcen - size - 1 <= ixfmax .and. &
+                            xcen - size - 1 <= ixFixMax .and. &
                             ycen + size + 1 >= iyFixMin .and. &
                             ycen - size - 1 <= iyFixMax) then
                           !
@@ -699,7 +708,7 @@ program ccderaser
                             dist = sqrt((xcen - ixFix(ip2))**2 + &
                                 (ycen - iyFix(ip2))**2)
                             if (dist - size < 1.5) ifTouch = 1
-                            if (dist + size > mxd) ifTouch = -1
+                            if (dist + size > MAXDEV) ifTouch = -1
                             ip2 = ip2 + 1
                           enddo
                           !
@@ -711,10 +720,9 @@ program ccderaser
                               write (*,'(a,3i5,a,3i5)') 'Merging', ix2, iy2, &
                                   ip1, ' to', ix1, iy1, loop
                             endif
-                            diamMerge = mxd
-                            call addCircleToPatch(i, ip1, size, nx, ny, &
-                                ixFix, iyFix, numInObj, ixFixMin, ixfmax, &
-                                iyFixMin, iyFixMax, limPatch)
+                            diamMerge = MAXDEV
+                            call addCircleToPatch(i, ip1, size, numInObj, ixFixMin, &
+                                ixFixMax, iyFixMin, iyFixMax)
                             sizes(indSize(i) + ip1 - 1) = 0.
                             ifGrew = 1
                           endif
@@ -727,7 +735,7 @@ program ccderaser
                       nint(p_coord(3, object(jbase + 1))) == izSect .and. &
                       .not. typeOnList(jtype, iobjline, numObjLine) .and. &
                       .not. typeOnList(jtype, iobjDoAll, numObjDoAll) .and. &
-                      numInObj + npt_in_obj(i) <= limPatch) then
+                      numInObj + npt_in_obj(i) <= LIMPATCH) then
                     !
                     ! Loop on all pairs of points and make sure none are
                     ! too far and see if one touches
@@ -764,7 +772,7 @@ program ccderaser
                         ixFix(numInObj) = p_coord(1, ipt) + 1.01
                         iyFix(numInObj) = p_coord(2, ipt) + 1.01
                         ixFixMin = min(ixFixMin, ixFix(ip))
-                        ixfmax = max(ixfmax, ixFix(ip))
+                        ixFixMax = max(ixFixMax, ixFix(ip))
                         iyFixMin = min(iyFixMin, iyFix(ip))
                         iyFixMax = max(iyFixMax, iyFix(ip))
                       enddo
@@ -783,8 +791,7 @@ program ccderaser
               endif
             endif
             !
-            if (numInObj > 0) call cleanArea(array, nx, ny, ixFix, iyFix, &
-                numInObj, numPixBorder, iorder, ifIncludeAdj, numGrowIter, ifVerbose)
+            if (numInObj > 0) call cleanArea(array, numInObj, numGrowIter)
           enddo
         endif
       endif
@@ -795,14 +802,9 @@ program ccderaser
     numPatch = 0
     numPatchOut = 0
     numPtOut = 0
-    if (ifPeakSearch > 0) call searchPeaks(array, nx, ny, &
-        diffArr, LIMDIFF, izSect, iScanSize, scanOverlap, &
-        numEdgePixels, critMain, critDiff, critGrow, critScan, &
-        radiusMax, outerRadius, numPixBorder, iorder, ifIncludeAdj, ixFix, &
-        iyFix, limPatch, numPatch, numPixels, ifVerbose, &
-        numPtOut, numPatchOut, indPatch, exceedCrit, &
-        maxInDiffPatch, LIMPATCHOUT, &
-        ixOut, iyOut, izOut, LIMPTOUT)
+    if (ifPeakSearch > 0) call searchPeaks(array, diffArr, izSect, critMain, critDiff, &
+        radiusMax, outerRadius, numPatch, numPixels, numPtOut, numPatchOut, indPatch, &
+        exceedCrit, ixOut, iyOut, izOut)
     if (numPatch > 0) write(*,102) numPixels, numPatch
 102 format(i7,' pixels replaced in',i6,' peaks -',$)
     !
@@ -861,6 +863,8 @@ program ccderaser
   else
     print *,'New minimum and maximum density would be:', tmin, tmax
   endif
+  call irtorg(1, origin(1), origin(2), origin(3))
+  call irtdel(1, delta)
   call imclose(imFileOut)
 
   !
@@ -900,6 +904,8 @@ program ccderaser
       call putSymType(i, 0)
       call putSymSize(i, 5)
     enddo
+    call putImageRef(delta, origin)
+    call putImodMaxes(nx, ny, nz)
     call write_wmod(modelOut)
     write(*,105) maxObjectsOut, maxObjectsOut, maxObjectsOut - 1
 105 format('In the output model, contours have been sorted into',i3, &
@@ -916,26 +922,21 @@ program ccderaser
 end program ccderaser
 
 
-! SEARCHPEAKS finds X rays given all the parameters being passed in
+! SEARCHPEAKS finds X rays given all the parameters being passed in and set in module
 !
-subroutine searchPeaks(array, nx, ny, diffArr, LIMDIFF, izSect, &
-    iScanSize, scanOverlap, numEdgePixels, critMain, critDiff, &
-    critGrow, critScan, &
-    radiusMax, outerRadius, numPixBorder, iorder, ifIncludeAdj, ixFix, &
-    iyFix, limPatch, numPatch, numPixels, ifVerbose, numPtOut, &
-    numPatchOut, indPatch, exceedCrit, maxInDiffPatch, &
-    LIMPATCHOUT, ixOut, iyOut, izOut, LIMPTOUT)
-
+subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
+    outerRadius, numPatch, numPixels, numPtOut, numPatchOut, indPatch, exceedCrit, &
+    ixOut, iyOut, izOut)
+  use ccdvars
   implicit none
   integer LIMLIST
   parameter (LIMLIST = 400)
-  integer*4 iScanSize, nx, ny, numPixBorder, iorder, ifIncludeAdj, limPatch, izSect
-  integer*4 ixFix(*), iyFix(*), ifVerbose, LIMDIFF, LIMPTOUT, LIMPATCHOUT
-  real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
-  real*4 scanOverlap, array(nx,ny), diffArr(LIMDIFF,LIMDIFF)
+  integer*4 izSect
+  real*4 critMain, critDiff, radiusMax, outerRadius
+  real*4 array(nx,ny), diffArr(LIMDIFF,LIMDIFF)
   real*4 exceedCrit(*)
   integer*4 numPtOut, numPatchOut, indPatch(*), ixOut(*), iyOut(*), izOut(*)
-  integer*4 numEdgePixels, maxInDiffPatch, numPtSave, numPatchSave
+  integer*4 numPtSave, numPatchSave
   integer*4 numScanX, numScanY, nxScan, nyScan, iScanY, iScanX, iyStart
   integer*4 iyEnd, ixStart, ixEnd, jx, jxs, jxn, jy, jys, jyn, ix, iy
   real*4 dmin, dmax, sum, sumsq, scanAvg, scanSd, polarity, scanCrit
@@ -1057,8 +1058,7 @@ subroutine searchPeaks(array, nx, ny, diffArr, LIMDIFF, izSect, &
               jys = max(1, iyPeak - iouter)
               jyn = min(ny, iyPeak + iouter)
               numInPatch = 0
-              storePatch = (numPatchOut < LIMPATCHOUT - 1 .and. &
-                  numPtOut < LIMPTOUT)
+              storePatch = (numPatchOut < LIMPATCHOUT - 1 .and. numPtOut < LIMPTOUT)
               do jy = jys, jyn
                 do jx = jxs, jxn
                   radSq = (jx - ixPeak)**2 + (jy - iyPeak)**2
@@ -1089,8 +1089,7 @@ subroutine searchPeaks(array, nx, ny, diffArr, LIMDIFF, izSect, &
                   array(ixPeak, iyPeak), sdDiff, ringAvg
 103           format(/,'Peak at',2i6,' = ',f8.0,',',f7.2, &
                   ' SDs above mean',f8.0,$)
-              call cleanArea(array, nx, ny, ixFix, iyFix, numInPatch, numPixBorder, &
-                  iorder, ifIncludeAdj, 0, ifVerbose)
+              call cleanArea(array, numInPatch, 0)
               numPatch = numPatch + 1
               numPixels = numPixels + numInPatch
             endif
@@ -1270,8 +1269,7 @@ subroutine searchPeaks(array, nx, ny, diffArr, LIMDIFF, izSect, &
                   array(ix, iy), pixDiff, sdDiff
 104           format(/,'Diff peak at',2i6,' = ',f8.0,', diff =',f8.0, &
                   ', ',f7.2, ' SDs above mean',$)
-              call cleanArea(array, nx, ny, ixFix, iyFix, numInPatch, numPixBorder, &
-                  iorder, ifIncludeAdj, 0, ifVerbose)
+              call cleanArea(array, numInPatch, 0)
               numPatch = numPatch + 1
               numPixels = numPixels + numInPatch
               !
@@ -1355,32 +1353,26 @@ end subroutine cleanLine
 ! surrounding points, fitting a polynomial to them, and replacing points in the
 ! patch with fitted values.  Can grow the patch if numGrowIter is > 0
 !
-subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder, &
-    ifIncludeAdj, numGrowIter, ifVerbose)
+subroutine cleanArea(array, numInObj, numGrowIter)
   !
+  use ccdvars
   implicit none
-  integer mxd, ISDIM
   !
-  ! Keep isdim synchronized to limpatch, mxd sync'd to main
-  parameter (mxd = 300)
-  parameter (ISDIM = 10000)
-  integer*4 nx, ny, ifVerbose, numGrowIter
   real*4 array(nx,ny)
-  integer*4 ixFix(*), iyFix(*)
-  integer*4 numInObj, numPixBorder, iorder, ifIncludeAdj
-  logical*1 inList(-mxd:mxd,-mxd:mxd)
-  integer*2 adjacent(-mxd:mxd,-mxd:mxd)
-  real*4 adjValue(ISDIM)
+  integer*4 numInObj, numGrowIter
+  logical*1 inList(-MAXDEV:MAXDEV,-MAXDEV:MAXDEV)
+  integer*2 adjacent(-MAXDEV:MAXDEV,-MAXDEV:MAXDEV)
+  real*4 adjValue(LIMPATCH)
   logical nearEdge
-  include 'statsize.inc'
-  real*4 rmat(msiz,ISDIM), xm(msiz), sd(msiz) , ssd(msiz,msiz), b1(msiz), vector(msiz)
-  equivalence (adjValue, rmat)
+  real*4 rmat(matSize,LIMPATCH), xm(matSize), sd(matSize) , ssd(matSize,matSize)
+  real*4 b1(matSize), vector(matSize)
   !
-  integer*4 ixCen, iyCen, i, j, minXlist, minYlist, maxXlist, maxYlist, igrow, numVals, numPatPix
-  integer*4 k, ixl, iyl, numBordM1, ixBordLow, ixBordHigh, iyBordLow, iyBordHigh, icut, numAdded
+  integer*4 ixCen, iyCen, i, j, minXlist, minYlist, maxXlist, maxYlist, igrow, numVals
+  integer*4 numPatPix, numAdded
+  integer*4 k, ixl, iyl, numBordM1, ixBordLow, ixBordHigh, iyBordLow, iyBordHigh, icut
   integer*4 numPix, numPoints, nindep, ix, iy, ixOffset, iyOffset, minAdjacent
   real*4 c1, rsq, fra, xsum, patchSum, polarity, cutoff, percentile, adjMedian, pctile
-  logical warned / .false./
+  logical warned /.false./
   save warned
 
   percentile = 0.05
@@ -1401,8 +1393,8 @@ subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder
     ixCen = (maxXlist + minXlist) / 2
     iyCen = (maxYlist + minYlist) / 2
     !
-    do j = -mxd, mxd
-      do i = -mxd, mxd
+    do j = -MAXDEV, MAXDEV
+      do i = -MAXDEV, MAXDEV
         inList(i, j) = .false.
         adjacent(i, j) = 0
       enddo
@@ -1439,7 +1431,7 @@ subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder
         if (inList(ixOffset, iyOffset)) then
           numPatPix = numPatPix + 1
           patchSum = patchSum + array(ix, iy)
-        elseif (adjacent(ixOffset, iyOffset) > 0 .and. numVals < ISDIM) then
+        elseif (adjacent(ixOffset, iyOffset) > 0 .and. numVals < LIMPATCH) then
           numVals = numVals + 1
           adjValue(numVals) = array(ix, iy)
         endif
@@ -1463,7 +1455,7 @@ subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder
         ixOffset = ix - ixCen
         iyOffset = iy - iyCen
         if (adjacent(ixOffset, iyOffset) > 0 .and. .not.inList(ixOffset, iyOffset) .and. &
-            polarity * (array(ix, iy) - cutoff) > 0. .and. numInObj < ISDIM) then
+            polarity * (array(ix, iy) - cutoff) > 0. .and. numInObj < LIMPATCH) then
           inList(ixOffset, iyOffset) = .true.
           numInObj = numInObj + 1
           ixFix(numInObj) = ix
@@ -1483,7 +1475,8 @@ subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder
       do ix = ixBordLow, ixBordHigh
         ixOffset = ix - ixCen
         iyOffset = iy - iyCen
-        if (adjacent(ixOffset, iyOffset) == igrow .and. .not.inList(ixOffset, iyOffset)) then
+        if (adjacent(ixOffset, iyOffset) == igrow .and. .not.inList(ixOffset, iyOffset)) &
+            then
           do i = -1, 1
             do j = -1, 1
               if (adjacent(ixl + i, iyl + j) == 0) adjacent(ixl + i, iyl + j) = igrow + 1
@@ -1516,7 +1509,7 @@ subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder
           (nearEdge .or. adjacent(ixOffset, iyOffset) >= minAdjacent)) then
         numPoints = numPoints + 1
         if (nindep > 0) then
-          if (numPoints > ISDIM) then
+          if (numPoints > LIMPATCH) then
             if (.not. warned) write(*,'(/,a)') 'WARNING: CCDERASER - SOME ' &
                 //'PATCHES ARE TOO LARGE FOR POLYNOMIAL FITS, USING MEAN ' &
                 //'OF SURROUNDING PIXELS'
@@ -1535,9 +1528,10 @@ subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder
   !
   if (ifVerbose > 0) write (*,104) numInObj, ixCen, iyCen, numPoints
 104 format(/,i5,' points to fix at',2i6,',',i4,' points being fit')
-  if (nindep > 0 .and. numPoints <= ISDIM) then
+  if (nindep > 0 .and. numPoints <= LIMPATCH) then
     ! call multr(xr, nindep+1, npnts, sx, ss, ssd, d, r, xm, sd, b, b1, c1, rsq , fra)
-    call multRegress(rmat, msiz, 1, nindep, numPoints, 1, 0, b1, msiz, c1, xm, sd, ssd)
+    call multRegress(rmat, matSize, 1, nindep, numPoints, 1, 0, b1, matSize, c1, xm, sd, &
+        ssd)
   endif
   xsum = xsum / numPoints
   !
@@ -1549,7 +1543,7 @@ subroutine cleanArea(array, nx, ny, ixFix, iyFix, numInObj, numPixBorder, iorder
       ixOffset = ix - ixCen
       iyOffset = iy - iyCen
       if (inList(ixOffset, iyOffset)) then
-        if (nindep > 0 .and. numPoints <= ISDIM) then
+        if (nindep > 0 .and. numPoints <= LIMPATCH) then
           call polyTerm(ixOffset, iyOffset, iorder, vector)
           xsum = c1
           do i = 1, nindep
@@ -1638,12 +1632,13 @@ end subroutine convertBoundary
 ! ADDCIRCLETOPATCH adds a circle to the current patch, keeping track of
 ! the overall mins and maxes
 !
-subroutine addCircleToPatch(iobj, ipt, size, nx, ny, ixFix, iyFix, &
-    numInObj, ixFixMin, ixfmax, iyFixMin, iyFixMax, limPatch)
+subroutine addCircleToPatch(iobj, ipt, size, numInObj, ixFixMin, ixFixMax, iyFixMin, &
+    iyFixMax)
+  use ccdvars
   implicit none
   include 'model.inc90'
-  integer*4 ixFixMin, ixfmax, iyFixMin, iyFixMax, limPatch
-  integer*4 iobj, ipt, ixFix(*), iyFix(*), numInObj, nx, ny
+  integer*4 ixFixMin, ixFixMax, iyFixMin, iyFixMax
+  integer*4 iobj, ipt, numInObj
   real*4 size, xcen, ycen, xx, yy
   integer*4 ip, ixStart, ixEnd, iyStart, iyEnd, ix, iy, ifInPatch, numInStart
   ip = object(ibase_obj(iobj) + ipt)
@@ -1660,7 +1655,7 @@ subroutine addCircleToPatch(iobj, ipt, size, nx, ny, ixFix, iyFix, &
       yy = iy - 0.5
       if ((xx - xcen)**2 + (yy - ycen)**2 <= size**2) then
         ifInPatch = 0
-        if (ix >= ixFixMin .and. ix <= ixfmax .and. iy >= iyFixMin .and. &
+        if (ix >= ixFixMin .and. ix <= ixFixMax .and. iy >= iyFixMin .and. &
             iy <= iyFixMax) then
           do ip = 1, numInStart
             if (ix == ixFix(ip) .and. iy == iyFix(ip)) then
@@ -1673,12 +1668,12 @@ subroutine addCircleToPatch(iobj, ipt, size, nx, ny, ixFix, iyFix, &
           numInObj = numInObj + 1
           !
           ! This is not supposed to happen, but better to check...
-          if (numInObj > limPatch) call exitError( &
+          if (numInObj > LIMPATCH) call exitError( &
               'TOO MANY POINTS IN PATCH TO MERGE ANOTHER CIRCLE IN')
           ixFix(numInObj) = ix
           iyFix(numInObj) = iy
           ixFixMin = min(ixFixMin, ix)
-          ixfmax = max(ixfmax, ix)
+          ixFixMax = max(ixFixMax, ix)
           iyFixMin = min(iyFixMin, iy)
           iyFixMax = max(iyFixMax, iy)
         endif
@@ -1719,9 +1714,10 @@ subroutine taperInsideCont(array, nx, ny, xbound, ybound, numInObj, xmin, xmax, 
   implicit none
   integer*4 nx, ny, numInObj, iferr
   real*4 array(nx, ny), xbound(*), ybound(*), xmin, xmax, yMin, ymax
-  real*4 sum, segmentX, segmentY, veln, vectorX, vectorY, xLine, yline, taper, dist, distMin
+  real*4 sum, segmentX, segmentY, vectorX, vectorY, xLine, yline, taper, dist, distMin
   real*4 t, tmin, dx, dy, fill, xx, yy, frac, taperSq, vecLen
-  integer*4 numSum, ip, ipNext, ix, iy, ixf, iyf, numVecPts, ixStart, ixEnd, iyStart, iyEnd, ipMin, i
+  integer*4 numSum, ip, ipNext, ix, iy, ixf, iyf, numVecPts, ixStart, ixEnd
+  integer*4 iyStart, iyEnd, ipMin, i
   logical inside
   taper = 8.
   taperSq = taper**2
