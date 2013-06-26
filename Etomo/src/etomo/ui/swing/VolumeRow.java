@@ -345,6 +345,11 @@ final class VolumeRow implements Highlightable {
     fileButtonCell.setHeaders(VolumeTable.LABEL, number, headerCell);
   }
 
+  // TODO 1689
+  void setHighlighterSelected(final boolean select) {
+    btnHighlighter.setSelected(select);
+  }
+
   public void highlight(final boolean highlight) {
     fnVolume.setHighlight(highlight);
     fnModParticle.setHighlight(highlight);
