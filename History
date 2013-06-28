@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/13: In eTomo - PEET, removed an incorrect validation that prevented a
+dataset from being created in a directory containing a .prm file with a
+different name.(Bug# 1553)
+
 6/28/13: In the eTomo - PEET tables, keeping the following row highlighted
 after a row is deleted.(Bug# 1689)
 
