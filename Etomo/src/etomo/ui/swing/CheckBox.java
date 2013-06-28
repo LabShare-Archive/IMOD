@@ -170,6 +170,16 @@ final class CheckBox extends JCheckBox {
     checkpointValue.set(value);
   }
 
+  /**
+   * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
+   */
+  void resetToCheckpoint() {
+    if (checkpointValue == null) {
+      return;
+    }
+    setSelected(checkpointValue.is());
+  }
+
   void setDebug(final boolean input) {
     debug = input;
   }

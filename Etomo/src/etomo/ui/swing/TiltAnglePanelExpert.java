@@ -106,6 +106,10 @@ final class TiltAnglePanelExpert {
     return DatasetTool.validateTiltAngle(manager, AxisID.ONLY, errorTitle, axisID,
         panel.isSpecifySelected(), panel.getMin(), panel.getStep());
   }
+  
+  void checkpoint() {
+    panel.checkpoint();
+  }
 
   void updateTemplateValues(final DirectiveFileCollection directiveFileCollection) {
     panel.updateTemplateValues(directiveFileCollection, axisID);
