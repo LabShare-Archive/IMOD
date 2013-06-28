@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/13: In eTomo allowing a fiducial diameter of 0.(Bug# 1671)
+
 6/28/13: In eTomo - PEET, removed an incorrect validation that prevented a
 dataset from being created in a directory containing a .prm file with a
 different name.(Bug# 1553)
