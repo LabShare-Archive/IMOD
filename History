@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/28/13: In the eTomo - PEET tables, keeping the following row highlighted
+after a row is deleted.(Bug# 1689)
+
+6/28/13: In eTomo fixed some issues with the template choosers and how they
+work with the Reconstruction Setup dialog.(Bug# 1720)
+
 6/24/13: Added option to Boxstartend to taper incomplete boxes near edge of
 volume inside or outside of the image data boundary.
 
