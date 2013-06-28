@@ -40,7 +40,7 @@ static void usage(char *prog)
   printf("\t-z\tIgnore zero values when using SD to limit stored maximum value\n");
   printf("\t-l\tUse all lines in file rather than getting line count from first line\n");
   printf("\t-w\tRead input file as a warping transformation file\n");
-  printf("\t-w\tGive each contour a time equal to its Z value plus 1\n");
+  printf("\t-t\tGive each contour a time equal to its Z value plus 1\n");
 
   exit(1);
 }
