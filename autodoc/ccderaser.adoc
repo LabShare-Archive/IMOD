@@ -94,6 +94,38 @@ usage = Maximum radius of peak area to erase
 tooltip = Maximum radius of peak area to erase (the default is 2.1 pixels).
 manpage = Maximum radius of peak area to erase (the default is 2.1 pixels). 
 
+[Field = GiantCriterion]
+short = giant
+type = F
+usage = Criterion # of SDs above local mean for erasing extra-large peak
+tooltip = Criterion # of SDs above local mean for erasing extra-large peak
+based on intensity (the default is 12 SDs).
+manpage = Criterion # of SDs above local mean for erasing extra-large peak
+based on intensity (the default is 12 SDs).  Enter 0 to disable this second
+stage of peak removal.
+
+[Field = ExtraLargeRadius]
+short = large
+type = F
+usage = Maximum radius of extra-large peak area to erase
+tooltip = Maximum radius of extra-large peak area to erase (the default is 8 pixels).
+manpage = Maximum radius of extra-large peak area to erase (the default is 8 pixels). 
+
+[Field = BigDiffCriterion]
+short = big
+type = F
+usage = Criterion for whether extra-large peak has big enough interpixel
+differences
+tooltip = 
+manpage = An extra-large peak will be erased only if the value for 
+the maximum difference between adjacent pixels, averaged over the most
+extreme one-fourth of the pixels in the patch, exceeds this criterion,
+evaluated as the number of SDs above the mean absolute difference
+between adjacent pixels in the scan area.  The default is 19.  This high a
+value is needed to prevent gold erasure on low-noise data sets with small gold
+particles, and a lower value may be needed to make extra-large peak removal
+useful.
+
 [Field = MaxPixelsInDiffPatch]
 short = maxdiff
 type = I

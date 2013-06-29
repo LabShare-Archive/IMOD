@@ -35,9 +35,19 @@ DDEESSCCRRIIPPTTIIOONN
   annulus are added to the list of pixels to be replaced if they deviate by
   a lower criterion (the grow criterion).  The patch of pixels is then
   replaced by fitting a polynomial to adjacent pixels and interpolating from
-  the polynomial.
+  the polynomial.  If the peak does not deviate sufficiently from this local
+  mean, but is stronger than the mean of the scan area by the scan criterion
+  plus 1, then the mean and SD is again computed in a larger annulus.  If the
+  peak deviates from this mean by a number of SDs bigger than another
+  criterion for extra-large peaks, a patch of pixels is found, but it is
+  replaced only if enough pixels differ from adjacent ones by large enough
+  amounts (see the -big option below).  The reason for these two stages is
+  that the inner radius for the first stage must be set safely smaller than
+  the radius of gold beads to avoid erasing part of the beads, whereas the
+  second stage can work with larger areas because it has more stringent
+  criteria that reject gold beads.
 
-  After the peaks are found in a patch, the program next finds the
+  After the peaks are found in a scanning patch, the program next finds the
   difference between each pixel and the mean of the eight adjacent pixels.
   The mean and SD of this difference is computed, then pixels are sought
   that deviate from the mean by yet another criterion, the difference
@@ -51,11 +61,15 @@ DDEESSCCRRIIPPTTIIOONN
   for dealing with strong peaks that extend over several pixels, while the
   second method is definitely better for finding small X-rays.
 
-  Tuning the removal of X-rays would primarily involve adjusting three of
+  Tuning the removal of X-rays would primarily involve adjusting two of
   the criteria.  The peak and difference criteria would be adjusted down or
   up to increase or decrease the number of deviant pixels that are found.
-  The grow criterion would be adjusted down or up depending on whether too
-  few or too many pixels are included in a patch that is replaced.
+  The grow criterion could also be adjusted down or up depending on whether
+  too few or too many pixels are included in a patch that is replaced, but
+  this step is not usually done in practice.  If there are strong, large
+  artifacts that are not being removed, the big difference criterion for
+  extra-large peaks should be lowered first, then if necessary, the maximum
+  radius and criterion strength for extra-large peaks can be adjusted.
 
   MANUAL REMOVAL OF DEFECTS AND MARKERS: For manual removal of defects,
   prepare an IMOD model file to specify the points to be replaced.  There

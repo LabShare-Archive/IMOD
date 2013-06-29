@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/29/13: Made Ccderaser able to remove "extra-large" X-rays and artifacts
+automatically, and made some other minor improvements to X-ray removal.
+
 6/24/13: Added option to Boxstartend to taper incomplete boxes near edge of
 volume inside or outside of the image data boundary.
 
