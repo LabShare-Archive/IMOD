@@ -134,7 +134,14 @@ final class TiltAnglePanel {
     rbSpecify.addActionListener(tiltAlignRadioButtonListener);
   }
 
-  void updateTemplateValues(final DirectiveFileCollection directiveFileCollection, final AxisID axisID) {
+  void checkpoint() {
+    rbExtract.checkpoint();
+    rbFile.checkpoint();
+    rbSpecify.checkpoint();
+  }
+
+  void updateTemplateValues(final DirectiveFileCollection directiveFileCollection,
+      final AxisID axisID) {
     if (directiveFileCollection.containsTiltAngleSpec(axisID)) {
       TiltAngleSpec tiltAngleSpec = new TiltAngleSpec();
       directiveFileCollection.getTiltAngleFields(axisID, tiltAngleSpec, false);
@@ -143,6 +150,22 @@ final class TiltAnglePanel {
       }
       else if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
         rbFile.setSelected(true);
+      }
+    }
+    else {
+      if (rbExtract.isCheckpointValue()) {
+        rbExtract.setSelected(true);
+      }
+      else if (rbFile.isCheckpointValue()) {
+        rbFile.setSelected(true);
+      }
+      else if (rbSpecify.isCheckpointValue()) {
+        rbSpecify.setSelected(true);
+      }
+      else {
+        rbExtract.setSelected(false);
+        rbFile.setSelected(false);
+        rbSpecify.setSelected(false);
       }
     }
   }

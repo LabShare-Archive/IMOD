@@ -423,6 +423,9 @@ public final class SetupDialogExpert {
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
     dialog.setParameters(userConfig);
+    dialog.checkpoint();
+    tiltAnglePanelExpertA.checkpoint();
+    tiltAnglePanelExpertB.checkpoint();
   }
 
   boolean validateTiltAngle(final AxisID axisID, final String errorTitle) {

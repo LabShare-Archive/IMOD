@@ -35,11 +35,16 @@ import etomo.type.UserConfiguration;
 final class TemplatePanel {
   public static final String rcsid = "$Id:$";
 
+  private static String EMPTY_OPTION = "None available";
+  private static String SELECT_OPTION1 = "No selection (";
+  private static final String SELECT_OPTION2 = " available)";
+
   private final JPanel pnlRoot = new JPanel();
-  private final ComboBox cmbScopeTemplate = ComboBox.getInstance("Scope Template:", true);
-  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System Template:",
-      true);
-  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User Template:", true);
+  private final ComboBox cmbScopeTemplate = ComboBox
+      .getInstance("Scope template:", false);
+  private final ComboBox cmbSystemTemplate = ComboBox.getInstance("System template:",
+      false);
+  private final ComboBox cmbUserTemplate = ComboBox.getInstance("User template:", false);
 
   private final TemplateActionListener listener;
   private final BaseManager manager;
@@ -73,17 +78,31 @@ final class TemplatePanel {
   private void createPanel(final String title) {
     // init
     scopeTemplateFileList = ConfigTool.getScopeTemplateFiles();
-    if (scopeTemplateFileList != null) {
+    if (scopeTemplateFileList != null && scopeTemplateFileList.length > 0) {
+      cmbScopeTemplate.addItem(SELECT_OPTION1 + scopeTemplateFileList.length
+          + SELECT_OPTION2);
       for (int i = 0; i < scopeTemplateFileList.length; i++) {
         cmbScopeTemplate.addItem(scopeTemplateFileList[i].getName());
       }
     }
+    else {
+      cmbScopeTemplate.addItem(EMPTY_OPTION);
+      cmbScopeTemplate.setEnabled(false);
+    }
+    cmbScopeTemplate.setSelectedIndex(0);
     systemTemplateFileList = ConfigTool.getSystemTemplateFiles();
-    if (systemTemplateFileList != null) {
+    if (systemTemplateFileList != null && systemTemplateFileList.length > 0) {
+      cmbSystemTemplate.addItem(SELECT_OPTION1 + systemTemplateFileList.length
+          + SELECT_OPTION2);
       for (int i = 0; i < systemTemplateFileList.length; i++) {
         cmbSystemTemplate.addItem(systemTemplateFileList[i].getName());
       }
     }
+    else {
+      cmbSystemTemplate.addItem(EMPTY_OPTION);
+      cmbSystemTemplate.setEnabled(false);
+    }
+    cmbSystemTemplate.setSelectedIndex(0);
     loadUserTemplate();
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
     if (title != null) {
@@ -118,17 +137,27 @@ final class TemplatePanel {
     // If the user template directory is in a different directory from the location of the
     // default user template, the user template will not be loaded.
     userTemplateFileList = ConfigTool.getUserTemplateFiles(newUserTemplateDir);
-    if (userTemplateFileList != null) {
+    if (userTemplateFileList != null && userTemplateFileList.length > 0) {
+      cmbUserTemplate.addItem(SELECT_OPTION1 + userTemplateFileList.length
+          + SELECT_OPTION2);
+      cmbUserTemplate.setEnabled(true);
       for (int i = 0; i < userTemplateFileList.length; i++) {
         cmbUserTemplate.addItem(userTemplateFileList[i].getName());
       }
     }
+    else {
+      cmbUserTemplate.addItem(EMPTY_OPTION);
+      cmbUserTemplate.setEnabled(false);
+    }
+    cmbUserTemplate.setSelectedIndex(0);
   }
 
   private File getTemplateFile(final ComboBox cmbTemplate, final File[] templateFileList) {
-    int i = cmbTemplate.getSelectedIndex();
-    if (i != -1 && templateFileList != null) {
-      return templateFileList[i];
+    if (cmbTemplate.isEnabled()) {
+      int i = cmbTemplate.getSelectedIndex() - 1;
+      if (i != -1 && templateFileList != null) {
+        return templateFileList[i];
+      }
     }
     return null;
   }

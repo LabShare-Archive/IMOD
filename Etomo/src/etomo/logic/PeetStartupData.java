@@ -5,6 +5,7 @@ import java.io.File;
 import etomo.EtomoDirector;
 import etomo.storage.PeetFileFilter;
 import etomo.type.DataFileType;
+import etomo.type.FileType;
 import etomo.util.DatasetFiles;
 import etomo.util.FilePath;
 
@@ -82,7 +83,8 @@ public final class PeetStartupData {
       return "The directory " + directory.getAbsolutePath() + " can contain only one "
           + DataFileType.PEET.extension + " file.";
     }
-    if (isCopyFrom() && copyFrom.getParentFile().equals(directory)) {
+    if (isCopyFrom() && copyFrom.getParentFile().equals(directory)
+        && !copyFrom.getName().endsWith(FileType.MATLAB_PARAM_FILE.getExtension(null))) {
       return "Cannot duplicate a project in the same directory.";
     }
     return null;

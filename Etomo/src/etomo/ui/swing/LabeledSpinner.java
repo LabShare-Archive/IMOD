@@ -158,6 +158,8 @@ final class LabeledSpinner {
   private int minimum;
   private int maximum;
 
+  private Number checkpointValue = null;
+
   /**
    * @param spinner
    */
@@ -231,6 +233,20 @@ final class LabeledSpinner {
 
   String getLabel() {
     return label.getText();
+  }
+
+  void checkpoint() {
+    checkpointValue = getValue();
+  }
+
+  /**
+   * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
+   */
+  void resetToCheckpoint() {
+    if (checkpointValue == null) {
+      return;
+    }
+    setValue(checkpointValue.intValue());
   }
 
   Number getValue() {
