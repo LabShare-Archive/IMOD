@@ -18,6 +18,9 @@
 !
 ! $Id$
 !
+! A module for array limits, entered parameters, some 1-D arrays, and a few other items
+! to reduce the number of arguments in the big function calls
+!
 module ccdvars
   implicit none
   integer MAXDEV, LIMPATCH, LIMPTOUT, LIMDIFF, LIMPATCHOUT
@@ -27,8 +30,11 @@ module ccdvars
   integer*4 matSize, maxInDiffPatch
   integer*4 nxyz(3), nx, ny, nz
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
-  real *4 scanOverlap, critScan, critGrow
+  real *4 scanOverlap, critScan, critGrow, critBigDiff, fracBigDiff
+  real*4 critMain, critDiff, radiusMax, outerRadius, critGiant, giantRadius
   integer*4 ixFix(LIMPATCH), iyFix(LIMPATCH)
+  integer*4, allocatable :: indPatch(:), ixOut(:), iyOut(:), izOut(:)
+  real*4, allocatable :: exceedCrit(:)
 end module ccdvars
 
 program ccderaser
@@ -36,17 +42,13 @@ program ccderaser
   implicit none
   include 'model.inc90'
   real*4 title(20), delta(3), origin(3)
-  real*4 diffArr(LIMDIFF, LIMDIFF), exceedCrit(LIMPATCHOUT)
   integer*4 mxyz(3)
   character*320 inFile, outFile, pointFile, modelOut
-  integer*4 ixOut(LIMPTOUT), iyOut(LIMPTOUT), izOut(LIMPTOUT)
-  integer*4 indPatch(LIMPATCHOUT)
   integer*4, allocatable :: iobjline(:), iobjDoAll(:), iobjBound(:), iobjCircle(:)
   integer*4, allocatable :: indSize(:), ixPcList(:), iyPcList(:), izPcList(:)
-  real*4, allocatable :: xbound(:), ybound(:), sizes(:), array(:)
+  real*4, allocatable :: xbound(:), ybound(:), sizes(:), array(:), diffArr(:,:)
   real*4, allocatable :: betterRadius(:), betterIn(:)
   logical*4, allocatable :: objTaper(:)
-  common /bigcom/ diffArr, exceedCrit, indPatch, ixOut, iyOut, izOut
   !
   character*80 titlech
   character dat * 9, tim * 8
@@ -59,7 +61,6 @@ program ccderaser
   real*4 zmin, zmax, xmin, xmax, yMin, ymax, diamMerge
   integer*4 izSect, numFix, lineFix, ip1, ip2, ix1, ix2, iy1, iy2, kti, numInObj
   integer*4 ierr, ierr2, numPtOut, numPatchOut, numObjOrig, ifMerge
-  real*4 critMain, critDiff, radiusMax, outerRadius
   real*4 annulusWidth, radSq, sizeMax, size, xcen, ycen, dist
   integer*4 ifPeakSearch, numPatch, numPixels, ifTouch
   integer*4 ifTrialMode, maxObjectsOut, ifGrew
@@ -82,24 +83,24 @@ program ccderaser
   integer*4 PipGetString, PipGetFloat, PipGetFloatArray, PipGetTwoIntegers
   integer*4 PipGetNonOptionArg, PipGetInOutFile
   !
-  ! fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
+  ! fallbacks from ../../manpages/autodoc2man -3 2  ccderaser
   !
   integer numOptions
-  parameter (numOptions = 25)
+  parameter (numOptions = 35)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'input:InputFile:FN:@output:OutputFile:FN:@'// &
-      'find:FindPeaks:B:@peak:PeakCriterion:F:@'// &
-      'diff:DiffCriterion:F:@grow:GrowCriterion:F:@'// &
-      'scan:ScanCriterion:F:@radius:MaximumRadius:F:@'// &
-      'maxdiff:MaxPixelsInDiffPatch:I:@outer:OuterRadius:F:@'// &
-      'width:AnnulusWidth:F:@xyscan:XYScanSize:I:@'// &
-      'edge:EdgeExclusionWidth:I:@points:PointModel:FN:@'// &
-      'model:ModelFile:FN:@lines:LineObjects:LI:@'// &
-      'allsec:AllSectionObjects:LI:@merge:MergePatches:B:@'// &
-      'border:BorderSize:I:@order:PolynomialOrder:I:@'// &
-      'exclude:ExcludeAdjacent:B:@trial:TrialMode:B:@'// &
-      'verbose:verbose:B:@param:ParameterFile:PF:@help:usage:B:'
+      'input:InputFile:FN:@output:OutputFile:FN:@piece:PieceListFile:FN:@'// &
+      'overlaps:OverlapsForModel:IP:@find:FindPeaks:B:@peak:PeakCriterion:F:@'// &
+      'diff:DiffCriterion:F:@grow:GrowCriterion:F:@scan:ScanCriterion:F:@'// &
+      'radius:MaximumRadius:F:@giant:GiantCriterion:F:@large:ExtraLargeRadius:F:@'// &
+      'big:BigDiffCriterion:F:@maxdiff:MaxPixelsInDiffPatch:I:@outer:OuterRadius:F:@'// &
+      'width:AnnulusWidth:F:@xyscan:XYScanSize:I:@edge:EdgeExclusionWidth:I:@'// &
+      'points:PointModel:FN:@model:ModelFile:FN:@lines:LineObjects:LI:@'// &
+      'boundary:BoundaryObjects:LI:@allsec:AllSectionObjects:LI:@'// &
+      'circle:CircleObjects:LI:@better:BetterRadius:FA:@'// &
+      'expand:ExpandCircleIterations:I:@merge:MergePatches:B:@border:BorderSize:I:@'// &
+      'order:PolynomialOrder:I:@exclude:ExcludeAdjacent:B:@trial:TrialMode:B:@'// &
+      'verbose:verbose:B:@PID:ProcessID:B:@param:ParameterFile:PF:@help:usage:B:'
   !
   ! Set all defaults here
   !
@@ -116,6 +117,10 @@ program ccderaser
   critScan = 3.0
   radiusMax = 2.1
   outerRadius = 4.1
+  critGiant = 12.
+  giantRadius = 8.
+  critBigDiff = 19.
+  fracBigDiff = 0.25
   scanOverlap = 0.1
   ifPeakSearch = 0
   iScanSize = 100
@@ -229,6 +234,9 @@ program ccderaser
   endif
   numObjOrig = max_mod_obj
 
+  allocate(diffArr(LIMDIFF, LIMDIFF), exceedCrit(LIMPATCHOUT), ixOut(LIMPTOUT), &
+      iyOut(LIMPTOUT), izOut(LIMPTOUT), indPatch(LIMPATCHOUT), stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR PATCHES')
   allocate(iobjCircle(limObj), iobjline(limObj), iobjDoAll(limObj), iobjBound(limObj), &
       betterRadius(limObj), betterIn(limObj), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR MODEL OBJECT DATA')
@@ -293,6 +301,9 @@ program ccderaser
     if (ierr == 0 .and. ierr2 == 0) call exitError( &
         'YOU CANNOT ENTER BOTH -outer AND -width')
     if (ierr2 == 0) outerRadius = radiusMax + annulusWidth
+    ierr = PipGetFloat('ExtraLargeRadius', giantRadius)
+    ierr = PipGetFloat('GiantCriterion', critGiant)
+    ierr = PipGetFloat('BigDiffCriterion', critBigDiff)
 
     modelOut = ' '
     ierr = PipGetString('PointModel', modelOut)
@@ -802,9 +813,8 @@ program ccderaser
     numPatch = 0
     numPatchOut = 0
     numPtOut = 0
-    if (ifPeakSearch > 0) call searchPeaks(array, diffArr, izSect, critMain, critDiff, &
-        radiusMax, outerRadius, numPatch, numPixels, numPtOut, numPatchOut, indPatch, &
-        exceedCrit, ixOut, iyOut, izOut)
+    if (ifPeakSearch > 0) call searchPeaks(array, diffArr, izSect, numPatch, numPixels, &
+        numPtOut, numPatchOut)
     if (numPatch > 0) write(*,102) numPixels, numPatch
 102 format(i7,' pixels replaced in',i6,' peaks -',$)
     !
@@ -906,6 +916,7 @@ program ccderaser
     enddo
     call putImageRef(delta, origin)
     call putImodMaxes(nx, ny, nz)
+    call scaleModelToImage(1, 1)
     call write_wmod(modelOut)
     write(*,105) maxObjectsOut, maxObjectsOut, maxObjectsOut - 1
 105 format('In the output model, contours have been sorted into',i3, &
@@ -924,38 +935,33 @@ end program ccderaser
 
 ! SEARCHPEAKS finds X rays given all the parameters being passed in and set in module
 !
-subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
-    outerRadius, numPatch, numPixels, numPtOut, numPatchOut, indPatch, exceedCrit, &
-    ixOut, iyOut, izOut)
+subroutine searchPeaks(array, diffArr, izSect, numPatch, numPixels, numPtOut, &
+    numPatchOut)
   use ccdvars
   implicit none
   integer LIMLIST
   parameter (LIMLIST = 400)
   integer*4 izSect
-  real*4 critMain, critDiff, radiusMax, outerRadius
   real*4 array(nx,ny), diffArr(LIMDIFF,LIMDIFF)
-  real*4 exceedCrit(*)
-  integer*4 numPtOut, numPatchOut, indPatch(*), ixOut(*), iyOut(*), izOut(*)
+  real*4 bigDiffs(LIMPATCH)
+  integer*4 numPtOut, numPatchOut
   integer*4 numPtSave, numPatchSave
   integer*4 numScanX, numScanY, nxScan, nyScan, iScanY, iScanX, iyStart
   integer*4 iyEnd, ixStart, ixEnd, jx, jxs, jxn, jy, jys, jyn, ix, iy
-  real*4 dmin, dmax, sum, sumsq, scanAvg, scanSd, polarity, scanCrit
-  integer*4 ixPeak, iyPeak, iouter, numSum, numInPatch, numPatch, numPixels
-  real*4 radMaxSq, outerSq, radSq, ringAvg, ringSd, growCrit, sdDiff
+  real*4 dmin, dmax, psum, sumsq, scanAvg, scanSd, polarity, scanCrit
+  integer*4 ixPeak, iyPeak, numSum, numInPatch, numPatch, numPixels
+  real*4 radMaxSq, growCrit, sdDiff, absDiffAvg, absDiffSd
   real*4 pixDiff, diffAvg, diffSd, diffCrit
-  logical movedPeak, storePatch, onList
-  integer*4 numInList, ixList(LIMLIST), iyList(LIMLIST), lookingAt, i, j
+  logical movedPeak, storePatch, onList, aboveCrit
+  integer*4 numInList, ixList(LIMLIST), iyList(LIMLIST), lookingAt, i, j, ip
   integer*4 minDistSq, maxDistSq, iDistSq, ixOffset, iyOffset
-  integer*4 ixMin, ixMax, iyMin, iyMax, nxUse, nyUse
+  integer*4 ixMin, ixMax, iyMin, iyMax, nxUse, nyUse, numAtPeak
   real*8 sum8, sumsq8
 
   numPatch = 0
   numPixels = 0
   nxUse = nx - 2 * numEdgePixels
   nyUse = ny - 2 * numEdgePixels
-  radMaxSq = radiusMax**2
-  outerSq = outerRadius**2
-  iouter = nint(outerRadius)
   !
   ! set up extent of scan regions
   !
@@ -990,125 +996,89 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
       !
       ! get statistics and scan for points outside the reduced criterion
       !
-
       call iclavgsd(array, nx, ny, ixStart, ixEnd, iyStart, iyEnd, &
           dmin, dmax, sum8, sumsq8, scanAvg, scanSd)
       scanCrit = critScan * scanSd
+      !
+      ! get mean of difference from neighbors now, for looking at big differences
+      !
+      ixOffset = 1 - ixStart
+      iyOffset = 1 - iyStart
+      call computeDiffs(array, nx, ny, diffArr, LIMDIFF, LIMDIFF, ixStart + 1,  &
+          ixEnd - 1, iyStart + 1, iyEnd - 1, ixOffset, iyOffset, diffAvg, diffSd,  &
+          absDiffAvg, absDiffSd, 0)
+      !
+      ! Now loop on points in patch looking for peaks above criterion
       do iy = iyStart, iyEnd
         do ix = ixStart, ixEnd
           if (abs(array(ix, iy) - scanAvg) > scanCrit) then
             !
             ! found a point above criterion, need to walk to peak
-            !
+            ! Start a list of peak points to check
             polarity = sign(1., array(ix, iy) - scanAvg)
-            movedPeak = .true.
             ixPeak = ix
             iyPeak = iy
-            do while (movedPeak)
-              movedPeak = .false.
-              jxs = max(1, ixPeak - 1)
-              jxn = min(nx, ixPeak + 1)
-              jys = max(1, iyPeak - 1)
-              jyn = min(ny, iyPeak + 1)
+            numAtPeak = 1
+            ixList(1) = ix
+            iyList(1) = iy
+            lookingAt = 1
+            !
+            ! Check points on list; loop until all checked
+            do while (lookingAt <= numAtPeak)
+              jxs = max(1, ixList(lookingAt) - 1)
+              jxn = min(nx, ixList(lookingAt) + 1)
+              jys = max(1, iyList(lookingAt) - 1)
+              jyn = min(ny, iyList(lookingAt) + 1)
               do jy = jys, jyn
                 do jx = jxs, jxn
-                  if (polarity * (array(jx, jy) - array(ixPeak, iyPeak)) &
-                      > 0.) then
-                    ixPeak = jx
-                    iyPeak = jy
-                    movedPeak = .true.
-                  endif
-                enddo
-              enddo
-            enddo
-            !
-            ! find mean and SD in the annulus
-            !
-            jxs = max(1, ixPeak - iouter)
-            jxn = min(nx, ixPeak + iouter)
-            jys = max(1, iyPeak - iouter)
-            jyn = min(ny, iyPeak + iouter)
-            numSum = 0
-            sum8 = 0.
-            sumsq8 = 0.
-            do jy = jys, jyn
-              do jx = jxs, jxn
-                radSq = (jx - ixPeak)**2 + (jy - iyPeak)**2
-                if (radSq > radMaxSq .and. radSq <= outerSq) then
-                  numSum = numSum + 1
-                  sum8 = sum8 + array(jx, jy)
-                  sumsq8 = sumsq8 + array(jx, jy)**2
-                endif
-              enddo
-            enddo
-            call sums_to_avgsd8(sum8, sumsq8, numSum, 1, ringAvg, ringSd)
-            !
-            ! Make sure the peak passes the main criterion
-            !
-            sdDiff = abs(array(ixPeak, iyPeak) - ringAvg) / ringSd
-            if (sdDiff > critMain) then
-              !
-              ! look inside radius and make list of points above the
-              ! grow criterion or above the difference criterion
-              !
-              growCrit = ringSd * critGrow
-              iouter = nint(radiusMax)
-              jxs = max(1, ixPeak - iouter)
-              jxn = min(nx, ixPeak + iouter)
-              jys = max(1, iyPeak - iouter)
-              jyn = min(ny, iyPeak + iouter)
-              numInPatch = 0
-              storePatch = (numPatchOut < LIMPATCHOUT - 1 .and. numPtOut < LIMPTOUT)
-              do jy = jys, jyn
-                do jx = jxs, jxn
-                  radSq = (jx - ixPeak)**2 + (jy - iyPeak)**2
-                  if (radSq < radMaxSq .and. &
-                      polarity * (array(jx, jy) - ringAvg) > growCrit &
-                      .and. numInPatch < limPatch) then
-                    numInPatch = numInPatch + 1
-                    ixFix(numInPatch) = jx
-                    iyFix(numInPatch) = jy
-                    if (storePatch .and. numPtOut < LIMPTOUT) then
-                      numPtOut = numPtOut + 1
-                      ixOut(numPtOut) = jx
-                      iyOut(numPtOut) = jy
-                      izOut(numPtOut) = izSect
+                  if (polarity * (array(jx, jy) - array(ixPeak, iyPeak)) >= 0.) then
+                    !
+                    ! If the point is equal, add it to the list
+                    if (array(jx, jy) == array(ixPeak, iyPeak)) then
+                      onList = .false.
+                      do ip = 1, numAtPeak
+                        if (jx == ixList(ip) .and. jy == iyList(ip)) onList = .true.
+                      enddo
+                      if (.not. onList .and. numAtPeak < LIMLIST) then
+                        numAtPeak = numAtPeak + 1
+                        ixList(numAtPeak) = jx
+                        iyList(numAtPeak) = jy
+                      endif
+                    else
+                      !
+                      ! If the point is higher, move to it, reset the list, keep looking
+                      ! around current center in case an even higher one occurs
+                      ixPeak = jx
+                      iyPeak = jy
+                      numAtPeak = 1
+                      ixList(1) = jx
+                      iyList(1) = jy
+                      lookingAt = 0
                     endif
                   endif
                 enddo
               enddo
-              if (storePatch) then
-                exceedCrit(numPatchOut + 1) = sdDiff - critMain
-                numPatchOut = numPatchOut + 1
-                indPatch(numPatchOut + 1) = numPtOut + 1
-              endif
-              !
-              ! fix the patch!
-              !
-              if (ifVerbose > 0) write (*,103) ixPeak, iyPeak, &
-                  array(ixPeak, iyPeak), sdDiff, ringAvg
-103           format(/,'Peak at',2i6,' = ',f8.0,',',f7.2, &
-                  ' SDs above mean',f8.0,$)
-              call cleanArea(array, numInPatch, 0)
-              numPatch = numPatch + 1
-              numPixels = numPixels + numInPatch
+              lookingAt = lookingAt + 1
+            enddo
+            if (numAtPeak > 1) then
+              ixPeak = nint(sum(ixList(1:numAtPeak)) / float(numAtPeak))
+              iyPeak = nint(sum(iyList(1:numAtPeak)) / float(numAtPeak))
+            endif
+            call checkAndErasePeak(radiusMax, outerRadius, critMain, .false., aboveCrit, &
+                'P')
+            if (critGiant > 0. .and. .not. aboveCrit .and.  &
+                abs(array(ix, iy) - scanAvg) > (critScan + 1.) * scanSd) then
+              call checkAndErasePeak(giantRadius, giantRadius + outerRadius - radiusMax, &
+                  critGiant, .true., aboveCrit, 'Giant p')
             endif
           endif
         enddo
       enddo
-
       !
-      ! to search for single-pixel difference anomalies
-      ! get mean of difference from neighbors
-      !
-      ixOffset = 1 - ixStart
-      iyOffset = 1 - iyStart
-      call compute_diffs(array, nx, ny, diffArr, LIMDIFF, LIMDIFF, &
-          ixStart + 1, ixEnd - 1, iyStart + 1, iyEnd - 1, &
-          ixOffset, iyOffset, diffAvg, diffSd)
+      ! Next search for single-pixel difference anomalies
       diffCrit = critDiff * diffSd
       growCrit = critGrow * diffSd
-
+      radMaxSq = radiusMax**2
       do iy = iyStart + 1, iyEnd - 1
         do ix = ixStart + 1, ixEnd - 1
           pixDiff = diffArr(ix + ixOffset, iy + iyOffset)
@@ -1126,7 +1096,7 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
             ixMax = ixMin
             iyMin = iy
             iyMax = iyMin
-            sum = array(ix, iy)
+            psum = array(ix, iy)
             do while (lookingAt <= numInList)
               do jx = ixList(lookingAt) - 1, ixList(lookingAt) + 1
                 do jy = iyList(lookingAt) - 1, iyList(lookingAt) + 1
@@ -1156,7 +1126,7 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
                     ixMax = max(ixMax, jx)
                     iyMin = min(iyMin, jy)
                     iyMax = max(iyMax, jy)
-                    sum = sum + array(jx, jy)
+                    psum = psum + array(jx, jy)
                   endif
                 enddo
               enddo
@@ -1172,9 +1142,9 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
                 sumsq = sumsq + array(jx, jy)
               enddo
             enddo
-            sumsq = (sumsq - sum) / &
+            sumsq = (sumsq - psum) / &
                 ((ixMax + 3 - ixMin) * (iyMax + 3 - iyMin) - numInList)
-            polarity = sign(1., sum / numInList - sumsq)
+            polarity = sign(1., psum / numInList - sumsq)
             !
             ! and order the list by differences
             !
@@ -1198,26 +1168,15 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
             ! for each other point, recompute difference measure
             ! excluding the ones already on fix list
             !
-            numInPatch = 1
-            ixFix(1) = ixList(1)
-            iyFix(1) = iyList(1)
-            ixMin = ixFix(1)
-            ixMax = ixMin
-            iyMin = iyFix(1)
-            iyMax = iyMin
+            numInPatch = 0
             storePatch = (numPatchOut < LIMPATCHOUT - 1 .and. &
                 numPtOut < LIMPTOUT)
             numPtSave = numPtOut
             numPatchSave = numPatchOut
-            if (storePatch) then
-              numPtOut = numPtOut + 1
-              ixOut(numPtOut) = ixList(1)
-              iyOut(numPtOut) = iyList(1)
-              izOut(numPtOut) = izSect
-            endif
+            call addPointToPatch(ixList(1), iyList(1))
             do i = 2, numInList
               numSum = 0
-              sum = 0.
+              psum = 0.
               do jx = ixList(i) - 1, ixList(i) + 1
                 do jy = iyList(i) - 1, iyList(i) + 1
                   onList = jx == ixList(i) .and. jy == iyList(i)
@@ -1226,7 +1185,7 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
                         onList = .true.
                   enddo
                   if (.not.onList) then
-                    sum = sum + array(jx, jy)
+                    psum = psum + array(jx, jy)
                     numSum = numSum + 1
                   endif
                 enddo
@@ -1235,21 +1194,9 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
               ! add point to list if it passes the grow criterion
               !
               if (numSum > 0) then
-                pixDiff = array(ixList(i), iyList(i)) - sum / numSum
+                pixDiff = array(ixList(i), iyList(i)) - psum / numSum
                 if (polarity * (pixDiff - diffAvg) > growCrit) then
-                  numInPatch = numInPatch + 1
-                  ixFix(numInPatch) = ixList(i)
-                  iyFix(numInPatch) = iyList(i)
-                  ixMin = min(ixMin, ixList(i))
-                  ixMax = max(ixMax, ixList(i))
-                  iyMin = min(iyMin, iyList(i))
-                  iyMax = max(iyMax, iyList(i))
-                  if (storePatch .and. numPtOut < LIMPTOUT) then
-                    numPtOut = numPtOut + 1
-                    ixOut(numPtOut) = ixList(i)
-                    iyOut(numPtOut) = iyList(i)
-                    izOut(numPtOut) = izSect
-                  endif
+                  call addPointToPatch(ixList(i), iyList(i))
                 endif
               endif
             enddo
@@ -1269,19 +1216,7 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
                   array(ix, iy), pixDiff, sdDiff
 104           format(/,'Diff peak at',2i6,' = ',f8.0,', diff =',f8.0, &
                   ', ',f7.2, ' SDs above mean',$)
-              call cleanArea(array, numInPatch, 0)
-              numPatch = numPatch + 1
-              numPixels = numPixels + numInPatch
-              !
-              ! fix the difference array 1 pixel beyonds limits of patch
-              !
-              ixMin = max(ixMin - 1, ixStart + 1)
-              ixMax = min(ixMax + 1, ixEnd - 1)
-              iyMin = max(iyMin - 1, iyStart + 1)
-              iyMax = min(iyMax + 1, iyEnd - 1)
-              call compute_diffs(array, nx, ny, diffArr, LIMDIFF, &
-                  LIMDIFF, ixMin, ixMax, iyMin, iyMax, ixOffset, &
-                  iyOffset, sum, sumsq)
+              call cleanAreaRecomputeDiffs()
             else
               numPtOut = numPtSave
               numPatchOut = numPatchSave
@@ -1292,40 +1227,243 @@ subroutine searchPeaks(array, diffArr, izSect, critMain, critDiff, radiusMax, &
 
     enddo
   enddo
-
   return
+
+CONTAINS
+
+  ! checkAndErasePeak finds the mean and SD in the annulus defined by its arguments
+  ! and tests the currently found peak with the given criterion.  It sets aboveCrit
+  ! true if it erases the peak
+  !
+  subroutine checkAndErasePeak(radMax, outerRad, critPeak, doingBig, aboveCrit, bigText)
+    real*4 radMax, outerRad, critPeak
+    real*4 outerSq, radSq, ringAvg, ringSd, radInnerSq
+    real*4 peakXcen, peakYcen
+    integer*4 iouter, numPlast
+    integer*4 ixpCen, iypCen, numGrowLoop, loopGrow, ixpkSum, iypkSum, ixpLast, iypLast
+    logical aboveCrit, doingBig
+    character*(*) bigText
+    iouter = nint(outerRad)
+    radInnerSq = radMax**2
+    outerSq = outerRad**2
+    numPtSave = numPtOut
+    !
+    ! find mean and SD in the annulus
+    !
+    jxs = max(1, ixPeak - iouter)
+    jxn = min(nx, ixPeak + iouter)
+    jys = max(1, iyPeak - iouter)
+    jyn = min(ny, iyPeak + iouter)
+    numSum = 0
+    sum8 = 0.
+    sumsq8 = 0.
+    do jy = jys, jyn
+      do jx = jxs, jxn
+        radSq = (jx - ixPeak)**2 + (jy - iyPeak)**2
+        if (radSq > radInnerSq .and. radSq <= outerSq) then
+          numSum = numSum + 1
+          sum8 = sum8 + array(jx, jy)
+          sumsq8 = sumsq8 + array(jx, jy)**2
+        endif
+      enddo
+    enddo
+    call sums_to_avgsd8(sum8, sumsq8, numSum, 1, ringAvg, ringSd)
+    !
+    ! Make sure the peak passes the main criterion
+    !
+    sdDiff = abs(array(ixPeak, iyPeak) - ringAvg) / ringSd
+    aboveCrit = sdDiff > critPeak
+    if (aboveCrit) then
+      !
+      ! look inside radius and make list of points above the grow criterion 
+      ! Repeat the loop for a big patch or one that would qualify for that, so that
+      ! the center can be moved
+      growCrit = ringSd * critGrow
+      iouter = nint(radMax)
+      peakXcen = ixPeak
+      peakYcen = iyPeak
+      numGrowLoop = 1
+      if (doingBig .or. (critGiant > 0. .and. sdDiff > critGiant)) numGrowLoop = 3
+      do loopGrow = 1, numGrowLoop
+        !
+        ! initialize for this time through the loop, get limits to look at
+        numInPatch = 0
+        ixpkSum = 0.
+        iypkSum = 0.
+        numPtOut = numPtSave
+        jxs = max(1, nint(peakXcen) - iouter)
+        jxn = min(nx, nint(peakXcen) + iouter)
+        jys = max(1, nint(peakYcen) - iouter)
+        jyn = min(ny, nint(peakYcen) + iouter)
+        storePatch = (numPatchOut < LIMPATCHOUT - 1 .and. numPtOut < LIMPTOUT)
+        do jy = jys, jyn
+          do jx = jxs, jxn
+            !
+            ! Find points within radius limit and above the grow criterion
+            radSq = (jx - peakXcen)**2 + (jy - peakYcen)**2
+            if (radSq < radInnerSq .and. &
+                polarity * (array(jx, jy) - ringAvg) > growCrit &
+                .and. numInPatch < limPatch) then
+              call addPointToPatch(jx, jy)
+              ixpkSum = ixpkSum + jx
+              iypkSum = iypkSum + jy
+              !
+              ! If doing a big patch, store the point's absolute difference
+              if (doingBig) then
+                bigDiffs(numInPatch) = abs(max( &
+                    abs(array(jx, jy) - array(max(1, jx - 1), jy)),  &
+                    abs(array(jx, jy) - array(min(nx, jx + 1), jy)), &
+                    abs(array(jx, jy) - array(jx, max(1, jy - 1))), &
+                    abs(array(jx, jy) - array(jx, min(ny, jy + 1)))) - absDiffAvg) /  &
+                    absDiffSd
+              endif
+            endif
+          enddo
+        enddo
+        !
+        ! If looping more than once, check if it has stabilized and revise the center
+        if (numGrowLoop > 1) then
+          if (loopGrow > 1 .and. numPlast == numInPatch .and. ixpLast == ixpkSum .and. &
+              iypLast == iypkSum) then
+            exit
+          endif
+          peakXcen = float(ixpkSum) / numInPatch
+          peakYcen = float(iypkSum) / numInPatch
+          numPlast = numInPatch
+          ixpLast = ixpkSum
+          iypLast = iypkSum
+        endif
+      enddo
+      !
+      ! If doing big peak, make sure there were enough big differences and abort if not
+      if (doingBig) then
+        call rsSortFloats(bigDiffs, numInPatch)
+        jx = min(numInPatch, max(3, nint(fracBigDiff * numInPatch)))
+        if (sum(bigDiffs(numInPatch + 1 - jx : numInPatch)) / jx < critBigDiff) then
+          print *,'Abort giant at ',ixPeak, iyPeak, sum(bigDiffs(numInPatch + 1 - jx : numInPatch)) / jx, sdDiff
+          numPtOut = numPtSave
+          aboveCrit = .false.
+          return
+        endif
+      endif
+      if (storePatch) then
+        exceedCrit(numPatchOut + 1) = sdDiff - critMain
+        numPatchOut = numPatchOut + 1
+        indPatch(numPatchOut + 1) = numPtOut + 1
+      endif
+      !
+      ! fix the patch!
+      !
+      if (ifVerbose > 0) write (*,103) bigText, ixPeak, iyPeak, &
+          array(ixPeak, iyPeak), sdDiff, ringAvg
+103   format(/,a,'eak at',2i6,' = ',f8.0,',',f7.2, ' SDs above mean',f8.0,$)
+      call cleanAreaRecomputeDiffs()
+
+    endif
+    return
+  end subroutine checkAndErasePeak
+
+
+  ! addPointToPatch adds one point to the patch, maintain min and max of patch, and save
+  ! in output array if there is space
+  !
+  subroutine addPointToPatch(ixAdd, iyAdd)
+    integer*4 ixAdd, iyAdd, numOut
+    numInPatch = numInPatch + 1
+    ixFix(numInPatch) = ixAdd
+    iyFix(numInPatch) = iyAdd
+    if (numInPatch == 1) then
+      ixMin = ixAdd
+      ixMax = ixAdd
+      iyMin = iyAdd
+      iyMax = iyAdd
+    else
+      ixMin = min(ixMin, ixAdd)
+      ixMax = max(ixMax, ixAdd)
+      iyMin = min(iyMin, iyAdd)
+      iyMax = max(iyMax, iyAdd)
+    endif
+    if (storePatch .and. numPtOut < LIMPTOUT) then
+      numPtOut = numPtOut + 1
+      ixOut(numPtOut) = ixAdd
+      iyOut(numPtOut) = iyAdd
+      izOut(numPtOut) = izSect
+    endif
+    return
+  end subroutine addPointToPatch
+
+
+  ! cleanAreaRecomputeDiffs calls cleanArea then adjusts the limits of patch and
+  ! recomputes the differences in this area in a way that maintains the means/sds
+  !
+  subroutine cleanAreaRecomputeDiffs()
+    !
+    ! fix the difference array 1 pixel beyonds limits of patch by first calling
+    ! to subtract this area, then calling after the replacement to add it back
+    ixMin = max(ixMin - 1, ixStart + 1)
+    ixMax = min(ixMax + 1, ixEnd - 1)
+    iyMin = max(iyMin - 1, iyStart + 1)
+    iyMax = min(iyMax + 1, iyEnd - 1)
+    call computeDiffs(array, nx, ny, diffArr, LIMDIFF, LIMDIFF, ixMin, ixMax, &
+        iyMin, iyMax, ixOffset, iyOffset, diffAvg, diffSd, absDiffAvg, absDiffSd, -1)
+    call cleanArea(array, numInPatch, 0)
+    call computeDiffs(array, nx, ny, diffArr, LIMDIFF, LIMDIFF, ixMin, ixMax, &
+        iyMin, iyMax, ixOffset, iyOffset, diffAvg, diffSd, absDiffAvg, absDiffSd, 1)
+    numPatch = numPatch + 1
+    numPixels = numPixels + numInPatch
+    return
+  end subroutine cleanAreaRecomputeDiffs
+
 end subroutine searchPeaks
 
 
-! COMPUTE_DIFFS finds a difference between each pixel and its
-! neighbors over the range ixStart-ixEnd, iyStart-iyEnd in array,
-! places the result in diffArr using the offsets in ixofs, iyofs
-! and returns the mean and standard deviation of the differences
+! COMPUTEDIFFS finds a mean difference between each pixel and its 8 neighbors over the
+! range ixStart-ixEnd, iyStart-iyEnd in array, places the result in diffArr using the
+! offsets in ixofs, iyofs and returns the mean and standard deviation of these differences
+! in diffAvg and diffSd.  It also computes the absolute value of differences between all
+! vertically and horizontally adjacent pairs of pixels and returns the mean and SD of that
+! difference in absDiffAvg and absDiffSd.
 !
-subroutine compute_diffs(array, nx, ny, diffArr, ixdim, iyDim, &
-    ixStart, ixEnd, iyStart, iyEnd, ixOffset, iyOffset, diffAvg, &
-    diffSd)
+subroutine computeDiffs(array, nx, ny, diffArr, ixdim, iyDim, ixStart, ixEnd, iyStart, &
+    iyEnd, ixOffset, iyOffset, diffAvg, diffSd, absDiffAvg, absDiffSd, incremental)
   implicit none
-  integer*4 nx, ny, ixdim, iyDim, ixStart, ixEnd, iyStart, iyEnd
-  real*4 array(nx,ny), diffArr(ixdim,iyDim), diffAvg, diffSd
+  integer*4 nx, ny, ixdim, iyDim, ixStart, ixEnd, iyStart, iyEnd, incremental
+  real*4 array(nx,ny), diffArr(ixdim,iyDim), diffAvg, diffSd, absDiffAvg, absDiffSd
+  real*4 pixDiff, addFac
   integer*4 ix, iy, numSum, ixOffset, iyOffset
-  real*4 sum, sumsq, pixDiff
-  sum = 0.
-  sumsq = 0.
+  real*8 sum8, sumsq8, abssum8, abssq8
+  save numSum, sum8, sumsq8, abssum8, abssq8
+  if (incremental == 0) then
+    sum8 = 0.
+    sumsq8 = 0.
+    abssum8 = 0.
+    abssq8 = 0.
+    numSum = 0
+    addFac = 1.
+  else
+    addFac = sign(1, incremental)
+  endif
+  numSum = numSum + sign(1, incremental) * (iyEnd + 1 - iyStart) * (ixEnd + 1 - ixStart)
   do iy = iyStart, iyEnd
     do ix = ixStart, ixEnd
       pixDiff = array(ix, iy) - (array(ix - 1, iy) + array(ix + 1, iy) + &
           array(ix, iy + 1) + array(ix, iy - 1) + array(ix - 1, iy - 1) + &
           array(ix - 1, iy + 1) + array(ix + 1, iy - 1) + array(ix + 1, iy + 1)) / 8.
-      sum = sum + pixDiff
-      sumsq = sumsq + pixDiff**2
+      sum8 = sum8 + addFac * pixDiff
+      sumsq8 = sumsq8 + addFac * pixDiff**2
       diffArr(ix + ixOffset, iy + iyOffset) = pixDiff
+      pixDiff = abs(array(ix, iy) - array(ix - 1, iy))
+      abssum8 = abssum8 + addFac * pixDiff
+      abssq8 = abssq8 + addFac * pixDiff**2
+      pixDiff = abs(array(ix, iy) - array(ix, iy - 1))
+      abssum8 = abssum8 + addFac * pixDiff
+      abssq8 = abssq8 + addFac * pixDiff**2
     enddo
   enddo
-  numSum = (iyEnd + 1 - iyStart) * (ixEnd + 1 - ixStart)
-  call sums_to_avgsd(sum, sumsq, numSum, diffAvg, diffSd)
+  call sums_to_avgsd8(sum8, sumsq8, numSum, 1, diffAvg, diffSd)
+  call sums_to_avgsd8(abssum8, abssq8, numSum * 2, 1, absDiffAvg, absDiffSd)
   return
-end subroutine compute_diffs
+end subroutine computeDiffs
 
 
 ! CLEANLINE replaces points along a line with points from adjacent
