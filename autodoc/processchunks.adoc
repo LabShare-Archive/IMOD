@@ -34,7 +34,7 @@ environment variable IMOD_USE_GPU2 set to the given GPU number, or set to 0 for 
 machine where no GPU numbers were entered (0 requests the best available
 GPU on that machine.)  No machine name can be entered more than once, and the "#"
 syntax cannot be used to specify multiple CPUs.  For example,
-"tubule:2:1,eclipse:2,druid" would use two GPUs on tubule, a specific one one
+"tubule:2:1,eclipse:2,druid" would use two GPUs on tubule, a specific one on
 eclipse, and the best or only one on druid.
 
 [Field = g]
