@@ -549,6 +549,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
                   # Keep track of last time lines were gotten without error and look for
                   # various terminations
                   gotLinesAt = elapsed
+                  where = None
                   for l in lines:
                      if l.startswith('ERROR:'):
                         prnstr('processchunks ' + l, end = '')
@@ -599,8 +600,8 @@ def runOneProcess(comfile, single = True, usingGPU = False):
          elapsed += sleepTime
          time.sleep(sleepTime)
 
-         # Seek to the last location before trying again.  This is a trick from
-         # stackoverflow.com and is needed on Mac
+         # Seek to the last location before trying again if nothing was gotten.  This is
+         # a trick from stackoverflow.com and is needed on Mac
          try:
             if where != None:
                out.seek(where)
@@ -1873,7 +1874,7 @@ def trimVolume():
       
       sizesScales.append(size)
          
-   trimcom = 'trimvol -f'
+   trimcom = '$trimvol -f'
    if reorient == 1:
       trimcom += ' -yz'
    elif reorient == 2:
@@ -1897,15 +1898,12 @@ def trimVolume():
             trimcom += fmtstr(' -s{} {},{}', chr(ord('x') + ind - 3), start, end)
 
    trimcom += ' ' + recName + ' ' + trimName
-   print trimcom
    prnstr('Running trimvol on ' + recName + ' to create ' + trimName, flush=True)
-   try:
-      runcmd(trimcom)
-   except ImodpyError:
-      reportImodError('Error running trimvol on ' + recName)
+   if writeTextFileReportErr('trimvol' + axisCom, [trimcom]):
+      return 1
+   if runOneProcess('trimvol' + axisCom):
       return 1
    return 0
-   
 
 
 # Do all the operations on an axis
