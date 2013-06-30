@@ -129,7 +129,9 @@ This section describes some of the capabilities and current limitations of vario
 steps.
 .P
 .B X-ray removal 
-is optional; if selected, automatic X-ray removal will be done.
+is optional; if selected, automatic X-ray removal will be done.  There is also
+a directive to run Archiveorig(1) to make a compressed difference between
+corrected and original stacks, then delete the original stack.
 A manual replacement model can be specified.  It is suggested that object 1
 contain patches specified in the default way, by a point on each pixel; object
 2 contain lines, if any; object 3 contain patches specified by boundary
@@ -200,6 +202,23 @@ can be specified.
 .P
 A tomogram can be computed with weighted backprojection, with SIRT, or with
 both methods.  The iterations to leave can be specified for SIRT.
+.P
+.B Postprocessing
+can be done with Trimvol(1), which is run if any of the "runtime.Trimvol"
+directives are present.  For a single axis data set, the output file will have
+the usual final name, setname.rec.  For a dual-axis data set, for now, the
+output file will be named with "_trim.rec".  If only SIRT was used to make the
+reconstruction, the result on the final iteration will be used.
+By default, the trimmed volume will be reoriented by
+rotating around X.  The entire volume will be used unless the "thickness",
+"sizeInX", or "sizeInY" directive is present.  
+If one of the "scaleFrom" directives is present, the volume will be scaled to
+bytes.  If "scaleFromX" or "scaleFromY" is not present, the area used for
+scaling in X or Y
+will be the Trimvol default of 80% of the range; if "scaleFromZ" is not
+present, the central one-third of slices will be used.  All of these size
+and scaling directives may be specified either as a number of pixels, or as a
+fraction between 0.02 and 1.
 
 .SS Options
 Batchruntomo uses the PIP package for input (see the manual page for pip(1)).

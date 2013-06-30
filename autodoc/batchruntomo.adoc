@@ -60,7 +60,9 @@ short = cpus
 type = CH
 usage = Machines to use in parallel processing, or number of local cores
 tooltip = 
-manpage = 
+manpage = Machines to use in parallel processing, or number of local cores.
+Each machine name can be followed by a # sign followed by the number of CPUs
+to use in that machine; e.g., druid#4,tubule#4.
 
 [Field = SingleOnFirstCPU]
 short = single
@@ -75,7 +77,10 @@ short = gpus
 type = CH
 usage = Machines to use for parallel processing with a GPU, or 1 for local GPU
 tooltip = 
-manpage = 
+manpage = Machines to use for parallel processing with a GPU, or 1 for local
+GPU.  As when running processchunks with the -G option, multiple or specific
+GPUs can be specified by colon-separated numbers after a machine name, e.g.,
+druid:2,tubule:1:2.
 
 [Field = NiceValue]
 short = nice
@@ -128,8 +133,8 @@ tooltip =
 manpage = "Step to start with for first set: 0 = setup, 1 = preprocessing, 2 =
 xcorr, 3 = prealigned stack, 4 = patch tracking or seeding or RAPTOR, 5 =
 beadtrack, 6 = aligned stack, 7 = CTF correction, 8 = erase gold, 9 = filter,
-10 = reconstruction.  Add 100 to start with this step in the second axis of a
-dual-axis data set."
+10 = reconstruction, 13 = postprocessing.  Add 100 to start with this step in
+the second axis of a dual-axis data set."
 
 [Field = EndingStep]
 short = end

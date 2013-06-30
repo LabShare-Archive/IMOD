@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/29/13: Made Batchruntomo able to run Archiveorig and Trimvol, accept CPU and
+GPU lists with the new syntax that Processchunks takes, use a binned
+thickness, and time out Processchunks if no PID appears in its output.
+
 6/29/13: Made Ccderaser able to remove "extra-large" X-rays and artifacts
 automatically, and made some other minor improvements to X-ray removal.
 
