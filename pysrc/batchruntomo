@@ -509,6 +509,8 @@ def runOneProcess(comfile, single = True, usingGPU = False):
       comuse = comroot
    if usingGPU:
       machines = gpuList
+      if machines != '1':
+         comArray.append('-G')
       mess += ' using GPU'
    comArray += [machines, comuse]
 
@@ -526,6 +528,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
    gotLinesAt = -1.
    opened = False
    readOK = False
+   gotPID = False
    finished = 0
    checkTime = 0.
    where = None
@@ -557,6 +560,8 @@ def runOneProcess(comfile, single = True, usingGPU = False):
                      elif 'retain' in l and 'existing' in l:
                         finished = -2
                         break
+                     elif 'PID:' in l:
+                        gotPID = True
 
          except IOError:
             readOK = False
@@ -571,6 +576,11 @@ def runOneProcess(comfile, single = True, usingGPU = False):
             return 1
          if readOK and gotLinesAt < 0 and elapsed > startingTimeOut:
             abortSet('Timeout occurred before processchunks started')
+            return 1
+
+         if readOK and not gotPID and elapsed > startingTimeOut:
+            abortSet('Processchunks apparently failed to run; check ' + \
+                        os.path.join(datasetDir, outfile) + ' for messages')
             return 1
 
          # If can't get the output, tell processchunks to quit but keep going to next set
@@ -1697,6 +1707,14 @@ def modifyTiltComFile():
       return 1
 
    thickness = lookupDirective(comPrefix + 'tilt', 'tilt.THICKNESS', 0, INT_VALUE)
+   binnedThick = lookupDirective(runtimePrefix + 'Reconstruction', 'binnedThickness', 0,
+                                 INT_VALUE)
+   if thickness and binnedThick:
+      abortSet('Both tilt.THICKNESS and Reconstruction.binnedThickness were entered')
+      return 1
+   if binnedThick:
+      thickness = aliBinning * binnedThick
+
    if not thickness:
       if not reconThickness:
          abortSet('No thickness was specified and fiducial alignment did not give a ' + \
@@ -1779,7 +1797,116 @@ def generateTomogram():
          return 1
 
    return 0
+
+
+# Run trimvol if ANY of the directives are present
+def trimVolume():
+   sizeKeys = ('sizeInX', 'sizeInY', 'thickness', 'scaleFromX', 'scaleFromY', 
+               'scaleFromZ')
+   if lookupDirective(runtimePrefix + 'Trimvol', 'reorient', 0, INT_VALUE) == None:
+      for key in sizeKeys:
+         if lookupDirective(runtimePrefix + 'Trimvol', key, 0, FLOAT_VALUE) != None:
+            break
+      else:    # ELSE ON FOR
+         return 0
+
+   reorient = lookupDirective(runtimePrefix + 'Trimvol', 'reorient', 0, INT_VALUE)
+   if reorient == None:
+      reorient = 2
+   if isinstance(reorient, str) or reorient < 0 or reorient > 2:
+      abortSet('The value for "reorient" must be 0, 1, or 2')
+      return 1
    
+   # Figure out what volume to trim and get its size
+   recRoot = dataName
+   trimName = dataName + '_trim.rec'
+   if not dualAxis:
+      recRoot = dataName + '_full'
+      trimName = dataName + '.rec'
+   recName = recRoot + '.rec'
+   doSIRT = lookupDirective(runtimePrefix + 'Reconstruction', 'useSirt', 0, BOOL_VALUE)
+   doBPalso = lookupDirective(runtimePrefix + 'Reconstruction', 'doBackprojAlso', 0,
+                              BOOL_VALUE)
+   if doSIRT and not doBPalso:
+      leaveList = lookupDirective(comPrefix + 'sirtsetup', 'sirtsetup.LeaveIterations', 0,
+                                  STRING_VALUE)
+      if not leaveList:
+         abortSet('Cannot trim SIRT output, cannot find LeaveIterations directive')
+         return 1
+      lsplit = leaveList.replace('-',',').split(',')
+      lastOne = lsplit[-1:][0]
+      if len(lastOne) < 2:
+         lastOne = '0' + lastOne
+      recName = recRoot + '.srec' + lastOne
+
+   if not os.path.exists(recName):
+      abortSet('The file to be trimmed, ' + recName + ', does not exist')
+      return 1
+   try:
+      (nxrec, nzrec, nyrec) = getmrcsize(recName)
+   except ImodpyError:
+      reportImodError('Could not get size of volume to trim')
+      return 1
+   
+   # Determine size parameters, convert fractions, and check them
+   sizesScales = []
+   baseVals = (nxrec, nyrec, nzrec, nxrec, nyrec, nzrec)
+   for key in sizeKeys:
+      val = lookupDirective(runtimePrefix + 'Trimvol', key, 0, FLOAT_VALUE)
+      if isinstance(val, str):
+         abortSet('An error occurred converting the value in the "Trimvol.' + key + \
+                  '" directive to a float')
+         return 1
+      size = None
+      if val:
+         base = baseVals[len(sizesScales)]
+         lowLim = 40
+         if len(sizesScales) % 3 == 2:
+            lowLim = 4
+         size = int(round(val))
+         if size <= 1.:
+            size = int(round(val * base))
+         if val < 0.02 or size < lowLim or size > base:
+            abortSet('The size specified by the "Trimvol.' + key + \
+                     '" directive is out of the allowed range')
+            return 1
+      
+      sizesScales.append(size)
+         
+   trimcom = 'trimvol -f'
+   if reorient == 1:
+      trimcom += ' -yz'
+   elif reorient == 2:
+      trimcom += ' -rx'
+   if sizesScales[0]:
+      trimcom += ' -nx ' + str(sizesScales[0])
+   if sizesScales[1]:
+      trimcom += ' -ny ' + str(sizesScales[1])
+   if sizesScales[2]:
+      trimcom += ' -nz ' + str(sizesScales[2])
+
+   # If any scaling is specified, add options.  Set default for Z, leave others at
+      # trimvol defaults
+   if sizesScales[3] or sizesScales[4] or sizesScales[5]:
+      if not sizesScales[5]:
+         sizesScales[5] = min(nzrec, max(4, nzrec // 3))
+      for ind in range(3, 6):
+         if sizesScales[ind]:
+            start = 1 + (baseVals[ind] - sizesScales[ind]) // 2
+            end = start + sizesScales[ind] - 1
+            trimcom += fmtstr(' -s{} {},{}', chr(ord('x') + ind - 3), start, end)
+
+   trimcom += ' ' + recName + ' ' + trimName
+   print trimcom
+   prnstr('Running trimvol on ' + recName + ' to create ' + trimName, flush=True)
+   try:
+      runcmd(trimcom)
+   except ImodpyError:
+      reportImodError('Error running trimvol on ' + recName)
+      return 1
+   return 0
+   
+
 
 # Do all the operations on an axis
 def runOneAxis():
@@ -1801,6 +1928,16 @@ def runOneAxis():
       # Use fixed stack
       if useFileAsReplacement(dataName + '_fixed.st', dataName + '.st', True, False):
          return 1
+
+      # Run archiveorig
+      if lookupDirective(runtimePrefix + 'Preprocessing', 'archiveOriginal', 0, 
+                         BOOL_VALUE):
+         prnstr('Archiving original stack as compressed difference file', flush=True)
+         if writeTextFileReportErr('archiveorig' + axisCom,
+                                   ['$archiveorig -d ' + dataName + '.st']):
+            return 1
+         if runOneProcess('archiveorig' + axisCom):
+            return 1
 
    # coarse alignment
    if needStep(2) and runOneProcess('xcorr' + axisCom):
@@ -1841,7 +1978,7 @@ def runOneAxis():
             return 1
 
       # Tilt alignment
-      if endingStep >= 5 and runTiltalign(taLines):
+      if endingStep >= 5 and startingStep < 13 and runTiltalign(taLines):
          return 1
 
       # Iterate patch tracking with angle offset now that it is known, if desired
@@ -1858,7 +1995,7 @@ def runOneAxis():
       return 1
 
    # Set up the tilt com file now that output size is known and montage frame data set
-   if endingStep >= 8 and modifyTiltComFile():
+   if endingStep >= 8 and startingStep < 13 and modifyTiltComFile():
       return 1
 
    # Optionally erase gold and filter
@@ -1867,6 +2004,10 @@ def runOneAxis():
 
    # Make the reconstruction
    if needStep(10) and generateTomogram():
+      return 1
+
+   # Optionally run trimvol at axis level for now
+   if needStep(13) and trimVolume():
       return 1
 
    return 0
@@ -1975,37 +2116,48 @@ if not deliverDir and (numRootOpts or numCurrent) and numCurrent != numSets:
 # Get other options and current directory
 startingDir = os.getcwd()
 
-# For CPU's, validate the number if any, set flag for parallel processing = # of cores
+# For CPU's, validate the number if it is just a number, then parse the list and add up
+# the values after # if any, set flag for parallel processing = # of cores
 cpuList = PipGetString('CPUMachineList', '')
 parallelCPU = 0
 if cpuList != '':
-   parallelCPU = len(cpuList.split(','))
-   if parallelCPU == 1:
-      try:
-         numCPU = int(cpuList)
-         parallelCPU = numCPU
-         if numCPU < 2 or numCPU > 128:
-            exitError('A number of cores entered with -cpus must be between 2 and 128')
-      except ValueError:
-         pass
+   try:
+      parallelCPU = int(cpuList)
+      if parallelCPU < 2 or parallelCPU > 128:
+         exitError('A number of cores entered with -cpus must be between 2 and 128')
+   except ValueError:
+      for machine in cpuList.split(','):
+         msplit = machine.split('#')
+         if len(msplit) > 2:
+            exitError('A machine name cannot be followed by two # signs')
+         if len(msplit) < 2:
+            parallelCPU += 1
+         else:
+            try:
+               numCPU = int(msplit[1])
+               if numCPU < 2:
+                  exitError('The value after # is less than 2 in ' + machine)
+               parallelCPU += numCPU
+            except ValueError:
+               exitError('Failed to convert value after # to integer in ' + machine)
 
 # For GPU's, set useGPU if entered, insist a number is 1, and set flag for parallel GPU
-# if there is an actual machine list to number of GPUs.  Here keep parallelGPU = 1 if
+# if there is an actual machine list to number of GPUs, adding up entries 
+# with : separators.  Here keep parallelGPU = 1 if
 # it is running without splitting on a single remote machine
 gpuList = PipGetString('GPUMachineList', '')
 useGPU = gpuList != ''
 parallelGPU = 0
 
 if useGPU:
-   parallelGPU = len(gpuList.split(','))
-   if parallelGPU == 1:
-      try:
-         useGPU = int(gpuList)
-         parallelGPU = 0
-         if useGPU != 1:
-            exitError('The entry for -gpus must be 1 to use just the local GPU')
-      except ValueError:
-         pass
+   try:
+      useGPU = int(gpuList)
+      if useGPU != 1:
+         exitError('The entry for -gpus must be 1 to use just the local GPU')
+   except ValueError:
+      for machine in gpuList.split(','):
+         msplit = machine.split(':')
+         parallelGPU += max(1, len(msplit) - 1)
 
 niceness = PipGetInteger('NiceValue', 15)
 remoteStartDir = PipGetString('RemoteDirectory', '')
