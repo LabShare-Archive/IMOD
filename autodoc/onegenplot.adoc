@@ -12,10 +12,10 @@ first non-option argument is used for the name.
 [Field = IfTypesInFirstColumn]
 short = iftypes
 type = B
-usage = 1 if there is a type number for each item in first column, or 0 if not
+usage = There is a type number for each item before first column of data
 tooltip =
-manpage = 1 if there is a type number or group identifier before the first column
-of data, or 0 if not.  The default is 0
+manpage = There is a type number or group identifier before the first column
+of data
 
 [Field = NumberOfColumns]
 short = ncol
