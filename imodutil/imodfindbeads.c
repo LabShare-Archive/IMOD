@@ -39,6 +39,7 @@ typedef struct peak_list_entry {
 #define MAX_GROUPS 10
 #define KERNEL_MAXSIZE 7
 #define MAX_AREAS  1000
+#define MAX_LINE 160
 
 // Local functions
 static int comparePeaks(const void *p1, const void *p2);
@@ -50,13 +51,13 @@ static float templateCCCoefficient(float *array, int nxdim, int nx, int ny,
 static void areaContListCheckErr(Imod *areaMod, int iz, int *areaConts, int *numAreaCont);
 static int pointInsideBoundary(Iobj *obj, Ipoint *pnt);
 static void kernelHistoPL(PeakEntry *peakList, float *element, int numPeaks,
-                            int skipZeroCCC, float *select, float selMin, 
-                            float selMax, float *bins, int numBins,
-                            float firstVal, float lastVal, float h,
-                            int verbose);
+                          int skipZeroCCC, float *select, float selMin, float selMax,
+                          float *bins, int numBins, float firstVal, float lastVal,
+                          float h, int verbose, FILE *dumpfp, int dumpType);
 static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
-                            float *kernHist, float *regHist, float *histDip,
-                            float *peakBelow, float *peakAbove, char *vkeys);
+                          float *kernHist, float *regHist, float *histDip,
+                          float *peakBelow, float *peakAbove, char *vkeys, FILE *dumpfp, 
+                          int *dumpType);
 static void printArray(float *filtBead, int nxdim, int nx, int ny);
 static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
@@ -79,6 +80,8 @@ int main( int argc, char *argv[])
   Ipoint pnt;
   FILE *infp;
   FILE *outfp = NULL;
+  FILE *dumpfp = NULL;
+  int dumpType = 1;
   MrcHeader inhead, outhead;
   float *filtSlice, *corrSlice, *fullBead, *oneBead, *filtBead, *splitBead;
   float *writeSlice;
@@ -87,6 +90,7 @@ int main( int argc, char *argv[])
   Istore store;
   int *listStart;
   int *zlist;
+  float *alignXshift, *alignYshift;
   int boundObj = -1;
   int numGuess = 0;
   float threshold = -2.;
@@ -107,6 +111,7 @@ int main( int argc, char *argv[])
   float amat[2][2];
   float regHist[MAX_BINS], kernHist[MAX_BINS];
   float ctf[8193];
+  char line[MAX_LINE];
   int boxSize, boxScaled;
   int numRefPts = 0, numPeakPts, numPeakMatch, numPeaksLeft, numBelowMin;
   int numMatched = 0, numUnmatched = 0;
@@ -115,7 +120,7 @@ int main( int argc, char *argv[])
   float kernelSigma = 0.85;
   float annUseMin, annUseMax, maxBalRange = 4.;
   float sigma1 = 0., sigma2 = 0., radius1 = 0., radius2 = 0.;
-  int izst, iznd, nytmp, nxpad, nypad, nxpdim, listSize, numPeaks, npass;
+  int izst, iznd, nytmp, nxpad, nypad, nxpdim, listSize, numPeaks, npass, binning;
   int nxin, nyin, nxout, nyout, nzout, diff, mindiff, range, size, nxtmp;
   float rCenter, rInner, rOuter, zscale, xtmp, ytmp, xBeadOfs, yBeadOfs;
   float beadCenOfs, val, tsum, cval, cx, cy, xcen, ycen, integral, ccc;
@@ -237,6 +242,15 @@ int main( int argc, char *argv[])
   }
   numObjOrig  = imod->objsize;
 
+  // Set up dump file
+  if (!PipGetString("DumpHistogramFile", &filename)) {
+    imodBackupFile(filename);
+    dumpfp = fopen(filename, "w");
+    if (!dumpfp)
+      exitError("Failed to open file for histograms, %s", filename);
+    free(filename);
+  }
+
   // Get other parameters
   PipGetFloat("ScaledSize", &scaledSize);
     // exitError("You must enter a scaled size for the filtering");
@@ -298,6 +312,39 @@ int main( int argc, char *argv[])
   for (i = 0; i < nzout; i++)
     if (zlist[i] < 0 || zlist[i] >= inhead.nz)
       exitError("Section # %d is out of range", zlist[i]);
+
+  // Get shifts if option is entered
+  if (!PipGetString("PrealignTransformFile", &filename)){
+    outfp = fopen(filename, "r");
+    if (!outfp)
+      exitError("Failed to open prealignment transform file %s\n", filename);
+    free(filename);
+    alignXshift = B3DMALLOC(float, inhead.nz);
+    alignYshift = B3DMALLOC(float, inhead.nz);
+    binning = 1;
+    PipGetInteger("ImagesAreBinned", &binning);
+    if (binning <= 0)
+      exitError("Binning entry must be positive");
+    if (!alignXshift || !alignYshift)
+      exitError("Allocating arrays for shifts");
+    for (i = 0; i < inhead.nz; i++)
+      alignXshift[i] = alignYshift[i] = 0.;
+    for (i = 0; i < inhead.nz; i++) {
+      nxin = fgetline(outfp, line, MAX_LINE);
+      if (nxin == -1)
+        exitError("Reading prealignment transform file %s\n", filename);
+      if (nxin == -2)
+        break;
+      sscanf(line, "%f %f %f %f %f %f", &xtmp, &ytmp, &xcen, &ycen, &alignXshift[i],
+             &alignYshift[i]);
+      alignXshift[i] /= binning;
+      alignYshift[i] /= binning;
+      if (nxin < 0)
+        break;
+    }
+    fclose(outfp);
+    outfp = NULL;
+  }
 
   // Figure out division into separate runs
   maxSec = nzout;
@@ -503,10 +550,17 @@ int main( int argc, char *argv[])
             
 
         // Search for all peaks in the correlation
+        // Limit range by prealignment shift
         ixst = (nxpad - nxout) / 2 + 1;
         ixnd = ixst + nxout - 2;
         iyst = (nypad - nyout) / 2 + 1;
         iynd = iyst + nyout - 2;
+        if (alignXshift) {
+          ixst += (int)ceil(B3DMAX(0., alignXshift[iz]) / scaleFactor);
+          ixnd -= (int)ceil(B3DMAX(0., -alignXshift[iz]) / scaleFactor);
+          iyst += (int)ceil(B3DMAX(0., alignYshift[iz]) / scaleFactor);
+          iynd -= (int)ceil(B3DMAX(0., -alignYshift[iz]) / scaleFactor);
+        }
         for (iy = iyst; iy < iynd; iy++) {
           for (ix = ixst; ix < ixnd; ix++) {
             ind = ix + iy * (nxpdim);
@@ -597,7 +651,7 @@ int main( int argc, char *argv[])
       selectedMinMax(peakList, meanMedPtr, numPeaks, NULL, 0., 0., 
                      &annMin, &annMax, &ninHist);
       kernelHistoPL(peakList, meanMedPtr, numPeaks, 1, NULL, 0., 0., 
-                      regHist, MAX_BINS, annMin, annMax, 0., 0);
+                    regHist, MAX_BINS, annMin, annMax, 0., 0, NULL, 0);
       if (vkeys)
         printf("min %f max %f ninhist %d\n", annMin, annMax, ninHist);
       numGroups = B3DMIN(numGroups, ninHist / minInGroup);
@@ -632,10 +686,13 @@ int main( int argc, char *argv[])
             printf("Peak:  selected data set %d\n", igr + 1);
           } else if (vkeys && strchr(vkeys, 'H'))
             verbose = 2;
-          kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, 
-                          meanMedPtr, lowerLim, upperLim,
-                          kernHist, MAX_BINS, selPeakMin, selPeakMax, 
-                          0.1 * selPeakMax, verbose);
+          kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, meanMedPtr, lowerLim,
+                        upperLim, kernHist, MAX_BINS, selPeakMin, selPeakMax, 
+                        0.1 * selPeakMax, verbose, dumpfp, dumpType);
+          if (dumpfp) {
+            printf("Type %2d:  Selected histogram for group %d\n", dumpType, igr);
+            dumpType++;
+          }
 
           if (scanHistogram(kernHist, MAX_BINS, selPeakMin, selPeakMax,
                             selPeakMin, selPeakMax, 1, &dip, &peakBelow,
@@ -779,8 +836,10 @@ int main( int argc, char *argv[])
         } else if (threshold < 0.) {
 
           // Negative threshold: find dip
-          if (findHistoDipPL(peakList, numPeaks, numGuess * nzout, kernHist,
-                             regHist, &histDip, &peakBelow, &peakAbove,NULL)) {
+          if (dumpfp)
+            printf("Dumping histograms for finding threshold for averaging:\n");
+          if (findHistoDipPL(peakList, numPeaks, numGuess * nzout, kernHist, regHist,
+                             &histDip, &peakBelow, &peakAbove, NULL, dumpfp, &dumpType)) {
             if (averageFallback <= 0 || numPeaks < 2)
               exitError("Failed to find dip in smoothed histogram of peaks");
             printf("Failed to find dip in histogram; using fallback threshold for "
@@ -852,9 +911,10 @@ int main( int argc, char *argv[])
     if (peakThresh <= 0.) {
       threshUse = -10000.;
       histDip = -1.;
-      if (!findHistoDipPL(peakList, numPeaks, numGuess * nzout, kernHist,
-                            regHist, &histDip, &peakBelow, &peakAbove,
-                            vkeys)) {
+      if (dumpfp)
+        printf("Dumping histograms for finding threshold for output points:\n");
+      if (!findHistoDipPL(peakList, numPeaks, numGuess * nzout, kernHist, regHist,
+                          &histDip, &peakBelow, &peakAbove, vkeys, dumpfp, &dumpType)) {
         dxbin = 1. / MAX_BINS;
     
         // Count points above threshold
@@ -1023,6 +1083,8 @@ int main( int argc, char *argv[])
     fclose(outfp);
   }
   fclose(infp);
+  if (dumpfp)
+    fclose(dumpfp);
 
   // Finish model
   if (imod->objsize) {
@@ -1276,10 +1338,9 @@ static float templateCCCoefficient(float *array, int nxdim, int nx, int ny,
  * standard binned histogram.
  */
 static void kernelHistoPL(PeakEntry *peakList, float *element, int numPeaks,
-                            int skipZeroCCC, float *select, float selMin, 
-                            float selMax, float *bins, int numBins,
-                            float firstVal, float lastVal, float h,
-                            int verbose)
+                          int skipZeroCCC, float *select, float selMin, float selMax,
+                          float *bins, int numBins, float firstVal, float lastVal,
+                          float h, int verbose, FILE *dumpfp, int dumpType)
 {
   float dxbin, delta, val;
   int i, j, ist, ind;
@@ -1318,6 +1379,9 @@ static void kernelHistoPL(PeakEntry *peakList, float *element, int numPeaks,
   if (verbose == 2)
     for (i = 0; i < numBins; i++)
       printf("bin: %.4f %f\n", firstVal + i * dxbin, bins[i]);
+  if (dumpfp)
+    for (i = 0; i < numBins; i++)
+      fprintf(dumpfp, "%2d %.4f %f\n", dumpType, firstVal + i * dxbin, bins[i]);
 }
 
 /*
@@ -1326,7 +1390,8 @@ static void kernelHistoPL(PeakEntry *peakList, float *element, int numPeaks,
  */
 static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
                           float *kernHist, float *regHist, float *histDip,
-                          float *peakBelow, float *peakAbove, char *vkeys)
+                          float *peakBelow, float *peakAbove, char *vkeys, FILE *dumpfp, 
+                          int *dumpType)
 {
   float coarseH = 0.2f;
   float fineH = 0.05f;
@@ -1338,7 +1403,11 @@ static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
   // Build a regular histogram first and use minGuess to find safe upper limit
   verbose = (vkeys != NULL && strchr(vkeys, 'p')) ? 1 : 0;
   kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
-                  regHist, MAX_BINS, 0., 1., 0., verbose);
+                regHist, MAX_BINS, 0., 1., 0., verbose, dumpfp, *dumpType);
+  if (dumpfp) {
+    printf("Type %2d:  Regular histogram\n", *dumpType);
+    (*dumpType)++;
+  }
   if (minGuess) {
     numCrit = B3DMAX(1, B3DNINT(minGuess * fracGuess));
     ncum = 0;
@@ -1356,7 +1425,11 @@ static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
     if (vkeys && (strchr(vkeys, 'e') || (strchr(vkeys, 'i') && !i)))
       verbose = 2;
     kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
-                    kernHist, MAX_BINS, 0., 1., coarseH, verbose);
+                  kernHist, MAX_BINS, 0., 1., coarseH, verbose, dumpfp, *dumpType);
+    if (dumpfp) {
+      printf("Type %2d:  Kernel histogram with H = %.3f\n", *dumpType, coarseH);
+      (*dumpType)++;
+    }
 
     // Cut H if it fails or if the top peak is at 1.0
     if (!scanHistogram(kernHist, MAX_BINS, 0., 1., 0., upperLim, 1, histDip,
@@ -1372,7 +1445,9 @@ static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
   
   verbose = (vkeys != NULL && strchr(vkeys, 'f')) ? 2 : 0;
   kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
-                  kernHist, MAX_BINS, 0., 1., fineH, verbose);
+                kernHist, MAX_BINS, 0., 1., fineH, verbose, dumpfp, *dumpType);
+  if (dumpfp)
+    printf("Type %2d:  Kernel histogram with fine H = %.3f\n", (*dumpType)++, fineH);
   scanHistogram(kernHist, MAX_BINS, 0., 1., 0.5 * (*histDip + *peakBelow),
                 0.5 * (*histDip + *peakAbove), 0, histDip,
                 peakBelow, peakAbove);
