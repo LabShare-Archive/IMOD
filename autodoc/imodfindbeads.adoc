@@ -55,6 +55,24 @@ in the analysis for the given section, and then exit.  This is the sum of
 areas inside the contours, or the whole image area minus that sum if -exclude
 is given.  With this option, only the input and area models need to be entered.
 
+[Field = PrealignTransformFile]
+short = prexf
+type = FN
+usage = File with transforms used to align images being analyzed
+tooltip = 
+manpage = File with transformations applied to align the images being
+analyzed.  The program will assume that the transformations consist only of
+shifts and will use this information to avoid finding beads at the edge of a
+filled area that has no image data.
+
+[Field = ImagesAreBinned]
+short = 
+type = I
+usage = The binning of the images relative to the original data (default 1)
+tooltip = 
+manpage = The current binning of the images relative to the original data.
+This factor is needed to scale prealignment transforms.  The default is 1.
+
 [Field = AddToModel]
 short = add
 type = FN
@@ -339,6 +357,21 @@ usage = Key letters for verbose output
 tooltip = 
 manpage = Key letters for verbose output (1 for general, p for peak, f for
 first, l for last, e for every hist)
+
+[Field = DumpHistogramFile]
+short = dump
+type = FN
+usage = Name of file in which to write all histograms
+tooltip =
+manpage = Name of file in which to write all histograms.  Each histogram will
+be written with a type number, the peak strength, and the actual or smoothed
+number of counts.  The program will use successive type numnbers and print a
+line describing the histogram written with each type number.  Histograms can
+be displayed with commands like 
+^   onegenplot -ift -con -sym 0 -ty <type>  <filename>
+^where <type> is a type number and <filename> is the name provided with this
+option.  Add the option "-ylog 10" to spread out the low parts of the
+histogram.
 
 [Field = ParameterFile]
 short = param
