@@ -207,6 +207,8 @@ if skipLines < 0 or numCol <= 0:
       
    dataFile.close()
    
+# Leave numCol as original value, it is passed to genhstplt; but use trueCol instead
+# from here on for number of columns
 # Check the column list for validity
 if columnList:
    for ind in range(len(columnList)):
@@ -295,14 +297,14 @@ else:
    inlist += [str(symbols[0])]
 
 # columns
-if numCol > 1:
+if trueCol > 1:
    inlist.append(str(columnList[0]))
 inlist += [fmtstr('{},{}', int(xlog), xbase),
            '0']
 if ordinals:
    inlist += ['16']
 inlist.append('1')
-if numCol > 1:
+if trueCol > 1:
    inlist.append(str(columnList[1 - ordinals]))
 inlist += [fmtstr('{},{}', int(ylog), ybase),
            '0',
