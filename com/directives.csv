@@ -41,7 +41,7 @@ runtime.Preprocessing.any.archiveOriginal,Run archiveorig and delete original st
 comparam.eraser.ccderaser.PeakCriterion,Peak criterion # of SDs,Float,Y,Y,SD,
 comparam.eraser.ccderaser.DiffCriterion,Difference criterion # of SDs,Float,Y,Y,SD,
 comparam.eraser.ccderaser.MaximumRadius,Maximum radius of peak area,Float,Y,Y,SD,
-comparam.eraser.ccderaser.ModelFile,Manual replacement model,Bool,Y,Y,SO,
+comparam.eraser.ccderaser.ModelFile,Manual replacement model,File,Y,Y,SO,
 comparam.eraser.ccderaser.LineObjects,Objects with lines to remove,List,Y,Y,SO,Set this to 2 as a standard in batch
 comparam.eraser.ccderaser.BoundaryObjects,Objects with contours around areas to erase,List,Y,Y,SO,Set this to 3 as a standard in batch
 comparam.eraser.ccderaser.AllSectionObjects,Objects to erase on all sections,List,Y,Y,SO,Set to 1-3 as a standard in batch
