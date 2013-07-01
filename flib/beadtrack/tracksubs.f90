@@ -51,7 +51,7 @@ subroutine nextPos(iobj, ipNear, idir, izNext, tilt, maxFit, minFit, axisRot, ti
   iptNear = object(ibase + ipNear)
   ip = ipNear
   do ipt = ipNear, ipEnd, -idir
-    iz = nint(p_coord(3, object(ibase + ip)))
+    iz = nint(p_coord(3, object(ibase + ipt)))
     if (idir * (iz - izNext) < 0)  &
         exit
     if (.not. itemOnList(iz + 1, izExclude, numExclude)) ip = ipt
@@ -126,15 +126,23 @@ subroutine nextPos(iobj, ipNear, idir, izNext, tilt, maxFit, minFit, axisRot, ti
   !
   ! Just average the points if there are not enough
   if (mfit < minFit) then
-    xsum = 0.
-    ysum = 0.
-    do i = 1, mfit
-      xsum = xsum + xx(i)
-      ysum = ysum + yy(i)
-    enddo
-    xnext = xsum / mfit
-    ynext = ysum / mfit
-    !print *,'average:', iobj, mfit, xnext, ynext
+    !
+    ! If there are no points at all, take the nearest even though it is on excluded view
+    if (mfit == 0) then
+      mfit = 1
+      xnext = p_coord(1, iptNear)
+      ynext = p_coord(2, iptNear)
+    else
+      xsum = 0.
+      ysum = 0.
+      do i = 1, mfit
+        xsum = xsum + xx(i)
+        ysum = ysum + yy(i)
+      enddo
+      xnext = xsum / mfit
+      ynext = ysum / mfit
+      !print *,'average:', iobj, mfit, xnext, ynext
+    endif
   else if (mfit >= minFit + 2 .and. abs(tilt(izNext + 1)) >= tiltMin) then
     !
     ! Or, if there are enough for sine-cosine fit and angle is big enough, rotate the
