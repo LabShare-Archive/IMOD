@@ -36,7 +36,7 @@ program beadtrack
   !
   integer*4, allocatable :: ixPclist(:), iyPclist(:), izPclist(:), listz(:), inCore(:,:)
   CHARACTER*320 filin, outFile, pieceFile, modelFile, elongFile, XYZfile, prexfFile
-  ! maxView except wsumSave
+  ! maxView
   integer*4, allocatable :: ipClose(:), izClose(:)
   integer*4, allocatable :: ivList(:), ivSnapList(:)
   logical, allocatable :: missing(:)
@@ -1096,7 +1096,7 @@ program beadtrack
   !
   allocate(xseek(i), yseek(i), wsumCrit(i), xr(msizeXR, i), ifFound(i), &
       ipNearest(i), ipNearSave(i), iobjDel(i), idrop(i), iobjAli(i), numInSobelSum(i), &
-      wsumSave(minViewDo:maxViewDo, maxAllReal), inCorrSum(maxAnySum, i), &
+      wsumSave(maxView, maxAllReal), inCorrSum(maxAnySum, i), &
       inSobelSum(maxAnySum, i), sobelXpeaks(maxPeaks), sobelYpeaks(maxPeaks), &
       sobelPeaks(maxPeaks), sobelWsums(maxPeaks), sobelEdgeSD(maxPeaks),  &
       stat = ierr)
