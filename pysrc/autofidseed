@@ -227,7 +227,7 @@ def runFindBeads():
                       storageFallback * numSeedViews)]
    if lightBeads:
       comlines.append('LightBeads 1')
-   if usingSobel and kernelArr:
+   if usingSobel:
       comlines.append(fmtstr('KernelSigma {}', ksigma))
    if boundModel:
       comlines.append('AreaModel ' + boundModel)
@@ -335,6 +335,7 @@ leavetmp = 0
 targetToGuessFrac = 0.25
 targetToAverageFB = 0.33
 targetToStorageFB = 2.0
+kernelSigmaDefault = 0.5   # THE DEFAULT IN BEADTRACK
 
 # Extensions for files that are always cleaned up, files that are left for resuming
 # and files that are left for user edification only.  Make all extensions unique
@@ -500,7 +501,6 @@ if PipGetErrNo():
 
 # Get filtering information if sobel activated
 usingSobel = optionValue(tracklines, 'Sobel', 3)
-kernelArr = None
 linear = 0
 if usingSobel:
    kernelArr = optionValue(tracklines, 'Kernel', 2)
@@ -508,6 +508,8 @@ if usingSobel:
       ksigma = kernelArr[0]
       if ksigma >= 1.49:
          linear = 1
+   else:
+      ksigma = kernelSigmaDefault
 
 # Get tilt angle options and make list of tilt angles
 tiltFile = optionValue(tracklines, 'TiltFile', 0)
