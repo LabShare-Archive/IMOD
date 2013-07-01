@@ -653,15 +653,20 @@ def optionValue(linelist, option, type, ignorecase = False, numVal = 0, otherSep
       if optre.search(line) and not comre.search(line):
          valstr = subre.sub(r'\1', line).strip()
          if type > 2:
+
+            # A boolean can be any of these values, but it can also be a line with no
+            # separator, which requires a separate re test
             bval = valstr.lower()
             if bval == '0' or bval == 'f' or bval == 'off' or bval == 'false':
                retval = False
-            elif bval == '1' or bval == 't' or bval == 'on' or bval == 'true' \
-                   or bval == "":
+            elif bval == '1' or bval == 't' or bval == 'on' or bval == 'true' or \
+                   bval == "" or \
+                   (not otherSep and re.sub('.*' + option + r'[^\s]*' + r'([^#]*).*', \
+                                               r'\1', line).strip() == ""):
                retval = True
             else:
                prnstr("WARNING: optionValue - Boolean entry found with " + \
-                     "improper value in: " + line)
+                     "improper value (" + bval + ") in: " + line)
                
          elif valstr == "":
             prnstr("WARNING: optionValue - No value for option in: " + line)
