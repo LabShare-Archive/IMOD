@@ -340,9 +340,10 @@ subroutine solvePackedSums(sx, ss, mp, nrows, xm, sd, b, ierr)
   ! First get the means and SDs
   m = mp - 1
   do i = 1, mp
-    xm(i) = xm(i) / nrows
+    xm(i) = sx(i) / nrows
     sd(i) = sqrt((ss(packedIndex(i, i)) - sx(i)**2 / nrows) / (nrows - 1.))
   enddo
+
   !
   ! What we have now is a raw sum of squares and cross - products
   ! Scale the matrix by the sd's; this scales the RHS (b) variable in the last column
