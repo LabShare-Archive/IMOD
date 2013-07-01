@@ -233,6 +233,9 @@ def runFindBeads():
       comlines.append('AreaModel ' + boundModel)
       if excludeAreas:
          comlines.append('ExcludeInsideAreas 1')
+   if prexgFile:
+      comlines.append('PrealignTransformFile ' + prexgFile)
+      comlines.append(fmtstr('ImagesAreBinned {}', binning))
 
    prnstr('RUNNING IMODFINDBEADS' + viewStr)
    prnstr(' ')
@@ -477,9 +480,10 @@ except ImodpyError:
 xborder = setBorderSize((nx + ny) // 2, xborder)
 yborder = setBorderSize((nx + ny) // 2, yborder)
 
-# Get the binning
+# Get the binning and prealign file
 binning = 1
 binArr = optionValue(tracklines, 'ImagesAreBinned', 1)
+prexgFile = optionValue(tracklines, 'PrealignTransformFile', STRING_VALUE)
 if binArr:
    binning = binArr[0]
 
