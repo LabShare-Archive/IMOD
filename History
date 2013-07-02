@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/1/13: IMOD_4-6-23
+7/1/13: Fixed bug that prevented Autofidseed from giving Imodfindbeads the
+sigma for kernel filtering, and made Autofidseed tell Imodfindbeads about
+prealignment transforms so it can avoid picking peaks at edge of image.
+
+7/1/13: Fixed bug that hung beadtrack.
+
 6/29/13: Made Batchruntomo able to run Archiveorig and Trimvol, accept CPU and
 GPU lists with the new syntax that Processchunks takes, use a binned
 thickness, and time out Processchunks if no PID appears in its output.
