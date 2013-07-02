@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/1/13: IMOD_4-6-23
+7/1/13: IMOD_4-6-24
 7/1/13: Fixed bug that prevented Autofidseed from giving Imodfindbeads the
 sigma for kernel filtering, and made Autofidseed tell Imodfindbeads about
 prealignment transforms so it can avoid picking peaks at edge of image.
