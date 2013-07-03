@@ -112,6 +112,16 @@ number appears.  Thus, one exclude entry can be used to exclude the same set
 of section numbers from multiple input files. The list can consist of ranges;
 sections are numbered from 0 unless -fromone is entered.
 
+[Field = TwoDirectionTiltSeries]
+short = twodir
+type = B
+usage = Combine two files from bidirectional tilt series
+tooltip = 
+manpage = Combine two files from the two halves of a bidirectional tilt
+series, where each half is taken in opposite directions of tilt from a common
+starting angle.  The sections will be stacked in inverted order for the first
+file.  There must be two input files, and section lists cannot be entered.
+
 [Field = SkipSectionIncrement]
 short = skip
 type = I

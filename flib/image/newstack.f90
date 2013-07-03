@@ -61,7 +61,7 @@ program newstack
   real*4 tiltAngles(LIMGRADSEC), dmagPerMicron(LIMGRADSEC), rotPerMicron(LIMGRADSEC)
   !
   logical rescale, blankOutput, adjustOrigin, hasWarp, fillTmp, fillNeeded, stripExtra
-  logical readShrunk, numberedFromOne
+  logical readShrunk, numberedFromOne, twoDirections
   character dat * 9, timeStr * 8, tempExt * 9
   logical nbytes_and_flags
   character*80 titlech
@@ -79,7 +79,7 @@ program newstack
   integer*4 iyBase, iy1, iy2, lnu, maxin, numScaleFacs, maxFieldX, needYfirst, needYlast
   real*4 dmeanSec, tmpMin, tmpMax, val, tsum2, scaleFactor
   integer*4 needYstart, needYend, numLinesLoad, numYload, numYchunk, iseriesBase, nyNeeded
-  integer*4 ix1, ix2, nByteCopy, nByteClear, ifLinear, limEntered, insideTaper
+  integer*4 ix1, ix2, nByteCopy, nByteClear, ifLinear, limEntered, insideTaper, indFile
   real*4 constAdd, densOutMin, dens, tmin2, tmax2, tmean2, avgSec, enteredSD, enteredMean
   integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet, maxNxGrid, maxNyGrid
   integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
@@ -108,18 +108,19 @@ program newstack
   ! fallbacks from ../../manpages/autodoc2man -3 2  newstack
   !
   integer numOptions
-  parameter (numOptions = 46)
+  parameter (numOptions = 47)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FNM:@output:OutputFile:FNM:@fileinlist:FileOfInputs:FN:@'// &
       'fileoutlist:FileOfOutputs:FN:@split:SplitStartingNumber:I:@'// &
       'append:AppendExtension:CH:@secs:SectionsToRead:LIM:@'// &
       'fromone:NumberedFromOne:B:@exclude:ExcludeSections:LI:@'// &
-      'skip:SkipSectionIncrement:I:@numout:NumberToOutput:IAM:@'// &
-      'replace:ReplaceSections:LI:@blank:BlankOutput:B:@offset:OffsetsInXandY:FAM:@'// &
-      'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'// &
-      'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'// &
-      'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
+      'twodir:TwoDirectionTiltSeries:B:@skip:SkipSectionIncrement:I:@'// &
+      'numout:NumberToOutput:IAM:@replace:ReplaceSections:LI:@blank:BlankOutput:B:@'// &
+      'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'// &
+      'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'// &
+      'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'// &
+      'expand:ExpandByFactor:F:@shrink:ShrinkByFactor:F:@'// &
       'antialias:AntialiasFilter:I:@bin:BinByFactor:I:@distort:DistortionField:FN:@'// &
       'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'// &
       'gradient:GradientFile:FN:@origin:AdjustOrigin:B:@'// &
@@ -191,6 +192,7 @@ program newstack
   readReduction = 1.
   readShrunk = .false.
   numberedFromOne = .false.
+  twoDirections = .false.
   numberOffset = 0
   numExclude = 0
   !
@@ -218,6 +220,7 @@ program newstack
     ierr = PipGetLogical('BlankOutput', blankOutput)
     ierr = PipGetLogical('StripExtraHeader', stripExtra)
     ierr = PipGetLogical('NumberedFromOne', numberedFromOne)
+    ierr = PipGetLogical('TwoDirectionTiltSeries', twoDirections)
     if (numberedFromOne) numberOffset = 1
     if (PipGetInteger('BytesSignedInOutput', i) == 0) call overrideWriteBytes(i)
     i = 1
@@ -256,44 +259,48 @@ program newstack
   !
   nxMax = 0
   nyMax = 0
-  do i = 1, numInFiles
+  if (twoDirections .and. numInFiles .ne. 2)  &
+      call exitError('THERE MUST BE EXACTLY TWO INPUT FILES TO USE -twodir')
+  do indFile = 1, numInFiles
     !
     ! get the next filename
     !
     if (pipinput .and. inUnit .ne. 7) then
-      if (i <= numInputFiles) then
-        ierr = PipGetString('InputFile', inFile(i))
+      if (indFile <= numInputFiles) then
+        ierr = PipGetString('InputFile', inFile(indFile))
       else
-        ierr = PipGetNonOptionArg(i - numInputFiles, inFile(i))
+        ierr = PipGetNonOptionArg(indFile - numInputFiles, inFile(indFile))
       endif
     else
       if (inUnit .ne. 7) then
         if (numInFiles == 1) then
           write(*,'(1x,a,$)') 'Name of input file: '
         else
-          write(*,'(1x,a,i3,a,$)') 'Name of input file #', i, ': '
+          write(*,'(1x,a,i3,a,$)') 'Name of input file #', indFile, ': '
         endif
       endif
-      read(inUnit, 101) inFile(i)
+      read(inUnit, 101) inFile(indFile)
     endif
     !
     ! open file to make sure it exists and get default section list
     !
-    call imopen(1, inFile(i), 'RO')
+    call imopen(1, inFile(indFile), 'RO')
     call irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
     if (mode == 16) call exitError('CANNOT WORK DIRECTLY WITH COLOR DATA'// &
         ' (MODE 16); USE COLORNEWST INSTEAD')
     call imclose(1)
-    if (i == 1) then
+    if (indFile == 1) then
       nxFirst = nx
       nyFirst = ny
       call irtdel(1, deltafirst)
     endif
     nxMax = max(nx, nxMax)
     nyMax = max(ny, nyMax)
-    nlist(i) = nz
+    nlist(indFile) = nz
     do isec = 1, nz
-      inList(min(listTotal + isec, LIMSEC)) = isec - 1
+      iy = isec - 1
+      if (twoDirections .and. indFile == 1) iy = nz - isec
+      inList(min(listTotal + isec, LIMSEC)) = iy
     enddo
     numAllSec = numAllSec + nz
     !
@@ -302,22 +309,25 @@ program newstack
     if (.not.pipinput .or. inUnit == 7) then
       if (inUnit .ne. 7) print *,'Enter list of sections to read from' &
           //' file (/ for all, 1st sec is 0; ranges OK)'
-      call rdlist2(inUnit, inList(listTotal + 1), nlist(i), LIMSEC - listTotal)
-    elseif (i <= numSecLists) then
+      call rdlist2(inUnit, inList(listTotal + 1), nlist(indFile), LIMSEC - listTotal)
+    elseif (indFile <= numSecLists) then
       ierr = PipGetString('SectionsToRead', listString)
-      call parseList2(listString, inList(listTotal + 1), nlist(i), LIMSEC - listTotal)
+      if (ierr == 0 .and. twoDirections)  &
+          call exitError('YOU CANNOT ENTER SECTION LISTS WITH -twodir')
+      call parseList2(listString, inList(listTotal + 1), nlist(indFile),  &
+          LIMSEC - listTotal)
     endif
     !
     ! check list legality and whether excluded; copy over if not excluded
     !
-    listInd(i) = listTotal + 1
-    indOut = listInd(i)
-    do isec = listTotal + 1, listTotal + nlist(i), max(1, listIncrement)
+    listInd(indFile) = listTotal + 1
+    indOut = listInd(indFile)
+    do isec = listTotal + 1, listTotal + nlist(indFile), max(1, listIncrement)
       inList(isec) = inList(isec) - numberOffset
       if (.not.blankOutput .and. &
           (inList(isec) < 0 .or. inList(isec) >= nz)) then
         write(*,'(/,a,i7,a,a)') 'ERROR: NEWSTACK -', inList(isec) + numberOffset, &
-            ' IS AN ILLEGAL SECTION NUMBER FOR ', trim(inFile(i))
+            ' IS AN ILLEGAL SECTION NUMBER FOR ', trim(inFile(indFile))
         call exit(1)
       endif
       if (numberInList(inList(isec), isecExclude, numExclude, 0) .eq. 0) then
@@ -325,8 +335,8 @@ program newstack
         indOut = indOut + 1
       endif
     enddo
-    nlist(i) = indOut - listInd(i)
-    listTotal = listTotal + nlist(i)
+    nlist(indFile) = indOut - listInd(indFile)
+    listTotal = listTotal + nlist(indFile)
   enddo
   close(7)
 101 format(a)

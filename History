@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/3/13: Added Newstack option -twodir for stacking two files of bidirectional
+tilt series.
+
 7/3/13: Fixed 3dmod autocontrast for zoomed-down display of a subarea when
 Subarea option is not  checked.
 
