@@ -2126,7 +2126,7 @@ final class AutodocTester extends Assert implements VariableList {
     else if (fieldType == UITestFieldType.PANEL) {
       assertNull("value not valid in a panel command (" + command + ")", value);
       try {
-        Thread.sleep(408);
+        Thread.sleep(508);
       }
       catch (InterruptedException e) {
       }
