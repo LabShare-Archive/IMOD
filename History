@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/3/13: Fixed 3dmod autocontrast for zoomed-down display of a subarea when
+Subarea option is not  checked.
+
 7/1/13: IMOD_4-6-24
 7/1/13: Fixed bug that prevented Autofidseed from giving Imodfindbeads the
 sigma for kernel filtering, and made Autofidseed tell Imodfindbeads about
