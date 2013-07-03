@@ -495,7 +495,6 @@ import etomo.util.Utilities;
  */
 public abstract class BaseProcessManager {
   public static final String rcsid = "$Id$";
-  public static final String rcsid = "$Id$";
 
   UIHarness uiHarness = UIHarness.INSTANCE;
   // private SystemProcessInterface threadAxisA = null;
