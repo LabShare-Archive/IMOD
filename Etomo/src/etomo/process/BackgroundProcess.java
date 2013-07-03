@@ -319,6 +319,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private final StringBuffer commandProcessID;
   private final CommandDetails commandDetails;
   private final boolean forceNextProcess;
+  private final boolean popupChunkWarnings;
 
   private String commandLine = null;
   private String[] commandArray = null;
@@ -334,7 +335,6 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   private ProcessEndState endState = null;
   private SystemProgram program = null;
   private ProcessResultDisplay processResultDisplay = null;
-  private boolean popupChunkWarnings = true;
 
   BackgroundProcess(BaseManager manager, List<String> commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
@@ -358,6 +358,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     command = null;
     commandDetails = null;
     forceNextProcess = false;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
@@ -403,6 +404,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = null;
     commandDetails = null;
     forceNextProcess = false;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
@@ -425,6 +427,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = commandDetails;
     this.commandDetails = commandDetails;
     forceNextProcess = false;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
@@ -450,6 +453,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     this.processSeries = processSeries;
     commandArrayList = null;
     forceNextProcess = false;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, Command command,
@@ -472,6 +476,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     commandArrayList = null;
     processDetails = null;
     commandDetails = null;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, Command command,
@@ -497,6 +502,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = null;
     commandDetails = null;
     forceNextProcess = false;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
@@ -522,6 +528,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     command = null;
     commandDetails = null;
     forceNextProcess = false;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
@@ -544,6 +551,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     command = null;
     commandDetails = null;
     forceNextProcess = false;
+    popupChunkWarnings = true;
   }
 
   BackgroundProcess(BaseManager manager, String[] commandArray,
@@ -569,6 +577,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processDetails = null;
     command = null;
     commandDetails = null;
+    popupChunkWarnings = true;
   }
 
   void closeOutputImageFile() {
@@ -836,7 +845,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
           errorFound = true;
         }
       }
-      if (!errorFound && monitorMessages != null && popupChunkWarnings) {
+      if (popupChunkWarnings && !errorFound && monitorMessages != null) {
         // TODO start using CHUNK WARNING: tag after processchunks starts
         // putting one out.
         String lastWarningMessage = monitorMessages.getLastWarning();
@@ -887,7 +896,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
   }
 
   void processDone(int exitValue, boolean errorFound) {
-    processManager.msgProcessDone(this, exitValue, errorFound);
+    processManager.msgProcessDone(this, exitValue, errorFound, popupChunkWarnings);
   }
 
   public ProcessMessages getProcessMessages() {

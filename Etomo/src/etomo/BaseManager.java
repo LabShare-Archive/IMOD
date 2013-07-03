@@ -649,7 +649,7 @@ public abstract class BaseManager {
   public boolean saveAsToFile() {
     return false;
   }
-  
+
   public boolean closeFrame() {
     return false;
   }
@@ -1749,9 +1749,13 @@ public abstract class BaseManager {
       processSeries.setLastProcess(lastProcess);
     }
     boolean ret = getProcessManager().reconnectProcesschunks(axisID, processData,
-        display, processSeries, multiLineMessages);
+        display, processSeries, multiLineMessages, isPopupChunkWarnings());
     setThreadName(processData.getProcessName().toString(), axisID);
     return ret;
+  }
+
+  boolean isPopupChunkWarnings() {
+    return true;
   }
 
   /**

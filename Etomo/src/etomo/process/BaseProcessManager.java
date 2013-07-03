@@ -628,7 +628,8 @@ public abstract class BaseProcessManager {
 
   public final boolean reconnectProcesschunks(final AxisID axisID,
       final ProcessData processData, final ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries, final boolean multiLineMessages) {
+      final ProcessSeries processSeries, final boolean multiLineMessages,
+      final boolean popupChunkWarnings) {
     ProcesschunksProcessMonitor monitor = ProcesschunksProcessMonitor
         .getReconnectInstance(manager, axisID, processData, multiLineMessages);
     monitor.setSubdirName(processData.getSubDirName());
@@ -637,7 +638,7 @@ public abstract class BaseProcessManager {
       ReconnectProcess process = ReconnectProcess.getLogInstance(manager, this, monitor,
           axisProcessData.getSavedProcessData(axisID), axisID, monitor.getLogFileName(),
           ProcesschunksProcessMonitor.SUCCESS_TAG, processData.getSubDirName(),
-          processSeries);
+          processSeries, popupChunkWarnings);
       monitor.setProcess(process);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
@@ -1579,7 +1580,8 @@ public abstract class BaseProcessManager {
         script.getProcessResultDisplay(), script.getProcessSeries(), nonBlocking);
   }
 
-  public final void msgReconnectDone(final ReconnectProcess script, final int exitValue) {
+  public final void msgReconnectDone(final ReconnectProcess script, final int exitValue,
+      final boolean popupChunkWarnings) {
     String name = script.getProcessData().getProcessName().toString();
     System.err.println("msgReconnectDone:processName=" + name);
     if (exitValue != 0) {
@@ -1615,7 +1617,7 @@ public abstract class BaseProcessManager {
       logProcessOutput(name, script.getStdOutput(), script.getStdError());
       postProcess(script);
       ProcessMessages messages = script.getProcessMessages();/* Warning */
-      if (messages.warningListSize() > 0) {
+      if (popupChunkWarnings && messages.warningListSize() > 0) {
         messages.addWarning("Com script: " + name);
         uiHarness.openWarningMessageDialog(manager, messages, "Reconnect Warnings",
             script.getAxisID());
@@ -1736,6 +1738,16 @@ public abstract class BaseProcessManager {
       final ProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandDetails,
         this, axisID, processName, processSeries);
+    return startBackgroundProcess(backgroundProcess, commandDetails.getCommandLine(),
+        axisID, null);
+  }
+
+  final BackgroundProcess startBackgroundProcess(final CommandDetails commandDetails,
+      final AxisID axisID, final ProcessName processName,
+      final ProcessSeries processSeries, final boolean popupChunkWarnings)
+      throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager, commandDetails,
+        this, axisID, processName, processSeries, popupChunkWarnings);
     return startBackgroundProcess(backgroundProcess, commandDetails.getCommandLine(),
         axisID, null);
   }
@@ -1922,7 +1934,7 @@ public abstract class BaseProcessManager {
    *          the exit value for the process
    */
   public final void msgProcessDone(final BackgroundProcess process, final int exitValue,
-      final boolean errorFound) {
+      final boolean errorFound, final boolean popupChunkWarnings) {
     if (exitValue != 0 || errorFound) {
       errorProcess(process);
     }
@@ -1931,7 +1943,7 @@ public abstract class BaseProcessManager {
           process.getStdError());
       postProcess(process);
       ProcessMessages messages = process.getProcessMessages();
-      if (messages != null && messages.warningListSize() > 0) {
+      if (popupChunkWarnings && messages != null && messages.warningListSize() > 0) {
         uiHarness.openWarningMessageDialog(manager, messages, "Process Warnings",
             process.getAxisID());
       }
