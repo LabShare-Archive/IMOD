@@ -62,7 +62,8 @@ class ZapFuncs
   bool getLowHighSection(int &low, int &high);
   Icont *getLassoContour();
   B3dCIImage *zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
-                              int &iyStart, int &nxUse, int &nyUse);
+                              int &iyStart, int &nxUse, int &nyUse, int &uzXstart,
+                              int &uzYstart, int &uzXuse, int &uzYuse);
  private:
   int contInSelectArea(Iobj *obj, Icont *cont, Ipoint selmin, Ipoint selmax);
   void analyzeBandEdge(int ix, int iy);

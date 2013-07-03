@@ -3887,12 +3887,16 @@ void ZapFuncs::setAreaLimits()
 }     
 
 /*
- *
+ * Returns size and limits within rubberband of the zoomed down image being displayed,
+ * and corresponding limits for the unzoomed stored image
  */
 B3dCIImage *ZapFuncs::zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
-                                      int &iyStart, int &nxUse, int &nyUse)
+                                      int &iyStart, int &nxUse, int &nyUse, int &uzXstart,
+                                      int &uzYstart, int &uzXuse, int &uzYuse)
 {
   int time, llX, leftXpad, rightXpad, llY, leftYpad, rightYpad, llZ, leftZpad, rightZpad;
+  int uzXend, uzYend;
+  float xl, xr, yb, yt;
   if (mTimeLock)
     time = mTimeLock;
   else
@@ -3915,15 +3919,34 @@ B3dCIImage *ZapFuncs::zoomedDownImage(int subset, int &nxim, int &nyim, int &ixS
     nyUse = B3DMIN(nyUse - iyStart, mRbMouseY1 - mRbMouseY0 - 1);
   }
 
+  // Get window limits of unzoomed image and limit by the possible rubber band subarea
+  getixy(0, 0, xl, yt, uzXend);
+  getixy(mWinx, mWiny, xr, yb, uzXend);
+  uzXstart = B3DMAX((int)(xl + 0.5), 0);
+  uzXend = B3DMIN((int)(xr - 0.5), mVi->xsize - 1);
+  uzYstart = B3DMAX((int)(yb + 0.5), 0);
+  uzYend = B3DMIN((int)(yt - 0.5), mVi->ysize - 1);
+  if (subset) {
+    uzXstart  = B3DMAX(uzXstart, sSubStartX);
+    uzXend = B3DMIN(uzXend, sSubEndX);
+    uzYstart = B3DMAX(uzYstart, sSubStartY);
+    uzYend = B3DMIN(uzYend, sSubEndY);
+  }
+  uzXuse = uzXend + 1 - uzXstart;
+  uzYuse = uzYend + 1 - uzYstart;
+
   // Get extent of padded region in image and use it to limit the subarea
   if (ivwGetImagePadding(mVi, -1, mSection, time, llX, leftXpad, rightXpad, llY, leftYpad,
                          rightYpad, llZ, leftZpad, rightZpad))
     return mImage;
 
-  if (leftXpad || leftYpad || rightXpad || rightYpad)
+  if (leftXpad || leftYpad || rightXpad || rightYpad) {
     imodInfoLimitSubarea(xpos(leftXpad) - mXborder, xpos(mVi->xsize - rightXpad) - 
                          mXborder, ypos(leftYpad) - mYborder, ypos(mVi->ysize - rightYpad)
                          - mYborder, ixStart, iyStart, nxUse, nyUse);
+    imodInfoLimitSubarea(leftXpad, mVi->xsize - rightXpad, leftYpad, 
+                         mVi->ysize - rightYpad, uzXstart, uzYstart, uzXuse, uzYuse);
+  }
   return mImage;
 }
 

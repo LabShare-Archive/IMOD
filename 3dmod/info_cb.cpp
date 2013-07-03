@@ -79,6 +79,7 @@ static int sDoingFloat = 0;
 static int sFloatSubsets = 0;
 static int sLastSubsets = 0;
 static int sLastReverse = -1;
+static float sFloatMatt = 0.05f;
 
 static int sDumpCache = 0;
 static int sStartDump = 0;
@@ -520,13 +521,12 @@ void imod_info_setbw(int black, int white)
 static void getSampleLimits(ViewInfo *vi, int &ixStart, int &iyStart, 
                             int &nxUse, int &nyUse, float &sample, int section, int time)
 {
-  float matt = 0.05;
   int llX, leftXpad, rightXpad, llY, leftYpad, rightYpad, llZ, leftZpad, rightZpad;
 
   if (!sFloatSubsets || zapSubsetLimits(vi, ixStart, iyStart, nxUse, nyUse)) {
-    ixStart = (int)(matt * vi->xsize);
+    ixStart = (int)(sFloatMatt * vi->xsize);
     nxUse = vi->xsize - 2 * ixStart;
-    iyStart = (int)(matt * vi->ysize);
+    iyStart = (int)(sFloatMatt * vi->ysize);
     nyUse = vi->ysize - 2 * iyStart;
   }
   sample = 10000.0/(((double)nxUse) * nyUse);
@@ -860,23 +860,34 @@ void imod_info_float_clear(int section, int time)
  * When contrast is reversed this changes to
  * displayValue = (white - byteValue) * 255 / (white - black)
  * Equations for changes here and in floating derive from these relations
+ * Here are some more equations from the last time this was scribbled on paper:
+ * A scaling is defined by F * I + A and by black and white values B and W that map to 
+ * 0 and 255 in mormal contrast or 255 and 0 in inverted contrast
+ * Normal contrast given F, A:    B = -A / F           W = (255 - A) / F
+ * Normal contrast given B, W:    F = 255 / (W - B)    A = -255 * B / (W - B)
+ * Reverse contrast given F, A:   W = -A / F           B = (255 - A) / F
+ * Reverse contrast given B, W:   F = -255 / (W - B)   A = 255 * W / (W - B)
+ * Product of two scalings:  F' = F1 * F2    A' = F2 * A1 + A2
+ * If I have data at mean M, SD S and I want to bring it to a target Mtarg, Starg:
+ *    F = Starg / S     A = Mtarg - M * Starg / S
  */
 void imodInfoAutoContrast(int targetMean, int targetSD)
 {
-  float mean, sd, scaleLo, scaleHi, temp;
-  int black, white, floatSave, loop, nloop, low, high;
+  float mean, sd, meanSub, sdSub, meanRGB, sdRGB, scaleLo, scaleHi, temp;
+  int black, white, floatSave, loop, nloop, low, high, uzXstart, uzYstart, uzXuse, uzYuse;
   B3dCIImage *image = NULL;
-  float sample, wbdiff;
+  float sample, wbdiff, ftargMean = targetMean, ftargSD = targetSD;
   int ixStart, iyStart, nxUse, nyUse, nxim, nyim, ierr;
   unsigned char **lines = NULL;
   ImodView *vi = App->cvi;
   int rampMax = vi->ushortStore ? 65535 : 255;
+  int izsec = B3DNINT(vi->zmouse);
   ZapFuncs *zap = getTopZapWindow(false);
   nloop = 1;
 
   if (zap && !vi->pyrCache)
-    image = zap->zoomedDownImage(sFloatSubsets, nxim, nyim, ixStart, iyStart, nxUse,
-                                 nyUse);
+    image = zap->zoomedDownImage(sFloatSubsets, nxim, nyim, ixStart, iyStart,
+                                 nxUse, nyUse, uzXstart, uzYstart, uzXuse, uzYuse);
 
   // If there is a top zap in HQ mode using zoomdown filters, analyze the RGBA image
   // for its mean/sd and change sliders to get the actual display to the target
@@ -897,27 +908,63 @@ void imodInfoAutoContrast(int targetMean, int targetSD)
 
       sample = B3DMIN(1., 10000.0/(((double)nxUse) * nyUse));
       ierr = sampleMeanSD(lines, 9, nxim, nyim, sample, ixStart, iyStart, nxUse, nyUse,
-                          &mean, &sd);
-      //imodPrintStderr("%d %f %f %f\n", nxim, sample, mean, sd);
+                          &meanRGB, &sdRGB);
+      imodTrace('a', "RGB: %d %d %d %d %d %f %.2f %.2f", nxim, ixStart, iyStart, nxUse, 
+                nyUse, sample, meanRGB, sdRGB);
       free(lines);
       if (ierr)
         return;
 
-      wbdiff = (vi->white - vi->black) * sd / targetSD;
+      // Get mean of corresponding unzoomed image region and adjust the target mean/SD by
+      // to what this subarea was mapped to by current B/W values
+      if (uzXuse * uzYuse > 32) {
+        sample = 10000.0/(((double)uzXuse) * uzYuse);
+        if (sample > 1.0)
+          sample = 1.0;
+        lines = ivwGetZSectionTime(vi, izsec, vi->curTime);
+        if (!sampleMeanSD(lines, vi->ushortStore ? 2 : 0, vi->xsize, vi->ysize, sample,
+                          uzXstart, uzYstart, uzXuse, uzYuse, &meanSub, &sdSub)) {
+          /*
+           * Change the target to whatever the subarea was mapped to by current B and W
+           */
+          ftargSD = sdSub * 255. / (vi->white - vi->black);
+          if (vi->cramp->reverse)
+            ftargMean = (vi->white - meanSub) * 255. / (vi->white - vi->black);
+          else
+            ftargMean = (meanSub - vi->black) * 255. / (vi->white - vi->black);
+          /* Alternate method: assume full area does map to Starg, Mtarg, this implies
+             a scaling that maps the subarea in this way:
+             ftargMean += (vi->cramp->reverse ? -1 : 1) * (meanSub - mean) * ftargSD / sd;
+            ftargSD *= sdSub / sd; */
+          imodTrace('a', "unzoomed: %d %d %d %d subarea %.2f %.2f  adjusted %.2f %.2f",
+                    uzXstart, uzYstart, uzXuse, uzYuse, meanSub, sdSub, ftargMean, 
+                    ftargSD);
+        }
+      }
+
+      /* To determine the B, W needed to bring these data to target, need the product of
+       * existing B, W scaling and scaling to get from Srgb, Mrgb to Starg, Mtarg:
+       * F' = (Starg / Srgb) * 255 / (W - B)
+       * A' = (Starg / Srgb) * 255 * B / (W - B) + Mtarg - Mrgb * Starg / Srgb
+       * W' - B' = 255 / F' = (W - B) * Srgb / Starg
+       * B' = -A' / F' = B = Mtarg * (Srgb / Starg) * (W - B) / 255 - Mrgb * (W - B) / 255
+       * and similarly for reverse...
+       */
+      wbdiff = (vi->white - vi->black) * sdRGB / ftargSD;
       if (wbdiff) {
         if (vi->cramp->reverse) {
-          temp = vi->white - ((vi->white - vi->black) * mean -
-                              wbdiff * targetMean) / 255.;
+          temp = vi->white - ((vi->white - vi->black) * meanRGB -
+                              wbdiff * ftargMean) / 255.;
           white = B3DNINT(temp);
           black = B3DNINT(temp - wbdiff);
         } else {
-          temp = vi->black + ((vi->white - vi->black) * mean -
-                              wbdiff * targetMean) / 255.;
+          temp = vi->black + ((vi->white - vi->black) * meanRGB -
+                              wbdiff * ftargMean) / 255.;
           black = B3DNINT(temp);
           white = B3DNINT(temp + wbdiff);
         }
       } else {
-        black = white = B3DNINT(mean);
+        black = white = B3DNINT(meanRGB);
       }
     } else {
 
@@ -1022,8 +1069,8 @@ int imodInfoCurrentMeanSD(float &mean, float &sd, float &scaleLo, float &scaleHi
       scaleHi = scaleLo + 2.;
     }
   }
-  /* imodPrintStderr("%d %d %d %d %.2f %.2f\n", ixStart, iyStart, nxUse,
-     nyUse, mean, sd); */
+  imodTrace('a', "imodInfoCurrentMeanSD: %d %d %d %d %.2f %.2f", ixStart, iyStart,
+                  nxUse, nyUse, mean, sd); 
 
   /* Adjust for compressed data in 8-bit CI mode */
   if (App->depth == 8)
