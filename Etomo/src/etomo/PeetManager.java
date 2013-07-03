@@ -822,6 +822,10 @@ public final class PeetManager extends BaseManager {
     }
   }
 
+  boolean isPopupChunkWarnings() {
+    return false;
+  }
+
   public void averageAll(ProcessSeries processSeries, final DialogType dialogType) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
