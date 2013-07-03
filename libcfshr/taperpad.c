@@ -545,7 +545,7 @@ void sliceSplitFill(float *array, int nxbox, int nybox, float *brray,
 }
 
 /*!
- * Fortran wrapper to @ssliceSplitFill .
+ * Fortran wrapper to @sliceSplitFill .
  */
 void splitfill(float *array, int *nxbox, int *nybox, float *brray,
                int *nxdim, int *nx, int *ny, int *iffill, float *fillin)
