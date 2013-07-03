@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/28/13: In eTomo allowing a fiducial diameter of 0.(Bug# 1671)
+7/3/13: In eTomo allowing a fiducial diameter of 0.(Bug# 1671)
 
 7/3/13: Added Newstack option -twodir for stacking two files of bidirectional
 tilt series.
