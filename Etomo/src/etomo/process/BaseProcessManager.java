@@ -1825,9 +1825,9 @@ public abstract class BaseProcessManager {
     return program;
   }
 
-  public final void tomosnapshot(final AxisID axisID) {
+  public final void tomosnapshot(final AxisID axisID, final boolean thumbnail) {
     try {
-      TomosnapshotProcess process = new TomosnapshotProcess(manager, axisID);
+      TomosnapshotProcess process = new TomosnapshotProcess(manager, axisID, thumbnail);
       new Thread(process).start();
     }
     catch (Exception e) {
