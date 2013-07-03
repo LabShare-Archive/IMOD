@@ -402,6 +402,10 @@ public final class PeetManager extends BaseManager {
     }
   }
 
+  final boolean isTomosnapshotThumbnail() {
+    return true;
+  }
+
   public boolean isValid() {
     return valid && loadState != LoadState.EXIT;
   }
