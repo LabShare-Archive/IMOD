@@ -35,6 +35,7 @@ public final class TomosnapshotParam implements Command {
 
   private String[] commandArray = null;
   private boolean debug = true;
+  private boolean thumbnail = false;
 
   public TomosnapshotParam(final BaseManager manager, final AxisID axisID) {
     this.manager = manager;
@@ -73,17 +74,24 @@ public final class TomosnapshotParam implements Command {
     return axisID;
   }
 
+  public void setThumbnail(final boolean input) {
+    thumbnail = input;
+  }
+
   private final void buildCommand() {
     ArrayList command = new ArrayList();
     command.add("python");
     command.add("-u");
     command.add(BaseManager.getIMODBinPath() + COMMAND_NAME);
+    if (thumbnail) {
+      command.add("-t");
+    }
     if (manager != null) {
       BaseMetaData metaData = manager.getBaseMetaData();
       command.add(metaData.getDatasetName() + metaData.getFileExtension());
     }
-    //    command.add("-e");
-    //    command.add(manager.getBaseMetaData().getMetaDataFileName());
+    // command.add("-e");
+    // command.add(manager.getBaseMetaData().getMetaDataFileName());
     int commandSize = command.size();
     commandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
