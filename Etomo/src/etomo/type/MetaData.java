@@ -3311,8 +3311,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
 
     // Is the fiducial diameter greater than zero
-    if (fromScreen && (fiducialDiameter == Double.NaN || fiducialDiameter <= 0.0)) {
-      invalidReason = "Fiducial diameter is not greater than zero.";
+    if (fromScreen && (fiducialDiameter == Double.NaN || fiducialDiameter < 0.0)) {
+      invalidReason = "Fiducial diameter cannot be negative.";
       return false;
     }
 
