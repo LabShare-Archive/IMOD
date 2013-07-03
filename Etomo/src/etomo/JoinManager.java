@@ -811,6 +811,10 @@ public final class JoinManager extends BaseManager {
     }
   }
 
+  final boolean isTomosnapshotThumbnail() {
+    return true;
+  }
+
   /**
    * Remove a specific 3dmod
    * @param imodKey

@@ -42,19 +42,30 @@ final class TomosnapshotProcess implements Runnable {
 
   private final BaseManager manager;
   private final AxisID axisID;
+  private final boolean thumbnail;
 
-  TomosnapshotProcess(final BaseManager manager,AxisID axisID) {
-    this.manager=manager;
+  TomosnapshotProcess(final BaseManager manager, final AxisID axisID,
+      final boolean thumbnail) {
+    this.manager = manager;
     this.axisID = axisID;
+    this.thumbnail = thumbnail;
   }
 
   public void run() {
-    //Run tomosnapshot.
+    // Run tomosnapshot.
+    TomosnapshotParam param = new TomosnapshotParam(manager, axisID);
+    if (thumbnail
+        && UIHarness.INSTANCE.openYesNoDialogWithDefaultNo(manager,
+            "Should the snapshot of this dataset include thumbnails of image data?",
+            "Include Image Data?", axisID)) {
+      param.setThumbnail(true);
+    }
     SystemProgram sysProgram = new SystemProgram(null, System.getProperty("user.dir"),
-        new TomosnapshotParam(manager, axisID).getCommandArray(), axisID);
+        param.getCommandArray(), axisID);
+
     Thread thread = new Thread(sysProgram);
     thread.start();
-    //Wait until tomosnapshot is done.
+    // Wait until tomosnapshot is done.
     try {
       while (!sysProgram.isDone()) {
         Thread.sleep(50);
@@ -62,7 +73,7 @@ final class TomosnapshotProcess implements Runnable {
     }
     catch (InterruptedException e) {
     }
-    //Pop up done message.
+    // Pop up done message.
     String[] stdout = sysProgram.getStdOutput();
     if (sysProgram.isDone() && sysProgram.getExitValue() == 0) {
       if (stdout == null || stdout.length == 0) {
@@ -76,22 +87,22 @@ final class TomosnapshotProcess implements Runnable {
       }
       return;
     }
-    //Handle error or interrupt
+    // Handle error or interrupt
     StringBuffer errorMessage = new StringBuffer();
     String title;
     if (!sysProgram.isDone()) {
-      //Handle interrupt.
+      // Handle interrupt.
       title = "Process Incomplete";
       errorMessage.append("Tomosnapshot process did not finish.");
     }
     else {
-      //Handle error.
+      // Handle error.
       title = "Process Failed";
       errorMessage.append("Unable to run tomosnapshot in "
           + System.getProperty("user.dir") + ".  Exit value is "
           + sysProgram.getExitValue() + ".  ");
     }
-    //Pop up message for error or interrupt.
+    // Pop up message for error or interrupt.
     if (stdout != null) {
       for (int i = 0; i < stdout.length; i++) {
         String line = stdout[i].trim();

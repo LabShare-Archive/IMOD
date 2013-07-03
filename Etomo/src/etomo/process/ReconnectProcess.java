@@ -40,6 +40,8 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   private final ProcessMonitor monitor;
   private final ProcessData processData;
   private final AxisID axisID;
+  private final boolean popupChunkWarnings;
+
   private ProcessSeries processSeries;
   private ProcessEndState endState = null;
   private ProcessResultDisplay processResultDisplay = null;
@@ -104,20 +106,21 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
 
   private ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
       ProcessMonitor monitor, ProcessData processData, AxisID axisID,
-      final ProcessSeries processSeries) {
+      final ProcessSeries processSeries, final boolean popupChunkWarnings) {
     this.manager = manager;
     this.processManager = processManager;
     this.monitor = monitor;
     this.processData = processData;
     this.axisID = axisID;
     this.processSeries = processSeries;
+    this.popupChunkWarnings = popupChunkWarnings;
   }
 
   static ReconnectProcess getInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
       AxisID axisID, final ProcessSeries processSeries) throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
-        processData, axisID, processSeries);
+        processData, axisID, processSeries, true);
     instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         processData.getProcessName());
     return instance;
@@ -126,10 +129,10 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
   static ReconnectProcess getLogInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor, ProcessData processData,
       AxisID axisID, String logFileName, String logSuccessTag,
-      ConstStringProperty subDirName, final ProcessSeries processSeries)
-      throws LogFile.LockException {
+      ConstStringProperty subDirName, final ProcessSeries processSeries,
+      final boolean popupChunkWarnings) throws LogFile.LockException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager, monitor,
-        processData, axisID, processSeries);
+        processData, axisID, processSeries, popupChunkWarnings);
     if (subDirName.isEmpty()) {
       instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(), logFileName);
     }
@@ -230,7 +233,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
     if (messages.isError() || !messages.isSuccess()) {
       exitValue = 1;
     }
-    processManager.msgReconnectDone(this, exitValue);
+    processManager.msgReconnectDone(this, exitValue, popupChunkWarnings);
     mediator.deregister(this);
   }
 

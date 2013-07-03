@@ -402,6 +402,10 @@ public final class PeetManager extends BaseManager {
     }
   }
 
+  final boolean isTomosnapshotThumbnail() {
+    return true;
+  }
+
   public boolean isValid() {
     return valid && loadState != LoadState.EXIT;
   }
@@ -820,6 +824,10 @@ public final class PeetManager extends BaseManager {
       uiHarness.openMessageDialog(this, "Unable to run " + ProcessName.PEET_PARSER
           + ", SystemProcessException.\n" + e.getMessage(), "Process Error");
     }
+  }
+
+  boolean isPopupChunkWarnings() {
+    return false;
   }
 
   public void averageAll(ProcessSeries processSeries, final DialogType dialogType) {
