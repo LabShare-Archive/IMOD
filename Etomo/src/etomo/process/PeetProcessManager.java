@@ -87,7 +87,7 @@ public final class PeetProcessManager extends BaseProcessManager {
   public String averageAll(AverageAllParam param, final ProcessSeries processSeries)
       throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param, AxisID.ONLY,
-        ProcessName.AVERAGE_ALL, processSeries);
+        ProcessName.AVERAGE_ALL, processSeries, false);
     return backgroundProcess.getName();
   }
 
