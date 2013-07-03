@@ -2096,12 +2096,15 @@ public abstract class BaseManager {
   public final void tomosnapshot(AxisID axisID) {
     BaseProcessManager processManager = getProcessManager();
     if (processManager != null) {
-      processManager.tomosnapshot(axisID);
+      processManager.tomosnapshot(axisID, isTomosnapshotThumbnail());
     }
     else {
       uiHarness.openMessageDialog(this, "No processes can be run in this interface.",
           "Unable to run tomosnapshot", axisID);
     }
+  }
+  boolean isTomosnapshotThumbnail() {
+    return false;
   }
 
   public static final class Task implements TaskInterface {

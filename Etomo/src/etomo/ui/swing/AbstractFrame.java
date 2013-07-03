@@ -51,6 +51,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   private static final String YES = "Yes";
   private static final String NO = "No";
   private static final String CANCEL = "Cancel";
+  private static final String[] YES_NO_LABEL_ARRAY = new String[] { YES, NO };
+  private static final int NO_INDEX = 1;
+  private static final String[] OK_LABEL_ARRAY = new String[] { OK };
 
   private boolean verbose = false;
 
@@ -210,6 +213,11 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
     return openYesNoDialog(manager, axisID, message);
   }
 
+  boolean openYesNoDialogWithDefaultNo(final BaseManager manager, final String message,
+      final String title, final AxisID axisID) {
+    return openYesNoDialog(manager, axisID, message, title, NO_INDEX, true);
+  }
+
   boolean displayDeleteMessage(BaseManager manager, String message[], AxisID axisID) {
     return openDeleteDialog(manager, axisID, message);
   }
@@ -279,10 +287,9 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   }
 
   boolean openYesNoWarningDialog(BaseManager manager, AxisID axisID, String message) {
-    String[] results = new String[] { "Yes", "No" };
     int result = showOptionPane(manager, axisID, wrap(manager, message), "Etomo Warning",
-        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, results, results[1],
-        results);
+        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+        YES_NO_LABEL_ARRAY[NO_INDEX], false, YES_NO_LABEL_ARRAY);
     return result == 0;
   }
 
@@ -293,7 +300,24 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   boolean openYesNoDialog(BaseManager manager, AxisID axisID, String message) {
     int result = showOptionConfirmPane(manager, axisID, wrap(manager, message),
-        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION, new String[] { YES, NO });
+        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION, YES_NO_LABEL_ARRAY);
+    return result == JOptionPane.YES_OPTION;
+  }
+
+  /**
+   * Open a Yes or No question dialog.  Control which option is the default.
+   * @param manager
+   * @param axisID
+   * @param message
+   * @param title
+   * @return
+   */
+  boolean openYesNoDialog(final BaseManager manager, final AxisID axisID,
+      final String message, final String title, final int initialValueIndex,
+      final boolean overrideDefaultLabels) {
+    int result = showOptionConfirmPane(manager, axisID, wrap(manager, message), title,
+        JOptionPane.YES_NO_OPTION, YES_NO_LABEL_ARRAY[initialValueIndex],
+        overrideDefaultLabels, YES_NO_LABEL_ARRAY);
     return result == JOptionPane.YES_OPTION;
   }
 
@@ -302,10 +326,11 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @param message
    * @return
    */
-  boolean openDeleteDialog(BaseManager manager, AxisID axisID, String[] message) {
-    String[] results = new String[] { "Delete", "No" };
+  boolean openDeleteDialog(final BaseManager manager, final AxisID axisID,
+      final String[] message) {
     int result = showOptionPane(manager, axisID, wrap(manager, message), "Delete File?",
-        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, results, null, results);
+        JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, true,
+        new String[] { "Delete", NO });
     return result == 0;
   }
 
@@ -316,7 +341,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    */
   boolean openYesNoDialog(BaseManager manager, AxisID axisID, String[] message) {
     int result = showOptionConfirmPane(manager, axisID, wrap(manager, message),
-        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION, new String[] { YES, NO });
+        ETOMO_QUESTION, JOptionPane.YES_NO_OPTION, YES_NO_LABEL_ARRAY);
     return result == JOptionPane.YES_OPTION;
   }
 
@@ -350,7 +375,15 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   private int showOptionConfirmPane(BaseManager manager, AxisID axisID, String[] message,
       String title, int optionType, String[] optionStrings) {
     return showOptionPane(manager, axisID, message, title, optionType,
-        JOptionPane.QUESTION_MESSAGE, null, null, optionStrings);
+        JOptionPane.QUESTION_MESSAGE, null, false, optionStrings);
+  }
+
+  private int showOptionConfirmPane(final BaseManager manager, final AxisID axisID,
+      final String[] message, final String title, final int optionType,
+      final String initialValue, final boolean overrideDefaultLabels,
+      final String[] optionStrings) {
+    return showOptionPane(manager, axisID, message, title, optionType,
+        JOptionPane.QUESTION_MESSAGE, initialValue, overrideDefaultLabels, optionStrings);
   }
 
   private final String[] wrapWarning(BaseManager manager, ProcessMessages processMessages) {
@@ -468,30 +501,31 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
   private void showOptionPane(BaseManager manager, AxisID axisID, String[] message,
       String title, int messageType) {
     showOptionPane(manager, axisID, message, title, JOptionPane.DEFAULT_OPTION,
-        messageType, null, null, new String[] { OK });
+        messageType, null, false, OK_LABEL_ARRAY);
   }
 
   private void showOptionPane(final BaseManager manager,
       final Component parentcComponent, final AxisID axisID, final String[] message,
       final String title, final int messageType) {
     showOptionPane(manager, parentcComponent, axisID, message, title,
-        JOptionPane.DEFAULT_OPTION, messageType, null, null, new String[] { OK });
+        JOptionPane.DEFAULT_OPTION, messageType, null, false, OK_LABEL_ARRAY);
   }
 
-  private int showOptionPane(BaseManager manager, AxisID axisID, String[] message,
-      String title, int optionType, int messageType, Object[] options,
-      Object initialValue, String[] optionStrings) {
+  private int showOptionPane(final BaseManager manager, final AxisID axisID,
+      final String[] message, final String title, final int optionType,
+      final int messageType, final Object initialValue,
+      final boolean overrideDefaultLabels, final String[] optionLabels) {
     int result = showOptionDialog(manager, axisID, this, message, title, optionType,
-        messageType, null, options, initialValue, optionStrings);
+        messageType, null, initialValue, overrideDefaultLabels, optionLabels);
     return result;
   }
 
   private int showOptionPane(final BaseManager manager, final Component parentComponent,
       final AxisID axisID, final String[] message, final String title,
-      final int optionType, final int messageType, final Object[] options,
-      final Object initialValue, final String[] optionStrings) {
+      final int optionType, final int messageType, final Object initialValue,
+      final boolean overrideDefaultLabels, final String[] optionStrings) {
     int result = showOptionDialog(manager, axisID, parentComponent, message, title,
-        optionType, messageType, null, options, initialValue, optionStrings);
+        optionType, messageType, null, initialValue, overrideDefaultLabels, optionStrings);
     return result;
   }
 
@@ -503,17 +537,18 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
    * @param optionType
    * @param messageType
    * @param icon
-   * @param options
    * @param initialValue
-   * @param optionStrings
+   * @param overrideDefaultLabels
+   * @param optionLabels
    * @param manager
    * @return
    * @throws HeadlessException
    */
-  private int showOptionDialog(BaseManager manager, AxisID axisID,
-      Component parentComponent, String[] message, String title, int optionType,
-      int messageType, Icon icon, Object[] options, Object initialValue,
-      String[] optionStrings) throws HeadlessException {
+  private int showOptionDialog(final BaseManager manager, final AxisID axisID,
+      final Component parentComponent, final String[] message, final String title,
+      final int optionType, final int messageType, final Icon icon,
+      final Object initialValue, final boolean overrideDefaultLabels,
+      final String[] optionLabels) throws HeadlessException {
     if (manager != null) {
       manager.logMessage(message, title, axisID);
     }
@@ -524,8 +559,16 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
         System.err.println(message[i]);
       }
     }
-    JOptionPane pane = new JOptionPane(message, messageType, optionType, icon, options,
-        initialValue);
+    JOptionPane pane = null;
+    // Decide whether to pass an array of button labels (to override the defaults) or
+    // null.
+    if (overrideDefaultLabels) {
+      pane = new JOptionPane(message, messageType, optionType, icon, optionLabels,
+          initialValue);
+    }
+    else {
+      pane = new JOptionPane(message, messageType, optionType, icon, null, initialValue);
+    }
 
     pane.setInitialValue(initialValue);
     pane.setComponentOrientation(((parentComponent == null) ? JOptionPane.getRootFrame()
@@ -536,7 +579,7 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
     pane.selectInitialValue();
     String name = Utilities.convertLabelToName(title);
     pane.setName(name);
-    printName(name, optionStrings, title, message);
+    printName(name, optionLabels, title, message);
     dialog.setVisible(true);
     dialog.dispose();
 
@@ -544,14 +587,18 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
 
     if (selectedValue == null)
       return JOptionPane.CLOSED_OPTION;
-    if (options == null) {
-      if (selectedValue instanceof Integer)
+    // If a null array of options was passed, pane returns an integer.
+    if (!overrideDefaultLabels || optionLabels == null) {
+      if (selectedValue instanceof Integer) {
         return ((Integer) selectedValue).intValue();
+      }
       return JOptionPane.CLOSED_OPTION;
     }
-    for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++) {
-      if (options[counter].equals(selectedValue))
+    // If an array of options was passed, pane returns the label of the button selected.
+    for (int counter = 0, maxCounter = optionLabels.length; counter < maxCounter; counter++) {
+      if (optionLabels[counter].equals(selectedValue)) {
         return counter;
+      }
     }
     return JOptionPane.CLOSED_OPTION;
   }

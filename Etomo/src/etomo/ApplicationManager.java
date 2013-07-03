@@ -7561,6 +7561,10 @@ public final class ApplicationManager extends BaseManager implements
     return isTrimvolFlipped();
   }
 
+  final boolean isTomosnapshotThumbnail() {
+    return true;
+  }
+
   /**
    * return true if the result of squeezevol is flipped. If squeezevol hasn't
    * been done, return true if the result of trimvol is flipped.
