@@ -90,7 +90,7 @@ int main( int argc, char *argv[])
   Istore store;
   int *listStart;
   int *zlist;
-  float *alignXshift, *alignYshift;
+  float *alignXshift = NULL, *alignYshift = NULL;
   int boundObj = -1;
   int numGuess = 0;
   float threshold = -2.;
