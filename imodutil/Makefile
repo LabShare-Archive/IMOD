@@ -105,7 +105,7 @@ imodcurvature$(E) : imodcurvature.$(O)
 	$(CLIBS)
 
 imodfindbeads$(E) : imodfindbeads.$(O)
-	$(CC) -o imodfindbeads imodfindbeads.$(O) $(LDFLAGS) $(IILIBS) \
+	$(CXX) -o imodfindbeads imodfindbeads.$(O) $(LDFLAGS) $(IILIBS) \
 	$(LIFFT) $(CLIBS)
 
 imodsetvalues$(E) : imodsetvalues.$(O)
