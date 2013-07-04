@@ -345,7 +345,6 @@ wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
 	#test remake averages
   bn.remake-averages=
-  wait.popup.process-warnings=OK
 	wait.process.running-averageall=done
 	bn.open-averages-in-3dmod=
 [[]]

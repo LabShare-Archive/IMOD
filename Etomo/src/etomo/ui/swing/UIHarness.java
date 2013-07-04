@@ -263,6 +263,15 @@ public final class UIHarness {
     return true;
   }
 
+  public synchronized boolean openYesNoDialogWithDefaultNo(BaseManager manager, String message,
+      String title, AxisID axisID) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {
+      return getFrame(manager).openYesNoDialogWithDefaultNo(manager, message, title, axisID);
+    }
+    log(message, axisID);
+    return true;
+  }
+
   public synchronized boolean openDeleteDialog(BaseManager manager, String[] message,
       AxisID axisID) {
     if (isHead() && !EtomoDirector.INSTANCE.isTestFailed()) {

@@ -2,6 +2,13 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 7/4/13: Fixed Imodfindbeads when not run from Autofidseed.
 
+7/3/13: In eTomo - PEET, suppressing warning popup dialogs.(Bug# 1634)
+
+7/3/13: In eTomo added the thumbnail option to the tomosnapshot call.
+(Bug# 1672)
+
+7/3/13: In eTomo allowing a fiducial diameter of 0.(Bug# 1671)
+
 7/3/13: Added Newstack option -twodir for stacking two files of bidirectional
 tilt series.
 
