@@ -133,18 +133,21 @@ if not os.path.exists(srcdir):
 
 # Fallbacks from ../manpages/autodoc2man 3 1 copytomocoms
 options = ["name:RootName:FN:", "dual:DualAxis:B:", "montage:MontagedImages:B:",
-           "backup:BackupDirectory:FN:", "pixel:PixelSize:F:", "gold:GoldBeadSize::",
+           "backup:BackupDirectory:FN:", "pixel:PixelSize:F:", "gold:GoldBeadSize:F:",
            "rotation:RotationAngle:F:", "brotation:BRotationAngle:F:",
            "firstinc:FirstAndIncAngle:FP:", "bfirstinc:BFirstAndIncAngle:FP:",
            "userawtlt:UseRawtltFile:B:", "buserawtlt:BUseRawtltFile:B:",
            "extract:ExtractAngles:B:", "bextract:BExtractAngles:B:",
+           "angles:TiltAngles:LI:", "bangles:BTiltAngles:LI:",
+           "twodir:TwoDirectionsAngle:F:", "btwodir:BTwoDirectionsAngle:F:",
            "skip:ViewsToSkip:LI:", "bskip:BViewsToSkip:LI:",
            "distort:DistortionField:FN:", "binning:BinningOfImages:I:",
            "gradient:GradientTable:FN:", "focus:FocusWasAdjusted:B:",
            "bfocus:BFocusWasAdjusted:B:", "voltage:VoltageInKV:I:",
            "Cs:SphericalAberration:F:", "ctfnoise:NoiseConfigFile:FN:",
-           "defocus:Defocus:F:", "CTFfiles:CopyCTFfiles:I:", "xsize:XImageSize:I:",
-           "ysize:YImageSize:I:", "angles:TiltAngles:LI:", "bangles:BTiltAngles:LI:"]
+           "defocus:Defocus:F:", "CTFfiles:CopyCTFfiles:I:", "fei:SetFEIPixelSize:B:",
+           "change:ChangeParametersFile:FNM:", "one:OneParameterChange:CHM:",
+           "xsize:XImageSize:I:", "ysize:YImageSize:I:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
 
@@ -206,6 +209,10 @@ if naxis > 1 and ifbangles + bfirstinc + buserawtlt != 1:
       exitError('You must enter one and only one of -bangles, -bfirstinc, and -bextract')
    exitError('You must enter one and only one of -bangles, -bfirstinc, and -buserawtlt')
 
+twoDirAngle = PipGetFloat('TwoDirectionsAngle', 0.)
+twoDir = 1 - PipGetErrNo()
+btwoDirAngle = PipGetFloat('BTwoDirectionsAngle', 0.)
+btwoDir = 1 - PipGetErrNo()
 excludelistin = PipGetString('ViewsToSkip', '')
 bexcludelistin = PipGetString('BViewsToSkip', '')
 distort = PipGetString('DistortionField', '')
@@ -329,6 +336,7 @@ for iaxis in range(naxis):
    recext = ".rec"
    gradspec = " "
    subgradient = 'gibberish'
+   sepGroupText = ''
    if naxis > 1:
       setlet = "a"
       if iaxis:
@@ -349,6 +357,8 @@ for iaxis in range(naxis):
          (first, increm) = (bfirst, bincrem)
          userawtlt = buserawtlt
          firstinc = bfirstinc
+         twoDir = btwoDir
+         twoDirAngle = btwoDirAngle
          focusAdj = bFocusAdj
 
    dstname = setname
@@ -452,7 +462,8 @@ for iaxis in range(naxis):
 
    # EXTRACT A RAWTLT FILE
    tiltspec = setname + ".rawtlt"
-   if not os.path.exists(tiltspec):
+   noTilts = not os.path.exists(tiltspec)
+   if noTilts:
       if ifextract:
          if stackExists:
             try:
@@ -462,6 +473,7 @@ for iaxis in range(naxis):
                exitFromImodError(progname)
             if len(extractlines):
                prnstr(extractlines[len(extractlines) - 1], end = '')
+            noTilts = False
          else:
             printInfo(fmtstr("{0} does not exist yet.\n  When it does, you will have to"+\
                    " run:\n  extracttilts {0} {1}", stackname, tiltspec))
@@ -470,13 +482,64 @@ for iaxis in range(naxis):
          warning(tiltspec + " does not exist yet.  You need to create this file before"+\
                  " running commands.")
 
+   # Set up a SeparateGroup if twodir angle was entered
+   if twoDir:
+      angleList = []
+      if angles:
+         angleList = angles.replace(',', ' ').split()
+      elif firstinc:
+         numFake = int(round(math.fabs(2. * first / increm)))
+         for ind in range(numFake):
+            angleList.append(str(first + ind * increm))
+      elif noTilts:
+         warning(tiltspec + ' does not exist yet so SeparateGroup entries could not be' +\
+                    'defined for track' + setlet + '.com and align' + setlet + '.com')
+      else:
+         angleList = readTextFile(tiltspec)
+
+      if angleList:
+         numInterval = 0
+         intervalSum = 0.
+         minDiff = 10000.
+         fAngles = []
+
+         # Convert the numbers and find the one closest to defined angle and the mean
+         # tilt interval in the neighborhood
+         for ind in range(len(angleList)):
+            try:
+               fAngle = float(angleList[ind])
+            except ValueError:
+               exitError('Converting ' + angleList[ind] + ' to float from ' + tiltspec);
+
+            fAngles.append(fAngle)
+            diff = math.fabs(fAngle - twoDirAngle)
+            if diff < 10. and ind:
+               intervalSum += math.fabs(fAngle - fAngles[ind - 1])
+               numInterval += 1
+            if diff < minDiff:
+               minDiff = diff
+               indMin = ind
+
+         # If the closest one is within 1/4 of the tilt interval, look again to make
+         # sure we have the first one within that range; otherwise just take closest
+         meanInterval = intervalSum / max(1, numInterval)
+         if numInterval and minDiff <= 0.25 * meanInterval:
+            for ind in range(len(fAngles)):
+               if math.fabs(fAngles[ind] - twoDirAngle) <= 0.25 * meanInterval:
+                  indMin = ind
+                  break
+
+         sepGroupText = fmtstr('/^RotationAngle/a/SeparateGroup	1-{}/', indMin + 1)
+     
+   
    # IF MONTAGED CCD, JUST EXTRACT THE PIECE LIST IF NEEDED
    if montage:
       if not os.path.exists(piecename):
          if stackExists:
             prnstr("Extracting piece list file from the image file...")
             try:
-               extractlines = runcmd(fmtstr('extractpieces "{}" "{}"', stackname, piecename))
+               extractlines = runcmd(fmtstr('extractpieces "{}" "{}"', stackname,
+                                            piecename))
             except ImodpyError:
                exitFromImodError(progname)
             if len(extractlines):
@@ -741,8 +804,10 @@ for iaxis in range(naxis):
              fmtstr("/^#*{}/d", wipeskip),
              fmtstr("/^BeadDiameter/s/[ 	].*/	{:.2f}/", beadsize),
              fmtstr("/^BoxSizeXandY/s/[ 	].*/	{0},{0}/", boxsize),
-             fmtstr("s/$stackname/{}/", tracksrc),
+             fmtstr("s/{}/{}/", stackname, tracksrc),
              fmtstr("s/{}//", wipepl)]
+   if sepGroupText:
+      sedcom.append(sepGroupText)
    editAndWrite('track', "track", sedcom)
    backuplist.extend([setname + 'seed', setname + 'fid'])
 
@@ -780,6 +845,8 @@ for iaxis in range(naxis):
              fmtstr("s/{}.xf/{}/", setname, tiltxf),
              fmtstr("/^FixXYZCoordinates/s/.*/FixXYZCoordinates	{}/", fixxyz),
              fmtstr("/^#*{}/d", wipeexclude)]
+   if sepGroupText:
+      sedcom.append(sepGroupText)
    sedlines = pysed(sedcom, srcfile, None)
 
    sedlines.extend(["#",
