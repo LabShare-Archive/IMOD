@@ -16,6 +16,8 @@ setupset.copyarg.userawtlt,Take tilt angle from a .rawtlt file for A or only axi
 setupset.copyarg.buserawtlt,Take tilt angle from a .rawtlt file for B axis,Bool,Y,Y,SO,
 setupset.copyarg.extract,Extract tilt angles from data file for A or only axis,Bool,Y,Y,SO,
 setupset.copyarg.bextract,Extract tilt angles from data file for B axis,Bool,Y,Y,SO,
+setupset.copyarg.twodir,Starting angle of bi-directional series for A or only axis,Float,Y,Y,SO,
+setupset.copyarg.btwodir,Starting angle of bi-directional series for B axis,Float,Y,Y,SO,
 setupset.copyarg.skip,List of views to exclude from processing for A or only axis,List,Y,,,
 setupset.copyarg.bskip,List of views to exclude from processing for B axis,List,Y,,,
 setupset.copyarg.distort,Correct image distortion with the given .idf file,File,Y,Y,SO,
