@@ -22,9 +22,26 @@ set fcmpldFlags = ""
 set openmpFlags = ""
 set ccompFlags = ""
 set fcmpNoportFlags = ""
+set fftw_lib = ""
+set fftw_def = ""
+set fftw_cfshr = ""
 
 if ($compiler == intel) then
     set c_includes =  
+    set lifft = libifft.lib
+
+    # If FFTW exists, convert directory and adjust include path 
+    #
+    if ($?FFTW3_DIR) then
+        set fftw_dir = `cygpath --mixed $FFTW3_DIR`
+        set c_includes = "-I${fftw_dir}"
+        set fftw_lib = '-LIBPATH:"'$fftw_dir'"'
+        set fftw_libroot = libfftw3f-3
+        set fftw_def = "$fftw_dir/${fftw_libroot}.lib"
+        set lifft = "libifft.lib ${fftw_libroot}.lib"
+        set fftw_cfshr = "../buildlib/libcfshr.lib"
+    endif
+
     set qt_flags = '-I"$(QTDIR)\include" -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include\QtOpenGL"'
     set qt3_flags = '-DQT3_SUPPORT -I"$(QTDIR)\include\Qt3Support"'
     set cyg_lib = `cygpath -w $lib_dir`
@@ -85,7 +102,7 @@ if ($compiler == intel) then
     if ($vcversion >= 9) set nodeflib = libcmt.lib
     
 cat << EOF >> $configure
-LDFLAGS = /nologo /MD $openmpFlags -link -LIBPATH:"$cyg_lib" /NODEFAULTLIB:$nodeflib
+LDFLAGS = /nologo /MD $openmpFlags -link -LIBPATH:"$cyg_lib" $fftw_lib /NODEFAULTLIB:$nodeflib
 .SUFFIXES: .cpp .obj .f .c
 .cpp.obj:
 	\$(CXX) -c \$(CXXFLAGS) \$<
@@ -162,9 +179,9 @@ if ($compiler == intel) then
         echo 'LIBCFSHRDEF = /def:libcfshr.def'     >> $configure
         echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libcfshr.lib ../buildlib/libimod.lib'     >> $configure
         echo 'LIBIWARPDEF = /def:libiwarp.def ../buildlib/libcfshr.lib'     >> $configure
-        echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
+        echo "LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib $fftw_def ../../buildlib/libcfshr.lib"  >> $configure
         echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
-        echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
+        echo "LIBIFFTDEF = /def:libifft.def $fftw_def $fftw_cfshr"     >> $configure
         echo 'LIBBLASDEF = /def:libb3dblas.def'   >> $configure
         echo 'LIBLAPACKDEF = /def:libb3dlapk.def ../../buildlib/libb3dblas.lib'   >> $configure
         echo 'LIBTRACKDEF = /def:libtrack.def ../../buildlib/libcfshr.lib'   >> $configure
@@ -213,12 +230,11 @@ if ($compiler == intel) then
     set liimod = libiimod.lib
     set limesh = libimesh.lib
     set liwarp = libiwarp.lib
-    set lifft = libifft.lib
     set ltiff = libtiff.lib
     set lapacklibs = "libb3dlapk.lib libb3dblas.lib"
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
-    echo 'IMLIBS     =  $(LIBWMOD) libhvem.lib libmrcim.lib libifft.lib libcfshr.lib' >> $configure
+    echo 'IMLIBS     =  $(LIBWMOD)'" libhvem.lib libmrcim.lib $lifft libcfshr.lib" >> $configure
     echo 'LINUXFLIBS = ' >> $configure
     echo '#define WIN32_BIGFILE' >> $hconfigure
 else
@@ -324,24 +340,24 @@ echo CONFIG += CONSOLE >! $sourcedoc_qconf
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtrack.lib libcfshr.lib libtiff.lib libifft.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
+LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtrack.lib libcfshr.lib libtiff.lib $lifft
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 RC_FILE = 3dmod.rc
 EOF
 
 cat <<EOF >! $midas_qconf
-LIBS += libdiaqt.lib libiimod.lib libimod.lib libiwarp.lib libcfshr.lib libtiff.lib libifft.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
+LIBS += libdiaqt.lib libiimod.lib libimod.lib libiwarp.lib libcfshr.lib libtiff.lib $lifft
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 INCLUDEPATH += $QTDIR/include/QtOpenGL
 LIBS += $QTDIR/lib/QtOpenGL4.lib
 EOF
 
 cat <<EOF >! $ctfplot_qconf
-LIBS += libb3dlapk.lib libb3dblas.lib libiimod.lib libcfshr.lib libtiff.lib libifft.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
+LIBS += libb3dlapk.lib libb3dblas.lib libiimod.lib libcfshr.lib libtiff.lib $lifft
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
 
 cat <<EOF >! $qtassist_qconf
@@ -562,6 +578,14 @@ if ($compiler == intel) then
         set cudalibs = '-LIBPATH:"'"$cudalib"'" cudart.lib cufft.lib'
         echo "DLLSOURCEDIR$dllnum = $cudabin" >> $configure
         echo "DLLSTOCOPY$dllnum = $cudart $cufft" >> $configure
+        @ dllnum++
+    endif
+
+    # Set up for fftw library
+    if ($?FFTW3_DIR) then
+        echo "DLLSOURCEDIR$dllnum = $fftw_dir" >> $configure
+        echo "DLLSTOCOPY$dllnum = $fftw_libroot" >> $configure
+        @ dllnum++
     endif
 
     # Build imodwincpu
@@ -606,7 +630,6 @@ echo "QTSQL_TOCOPY = qsqlite4.dll" >> $configure
 # Make sure critical scripts are in unix mode
 # ALL BASH/SH SCRIPTS MUST BE INCLUDED
 #
-(cd scripts ; dos2unix matchrotpairs prochunks.csh queuechunk submfg runpyscript 3dmodbg 3dmodv processchunksbg patch2imod imod2patch imodhelp >& /dev/null)
-(cd dist ; dos2unix installIMOD installStub IMOD-cygwin.sh >& /dev/null)
-(cd Etomo/scripts ; dos2unix etomo >& /dev/null)
+(cd scripts ; dos2unix matchrotpairs prochunks.csh queuechunk runpyscript 3dmodbg 3dmodv processchunksbg patch2imod imod2patch >& /dev/null)
+(cd dist ; dos2unix installStub IMOD-cygwin.sh >& /dev/null)
 dos2unix installqtlib >& /dev/null
