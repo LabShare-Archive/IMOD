@@ -30,6 +30,7 @@ EXPORTS
 	PARWRTGETREGION
 	MAKEMODELBEAD
 	convexBound
+	indicesForFFTwrap
 	PIPNUMBEROFARGS
 	CHECKLIST
 	cblas_ddot
@@ -111,6 +112,7 @@ EXPORTS
 	dsyevh3
 	LSFIT
 	LSFIT2
+	wrapFFTslice
 	dsytrd3
 	LSFITS
 	SPARSEPROD
@@ -403,6 +405,7 @@ EXPORTS
 	GAUSSJDET
 	PipGetFloatArray
 	statMatrices
+	WRAPFFTSLICE
 	slicePutVal
 	ADOCOPENIMAGEMETADATA
 	b3dError
