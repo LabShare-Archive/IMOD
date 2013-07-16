@@ -2,11 +2,10 @@
  * thrdfft.c - 3D FFTs
  *
  * Original Author: David Mastronarde
- * Translated to C: David 
+ * Translated to C: David Mastronarde
  * This code is released under the General Public License.
  *
  * $Id$
- * Log at end of file
  */
 
 #include "cfft.h"
@@ -17,17 +16,15 @@
  * Data are organized as [nzp] slices each consisting of [nyp] rows of [nxp]
  * values in the real-space image, which must be contained in a float array
  * whose X dimension is [nxp] + 2.  [brray] is for working storage and must be
- * dimensioned to at least ([nxp] + 2) * [nzp].  The direction of the 
- * transform is determined by [idirp]: ^
- *     0   forward transform ^
- *     1   inverse transform (for sake of completeness) ^
- *    -1   inverse transform with no complex conjugate in 2D FFTs ^
- *         The latter is needed for proper phases and should be used. ^
+ * dimensioned to at least ([nxp] + 2) * [nzp] when using IMOD FFT routines but is not
+ * needed with FFTW.  The direction of the transform is determined by [idirp]: ^
+ *     0         forward transform ^
+ *     1 or -1   inverse transform ^
  * The origin of the transform is at the first point.  The Y coordinate of the
- * transform progresses from Y = 0 on the first line, to Y = [nyp] / 2 - 1 on
+ * transform progresses from Y = 0 on the first line, to Y = ([nyp] - 1) / 2 on
  * the middle line, then from -[nyp] / 2 on the next line up, to -1 on the 
  * last line.  Similarly the Z coordinate progresses from Z = 0 on the first
- * slice to Z = [nzp] / 2 - 1, then from -[nzp] / 2 to -1.  ^
+ * slice to Z = ([nzp] - 1) / 2, then from -[nzp] / 2 to -1.  ^
  * Can be called from either C or Fortran by this name.
  */
 void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp,
@@ -39,6 +36,7 @@ void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp,
   int nz = *nzp;
   int idir = *idirp;
   int oddir = idir ? -2 : -1;
+  int back = 1;
 
   nxp2 = nx + 2;
   nxo2 = nxp2 / 2;
@@ -74,7 +72,7 @@ void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp,
   /* Reverse transform: do reverse 2D FFT's */
   if (idir)
     for (j = 0; j < nz; j++)
-      todfft(&array[nxp2 * ny * j], nxp, nyp, idirp);
+      todfft(&array[nxp2 * ny * j], nxp, nyp, &back);
   return;
 }
 
@@ -86,19 +84,3 @@ void thrdfftc(float *array, float *brray, int nx, int ny, int nz, int idir)
   thrdfft(array, brray, &nx, &ny, &nz, &idir);
 }
 
-
-/*
-$Log$
-Revision 1.4  2007/10/16 23:36:40  mast
-Fix documentation of working array size
-
-Revision 1.3  2007/10/12 18:33:01  mast
-Fix documentation to describe X dimension of array
-
-Revision 1.2  2006/11/03 17:28:38  mast
-Added documentation, author and license statements
-
-Revision 1.1  2004/10/24 21:18:39  mast
-Added C version of library to package
-
-*/
