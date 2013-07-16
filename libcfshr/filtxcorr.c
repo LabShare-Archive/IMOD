@@ -9,6 +9,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
 
@@ -24,6 +25,7 @@
 #define slicegaussiankernel SLICEGAUSSIANKERNEL
 #define scaledgaussiankernel SCALEDGAUSSIANKERNEL
 #define applykernelfilter APPLYKERNELFILTER
+#define wrapfftslice WRAPFFTSLICE
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
@@ -36,6 +38,7 @@
 #define slicegaussiankernel slicegaussiankernel_
 #define scaledgaussiankernel scaledgaussiankernel_
 #define applykernelfilter applykernelfilter_
+#define wrapfftslice wrapfftslice_
 #endif
 
 
@@ -653,4 +656,69 @@ void applykernelfilter(float *array, float *brray, int *nxdim, int *nx, int *ny,
                       float *mat, int *kdim)
 {
   applyKernelFilter(array, brray, *nxdim, *nx, *ny, mat, *kdim);
+}
+
+/*!
+ * Converts a 2D FFT or Z slice of a 3D FFT  between the organization used by FFT 
+ * routines, with the origin at the lower left, and the organization used in MRC files, 
+ * with the origin at the middle left.  The complex data are packed in [array] with [nx] 
+ * and [ny] complex elements in X and Y, [direction] is 0 to convert from FFT routine 
+ * organization to file organization, and non-zero for the reverse.
+ */
+void wrapFFTslice(float *array, float *tmpArray, int nx, int ny, int direction)
+{
+  int lineBytes = 2 * nx * sizeof(float);
+  int nyHalf = ny / 2;
+  int iy, iyOut, iyLow, iyHigh;
+  int incDir = indicesForFFTwrap(ny, direction, &iyOut, &iyLow, &iyHigh);
+  if (ny % 2) {
+    memcpy(tmpArray, &array[2 * nx * iyOut], lineBytes);
+    for (iy = 0; iy < nyHalf; iy++, iyOut += incDir, iyLow += incDir, iyHigh += incDir) {
+      memcpy(&array[2 * nx * iyOut], &array[2 * nx * iyHigh], lineBytes);
+      memcpy(&array[2 * nx * iyHigh], &array[2 * nx * iyLow], lineBytes);
+    }
+    memcpy(&array[2 * nx * iyOut], tmpArray, lineBytes);
+  } else {
+    for (iy = 0; iy < nyHalf; iy++, iyLow++, iyHigh++) {
+      memcpy(tmpArray, &array[2 * nx * iyLow], lineBytes);
+      memcpy(&array[2 * nx * iyLow], &array[2 * nx * iyHigh], lineBytes);
+      memcpy(&array[2 * nx * iyHigh], tmpArray, lineBytes);
+    }
+  }
+}
+
+/*! Fortran wrapper for @wrapFFTslice */
+void wrapfftslice(float *array, float *tmpArray, int *nx, int *ny, int *direction)
+{
+  wrapFFTslice(array, tmpArray, *nx, *ny, *direction);
+}
+
+/*!
+ * Produces indices needed for converting between FFT routine organization and MRC file
+ * organization.  The size of the dimension is in [ny] and the direction is 0 for FFT 
+ * routine to file, or non-zero otherwise.  Returns the starting index to copy data from 
+ * on the low and high ends of the dimension in [iyLow] and [iyHigh], respectively, and 
+ * the starting index to copy data from the high end to in [iyOut].  The return value is
+ * the increment for these indices.  In all cases, a loop is run [ny] / 2 times.  For [ny]
+ * even, the loop simply swaps each element or line between [iyHigh] to [iyLow].  For [ny]
+ * odd, first the element at [iyOut] is saved, then the loop is run to copy from [iyHigh]
+ * to [iyOut] and from [iyLow] to [iyHigh], then the saved element is copied to [iyOut].
+ */
+int indicesForFFTwrap(int ny, int direction, int *iyOut, int *iyLow, int *iyHigh)
+{
+  int nyHalf = ny / 2;
+  *iyOut = 0;
+  *iyLow = 0;
+  *iyHigh = nyHalf;
+  if (! (ny % 2))
+    return 1;
+  if (direction) {
+    *iyOut = ny - 1;
+    *iyLow = ny - 2;
+    *iyHigh = *iyLow - nyHalf;
+    return -1;
+  }
+  *iyLow = 1;
+  *iyHigh = *iyLow + nyHalf;
+  return 1;
 }
