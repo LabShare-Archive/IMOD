@@ -3,21 +3,9 @@
 LIBRARY      "libifft"
 
 EXPORTS
-	diprp
-	thrdfftc
-	odfftc
-	r4cftk
-	r8cftk
-	r2cftk
-	hermft
-	rpcftk
-	mdftkd
-	srfp
 	THRDFFT
-	cmplft
-	r5cftk
-	r3cftk
-	realft
+	NICEFFTLIMIT
+	USINGFFTW
 	ODFFT
 	TODFFT
 	todfftc
