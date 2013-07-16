@@ -9,23 +9,19 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  Log at end
  */
 
 #include <stdlib.h>
 #include <string.h>
+#include "b3dutil.h"
 #include "mrcc.h"
 #include "clip.h"
 #include "cfft.h"
 
 static int clip_nicesize(int size);
 static int mrcODFFT(float *buf, int nx, int ny, int idir);
-static int clip_wrapfile(MrcHeader *hdata);
-static int clip_3dfft_swap(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
-static int clip_fftfile3(MrcHeader *hdata, int idir);
-static int clip_wrapvol(Istack *v);
-static int clip_3difft_swap(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
-static int clip_3dffft_swap(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt);
+static int clip_wrapvol(Istack *v, int direction);
+
 
 /*
  * The entry point from clip for all fft operations, does 2D FFTs
@@ -242,9 +238,10 @@ int clip_3dfft(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     }
   }
       
-  if (opt->sano){
+  /* Removed non-functional file-based FFT 7/15/13 */
+  /* if (opt->sano){
     return(clip_3dfft_swap(hin, hout, opt));
-  }
+    } */
       
   v = grap_volume_read(hin, opt);
   if (!v){
@@ -299,7 +296,7 @@ int clip_fftvol(Istack *v)
   float *tbuf;
 
   if (v->vol[0]->mode == SLICE_MODE_COMPLEX_FLOAT){
-    clip_wrapvol(v); 
+    clip_wrapvol(v, 1);
     clip_fftvol3(v, -2);  
 
     for(z = 0; z < v->zsize; z++){
@@ -332,7 +329,7 @@ int clip_fftvol(Istack *v)
 
     }
     clip_fftvol3(v, -1);  
-    clip_wrapvol(v);
+    clip_wrapvol(v, 0);
 
   }
   return(0);
@@ -343,17 +340,14 @@ int clip_fftvol(Istack *v)
  */
 int clip_fftvol3(Istack *v, int idir)
 {
-  int x, y, z, i, j;
+  int x, y, z;
   Islice *slice;
-  Ival val;
   float *inp, *outp;
   int  vxsize = v->vol[0]->xsize;
   int  vysize = v->vol[0]->ysize;
 
-  slice = sliceCreate(v->zsize, vxsize,
-                      SLICE_MODE_COMPLEX_FLOAT);
-  for(y = 0; y < vysize; y++){
-
+  slice = sliceCreate(v->zsize, vxsize, SLICE_MODE_COMPLEX_FLOAT);
+  for (y = 0; y < vysize; y++) {
     for (z = 0; z < slice->xsize; z++) {
       inp = v->vol[z]->data.f + 2 * y * vxsize;
       outp = slice->data.f + 2 * z;
@@ -386,284 +380,49 @@ int clip_fftvol3(Istack *v, int idir)
 /*
  * Wrap the volume so FFT origin moves from origin to middle in Y/Z or back
  */
-int clip_wrapvol(Istack *v)
+int clip_wrapvol(Istack *v, int direction)
 {
-  Ival val, tval;
   Islice *tsl;
-  int i, j,j2;
-  int k,k2;
+  int k, kLow, kHigh, kInc, kOut;
   int nx = v->vol[0]->xsize;
   int ny = v->vol[0]->ysize;
-  int hny = ny / 2;
   int hnz = v->zsize / 2;
+  float *tmpLine = B3DMALLOC(float, 2 * nx);
+  if (!tmpLine) {
+    show_error("fft: Memory error getting array for temporary line of data\n");
+    return 1;
+  }
 
-  for(k = 0; k < v->zsize; k++){
-    for(i = 0; i < nx; i++){
-      for(j = 0, j2 = hny; j < hny; j++,j2++){
-        sliceGetVal(v->vol[k], i, j, val);
-        sliceGetVal(v->vol[k], i, j2, tval);
-        slicePutVal(v->vol[k], i, j, tval);
-        slicePutVal(v->vol[k], i, j2, val);
-      }
+  for (k = 0; k < v->zsize; k++) {
+    wrapFFTslice(v->vol[k]->data.f, tmpLine, nx, ny, direction);
+  }
+  kInc = indicesForFFTwrap(v->zsize, direction, &kOut, &kLow, &kHigh);
+  if (v->zsize % 2) {
+    tsl = v->vol[kOut];
+    for (k = 0; k < hnz; k++, kOut += kInc, kHigh += kInc, kLow += kInc) {
+      v->vol[kOut] = v->vol[kHigh];
+      v->vol[kHigh] = v->vol[kLow];
+    }
+    v->vol[hnz] = tsl;
+  } else {
+    for (k = 0; k < hnz; k++, kHigh++, kLow++) {
+      tsl = v->vol[kLow];
+      v->vol[kLow] = v->vol[kHigh];
+      v->vol[kHigh] = tsl;
     }
   }
-  for(k = 0, k2 = hnz; k < hnz; k++, k2++){
-    tsl = v->vol[k];
-    v->vol[k] = v->vol[k2];
-    v->vol[k2] = tsl;
-  }
+  free(tmpLine);
   return(0);
 }
 
-/*
- * Entry for 3D fft with temporary file for 3rd dimension 
- */
-int clip_3dfft_swap(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
-{
-  show_status("Doing 3d fast fourier transform...\n");
-  if (hin->mode == SLICE_MODE_COMPLEX_FLOAT)
-    return(clip_3difft_swap(hin, hout, opt));
-  return(clip_3dffft_swap(hin, hout, opt));
-}
+/* Removed non-functional file-based FFT 7/15/13 */
 
-/*
- * Does inverse 3D fft with temporary file for 3rd dimension 
- */
-int clip_3difft_swap(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
-{
-  int k;
-  int nz = hin->nz;
-  Islice  *s = sliceCreate
-    (hin->nx * 2, hin->ny, SLICE_MODE_FLOAT);
-  Islice  *sout;
-
-  /* BIG WARNING: input file gets mangled. */
-  show_status("Mangeling.\n");
-  fclose(hin->fp);
-  hin->fp = fopen(opt->fnames[0], "rb+");
-  clip_wrapfile(hin);
-  show_status("Inverse in 3rd dim.\n");
-  clip_fftfile3(hin, -2);
-
-
-  if (opt->mode == IP_DEFAULT) opt->mode = SLICE_MODE_FLOAT;
-
-  mrc_head_new(hout,  s->xsize - 2, hin->ny, hin->nz, opt->mode);
-  mrc_head_label(hout, "clip: 3D Inverse FFT");
-  if (mrc_head_write(hout->fp, hout))
-    return -1;
-  show_status("Inverse 2nd and 1st dim.\n");
-
-  for(k = 0; k < nz; k++){
-    if (mrc_read_slice(s->data.f, hin->fp, hin, k, 'z'))
-      return -1;
-    mrcToDFFT(s->data.f, (hin->nx - 1) * 2, hin->ny, -1);
-    sout = sliceBox(s, 0, 0, s->xsize - 2, s->ysize);
-    sliceNewMode(sout, opt->mode);
-    if (mrc_write_slice(sout->data.b, hout->fp, hout, k, 'z'))
-      return -1;
-    sliceFree(sout);
-  }
-  sliceFree(s);
-
-  s = sliceCreate(hout->nx, hout->ny, hout->mode);
-  if (mrc_read_slice((void *)s->data.b, hout->fp, hout, 0, 'z'))
-    return -1;
-  sliceMMM(s);
-  hout->amin = s->min;
-  hout->amax = s->max;
-  hout->amean = s->mean;
-  for(k = 1; k < hout->nz; k++){
-    if (mrc_read_slice((void *)s->data.b, hout->fp, hout, k, 'z'))
-      return -1;
-    sliceMMM(s);
-    hout->amean += s->mean;
-    if (s->min < hout->amin)
-      hout->amin = s->min;
-    if (s->max > hout->amax)
-      hout->amax = s->max;
-  }
-  hout->amean /= hout->nz;
-  if (mrc_head_write(hout->fp, hout))
-    return -1;
-  sliceFree(s);
-
-  return(0);
-}
-
-/*
- * Does forward 3D fft with temporary file for 3rd dimension 
- */
-int clip_3dffft_swap(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
-{
-  int k, z;
-  Islice  *s;
-  Islice  *ts;
-  int llx, lly, urx, ury;
-
-  llx = opt->cx - ((float)opt->ix * 0.5f);
-  urx = llx + opt->ix;
-  lly = opt->cy - ((float)opt->iy * 0.5f);
-  ury = lly + opt->iy;
-
-  ts = sliceCreate(hin->nx, hin->ny, hin->mode);
-  if (!ts)
-    return(-1);
-
-  k = (opt->cz - ((float)opt->iz * 0.5f));
-  mrc_head_new(hout,  (opt->ix + 2)/2, opt->iy, opt->iz, 
-               SLICE_MODE_COMPLEX_FLOAT);
-  mrc_head_label(hout, "clip: 3D FFT");     
-  if (mrc_head_write(hout->fp, hout))
-    return -1;
-  ts->mean = opt->pad;
-
-  for(z = 0; z < opt->iz; k++, z++){
-    if (k >= 0){
-      if (mrc_read_slice((void *)ts->data.b, hin->fp, hin, k, 'z'))
-        return -1;
-      s = sliceBox(ts, llx, lly, urx + 2, ury);
-      sliceFloat(s);
-    }else{
-      s = sliceCreate(opt->ix + 2, opt->iy, SLICE_MODE_FLOAT);
-      sliceClear(s, &(s->mean));
-    }
-    mrcToDFFT(s->data.f, s->xsize - 2, s->ysize, 0);
-    s->xsize = (s->xsize+2)/2;
-    s->mode = SLICE_MODE_COMPLEX_FLOAT;
-    if (mrc_write_slice((void *)s->data.b, hout->fp, hout, z, 'z'))
-      return -1;
-    sliceFree(s);
-  }
-
-  sliceFree(ts);
-
-  show_status("Transforming 3rd dim.\n");
-  clip_fftfile3(hout, -1); 
-
-  show_status("Demangeling.\n");
-  clip_wrapfile(hout);
-
-  s = sliceCreate(hout->nx, hout->ny, hout->mode);
-  if (mrc_read_slice((void *)s->data.b, hout->fp, hout, 0, 'z'))
-    return -1;
-  sliceMMM(s);
-  hout->amin = s->min;
-  hout->amax = s->max;
-  hout->amean = s->mean;
-  for(z = 1; z < hout->nz; z++){
-    if (mrc_read_slice((void *)s->data.b, hout->fp, hout, z, 'z'))
-      return -1;
-    sliceMMM(s);
-    hout->amean += s->mean;
-    if (s->min < hout->amin)
-      hout->amin = s->min;
-    if (s->max > hout->amax)
-      hout->amax = s->max;
-  }
-  hout->amean /= hout->nz;
-  if (mrc_head_write(hout->fp, hout))
-    return -1;
-  sliceFree(s);
-  return(0);
-}
-
-/*
- * Does a complex<->complex FFT in 3rd dimension (Y-slices) of a data file 
- */
-int clip_fftfile3(MrcHeader *hdata, int idir)
-{
-  unsigned int i, j;
-  unsigned int nx = hdata->nx;
-  unsigned int ny = hdata->nz;
-  Islice *slice, *fs;
-  Ival val;
-  int  y;
-  int  vysize = hdata->ny;
-     
-  if (hdata->mode != SLICE_MODE_COMPLEX_FLOAT)
-    return(-1);
-
-  slice = sliceCreate(hdata->nx, hdata->nz,
-                      SLICE_MODE_COMPLEX_FLOAT);
-  fs    = sliceCreate(hdata->nz, hdata->nx,
-                      SLICE_MODE_COMPLEX_FLOAT);
-
-  for(y = 0; y < vysize; y++){
-    if (mrc_read_slice(slice->data.f, hdata->fp, hdata, y, 'y'))
-      return -1;
-      
-    for(j = 0; j < ny; j++)
-      for(i = 0; i < nx; i++){
-        sliceGetComplexFloatVal(slice, i, j, val);
-        slicePutComplexFloatVal(fs,    j, i, val);
-      }
-      
-    mrcODFFT(fs->data.f, fs->xsize, fs->ysize, idir);
-      
-    for(j = 0; j < ny; j++)
-      for(i = 0; i < nx; i++){
-        sliceGetComplexFloatVal(fs,    j, i, val);
-        slicePutComplexFloatVal(slice, i, j, val);
-      }
-      
-    if (mrc_write_slice(slice->data.f, hdata->fp, hdata, y, 'y'))
-      return (-1);
-  }
-  sliceFree(slice);
-  return(0);
-}
-
-/*
- * Rearrange file to move FFT origin from origin to middle in Y/Z or back
- */
-int clip_wrapfile(MrcHeader *hdata)
-{
-  Ival val, tval;
-  Islice *s1, *s2;
-  int i, j,j2;
-  int k,k2;
-  int nx = hdata->nx;
-  int ny = hdata->ny;
-  int hny = ny / 2;
-  int hnz = hdata->nz / 2;
-     
-  s1 = sliceCreate(hdata->nx, hdata->ny, hdata->mode);
-  s2 = sliceCreate(hdata->nx, hdata->ny, hdata->mode);
-
-  for(k = 0, k2 = hnz; k < hnz; k++, k2++){
-    if (mrc_read_slice(s1->data.f, hdata->fp, hdata, k, 'z'))
-      return -1;
-    if (mrc_read_slice(s2->data.f, hdata->fp, hdata, k2, 'z'))
-      return -1;
-      
-    for(i = 0; i < nx; i++){
-      for(j = 0, j2 = hny; j < hny; j++,j2++){
-        sliceGetVal(s1, i, j,  val);
-        sliceGetVal(s1, i, j2, tval);
-        slicePutVal(s1, i, j,  tval);
-        slicePutVal(s1, i, j2, val);
-        sliceGetVal(s2, i, j,  val);
-        sliceGetVal(s2, i, j2, tval);
-        slicePutVal(s2, i, j,  tval);
-        slicePutVal(s2, i, j2, val);
-      }
-    }
-
-    if (mrc_write_slice(s1->data.f, hdata->fp, hdata, k2, 'z') ||
-        mrc_write_slice(s2->data.f, hdata->fp, hdata, k, 'z'))
-      return -1;
-  }
-  sliceFree(s1);
-  sliceFree(s2);
-  return(0);
-}
 
 /*******************************************************************/
 /* c-stub for formerly fortran SUBROUTINE TODFFT(ARRAY,NX,NY,IDIR) */
 /* (now a C-routine with fortran calling convention)               */
-/* buf is (nx + 2)/2 by ny floats                                  */
-/* idir 0 = forward, 1 = inverse, -1 = inverse w/o conjugate       */
+/* buf is (nx + 2) by ny floats                                    */
+/* idir 0 = forward, 1 = inverse                                   */
 
 /*
  * ODFFT do a series of 1D FFT's on 2D data.
@@ -685,6 +444,8 @@ int mrcODFFT(float *buf, int nx, int ny, int idir)
 int clip_nicesize(int size)
 {
   int i;
+  if (usingFFTW())
+    return 1;
 
   for(i = 2; i < 20; i++)
     while( !(size%i))
@@ -694,43 +455,5 @@ int clip_nicesize(int size)
     return(0);
   else
     return(1);
-
-  /*
-    int nsize = niceframe_(&size, &inc, &fac);
-    if (nsize == size)
-    return(1);
-    else
-    return(0);
-  */
 }
 
-
-/*
-$Log$
-Revision 3.8  2007/02/04 21:10:15  mast
-Function name changes from mrcslice cleanup
-
-Revision 3.7  2005/01/17 17:08:48  mast
-Rarranged file, put in option checks, converted to new 2D processing
-
-Revision 3.6  2004/11/04 17:04:21  mast
-Switched to producing and using non-mirrored FFTs
-
-Revision 3.5  2004/10/24 21:43:37  mast
-Modified to use header from C version of FFT library, changed orientation
-of planes that are done in 3rd dimension of 3D FFT, and rewrote to
-compose planes as fast as possible.
-
-Revision 3.4  2004/06/20 21:58:05  mast
-Fixed one-pixel shift between mirrored rows and actual rows
-
-Revision 3.3  2004/04/22 19:08:45  mast
-Added error checks and returns on mrc I/O calls
-
-Revision 3.2  2003/10/24 03:09:45  mast
-open files as binary
-
-Revision 3.1  2002/08/01 00:00:16  mast
-Preserve pixel size and lables when doing 3D FFT
-
-*/
