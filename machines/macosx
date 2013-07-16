@@ -2,6 +2,7 @@
 #############################################################################
 #
 set c_includes = ''
+set Lfftwlib = ''
 #
 #   default is to assume tifflib does exist
 #
