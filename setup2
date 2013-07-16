@@ -696,13 +696,15 @@ mkdir -p $inst_dir/html
 mkdir -p $inst_dir/man/cat1
 mkdir -p $inst_dir/man/cat5
 
+if ($?FFTW3_DIR) echo 'CFFTOBJS =  fftw_wrap.$(OBJEXT)' >> $configure
+
 if ($machine != cygwin) then
 
     #
     # manage qconfigure files
     #
-    echo LIBS += -L$lib_dir -liimod -limod -liwarp -lcfshr -ldiaqt $ltiff -lifft $midasGL >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -lb3dlapk -lb3dblas -liimod -lcfshr $ltiff -lifft $lapack_flibs >> $ctfplot_qconf
+    echo LIBS += -L$lib_dir -liimod -limod -liwarp -lcfshr -ldiaqt $ltiff $lifft $midasGL >> $midas_qconf
+    echo LIBS += -L$lib_dir -lm -lb3dlapk -lb3dblas -liimod -lcfshr $ltiff $lifft $lapack_flibs >> $ctfplot_qconf
     echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
     echo LIBS += -L$lib_dir -lcfshr >> $prochunk_qconf
     echo LIBS += -L$lib_dir -liimod -lcfshr $ltiff >> $mrc2tif_qconf
