@@ -163,7 +163,7 @@ if ($compiler == ifort) then
     set fcompFlags = "-132 -assume bscc -vec-report0 -heap-arrays 100"
 
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
-    set ldfflags = '-L$(LIBDIR) '"-i-dynamic $openmpfFlags $wlread_only"
+    set ldfflags = '-L$(LIBDIR) '"-i-dynamic $openmpfFlags $Lfftwlib $wlread_only"
     set fcmpldFlags = "-i-dynamic"
     set exefflags = "-mdynamic-no-pic"
     set fortdir = `which ifort`
