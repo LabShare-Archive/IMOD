@@ -174,3 +174,8 @@ int niceFFTlimit(void)
 {
   return 13;
 }
+
+void todfftc(float *array, int nx, int ny, int idir)
+{
+  todfft(array, &nx, &ny, &idir);
+}
