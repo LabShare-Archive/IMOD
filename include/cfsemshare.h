@@ -76,6 +76,9 @@ extern "C" {
   void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma);
   void applyKernelFilter(float *array, float *brray, int nxdim, int nx, int ny,
                          float *mat, int kdim);
+  void wrapFFTslice(float *array, float *tmpArray, int nx, int ny, int direction);
+  int indicesForFFTwrap(int ny, int direction, int *iyOut, int *iyLow, int *iyHigh);
+
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
