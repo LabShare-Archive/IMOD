@@ -413,7 +413,9 @@ option selects the type of padding: "-n 0" selects no padding; "-n 1"
 selects padding with mean value. (default)
 Float is the only output mode supported.
 Input sizes must have dimensions that fit the requirements for an FFT:
-a multiple of two, and no prime factors greater than 19.
+the size in X must be a multiple of two, and for versions on older
+architectures not using the FFTW library, no size can have a prime factor
+greater than 19.
 .TP
 .B diffusion
 Apply 2D anisotropic diffusion to individual slices, using the simple Perona
@@ -442,15 +444,18 @@ These computations correspond to those done in the image processing window in
 Calculate a Fast Fourier Transform.
 fft does either a forward or inverse FFT, depending
 on the input data type.  The output for a forward 
-transformation is complex float.  The input sizes
-must be a multiple of two, and must have no prime factors
-greater than 19.  Both 2D and 3D output match the format of the FFT output
+transformation is complex float.  
+For a forward transfor, the input size in X must be a multiple of two, and for
+versions on older
+architectures not using the FFTW library, no size can have a prime factor
+greater than 19.
+Both 2D and 3D output match the format of the FFT output
 by fftrans(1), in which no data is duplicated and the center is
-shifted to x = 0, y = ny/2.  Older FFT files produced by clip, in
-which the data were replicated to the left of the Y axis, will still
-be accepted as input.  Input size and centering options can be used for the
-forward transform, and output size and mode can be set for the inverse
-transform.
+shifted to x = 0, y = ny/2.  Older FFT files produced by clip before IMOD 3.5, in
+which the data were replicated to the left of the Y axis, are no longer 
+accepted as input as of IMOD 4.6.25.  Input size and centering options can be
+used for the forward transform, and output size and mode can be set for the
+inverse transform.
 .TP
 .B filter
 High and/or low pass filtering in frequency space (2D only).
@@ -757,8 +762,7 @@ imodmop(1)
 
 .SH BUGS
 There are not checks for the validity of all input values, and some
-nonsensical mode conversions are allowed.  Disk-based 3D FFTs (invoked with
--s) do not work.  The extended header is not copied over to the output file,
-except by the quadrant process.
+nonsensical mode conversions are allowed.  The extended header is not copied
+over to the output file, except by the quadrant process.
 
 Email bug reports to mast@colorado.edu.
