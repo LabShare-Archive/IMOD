@@ -39,10 +39,11 @@ using namespace std;
  make autodoc2man
  * Add static const to numOptions and static to options
  */
-static const int numOptions = 17;
+static const int numOptions = 18;
 static const char *options[] = {
-  ":r:B:", ":s:B:", ":G:B:", ":g:B:", ":n:I:", ":w:FN:", ":d:I:", ":e:I:", ":C:FT:",
-  ":T:IP:", ":c:FN:", ":q:I:", ":Q:CH:", ":P:B:", ":v:B:", ":V:CH:", ":help:B:"};
+  ":r:B:", ":s:B:", ":G:B:", ":O:I:", ":g:B:", ":n:I:", ":w:FN:", ":d:I:", ":e:I:",
+  ":C:FT:", ":T:IP:", ":c:FN:", ":q:I:", ":Q:CH:", ":P:B:", ":v:B:", ":V:CH:",
+  ":help:B:"};
 static char *queueNameDefault = "queue";
 Processchunks *processchunksInstance;
 
@@ -73,6 +74,7 @@ Processchunks::Processchunks(int &argc, char **argv) :
   mVerbose = 0;
   mJustGo = 0;
   mSkipProbe = false;
+  mNumThreads = 1;
   mQueue = 0;
   mSingleFile = 0;
   mSlowMachineCrit = 4.;   // This is a true criterion
@@ -146,6 +148,9 @@ void Processchunks::loadParams(int &argc, char **argv) {
   PipGetBoolean("r", &mRetain);
   PipGetBoolean("G", &mGpuMode);
   PipGetBoolean("s", &mSingleFile);
+  if (mGpuMode || mSingleFile)
+    mNumThreads = 0;
+  PipGetInteger("O", &mNumThreads);
   PipGetBoolean("g", &mJustGo);
   PipGetInteger("n", &mNice);
   //PipGetInteger("m", &mMillisecSleep);
@@ -1714,6 +1719,9 @@ void Processchunks::makeCshFile(ProcessHandler *process) {
   }
   if (process->getGpuNumber() >= 0) {
     paramList << "-e" << QString("IMOD_USE_GPU2=%1").arg(process->getGpuNumber());
+  }
+  if (mNumThreads > 0) {
+    paramList << "-e" << QString("OMP_NUM_THREADS=%1").arg(mNumThreads);
   }
   paramList.append(comFileName);
   paramList.append(process->getLogFileName());
