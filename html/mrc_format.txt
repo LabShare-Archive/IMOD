@@ -136,9 +136,15 @@ looking down on the volume.
 
 The size of the image is nx * ny * nz * (mode data size).
 
+Fourier transforms are stored as complex floats.  The 2D or 3D transform of a
+nx * ny * nz image file has dimensions nx / 2 + 1 * ny * nz.  The origin (0
+spatial frequency) is at (0, ny / 2) on each plane of a 2D transform, and at
+(0, ny / 2, nz / 2) in a 3D transform, where coordinates are numbered from 0
+and each division rounds downward to an integer.
+
 Deviations from the MRC standard are: mode 6 for unsigned short integers, mode
 16 for RGB data, and the extended header defined by next, nint, and nreal.
-In the MRC standard is nsymbt (next) is allowed to be only 0 or 80, with the
+In the MRC standard nsymbt (next) is allowed to be only 0 or 80, with the
 80 bytes in a particular format.  Other non-standard items, in bytes 152-195,
 are at the top of the extra data section and do not conflict with other known
 uses.
