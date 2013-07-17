@@ -12,8 +12,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
+#include <vector>
 #include "imodel.h"
 #include "b3dutil.h"
 #include "mrcfiles.h"
@@ -27,6 +29,7 @@
 // Local functions
 static int comparePeaks(const void *p1, const void *p2);
 
+// Main: just construct object and call its main
 int main( int argc, char *argv[])
 {
   FindBeads find;
@@ -67,7 +70,12 @@ FindBeads::FindBeads()
   mAreaMod = NULL;
   mMeasureToUse = 1;
   mExcludeAreas = 0;
-
+  mAdjustSizes = 0;
+  mProfiling = false;
+  mWallStart = mWallLast = wallTime();
+  mMinSizeForAdjust = 5.;         // Minimum bead size to apply adjustment for
+  mMaxAdjustFactor = 1.6;         // Maximum factor to change the bead size by
+  mMinSizeChangeForRedo = 1.05;  // Minimum factor of change for adding another pass
 }
 
 /* 
@@ -106,8 +114,9 @@ void FindBeads::main(int argc, char *argv[])
   float zscale, xtmp, ytmp, xBeadOfs, yBeadOfs;
   float val, tsum, xcen, ycen;
   int ipass, numEliminated, iz, iy, ix, i, ixst;
-  int j, jdir, jstr, jend, sliceMode;
-  float critsq, dx, dy, distsq, cccMin, cccMax;
+  int cacheLimitMB = 768;
+  int j, jdir, jstr, jend, sliceMode, maxZperRun;
+  float critsq, dx, dy, distsq, cccMin, cccMax, sizeOrig;
   float peakAbove, peakBelow, error, lastPeak, errMin, histDip;
   float ctfDelta;
   int numToSave, ndat;
@@ -118,23 +127,25 @@ void FindBeads::main(int argc, char *argv[])
   int ob, co, pt;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodfindbeads  */
-  int numOptions = 35;                                                          
+  int numOptions = 39;
   const char *options[] = {
-    "input:InputImageFile:FN:", "output:OutputModelFile:FN:", 
-    "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:", 
-    "exclude:ExcludeInsideAreas:B:", "query:QueryAreaOnSection:I:", "add:AddToModel:FN:", 
-    "ref:ReferenceModel:FN:", "boundary:BoundaryObject:I:", "size:BeadSize:F:", 
-    "light:LightBeads:B:", "scaled:ScaledSize:F:", 
-    "interpmin:MinInterpolationFactor:F:", "linear:LinearInterpolation:I:", 
-    "center:CenterWeight:F:", "box:BoxSizeScaled:I:", 
-    "threshold:ThresholdForAveraging:F:", "store:StorageThreshold:F:", 
-    "fallback:FallbackThresholds:IP:", "bkgd:BackgroundGroups:F:", 
-    "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:", 
-    "spacing:MinSpacing:F:", "sections:SectionsToDo:LI:", 
-    "maxsec:MaxSectionsPerAnalysis:I:", "remake:RemakeModelBead:B:", 
-    "guess:MinGuessNumBeads:I:", "measure:MeasureToUse:I:", "kernel:KernelSigma:F:", 
-    "rad1:FilterRadius1:F:", "rad2:FilterRadius2:F:", "sig1:FilterSigma1:F:", 
-    "sig2:FilterSigma2:F:", "verbose:VerboseKeys:CH:", "param:ParameterFile:PF:"};
+    "input:InputImageFile:FN:", "output:OutputModelFile:FN:",
+    "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:",
+    "exclude:ExcludeInsideAreas:B:", "query:QueryAreaOnSection:I:",
+    "prexf:PrealignTransformFile:FN:", "imagebinned:ImagesAreBinned:I:",
+    "add:AddToModel:FN:", "ref:ReferenceModel:FN:", "boundary:BoundaryObject:I:",
+    "size:BeadSize:F:", "light:LightBeads:B:", "scaled:ScaledSize:F:",
+    "adjust:AdjustSizes:B:", "interpmin:MinInterpolationFactor:F:",
+    "linear:LinearInterpolation:I:", "center:CenterWeight:F:", "box:BoxSizeScaled:I:",
+    "threshold:ThresholdForAveraging:F:", "store:StorageThreshold:F:",
+    "fallback:FallbackThresholds:IP:", "bkgd:BackgroundGroups:F:",
+    "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:",
+    "spacing:MinSpacing:F:", "sections:SectionsToDo:LI:",
+    "maxsec:MaxSectionsPerAnalysis:I:", "remake:RemakeModelBead:B:",
+    "guess:MinGuessNumBeads:I:", "measure:MeasureToUse:I:", "kernel:KernelSigma:F:",
+    "rad1:FilterRadius1:F:", "rad2:FilterRadius2:F:", "sig1:FilterSigma1:F:",
+    "sig2:FilterSigma2:F:", "verbose:VerboseKeys:CH:", "dump:DumpHistogramFile:FN:",
+    "param:ParameterFile:PF:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -231,6 +242,7 @@ void FindBeads::main(int argc, char *argv[])
   // exitError("You must enter a scaled size for the filtering");
   if (PipGetFloat("BeadSize", &mBeadSize))
     exitError("You must enter a bead size");
+  PipGetBoolean("AdjustSizes", &mAdjustSizes);
   PipGetBoolean("LightBeads", &mLightBeads);
   PipGetInteger("LinearInterpolation", &mLinearInterp);
   PipGetBoolean("RemakeModelBead", &remakeModelBead);
@@ -254,14 +266,21 @@ void FindBeads::main(int argc, char *argv[])
   if (mLightBeads && mAnnulusPctile >= 0.)
     mAnnulusPctile = 1. - mAnnulusPctile;
 
+  if (mAdjustSizes && mBeadSize < mMinSizeForAdjust) {
+    mAdjustSizes = 0;
+    printf("WARNING: imodfindbeads - Bead size is below limit for finding diameter; "
+           "no adjustment will be done\n");
+  }
+  sizeOrig = mBeadSize;
+
   // If doing automatic thresholds and no peak limit entered, drop it to
   // allow more histogram to be built
   if (PipGetFloat("MinRelativeStrength", &mMinRelativePeak) && mThreshold < 0.)
     mMinRelativePeak /= 2.;
 
   // Make default box size and list of sections to do
-  mBoxScaled = 3 * mScaledSize + 2;
-  PipGetInteger("BoxSizeScaled", &mBoxScaled);
+  mBoxScaledOrig = B3DNINT(3 * mScaledSize + 4);
+  PipGetInteger("BoxSizeScaled", &mBoxScaledOrig);
   if (!PipGetString("SectionsToDo", &filename)) {
     mZlist = parselist(filename, &nzout);
     if (!mZlist)
@@ -313,7 +332,7 @@ void FindBeads::main(int argc, char *argv[])
     outfp = NULL;
   }
 
-  // Figure out division into separate runs
+  // Figure out division into separate runs and set up for caching read slices
   maxSec = nzout;
   PipGetInteger("MaxSectionsPerAnalysis", &maxSec);
   if (maxSec <= 0)
@@ -321,6 +340,14 @@ void FindBeads::main(int argc, char *argv[])
   numRuns = (nzout + maxSec - 1) / maxSec;
   numZperRun = nzout / numRuns;
   runsAddingOne = nzout % numRuns;
+  maxZperRun = numZperRun + (runsAddingOne ? 1 : 0);
+  mUseSliceCache = maxZperRun * mNxIn * mNyIn * 4 / 1.e6 < cacheLimitMB;
+  if (mUseSliceCache) {
+    mCachedSlices = B3DMALLOC(Islice *, maxZperRun);
+    if (!mCachedSlices)
+      exitError("Getting memory for silly little array");
+  }
+
   if (numRuns > 1 && refmod)
     exitError("All sections must be analyzed together when comparing with "
               "reference model");
@@ -344,11 +371,11 @@ void FindBeads::main(int argc, char *argv[])
 
   setupSizeDependentVars();
 
-  mFiltBead = B3DMALLOC(float, mBoxScaled * mBoxScaled);
   listStart = B3DMALLOC(int, nzout + 2);
-  if (!listStart || !mFiltBead)
+  if (!listStart)
     exitError("Failed to get memory for working array");
-  
+
+  profile("Finished startup tasks");
   izStart = 0;
   for (irun = 0; irun < numRuns; irun++) {
     izEnd = izStart + numZperRun + (irun < runsAddingOne ? 1 : 0);
@@ -409,6 +436,7 @@ void FindBeads::main(int argc, char *argv[])
                   &ctfDelta);
       if (ctfDelta)
         XCorrFilterPart(mSplitBead, mSplitBead, mNxPad, mNyPad, ctf, ctfDelta);
+      profile("Set up the bead");
 
       // Loop on images
       for (indz = izStart; indz < izEnd; indz++) {
@@ -419,21 +447,31 @@ void FindBeads::main(int argc, char *argv[])
           areaContListCheckErr(iz);
       
         // Create a slice and read into it as floats
-        sl = readSliceAsFloat(iz);
-
+        if (ipass == 1 || !mUseSliceCache) {
+          sl = readSliceAsFloat(iz);
+          profile("Read slice");
+          if (mUseSliceCache)
+            mCachedSlices[indz - izStart] = sl;
+        } else
+          sl = mCachedSlices[indz - izStart];
+ 
         // Do kernel filtering
         if (kernelSigma > 0.) {
           scaledGaussianKernel(&kernel[0], &ndat, KERNEL_MAXSIZE, kernelSigma);
           sclsl = slice_mat_filter(sl, kernel, ndat);
           if (!sclsl)
             exitError("Failed to get memory for kernel filtered slice");
-          sliceFree(sl);
+          if (!mUseSliceCache)
+            sliceFree(sl);
           sl = sclsl;
+          profile("kernel filtered");
         }
 
         // Filter it, write it on last pass if requested
         scaledSobel(sl->data.f, mNxIn, mNyIn, mScaleFactor, mMinInterp, mLinearInterp,
                     mCenterWeight, mFiltSlice, &nxtmp, &nytmp,  &xtmp, &ytmp);
+        profile("Sobel filtered");
+
         // Pad into array and correlate it
         sliceTaperOutPad(mFiltSlice, SLICE_MODE_FLOAT, mNxOut, mNyOut, mCorrSlice, 
                          mNxpDim, mNxPad, mNyPad, 0, 0.);
@@ -442,6 +480,7 @@ void FindBeads::main(int argc, char *argv[])
         conjugateProduct(mCorrSlice, mSplitBead, mNxPad, mNyPad);
         todfft(mCorrSlice, &mNxPad, &mNyPad, &inverse);
         //printArray( mCorrSlice, mNxpDim, mNxPad, mNyPad);
+        profile("Correlated");
       
         // Write slice on last pass
         if (outfp && ipass == npass) {
@@ -453,7 +492,7 @@ void FindBeads::main(int argc, char *argv[])
                 mWriteSlice[ix + mNxOut * iy] = 
                   mCorrSlice[ix + mNxpDim * iy - (mNxPad - mNxOut) / 2];
           }
-          if (mrc_write_slice(mWriteSlice, outfp, &outhead, iz - mZlist[izStart], 'z'))
+          if (mrc_write_slice(mWriteSlice, outfp, &outhead, indz - izStart, 'z'))
             exitError("Writing filtered image for section %d", iz);
           for (iy = 0; iy < mNyOut; iy++) {
             tsum = 0.;
@@ -469,13 +508,16 @@ void FindBeads::main(int argc, char *argv[])
             
         // Search for all peaks in the correlation
         searchCorrelationPeaks(sl, iz);
+        profile("found peaks");
 
-        sliceFree(sl);
+        if (!mUseSliceCache || kernelSigma > 0.)
+          sliceFree(sl);
       }
       listStart[izEnd - izStart] = mNumPeaks;
 
       // Determine a scaling of peaks by background intensities
       analyzeBackgroundGroups();
+      profile("Analyzed groups");
 
       // Normalize peak values and eliminate ones below minimum: zero out ccc
       for (j = 0; j < mNumPeaks; j++) {
@@ -528,6 +570,7 @@ void FindBeads::main(int argc, char *argv[])
           }
         }
       }
+      profile("Eliminated close points");
 
       if (npass > 1) 
         printf("Pass %d: ", ipass);
@@ -538,8 +581,23 @@ void FindBeads::main(int argc, char *argv[])
       // If doing two passes, now average the beads
       if (ipass < npass) {
         averageBeads(izStart, izEnd);
+        if (mAdjustSizes && ipass == 1 && B3DMAX(sizeOrig, mBeadSize) / 
+            B3DMIN(sizeOrig, mBeadSize) >= mMinSizeChangeForRedo) {
+          printf("Adding another pass because size changed more than %.0f%%\n",
+                 100. * (mMinSizeChangeForRedo - 1.));
+          npass++;
+        }
+        profile("Averaged");
       }
     }
+    
+    // Done with the cached slices now
+    if (mUseSliceCache)
+      for (indz = izStart; indz < izEnd; indz++)
+        sliceFree(mCachedSlices[indz - izStart]);
+
+    // After first set of sections, stop adjusting sizes
+    mAdjustSizes = 0;
 
     ixst = izStart;
     izStart = izEnd;
@@ -769,8 +827,8 @@ void FindBeads::setupSizeDependentVars()
 
   // Get radii for the integral
   mRadCenter = B3DMAX(1., 0.34 * mBeadSize);
-  mRadInner = B3DMAX(mRadCenter + 1., 0.5 * mBeadSize + 1.);
-  mRadOuter = mRadInner + 2.;
+  mRadInner = B3DMAX(mRadCenter + 1., 0.5 * mBeadSize + B3DMAX(1., 0.1 * mBeadSize));
+  mRadOuter = mRadInner + B3DMAX(2., 0.2 * mBeadSize);
   mMinDist = mMinSpacing * mBeadSize;
   mMatchCrit = B3DMAX(0.2 * mBeadSize, 2.);
 
@@ -785,10 +843,11 @@ void FindBeads::setupSizeDependentVars()
 
   // Get the full box size, find the size that best matches the specified 
   // scaled size and revise it
-  mBoxSize = (int)(mBoxScaled * mScaleFactor);
+  mBoxScaled = mBoxScaledOrig;
+  mBoxSize = 2 * (B3DNINT(mBoxScaled * mScaleFactor) / 2);
   mindiff = 100000;
-  range = (int)(3. * mScaleFactor);
-  for (size = mBoxSize + range; size >= mBoxSize - range; size--) {
+  range = (int)(2. * mScaleFactor);
+  for (size = mBoxSize + 2 * range; size >= mBoxSize - 2 * range; size -= 2) {
     if (size <= 3)
       break;
     scaledSobel(NULL, size, size, mScaleFactor, mMinInterp, mLinearInterp, -1., NULL,
@@ -814,11 +873,13 @@ void FindBeads::setupSizeDependentVars()
          "= %d\n", mScaleFactor, mBoxSize, mBoxScaled);
 
   // Get memory for filtered slice, synthetic bead and scaled bead
+  B3DFREE(mFiltBead)
   B3DFREE(mFiltSlice);
   B3DFREE(mCorrSlice);
   B3DFREE(mFullBead);
   B3DFREE(mOneBead);
   B3DFREE(mSplitBead);
+  mFiltBead = B3DMALLOC(float, mBoxScaled * mBoxScaled);
   mFiltSlice = B3DMALLOC(float, mNxOut * mNyOut);
   mCorrSlice = B3DMALLOC(float, mNxpDim * mNyPad);
   mFullBead = B3DMALLOC(float, mBoxSize * mBoxSize);
@@ -829,7 +890,7 @@ void FindBeads::setupSizeDependentVars()
     mWriteSlice = B3DMALLOC(float, mNxOut * mNyOut);
   }
 
-  if (!mFiltSlice || !mFullBead || !mSplitBead || !mCorrSlice || 
+  if (!mFiltBead || !mFiltSlice || !mFullBead || !mSplitBead || !mCorrSlice || 
       !mOneBead || (!mCenterWeight && !mWriteSlice))
     exitError("Failed to get memory for an image array");
 }
@@ -892,9 +953,9 @@ void FindBeads::searchCorrelationPeaks(Islice *sl, int iz)
           ccc = templateCCCoefficient(mFiltSlice, mNxOut, mNxOut, mNyOut, mFiltBead,
                                       mBoxScaled, mBoxScaled, mBoxScaled,
                                       ixofs - mBoxScaled / 2, iyofs - mBoxScaled / 2);
-          /*if (ipass == npass)
-            printf("peak ix %d iy %d xcen %.2f ycen %.2f integral %f  peak %f ccc "
-            "%.3f\n", ix, iy, xcen, ycen, integral, cval, ccc); */
+          //if (ipass == npass)
+          /* printf("peak ix %d iy %d xcen %.2f ycen %.2f integral %f  peak %f ccc "
+             "%.3f\n", ix, iy, xcen, ycen, integral, cval, ccc);*/
           if (ccc > 0.) {
             if (mNumPeaks >= mListSize) {
               if (!mListSize)
@@ -1032,7 +1093,7 @@ void FindBeads::analyzeBackgroundGroups()
       // Fit a line to the points and scale the peaks, find new max
       lsFit(annMidval, annPeakAbove, ndat, &modeSlope, &modeIntcp, &xtmp);
       lsFit(annMidval, annDip, ndat, &selSlope, &selIntcp, &xtmp);
-      printf("Dips found in %d groups based on bkg mean, means %f to %f\n",
+      printf("Dips found in %d groups based on bkg mean, means %.5g to %.5g\n",
              ndat, annMidval[0], annMidval[ndat - 1]);
       if (mVkeys)
         printf(" Fit of mode vs background has slope %f, intcp %f\n"
@@ -1071,10 +1132,12 @@ void FindBeads::analyzeBackgroundGroups()
  */
 void FindBeads::averageBeads(int izStart, int izEnd)
 {
-  int numStart, i, j, nsum, loaded, iz, indz;
-  float threshUse, histDip, peakAbove, peakBelow;
+  int numStart, i, j, nsum, loaded, iz, indz, oldBox, offset;
+  float threshUse, histDip, peakAbove, peakBelow, newDiam;
   float amat[2][2];
+  float *saveBead;
   Islice *sl;
+  //std::vector<float> diameters;
 
   numStart = 0;
   threshUse = mThreshold;
@@ -1112,13 +1175,14 @@ void FindBeads::averageBeads(int izStart, int izEnd)
       printf("Threshold for averaging set to %.3f\n", threshUse);
     }
   }
+  profile("Found threshold");
 
   for (i = 0; i < mBoxSize * mBoxSize; i++)
     mFullBead[i] = 0.;
   nsum = 0;
   amat[0][0] = amat[1][1] = 1.;
   amat[0][1] = amat[1][0] = 0.;
-      
+    
   // Loop through images again
   for (indz = izStart; indz < izEnd; indz++) {
     iz = mZlist[indz];
@@ -1126,10 +1190,14 @@ void FindBeads::averageBeads(int izStart, int izEnd)
     for (j = numStart; j < mNumPeaks; j++) {
       if (mPeakList[j].ccc && mPeakList[j].iz == iz && 
           (threshUse > 1. || mPeakList[j].peak >= threshUse)) {
-        if (!loaded)
-          sl = readSliceAsFloat(iz);
+        if (!loaded) {
+          if (mUseSliceCache)
+            sl = mCachedSlices[indz - izStart];
+          else
+            sl = readSliceAsFloat(iz);
+        }
         loaded = 1;
-            
+          
         // Interpolate the bead into center of array, add it to sum
         cubinterp(sl->data.f, mOneBead, mNxIn, mNyIn, mBoxSize, mBoxSize, 
                   amat, mPeakList[j].xcen, mPeakList[j].ycen, 0., 0., 1.,
@@ -1137,14 +1205,144 @@ void FindBeads::averageBeads(int izStart, int izEnd)
         nsum++;
         for (i = 0; i < mBoxSize * mBoxSize; i++)
           mFullBead[i] += mOneBead[i];
+        //diameters.push_back(extractDiameter(mOneBead));
       }
     }
-    if (loaded)
+    if (loaded && !mUseSliceCache)
       sliceFree(sl);
   }
-  if (nsum)
+  if (nsum) {
     for (i = 0; i < mBoxSize * mBoxSize; i++)
       mFullBead[i] /= nsum;
+
+    newDiam = extractDiameter(mFullBead);
+    printf("Diameter of average bead at zero-crossing = %.2f\n", newDiam);
+    if (mAdjustSizes) {
+      if (B3DMAX(newDiam, mBeadSize) / B3DMIN(newDiam, mBeadSize) > mMaxAdjustFactor) {
+        printf("WARNING: imodfindbeads - Measured bead diameter differs too much "
+               "from specified size to be plausible, so bead size will not be "
+               "adjusted\n");
+      } else {
+
+        // autofindseed is looking for "Adjusting parameters" at start of line
+        printf("Adjusting parameters based on a new bead size of %.2f\n", newDiam);
+        
+        // Save the bead, remake all the arrays, and copy average into new array with 
+        // trimming or padding
+        oldBox = mBoxSize;
+        saveBead = B3DMALLOC(float, oldBox * oldBox);
+        if (!saveBead)
+          exitError("Memory error making array to resize bead average");
+        memcpy(saveBead, mFullBead, oldBox * oldBox * sizeof(float));
+        mBeadSize = newDiam;
+        setupSizeDependentVars();
+        if (oldBox >= mBoxSize) {
+          offset = (oldBox - mBoxSize) / 2;
+          for (j = offset; j < mBoxSize + offset; j++)
+            for (i = offset; i < mBoxSize + offset; i++)
+              mFullBead[i + j * mBoxSize] = saveBead[i + offset + (j + offset) *oldBox];
+        } else {
+          sliceTaperOutPad(saveBead, SLICE_MODE_FLOAT, oldBox, oldBox, mFullBead,
+                           mBoxSize, mBoxSize, mBoxSize, 0, 0.);
+        }
+        free(saveBead);
+      }
+    }
+    /* float median;
+       rsSortFloats(diameters.data(), diameters.size());
+       rsMedianOfSorted(diameters.data(), diameters.size(), &median);
+       printf("median of individual diameters = %.2f\n", median); */
+  }
+}
+
+/*
+ * Finds the diameter of an average or single bead
+ */
+float FindBeads::extractDiameter(float *oneBead)
+{
+  float edge = sliceEdgeMean(mFullBead, mBoxSize, 0, mBoxSize - 1, 0, mBoxSize - 1);
+  float polarity = (mLightBeads ? 1. : -1.);
+  float diams[100], avgden[100], xx[100], yy[100];
+  float grad, maxGrad = 0.;
+  int i, ifirst = (int)(0.2  * mBeadSize), ndat = 0;
+  int indMax, nfit, ind, idir, idiff;
+  float slope, intcp, ro, zeroCross;
+    
+  // Find mean in a series of rings; loop on all pixels that could be in a ring and test
+  // each one against inner and outer radii
+  for (i = ifirst; i < B3DNINT(0.9 * mBeadSize); i++) {
+    int jx,jy, nsum = 0;
+    float bsum = 0., bsumsq = 0.;
+    float rad = i;
+    for (jy = mBoxSize / 2 - i - 2; jy <= mBoxSize / 2 + i + 2; jy++) {
+      for (jx = mBoxSize / 2 - i - 2; jx <= mBoxSize / 2 + i + 2; jx++) {
+        float dx = jx - (mBoxSize - 1) / 2.;
+        float dy = jy - (mBoxSize - 1) / 2.;
+        float radsq = dx * dx + dy *dy;
+        if (radsq >= rad * rad && radsq <= (rad + 1.) * (rad + 1.)) {
+          radsq = polarity * (mFullBead[jx + mBoxSize * jy] - edge);
+          nsum++;
+          bsum += radsq;
+          bsumsq += radsq * radsq;
+        }
+      }
+    }
+    diams[ndat] = 2. * rad + 1.;
+    avgden[ndat] = bsum / nsum;
+
+    // Keep track of the point with the maximum gradient prior to it
+    if (ndat) {
+      grad = avgden[ndat - 1] - avgden[ndat];
+      if (grad > maxGrad) {
+        maxGrad = grad;
+        indMax = ndat;
+      }
+    }
+    if (mVkeys)
+      printf("%.2f  %.2f  %.2f  %.2f\n", diams[ndat], avgden[ndat], grad, maxGrad);
+    ndat++;
+  }
+  
+  // Fit to ones around maximum gradient with a gradient nearly as big
+  nfit = 2;
+  xx[0] = diams[indMax];
+  yy[0] = avgden[indMax];
+  xx[1] = diams[indMax - 1];
+  yy[1] = avgden[indMax - 1];
+  for (idir = -1; idir <= 1; idir += 2) {
+    for (idiff = 1; idiff < 100; idiff++) {
+      ind = indMax + idir * idiff;
+      if (ind < 1 || ind > ndat)
+        break;
+      grad = avgden[ind - 1] - avgden[ind];
+      if (grad < 0.75 * maxGrad)
+        break;
+      if (idir < 0)
+        ind--;
+      xx[nfit] = diams[ind];
+      yy[nfit] = avgden[ind];
+    }
+  }
+  lsFit(xx, yy, nfit, &slope, &intcp, &ro);
+  zeroCross = -intcp / slope;
+  return zeroCross;
+  
+  // Forget this, it gives too big a diameter for cryo with overshoots
+  // Fit up to 5 points past the zero crossing
+  /* float baseSlope, baseIntcp;
+  indFit = 0;
+  for (i = 1; i < ndat; i++) {
+    if (diams[i] >= zeroCross) {
+      indFit = i;
+      break;
+    }
+  }
+  printf("Zerocross %.2f  nfit %d\n", zeroCross, nfit);
+  nfit = B3DMIN(5, ndat - indFit);
+  if (indFit < 0 || nfit < 3)
+    return zeroCross;
+  lsFit(&diams[indFit], &avgden[indFit], nfit, &baseSlope, &baseIntcp, &ro);
+  return -(intcp - baseIntcp) / (slope - baseSlope); */
 }
 
 /*
@@ -1531,4 +1729,18 @@ void FindBeads::selectedMinMax(float *element,
     maxVal = B3DMAX(maxVal, val);
     ninRange++;
   }
+}
+
+void FindBeads::profile(const char *format, ...)
+{
+  if (!mProfiling)
+    return;
+  va_list args;
+  double now = wallTime();
+  printf("%10.3f %5.3f  ", now - mWallStart, now - mWallLast);
+  mWallLast = now;
+  va_start(args, format);
+  vprintf(format, args);
+  va_end(args);
+  printf("\n");
 }

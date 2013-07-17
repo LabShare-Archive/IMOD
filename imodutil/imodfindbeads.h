@@ -45,12 +45,15 @@ class FindBeads
   float findStorageThreshold(float &histDip);
   void searchCorrelationPeaks(Islice *sl, int iz);
   float extractDiameter(float *oneBead);
+  void profile(const char *format, ...);
 
   // Member variables
   float mRegHist[MAX_BINS], mKernHist[MAX_BINS];
   MrcHeader mInHead;
   int mAverageFallback;
   int mStorageFallback;
+  Islice **mCachedSlices;
+  bool mUseSliceCache;
   float *mFiltSlice, *mCorrSlice, *mFullBead, *mOneBead, *mSplitBead;
   PeakEntry *mPeakList;
   int *mZlist;
@@ -78,6 +81,7 @@ class FindBeads
   float mXoffset, mYoffset;
   int mNxIn, mNyIn;
   int mBoxScaled;
+  int mBoxScaledOrig;
   float mPeakMax;
   FILE *mDumpFp;
   FILE *mInFp;
@@ -92,6 +96,13 @@ class FindBeads
   int mMeasureToUse;
   int mExcludeAreas;
   float mBeadCenOfs;
+  int mAdjustSizes;
+  double mWallStart;
+  double mWallLast;
+  bool mProfiling;
+  float mMinSizeForAdjust;
+  float mMaxAdjustFactor;
+  float mMinSizeChangeForRedo;
 };
 
 
