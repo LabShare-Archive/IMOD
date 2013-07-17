@@ -32,6 +32,7 @@ Will process multiple command files on multiple processors or machines
     -r     Resume, retaining existing finished files (the default is to remove
              all log files and redo everything)
     -s     Run a single command file named root_name or root_name.com
+    -O #   Set maximum number of threads per process (default 1 unless -s)
     -g     Go process, without asking for confirmation after probing machines
     -n #   Set the "nice" value to the given number (default $nice, range 0-19)
     -d #   Drop a machine after given number of failures in a row (default $dropcrit)
@@ -82,6 +83,11 @@ while ($#argv > 2)
     case -s:
       set singleFile = 1
       shift
+      breaksw
+
+    case -O:
+      @ numThreads = $argv[2]
+      shift ; shift
       breaksw
 
     case -n:
@@ -135,6 +141,11 @@ end
 if ($retain && $singleFile) then
     echo "ERROR: $pn - You cannot use the retain option with a single command file"
     exit 1
+endif
+
+if (! $?numThreads) then
+    @ numThreads = 1
+    if ($singleFile) @ numThreads = 0
 endif
 
 if ($queue) then
@@ -727,6 +738,9 @@ EOF
                         \echo -n >! $cshname
                     else
                         \echo "nice +$nice" >! $cshname
+                    endif
+                    if ($numThreads > 0) then
+                        \echo "setenv OMP_NUM_THREADS $numThreads" >> $cshname
                     endif
 
                     # convert and add CHUNK DONE to all files
