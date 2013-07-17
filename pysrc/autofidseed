@@ -205,6 +205,7 @@ def selectSeedViews(numNeeded):
 
 # Run imodfindbeads with current selection of views
 def runFindBeads():
+   global newBeadSize
    sectOpt = fmtstr('SectionsToDo {}', includedViews[seedViews[0]])
    viewStr = fmtstr(' on views {}', includedViews[seedViews[0]] + 1)
    for i in range(1, numSeedViews):
@@ -236,6 +237,8 @@ def runFindBeads():
    if prexgFile:
       comlines.append('PrealignTransformFile ' + prexgFile)
       comlines.append(fmtstr('ImagesAreBinned {}', binning))
+   if adjustSize:
+      comlines.append('AdjustSizes 1')
 
    prnstr('RUNNING IMODFINDBEADS' + viewStr)
    prnstr(' ')
@@ -246,14 +249,19 @@ def runFindBeads():
       
    for l in findlines:
       prnstr(l, end='')
-   last = len(findlines) - 1
-   if ('peaks are above' not in findlines[last - 1] and \
-          'using fallback' not in findlines[last - 1]) or \
-          'total peaks being' not in findlines[last]:
-      if 'Failed to find dip' in findlines[last]:
+      if adjustSize and l.startswith('Adjusting parameters'):
+         try:
+            newBeadSize = float(l.split()[-1])
+         except ValueError:
+            exitError('Converting new bead size to float')
+      
+   if ('peaks are above' not in findlines[-2] and \
+          'using fallback' not in findlines[-2]) or \
+          'total peaks being' not in findlines[-1]:
+      if 'Failed to find dip' in findlines[-1]:
          exitError('Cannot proceed; imodfindbeads cannot identify the gold beads')
       exitError('Output from imodfindbeads does not end in the expected way')
-   lsplit = findlines[last].split()
+   lsplit = findlines[-1].split()
    numPeaksTot = convertToInteger(lsplit[0], 'number of total peaks stored')
    prnstr(' ')
    return numPeaksTot
@@ -302,18 +310,19 @@ from pip import *
 from pysed import *
 
 # Fallbacks from ../manpages/autodoc2man 3 1 autofidseed
-options = ["track:TrackCommandFile:FN:", "guess:MinGuessNumBeads:I:",
-           "spacing:MinSpacing:F:", "size:BeadSize:F:", "peak:PeakStorageFraction:F:",
+options = ["track:TrackCommandFile:FN:", "append:AppendToSeedModel:B:",
+           "guess:MinGuessNumBeads:I:", "spacing:MinSpacing:F:", "size:BeadSize:F:",
+           "adjust:AdjustSizes:B:", "peak:PeakStorageFraction:F:",
            "views:NumberOfSeedViews:I:", "boundary:BoundaryModel:FN:",
-           "border:BordersInXandY:IP:", "two:TwoSurfaces:B:",
-           "number:TargetNumberOfBeads:I:", "density:TargetDensityOfBeads:F:",
-           "ratio:MaxMajorToMinorRatio:F:", "cluster:ClusteredPointsAllowed:I:",
-           "lower:LowerTargetForClustered:F:", "subarea:SubareaSize:I:",
-           "sort:SortAreasMinNumAndSize:IP:", "ignore:IgnoreSurfaceData:LI:",
-           "drop:DropTracks:LI:", "pick:PickSeedOptions:CH:",
-           "remove:RemoveTempFiles:I:", "output:OutputSeedModel:FN:",
-           "info:InfoFile:FN:", "tempdir:TemporaryDirectory:FN:",
-           "leave:LeaveTempFiles:B:"]
+           "exclude:ExcludeInsideAreas:B:", "border:BordersInXandY:IP:",
+           "two:TwoSurfaces:B:", "number:TargetNumberOfBeads:I:",
+           "density:TargetDensityOfBeads:F:", "ratio:MaxMajorToMinorRatio:F:",
+           "cluster:ClusteredPointsAllowed:I:", "lower:LowerTargetForClustered:F:",
+           "subarea:SubareaSize:I:", "sort:SortAreasMinNumAndSize:IP:",
+           "ignore:IgnoreSurfaceData:LI:", "drop:DropTracks:LI:",
+           "pick:PickSeedOptions:CH:", "remove:RemoveTempFiles:I:",
+           "output:OutputSeedModel:FN:", "info:InfoFile:FN:",
+           "tempdir:TemporaryDirectory:FN:", "leave:LeaveTempFiles:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 0, 0)
 
@@ -336,6 +345,7 @@ targetToGuessFrac = 0.25
 targetToAverageFB = 0.33
 targetToStorageFB = 2.0
 kernelSigmaDefault = 0.5   # THE DEFAULT IN BEADTRACK
+newBeadSize = None
 
 # Extensions for files that are always cleaned up, files that are left for resuming
 # and files that are left for user edification only.  Make all extensions unique
@@ -406,6 +416,7 @@ twoSurf = PipGetBoolean('TwoSurfaces', 0)
 appendToSeed = PipGetBoolean('AppendToSeedModel', 0)
 spacing = PipGetFloat('MinSpacing', spacing)
 peakFraction = PipGetFloat('PeakStorageFraction', 1.0)
+adjustSize = PipGetBoolean('AdjustSizes', 0)
 targetNumber = PipGetInteger('TargetNumberOfBeads', 0)
 targetDensity = PipGetFloat('TargetDensityOfBeads', 0.)
 if targetNumber < 1 and targetDensity <= 0.:
@@ -637,6 +648,7 @@ if oldValid:
    numPeakArr = optionValue(infoLines, 'NumPeaks', 1)
    numSeedArr = optionValue(infoLines, 'NumViews', 1)
    viewEnterInfo = optionValue(infoLines, 'ViewsEntered', 3)
+   adjSizeArr = optionValue(infoLines, 'AdjustSizes', 1)
 
    # Need to check contents of track.com if it doesn't match time
    trackMatches = False
@@ -662,6 +674,7 @@ if oldValid:
        (numSeedArr and numPeakArr and \
            ((not viewsEntered and not viewEnterInfo) or \
                (viewsEntered and numSeedArr[0] == numSeedViews))) and \
+       adjSizeArr and adjSizeArr[0] == adjustSize and \
        ((boundInfo and boundInfo == boundModel and boundTimeArr and \
             boundMtime == boundTimeArr[0]) or (not boundInfo and boundModel == ''))
 
@@ -785,7 +798,7 @@ for ind in range(numSeedViews):
       for l in cliplines:
          if 'Number of points' in l:
             lsplit = l.split()
-            numPeaks = convertToInteger(lsplit[len(lsplit) - 1],
+            numPeaks = convertToInteger(lsplit[-1],
                                         'number of points remaining')
             if numPeaks < (numPeaksTot / numSeedViews) / 3:
                exitError(fmtstr('Found only {} out of {} points on view {}', numPeaks,
@@ -818,6 +831,8 @@ for ind in range(numSeedViews):
                 '?^OutputModel?a?SkipViews ' + skipList + '?']
       if twoSurf:
          sedcom.append('?^OutputModel?a?XYZOutputFile ' + tmpxyzpt[ind] + '?')
+      if adjustSize and newBeadSize:
+         sedcom.append(fmtstr('?^BeadDiameter?s?[ 	].*? {}?', newBeadSize * binning))
       sedlines = pysed(sedcom, tracklines, None, False, '?')
       prnstr('RUNNING BEADTRACK with seed from view ' + viewStr, flush = True)
       try:
@@ -847,7 +862,8 @@ if not oldValid:
               'TwoSurf ' + str(twoSurf),
               'NumPeaks ' + str(numPeaksTot),
               'NumViews ' + str(numSeedViews),
-              'ViewsEntered ' + str(viewsEntered)]
+              'ViewsEntered ' + str(viewsEntered),
+              'AdjustSizes ' + str(adjustSize)]
    if boundModel:
       newinfo += ['BoundFile ' + boundModel, 'BoundTime ' + str(boundMtime)]
    writeTextFile(infoName, newinfo)
@@ -934,7 +950,7 @@ try:
    for l in pickLines:
       prnstr(l, end='')
    if twoSurf and maxMajorMinor > 0.:
-      lsplit = pickLines[len(pickLines) - 1].split()
+      lsplit = pickLines[-1].split()
       numBeads = []
       for ind in range(len(lsplit) - 2, -1, -1):
          if lsplit[ind].endswith('='):
@@ -950,7 +966,7 @@ try:
          prnstr('The ratio between surfaces is too high; running again with lower target')
          prnstr(' ')
          newTarget = int(2 * maxMajorMinor * minor) + 1
-         pickcom[len(pickcom) - 1] = fmtstr('TargetNumberOfBeads {}', newTarget)
+         pickcom[-1] = fmtstr('TargetNumberOfBeads {}', newTarget)
          pickcom.append('LimitMajorityToTarget')
          runcmd('pickbestseed -StandardInput', pickcom, 'stdout')
         

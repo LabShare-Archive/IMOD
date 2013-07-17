@@ -53,6 +53,17 @@ be used to enter an alternate size to use in Imodfindbeads(1).
 If it is entered, it must be in units of the potentially binned pixels of the
 stack being tracked.
 
+[Field = AdjustSizes]
+short = adjust
+type = B
+usage = Change size-based parameters using measured size of averaged bead
+tooltip = 
+manpage = Change all size-based parameters in Imodfindbeads(1) using the
+measured size of the averaged bead.
+If the change in size is more than 5%, the new bead size will be used in tracking.
+This option should be used only for
+cryo-samples or other samples taken with significant underfocus. 
+
 [Field = PeakStorageFraction]
 short = peak
 type = F
