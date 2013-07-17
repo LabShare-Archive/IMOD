@@ -1,12 +1,11 @@
 ! *FFTRANS.F**************************************************************
 ! *
-! This program will do 2- or 3-dimensional FFT's in either      *
-! direction. The real-space origin is at (1, 1) and              *
-! the origin of reciprocal space is at (1, NY/2+1) .              *
-! The FT of an image NX, NY is NX/2+1, NY complex value.          *
-! All transforms are done using Lynn ten Eyck's subroutines.    *
-! These allow arbitrary-sized images having a LARGEST PRIME     *
-! factor of 19.                                                 *
+! This program will do 2- or 3-dimensional FFT's in either direction. The real-space
+! origin is at (1, 1) and the origin of reciprocal space is at (1, NY/2+1). 
+! The FT of an image NX, NY is NX/2+1, NY complex values. Transforms are done using
+! FFTW, in which case the only restriction applied here is that NX is even, or with
+! Lynn ten Eyck's subroutines (in IMOD), which allow arbitrary-sized images having a
+! largest prime factor of 19.
 !
 ! See man page for more details
 ! *
@@ -135,8 +134,7 @@ program fftrans
     if (quiet) print *,'FFTRANS: Computing forward Fourier transform'
     !
     write(titlech, 1500) dat, tim
-1500 format('FFTRANS: Forward Fourier Transform Calculated',12x,a9, &
-        2x,a8)
+1500 format('FFTRANS: Forward Fourier Transform',t57,a9, 2x,a8)
     call iwrhdrc(2, titlech, 1, zero, zero, zero)
     if (.not.do3d) then
       !
@@ -193,8 +191,7 @@ program fftrans
     if (quiet) print *,'FFTRANS: Computing inverse Fourier transform'
     !
     write(titlech, 1700) dat, tim
-1700 format('FFTRANS: Inverse Fourier Transform Calculated',12x,a9, &
-        2x,a8)
+1700 format('FFTRANS: Inverse Fourier Transform',t57,a9, 2x,a8)
     call iwrhdrc(2, titlech, 1, zero, zero, zero)
     if (.not.do3d) then
       !
