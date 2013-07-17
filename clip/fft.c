@@ -58,12 +58,12 @@ int clip_fft(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   if (opt->dim == 3)
     return(clip_3dfft(hin, hout, opt));
 
-  /* For inverse FFT,  default X 
-     size depends if it is old mirrored size (even) or non-mirrored (odd). */
+  /* For inverse FFT,  default X size assumes non-mirrored input; no longer support
+     old mirrored size because non-mirrored can be even. */
   if ((hin->mode == MRC_MODE_COMPLEX_FLOAT) ||
       (hin->mode == MRC_MODE_COMPLEX_SHORT)) {
     if (opt->ox == IP_DEFAULT)
-      opt->ox = (hin->nx % 2) ? 2 * (hin->nx - 1) : hin->nx;
+      opt->ox = 2 * (hin->nx - 1);
   }
 
   set_input_options(opt, hin);
@@ -145,56 +145,20 @@ int slice_fft(Islice *slice)
     sliceInit(slice, slice->xsize / 2 + 1, slice->ysize, 
               MRC_MODE_COMPLEX_FLOAT,
               tbuf);
-    sliceWrapFFTLines(slice);
+    sliceWrapFFTLines(slice, 0);
 
-#ifdef OLD_STUFF
-    /* The old set of operations, painfully reproduced with mirrored image
-       load in 3dmod */
-    /* Move top half of FFT to lower right of new array, and store the
-       extra pixel at the left edge of each row */
-    for(j = 0, i = y2; i < slice->ysize; i++, j++){
-      memcpy(&(buf[(2 * j * slice->xsize) + slice->xsize]),
-             &(tbuf[i * nx2]), 
-             nxs);
-      memcpy(&(buf[(2 * j * slice->xsize)]),
-             &(tbuf[(i * nx2)+slice->xsize]),sizeof(float)*2);
-    }
-    /* Now start at the FFT origin and move bottom half of FFT into the
-       upper right of new array */
-    for(i = 0; i < y2; i++, j++){
-      memcpy(&(buf[(2 * j * slice->xsize) + slice->xsize]),
-             &(tbuf[i * nx2]),
-             nxs);
-      memcpy(&(buf[(2 * j * slice->xsize)]),
-             &(tbuf[(i * nx2)+slice->xsize]),sizeof(float)*2);
-           
-    }
+    /* 7/16/13: deleted the old set of operations, painfully reproduced with mirrored 
+       image load in 3dmod */
 
-    /* Copy each row after the first point to the mirror row in Y, in
-       inverse order.  But it has to shift by one, so copy the bottom row */
-    for(j = 1 ; j < slice->ysize; j++)
-      for(k = slice->xsize - 2,i = 2; i < slice->xsize; i++,k-=2){
-        buf[i+(slice->xsize*2*j)] = 
-          buf[slice->xsize+k + (slice->xsize*2*(slice->ysize - j))];
-        buf[++i + (slice->xsize*2*j)] = 
-          buf[slice->xsize+ k+1 + (slice->xsize*2*(slice->ysize - j))];
-      }
-    memcpy(&(buf[2]), &(buf[2 + 2 * slice->xsize]), 
-             (slice->xsize - 2) * sizeof(float));
-    free(tbuf);
-#endif
-
-  }else{
+  } else {
 
     /* Inverse FFT: first convert to float */
     sliceComplexFloat(slice); 
 
-    /* If even length, it is old-style mirrored; reduce it */
-    if (!(slice->xsize % 2))
-      sliceReduceMirroredFFT(slice);
+    /* No longer reduce old-style mirrored */
 
     /* Unwrap the lines in any case then take the FFT */
-    sliceWrapFFTLines(slice);
+    sliceWrapFFTLines(slice, 1);
     /*  fprintf(stderr, "unwrapped\n");
     for (j = 0; j < slice->ysize; j++) {
       for (i = 0; i < 2 * slice->xsize; i++)
