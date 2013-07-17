@@ -140,7 +140,9 @@ Fourier transforms are stored as complex floats.  The 2D or 3D transform of a
 nx * ny * nz image file has dimensions nx / 2 + 1 * ny * nz.  The origin (0
 spatial frequency) is at (0, ny / 2) on each plane of a 2D transform, and at
 (0, ny / 2, nz / 2) in a 3D transform, where coordinates are numbered from 0
-and each division rounds downward to an integer.
+and each division rounds downward to an integer.  The frequencies at the first
+and last lines of the transform are -int(ny / 2) / ny and 
+int((ny - 1) / 2) / ny, respectively, and similarly in Z for a 3D transform.
 
 Deviations from the MRC standard are: mode 6 for unsigned short integers, mode
 16 for RGB data, and the extended header defined by next, nint, and nreal.
