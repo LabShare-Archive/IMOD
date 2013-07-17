@@ -768,28 +768,35 @@ int sliceMirror(Islice *s, char axis)
 }
 
 /*!
- * Wraps the lines of an FFT in slice [s] to bring the origin to the center
- * from the first line, or back.  Returns 1 for improper mode or 2 for memory
- * error.
+ * Wraps the lines of an FFT in slice [s] to bring the origin to the center from the 
+ * first line if [direction] is 0, or back otherwise.  Returns 1 for improper mode,
+ * 2 for memory error, or 3 for a complex short slice with odd size in Y.
  */
-int sliceWrapFFTLines(Islice *s)
+int sliceWrapFFTLines(Islice *s, int direction)
 {
   int pixsize, i, ind1, ind2;
   unsigned char *buf;
   int nx = s->xsize;
   int ny = s->ysize;
     
-  if (s->mode == MRC_MODE_COMPLEX_FLOAT)
+  if (s->mode == MRC_MODE_COMPLEX_FLOAT) {
     pixsize = 8;
-  else if (s->mode == MRC_MODE_COMPLEX_SHORT)
+  } else if (s->mode == MRC_MODE_COMPLEX_SHORT) {
     pixsize = 4;
-  else
+    if (ny % 2)
+      return 3;
+  } else
     return 1;
 
   buf = (unsigned char *)malloc(pixsize * nx);
   if (!buf)
     return 2;
+  if (pixsize == 8) {
+    wrapFFTslice(s->data.f, buf, nx, ny, direction);
+    return 0;
+  }
 
+  /* Swap lines in complex short slice with old code for even ny */
   for (i = 0; i < ny / 2; i++) {
     ind1 = i * nx * 2;
     ind2 = (i + ny / 2) * nx * 2;
