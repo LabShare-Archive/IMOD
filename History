@@ -1,18 +1,24 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/17/13: Made Imodfindbeads able to analyze for bead diameter in averaged bead
+and adjust parameters for a significantly different size (good only for cryo).
+Autofidseed has an option to apply this and use the new size for tracking;
+Batchruntomo will use the new size for tracking too.
+
 7/17/13: Made processchunks set a thread limit of 1 by default unless running
 a single com file or running with GPU option, with a new option to set the
 limit higher.
 
-7/16/13: Switched to FFTW for Fourier transforms in most distributions, and changed
-IMOD FFT routines to produce the same transforms.  2D transforms are now
-complex conjugates of what they were.  3D transforms are now correct and no
-longer are mirror images in the XZ plane.  Switched to array allocation in
-Fftrans and Enhance and eliminated used of disk-based routines for large
-images.  Eliminated broken disk-based 3D FFT from Clip.  Changed the way Clip
-writes transform files when Y or Z is odd to put data in proper order, made
-Fftrans work properly and produce same format of output in case of odd sizes.
-Eliminated ability to read old mirrored FFT files.
+7/16/13: FFTs: Switched to FFTW for Fourier transforms in most distributions,
+which will use multiple threads depending on transform size.  Changed IMOD FFT
+routines to produce the same transforms.  2D transforms are now complex
+conjugates of what they were.  3D transforms are now correct and no longer are
+mirror images in the XZ plane.  Switched to array allocation in Fftrans and
+Enhance and eliminated used of disk-based routines for large images.
+Eliminated broken disk-based 3D FFT from Clip.  Changed the way Clip writes
+transform files when Y or Z is odd to put data in proper order, made Fftrans
+work properly and produce same format of output in case of odd
+sizes. Eliminated ability to read old mirrored FFT files.
 FFT's ARE NOW INCOMPATIBLE WITH ONES FROM PREVIOUS VERSIONS.
 
 7/8/13: Added Copytomocoms option to specify bi-directional tilt series so
