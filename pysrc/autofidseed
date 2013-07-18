@@ -345,7 +345,7 @@ targetToGuessFrac = 0.25
 targetToAverageFB = 0.33
 targetToStorageFB = 2.0
 kernelSigmaDefault = 0.5   # THE DEFAULT IN BEADTRACK
-newBeadSize = None
+newBeadSize = 0
 
 # Extensions for files that are always cleaned up, files that are left for resuming
 # and files that are left for user edification only.  Make all extensions unique
@@ -648,7 +648,7 @@ if oldValid:
    numPeakArr = optionValue(infoLines, 'NumPeaks', 1)
    numSeedArr = optionValue(infoLines, 'NumViews', 1)
    viewEnterInfo = optionValue(infoLines, 'ViewsEntered', 3)
-   adjSizeArr = optionValue(infoLines, 'AdjustSizes', 1)
+   adjSizeArr = optionValue(infoLines, 'AdjustSizes', 2)
 
    # Need to check contents of track.com if it doesn't match time
    trackMatches = False
@@ -674,7 +674,7 @@ if oldValid:
        (numSeedArr and numPeakArr and \
            ((not viewsEntered and not viewEnterInfo) or \
                (viewsEntered and numSeedArr[0] == numSeedViews))) and \
-       adjSizeArr and adjSizeArr[0] == adjustSize and \
+       adjSizeArr and int(round(adjSizeArr[0])) == adjustSize and \
        ((boundInfo and boundInfo == boundModel and boundTimeArr and \
             boundMtime == boundTimeArr[0]) or (not boundInfo and boundModel == ''))
 
@@ -706,6 +706,9 @@ if oldValid:
    # Adjust number of seed views if resuming
    if oldValid:
       numSeedViews = numSeedArr[0]
+      if len(adjSizeArr) > 1 and adjSizeArr[1] > 0:
+         prnstr('Adjusted parameters in previous run for new bead size of ' +
+                str(adjSizeArr[1]))
 
 # If making a new info file with default name, make sure current directory is writable
 if defaultInfo and not oldValid and not os.access('.', os.W_OK):
@@ -863,7 +866,7 @@ if not oldValid:
               'NumPeaks ' + str(numPeaksTot),
               'NumViews ' + str(numSeedViews),
               'ViewsEntered ' + str(viewsEntered),
-              'AdjustSizes ' + str(adjustSize)]
+              fmtstr('AdjustSizes {} {}', adjustSize, newBeadSize)]
    if boundModel:
       newinfo += ['BoundFile ' + boundModel, 'BoundTime ' + str(boundMtime)]
    writeTextFile(infoName, newinfo)
