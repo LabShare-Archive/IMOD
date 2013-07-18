@@ -142,7 +142,7 @@ def checkRenameStack(stack):
 # Move a stack to the dataset directory
 def deliverStack(axis):
    stackRoot = setName + axis
-   sourceRoot = os.path.join(currentDirs[0], stackRoot + '.')
+   sourceRoot = os.path.join(deliverFromDir, stackRoot + '.')
    source = sourceRoot + 'st'
    dest = os.path.join(datasetDir, stackRoot + '.st')
 
@@ -152,7 +152,7 @@ def deliverStack(axis):
       source = sourceRoot + altExtension
       if not os.path.exists(source):
          abortSet('Stack file ' + stackRoot + ' does not exist in ' + \
-                     currentDirs[0] + ' with either extension .st or .' + altExtension)
+                     deliverFromDir + ' with either extension .st or .' + altExtension)
          return 1
       renaming = True
 
@@ -176,7 +176,7 @@ def deliverStack(axis):
          os.rename(source, dest)
       except OSError:
          abortSet('Error moving metadata file ' + setName + ext + '.mdoc from ' + \
-                     currentDirs[0] + ' to ' + datasetDir)
+                     deliverFromDir + ' to ' + datasetDir)
          return 1
 
    return 0
@@ -1306,6 +1306,35 @@ def makeSeedAndTrack(talines):
          printTaggedMessages('autofidseed' + axisLet + '.log', standardTags +
                              [('candidate points, including', 4), ('Final:   total', 0)])
 
+         # See if the bead size changed significantly and switch to it
+         if lookupDirective(comPrefix + 'autofidseed', 'autofidseed.AdjustSizes', 0,
+                            BOOL_VALUE):
+            afsLines = readTextFileReportErr('autofidseed' + axisLet + '.log')
+            if not afsLines:
+               return 1
+            newBeadSize = None
+            for line in afsLines:
+               if line.startswith('Adjusted parameters'):
+                  try:
+                     newBeadSize = float(line.split()[-1]) * coarseBinning
+                  except ValueError:
+                     abortSet('Converting new bead size found by imodfindbeads to float')
+                     return 1
+            if newBeadSize:
+               diff = math.fabs(newBeadSize - fidSizePix) / fidSizePix
+
+               # Significantly means a 5% change.  Watch out, track.com was already
+               # modified so apply earlier change to lines instead of rereading it
+               if diff < 0.95 or diff > 1.05:
+                  prnstr('Changing the unbinned bead diameter for tracking to ' +
+                         str(newBeadSize))
+                  sedcom = [sedModify('BeadDiameter', newBeadSize)] + \
+                      sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputModel')
+                  if pysed(sedcom, btlines, 'track' + axisCom, retErr=True):
+                     abortSet('Error modifying track' + axisCom)
+                     return 1
+      
+
    # Run bead tracking indicated number of times
    if not needStep(5):
       numBTRuns = 0
@@ -2090,8 +2119,9 @@ numCurrent = PipNumberOfEntries('CurrentLocation')
 for ind in range(numCurrent):
    currentDirs.append(PipGetString('CurrentLocation', ''))
 deliverDir = PipGetString('DeliverToDirectory', '')
-if deliverDir and numCurrent != 1:
-   exitError('The -current option must be entered once if -deliver is entered')
+if deliverDir and numCurrent != 1 and numCurrent != numSets:
+   exitError('The -current option must be entered either once, or once per data set, ' +\
+                'if -deliver is entered')
 
 # Get the root names if any
 numRootOpts = PipNumberOfEntries('RootName')
@@ -2226,8 +2256,10 @@ for dfileInd in range(numSets):
          prnstr('Directives all seem OK in that file')
          continue
 
-   # Deliver stacks to dataset directory
+   # Deliver stacks to dataset directory, from the source current dir or the one for this
+   # data set
    if deliverDir:
+      deliverFromDir = currentDirs[min(dfileInd, len(currentDirs) - 1)]
       if dualAxis and doOneAxis < 2 and deliverStack('a'):
          continue
       if dualAxis and doOneAxis != 1 and deliverStack('b'):
