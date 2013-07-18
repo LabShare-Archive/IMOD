@@ -77,6 +77,7 @@ comparam.autofidseed.autofidseed.TargetDensityOfBeads,Density of beads to find p
 runtime.SeedFinding.any.rawBoundaryModel,Model drawn on raw stack with areas to in/exclude,File,Y,,NE,,,
 comparam.autofidseed.autofidseed.ExcludeInsideAreas,Whether to exclude areas,Bool,Y,Y,SD,,,
 comparam.autofidseed.autofidseed.MinGuessNumBeads,Minimum beads present per section,Int,Y,,SO,,,
+comparam.autofidseed.autofidseed.AdjustSizes,Adjust parameters based on average bead size,Bool,Y,Y,SO,,,
 ,,,,,,,,
 RAPTOR parameters,,,,,,,,
 runtime.RAPTOR.any.useAlignedStack,Whether to use aligned stack in RAPTOR,Bool,Y,Y,SD,,,
