@@ -1224,8 +1224,8 @@ void FindBeads::averageBeads(int izStart, int izEnd)
                "adjusted\n");
       } else {
 
-        // autofindseed is looking for "Adjusting parameters" at start of line
-        printf("Adjusting parameters based on a new bead size of %.2f\n", newDiam);
+        // autofindseed is looking for "Adjusted parameters" at start of line
+        printf("Adjusted parameters based on a new bead size of %.2f\n", newDiam);
         
         // Save the bead, remake all the arrays, and copy average into new array with 
         // trimming or padding
