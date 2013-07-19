@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/18/13: IMOD_4-6-25
 7/17/13: Made Imodfindbeads able to analyze for bead diameter in averaged bead
 and adjust parameters for a significantly different size (good only for cryo).
 Autofidseed has an option to apply this and use the new size for tracking;
