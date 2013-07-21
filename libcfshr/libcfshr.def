@@ -59,6 +59,7 @@ EXPORTS
 	PIPENABLEENTRYOUTPUT
 	ilistPop
 	AdocGetTwoFloats
+	arrayMinMaxMeanSd
 	b3dFwrite
 	PIPGETBOOLEAN
 	sliceEdgeMean
@@ -69,6 +70,7 @@ EXPORTS
 	ADOCSETTWOINTEGERS
 	reduceByBinning
 	polynomialFit
+	ICLAVGSD
 	ilistRemove
 	PIPGETINTEGER
 	ADOCGETNUMBEROFSECTIONS
@@ -185,6 +187,7 @@ EXPORTS
 	adjustPieceOverlap
 	AdocGetThreeIntegers
 	conjugateProduct
+	arrayMinMaxMean
 	XCorrSetCTFnoScl
 	surfaceSort
 	IMODGETSTAMP
@@ -332,6 +335,7 @@ EXPORTS
 	PIPNEXTARG
 	ADOCADDSECTION
 	DTVALUE
+	ICLDEN
 	fgetline
 	exitError
 	betaFunc
