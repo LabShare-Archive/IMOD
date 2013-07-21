@@ -125,7 +125,13 @@ C
 c           print *,'reading section'
           CALL IRDPAS(1,ARRAY,NX2,NY,0,NX1,0,NY1,*99)
 c           print *,'doing filter'
-          CALL FILTER(ARRAY,NX,NY,CTF,DELTA)
+          CALL TODFFT(ARRAY,NX,NY,0)
+C       
+C           APPLY FILTER FUNCTION
+C           
+          call filterpart(array,array,nx,ny,ctf,delta)
+C       
+          CALL TODFFT(ARRAY,NX,NY,1)
 c           dnm: every mode but 2 needs rescaling
           if(mode.ne.2)then
             CALL ISETDN(ARRAY,NX2,NY,mode,1,NX,1,NY,DMIN,DMAX,DMEAN)

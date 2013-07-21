@@ -15,6 +15,8 @@
 
 #ifdef F77FUNCAP
 #define avgsd AVGSD
+#define iclden ICLDEN
+#define iclavgsd ICLAVGSD
 #define sums_to_avgsd SUMS_TO_AVGSD
 #define sums_to_avgsd8 SUMS_TO_AVGSD8
 #define lsfit LSFIT
@@ -26,6 +28,8 @@
 #define lsfit3 LSFIT3
 #else
 #define avgsd avgsd_
+#define iclden iclden_
+#define iclavgsd iclavgsd_
 #define lsfit lsfit_
 #define lsfits lsfits_
 #define lsfitpred lsfitpred_
@@ -138,6 +142,95 @@ void sums_to_avgsd8(double *sx8, double *sxsq8, int *n1, int *n2, float *avg,
                     float *sd)
 {
   sumsToAvgSDdbl(*sx8, *sxsq8, *n1, *n2, avg, sd);
+}
+
+/*!
+ * Computes the minimum [DMIN], maximum [dmax], and mean [dmean] from data in [array],
+ * dimensioned [nx] by [ny], for X indices from [ix0] to [ix1] and Y indices from [iy0]
+ * to [iy1], inclusive (numbered from 0 when calling from C).
+ */
+void arrayMinMaxMean(float *array, int nx, int ny, int ix0, int ix1, int iy0, int iy1,
+                     float *dmin, float *dmax, float *dmean)
+{
+  float den, sumTmp;
+  float *arrTmp;
+  double sumDbl;
+  int ix, iy;
+
+  sumDbl = 0.;
+  *dmin = 1.e37;
+  *dmax = -1.e37;
+  for (iy = iy0; iy <= iy1; iy++) {
+    sumTmp = 0.;;
+    arrTmp = array + (size_t)iy * nx + ix0;
+    for (ix = ix0; ix <= ix1; ix++) {
+      den = *arrTmp++;
+      sumTmp = sumTmp + den;
+      *dmin = B3DMIN(*dmin, den);
+      *dmax = B3DMAX(*dmax, den);
+    }
+    sumDbl += sumTmp;
+  }
+  *dmean = sumDbl / ((double)(ix1 + 1 - ix0) * (iy1 + 1 - iy0)); 
+}
+
+/*!
+ * Fortran wrapper for @arrayMinMaxMean with [ix0], [ix1], [iy0], and [iy1] numbered 
+ * from 1 instead of 0.
+ */
+void iclden(float *array, int *nx, int *ny, int *ix0, int *ix1, int *iy0, int *iy1,
+            float *dmin, float *dmax, float *dmean)
+{
+  arrayMinMaxMean(array, *nx, *ny, *ix0 - 1, *ix1 - 1, *iy0 - 1, *iy1 - 1, dmin, dmax,
+                  dmean);
+}
+
+/*!
+ * Computes the minimum [DMIN], maximum [dmax], mean [avg], and standard deviation [SD]
+ * from data in [array], dimensioned [nx] by [ny], for X indices from [ix0] to [ix1] and 
+ * Y indices from [iy0] to [iy1], inclusive (numbered from 0 when calling from C).  It
+ * also returns the sum in [sumDbl] and sum of squares in [sumSqDl].
+ */
+void arrayMinMaxMeanSd(float *array, int nx, int ny, int ix0, int ix1, int iy0, int iy1,
+                       float *dmin, float *dmax, double *sumDbl, double *sumSqDbl,
+                       float *avg, float *SD)
+{
+  float den;
+  float *arrTmp;
+  double sumTmp, sumTmpSq;
+  int ix, iy;
+
+  *sumDbl = 0.;
+  *sumSqDbl = 0.;
+  *dmin = 1.e37;
+  *dmax = -1.e37;
+  for (iy = iy0; iy <= iy1; iy++) {
+    sumTmp = 0.;;
+    sumTmpSq = 0.;
+    arrTmp = array + (size_t)iy * nx + ix0;
+    for (ix = ix0; ix <= ix1; ix++) {
+      den = *arrTmp++;
+      sumTmp = sumTmp + den;
+      sumTmpSq = sumTmpSq + den * den;
+      *dmin = B3DMIN(*dmin, den);
+      *dmax = B3DMAX(*dmax, den);
+    }
+    *sumDbl += sumTmp;
+    *sumSqDbl += sumTmpSq;
+  }
+  sumsToAvgSDdbl(*sumDbl, *sumSqDbl, ix1 + 1 - ix0, iy1 + 1 - iy0, avg, SD);
+}
+
+/*!
+ * Fortran wrapper for @arrayMinMaxMeanSd with [ix0], [ix1], [iy0], and [iy1] numbered 
+ * from 1 instead of 0.
+ */
+void iclavgsd(float *array, int *nx, int *ny, int *ix0, int *ix1, int *iy0, int *iy1,
+              float *dmin, float *dmax, double *sumDbl, double *sumSqDbl, float *avg,
+              float *SD)
+{
+  arrayMinMaxMeanSd(array, *nx, *ny, *ix0 - 1, *ix1 - 1, *iy0 - 1, *iy1 - 1, dmin, dmax,
+                    sumDbl, sumSqDbl, avg, SD);
 }
 
 /*!
