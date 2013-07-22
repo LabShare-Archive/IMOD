@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/22/13: Added an option for the PEET Help pages to the eTomo menus.
+(Bug# 1650)
+
 7/18/13: IMOD_4-6-25
 7/17/13: Made Imodfindbeads able to analyze for bead diameter in averaged bead
 and adjust parameters for a significantly different size (good only for cryo).
