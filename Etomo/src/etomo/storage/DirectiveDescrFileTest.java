@@ -151,7 +151,6 @@ public class DirectiveDescrFileTest extends TestCase {
     assertEquals("firstinc", "setupset.copyarg.firstinc", iterator.getName());
     assertEquals("firstinc", "First tilt angle and tilt angle increment",
         iterator.getDescription());
-    System.out.println("B:iterator.getValueType():" + iterator.getValueType());
     assertTrue("firstinc",
         iterator.getValueType() == DirectiveValueType.FLOATING_POINT_PAIR);
     assertTrue("firstinc", iterator.isBatch());
