@@ -120,7 +120,7 @@ public final class PeetParserParam implements CommandDetails {
     String[] command = new String[3];
     command[0] = "sh";
     String particleDir = EnvironmentVariable.INSTANCE.getValue(manager,
-        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY);
+        manager.getPropertyUserDir(), EnvironmentVariable.PARTICLE_DIR, AxisID.ONLY);
     if (particleDir == null || particleDir.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog(manager,
           "The environment variables PARTICLE_DIR has not been set.  Set it "
@@ -131,8 +131,8 @@ public final class PeetParserParam implements CommandDetails {
       return null;
     }
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(manager,
-        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"),
-        PROCESS_NAME.toString());
+        manager.getPropertyUserDir(), EnvironmentVariable.PARTICLE_DIR, AxisID.ONLY),
+        "bin"), PROCESS_NAME.toString());
     command[1] = commandFile.getAbsolutePath();
     command[2] = prmFile.getName();
     if (debug) {
