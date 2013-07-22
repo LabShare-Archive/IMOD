@@ -10,7 +10,7 @@ setupset.copyarg.pixel,Pixel size of images in nanometers,Float,Y,Y,,Overrides v
 setupset.copyarg.gold,Size of gold beads in nanometers,Float,Y,Y,SD,,Fiducial size (nm),
 setupset.copyarg.rotation,Angle from the vertical to the tilt axis in raw images,Float,Y,Y,,Overrides value from scanHeader,Tilt axis rotation angle,
 setupset.copyarg.brotation,Angle from the vertical to the tilt axis for B axis,Float,Y,,,Overrides value from scanHeader,,
-setupset.copyarg.firstinc,First tilt angle and tilt angle increment,2 Float,Y,,,,"First tilt angle, increment",
+setupset.copyarg.firstinc,First tilt angle and tilt angle increment,2 Float,Y,,,,First tilt angle & increment,
 setupset.copyarg.bfirstinc,First tilt angle and tilt angle increment for B axis,2 Float,Y,,,,,
 setupset.copyarg.userawtlt,Take tilt angle from a .rawtlt file for A or only axis,Bool,Y,Y,SO,,Use existing .rawtlt file,
 setupset.copyarg.buserawtlt,Take tilt angle from a .rawtlt file for B axis,Bool,Y,Y,SO,,,
@@ -53,7 +53,7 @@ comparam.xcorr.tiltxcorr.FilterRadius2,High frequency filter cutoff,Float,Y,Y,SD
 comparam.xcorr.tiltxcorr.FilterSigma2,High frequency filter falloff,Float,Y,Y,SD,,High frequency filter rolloff sigma,
 runtime.Fiducials.any.fiducialless,Choice to use fiducialless alignment,Bool,Y,Y,SO,,Use fiducialless alignment,
 comparam.prenewst.newstack.BinByFactor,Coarse aligned stack binning,Int,Y,Y,SD,,Prealigned stack binning (single-frame),
-comparam.prenewst.newstack.AntialiasFilter,Filter to use for antialiased size reduction,Int,Y,Y,SD,,"Antialiasing filter (5 or 6, 0 for none)",
+comparam.prenewst.newstack.AntialiasFilter,Filter to use for antialiased size reduction,Int,Y,Y,SD,,Filter for anti-aliased reduction,0: none; -1: default; 5: Lanczos 2; 6: Lanczos 3; 2: Blackman; 3: Triangle; 4: Mitchell
 comparam.prenewst.newstack.ModeToOutput,0 to convert to bytes; empty not to,Int,Y,Y,SO,,0 to convert to bytes (blank not to),
 comparam.preblend.blendmont.BinByFactor,Coarse aligned stack binning,Int,Y,Y,SD,,Prealigned stack binning (montage),
 ,,,,,,,,
