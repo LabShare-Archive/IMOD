@@ -82,8 +82,8 @@ public final class VersionControl {
     LogFile.ReaderId id = null;
     try {
       peetVersionFile = LogFile.getInstance(
-          new File(EnvironmentVariable.INSTANCE.getValue(null, null, "PARTICLE_DIR",
-              AxisID.ONLY)), "PEETVersion.txt");
+          new File(EnvironmentVariable.INSTANCE.getValue(null, null,
+              EnvironmentVariable.PARTICLE_DIR, AxisID.ONLY)), "PEETVersion.txt");
       id = peetVersionFile.openReader();
       String version = peetVersionFile.readLine(id);
       if (version != null && !version.matches("\\s*")) {
