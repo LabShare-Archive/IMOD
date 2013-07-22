@@ -466,8 +466,8 @@ program alterheader
   go to 30
   !
   ! FFT: restore a real file
-22 if (mode .ne. 2 .or. mod(nx, 2) .ne. 0 .or. mod(nx / 2, 2) .ne. 1) then
-    print *,'Must be mode 2 and NX must (odd #) * 2 to change file to fft'
+22 if (mode .ne. 2 .or. mod(nx, 2) .ne. 0) then
+    print *,'Must be mode 2 and NX must be even to change file to fft'
     go to 30
   endif
   call ialmod(2, 4)

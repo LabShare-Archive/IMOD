@@ -66,7 +66,7 @@ shifts and will use this information to avoid finding beads at the edge of a
 filled area that has no image data.
 
 [Field = ImagesAreBinned]
-short = 
+short = imagebinned
 type = I
 usage = The binning of the images relative to the original data (default 1)
 tooltip = 
@@ -124,6 +124,23 @@ manpage = Size of beads in images scaled down for filtering; this entry
 together with the bead size determine the amount of scaling.  In tests,
 values of 7 to 10 have been found to give the best detection with Sobel
 filter.  The default value is 8.
+
+[Field = AdjustSizes]
+short = adjust
+type = B
+usage = Change size-based parameters using measured size of averaged bead
+tooltip = 
+manpage = Change all size-based parameters using the measured size of the averaged
+bead.  After averaging selected beads, the program will estimate the bead
+diameter by forming a radial average, finding the radius where the density falls
+off the fastest, fitting a line to nearby points with sufficiently high
+gradient, and finding the intersection of that line with the background
+density at the edge of the average.  If the change is more than 5%, the
+program will add a third pass through the data.  If the change is more than a
+factor of 1.6, the change in size will be rejected as implausible.  This
+method does not give the right diameter for gold on plastic sections, so this
+option should be used only for cryo-samples or other samples taken with
+significant underfocus.
 
 [Field = MinInterpolationFactor]
 short = interpmin

@@ -1,20 +1,20 @@
 #
-# Makefile for libcfft.a
+# Makefile for libcfft
 #
-#  $Author$
 #
-#  $Date$
-#
-#  $Revision$
+# $Id$
 
+# These are the objects for IMOD FFT routines.
+CFFTOBJS = cmplft.$(O) hermft.$(O) odfft.$(O) srfp.$(O) diprp.$(O) mdftkd.$(O)\
+           realft.$(O) todfft.$(O) thrdfft.$(O)
+
+# configure defines CFFTOBJS = fftw_fwrap.$(OBJEXT) to make the FFTW wrapper instead
 include ../configure
 
 LIBI   = libifft.$(DLLEXT)
 O     = $(OBJEXT)
 CFLAGS = $(LIBCFLAGS)
 
-CFFTOBJS = cmplft.$(O) hermft.$(O) odfft.$(O) srfp.$(O) diprp.$(O) mdftkd.$(O)\
-           realft.$(O) todfft.$(O) thrdfft.$(O)
 
 all : $(LIBI)
 

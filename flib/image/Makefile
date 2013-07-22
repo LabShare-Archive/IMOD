@@ -96,8 +96,8 @@ extstack$(E): extstack.$(O)
 fixboundaries$(E): fixboundaries.$(O)
 	$(FC) -o fixboundaries fixboundaries.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-fftrans$(E): fftrans.$(O) giantfft.$(O)
-	$(FC) -o fftrans fftrans.$(O) giantfft.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+fftrans$(E): fftrans.$(O)
+	$(FC) -o fftrans fftrans.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 findcontrast$(E): findcontrast.$(O)
 	$(FC) -o findcontrast findcontrast.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -211,7 +211,4 @@ rotatevol.$(O): rotmatwarp.$(O)
 matchvol.$(O): rotmatwarp.$(O)
 warpvol.$(O): rotmatwarp.$(O)
 stitchalign.$(O): stitchvars.$(O)
-giantfft.$(O): $(INCDIR)/ftbuf.inc
-enhance.$(O): $(INCDIR)/ftbuf.inc
-fftrans.$(O): $(INCDIR)/ftbuf.inc
 

@@ -37,6 +37,16 @@ syntax cannot be used to specify multiple CPUs.  For example,
 "tubule:2:1,eclipse:2,druid" would use two GPUs on tubule, a specific one on
 eclipse, and the best or only one on druid.
 
+[Field = O]
+type = I
+usage = Set the thread limit to the given number or do not set if 0
+tooltip = 
+manpage = Set the limit on the number of threads processes will run in
+parallel by setting environment variable OMP_NUM_THREADS to the given number.
+A value of 0 means do not limit multiple threads.  The default is 0 (no limit)
+when a single file is run with -s or when the -G option is given; otherwise
+the default is 1.
+
 [Field = g]
 type = B
 usage = Go process, without asking for confirmation after probing machines

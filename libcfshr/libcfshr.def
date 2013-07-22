@@ -30,6 +30,7 @@ EXPORTS
 	PARWRTGETREGION
 	MAKEMODELBEAD
 	convexBound
+	indicesForFFTwrap
 	PIPNUMBEROFARGS
 	CHECKLIST
 	cblas_ddot
@@ -58,6 +59,7 @@ EXPORTS
 	PIPENABLEENTRYOUTPUT
 	ilistPop
 	AdocGetTwoFloats
+	arrayMinMaxMeanSd
 	b3dFwrite
 	PIPGETBOOLEAN
 	sliceEdgeMean
@@ -68,6 +70,7 @@ EXPORTS
 	ADOCSETTWOINTEGERS
 	reduceByBinning
 	polynomialFit
+	ICLAVGSD
 	ilistRemove
 	PIPGETINTEGER
 	ADOCGETNUMBEROFSECTIONS
@@ -111,6 +114,7 @@ EXPORTS
 	dsyevh3
 	LSFIT
 	LSFIT2
+	wrapFFTslice
 	dsytrd3
 	LSFITS
 	SPARSEPROD
@@ -183,6 +187,7 @@ EXPORTS
 	adjustPieceOverlap
 	AdocGetThreeIntegers
 	conjugateProduct
+	arrayMinMaxMean
 	XCorrSetCTFnoScl
 	surfaceSort
 	IMODGETSTAMP
@@ -330,6 +335,7 @@ EXPORTS
 	PIPNEXTARG
 	ADOCADDSECTION
 	DTVALUE
+	ICLDEN
 	fgetline
 	exitError
 	betaFunc
@@ -403,6 +409,7 @@ EXPORTS
 	GAUSSJDET
 	PipGetFloatArray
 	statMatrices
+	WRAPFFTSLICE
 	slicePutVal
 	ADOCOPENIMAGEMETADATA
 	b3dError

@@ -7,13 +7,8 @@ include ../../configure
 FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
-OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \
- icalc_matrix.$(O) iclcdn.$(O) iclden.$(O) iclscl.$(O) inside.$(O) \
- interp.$(O) qdinterp.$(O) \
- strupcase.$(O) iclavgsd.$(O) b3dxor.$(O)
-
-bigfft.$(O): $(INCDIR)/ftbuf.inc
-bigfilt.$(O): $(INCDIR)/ftbuf.inc
+OBJS =  cinterp.$(O) icalc_angles.$(O) icalc_matrix.$(O) iclcdn.$(O) inside.$(O) \
+ strupcase.$(O) b3dxor.$(O)
 
 
 all: $(OBJS)

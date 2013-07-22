@@ -34,6 +34,18 @@ def rollLogs():
       lasterr = thiserr
 
 
+# Return a cygwin path if in cygwin
+def cygwinPath(path):
+   if 'cygwin' in sys.platform:
+      try:
+         cygtemp = runcmd('cygpath "' + path + '"')
+         if cygtemp != None and len(cygtemp) > 0:
+            return cygtemp[0].strip()
+      except Exception:
+         pass
+   return path
+
+
 # load System Libraries
 import sys, os, os.path, re, glob, datetime, fnmatch, getpass, platform
 
@@ -41,8 +53,10 @@ import sys, os, os.path, re, glob, datetime, fnmatch, getpass, platform
 # Setup runtime environment - no need for nohup here
 if os.getenv('IMOD_DIR') != None:
    IMOD_DIR = os.environ['IMOD_DIR']
-   os.environ['PATH'] = os.path.join(IMOD_DIR, 'bin') + os.pathsep + os.environ['PATH']
    sys.path.insert(0, os.path.join(IMOD_DIR, 'pylib'))
+   from imodpy import *
+   os.environ['PATH'] = os.path.join(cygwinPath(IMOD_DIR), 'bin') + os.pathsep + \
+                        os.environ['PATH']
 else:
    sys.stdout.write("The IMOD_DIR environment variable has not been set\n" + \
                        "Set it to point to the directory where IMOD is installed\n")
@@ -50,7 +64,6 @@ else:
 
 #
 # load IMOD Libraries
-from imodpy import *
 from pip import setExitPrefix
 setExitPrefix(prefix)
 setLibPath()
@@ -59,16 +72,28 @@ ETOMO_MEM_LIM = '128m'
 if os.getenv('ETOMO_MEM_LIM') != None:
    ETOMO_MEM_LIM = os.environ['ETOMO_MEM_LIM']
 if os.getenv('IMOD_JAVADIR') != None:
-   os.environ['PATH'] = os.path.join(os.environ['IMOD_JAVADIR'], 'bin') + \
-                               os.pathsep + os.environ['PATH']
+   javaDir = cygwinPath(os.environ['IMOD_JAVADIR'])
+   os.environ['PATH'] = os.path.join(javaDir, 'bin') + os.pathsep + os.environ['PATH']
 
 # Test for appropriate java run time
 try:
    verslines = runcmd('java -version', None, None, 'stdout')
 except ImodpyError:
-   prnstr("""There is no java runtime in the current search path.  A Java runtime
+   noJava = True
+   winNative = 'C:/Windows/Sysnative'
+   if ('cygwin' in sys.platform or 'win32' in sys.platform) and \
+          os.path.exists(winNative):
+      os.environ['PATH'] = cygwinPath(winNative) + os.pathsep + os.environ['PATH']
+      try:
+         verslines = runcmd('java -version', None, None, 'stdout')
+         noJava = False
+      except ImodpyError:
+         pass
+
+   if noJava:
+      prnstr("""There is no java runtime in the current search path.  A Java runtime
 environment needs to be installed and the command search path needs
-to be defined to locate the java command.""")
+to be defined or IMOD_JAVADIR set to locate the java command.""")
    sys.exit(1)
 
 for line in verslines:

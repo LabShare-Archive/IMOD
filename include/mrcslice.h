@@ -113,7 +113,7 @@ extern "C" {
   int     sliceResizeIn(Islice *sl, int x, int y);
   Islice *mrc_slice_resize(Islice *slin, int nx, int ny);
   int     sliceMirror(Islice *s, char axis);
-  int     sliceWrapFFTLines(Islice *s);
+  int     sliceWrapFFTLines(Islice *s, int direction);
   int     sliceReduceMirroredFFT(Islice *s);
 
   int     sliceWriteMRCfile(char *filename, Islice *slice);

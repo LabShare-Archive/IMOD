@@ -1,16 +1,7 @@
-/* Header file for C translation of FFT library */
 
-/*  $Author$
-    
-$Date$
+/* Header file for C translation of FFT library and wrapper to FFTW */
 
-$Revision$
-
-$Log$
-Revision 3.1  2004/10/24 20:47:09  mast
-Addition to package
-
-*/
+/* $Id$ */
 #ifndef CFFT_H
 #define CFFT_H
 
@@ -24,12 +15,18 @@ extern "C" {
 #define odfft ODFFT
 #define todfft TODFFT
 #define thrdfft THRDFFT
+#define usingFFTW USINGFFTW
+#define niceFFTlimit NICEFFTLIMIT
 #else
 #define odfft odfft_
 #define todfft todfft_
 #define thrdfft thrdfft_
+#define usingFFTW usingFFTW_
+#define niceFFTlimit nicefftlimit_
 #endif
 
+int usingFFTW(void);
+int niceFFTlimit(void);
 void odfft(float *array, int *nxp, int *nyp, int *idirp);
 void odfftc(float *array, int nx, int ny, int idir);
 void todfft(float *array, int *nxp, int *nyp, int *idirp);

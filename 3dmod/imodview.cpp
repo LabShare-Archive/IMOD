@@ -2730,12 +2730,12 @@ static int ivwProcessImageList(ImodView *vi)
     if (!image->readSectionUShort)
       allCanReadInt = 0;
 
-    // See if mirroring of an FFT is needed:
-    // MRC complex float odd size and not forbidden by option
+    // See if mirroring of an FFT is needed: Not forbidden by option 
+    // (MRC complex float odd size not reliable, eliminated 7/16/13)
     // Set flags and increase the nx
     if (!i && (image->file == IIFILE_MRC || image->file == IIFILE_RAW) && 
         image->format == IIFORMAT_COMPLEX && image->type == IITYPE_FLOAT && 
-        image->nx % 2 && vi->li->mirrorFFT >= 0) {
+        vi->li->mirrorFFT >= 0) {
       image->mirrorFFT = 1;
       if (image->file == IIFILE_MRC) {
 
@@ -2758,7 +2758,7 @@ static int ivwProcessImageList(ImodView *vi)
         mratio = 0.;
         if (naysum  > 0.)
           mratio = mrc_read_point(fp, header, 0, midy, midz) / naysum;
-        //imodPrintStderr("mratio %f  zratio %f\n", mratio, zratio);
+        imodPrintStderr("mratio %f  zratio %f\n", mratio, zratio);
         if (zratio && mratio && mratio > 10. * zratio)
           image->mirrorFFT = 0;
         iiClose(image);

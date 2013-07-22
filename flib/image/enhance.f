@@ -62,47 +62,21 @@ C	Inverted filter	26.April.89	DNM		FOR uVAX	*
 C       Ported to unix	07.December.94  DNM		FOR SGI		*
 C									*
 C************************************************************************
-c	  $Author$
+c       $Id$
 c
-c	  $Date$
-c
-c	  $Revision$
-c
-c	  $Log$
-C
 	COMMON//NX,NY,NZ
-	include 'ftbuf.inc'
 	DIMENSION CTF(8193),NXYZ(3),MXYZ(3),TITLE(20)
-	LOGICAL LARGE
 	EQUIVALENCE (NX,NXYZ)
-	DATA LARGE/.FALSE./
-	character*80 filin,filout
-c
-c 7/7/00 CER: remove the encode's; titlech is the temp space
-c
+	character*320 filin,filout
+        real*4, allocatable :: array(:)
         character*80 titlech
-
 C
 	WRITE(6,1000)
-1000	FORMAT(' ENHANCE: GAUSSIAN BANDPASS FILTER PROGRAM  V1.13'//)
+1000	FORMAT(' ENHANCE: GAUSSIAN BANDPASS FILTER PROGRAM  V1.13',/)
 C
 	call getinout(2,filin,filout)
 	CALL IMOPEN(1,filin,'RO')
 	CALL IMOPEN(2,filout,'NEW')
-C
-C READ IN CONTROL INFO
-C
-c	CALL RETWSIZE(ISIZE,IQUOTA)
-c         here is the value of quota reported by HVEM VAX running from command
-c         line or from slow batch queue
-c	iquota = 2048
-c	JQUOTA = MAX(IQUOTA,242+(NX+2)/16,242+NY/16,321)
-c	NBUFSIZ = (JQUOTA - 240)*128
-c	IF (JQUOTA .GT. IQUOTA) 
-c     .	PRINT *,' Quota too small, must use virtual memory!!'
-c	PRINT *,' Quota= ',IQUOTA,'  Buffersize= ',NBUFSIZ
-c	  DNM 12/19/98: just set this to the true buffer size
-	nbufsiz=ibufreal
 	NY2 = NY/2
 	SIGMA1 = 0.0
 	SIGMA2 = 0.0
@@ -118,10 +92,6 @@ c	  DNM 12/19/98: just set this to the true buffer size
 1500	FORMAT(//,' SIGMAS & RADII for bandpass filter = ',4F10.4)
 	IF (IORIG .EQ. 1) WRITE(6,1600)
 1600	FORMAT(//,' ****    Origin is reset to original value ***'//)
-c
-c 7/7/00 CER: remove the encodes
-c
-c       ENCODE(80,2000,TITLE) SIGMA1,SIGMA2,RADIUS1,RADIUS2,IORIG
         write(titlech,2000) SIGMA1,SIGMA2,RADIUS1,RADIUS2,IORIG
 2000    FORMAT('ENHANCE: Bandpass Sigmas,Radii,Iorig= ',4F9.4,2X,I1)
         read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
@@ -144,34 +114,34 @@ C
 	TMIN =  1.E10
 	TMAX = -1.E10
 	TMEAN = 0.0
-c	  DNM: use the true buffer size here, it's much faster to do regular
-	IF (NX2*NY .GT. ibufreal) LARGE = .TRUE.
+c	  DNM: switch to array allocation
+        allocate(array(nx2*ny), stat = iz)
+	IF (iz .ne. 0) then
+          write(*, '(/,a)')'ERROR: enhance - failed to allocate large array for image'
+          call exit(1)
+        endif
 	DO 300 IZ = 1,NZ
 C
-	  IF (LARGE) THEN
-c   DNM added: bigfilt must use output mode 2 because it can't scale
-            if(mode.ne.2)call ialmod(2,2)
-            print *,'doing bigfilt'
-c   DNM added new parameters to fit revised format of BIGFILT
-	    CALL BIGFILT(1,2,NX,NY,CTF,DELTA,1.,0.,
-     &          -1.e10,1.e10,DMIN,DMAX,DMEAN)
-	  ELSE
-C
-c            print *,'reading section'
-	    CALL IRDPAS(1,ARRAY,NX2,NY,0,NX1,0,NY1,*99)
-c            print *,'doing filter'
-	    CALL FILTER(ARRAY,NX,NY,CTF,DELTA)
-c   dnm: every mode but 2 needs rescaling
-            if(mode.ne.2)then
-              CALL ISETDN(ARRAY,NX2,NY,mode,1,NX,1,NY,DMIN,DMAX,DMEAN)
-            else
-              CALL ICLDEN(ARRAY,NX2,NY,1,NX,1,NY,DMIN,DMAX,DMEAN)
-            endif
-c            print *,'writing section'
-c   dnm replaced with call to repack then write whole section
-	    CALL IREPAK(array,ARRAY,NX2,NY,0,NX1,0,NY1)
-            call iwrsec(2,array)
-	  END IF
+c           print *,'reading section'
+          CALL IRDPAS(1,ARRAY,NX2,NY,0,NX1,0,NY1,*99)
+c           print *,'doing filter'
+          CALL TODFFT(ARRAY,NX,NY,0)
+C       
+C           APPLY FILTER FUNCTION
+C           
+          call filterpart(array,array,nx,ny,ctf,delta)
+C       
+          CALL TODFFT(ARRAY,NX,NY,1)
+c           dnm: every mode but 2 needs rescaling
+          if(mode.ne.2)then
+            CALL ISETDN(ARRAY,NX2,NY,mode,1,NX,1,NY,DMIN,DMAX,DMEAN)
+          else
+            CALL ICLDEN(ARRAY,NX2,NY,1,NX,1,NY,DMIN,DMAX,DMEAN)
+          endif
+c           print *,'writing section'
+c           dnm replaced with call to repack then write whole section
+          CALL IREPAK(array,ARRAY,NX2,NY,0,NX1,0,NY1)
+          call iwrsec(2,array)
 C
 	  IF (DMIN .LT. TMIN) TMIN = DMIN
 	  IF (DMAX .GT. TMAX) TMAX = DMAX

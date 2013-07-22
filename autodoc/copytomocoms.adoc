@@ -121,6 +121,23 @@ usage = Complete list of tilt angles for the B axis
 tooltip = 
 manpage = 
 
+[Field = TwoDirectionsAngle]
+short = twodir
+type = F
+usage = Tilt series was bi-directional from given starting angle
+tooltip = 
+manpage = The tilt series was taken in two directions starting at the given
+angle.  The first half of the series will be defined as a separate view group
+for Tiltalign(1) and Beadtrack(1), from the first view through the first
+occurrence of the given angle.
+
+[Field = BTwoDirectionsAngle]
+short = btwodir
+type = F
+usage = Tilt series for B axis was bi-directional from given starting angle
+tooltip = 
+manpage = 
+
 [Field = ViewsToSkip]
 short = skip
 type = LI

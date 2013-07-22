@@ -5,7 +5,6 @@ LIBRARY      "libifft"
 EXPORTS
 	diprp
 	thrdfftc
-	odfftc
 	r4cftk
 	r8cftk
 	r2cftk
@@ -15,7 +14,9 @@ EXPORTS
 	srfp
 	THRDFFT
 	cmplft
+	NICEFFTLIMIT
 	r5cftk
+	USINGFFTW
 	r3cftk
 	realft
 	ODFFT

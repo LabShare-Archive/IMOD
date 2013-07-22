@@ -31,10 +31,11 @@ tooltip =
 manpage = Directory where tilt series is currently located.  This entry
 overrides the dataset directory contained in the directive file.  It can be
 used in two different ways.  If the -deliver option is entered, this option
-can be entered only once, and it must be the directory where all tilt series
-will be moved from.  If the -deliver option is not entered, then this option
-specifies the directory where the data set will be processed and must be
-entered once for each data set.
+specifies the directory where a tilt series will be moved from, and it must be
+entered either once (if all data sets are in the same place) or once for each
+data set.  If the -deliver option is not entered, then this option specifies
+the directory where the data set will be processed and must be entered once
+for each data set.
 
 [Field = DeliverToDirectory]
 short = deliver

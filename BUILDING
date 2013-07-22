@@ -66,15 +66,21 @@ think it is available.
 You need a Sun/Oracle or OpenJDK version of the Java Development Kit to build
 eTomo. Version 1.5 or higher is required and there should be no problems using
 the latest version.  On a 64-bit system, it does not matter if this is 32 or
-64-bit. This will already be available on Mac (except in OS X 10.7); it may be
+64-bit. This will already be available on Mac (except in OS X 10.7+); it may be
 available in some versions of Linux, otherwise you will have to install a
 package from Sun/Oracle; and on Windows you will have to install a package
 from Sun/Oracle.  You must place the bin of the JDK on your path.
 
 As of 4.2.25, IMOD is built with version 4 of libtiff to support large files,
-specifically tiff-4.0.0beta7.  Source for this or earlier versions is obtained
-from http://www.remotesensing.org/libtiff/.  However, it still builds with
+specifically tiff-4.0.1.  Source for this or earlier versions is obtained
+from http://www.remotesensing.org/libtiff/.  However, IMOD still builds with
 version 3 of libtiff if that is what is on your system.
+
+As of 4.6.25, IMOD can be built to use floating point FFT librarries from FFTW
+instead its own FFT routines by setting the environment variable FFTW3_DIR.
+On Linux or Mac, this should point to an FFTW install directory containing lib
+and include subdirectories.  On Windows, it should point to a directory that
+contains the .lib, .dll, and .h files (see below).
 
 setup has a number of options that can be listed with "setup -h".  Currently
 the main body of the setup code is in setup2 because that needed to be
@@ -133,6 +139,18 @@ make install
 
 Then define an environment variable TIFF4_DIR to point to the install
 directory.
+
+To build version 3 of FFTW, unpack the source code and decide on a directory
+to install to.  Build with:
+./configure --enable-openmp --enable-float --disable-fortran -enable-shared \
+--prefix=install_directory
+make [-jn]        (parallel make works fine)
+make install
+
+The libraries in IMOD are built with the Intel compiler by entering
+  setenv CC icc
+before the configure.  Define an environment variable FFTW3_DIR to point to
+the install directory.
 
 
 To build and install IMOD for general use:
@@ -227,6 +245,8 @@ sudo make install
 It is possible to have both 32-bit and 64-bit versions of both static
 libraries in  /usr/local/lib by renaming the 64-bit versions to libtiff64.a
 and libjpeg64.a.
+
+To build version 3 of FFTW, follow the instructions above for Linux.
 
 
 Compilers for Mac OSX
@@ -417,6 +437,13 @@ nmake /f Makefile.vc
 For 64-bit windows, open a Visual Studio x64 Win64 Command Prompt through
 Visual Studio Tools and use all of the same commands, expect leave off the
 "nodebug=1" for JPEG.
+
+To build IMOD with version 3 of FFTW, simply unzip the appropriate DLL package
+from http://www.fftw.org/install/windows.html into a directory.  Follow the
+instructions there to create the .lib file:
+  lib /def:libfftw3f-3.def                (on 32-bit)
+  lib /machine:x64 /def:libfftw3f-3.def   (on 64-bit)
+Then point the environment variable FFTW3_DIR to this directory.
 
 
 Make Program Problem on Windows

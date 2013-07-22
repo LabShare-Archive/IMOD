@@ -225,7 +225,7 @@ private:
 
   //parameters
   int mRetain, mJustGo, mNice, mMillisecSleep, mDropCrit, mQueue, mSingleFile,
-    mMaxChunkErr, mVerbose, mGpuMode;
+    mMaxChunkErr, mVerbose, mGpuMode, mNumThreads;
   bool mSkipProbe;
   char *mQueueName, *mRootName;
   QFile *mCheckFile;

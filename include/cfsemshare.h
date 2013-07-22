@@ -76,6 +76,9 @@ extern "C" {
   void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma);
   void applyKernelFilter(float *array, float *brray, int nxdim, int nx, int ny,
                          float *mat, int kdim);
+  void wrapFFTslice(float *array, float *tmpArray, int nx, int ny, int direction);
+  int indicesForFFTwrap(int ny, int direction, int *iyOut, int *iyLow, int *iyHigh);
+
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
@@ -127,6 +130,11 @@ extern "C" {
   void sumsToAvgSD(float sx, float sxsq, int n, float *avg, float *sd);
   void sumsToAvgSDdbl(double sx8, double sxsq8, int n1, int n2, float *avg,
                       float *sd);
+  void arrayMinMaxMean(float *array, int nx, int ny, int ix0, int ix1, int iy0, int iy1,
+                       float *dmin, float *dmax, float *dmean);
+  void arrayMinMaxMeanSd(float *array, int nx, int ny, int ix0, int ix1, int iy0, int iy1,
+                         float *dmin, float *dmax, double *sumDbl, double *sumSqDbl,
+                         float *avg, float *SD);
   void lsFit(float *x, float *y, int num, float *slope, float *intcp,
              float *ro);
   void lsFitPred(float *x, float *y, int n, float *slope, float *bint,

@@ -34,23 +34,11 @@
  *   VERSION 1.00    OCT 11 1981     DAA
  *   VERSION 1.02    APR 19 1982     DAA
  *   VERSION 1.03    NOV 23 1982     DAA
-*/
-/*  $Id$
-
-$Log$
-Revision 1.4  2007/10/12 18:33:01  mast
-Fix documentation to describe X dimension of array
-
-Revision 1.3  2006/11/03 17:28:38  mast
-Added documentation, author and license statements
-
-Revision 1.2  2005/02/11 01:42:33  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 1.1  2004/10/24 21:18:39  mast
-Added C version of library to package
-
-*/
+ *
+ * However, when IMOD was switched  FFTW for most platforms, the conjugate was removed
+ * from the forward and applied before the inverse to make this 2D FFT match FFTW.
+ * Also removed the -1 option to reduce confusion.
+ */
 
 #include "cfft.h"
 #include <stdio.h>
@@ -61,11 +49,10 @@ Added C version of library to package
  * as [nyp] rows of [nxp] values in the real space image, which must be 
  * contained in a float array whose X dimension is [nxp] + 2.  The direction 
  * of the transform is determined by [idirp]: ^
- *     0   forward  transform :  exp(+2PIirs) ^
- *     1   inverse transform  :  exp(-2PIirs) ^
- *    -1   inverse transform but no complex conjugate ^
+ *     0        forward  transform :  exp(-2PIirs) ^
+ *     1 or -1  inverse transform  :  exp(+2PIirs) ^
  * The origin of the transform is at the first point.  The Y coordinate of the
- * transform progresses from Y = 0 on the first line, to Y = [nyp] / 2 - 1 on
+ * transform progresses from Y = 0 on the first line, to Y = ([nyp] - 1 ) / 2 on
  * the middle line, then from -[nyp] / 2 on the next line up, to -1 on the 
  * last line.  ^
  * Can be called from either C or Fortran by this name.
@@ -73,7 +60,7 @@ Added C version of library to package
 void todfft(float *array, int *nxp, int *nyp, int *idirp)
 {
   int idim[6];   /* Make it 6 so that indexes 1 to 5 work */
-  int nxo2, nx2, nxt, nxt1, j, nxp2, nxm1, index, iy;
+  int nxo2, nxt, nxt1, j, nxp2, nxm1, index, iy;
   float onevol;
   int nx = *nxp;
   int ny = *nyp;
@@ -81,7 +68,7 @@ void todfft(float *array, int *nxp, int *nyp, int *idirp)
 
   nxo2 = nx/2;
   if (2*nxo2 != nx) {
-    printf("ERROR: todfft - nx= %d must be even\n", nx);
+    printf("ERROR: todfft - nx= %d must be even with IMOD FFT routines\n", nx);
     exit(1);
   }
   nxp2 = nx + 2;
@@ -110,14 +97,12 @@ void todfft(float *array, int *nxp, int *nyp, int *idirp)
     idim[5] = 2;
 
     cmplft(array, &(array[1]), ny, idim);
-    /*
-      c   take complex conjugate (to make proper forward transform)& scale by 1/volume
-    */
+    /* Scale.  DNM: Eliminated conjugate for consistency with FFTW */
     for (j = 0; j < nxt1; j += 2) {
       array[j] = array[j]*onevol;
-      array[j+1] = -array[j+1]*onevol;
+      array[j+1] = array[j+1]*onevol;
     }
-
+  
     return;
   }
   /*
@@ -134,20 +119,11 @@ void todfft(float *array, int *nxp, int *nyp, int *idirp)
   idim[5] = 2;
   /*
     c   take complex conjugate to do inverse & scale by 1/volume
+    * DNM: do this here since it is no longer done on forward
   */
-  if (idir != 1) {
-    for (j = 0; j < nxt1; j += 2) {
-      array[j] = array[j]*onevol;
-      array[j+1] = -array[j+1]*onevol;
-    }
-  } else {
-    /*
-      c   idir = 1 just scale by 1/volume (for standard inverse transform)
-    */
-    for (j = 0; j < nxt1; j += 2) {
-      array[j] = array[j]*onevol;
-      array[j+1] = array[j+1]*onevol;
-    }
+  for (j = 0; j < nxt1; j += 2) {
+    array[j] = array[j]*onevol;
+    array[j+1] = -array[j+1]*onevol;
   }
 
   cmplft(array, &(array[1]), ny, idim);
