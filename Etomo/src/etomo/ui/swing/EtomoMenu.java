@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.net.MalformedURLException;
 
 import javax.swing.JCheckBoxMenuItem;
@@ -16,6 +17,7 @@ import javax.swing.KeyStroke;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.BaseProcessManager;
 import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -118,10 +120,12 @@ final class EtomoMenu {
       KeyEvent.VK_E);
   private final JMenuItem menuJoinGuide = new MenuItem("Join Users Guide", KeyEvent.VK_J);
   private final JMenuItem menuPeetGuide = new MenuItem("Peet Users Guide", KeyEvent.VK_P);
+  private final JMenuItem peetHelpItem = new MenuItem("PEET Help");
   private final JMenuItem menuHelpAbout = new MenuItem("About", KeyEvent.VK_A);
 
   private final boolean peetAvailable = EnvironmentVariable.INSTANCE.exists(null,
-      EtomoDirector.INSTANCE.getOriginalUserDir(), "PARTICLE_DIR", AxisID.ONLY);
+      EtomoDirector.INSTANCE.getOriginalUserDir(), EnvironmentVariable.PARTICLE_DIR,
+      AxisID.ONLY);
 
   private final AbstractFrame frame;
 
@@ -252,6 +256,7 @@ final class EtomoMenu {
     menuHelp.add(menuJoinGuide);
     if (peetAvailable) {
       menuHelp.add(menuPeetGuide);
+      menuHelp.add(peetHelpItem);
     }
     menuHelp.add(menuHelpAbout);
   }
@@ -277,6 +282,7 @@ final class EtomoMenu {
     menuJoinGuide.addActionListener(helpActionListener);
     if (peetAvailable) {
       menuPeetGuide.addActionListener(helpActionListener);
+      peetHelpItem.addActionListener(helpActionListener);
     }
     menuHelpAbout.addActionListener(helpActionListener);
 
@@ -475,7 +481,12 @@ final class EtomoMenu {
     if (equalsPeetGuide(event)) {
       ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html" + TOP_ANCHOR, axisID);
     }
-
+    if (equalsPeetHelp(event)) {
+      BaseProcessManager.startSystemProgramThread(
+          new String[] { new File(new File(new File(EnvironmentVariable.INSTANCE
+              .getValue(null, null, EnvironmentVariable.PARTICLE_DIR, null)), "bin"),
+              "PEETHelp").getAbsolutePath() }, axisID, manager);
+    }
     if (equalsHelpAbout(event)) {
       MainFrame_AboutBox dlg = new MainFrame_AboutBox(frame, axisID);
       Dimension dlgSize = dlg.getPreferredSize();
@@ -638,6 +649,10 @@ final class EtomoMenu {
 
   boolean equalsPeetGuide(final ActionEvent event) {
     return equals(menuPeetGuide, event);
+  }
+
+  boolean equalsPeetHelp(final ActionEvent event) {
+    return equals(peetHelpItem, event);
   }
 
   boolean equalsHelpAbout(final ActionEvent event) {
