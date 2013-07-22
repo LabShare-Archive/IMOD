@@ -41,6 +41,8 @@ public class Directive {
   private final boolean template;
   private final DirectiveValues values;
   private final DirectiveValueType valueType;
+  private final String label;
+  private final DirectiveDescrFile.ChoiceList choiceList;
 
   private AxisLevelData axisLevelDataAny = null;
   private AxisLevelData axisLevelDataA = null;
@@ -57,6 +59,8 @@ public class Directive {
     batch = descr.isBatch();
     template = descr.isTemplate();
     etomoColumn = descr.getEtomoColumn();
+    label = descr.getLabel();
+    choiceList = descr.getChoiceList();
   }
 
   /**
@@ -73,6 +77,8 @@ public class Directive {
     batch = true;
     template = true;
     etomoColumn = null;
+    label = null;
+    choiceList = null;
   }
 
   void write(final AxisID axisID, final LogFile logFile, LogFile.WriterId id)
@@ -103,6 +109,10 @@ public class Directive {
     return etomoColumn;
   }
 
+  public DirectiveDescrFile.ChoiceList getChoiceList() {
+    return choiceList;
+  }
+
   public String getDescription() {
     return description;
   }
@@ -120,6 +130,9 @@ public class Directive {
   }
 
   public String getTitle() {
+    if (label != null) {
+      return label;
+    }
     return directiveName.getTitle();
   }
 
@@ -139,6 +152,10 @@ public class Directive {
     return batch;
   }
 
+  public boolean isChoiceList() {
+    return choiceList != null && !choiceList.isEmpty();
+  }
+
   public boolean isInclude(final AxisID axisID) {
     if (axisID == null) {
       return include;
@@ -151,7 +168,7 @@ public class Directive {
     }
     return false;
   }
-  
+
   public boolean isCopyArg() {
     return directiveName.isCopyArg();
   }
