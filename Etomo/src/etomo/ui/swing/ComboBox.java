@@ -52,6 +52,7 @@ final class ComboBox {
   private final JLabel label;
   private final JPanel pnlRoot;
   final boolean addEmptyChoice;// Causes the index to be off by one
+  private int checkpointIndex = -1;
 
   private ComboBox(final String name, final boolean labeled, final boolean addEmptyChoice) {
     this.addEmptyChoice = addEmptyChoice;
@@ -150,6 +151,10 @@ final class ComboBox {
   void setEnabled(final boolean enabled) {
     comboBox.setEnabled(enabled);
   }
+  
+  String getLabel() {
+    return label.getText();
+  }
 
   void setEditable(final boolean editable) {
     comboBox.setEditable(editable);
@@ -163,6 +168,32 @@ final class ComboBox {
       System.out.println(comboBox.getName() + ' ' + AutodocTokenizer.DEFAULT_DELIMITER
           + ' ');
     }
+  }
+
+  /**
+   * Saves the current selected index as the checkpoint.
+   */
+  void checkpoint() {
+    checkpointIndex = getSelectedIndex();
+  }
+
+  /**
+   * 
+   * @param alwaysCheck - check for difference even when the field is disables or invisible
+   * @return
+   */
+  boolean isDifferentFromCheckpoint(final boolean alwaysCheck) {
+    if (!alwaysCheck && (!isEnabled() || !isVisible())) {
+      return false;
+    }
+    if (checkpointIndex == -1) {
+      return true;
+    }
+    return checkpointIndex != getSelectedIndex();
+  }
+
+  public boolean isVisible() {
+    return comboBox.isVisible();
   }
 
   /**
