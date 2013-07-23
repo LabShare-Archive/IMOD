@@ -39,6 +39,7 @@ html/plughelp
 html/IMOD.qhp
 html/IMOD.qch
 html/IMOD.qhc
+html/directives.html
 Etomo/Makefile
 Etomo/jar_dir
 Etomo/jar
@@ -72,6 +73,7 @@ scripts/runimodqtapp
 scripts/setlibpath
 sendevent/Makefile
 sourcedoc/Makefile
+mrc2tif/Makefile
 */tmp/*
 moc_*
 ui_*.h
@@ -108,6 +110,7 @@ runmtpairing
 runnda
 runsda
 runsendevent
+runmrc2tif
 
 3dmod/3dmod
 clip/clip
@@ -147,7 +150,7 @@ flib/image/extractpieces
 flib/image/extracttilts
 flib/image/extstack
 flib/image/fftrans
-flib/image/filltomo
+flib/model/filltomo
 flib/image/findcontrast
 flib/image/findsection
 flib/image/fixboundaries
@@ -270,8 +273,10 @@ mrc/mrcbyte
 mrc/mrctaper
 mrc/mrcx
 mrc/nad_eed_3d
+mrc/preNAD
 mrc/raw2mrc
 mrc/tif2mrc
+mrc2tif/mrc2tif
 processchunks/processchunks
 qtassist/imodqtassist
 raptor/MarkersCorrespond
