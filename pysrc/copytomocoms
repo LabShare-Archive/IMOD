@@ -94,26 +94,20 @@ def printInfo(text):
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, os.path, signal, shutil, math, stat
+import os, sys, shutil, math, stat
 
 #
 # Setup runtime environment
-if sys.platform.find("win32") < 0:
-   try:
-      signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except:
-      pass
 if os.getenv('IMOD_DIR') != None:
-   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
-                        os.pathsep + os.environ['PATH']
    sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
 
 #
 # load IMOD Libraries
-from imodpy import *
 from pip import *
 from pysed import *
 from comchanger import *
@@ -319,8 +313,11 @@ elif beadrad < 7.:
    boxsize = 40
    eraserad = 2.6
 else:
-   boxsize = 8 * int((2 * beadsize + 26) / 8)
-   boxsize = min(100, boxsize)
+
+   # 7/18/13: Make the boxes stay 3.3x the bead size; max this with the older formula
+   # and allow them to be much bigger
+   boxReal = max(3.3 * beadsize + 7, 2 * beadsize + 26)
+   boxsize = min(256, 8 * int(boxReal / 8))
    eraserad = 3.6
 
 # If 0 radius entered, just set eraser param generously large
@@ -999,7 +996,7 @@ if backup:
       backuplist.extend(['combine.com', 'solve.xf', 'refine.xf', 'inverse.xf', 'warp.xf',
                         'patch.out', 'combine.log'])
    dstlines = ["#!/usr/bin/env python",
-               "import os, os.path, shutil",
+               "import os, shutil",
                "backupdir = '" + backupdir + "'",
                'backuplist = [ \\',]
    line = ""
