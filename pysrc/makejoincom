@@ -50,19 +50,14 @@ def getAdjustedZRange(zentry, itomo, nz, newnz, rotangle, ifflip, bigrot, bottop
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, os.path, signal, shutil, math
+import os, sys, shutil, math
 
 #
 # Setup runtime environment
-if sys.platform.find("win32") < 0:
-   try:
-      signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except:
-      pass
 if os.getenv('IMOD_DIR') != None:
-   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
-                        os.pathsep + os.environ['PATH']
    sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
@@ -70,7 +65,6 @@ else:
 os.environ['PIP_PRINT_ENTRIES'] = '0'
 #
 # load IMOD Libraries
-from imodpy import *
 from pip import *
 
 joincom = "startjoin.com"

@@ -207,19 +207,14 @@ def runTests():
    
 
 # load System Libraries
-import os, sys, os.path, signal, uu, gzip, random, struct, datetime, copy
+import os, sys, uu, gzip, random, struct, datetime, copy
 
 #
 # Setup runtime environment
-if sys.platform.find("win32") < 0:
-   try:
-      signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except Exception:
-      pass
 if os.getenv('IMOD_DIR') != None:
-   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
-                        os.pathsep + os.environ['PATH']
    sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
    os.environ['PIP_PRINT_ENTRIES'] = '1'
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
@@ -227,7 +222,6 @@ else:
 
 #
 # load IMOD Libraries
-from imodpy import *
 from pip import exitError, setExitPrefix
 
 gpunum = 0

@@ -34,20 +34,8 @@ def rollLogs():
       lasterr = thiserr
 
 
-# Return a cygwin path if in cygwin
-def cygwinPath(path):
-   if 'cygwin' in sys.platform:
-      try:
-         cygtemp = runcmd('cygpath "' + path + '"')
-         if cygtemp != None and len(cygtemp) > 0:
-            return cygtemp[0].strip()
-      except Exception:
-         pass
-   return path
-
-
 # load System Libraries
-import sys, os, os.path, re, glob, datetime, fnmatch, getpass, platform
+import sys, os, re, glob, datetime, fnmatch, getpass, platform
 
 #
 # Setup runtime environment - no need for nohup here

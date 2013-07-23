@@ -7,7 +7,7 @@
 #
 
 # load System Libraries
-import os, sys, os.path, re
+import os, sys, re
 
 if os.getenv('IMOD_DIR') != None:
    sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
@@ -163,15 +163,11 @@ except Exception:
 #
 prnstr("#!/usr/bin/env python", file=out)
 prnstr("# Set up environment: NOHUP, IMOD on path", file=out)
-prnstr("import os, sys, os.path, signal", file=out)
-prnstr("if sys.platform.find('win32') < 0:", file=out)
-prnstr("  try:", file=out)
-prnstr("    signal.signal(signal.SIGHUP, signal.SIG_IGN)", file=out)
-prnstr("  except Exception:", file=out)
-prnstr("    pass", file=out)
+prnstr("import os, sys", file=out)
 prnstr("if os.getenv('IMOD_DIR') != None:", file=out)
-prnstr("  os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + os.pathsep + os.environ['PATH']", file=out)
 prnstr("  sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))", file=out)
+prnstr("  from imodpy import *", file=out)
+prnstr("  addIMODbinIgnoreSIGHUP()", file=out)
 prnstr("else:", file=out)
 prnstr("  log.write('ERROR: IMOD_DIR is not defined\\n')", file=out)
 prnstr("  sys.exit(1)", file=out)
@@ -181,7 +177,6 @@ prnstr("os.environ['PIP_PRINT_ENTRIES'] = '1'", file=out)
 for envpair in envars:
    prnstr("os.environ['" + envpair[0] + "'] = '" + envpair[1] + "'", file=out)
 
-prnstr("from imodpy import *", file=out)
 prnstr("setLibPath()", file=out)
 prnstr("# Back up and open log file", file=out)
 prnstr("makeBackupFile('" + logname + "')", file=out)

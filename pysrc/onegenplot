@@ -13,26 +13,20 @@ NUM_KEY_LIMIT = 10    # LIM_KEYS in flib/subrs/graphics/plotvars.f90
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, os.path, signal
+import os, sys
 
 #
 # Setup runtime environment
-if sys.platform.find("win32") < 0:
-   try:
-      signal.signal(signal.SIGHUP, signal.SIG_IGN)
-   except Exception:
-      pass
 if os.getenv('IMOD_DIR') != None:
-   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
-                        os.pathsep + os.environ['PATH']
    sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
 
 #
 # load IMOD Libraries
-from imodpy import *
 from pip import *
 
 defSymbols = [9, 7, 5, 8, 13, 14, 1, 11, 3, 10, 6, 2, 12, 4]

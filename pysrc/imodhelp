@@ -13,21 +13,20 @@ liburls = ['libimod', 'libcfshr', 'libiimod', 'libifft', 'libmesh', 'libwarp',
            'libdiaqt', 'libifft', 'libmesh', 'libwarp']
 
 # load System Libraries
-import sys, os, os.path, glob
+import sys, os, glob
 
 #
-# Setup runtime environment - no need for nohup here
+# Setup runtime environment
 if os.getenv('IMOD_DIR') != None:
-   os.environ['PATH'] = os.path.join(os.environ['IMOD_DIR'], 'bin') + \
-                        os.pathsep + os.environ['PATH']
    sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
 else:
    sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
    sys.exit(1)
 
 #
 # load IMOD Libraries
-from imodpy import *
 from pip import exitError, setExitPrefix
 
 setExitPrefix(prefix)
