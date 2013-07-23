@@ -142,13 +142,19 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 			On older Ubuntu, open the menu entry System - Preferences - Visual Effects and 
 			select "No effects".
 		</p>
-		<p><span style="FONT-WEIGHT: bold">tcsh for Ubuntu.</span>
+		<p><span style="FONT-WEIGHT: bold">tcsh and libjpeg62 for Ubuntu.</span>
 			You must install <code>tcsh </code>even if you also have <code>csh </code>installed.&nbsp; 
 			Things should work with both installed, but it would be safer to have only <code>tcsh</code>.&nbsp; 
 			You can install <code>tcsh </code>through the Synaptic Package Manager or 
 			Ubuntu Software Manager or with:<br>
 			&nbsp;&nbsp; <code>sudo apt-get install tcsh</code>
-		</p>
+    <br>You will also need version 6.2 of the JPEG libraries, which is not
+    present on newer systems.  The sign of needing this is an error message
+    when trying run 3dmod or some other programs: <I>error while loading shared
+    libraries: libjpeg.so.62: cannot open shared object file: No such file or
+    directory</I>.  Install the older JPEG library with:<br>
+			&nbsp;&nbsp; <code>sudo apt-get install libjpeg62</code>
+    </p>
 		<a name="InstallingLinuxSGI">
 			<h3>1.2. Installing IMOD on a Linux PC</h3>
 		</a>
