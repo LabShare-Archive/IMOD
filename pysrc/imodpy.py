@@ -18,7 +18,7 @@ This module provides the following functions:
   getmrc(file, doAll)  - run the 'header' command on <file>.
                          returns a 'tuple' of x,y,z,mode,px,py,pz,
                          plus ox,oy,oz,min,max,mean if doAll is True
-   getmrcpixel(file)   - run the 'header' command on <file>
+  getmrcpixel(file)    - run the 'header' command on <file>
                          returns just a single pixel size, using extended header value
                          if any
   makeBackupFile(file)   - renames file to file~, deleting old file~
@@ -35,7 +35,10 @@ This module provides the following functions:
   completeAndCheckComFile(comfile) - returns complete com file name and root
   cleanChunkFiles(rootname[, logOnly]) - cleans up log and com files from chunks
   cleanupFiles(files) - Removes a list of files with multiple trials if it fails
-  getCygpath(windows, path) - Returns path, or windows path if windows is not None
+  getCygpath(windows, path) - Returns path, or Windows path if windows is not None
+  cygwinPath(path)          - Returns path, or a Cygwin path if running in Cygwin
+
+  addIMODbinIgnoreSIGHUP()  - Adds IMOD_DIR/bin to front of PATH and ignores SIGHUP
   imodIsAbsPath(path) - Tests whether the path is an absolute path (works in Cygwin)
   imodAbsPath(path) - Returns absolute path, converted to windows format if on Windows
   imodNice(niceInc) - Sets niceness of process, even on Windows
@@ -46,7 +49,7 @@ This module provides the following functions:
 """
 
 # other modules needed by imodpy
-import sys, os, re, time, glob
+import sys, os, re, time, glob, signal
 from pip import exitError
 
 pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
@@ -777,7 +780,7 @@ def cleanupFiles(files):
          time.sleep(retryWait)
                
 
-# Return the windows path for path using cygpath if windows is not None
+# Returns the Windows path for path using cygpath -m if windows is not None
 def getCygpath(windows, path):
    if windows:
       try:
@@ -788,6 +791,29 @@ def getCygpath(windows, path):
          pass
    return path
 
+
+# Returns a Cygwin path for path using cygpath if running in Cygwin
+def cygwinPath(path):
+   if 'cygwin' in sys.platform:
+      try:
+         cygtemp = runcmd('cygpath "' + path + '"')
+         if cygtemp != None and len(cygtemp) > 0:
+            return cygtemp[0].strip()
+      except Exception:
+         pass
+   return path
+
+
+# Adds IMOD_DIR/bin to front of PATH and set up to ignore SIGHUP except in Windows
+def addIMODbinIgnoreSIGHUP():
+   os.environ['PATH'] = os.path.join(cygwinPath(os.environ['IMOD_DIR']), 'bin') + \
+       os.pathsep + os.environ['PATH']
+   if 'win32' not in sys.platform:
+      try:
+         signal.signal(signal.SIGHUP, signal.SIG_IGN)
+      except Exception:
+         pass
+   
 
 # Tests whether the path is an absolute path
 def imodIsAbsPath(path):
