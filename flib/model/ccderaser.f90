@@ -1340,7 +1340,6 @@ CONTAINS
         call rsSortFloats(bigDiffs, numInPatch)
         jx = min(numInPatch, max(3, nint(fracBigDiff * numInPatch)))
         if (sum(bigDiffs(numInPatch + 1 - jx : numInPatch)) / jx < critBigDiff) then
-          print *,'Abort giant at ',ixPeak, iyPeak, sum(bigDiffs(numInPatch + 1 - jx : numInPatch)) / jx, sdDiff
           numPtOut = numPtSave
           aboveCrit = .false.
           return
