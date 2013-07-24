@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/24/13: Fixed 3dmod crash when etomo tells it to load an empty X-ray model.
+
 7/22/13: Made all python scripts properly put IMOD on front of path in
 Cygwin.
 
