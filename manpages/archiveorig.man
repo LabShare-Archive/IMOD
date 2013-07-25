@@ -15,15 +15,38 @@ the original stack is assumed to be named setname_orig.st.  The program then
 computes the difference between the original and X-ray removed stack and uses
 gzip compression of the difference file, which is named setname_xray.st.gz.  The
 resulting file should be ~2 MB for a 1 GB data stack.
+.P
+The entire process of removing X-rays, renaming a stack as setname_orig.st,
+and archiving the difference can be repeated several times.  To allow all
+changes to be retained and reversed if desired, programs that do the renaming
+of setname.st to setname_orig.st also rename an existing setname_xray.st.gz by adding a
+number to the end.  The first time, 1 is added; after than, a number 1 higher
+than the highest existing number is added.  The programs that do this are
+eTomo and Batrchruntomo(1).  
 .SS Options
-.TP
-.B -r
-Restore setname_orig.st from setname_xray.st.gz and setname.st.  The X-ray 
-removed stack (setname.st) must be present to perform this operation.
 .TP
 .B -d
 Delete setname_orig.st after successfully producing setname_xray.st.gz.  By
 default, the file is left for the user to delete.
+.TP
+.B -r
+Restore setname_orig.st from setname_xray.st.gz and setname.st.  The X-ray 
+removed stack (setname.st) must be present to perform this operation.  The
+file setname_xray.st.gz is renamed to setname_xray.st.gz.old.
+.TP
+.B -n #
+Restore the given number of levels of archives, not just the last level
+that created setname_xray.st.gz.  For example, if archiving has been done 3
+times, there will be files setname_xray.st.gz, setname_xray.st.gz.1, and
+setname_xray.st.gz.2.  Entering "-n 3" will use all three files to recreate
+the original stack.  Entering "-n 2" will use files setname_xray.st.gz and
+setname_xray.st.gz.2 to recreate the stack that existed after the first round
+of X-ray removal.  In order to get back to the original stack at that point,
+there are three methods available: 1) save setname.st by renaming it, rename
+setname_orig.st to setname.st, and run this program just with "-r".  2) Rename
+setname_xray.st.gz.2.old to setname_xray.st.gz.2 and setname_xray.st.gz.old to
+setname_xray.st.gz, and run this program with "-r -n 3".  3) Run this program
+with "-d" then run it again with "-r -n 2".
 .TP 
 .B -P
 Output process ID.
