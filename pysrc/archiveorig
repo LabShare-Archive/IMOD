@@ -121,12 +121,13 @@ if restore:
    if not os.path.exists(compname):
       exitError('File ' + compname + ' does not exist')
       
-   # Get the collection of existing files
-   compList1 = glob.glob(setname + '_xray.st.gz.[0-9]')
-   compList2 = glob.glob(setname + '_xray.st.gz.[0-9][0-9]')
-   compList1.sort(reverse = True)
-   compList2.sort(reverse = True)
-   compList = [compname] + compList2 + compList1
+   # Get the collection of existing files (Python 2.3 does not have sort(reverse))
+   compList = [compname]
+   for suffix in ('[0-9][0-9]', '[0-9]'):
+      compSuff = glob.glob(compname + suffix)
+      compSuff.sort()
+      compSuff.reverse()
+      compList += compSuff
 
    numLevels = max(1, numLevels)
    if numLevels > len(compList):
