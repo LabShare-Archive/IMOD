@@ -30,7 +30,7 @@ def spoolGzip(which):
          errstr = 'Uncompressing ' + compname
          infile = gzip.open(compname, 'rb')
          outfile = open(xrayname, 'wb')
-         inname = compname
+         inname = compname + '.old'
       else:
          errstr = 'Compressing ' + xrayname
          outfile = gzip.open(compname, 'wb')
@@ -58,16 +58,23 @@ def spoolGzip(which):
       exitError(errstr)
 
    try:
-      os.remove(inname)
+      if which == 1:
+         makeBackupFile(inname)
+         os.rename(compname, inname)
+      else:
+         os.remove(inname)
    except Exception:
-      prnstr('WARNING: ' + progname + ' - Failed to remove ' + inname)
+      if which == 1:
+         prnstr('WARNING: ' + progname + ' - Failed to rename ' + compname + ' to ' +\
+                   inname)
+      else:
+         prnstr('WARNING: ' + progname + ' - Failed to remove ' + inname)
 
-   
 
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, gzip
+import os, sys, gzip, glob
 
 #
 # Setup runtime environment
@@ -85,7 +92,8 @@ os.environ['PIP_PRINT_ENTRIES'] = '0'
 from pip import *
 
 options = ['r::B:Restore setname_orig.st from setname.st and setname_xray.st.gz',
-           'd::B:Delete setname_orig.st after computing difference']
+           'd::B:Delete setname_orig.st after computing difference',
+           'n::I:Number of levels of archives to restore']
 
 PipExitOnError(False, prefix)
 (numOpts, numNonOpts) = PipParseInput(sys.argv, options)
@@ -96,6 +104,7 @@ if numNonOpts < 1:
 
 restore = PipGetBoolean('r', 0)
 delete = PipGetBoolean('d', 0)
+numLevels = PipGetInteger('n', 1)
 passOnKeyInterrupt(True)
 
 stack = PipGetNonOptionArg(0)
@@ -107,22 +116,62 @@ origname = setname + '_orig.st'
 xrayname = setname + '_xray.st'
 compname = xrayname + '.gz'
 
+# For Restores
 if restore:
    if not os.path.exists(compname):
       exitError('File ' + compname + ' does not exist')
-   spoolGzip(1)
-   
-   prnstr('Restoring ' + origname + ' ...')
-   try:
-      runcmd(fmtstr('subimage "{}" "{}" "{}"', stack, xrayname, origname))
-   except ImodpyError:
-      cleanup(1)
-      exitFromImodError(progname)
-   except KeyboardInterrupt:
-      cleanup(1)
-      sys.exit(1)
+      
+   # Get the collection of existing files
+   compList1 = glob.glob(setname + '_xray.st.gz.[0-9]')
+   compList2 = glob.glob(setname + '_xray.st.gz.[0-9][0-9]')
+   compList1.sort(reverse = True)
+   compList2.sort(reverse = True)
+   compList = [compname] + compList2 + compList1
 
-   cleanupFiles([xrayname])
+   numLevels = max(1, numLevels)
+   if numLevels > len(compList):
+      exitError('There are not enough xray.st.gz files to restore ' + str(numLevels) + \
+                   ' levels')
+
+   nextLevel = 1
+   if numLevels > 1:
+      numList = []
+      for ind in range(1, len(compList)):
+         numList.append(int(os.path.splitext(compList[ind])[1][1:]))
+      nextLevel = numList[0] + 1
+      for ind in range(1, numLevels - 1):
+         if numList[ind - 1] - numList[ind] != 1:
+            exitError('There is not a complete sequence of _xray.st.gz.N files; N = ' + \
+                      str(numList[ind] - 1) + ' is missing')
+
+   # Loop on the levels, create an _origN for each _xrayN
+   realStack = stack
+   for ind in range(numLevels):
+      if ind:
+         compname = setname + '_xray.st.gz.' + str(nextLevel)
+      origname = setname + '_orig.st'
+      if ind < numLevels - 1:
+         origname += '.' + str(nextLevel)
+         
+      prnstr('Restoring ' + origname + ' ...')
+      spoolGzip(1)
+      try:
+         runcmd(fmtstr('subimage "{}" "{}" "{}"', stack, xrayname, origname))
+      except ImodpyError:
+         cleanup(1)
+         exitFromImodError(progname)
+      except KeyboardInterrupt:
+         cleanup(1)
+         sys.exit(1)
+
+      # Clean up the difference file, and the previous orig file after the first round,
+      # and prepare for the next round where this orig file is stack
+      cleanupFiles([xrayname])
+      if ind and realStack != stack:
+         cleanupFiles([stack])
+      stack = origname
+      nextLevel -= 1
+         
    prnstr('DONE')
    sys.exit(0)
 
@@ -135,6 +184,7 @@ if os.path.exists(xrayname):
       os.remove(xrayname)
    except Exception:
       prnstr('WARNING: ' + progname + ' - Could not remove existing ' + xrayname)
+
 makeBackupFile(compname)
 prnstr("Getting difference image ...")
 try:
