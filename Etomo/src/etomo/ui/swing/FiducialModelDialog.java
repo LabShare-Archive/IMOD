@@ -415,9 +415,9 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final JPanel pnlAutoSeedModel = new JPanel();
   private final JPanel pnlAutofidseed = new JPanel();
 
-  private final CheckBox cbBoundaryModel = new CheckBox("Make boundary model: ");
+  private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
   private final Run3dmodButton btnBoundaryModel = Run3dmodButton.get3dmodInstance(
-      "Open Boundary Model", this);
+      "Create/Edit Boundary Model", this);
   private final CheckBox cbExcludeInsideAreas = new CheckBox(
       "Exclude inside boundary contours");
   private final LabeledTextField ltfBordersInXandY = new LabeledTextField(
