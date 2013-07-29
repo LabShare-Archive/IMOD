@@ -9,6 +9,10 @@ Cygwin.
 
 7/22/13: Fixed etomo script so it can run java.exe in Windows/System32
 directory (In 4.5).
+
+7/18/13: In eTomo - Template Editor, improved the labels and fields.
+(Bug# 1724)
+
 7/18/13: IMOD_4-6-25
 7/17/13: Made Imodfindbeads able to analyze for bead diameter in averaged bead
 and adjust parameters for a significantly different size (good only for cryo).
