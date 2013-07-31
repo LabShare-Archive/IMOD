@@ -1,0 +1,4 @@
+# System Template
+
+comparam.track.beadtrack.SobelFilterCentering=1
+comparam.xcorr_pt.tiltxcorr.SizeOfPatchesXandY=300,300

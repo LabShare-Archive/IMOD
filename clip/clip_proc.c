@@ -1704,7 +1704,7 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
 {
   Islice *s, *so;
   char *message;
-  int i, j, k, z, dsize, csize1, csize2, divByZero = 0;
+  int i, j, k, z, dsize, csize1, csize2, divByZero = 0, readOnce;
   Ival val, oval;
   float tmp, denom;
 
@@ -1725,15 +1725,21 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   mrc_getdcsize(h1->mode, &dsize, &csize1);
   mrc_getdcsize(h2->mode, &dsize, &csize2);
   if (!(csize2 == 1 || (h1->mode == MRC_MODE_COMPLEX_FLOAT && 
-                        h2->mode == MRC_MODE_COMPLEX_FLOAT))) {
+                        h2->mode == MRC_MODE_COMPLEX_FLOAT) || 
+        hout->mode == MRC_MODE_FLOAT)) {
     fprintf(stderr, "clip multiply/divide: second file must have single-channel data "
-            "unless both are FFTs\n");
+            "unless both are FFTs or output mode is float\n");
     return(-1);
   }
 
   
-  if ((h1->nx != h2->nx) || (h1->ny != h2->ny) || (h1->nz != h2->nz)){
-    fprintf(stderr, "clip  multiply/divide: x,y,z sizes must be equal\n");
+  if ((h1->nx != h2->nx) || (h1->ny != h2->ny)) {
+    fprintf(stderr, "clip  multiply/divide: X and Y sizes must be equal\n");
+    return(-1);
+  }
+  if (h1->nz != h2->nz && h2->nz > 1) {
+    fprintf(stderr, "clip  multiply/divide: Z sizes must be the same, or equal to 1 "
+            "for second file\n");
     return(-1);
   }
 
@@ -1750,20 +1756,35 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
     return -1;
   }
 
+  readOnce = (h2->nz == 1 && h1->nz > 1) ? 1 : 0;
   for (k = 0; k < opt->nofsecs; k++) {
     printf("\rclip: %s slice %d of %d", message, k + 1, opt->nofsecs);
     fflush(stdout);
     so = sliceReadSubm(h1, opt->secs[k], 'z', opt->ix, opt->iy, (int)opt->cx,
                        (int)opt->cy);
-    s = sliceReadSubm(h2, opt->secs[k], 'z', opt->ix, opt->iy, (int)opt->cx, 
-                      (int)opt->cy);
-    if (!s || !so)
+    if (!so)
       return -1;
+    if (hout->mode != so->mode && sliceNewMode(so, hout->mode) < 0) {
+      printf("ERROR: CLIP - getting memory for slice array\n");
+      return -1;
+    }
+
+    if (readOnce >= 0) {
+      s = sliceReadSubm(h2, readOnce ? 0 : opt->secs[k], 'z', opt->ix, opt->iy, 
+                        (int)opt->cx, (int)opt->cy);
+      if (!s)
+        return -1;
+      readOnce = -readOnce;
+      if (csize2 > 1 && hout->mode == MRC_MODE_FLOAT && sliceFloat(s)) {
+        printf("ERROR: CLIP - getting memory for slice array\n");
+        return -1;
+      }
+    }
     for (j = 0; j < opt->iy; j++) {
       for (i = 0; i < opt->ix; i ++) {
         sliceGetVal(s, i, j,   val);
         sliceGetVal(so, i, j, oval);
-        if (csize2 == 1) {
+        if (csize2 == 1 && hout->mode == MRC_MODE_FLOAT) {
 
           /* Ordinary mult or div, possible multi-channel */
           if (opt->process == IP_MULTIPLY) {
@@ -1805,7 +1826,10 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
     
     if (clipWriteSlice(so, hout, opt, k, &z, 1))
       return -1;
-    sliceFree(s);
+
+    // Free slice only on last slice if reading once
+    if (readOnce == 0 || k == opt->nofsecs - 1)
+      sliceFree(s);
   }
   printf("\n");
   if (divByZero)
@@ -2195,7 +2219,7 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
                opt->secs[kk]+ viewAdd, allmins[kk], starmin, xmin, ymin, izo, 
                allmaxes[kk], starmax, xmaxo, ymaxo, izo, stats[kk].mean, stats[kk].std);
       } else
-        printf("%4d  %9.4f%c(%4d,%4d) %9.4f%c(%7.2f,%7.2f) %9.4f  %9.4f\n", 
+        printf("%4d  %9.4f%c(%4d,%4d) %9.4f%c(%7d,%7d) %9.4f  %9.4f\n", 
                opt->secs[kk]+ viewAdd, allmins[kk], starmin,
                stats[kk].xmin, stats[kk].ymin, allmaxes[kk], starmax,
                stats[kk].x, stats[kk].y, stats[kk].mean, stats[kk].std);
@@ -2216,7 +2240,7 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
            vmin, zmin + 1, vmax, zmax+1, vmean, std);
   else
     printf(" all  %9.4f (@ z=%5d) %9.4f (@ z=%5d      ) %9.4f  %9.4f\n",
-           vmin, zmin, vmax, zmax, vmean, std);
+           vmin, zmin + viewAdd, vmax, zmax + viewAdd, vmean, std);
 
   if (outliers) {
     printf("\n%s with %sextreme values:", 
@@ -2226,7 +2250,7 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
     length = 28 + (opt->low != IP_DEFAULT ? 8 : 0);
     for (k = 0; k < opt->nofsecs; k++) {
       if (stats[k].outlier) {
-        printf(" %3d", opt->secs[k] + (opt->fromOne ? 1 : 0));
+        printf(" %3d", opt->secs[k] + viewAdd);
         length += 4;
         if (length > 74) {
           printf("\n");

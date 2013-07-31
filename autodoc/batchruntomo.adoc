@@ -109,6 +109,13 @@ The file is passed to processchunks when it runs jobs, and is checked before
 and after running jobs.  Only a Q should be placed in this file.  This will
 terminate any running jobs and stop all processing.
 
+[Field = EmailAddress]
+short = email
+type = CH
+usage = Address for sending email messages on failure or final completion
+tooltip =
+manpage = 
+
 [Field = ValidationType]
 short = validation
 type = I

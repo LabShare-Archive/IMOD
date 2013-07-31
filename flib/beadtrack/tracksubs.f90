@@ -277,43 +277,6 @@ SUBROUTINE QDshift(array, bray, nx, ny, xt, yt)
 END SUBROUTINE QDshift
 
 
-! peakFind finds the coordinates of the the absolute peak, XPEAK, YPEAK
-! in the array array, which is dimensioned to nx + 2 by ny.
-! This does no interpolation; it is used for the original correlation peak that is
-! always corrected to a centroid and not for the Sobel correlation peak, 
-!
-subroutine peakFind(array, nxPlus, nyRot, xpeak, ypeak, peak)
-  implicit none
-  integer*4 nxPlus, nyRot
-  real*4 array(nxPlus,nyRot), xpeak, ypeak, peak
-  integer*4 nxRot, ix, iy, ixPeak, iyPeak
-  nxRot = nxPlus - 2
-  !
-  ! find peak
-  !
-  peak = -1.e30
-  do iy = 1, nyRot
-    do ix = 1, nxRot
-      if (array(ix, iy) > peak) then
-        peak = array(ix, iy)
-        ixPeak = ix
-        iyPeak = iy
-      endif
-    enddo
-  enddo
-  ! print *,ixPeak, iyPeak
-  !
-  ! return adjusted pixel coordinate minus 1
-  !
-  xpeak = ixPeak - 1.
-  ypeak = iyPeak - 1.
-  if (xpeak > nxRot / 2) xpeak = xpeak - nxRot
-  if (ypeak > nyRot / 2) ypeak = ypeak - nyRot
-  ! print *,xpeak, ypeak
-  return
-end subroutine peakFind
-
-
 ! Finds the mean or median of edge pixels for taking the centroid, depending on whether
 ! edgeMedian is set, and finds the SD of the edge pixels if getEdgeSD is set
 !

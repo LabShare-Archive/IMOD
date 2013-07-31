@@ -286,7 +286,7 @@ short =
 type = I
 usage = Number of rounds of tracking through the views.
 tooltip =
-manpage = Number of rounds of tracking through the views.  On odd rounds,
+manpage = Number of rounds of tracking through the views.
 Tracking proceeds from low to high tilt on odd rounds and from high to low
 tilt on even rounds.
 
@@ -469,7 +469,6 @@ manpage = Factors by which to adjust (relax) the density criterion when
 trying to rescue.  Enter one factor for density rescue and one for
 distance rescue.  A value of 1 does not relax the criterion.
 
-
 [Field = PostFitRescueResidual]
 short = 
 type = F
@@ -481,14 +480,12 @@ manpage =  Criterion distance for deletion of a point after tilt alignment.
 Points with residuals greater than this amount will be deleted on
 the first pass, and a rescue search performed on the second pass.
 
-
 [Field = DensityRelaxationPostFit]
 short = 
 type = F
 usage = Factor by which to relax the density criterion on the second pass.
 tooltip = Factor by which to relax the density criterion on the second pass.
 manpage = 
-
 
 [Field = MaxRescueDistance]
 short = 
@@ -516,6 +513,13 @@ tooltip = Minimum change in residual, and criterion number of SDs from the mean
 residual change, to require for deletion of a point.
 manpage = Minimum change in residual, and criterion number of SD's from the
 mean residual change, to require for deletion of a point on pass 1 or 2.
+
+[Field = IsolatedBeadCriterionFactor]
+short = 
+type = F
+usage = Factor by which to increase residual criteria for an isolated bead
+tooltip = Factor by which to increase residual criteria for an isolated bead.
+manpage =
 
 [Field = ParameterFile]
 short = param

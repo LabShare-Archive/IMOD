@@ -1,0 +1,11 @@
+# System Template
+
+setupset.copyarg.dual = 0
+comparam.eraser.ccderaser.PeakCriterion=8.0
+comparam.eraser.ccderaser.DiffCriterion=6.0
+comparam.track.beadtrack.SobelFilterCentering=1
+comparam.track.beadtrack.KernelSigmaForSobel=1.5
+comparam.xcorr_pt.tiltxcorr.SizeOfPatchesXandY=700,700
+runtime.Positioning.any.wholeTomogram=1
+comparam.golderaser.ccderaser.ExpandCircleIterations = 3
+comparam.tilt.tilt.LOG=

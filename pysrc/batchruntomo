@@ -18,15 +18,58 @@ global fidSizeNm, fidSizePix, montFrameData, lightBeads, numSurfaces, haveAaxisA
 global rawXsize, rawYsize, zsize, fiducialless, contourPieces, coarseBinning
 global xtiltNeeded, fidThickness, fidIncShift, reconThickness, didLocalAlign, madeZfactors
 global aliBinning, aliXunbinned, aliYunbinned, patchTrack, totalDelTilt, latestMessages
-global suppressAbort, absDirectiveFile, userTemplateDir
+global suppressAbort, absDirectiveFile, userTemplateDir, summaryMessage, logFile
+global finalRetVal
 
+# Print a string to both standard out and a log file if one is defined
+def prnLog(string, end  = '\n', flush = False):
+   prnstr(string, end = end, flush = flush)
+   if logFile:
+      prnstr(string, file = logFile, end = end, flush = flush)
+
+
+# Close the log file
+def closeLogFile():
+   global logFile
+   if not logFile:
+      return
+   prnstr('Batchruntomo finished with data set, ' + datetime.datetime.now().ctime(),
+          file = logFile)
+   logFile.close()
+   logFile = None
+   
+      
+# Send an email if there is an address
+def sendEmail(subject, message):
+   if not emailAddress:
+      return
+   try:
+      msg = MIMEText(message)
+      msg['Subject'] = subject
+      msg['From'] = 'batchruntomo'
+      msg['To'] = emailAddress
+      s = smtplib.SMTP('localhost')
+      s.sendmail(emailAddress, [emailAddress], msg.as_string())
+      s.quit()
+   except Exception:
+      prnLog('WARNING: Failed to send email notification')
+   
 
 # Abort either an axis or a data set with the error string
 def abortSet(errString):
+   global summaryMessage, finalRetVal
    if suppressAbort:
       return
    abortStr = ['ABORT SET: ', 'ABORT AXIS: ', 'ABORT AXIS AND SET: ']
-   prnstr(abortStr[axisNum] + errString)
+   prnLog(abortStr[axisNum] + errString, flush = True)
+   if dualAxis and axisLet:
+      message = 'Batchruntomo aborted axis ' + axisLet.upper() + ' of'
+   else:
+      message = 'Batchruntomo aborted'
+   message += 'dataset ' + setName + ' after error:\n' + errString + '\n'
+   sendEmail('Batchruntomo error on ' + setName, message)
+   summaryMessage += message
+   finalRetVal += 1
    if exitOnError:
       sys.exit(1)
 
@@ -39,7 +82,7 @@ def reportImodError(abortText = None):
       l = errStrings[ind]
       if ind == num - 1:
          l = 'ERROR: ' + l
-      prnstr(l, end = '')
+      prnLog(l, end = '')
    if abortText:
       abortSet(abortText)
 
@@ -53,7 +96,7 @@ def printTaggedMessages(logfile, tags):
    if isinstance(logfile, str):
       loglines = readTextFile(logfile, 'None', True)
       if isinstance(loglines, str):
-         prnstr('WARNING: Error ' + loglines)
+         prnLog('WARNING: Error ' + loglines)
          return
    else:
       loglines = logfile
@@ -61,7 +104,7 @@ def printTaggedMessages(logfile, tags):
    readingMulti = False
    for l in loglines:
       if readingMulti:
-         prnstr(l)
+         prnLog(l)
          latestMessages.append(l)
          if l.strip() == '':
             readingMulti = False
@@ -74,9 +117,9 @@ def printTaggedMessages(logfile, tags):
             if match:
                latestMessages.append(l)
                if tag[1] & 2:
-                  prnstr(l[len(tag[0]):].lstrip())
+                  prnLog(l[len(tag[0]):].lstrip())
                else:
-                  prnstr(l)
+                  prnLog(l)
                if tag[1] & 1:
                   readingMulti = True
                break
@@ -102,7 +145,7 @@ def findTaggedValue(lines, tag, separator, valType):
          except:
             return None
    return None
-   
+
 
 # Write a text file and report a returned error
 def writeTextFileReportErr(filename, lines):
@@ -132,25 +175,45 @@ def checkRenameStack(stack):
          return 1
       try:
          os.rename(stack + altExtension, stack + 'st')
-         prnstr('Renamed stack from ' + stack + altExtension + ' to ' + stack + 'st')
+         prnLog('Renamed stack from ' + stack + altExtension + ' to ' + stack + 'st')
       except OSError:
          abortSet('Error renaming stack from ' + stack + altExtension + ' to ' + stack +\
                      'st')
          return 1
 
 
+# Delivery some associated file with the given source and destination names
+def deliverAncillary(source, dest, typeName, fullExt):
+   if os.path.exists(source) and not os.path.exists(dest):
+      try:
+         os.rename(source, dest)
+      except OSError:
+         abortSet(fmtstr('Error moving {} file {}.{} from {} to {}', setName, fullExt,
+                         deliverFromDir, datasetDir))
+         return 1
+   return 0
+   
+      
 # Move a stack to the dataset directory
 def deliverStack(axis):
    stackRoot = setName + axis
    sourceRoot = os.path.join(deliverFromDir, stackRoot + '.')
    source = sourceRoot + 'st'
-   dest = os.path.join(datasetDir, stackRoot + '.st')
+   ext = 'st'
+   destRoot = os.path.join(datasetDir, stackRoot + '.')
+   dest = destRoot + 'st'
 
    # Look for either extension and change it during the move
    renaming = False
+   skipIt = False
    if not os.path.exists(source):
+      ext = altExtension
       source = sourceRoot + altExtension
       if not os.path.exists(source):
+         if os.path.exists(dest):
+            prnLog('Stack file is already delivered to dataset directory; assuming ' + \
+                      'associated files are too')
+            return 0
          abortSet('Stack file ' + stackRoot + ' does not exist in ' + \
                      deliverFromDir + ' with either extension .st or .' + altExtension)
          return 1
@@ -162,22 +225,20 @@ def deliverStack(axis):
    try:
       os.rename(source, dest)
       if renaming:
-         prnstr('Renamed stack from ' + stackRoot + '.st' + ' to ' + stackRoot +\
-                   '.' + altExtension)
+         prnLog('Renamed stack from ' + stackRoot + '.' + altExtension + ' to ' + \
+                   stackRoot + '.st')
    except OSError:
       abortSet('Error moving/renaming stack file from ' + source + ' to ' + dest)
       return 1
 
-   # Move .mdoc files also
-   source += '.mdoc'
-   dest += '.mdoc'
-   if os.path.exists(source) and not os.path.exists(dest):
-      try:
-         os.rename(source, dest)
-      except OSError:
-         abortSet('Error moving metadata file ' + setName + ext + '.mdoc from ' + \
-                     deliverFromDir + ' to ' + datasetDir)
-         return 1
+   # Move .mdoc, .log, .rawtlt files also
+   if deliverAncillary(source + '.mdoc', dest + '.mdoc', 'metadata', ext + '.mdoc'):
+      return 1
+   if deliverAncillary(sourceRoot + 'log', destRoot + 'log', 'tilt series log', 'log'):
+      return 1
+   if deliverAncillary(sourceRoot + 'rawtlt', destRoot + 'rawtlt', 'raw tilt angle',
+                       'rawtlt'):
+      return 1
 
    return 0
    
@@ -185,10 +246,10 @@ def deliverStack(axis):
 # Print out errors from directive file reading or validation
 def printDirectiveErrors(errors):
    if errors:
-      prnstr('ERROR: Incorrect directive(s) as listed below:')
+      prnLog('ERROR: Incorrect directive(s) as listed below:')
       for l in errors:
-         prnstr(l)
-      prnstr('')
+         prnLog(l)
+      prnLog('')
       abortSet('Bad directives')
    return len(errors)
    
@@ -264,6 +325,15 @@ def readDirectiveOrTemplate(filename, index):
       nodi = (-1, '')
       lineNumDict = {rootNameText : nodi, dataDirText : nodi, scopeTmplText : nodi,
                   sysTmplText : nodi, userTmplText : nodi}
+
+      # Add raw boundary model variations if doing delivery
+      if deliverDir:
+         for operation in (patchTrackText, autoSeedText):
+            for axlet in ('.a.', '.b.', '.any.'):
+               direc = operation + axlet + 'rawBoundaryModel'
+               lineNumDict[direc] = nodi
+
+      # Find lines
       for ind in range(len(directLines)):
          line = directLines[ind].lstrip()
          lsplit = line.split('=')
@@ -306,7 +376,7 @@ def readDirectiveOrTemplate(filename, index):
                   abortSet('Error making directory for dataset, ' + datadir)
                   return 1
 
-               prnstr('Created dataset directory ' + datadir)
+               prnLog('Created dataset directory ' + datadir)
 
          dataDirect = dataDirText + ' = ' + datadir
          rewriteBatch = True
@@ -333,6 +403,33 @@ def readDirectiveOrTemplate(filename, index):
                directLines[lineNumDict[tmplText][0]] = tmplText + ' = ' +\
                               absTmplName
 
+      # Deliver raw boundary model(s) and adjust directive to local file
+      if deliverDir:
+         for operation in (patchTrackText, autoSeedText):
+            for axlet in ('.a.', '.b.', '.any.'):
+               direc = operation + axlet + 'rawBoundaryModel'
+               if lineNumDict[direc][0] >= 0:
+                  srcPath = lineNumDict[direc][1]
+                  rawFile = os.path.basename(srcPath)
+                  destPath = os.path.join(datadir, rawFile)
+                  srcExists = os.path.exists(srcPath)
+                  destExists = os.path.exists(destPath)
+                  if srcExists and not destExists:
+                     try:
+                        os.rename(srcPath, destPath)
+                        prnLog('Moved boundary model ' + srcPath + ' to ' + datadir)
+                     except OSError:
+                        abortSet('Error renaming/moving raw boundary model ' + srcPath + \
+                                    ' to ' + destPath)
+                        return 1
+
+                  elif not (destExists and not srcExists):
+                     abortSet('Raw boundary model ' + srcPath + ' does not exist')
+                     return 1
+
+                  rewriteBatch = True
+                  directLines[lineNumDict[direc][0]] = direc + ' = ' + rawFile
+               
       # Rewrite the batch file with all these corrections in the data directory
       if rewriteBatch:
          absDirectiveFile = os.path.join(datadir, localBatchCopy)
@@ -462,7 +559,7 @@ def transformRawBoundaryModel(modelIn, modelOut):
                       (panx - rawXsize // coarseBinning) / 2.,
                       (pany - rawYsize // coarseBinning) / 2.,
                       modelIn, modelOut)
-      prnstr('Transforming ' + modelIn + ' to ' + modelOut + ' with:\n' + comstr)
+      prnLog('Transforming ' + modelIn + ' to ' + modelOut + ' with:\n' + comstr)
       runcmd(comstr)
    except ImodpyError:
       reportImodError('Could not transform boundary model to match stack')
@@ -476,12 +573,12 @@ def checkForQuit():
    if isinstance(checklines, str) or len(checklines) < 1:
       return False
    if checklines[len(checklines) - 1].startswith('Q'):
-      prnstr('RECEIVED SIGNAL TO QUIT, JUST EXITING')
+      prnLog('RECEIVED SIGNAL TO QUIT, JUST EXITING')
       sys.exit(0)
 
       
 # Runs a com file or com chunks using processchunks
-def runOneProcess(comfile, single = True, usingGPU = False):
+def runOneProcess(comfile, single = True, usingGPU = False, message = ''):
    if (single or 'sirt' not in comfile) and not os.path.exists(comfile):
       abortSet('Command file ' + comfile + ' does not exist')
       return 1
@@ -498,7 +595,10 @@ def runOneProcess(comfile, single = True, usingGPU = False):
       comArray += ['-w', remoteDataDir]
    machines = cpuList
    (comroot, ext) = os.path.splitext(comfile)
-   mess = 'Running ' + comfile
+   if message:
+      mess = message + ' (running ' + comfile
+   else:
+      mess = 'Running ' + comfile
    if single:
       if not useFirstCPUforSingle:
          machines = '1'
@@ -512,14 +612,16 @@ def runOneProcess(comfile, single = True, usingGPU = False):
       if machines != '1':
          comArray.append('-G')
       mess += ' using GPU'
+   if message:
+      mess += ')'
    comArray += [machines, comuse]
 
    # Run the process detached
-   prnstr(mess, flush=True)
+   prnLog(mess, flush=True)
    startTime = time.time()
    err = bkgdProcess(comArray, outfile, 'stdout', True)
    if err:
-      prnstr('ERROR: ' + err)
+      prnLog('ERROR: ' + err)
       abortSet('Cannot start processchunks to run ' + comfile)
       return 1
 
@@ -552,7 +654,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
                   where = None
                   for l in lines:
                      if l.startswith('ERROR:'):
-                        prnstr('processchunks ' + l, end = '')
+                        prnLog('processchunks ' + l, end = '')
                         finished = -1
                         break
                      elif l.startswith('Finished reassembling'):
@@ -610,7 +712,7 @@ def runOneProcess(comfile, single = True, usingGPU = False):
 
    except KeyboardInterrupt:
       writeTextFile(checkFile, ['Q'], True)
-      prnstr('Detected keyboard interrupt, told processchunks to quit')
+      prnLog('Detected keyboard interrupt, told processchunks to quit')
       sys.exit(1)
 
    if opened:
@@ -645,14 +747,14 @@ def runOneProcess(comfile, single = True, usingGPU = False):
       seconds = int(used)
       frac = int(round((used - seconds) * 10))
       
-      prnstr(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}', comfile, minutes,
+      prnLog(fmtstr('Successfully finished {}   in {:02d}:{:02d}.{}', comfile, minutes,
                     seconds, frac), flush=True)
    return finished < 0
 
 
 # Give lines for running makecomfile, add the output file entry, get  the com file, and
 # run it
-def makeAndRunOneCom(comlines, comfile):
+def makeAndRunOneCom(comlines, comfile, message = ''):
    comlines.insert(0, 'OutputFile	' + comfile)
    try:
       runcmd('makecomfile -StandardInput', comlines)
@@ -660,14 +762,14 @@ def makeAndRunOneCom(comlines, comfile):
       reportImodError('Error making ' + comfile)
       return 1
 
-   if runOneProcess(comfile):
+   if runOneProcess(comfile, message = message):
       return 1
    return 0
 
 
 # Use the sed commands to modify a command file, write it, and run it
 # Reads the command file first unless lines are supplied in inLines
-def modifyWriteAndRunCom(comfile, sedcom, inLines = None):
+def modifyWriteAndRunCom(comfile, sedcom, inLines = None, message = ''):
    if not inLines:
       inLines = readTextFileReportErr(comfile)
       if not inLines:
@@ -676,7 +778,7 @@ def modifyWriteAndRunCom(comfile, sedcom, inLines = None):
    if pysed(sedcom, inLines, comfile, retErr=True):
       abortSet('Error modifying ' + comfile)
       return 1
-   if runOneProcess(comfile):
+   if runOneProcess(comfile, message = message):
       return 1
    return 0
    
@@ -789,7 +891,7 @@ def comAndProcessForAlignedStack(prefix):
 
 
 # Run a tilt comfile, splitting it if appropriate
-def splitAndRunTilt(comfile):
+def splitAndRunTilt(comfile, message):
    numProc = 0
    if parallelGPU > 1:
       numProc = parallelGPU
@@ -800,7 +902,7 @@ def splitAndRunTilt(comfile):
          runcmd('splittilt -n ' + str(numProc) + ' ' + comfile)
       except ImodpyError:
          reportImodError('Error running splittilt on ' + comfile)
-   return runOneProcess(comfile, numProc == 0, useGPU)
+   return runOneProcess(comfile, numProc == 0, useGPU, message = message)
 
 
 # Test whether a step should be run
@@ -1106,7 +1208,7 @@ def fidlessFileOperations(taLines):
 # Run tiltxcorr to do patch tracking
 def runPatchTracking():
    global contourPieces
-   contourPieces = lookupDirective(runtimePrefix + 'PatchTracking',
+   contourPieces = lookupDirective(patchTrackText,
                                    'contourPieces', 0, INT_VALUE)
    if isinstance(contourPieces, str):
       abortSet('Error converting contour pieces in directive to integer')
@@ -1126,7 +1228,7 @@ def runPatchTracking():
    # Look for boundary models to transform
    rawBound = ''
    if not axisInd:
-      rawBound = lookupDirective(runtimePrefix + 'PatchTracking', 'rawBoundaryModel',
+      rawBound = lookupDirective(patchTrackText, 'rawBoundaryModel',
                                  0, STRING_VALUE)
    else:
 
@@ -1150,7 +1252,8 @@ def runPatchTracking():
       comlines.append(fmtstr('OneParameterChange {}xcorr_pt{}.tiltxcorr.' + \
                                 'LengthAndOverlap={},{}', comPrefix, axisLet,
                              length, overlap))
-   if makeAndRunOneCom(comlines, 'xcorr_pt' + axisCom):
+   if makeAndRunOneCom(comlines, 'xcorr_pt' + axisCom,
+                       'Tracking patches to make alignment model'):
       return 1
 
 
@@ -1218,7 +1321,7 @@ def makeSeedAndTrack(talines):
       if writeTextFileReportErr('runraptor' + axisCom,
                           ['# Command file to run raptor', line]):
          return 1
-      if runOneProcess('runraptor' + axisCom):
+      if runOneProcess('runraptor' + axisCom, 'Tracking fiducials with RAPTOR'):
          return 1
       if useFileAsReplacement(dataName + '_raptor.fid', dataName + '.fid', False, True):
          return 1
@@ -1234,7 +1337,8 @@ def makeSeedAndTrack(talines):
          comlines.append(fmtstr('OneParameterChange {}transferfid.transferfid.' +\
                                    'LowestTiltTransformFile={}_AtoB.xf', comPrefix,
                                 setName))
-         if makeAndRunOneCom(comlines, 'transferfid.com'):
+         if makeAndRunOneCom(comlines, 'transferfid.com',
+                             'Transferring fiducials from A to B axis'):
             return 1
          printTaggedMessages('transferfid.log',
                              standardTags + [('fiducials that failed', 4)])
@@ -1264,7 +1368,7 @@ def makeSeedAndTrack(talines):
          # A model on A raw stack has to be transformed to preali
          boundaryMod = ''
          if not axisInd:
-            rawBound = lookupDirective(runtimePrefix + 'SeedFinding', 'rawBoundaryModel',
+            rawBound = lookupDirective(autoSeedText, 'rawBoundaryModel',
                                        0, STRING_VALUE)
             haveAaxisAFSbound = rawBound != None and rawBound != ''
          else:
@@ -1284,7 +1388,6 @@ def makeSeedAndTrack(talines):
                   comstr = fmtstr('imodtrans -2 "{}_AtoB.xf" -l 0 -n {},{},{} ' +
                                 '"{}a_afsbound.mod" "{}"', setName, panx, pany, panz,
                                   setName, boundaryMod)
-                  prnstr(comstr)
                   runcmd(comstr)
                except ImodpyError:
                   reportImodError('Failed to transform boundary model from A to B')
@@ -1301,7 +1404,8 @@ def makeSeedAndTrack(talines):
             comlines.append(fmtstr('OneParameterChange {}autofidseed{}.autofidseed.' +
                                    'BoundaryModel={}', comPrefix, axisLet, boundaryMod))
             
-         if makeAndRunOneCom(comlines, 'autofidseed' + axisCom):
+         if makeAndRunOneCom(comlines, 'autofidseed' + axisCom,
+                             'Finding seed points for fiducial model'):
             return 1
          printTaggedMessages('autofidseed' + axisLet + '.log', standardTags +
                              [('candidate points, including', 4), ('Final:   total', 0)])
@@ -1326,7 +1430,7 @@ def makeSeedAndTrack(talines):
                # Significantly means a 5% change.  Watch out, track.com was already
                # modified so apply earlier change to lines instead of rereading it
                if diff < 0.95 or diff > 1.05:
-                  prnstr('Changing the unbinned bead diameter for tracking to ' +
+                  prnLog('Changing the unbinned bead diameter for tracking to ' +
                          str(newBeadSize))
                   sedcom = [sedModify('BeadDiameter', newBeadSize)] + \
                       sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputModel')
@@ -1344,7 +1448,8 @@ def makeSeedAndTrack(talines):
       if (trackInd or trackingMethod == 2) and \
              useFileAsReplacement(dataName + '.fid', dataName + '.seed', True, True):
          return 1
-      if runOneProcess('track' + axisCom):
+      if runOneProcess('track' + axisCom, message =
+                       'Tracking beads with Beadtrack, run # ' + str(trackInd + 1)):
          return 1
       printTaggedMessages('track' + axisLet + '.log',
                           standardTags + [('Total points missing =', 4)])
@@ -1389,6 +1494,11 @@ def runTiltalign(taLines):
    # But loop twice in case have to turn off robust fitting
    # This is probably a really bad idea.
    for loop in (0, 1):
+      robText = 'without'
+      if doRobust:
+         robText = 'with'
+      mess = 'Doing fine alignment with no distortion or local alignments, ' + \
+          robText + ' robust fitting'
       suppressAbort = not loop and doRobust
       sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
                 sedModify('LocalAlignments', 0),
@@ -1397,13 +1507,13 @@ def runTiltalign(taLines):
                 sedDelAndAdd('ImagesAreBinned', coarseBinning, 'OutputTransformFile') + \
                 sedDelAndAdd('RobustFitting', doRobust, 'OutputTransformFile')
 
-      if modifyWriteAndRunCom(alignCom, sedcom, taLines):
+      if modifyWriteAndRunCom(alignCom, sedcom, taLines, message = mess):
          if not suppressAbort:
             return 1
          suppressAbort = False
          for line in latestMessages:
             if 'TOO FEW DATA POINTS TO DO ROBUST' in line:
-               prnstr('Trying again without robust fitting')
+               prnLog('Trying again without robust fitting')
                doRobust = 0
                break
          else:
@@ -1438,7 +1548,7 @@ def runTiltalign(taLines):
       messageTags = standardTags + [('(Global)', 4), ('error local mean:', 4)]
    if didLocalAlign or enableStretch:
 
-      #are there enough fids for stretch?
+      # are there enough fids for stretch?
       totalFid = numBot
       numruns = 2
       if enableStretch:
@@ -1455,11 +1565,11 @@ def runTiltalign(taLines):
                   locStretch = 3
                   useMinFids = minFidsSurf
                else:
-                  prnstr('Too few fiducials on minority surface to enable local ' +\
+                  prnLog('Too few fiducials on minority surface to enable local ' +\
                             'stretching solution')
 
          else:
-            prnstr('Too few fiducials on minority surface to enable ' +\
+            prnLog('Too few fiducials on minority surface to enable ' +\
                             'stretching solution')
             
    
@@ -1467,6 +1577,16 @@ def runTiltalign(taLines):
    # without.
    for run in range(numruns):
       for loop in (0, 1):
+         robText = 'without'
+         if doRobust:
+            robText = 'with'
+         mess = 'Doing fine alignment with '
+         if not glbStretch:
+            mess += 'no'
+         mess += ' distortion, with'
+         if not didLocalAlign:
+            mess += 'out'
+         mess += ' local alignments, ' + robText + ' robust fitting'
          suppressAbort = not loop and doRobust
          sedcom = [sedModify('SurfacesToAnalyze', numSurfaces),
                    sedModify('LocalAlignments', localAlign),
@@ -1484,13 +1604,13 @@ def runTiltalign(taLines):
             sedcom += sedDelAndAdd('OutputZFactorFile', dataName + '.zfac',
                                    'OutputTransformFile')
                 
-         if modifyWriteAndRunCom(alignCom, sedcom, taLines):
+         if modifyWriteAndRunCom(alignCom, sedcom, taLines, message = mess):
             if not suppressAbort:
                return 1
             suppressAbort = False
             for line in latestMessages:
                if 'TOO FEW DATA POINTS TO DO ROBUST' in line:
-                  prnstr('Trying again without robust fitting')
+                  prnLog('Trying again without robust fitting')
                   doRobust = 0
                   break
             else:
@@ -1558,12 +1678,12 @@ def makeAndCTFCorrectAlignedStack():
       
 
    sedcom += sedDelAndAdd('BinByFactor', aliBinning, 'TransformFile')
-   if needStep(6) and modifyWriteAndRunCom(comRoot + axisCom, sedcom):
+   if needStep(6) and modifyWriteAndRunCom(comRoot + axisCom, sedcom, message =
+                                           'Making final aligned stack'):
       return 1
 
    if needStep(7) and correctCTF:
 
-      # Note that ctfplotter won't run headless...
       autofit = lookupDirective(runtimePrefix + 'CTFplotting', 'autoFitRangeAndStep', 0,
                                 STRING_VALUE)
       if autofit:
@@ -1576,7 +1696,8 @@ def makeAndCTFCorrectAlignedStack():
 
          # Make existing defocus file a backup to avoid error messages
          makeBackupFile(dataName + '.defocus')
-         if modifyWriteAndRunCom('ctfplotter_auto' + axisCom, sedcom, ctfLines):
+         if modifyWriteAndRunCom('ctfplotter_auto' + axisCom, sedcom, ctfLines,
+                                 'Finding defocus for CTF correction with Ctfplotter'):
             return 1
          sedcom = []
 
@@ -1605,7 +1726,8 @@ def makeAndCTFCorrectAlignedStack():
             reportImodError('Error trying to run ctfcorrection in parallel')
             return 1
       
-      if runOneProcess(comfile, parallelCPU < 2):
+      if runOneProcess(comfile, parallelCPU < 2,
+                       message = 'Correcting for CTF with Ctfphaseflip'):
          return 1
 
       if useFileAsReplacement(dataName + '_ctfcorr.ali', dataName + '.ali', False, True):
@@ -1642,7 +1764,8 @@ def eraseGoldFilterAlignedStack():
                                       'SizeToOutputInXandY={},{}', comPrefix, axisLet,
                                    aliXunbinned // binning, aliYunbinned // binning))
          comlines += laterComDirectives(comRoot + '_3dfind', process, 0)
-         if makeAndRunOneCom(comlines, comRoot + '_3dfind' + axisCom):
+         if makeAndRunOneCom(comlines, comRoot + '_3dfind' + axisCom,
+                             'Making aligned stack for erasing gold'):
             return 1
 
       # Set up to get the reconstruction
@@ -1675,7 +1798,7 @@ def eraseGoldFilterAlignedStack():
          return 1
 
       # Make the reconstruction
-      if splitAndRunTilt(comfile):
+      if splitAndRunTilt(comfile, 'Making tomogram for finding beads'):
          return 1
 
       # Find the beads
@@ -1688,13 +1811,14 @@ def eraseGoldFilterAlignedStack():
          comlines.append(fmtstr('OneParameterChange {}findbeads3d{}.findbeads3d.' + \
                                    'LightBeads=1', comPrefix, axisLet))
       comlines += laterComDirectives('findbeads3d', 'findbeads3d', 0)
-      if makeAndRunOneCom(comlines, 'findbeads3d' + axisCom):
+      if makeAndRunOneCom(comlines, 'findbeads3d' + axisCom, 'Finding beads in tomogram'):
          return 1
             
       # Get the reprojection
       comlines = ['InputFile tilt_3dfind' + axisCom,
                   'RootNameOfDataFiles ' + dataName]
-      if makeAndRunOneCom(comlines, 'tilt_3dfind_reproject' + axisCom):
+      if makeAndRunOneCom(comlines, 'tilt_3dfind_reproject' + axisCom,
+                          'Reprojecting model of beads in tomogram onto aligned stack'):
          return 1
 
    elif eraseGold and needStep(8):
@@ -1712,7 +1836,8 @@ def eraseGoldFilterAlignedStack():
                   'BeadSize ' + str(fidSizePix / aliBinning + extraDiam),
                   fmtstr('OneParameterChange {}golderaser{}.ccderaser.' + \
                             'ExpandCircleIterations=2', comPrefix, axisLet)]
-      if makeAndRunOneCom(comlines, 'golderaser' + axisCom):
+      if makeAndRunOneCom(comlines, 'golderaser' + axisCom,
+                          'Erasing beads from aligned stack'):
          return 1
       
       if useFileAsReplacement(dataName + '_erase.ali', dataName + '.ali', False, True):
@@ -1721,7 +1846,8 @@ def eraseGoldFilterAlignedStack():
    # 2D filtering, very simple
    if lookupDirective(runtimePrefix + 'AlignedStack', 'filterStack', 0, BOOL_VALUE) and \
           needStep(9):
-      if runOneProcess('mtffilter' + axisCom):
+      if runOneProcess('mtffilter' + axisCom, message =
+                       '2D filtering the aligned stack with Mtffilter'):
          return 1
       if useFileAsReplacement(dataName + '_filt.ali', dataName + '.ali', False, True):
          return 1
@@ -1816,14 +1942,16 @@ def generateTomogram():
    doBPalso = lookupDirective(runtimePrefix + 'Reconstruction', 'doBackprojAlso', 0,
                               BOOL_VALUE)
    if doBPalso or not doSIRT:
-      if splitAndRunTilt('tilt' + axisCom):
+      if splitAndRunTilt('tilt' + axisCom, 'Making tomogram by back-projection'):
          return 1
 
    if doSIRT:
       comlines = laterComDirectives('sirtsetup', 'sirtsetup', 0)
-      if makeAndRunOneCom(comlines, 'sirtsetup' + axisCom):
+      if makeAndRunOneCom(comlines, 'sirtsetup' + axisCom,
+                          'Making command files to run SIRT'):
          return 1
-      if runOneProcess('tilt' + axisLet + '_sirt.com', False, useGPU):
+      if runOneProcess('tilt' + axisLet + '_sirt.com', False, useGPU, message =
+                       'Making tomogram with SIRT'):
          return 1
 
    return 0
@@ -1927,7 +2055,7 @@ def trimVolume():
             trimcom += fmtstr(' -s{} {},{}', chr(ord('x') + ind - 3), start, end)
 
    trimcom += ' ' + recName + ' ' + trimName
-   prnstr('Running trimvol on ' + recName + ' to create ' + trimName, flush=True)
+   prnLog('Running trimvol on ' + recName + ' to create ' + trimName, flush=True)
    if writeTextFileReportErr('trimvol' + axisCom, [trimcom]):
       return 1
    if runOneProcess('trimvol' + axisCom):
@@ -1948,26 +2076,94 @@ def runOneAxis():
    # Xray removal
    if lookupDirective(runtimePrefix + 'Preprocessing', 'removeXrays', 0, BOOL_VALUE) and \
           needStep(1):
-   
-      if runOneProcess('eraser' + axisCom):
+
+      xrayMess = 'Removing X-rays with Ccderaser'
+      sedcom = []
+
+      # Copy the model file to the standard local name and switch to that unless the
+      # file already exists
+      model = lookupDirective(comPrefix + 'eraser', 'ccderaser.ModelFile', 0,STRING_VALUE)
+      if model:
+         eraseMod = setName + axisLet + '.erase'
+         if os.path.basename(model) != eraseMod and not os.path.exists(eraseMod):
+            try:
+               shutil.copyfile(model, eraseMod)
+            except Exception:
+               abortSet('Error copying manual erasing model ' + model + ' to ' + eraseMod)
+               return 1
+            sedcom = [sedModify('ModelFile', eraseMod)]
+
+      if sedcom:
+         if modifyWriteAndRunCom('eraser' + axisCom, sedcom, message = xrayMess):
+            return 1
+      else :
+         if runOneProcess('eraser' + axisCom, message = xrayMess):
+            return 1
+
+      # Get clip stats output for fixed stack
+      try:
+         (tmpX, tmpY, rawZ) = getmrcsize(dataName + '.st')
+      except ImodpyError:
+         reportImodError('Could not get size of raw stack')
          return 1
+      length = min(30, max(15, rawZ // 4))
+      montOpt = ''
+      if ifMontage:
+         montOpt = '-P ' + dataName + '.pl -O -10,-10 '
+      command = fmtstr('$clip stats {} -10,-10 -n 2.5 -l {} {}', montOpt, length,
+                       dataName + '_fixed.st')
+      comfile = dataName + '_fixed.st.stats.com'
+      if writeTextFileReportErr(comfile, [command]):
+         return 1
+      err = runOneProcess(comfile, message = 'Getting statistics for fixed stack')
+      cleanupFiles([comfile])
+      if err:
+         return 1
+
+      # Extract the summary lines
+      clipLines = readTextFileReportErr(dataName + '_fixed.st.stats.log')
+      prnLog(' ')
+      for line in clipLines:
+         if 'all' in line or 'extreme' in line:
+            prnLog(line)
+      prnLog(' ')
 
       # Use fixed stack
       if useFileAsReplacement(dataName + '_fixed.st', dataName + '.st', True, False):
          return 1
 
+      # See if there is already an archive file to rename and find next number for that
+      compName = dataName + '_xray.st.gz'
+      if os.path.exists(compName):
+            compList1 = glob.glob(compName + '.[0-9]')
+            compList2 = glob.glob(compName + '.[0-9][0-9]')
+            compList1.sort()
+            compList2.sort()
+            compList = compList1 + compList2
+            nextNum = 1
+            if len(compList):
+               nextNum = int(os.path.splitext(compList[-1])[1][1:]) + 1
+            try:
+               os.rename(compName, compName + '.' + str(nextNum))
+            except OSError:
+               abortSet('Error renaming ' + compName + ' before archiving again')
+               return 1
+
       # Run archiveorig
       if lookupDirective(runtimePrefix + 'Preprocessing', 'archiveOriginal', 0, 
                          BOOL_VALUE):
-         prnstr('Archiving original stack as compressed difference file', flush=True)
+         prnLog('Archiving original stack as compressed difference file', flush=True)
          if writeTextFileReportErr('archiveorig' + axisCom,
                                    ['$archiveorig -d ' + dataName + '.st']):
             return 1
-         if runOneProcess('archiveorig' + axisCom):
+         err = runOneProcess('archiveorig' + axisCom)
+         cleanupFiles(['archiveorig' + axisCom])
+         if err:
             return 1
 
    # coarse alignment
-   if needStep(2) and runOneProcess('xcorr' + axisCom):
+   if needStep(2) and runOneProcess('xcorr' + axisCom, message = 'Finding coarse ' + \
+                                       'alignment by cross-correlation with Tiltxcorr'):
       return 1
 
    # Get the tiltalign file regardless, since it will be operated on
@@ -1991,7 +2187,8 @@ def runOneAxis():
 
       # Make prealigned stack
       (comRoot, process) = comAndProcessForAlignedStack('pre')
-      if needStep(3) and runOneProcess(comRoot + axisCom):
+      if needStep(3) and runOneProcess(comRoot + axisCom, message =
+                                       'Making coarse aligned stack'):
          return 1
 
       # Patch tracking
@@ -2009,10 +2206,11 @@ def runOneAxis():
          return 1
 
       # Iterate patch tracking with angle offset now that it is known, if desired
-      if lookupDirective(runtimePrefix + 'PatchTracking', 'adjustTiltAngles', 0,
+      if lookupDirective(patchTrackText, 'adjustTiltAngles', 0,
                          BOOL_VALUE) and needStep(4) and patchTrack:
          sedcom = sedDelAndAdd('AngleOffset', totalDelTilt, 'SizeOfPatchesXandY')
-         if modifyWriteAndRunCom('xcorr_pt' + axisCom, sedcom):
+         if modifyWriteAndRunCom('xcorr_pt' + axisCom, sedcom, message = fmtstr(
+               'Running patch tracking again with angle offset of {:.1f}', totalDelTilt)):
             return 1
          if (runTiltalign(taLines)):
             return 1
@@ -2043,7 +2241,7 @@ def runOneAxis():
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, shutil, math, csv, re, time
+import os, sys, shutil, math, csv, re, time, datetime
 
 #
 # Setup runtime environment
@@ -2061,11 +2259,13 @@ from pip import *
 from pysed import *
 
 # Fallbacks from ../manpages/autodoc2man 3 1 batchruntomo
-options = ["directive:DirectiveFile:FNM:", "cpus:CPUMachineList:CH:",
+options = ["directive:DirectiveFile:FNM:", "root:RootName:FNM:",
+           "current:CurrentLocation:FNM:", "deliver:DeliverToDirectory:FN:",
+           "one:ProcessOneAxis:I:", "cpus:CPUMachineList:CH:",
            "single:SingleOnFirstCPU:B:", "gpus:GPUMachineList:CH:", "nice:NiceValue:I:",
            "remote:RemoteDirectory:FN:", "check:CheckFile:FN:",
-           "validation:ValidationType:I:", "start:StartingStep:I:", "end:EndingStep:I:",
-           "exit:ExitOnError:B:"]
+           "email:EmailAddress:CH:", "validation:ValidationType:I:",
+           "start:StartingStep:I:", "end:EndingStep:I:", "exit:ExitOnError:B:"]
 
 copyPrefix = 'setupset.copyarg.'
 setupPrefix = 'setupset.'
@@ -2077,12 +2277,17 @@ sysTmplText = setupPrefix + 'systemTemplate'
 dataDirText = setupPrefix + 'datasetDirectory'
 rootNameText = copyPrefix + 'name'
 scanHeadText = setupPrefix + 'scanHeader'
+patchTrackText = runtimePrefix + 'PatchTracking'
+autoSeedText = runtimePrefix + 'SeedFinding'
 setupBname = 'laterbsetup.com'
 localBatchCopy = 'batchDirective.adoc'
 montFrameData = 10 * [0]
 suppressAbort = False
 altExtension = 'mrc'
 userTemplateDir = ''
+summaryMessage = ''
+logFile = None
+finalRetVal = 0
 direcFileErrorNames = ['scope template', 'system template', 'user template',
                        'batch directive']
 
@@ -2190,6 +2395,15 @@ exitOnError = PipGetBoolean('ExitOnError', 0)
 useFirstCPUforSingle = PipGetBoolean('SingleOnFirstCPU',0)
 validation = PipGetInteger('ValidationType', 0)
 remoteDataDir = ''
+emailAddress = PipGetString('EmailAddress', '')
+if emailAddress:
+   if pyVersion < 250:
+      emailAddress = ''
+      prnstr('WARNING: No emails will be sent; the Python version must be 2.5 or ' + \
+                'higher to send emails')
+   else:
+      import smtplib
+      from email.mime.text import MIMEText
 
 # Set up check file
 checkFile = PipGetString('CheckFile', '')
@@ -2219,6 +2433,13 @@ if validation >= 0:
 
 # Start looping on the data sets
 for dfileInd in range(numSets):
+
+   # These need to be initialized for abortSet to work right
+   dualAxis = False
+   axisLet = None
+   setName = '# ' + str(dfileInd + 1)
+
+   closeLogFile()
    dfile = dirFiles[dfileInd]
    axisNum = 0
 
@@ -2284,6 +2505,19 @@ for dfileInd in range(numSets):
       abortSet('Error changing to directory ' + datasetDir)
       continue
 
+   # Open log file now
+   try:
+      logFile = open('batchruntomo.log', 'a')
+      prnstr('\nBatchruntomo started on data set, ' + datetime.datetime.now().ctime(),
+             file = logFile)
+   except IOError:
+      prnstr('WARNING: Failed to open or write to log file in data set directory')
+      try:
+         logFile.close()
+         logFile = None
+      except:
+         pass
+   
    # Check existence of file(s)
    stack = setName + '.'
    numAxes = 1
@@ -2305,7 +2539,7 @@ for dfileInd in range(numSets):
          reportImodError('Error getting pixel size from ' + stack)
          continue
 
-   prnstr('Starting data set ' + setName)
+   prnLog('Starting data set ' + setName)
 
    if startingStep <= 0 and not (dualAxis and doOneAxis > 1):
    #if False:
@@ -2320,7 +2554,7 @@ for dfileInd in range(numSets):
             comline += ' --gpus "' + gpuList + '"'
          etlines = runcmd(comline)
          for l in etlines:
-            prnstr(l.rstrip())
+            prnLog(l.rstrip())
             ind = l.find('with log in')
             if ind > 0:
                errlog = l[ind + 11:].strip()
@@ -2337,13 +2571,13 @@ for dfileInd in range(numSets):
             try:
                shutil.copy(errlog, '.')
             except Exception:
-               prnstr('WARNING: failed to copy ' + errlog + ' to dataset directory')
+               prnLog('WARNING: failed to copy ' + errlog + ' to dataset directory')
          printTaggedMessages(errlog, [('INFO:', 1), ('LOG:', 3)])
       else:
          if failed:
-            prnstr('Running etomo failed, no error information available')
+            prnLog('Running etomo failed, no error information available')
          else:
-            prnstr('Cannot access an error log from running etomo')
+            prnLog('Cannot access an error log from running etomo')
       if failed:
          reportImodError('etomo setup failed, cannot proceed with this data set')
          continue
@@ -2385,10 +2619,11 @@ for dfileInd in range(numSets):
          axisLet = 'a'
          if axisInd:
             axisLet = 'b'
-         prnstr('Starting axis ' + axisLet.upper())
+         prnLog('Starting axis ' + axisLet.upper())
 
       if axisInd and doOneAxis > 1 and os.path.exists(setupBname):
-         if runOneProcess(setupBname):
+         if runOneProcess(setupBname, message =
+                          'Doing setup tasks now that second axis is present'):
             startingStep = 0
             continue
             
@@ -2402,11 +2637,13 @@ for dfileInd in range(numSets):
          continue
       startingStep = 0
       if dualAxis:
-         prnstr('Completed axis ' + axisLet.upper() + ' of dataset ' + setName)
+         message = 'Completed axis ' + axisLet.upper() + ' of dataset ' + setName
       else:
-         prnstr('Completed dataset ' + setName)
+         message = 'Completed dataset ' + setName
+      prnLog(message)
+      summaryMessage += message + '\n'
 
-sys.exit(0)
+   closeLogFile()
 
-   
-                   
+sendEmail('Batchruntomo finished all data sets', summaryMessage)
+sys.exit(finalRetVal)
