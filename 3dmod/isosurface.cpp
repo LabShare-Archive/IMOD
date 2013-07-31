@@ -457,7 +457,7 @@ ImodvIsosurface::ImodvIsosurface(ImodView *vi, bool fillBut, QWidget *parent,
   QRadioButton *radio = diaRadioButton("None", gbox, maskGroup, gbLayout, 0,
                                        "Use data in full box with no masking");
   radio = diaRadioButton("Current contour", gbox, maskGroup, gbLayout, 1,
-                         "Use data outside current contour");
+                         "Use data inside current contour");
   radio = diaRadioButton("Current object", gbox, maskGroup, gbLayout, 2,
                          "Use data inside contours of current object");
   radio = diaRadioButton("Sphere", gbox, maskGroup, gbLayout, 3,

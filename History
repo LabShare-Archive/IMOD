@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/31/13: Made default maximum radius for X-ray erasing a little bigger for
+bead diameter >= 10; turned on local tracking by default.
+
+7/31/13: Made Makecomfile able to make xcorr_pt.com before .preali exists.
+
 7/24/13: Added option to Archiveorig to restore multiple levels of archives.
 
 7/24/13: Fixed 3dmod crash when etomo tells it to load an empty X-ray model.
