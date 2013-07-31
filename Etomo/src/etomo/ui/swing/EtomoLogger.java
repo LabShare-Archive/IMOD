@@ -1,5 +1,7 @@
 package etomo.ui.swing;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -94,6 +96,10 @@ final class EtomoLogger {
     SwingUtilities.invokeLater(new AppendLater(message));
   }
 
+  public void logMessage(final File file) {
+    SwingUtilities.invokeLater(new AppendLater(file));
+  }
+
   private final class AppendLater implements Runnable {
     boolean loadingFromFile = false;
     private String line1 = null;
@@ -101,6 +107,7 @@ final class EtomoLogger {
     private String line3 = null;
     private String[] stringArray = null;
     private List<String> lineList = null;
+    private File file = null;
 
     private AppendLater(String line1) {
       this.line1 = line1;
@@ -134,6 +141,10 @@ final class EtomoLogger {
       this.lineList = lineList;
     }
 
+    private AppendLater(final File file) {
+      this.file = file;
+    }
+
     /**
      * Append lines and lineList to textArea.
      */
@@ -161,6 +172,32 @@ final class EtomoLogger {
         for (int i = 0; i < lineList.size(); i++) {
           newLine();
           logInterface.append(lineList.get(i));
+        }
+      }
+      if (file != null && file.exists() && file.isFile() && file.canRead()) {
+        newLine();
+        logInterface.append("Logging from file: " + file.getAbsolutePath());
+        newLine();
+        try {
+          LogFile logFile = LogFile.getInstance(file);
+          LogFile.ReaderId id = logFile.openReader();
+          String line = null;
+          while ((line = logFile.readLine(id)) != null) {
+            logInterface.append(line);
+            newLine();
+          }
+        }
+        catch (LogFile.LockException e) {
+          e.printStackTrace();
+          System.err.println("Unable to log from file.  " + e.getMessage());
+        }
+        catch (FileNotFoundException e) {
+          e.printStackTrace();
+          System.err.println("Unable to log from file.  " + e.getMessage());
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+          System.err.println("Unable to log from file.  " + e.getMessage());
         }
       }
       if (!loadingFromFile) {
