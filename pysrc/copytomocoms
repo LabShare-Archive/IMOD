@@ -311,18 +311,18 @@ elif beadrad < 5.:
    eraserad = 2.1
 elif beadrad < 7.:
    boxsize = 40
-   eraserad = 2.6
+   eraserad = 3.0
 else:
 
    # 7/18/13: Make the boxes stay 3.3x the bead size; max this with the older formula
    # and allow them to be much bigger
    boxReal = max(3.3 * beadsize + 7, 2 * beadsize + 26)
    boxsize = min(256, 8 * int(boxReal / 8))
-   eraserad = 3.6
+   eraserad = 4.2
 
 # If 0 radius entered, just set eraser param generously large
 if beadnm == 0.:
-   eraserad = 3.6
+   eraserad = 4.2
 
 # LOOP ON THE AXES
 for iaxis in range(naxis):
