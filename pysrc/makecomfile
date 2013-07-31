@@ -114,11 +114,29 @@ if typeName == 'xcorr_pt':
          break
    else:
       exitError("Cannot find tiltxcorr command line in file")
-      
+
    try:
-      (nx, ny, nz) = getmrcsize(rootname + '.preali')
+      if os.path.exists(rootname + '.preali'):
+         (nx, ny, nz) = getmrcsize(rootname + '.preali')
+      else:
+
+         # Get the raw stack size, assuming a montage if there is a .pl
+         if os.path.exists(rootname + '.pl'):
+            sizeLines = runcmd(fmtstr('montagesize {0}.st {0}.pl', rootname))
+            line = sizeLines[-1]
+            ind = line.find('NZ:')
+            lsplit = line[ind + 3:].split()
+            nx = int(lsplit[0])
+            ny= int(lsplit[1])
+         else:
+            (nx, ny, nz) = getmrcsize(rootname + '.st')
+         nx /= binning
+         ny /= binning
+         
    except ImodpyError:
       exitFromImodError(progname)
+   except ValueError:
+      exitError('Getting size from montagesize output')
 
    xborder = int(0.05 * nx + 0.5)
    yborder = int(0.05 * ny + 0.5)
