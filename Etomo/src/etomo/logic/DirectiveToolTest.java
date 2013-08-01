@@ -3,6 +3,7 @@ package etomo.logic;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescr;
 import etomo.storage.DirectiveDescrEtomoColumn;
+import etomo.storage.DirectiveDescrFile;
 import etomo.storage.DirectiveValueType;
 import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
@@ -193,6 +194,14 @@ public class DirectiveToolTest extends TestCase {
     }
 
     public String getDescription() {
+      return null;
+    }
+
+    public String getLabel() {
+      return null;
+    }
+    
+    public DirectiveDescrFile.ChoiceList getChoiceList(){
       return null;
     }
 

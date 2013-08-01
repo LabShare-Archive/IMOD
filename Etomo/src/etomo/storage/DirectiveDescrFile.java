@@ -3,6 +3,8 @@ package etomo.storage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
@@ -131,6 +133,8 @@ public final class DirectiveDescrFile {
     private static final int BATCH_COLUMN_INDEX = 3;
     private static final int TEMPLATE_COLUMN_INDEX = 4;
     private static final int ETOMO_COLUMN_INDEX = 5;
+    private static final int LABEL_COLUMN_INDEX = 7;
+    private static final int CHOICES_COLUMN_INDEX = 8;
 
     private final AxisID axisID;
     private final LogFile.ReaderId id;
@@ -151,6 +155,20 @@ public final class DirectiveDescrFile {
     public String getDescription() {
       if (curLineArray != null && curLineArray.length > DESCR_COLUMN_INDEX) {
         return curLineArray[DESCR_COLUMN_INDEX];
+      }
+      return null;
+    }
+
+    public String getLabel() {
+      if (curLineArray != null && curLineArray.length > LABEL_COLUMN_INDEX) {
+        return curLineArray[LABEL_COLUMN_INDEX];
+      }
+      return null;
+    }
+
+    public ChoiceList getChoiceList() {
+      if (curLineArray != null && curLineArray.length > CHOICES_COLUMN_INDEX) {
+        return new ChoiceList(curLineArray[CHOICES_COLUMN_INDEX]);
       }
       return null;
     }
@@ -251,6 +269,78 @@ public final class DirectiveDescrFile {
       if (hasNext()) {
         curLineArray = nextLine.split(",");
         nextLine = null;
+      }
+    }
+  }
+
+  /**
+   * Creates a list of value/description pairs.  Will not contain any empty entries, but
+   * may contain entries without a description.
+   * @author sueh
+   *
+   */
+  public static final class ChoiceList {
+    private final List<String[]> choiceList;
+
+    private ChoiceList(final String input) {
+      String[] choiceArray = input.split("\\s*;\\s*");
+      if (choiceArray == null || choiceArray.length < 1) {
+        choiceList = null;
+      }
+      else {
+        choiceList = new ArrayList<String[]>();
+        for (int i = 0; i < choiceArray.length; i++) {
+          if (choiceArray[i] != null && choiceArray[i].length() > 0) {
+            String[] array = choiceArray[i].split("\\s*\\:\\s*");
+            if (array != null && array.length >= 0) {
+              choiceList.add(array);
+            }
+          }
+        }
+      }
+    }
+
+    boolean isEmpty() {
+      return choiceList == null || choiceList.isEmpty();
+    }
+
+    public int size() {
+      if (choiceList != null) {
+        return choiceList.size();
+      }
+      return 0;
+    }
+
+    /**
+     * If the index is valid, returns the choice description.  If the decription is
+     * missing, returns the choice number.  If the index is not valid, returns null.
+     * @param index
+     * @return
+     */
+    public String getDescr(final int index) {
+      if (!isEmpty() && index >= 0 && index < choiceList.size()) {
+        String[] choice = choiceList.get(index);
+        if (choice.length > 1) {
+          return choice[1];
+        }
+        return choice[0];
+      }
+      else {
+        return null;
+      }
+    }
+    /**
+     * If the index is valid, returns the value.  If the index is not valid, returns null.
+     * @param index
+     * @return
+     */
+    public String getValue(final int index) {
+      if (!isEmpty() && index >= 0 && index < choiceList.size()) {
+        String[] choice = choiceList.get(index);
+        return choice[0];
+      }
+      else {
+        return null;
       }
     }
   }
