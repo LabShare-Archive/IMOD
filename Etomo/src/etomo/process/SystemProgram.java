@@ -337,7 +337,7 @@ public class SystemProgram implements Runnable {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    processMessages = ProcessMessages.getMultiLineInstance();
+    processMessages = ProcessMessages.getMultiLineInstance(manager);
     commandArray = new String[command.size()];
     for (int i = 0; i < command.size(); i++) {
       commandArray[i] = command.get(i);
@@ -358,16 +358,18 @@ public class SystemProgram implements Runnable {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    processMessages = ProcessMessages.getInstance();
+    processMessages = ProcessMessages.getInstance(manager);
     commandArray = cmdArray;
   }
-  
+
   public SystemProgram(final BaseManager manager, final String propertyUserDir,
-      final String[] cmdArray, final AxisID axisID,final boolean multilineWarning, final boolean multilineInfo) {
+      final String[] cmdArray, final AxisID axisID, final boolean multilineWarning,
+      final boolean multilineInfo) {
     this.manager = manager;
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
-    processMessages = ProcessMessages.getMultiLineInstance( multilineWarning,   multilineInfo);
+    processMessages = ProcessMessages.getMultiLineInstance(manager, multilineWarning,
+        multilineInfo);
     commandArray = cmdArray;
   }
 
@@ -804,10 +806,11 @@ public class SystemProgram implements Runnable {
   public void setDebug(final boolean state) {
     debug = state;
   }
-  
- public void setMessagePrependTag( final String tag) {
-   processMessages.setMessagePrependTag(tag);
- }
+
+  public void setMessagePrependTag(final String tag) {
+    processMessages.setMessagePrependTag(tag);
+  }
+
   /**
    * Return true if this thread has ever been started
    * @return

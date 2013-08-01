@@ -492,7 +492,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private final ProcessMonitor processMonitor;
   private ProcessEndState endState = null;// used when processMonitor is null
   private final BaseManager manager;
-  private final ProcessMessages processMessages = ProcessMessages.getInstance();
+  private final ProcessMessages processMessages ;
   private final ProcessSeries processSeries;
   private ProcessResultDisplay processResultDisplay = null;
   private boolean parseLogFile = true;
@@ -507,6 +507,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final boolean resumable) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -530,6 +531,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       final ProcessResultDisplay processResultDisplay, final ProcessSeries processSeries,
       final boolean resumable, final FileType fileType) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -552,6 +554,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, FileType fileType) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -581,6 +584,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -601,6 +605,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       final ProcessDetails processDetails, final ProcessSeries processSeries,
       final boolean resumable) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -624,6 +629,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
       Command command, final ProcessSeries processSeries) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -654,6 +660,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
       CommandDetails commandDetails, final ProcessSeries processSeries) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -686,6 +693,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       final String watchedFileName, final ProcessMonitor processMonitor,
       final ProcessSeries processSeries, final boolean resumable) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = comScript;
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -705,6 +713,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, final ProcessSeries processSeries) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -735,6 +744,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
       final ProcessSeries processSeries, final ProcessingMethod processingMethod) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = commandDetails.getCommand();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");
@@ -768,6 +778,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
       final ProcessSeries processSeries, final ProcessingMethod processingMethod) {
     this.manager = manager;
+    processMessages = ProcessMessages.getInstance(manager);
     this.comScriptName = command.getCommand();
     this.processManager = processManager;
     cshProcessID = new StringBuffer("");

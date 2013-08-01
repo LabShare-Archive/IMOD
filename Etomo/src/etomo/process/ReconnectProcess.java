@@ -214,10 +214,11 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
       }
     }
     if (logSuccessTag == null) {
-      messages = ProcessMessages.getInstance("Reconstruction of", "slices complete.");
+      messages = ProcessMessages.getInstance(manager, "Reconstruction of",
+          "slices complete.");
     }
     else {
-      messages = ProcessMessages.getInstance(logSuccessTag);
+      messages = ProcessMessages.getInstance(manager, logSuccessTag);
     }
     ProcessName processName = processData.getProcessName();
     try {

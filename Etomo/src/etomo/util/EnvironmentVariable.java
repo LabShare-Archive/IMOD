@@ -23,6 +23,8 @@ public final class EnvironmentVariable {
   public static final String rcsid = "$Id$";
 
   public static final String CALIB_DIR = "IMOD_CALIB_DIR";
+  public static final String PARTICLE_DIR = "PARTICLE_DIR";
+
   public static final EnvironmentVariable INSTANCE = new EnvironmentVariable();
 
   private final HashMap variableList = new HashMap();
@@ -39,7 +41,7 @@ public final class EnvironmentVariable {
   public String getValue(BaseManager manager, String propertyUserDir, String varName,
       AxisID axisID) {
     String value = "";
-    //prevent multiple reads and writes at the same time
+    // prevent multiple reads and writes at the same time
     synchronized (variableList) {
       if (variableList.containsKey(varName)) {
         value = (String) variableList.get(varName);
@@ -49,8 +51,8 @@ public final class EnvironmentVariable {
         return value;
       }
     }
-    //  There is not a real good way to access the system environment variables
-    //  since the primary method was deprecated
+    // There is not a real good way to access the system environment variables
+    // since the primary method was deprecated
     SystemProgram readEnvVar;
     if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
@@ -135,8 +137,8 @@ public final class EnvironmentVariable {
    */
   public boolean exists(BaseManager manager, String propertyUserDir, String varName,
       AxisID axisID) {
-    //  There is not a real good way to access the system environment variables
-    //  since the primary method was deprecated
+    // There is not a real good way to access the system environment variables
+    // since the primary method was deprecated
     SystemProgram readEnvVar;
     if (Utilities.isWindowsOS()) {
       String var = "%" + varName + "%";
