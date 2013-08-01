@@ -514,13 +514,6 @@ residual change, to require for deletion of a point.
 manpage = Minimum change in residual, and criterion number of SD's from the
 mean residual change, to require for deletion of a point on pass 1 or 2.
 
-[Field = IsolatedBeadCriterionFactor]
-short = 
-type = F
-usage = Factor by which to increase residual criteria for an isolated bead
-tooltip = Factor by which to increase residual criteria for an isolated bead.
-manpage =
-
 [Field = ParameterFile]
 short = param
 type = PF
