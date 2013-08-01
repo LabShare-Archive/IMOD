@@ -16,6 +16,7 @@ import etomo.EtomoDirector;
 import etomo.logic.DirectiveTool;
 import etomo.logic.FieldValidator;
 import etomo.storage.Directive;
+import etomo.storage.DirectiveDescrFile;
 import etomo.storage.DirectiveType;
 import etomo.storage.DirectiveValueType;
 import etomo.storage.DirectiveValues;
@@ -41,10 +42,13 @@ import etomo.ui.FieldType;
 final class DirectivePanel implements DirectiveSetInterface {
   public static final String rcsid = "$Id:$";
 
+  private static final int NO_INDEX = 1;
+  private static final int YES_INDEX = 0;
+
   private final JPanel pnlRoot = new JPanel();
   private final CheckBox cbInclude = new CheckBox(" -");
 
-  private final CheckBox cbValue;
+  private final ComboBox cbValue;
   private final LabeledTextField ltfValue;
   private final SimpleButton sbFileValue;
   private final DirectiveTool tool;
@@ -56,6 +60,8 @@ final class DirectivePanel implements DirectiveSetInterface {
   private final AxisType sourceAxisType;
   private final DirectivePanel siblingA;
   private final DirectivePanel siblingB;
+  private final String[] valueList;
+  private final boolean booleanValueType;
 
   private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
   private File lastFileChooserLocation = null;
@@ -81,24 +87,38 @@ final class DirectivePanel implements DirectiveSetInterface {
     else if (axisID == AxisID.SECOND) {
       axisTitle = " - Axis B";
     }
-    String title = directive.getTitle() + axisTitle;
-    if (title.indexOf("fiducialless") != -1) {
-      debug = 2;
-    }
+    String title = directive.getTitle() + axisTitle + ":  ";
     // Need to be able to distinguish the include checkbox action commands from the three
     // directives in each directive set.
     actionCommand = "include" + axisTitle;
     cbInclude.setActionCommand(actionCommand);
     DirectiveValueType valueType = directive.getValueType();
     FieldType fieldType = FieldType.getInstance(valueType);
-    if (valueType == DirectiveValueType.BOOLEAN) {
-      cbValue = new CheckBox(title);
+    booleanValueType = valueType == DirectiveValueType.BOOLEAN;
+    if (booleanValueType || directive.isChoiceList()) {
+      if (booleanValueType) {
+        cbValue = ComboBox.getInstance(title, false);
+        cbValue.addItem("Yes");
+        cbValue.addItem("No");
+        valueList = null;
+      }
+      else {
+        cbValue = ComboBox.getInstance(title, true);
+        DirectiveDescrFile.ChoiceList choiceList = directive.getChoiceList();
+        int size = choiceList.size();
+        valueList = new String[size];
+        for (int i = 0; i < size; i++) {
+          cbValue.addItem(choiceList.getDescr(i));
+          valueList[i] = choiceList.getValue(i);
+        }
+      }
       ltfValue = null;
       sbFileValue = null;
     }
     else {
-      ltfValue = new LabeledTextField(fieldType, title + ":  ");
+      ltfValue = new LabeledTextField(fieldType, title);
       cbValue = null;
+      valueList = null;
       if (valueType == DirectiveValueType.FILE) {
         sbFileValue = new SimpleButton(new ImageIcon(
             ClassLoader.getSystemResource("images/openFile.gif")));
@@ -152,7 +172,7 @@ final class DirectivePanel implements DirectiveSetInterface {
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.X_AXIS));
     pnlRoot.add(cbInclude);
     if (cbValue != null) {
-      pnlRoot.add(cbValue);
+      pnlRoot.add(cbValue.getComponent());
     }
     else {
       pnlRoot.add(ltfValue.getComponent());
@@ -185,7 +205,19 @@ final class DirectivePanel implements DirectiveSetInterface {
   void setStateInDirective() {
     directive.setInclude(axisID, isInclude());
     if (cbValue != null) {
-      directive.setValue(axisID, cbValue.isSelected());
+      if (booleanValueType) {
+        directive.setValue(axisID, cbValue.getSelectedIndex() == YES_INDEX);
+      }
+      else {
+        int index = cbValue.getSelectedIndex();
+        if (index >= 0) {
+          directive.setValue(axisID, valueList[index]);
+        }
+        else {
+          // Handle empty pulldown choice
+          directive.setValue(axisID, (String) null);
+        }
+      }
     }
     else {
       directive.setValue(axisID, ltfValue.getText());
@@ -344,7 +376,12 @@ final class DirectivePanel implements DirectiveSetInterface {
   private void copyValue(final DirectivePanel input) {
     if (input == null) {
       if (cbValue != null) {
-        cbValue.setSelected(false);
+        if (booleanValueType) {
+          cbValue.setSelectedIndex(NO_INDEX);
+        }
+        else {
+          cbValue.setSelectedIndex(-1);
+        }
       }
       else {
         ltfValue.setText("");
@@ -352,7 +389,7 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
     else {
       if (cbValue != null) {
-        cbValue.setSelected(input.cbValue.isSelected());
+        cbValue.setSelectedIndex(input.cbValue.getSelectedIndex());
       }
       else {
         ltfValue.setText(input.ltfValue.getText());
@@ -401,7 +438,7 @@ final class DirectivePanel implements DirectiveSetInterface {
       return false;
     }
     if (cbValue != null) {
-      if (cbValue.isSelected() != input.cbValue.isSelected()) {
+      if (cbValue.getSelectedIndex() != input.cbValue.getSelectedIndex()) {
         return false;
       }
     }
@@ -420,7 +457,23 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
     if (value != null) {
       if (cbValue != null) {
-        cbValue.setSelected(value.toBoolean());
+        if (booleanValueType) {
+          cbValue.setSelectedIndex(value.toBoolean() ? YES_INDEX : NO_INDEX);
+        }
+        else {
+          // Find the matching value and display for corresponding description.
+          int index = -1;
+          String sValue = value.toString();
+          if (sValue != null && !sValue.matches("\\s*")) {
+            for (int i = 0; i < valueList.length; i++) {
+              if (valueList[i].equals(sValue)) {
+                index = i;
+                break;
+              }
+            }
+          }
+          cbValue.setSelectedIndex(index);
+        }
       }
       else {
         ltfValue.setText(value.toString());
@@ -458,7 +511,12 @@ final class DirectivePanel implements DirectiveSetInterface {
 
   private void resetValue() {
     if (cbValue != null) {
-      cbValue.setSelected(false);
+      if (booleanValueType) {
+        cbValue.setSelectedIndex(NO_INDEX);
+      }
+      else {
+        cbValue.setSelectedIndex(-1);
+      }
     }
     else {
       ltfValue.setText("");

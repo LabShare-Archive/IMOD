@@ -29,4 +29,8 @@ public interface DirectiveDescr {
   public boolean isTemplate();
 
   public DirectiveDescrEtomoColumn getEtomoColumn();
+
+  public String getLabel();
+
+  public DirectiveDescrFile.ChoiceList getChoiceList();
 }

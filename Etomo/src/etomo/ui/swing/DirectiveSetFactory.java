@@ -3,7 +3,6 @@ package etomo.ui.swing;
 import etomo.BaseManager;
 import etomo.logic.DirectiveTool;
 import etomo.storage.Directive;
-import etomo.storage.DirectiveType;
 import etomo.type.AxisType;
 
 /**
@@ -29,9 +28,9 @@ final class DirectiveSetFactory {
 
   static DirectiveSetInterface createDirectiveSet(final BaseManager manager,
       final Directive directive, final DirectiveTool tool, final AxisType sourceAxisType) {
-    if (directive.getType() == DirectiveType.SETUP_SET) {
-      return DirectivePanel.getSoloInstance(manager, directive, tool, sourceAxisType);
-    }
-    return DirectiveSetPanel.getInstance(manager, directive, tool, sourceAxisType);
+    return DirectivePanel.getSoloInstance(manager, directive, tool, sourceAxisType);
+    // Currently not using any directive sets (which allow editing the A and B values
+    // separately.
+    // return DirectiveSetPanel.getInstance(manager, directive, tool, sourceAxisType);
   }
 }

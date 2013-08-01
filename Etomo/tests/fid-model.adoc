@@ -91,7 +91,7 @@ rb.generate-seed-model-automatically=
 [[if = test-gui]]
   #basic
   #test values
-  assert.cb.make-boundary-model=off
+  assert.cb.use-boundary-model=off
   assert.cb.exclude-inside-boundary-contours=off
   assert.rb.total-number=on
   assert.tf.total-number=
@@ -100,8 +100,8 @@ rb.generate-seed-model-automatically=
   assert.cb.select-beads-on-two-surfaces=off
   assert.bn.generate-seed-model=off
   #test enabled/disabled
-  assert.enabled.cb.make-boundary-model=
-  assert.disabled.bn.open-boundary-model=
+  assert.enabled.cb.use-boundary-model=
+  assert.disabled.bn.create/edit-boundary-model=
   assert.disabled.cb.exclude-inside-boundary-contours=
   assert.disabled.bn.open-initial-bead-model=
   assert.enabled.rb.total-number=
@@ -114,10 +114,10 @@ rb.generate-seed-model-automatically=
   assert.enabled.bn.open-seed-model=
   assert.enabled.bn.clean-up-temporary-files=
   #behavior
-  cb.make-boundary-model=on
-  assert.enabled.bn.open-boundary-model=
+  cb.use-boundary-model=on
+  assert.enabled.bn.create/edit-boundary-model=
   assert.enabled.cb.exclude-inside-boundary-contours=
-  cb.make-boundary-model=off
+  cb.use-boundary-model=off
   #
   rb.density=
   assert.disabled.tf.total-number=
