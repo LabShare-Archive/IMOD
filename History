@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/31/13: Clip multiply/divide can have a stack as first file and a single
+image as the second file.
+
+7/31/13: Changes to Batchruntomo: option to send emails, more informative
+output about what is running, a log file with a copy of program output saved
+in each dataset, delivery of more files to dataset directory, running clip
+stat on a fixed stack.
+
+7/31/13: Fix a bug in Beadtrack that zeroed out the sobel sum when reversing
+direction.
+
 7/31/13: In eTomo - Template Editor, improved the labels and fields.
 (Bug# 1724)
 
