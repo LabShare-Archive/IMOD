@@ -44,8 +44,12 @@ usage = Make a subdirectory of this directory for each data set
 tooltip = 
 manpage = Make a subdirectory of the specified directory for each data set,
 named with the root name of the data set, and move the tilt series into the
-subdirectory.  An associated metadata file named as the tilt series filename
-plus ".mdoc" will also be moved.  The -current option must be entered once.
+subdirectory.  Several other files with the same root name as the tilt series 
+will be moved from the current location of the data set: an associated
+metadata file with extension ".mdoc", a log of acquisition with extension
+".log", and a file of tilt angles with extension ".rawtlt".  A raw boundary
+model for patch tracking or autoseeding will also be delivered.  The -current
+option must be entered either once, or once for each data set.
 
 [Field = ProcessOneAxis]
 short = one
@@ -114,7 +118,8 @@ short = email
 type = CH
 usage = Address for sending email messages on failure or final completion
 tooltip =
-manpage = 
+manpage = Address for sending email messages either when a set is aborted or
+when the run completes.
 
 [Field = ValidationType]
 short = validation
