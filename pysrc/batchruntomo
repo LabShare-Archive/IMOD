@@ -1208,8 +1208,7 @@ def fidlessFileOperations(taLines):
 # Run tiltxcorr to do patch tracking
 def runPatchTracking():
    global contourPieces
-   contourPieces = lookupDirective(patchTrackText,
-                                   'contourPieces', 0, INT_VALUE)
+   contourPieces = lookupDirective(patchTrackText, 'contourPieces', 0, INT_VALUE)
    if isinstance(contourPieces, str):
       abortSet('Error converting contour pieces in directive to integer')
       return 1
@@ -1228,8 +1227,7 @@ def runPatchTracking():
    # Look for boundary models to transform
    rawBound = ''
    if not axisInd:
-      rawBound = lookupDirective(patchTrackText, 'rawBoundaryModel',
-                                 0, STRING_VALUE)
+      rawBound = lookupDirective(patchTrackText, 'rawBoundaryModel', 0, STRING_VALUE)
    else:
 
       # A raw model for B has to be specific to the B axis
@@ -2206,8 +2204,8 @@ def runOneAxis():
          return 1
 
       # Iterate patch tracking with angle offset now that it is known, if desired
-      if lookupDirective(patchTrackText, 'adjustTiltAngles', 0,
-                         BOOL_VALUE) and needStep(4) and patchTrack:
+      if lookupDirective(patchTrackText, 'adjustTiltAngles', 0, BOOL_VALUE) and \
+             needStep(4) and patchTrack:
          sedcom = sedDelAndAdd('AngleOffset', totalDelTilt, 'SizeOfPatchesXandY')
          if modifyWriteAndRunCom('xcorr_pt' + axisCom, sedcom, message = fmtstr(
                'Running patch tracking again with angle offset of {:.1f}', totalDelTilt)):
