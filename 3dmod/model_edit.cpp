@@ -129,7 +129,7 @@ ModelHeaderWindow::ModelHeaderWindow(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, headerLabels, headerTips, true, 
                 ImodPrefs->getRoundedStyle(), " ", "", name)
 {
-  const char *boxLabels[] = {"Added Z-scale", "Total Z-scale", "Resolution", 
+  const char *boxLabels[] = {"Added Z-scale", "Total Z-scale", "Drawing resolution", 
                        "Pixel size"};
   const char *boxTips[] = 
     {"Ratio of section thickness to Z pixel size",

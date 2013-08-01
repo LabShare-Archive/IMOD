@@ -31,7 +31,7 @@ MaxGapSize	5
 RoundsOfTracking	2
 #
 # Set this to 1 to track in local areas
-LocalAreaTracking	0
+LocalAreaTracking	1
 LocalAreaTargetSize	1000
 MinBeadsInArea	8
 MinOverlapBeads	5

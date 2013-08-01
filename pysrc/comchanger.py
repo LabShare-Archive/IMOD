@@ -74,19 +74,19 @@ def modifyForChangeList(comlines, comRoot, axisLet, changeList, returnOnErr = Fa
             if change[3] != '':
                for line in proclines:
                   if line.startswith(change[2]):
-                     sedcom.append(fmtstr('/^{}/s/[ 	].*/	{}/', change[2],
+                     sedcom.append(fmtstr('|^{}|s|[ 	].*|	{}|', change[2],
                                            change[3]))
                      break
                else:
-                  sedcom.append(fmtstr('/^ *$ *{}/a/{}	{}/', process, change[2],
+                  sedcom.append(fmtstr('|^ *$ *{}|a|{}	{}|', process, change[2],
                                         change[3]))
 
             else:
 
                # Or delete the line if there is no value
-               sedcom.append('/^' + change[2] + '/d')
+               sedcom.append('|^' + change[2] + '|d')
 
-         tmplines = pysed(sedcom, proclines, retErr = returnOnErr)
+         tmplines = pysed(sedcom, proclines, delim = '|', retErr = returnOnErr)
          if isinstance(tmplines, str):
             return tmplines
          outlines += tmplines

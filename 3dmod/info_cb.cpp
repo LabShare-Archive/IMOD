@@ -371,6 +371,8 @@ void imod_info_setocp(void)
   // Object is either present or not
   max[0] = imod->objsize;
   val[0] = obj ? imod->cindex.object + 1 : 0;
+  if (!imod->objsize)
+    sImodObjCnum = -1;
 
   // If object present, set up contour values; otherwise set for blanks
   if (obj) {
