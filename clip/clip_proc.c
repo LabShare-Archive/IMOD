@@ -1784,7 +1784,7 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
       for (i = 0; i < opt->ix; i ++) {
         sliceGetVal(s, i, j,   val);
         sliceGetVal(so, i, j, oval);
-        if (csize2 == 1 && hout->mode == MRC_MODE_FLOAT) {
+        if (csize2 == 1 || hout->mode == MRC_MODE_FLOAT) {
 
           /* Ordinary mult or div, possible multi-channel */
           if (opt->process == IP_MULTIPLY) {
