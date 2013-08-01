@@ -33,7 +33,7 @@ Do a auto/cross correlation.
 Do 2d anisotropic diffusion.
 .TP
 .I divide
-Divide one image volume by another.
+Divide one image volume by another or by a single image.
 .TP
 .I gradient
 Calculate a gradient as in 3dmod image processing.
@@ -63,7 +63,7 @@ Apply Laplacian filter as in 3dmod image processing.
 Apply median filter.
 .TP
 .I multiply
-Multiply one image volume by another.
+Multiply one image volume by another or by a single image.
 .TP
 .I prewitt
 Apply Prewitt filter as in 3dmod image processing.
@@ -541,13 +541,16 @@ section.  Note that an even size will offset the data by half a pixel.
 .PD
 Multiply or divide the first input file by the second input file.  Use
 "multiply" to apply a mask to a volume, such as one produced by Imodmop(1).
-The files must be the same size, but standard input and output options can be
-used.  The first input file may be any mode.  The second input file must have
-a single "data channel" (i.e., byte, integer, or float) unless the first input
+The files must be the same size in X and Y, and they must either be the same
+size in Z or the second file must be a single image.  Standard input and
+output options can be used.  The first input file may be any mode.  The second
+input file must have
+a single "data channel" (i.e., byte, integer, or float) unless either a) the first input
 file is complex, in which case the second file can be either a single-channel
-or a complex file.  There is no provision for scaling the output, but the mode
-can be changed to preserve resulting values outside the range of the input
-mode.
+or a complex file, or b) the output mode is float, in which case the second
+input file is converted to a single channel of float data.  There is no
+provision for scaling the output, but the mode can be changed to preserve
+resulting values outside the range of the input mode.
 .TP
 .B quadrant
 Analyze and correct for differences between quadrants in images from
