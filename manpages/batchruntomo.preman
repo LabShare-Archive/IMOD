@@ -15,7 +15,7 @@ will perform operations in a fixed order determined by these choices; the
 order of the directives does not affect this order.  The program can work on
 more than one data set and can also move the tilt series from their current 
 location into a separate directory for each data set, which is created if
-necessary.  It accepts tilts series with the extension ".mrc" and changes the
+necessary.  It accepts tilt series with the extension ".mrc" and changes the
 extension to ".st" so that other programs will work correctly.
 
 .SS Directives
@@ -129,7 +129,8 @@ This section describes some of the capabilities and current limitations of vario
 steps.
 .P
 .B X-ray removal 
-is optional; if selected, automatic X-ray removal will be done.  There is also
+is optional; if selected, automatic X-ray removal will be done, and "clip
+stats" will be run on the fixed stack.  There is also
 a directive to run Archiveorig(1) to make a compressed difference between
 corrected and original stacks, then delete the original stack.
 A manual replacement model can be specified.  It is suggested that object 1
@@ -137,7 +138,10 @@ contain patches specified in the default way, by a point on each pixel; object
 2 contain lines, if any; object 3 contain patches specified by boundary
 contours, if any; and that directives be added to specify these choices and
 that objects 1-3 are all-section objects.  These suggestions will be enforced
-when there is a GUI for setting up batch directives.
+when there is a GUI for setting up batch directives.  If the manual
+replacement model is located elsewhere, it will be copied to the dataset and
+renamed to the standard name for such models, so that the model can be opened
+and added to when running in eTomo.
 .P
 .B Coarse alignment
 is always performed.  The binning of a prealigned stack can
