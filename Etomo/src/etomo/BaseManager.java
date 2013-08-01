@@ -314,6 +314,39 @@ public abstract class BaseManager {
   void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
+  public void logMessage(final File file) {
+    if (file == null || !file.exists() || file.isDirectory() || !file.canRead()) {
+      return;
+    }
+    LogInterface logInterface = getLogInterface();
+    if (logInterface != null) {
+      logInterface.logMessage(file);
+    }
+    else {
+      System.err.println("Logging from file: " + file.getAbsolutePath());
+      try {
+        LogFile logFile = LogFile.getInstance(file);
+        LogFile.ReaderId id = logFile.openReader();
+        String line = null;
+        while ((line = logFile.readLine(id)) != null) {
+          System.err.println(line);
+        }
+      }
+      catch (LogFile.LockException e) {
+        e.printStackTrace();
+        System.err.println("Unable to log from file.  " + e.getMessage());
+      }
+      catch (FileNotFoundException e) {
+        e.printStackTrace();
+        System.err.println("Unable to log from file.  " + e.getMessage());
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        System.err.println("Unable to log from file.  " + e.getMessage());
+      }
+    }
+  }
+
   public void logMessage(Loggable loggable, AxisID axisID) {
     LogInterface logInterface = getLogInterface();
     if (logInterface != null) {
@@ -2103,6 +2136,7 @@ public abstract class BaseManager {
           "Unable to run tomosnapshot", axisID);
     }
   }
+
   boolean isTomosnapshotThumbnail() {
     return false;
   }

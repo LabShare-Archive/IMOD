@@ -1530,7 +1530,7 @@ public abstract class BaseProcessManager {
         + ",processName=" + script.getProcessName());
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
-      ProcessMessages combinedMessages = ProcessMessages.getInstance();
+      ProcessMessages combinedMessages = ProcessMessages.getInstance(manager);
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
@@ -1586,7 +1586,7 @@ public abstract class BaseProcessManager {
     System.err.println("msgReconnectDone:processName=" + name);
     if (exitValue != 0) {
       String[] stdError = script.getStdError();
-      ProcessMessages combinedMessages = ProcessMessages.getInstance();
+      ProcessMessages combinedMessages = ProcessMessages.getInstance(manager);
       // Is the last string "Killed"
       if (stdError != null && stdError.length > 0
           && stdError[stdError.length - 1].trim().equals("Killed")) {
