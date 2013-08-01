@@ -41,7 +41,6 @@ program beadtrack
   integer*4, allocatable :: ivList(:), ivSnapList(:)
   logical, allocatable :: missing(:)
   real*4, allocatable :: wsumSave(:,:), prevRes(:), edgeSDsave(:,:), elongSave(:,:)
-  integer*1, allocatable :: isIsolated(:,:)
   character*6 areaObjStr
   character*9 date
   character*8 tim
@@ -113,9 +112,8 @@ program beadtrack
   integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim, ifReadXfs
   real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel, edgeSD
   real*4 sdsum, sdsumsq, sdmin, sdmax, sdavg, sdmed, sdmean, edgeSDsd, elongMean, elongMed
-  real*4 percentileCritFrac, dblNormMinCrit, wcritToLocalMinRatio, aloneMinAngleDiff
-  real*4 aloneDistCrit, aloneWsumCrit, aloneRelaxCrit, aloneMaxAngleDiff, alonePeakCrit
-  integer*4 maxWneigh, numWneighWant, minFilled, maxFilled, maxInitCorrPeaks
+  real*4 percentileCritFrac, dblNormMinCrit, wcritToLocalMinRatio
+  integer*4 maxWneigh, numWneighWant, minFilled, maxFilled
   character*320 concat
   integer*4 getImodObjsize, niceFrame, surfaceSort, scaledSobel
   logical itemOnList
@@ -194,7 +192,7 @@ program beadtrack
   minResid = 5
   resDiffMin = 0.04
   resDiffCrit = 2
-  modeBox = 2
+  modeBox = 0
   ipassSave = 0
   iAreaSave = 0
   outlieCrit = 0.01
@@ -228,13 +226,6 @@ program beadtrack
   dblNormMinCrit = 0.2
   wcritToLocalMinRatio = 0.075
   splitFirstRound = .true.
-  maxInitCorrPeaks = 5             ! # of correlation peaks in initial real-space corr
-  aloneWsumCrit = 0.25             ! wsum must be > this frac of wsum for non-isolated
-  alonePeakCrit = 0.2              ! Peak must be > this fraction
-  aloneDistCrit = 1.8              ! distance must be < this * bead size for non-isolated
-  aloneRelaxCrit = 1.0             ! Amount to relax criteria for isolated bead
-  aloneMinAngleDiff = 1.4          ! Minimum angle for assessing if bead is alone
-  aloneMaxAngleDiff = 5.1          ! Maximum angle for assessing if bead is alone
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -480,7 +471,6 @@ program beadtrack
     ierr = PipGetFloat('MaxRescueDistance', radMaxFit)
     ierr = PipGetTwoIntegers('ResidualsToAnalyzeMaxAndMin', maxResid, minResid)
     ierr = PipGetTwoFloats('DeletionCriterionMinAndSD', resDiffMin, resDiffCrit)
-    ierr = PipGetFloat('IsolatedBeadCriterionFactor', aloneRelaxCrit)
     ierr = PipGetLogical('TrackObjectsTogether', ignoreObjs)
     maxSobelSum = 50
     ierr = PipGetInteger('AverageBeadsForSobel', maxSobelSum)
@@ -1105,16 +1095,15 @@ program beadtrack
   !
   allocate(xseek(i), yseek(i), wsumCrit(i), xr(msizeXR, i), ifFound(i), &
       ipNearest(i), ipNearSave(i), iobjDel(i), idrop(i), iobjAli(i), numInSobelSum(i), &
-      wsumSave(maxView, maxAllReal), isIsolated(maxView, maxAllReal),  &
-      inCorrSum(maxAnySum, i), inSobelSum(maxAnySum, i), sobelXpeaks(maxPeaks), &
-      sobelYpeaks(maxPeaks), sobelPeaks(maxPeaks), sobelWsums(maxPeaks), &
-      sobelEdgeSD(maxPeaks), stat = ierr)
+      wsumSave(maxView, maxAllReal), inCorrSum(maxAnySum, i), &
+      inSobelSum(maxAnySum, i), sobelXpeaks(maxPeaks), sobelYpeaks(maxPeaks), &
+      sobelPeaks(maxPeaks), sobelWsums(maxPeaks), sobelEdgeSD(maxPeaks),  &
+      stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR POINTS IN AREA')
   xr(3, 1:i) = 0.
   sobelXpeaks(:) = 0.
   sobelYpeaks(:) = 0.
   wsumSave(:,:) = -1.
-  isIsolated(:,:) = -1
   !
   ! Get size and offset of sobel filtered
   if (maxSobelSum > 0) then
@@ -1672,7 +1661,6 @@ CONTAINS
                   xtmp = 0.
                   ytmp = 0.
                   call bestCenterForCG(boxTmp, nxBox, nyBox, xtmp, ytmp, ix, iy, bestSum)
-                  print *,wsum,edgeSD
                   snrSum = snrSum + (wsum * 4. / (3.14159 * diameter**2)) /  &
                       max(abs(1.e-10 * wsum), edgeSD)
                   snrSumb = snrSumb + bestSum / max(abs(1.e-10 * wsum), edgeSD)
@@ -2121,8 +2109,6 @@ CONTAINS
   !
   subroutine lookForOneBead()
     integer*4 scaledSobel
-    real*4 xcXpeaks(maxInitCorrPeaks), xcYpeaks(maxInitCorrPeaks)
-    real*4 xcPeaks(maxInitCorrPeaks), wsumTmp, edgeSDtmp
     !
     ! get image area
     !
@@ -2148,41 +2134,12 @@ CONTAINS
       !
       ! find peak of correlation
       !
-      call xcorrPeakFind(array, nxpDim, nypad, xcXpeaks, xcYpeaks, xcPeaks,  &
-          maxInitCorrPeaks)
-      xpeak = xcXpeaks(1)
-      ypeak = xcYpeaks(1)
+      call peakFind(array, nxpDim, nypad, xpeak, ypeak, peak)
       if (saveAllPoints) then
         iobjSave = iobj + (5 * ipass - 2) * maxObjOrig
         call add_point(iobjSave, 0, nint(xnext) + xpeak, nint(ynext) + ypeak, iznext)
       endif
       call calcCG(boxTmp, nxBox, nyBox, xpeak, ypeak, wsum, edgeSD)
-      !
-      ! Look at other peaks within range, if any, and mark point as isolated if there
-      ! are none strong enough
-      if (aloneRelaxCrit > 1.) then
-        isIsolated(iview, iobjSeq(iobjDo)) = 1
-        do i = 2, maxInitCorrPeaks
-          if (xcPeaks(i) > -1.e29) then
-            if (sqrt(xcXpeaks(i)**2 + xcYpeaks(i)**2) < aloneDistCrit * diameter) then
-              xtmp = xcXpeaks(i)
-              ytmp = xcYpeaks(i)
-              call calcCG(boxTmp, nxBox, nyBox, xtmp, ytmp, wsumTmp, edgeSDtmp)
-              if ((wsumTmp > aloneWsumCrit * wsum .and.  &
-                  xcPeaks(i) > alonePeakCrit * xcPeaks(1)) .or.  &
-                  (wsumTmp > 0.75 * aloneWsumCrit * wsum .and.  &
-                  xcPeaks(i) > 0.75 * alonePeakCrit * xcPeaks(1) .and. &
-                  wsumTmp * xcPeaks(i) > aloneWsumCrit * wsum * alonePeakCrit *  &
-                  xcPeaks(1))) then
-                ! print *,xcXpeaks(i), xcYpeaks(i),xtmp,ytmp,wsumTmp,wsum,xcPeaks(i),xcPeaks(1)
-                isIsolated(iview, iobjSeq(iobjDo)) = 0
-                exit
-              endif
-            endif
-          endif
-        enddo
-        ! print *,iobjSeq(iobjDo), isIsolated(iview, iobjSeq(iobjDo))
-      endif
     endif
     !
     ! Need sobel filter peak positions on both passes
@@ -2349,15 +2306,6 @@ CONTAINS
         boxSum = boxSum + tmean
         nzout = nzout + 1
         boxTmp(1:npixBox) = corrSum(1:npixBox, iobjDo)
-        do iy = 1, nyBox
-          do ix = 1, nxBox
-            xtmp = ix - nxBox / 2.
-            ytmp = iy - nyBox / 2.
-            call calcCG(boxTmp, nxBox, nyBox, xtmp, ytmp, brray(ix + (iy - 1) * nxBox),  &
-                edgeSDtmp)
-          enddo
-        enddo
-        boxTmp(1:npixBox) = brray(1:npixBox)
         if (modeBox == 2) then
           call iclden(boxTmp, nxBox, nyBox, 1, nxBox, 1, nyBox, tmin, tmax, tmean)
         else
@@ -2449,7 +2397,6 @@ CONTAINS
   ! redoFitsEvaluateResiduals
   !
   subroutine redoFitsEvaluateResiduals()
-    real*4 relaxAllCrit
     if (numData >= limPtsShift) then
       ifRoTrans = 0
       ifTrans = 1
@@ -2533,35 +2480,6 @@ CONTAINS
           ! endif
           !
           ! endif
-
-          ! Look at nearby views within a range of angle differences 
-          relaxAllCrit = 1.
-          isCur = 0
-          if (wsumSave(iview, iobj) >= wsumCrit(iobjDo) .and. aloneRelaxCrit > 1 &
-              .and. ipass > 1) then
-            ALONE_DIR_LOOP: do idirw = -1, 1, 2
-              ALONE_DIFF_LOOP: do ix = 1, nviewAll
-                idif = ix * idirw
-                if (iview + idif > 0 .and. iview + idif <= nviewAll) then
-                  curDiff = abs(tiltAll(iview) - tiltAll(iview + idif))
-                  if (curDiff > aloneMaxAngleDiff) then
-                    exit ALONE_DIFF_LOOP
-                  endif
-                  if (curDiff >= aloneMinAngleDiff) then
-                    if (isIsolated(iview + idif, iobj) > 0) then
-                      relaxAllCrit = aloneRelaxCrit
-                      isCur = isCur + 1
-                    endif
-                    if (isIsolated(iview + idif, iobj) == 0) then
-                      relaxAllCrit = 1.001
-                      exit ALONE_DIR_LOOP
-                    endif
-                  endif
-                endif
-              enddo ALONE_DIFF_LOOP
-            enddo ALONE_DIR_LOOP
-          endif
-          ! if (ipass == 1)print *,iobj,wsumSave(iview, iobj) >= wsumCrit(iobjDo),isCur,relaxAllCrit
           ifMeanBad = 0
           !
           ! see if mean residual has gotten a lot bigger
@@ -2582,15 +2500,9 @@ CONTAINS
                 prevRes(i) = prevRes(i) - prevRes(i + 1)
               enddo
               call avgsd(prevRes, nprev - 1, resAvg, resSD, resSEM)
-              if (curDiff > relaxAllCrit * resDiffMin .and. &
-                  (curDiff - resAvg) / resSD > relaxAllCrit * resDiffCrit .and.  &
-                  errMax > relaxAllCrit * curResMin) &
+              if (curDiff > resDiffMin .and. (curDiff - resAvg) / &
+                  resSD > resDiffCrit .and. errMax > curResMin) &
                   ifMeanBad = 1
-              if (ifMeanBad == 0 .and. curDiff > resDiffMin .and. &
-                  (curDiff - resAvg) / resSD > resDiffCrit .and.  &
-                  errMax > curResMin) print *,'NOT MEAN BAD FOR ALONE',iobj
-              if (ifMeanBad) print *,'mean bad',iobj,curDiff,(curDiff - resAvg) / resSD, &
-                  errMax, curResMin
             endif
           endif
           !
@@ -2598,12 +2510,7 @@ CONTAINS
           ! residual has zoomed on either pass, delete point for
           ! next round
           !
-          if (ifMeanBad == 0 .and. ipass == 1 .and. errMax > fitDistCrit .and. &
-              errMax < relaxAllCrit * fitDistCrit)  &
-              print *,'RELAX FOR ALONE', iobj,errMax,fitDistCrit
-          if ((ipass == 1 .and. errMax > fitDistCrit) .or. &
-              ifMeanBad == 1) then
-            if (ipass == 1 .and. ifMeanBad == 0) print *,'big res', errMax
+          if ((ipass == 1 .and. errMax > fitDistCrit) .or. ifMeanBad == 1) then
             if (saveAllPoints)write(*,'(i3,f7.2,i2,4f10.5)') iobj, errMax, ifMeanBad, &
                 resMean(iobj, ivSeq), curDiff, resAvg, resSD
             wsumSave(iview, iobj) = -1.
