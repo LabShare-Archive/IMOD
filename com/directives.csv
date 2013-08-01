@@ -135,7 +135,7 @@ runtime.GoldErasing.any.thickness,Reconstruction thickness if patch or fidless a
 comparam.golderaser.ccderaser.ExpandCircleIterations,Iterations for expanding patches around circles,Int,Y,Y,SD,,Iterations to grow circular areas,
 ,,,,,,,,
 Reconstruction,,,,,,,,
-comparam.tilt.tilt.THICKNESS,Thickness for reconstruction,Int,Y,Y,SO,Will appear in positioning,Unbinned thickness of reconstruction,
+comparam.tilt.tilt.THICKNESS,Thickness for reconstruction,Int,Y,Y,SO,,Unbinned thickness of reconstruction,
 runtime.Reconstruction.any.extraThickness,Added thickness if derived from align.log,Int,Y,,NE,,Thickness to add to intergold distance,
 runtime.Reconstruction.any.binnedThickness,Thickness in binned pixels,Int,Y,,NE,May not be entered with THICKNESS,Binned thickness of reconstruction,
 comparam.tilt.tilt.RADIAL,Radius and sigma for 1D filter,2 Float,Y,Y,SO,,Radial filter cutoff & falloff,
