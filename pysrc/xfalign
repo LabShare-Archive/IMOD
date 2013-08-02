@@ -186,6 +186,12 @@ if prexffile and not os.path.exists(prexffile):
 if reffile and not os.path.exists(reffile):
    exitError('Reference image file ' + reffile + ' does not exist')
 
+# Check if initial file is warping
+if prexffile:
+   preLines = readTextFile(prexffile, maxLines = 1)
+   if preLines and len(preLines[0].split()) == 1:
+      exitError('You cannot use warping transforms as initial transforms')
+
 try:
    (nx, ny, numsec, mode, px, py, pz) = getmrc(infile)
    if reffile:
