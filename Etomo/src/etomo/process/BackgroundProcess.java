@@ -850,7 +850,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
         // putting one out.
         String lastWarningMessage = monitorMessages.getLastWarning();
         if (lastWarningMessage != null) {
-          ProcessMessages warningMessage = ProcessMessages.getInstance();
+          ProcessMessages warningMessage = ProcessMessages.getInstance(manager);
           warningMessage.addWarning();
           warningMessage.addWarning("<html><U>Warnings Occurred</U>");
           warningMessage.addWarning("<html><U>Last warning:</U>");
@@ -862,7 +862,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     }
     else if (endState != ProcessEndState.KILLED && endState != ProcessEndState.PAUSED) {
       errorFound = true;
-      ProcessMessages errorMessage = ProcessMessages.getInstance();
+      ProcessMessages errorMessage = ProcessMessages.getInstance(manager);
       // add the stderr
       errorMessage.addError("<html>Command failed: " + getCommandLine());
       if (stdError != null && stdError.length > 0) {

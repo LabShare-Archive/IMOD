@@ -94,7 +94,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     this.rootName = rootName;
     this.computerMap = computerMap;
     this.multiLineMessages = multiLineMessages;
-    messages = ProcessMessages.getInstanceForParallelProcessing(multiLineMessages);
+    messages = ProcessMessages.getInstanceForParallelProcessing(manager,
+        multiLineMessages);
     mediator = manager.getProcessingMethodMediator(axisID);
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }

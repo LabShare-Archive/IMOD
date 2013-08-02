@@ -108,8 +108,8 @@ public final class AverageAllParam implements CommandDetails {
   public String[] getCommandArray() {
     List commandArray = new ArrayList();
     commandArray.add("sh");
-    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager, manager
-        .getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY);
+    String particleDir = EnvironmentVariable.INSTANCE.getValue(manager,
+        manager.getPropertyUserDir(), EnvironmentVariable.PARTICLE_DIR, AxisID.ONLY);
     if (particleDir == null || particleDir.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog(manager,
           "The environment variables PARTICLE_DIR has not been set.  Set it "
@@ -120,8 +120,8 @@ public final class AverageAllParam implements CommandDetails {
       return null;
     }
     commandArray.add(new File(new File(EnvironmentVariable.INSTANCE.getValue(manager,
-        manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"), PROCESS_NAME
-        .toString()).getAbsolutePath());
+        manager.getPropertyUserDir(), EnvironmentVariable.PARTICLE_DIR, AxisID.ONLY),
+        "bin"), PROCESS_NAME.toString()).getAbsolutePath());
     commandArray.add(prmFile.getName());
     if (!iterationNumber.isNull()) {
       commandArray.add(iterationNumber.toString());
