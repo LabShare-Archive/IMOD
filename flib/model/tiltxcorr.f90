@@ -556,7 +556,7 @@ program tiltxcorr
       ! on starting view
       ifReadXfs = 1 - PipGetString('PrealignmentTransformFile', plFile)
       if (rawAlignedPair .and. ifReadXfs == 0) call exitError( &
-          'PREALIGNMENT F TRANSFORMS MMUST BE ENTERED TO DO RAW-ALIGNED PAIR')
+          'PREALIGNMENT F TRANSFORMS MUST BE ENTERED TO DO RAW-ALIGNED PAIR')
       if (ifReadXfs .ne. 0) then
         ierr = PipGetInteger('ImagesAreBinned', imagesBinned)
         if (rawAlignedPair .and. imagesBinned > 1) call exitError( &
@@ -564,6 +564,7 @@ program tiltxcorr
         allocate(fPreali(2, 3, numAllViews), dxPreali(numAllViews),  &
             dyPreali(numAllViews), stat = ierr)
         call memoryError(ierr, 'ARRAYS FOR PREALIGN TRANSFORMS')
+        call checkForWarpFile(plFile)
         call dopen(3, plFile, 'ro', 'f')
         call xfrdall2(3, fPreali, iv, numAllViews, ierr)
         if (ierr == 2) call exitError('READING TRANSFORM FILE')
@@ -1943,3 +1944,21 @@ subroutine evaluatePairPatch(nx, ny, nxPatch, nyPatch, ixStart, iyStart, prexfIn
   return
 end subroutine evaluatePairPatch
 
+! Routine to check for a warp file and exit with error if so
+!
+subroutine checkForWarpFile(xfInFile)
+  character*(*) xfInFile
+  character*240 strntmp
+  integer*4 ierr, idx, idy, itmp, i, jj
+  real*4 deltac
+  integer*4 readCheckWarpFile
+  ierr = readCheckWarpFile(xfinfile, 0, 0, idx, idy, itmp, i, deltac, jj, strntmp)
+  if (ierr .ge. 0) call exitError( &
+      'THE PREALIGN TRANSFORM FILE CONTAINS WARPING TRANSFORMS')
+  if (ierr .ne. -1) then
+    write(*, '(/,a)')'ERROR: A PROBLEM OCCURRED TESTING WHETHER THE INITIAL'// &
+        ' TRANSFORM FILE HAD WARPINGS'
+    call exitError(strntmp)
+  endif
+  return
+end subroutine checkForWarpFile
