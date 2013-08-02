@@ -89,7 +89,7 @@ c
       integer*4 ifXminmax, ifYminmax
       real*4 scale,dadd,window,valscl,dstnc,DELMIN,ptfac,tmp
       real*4 sigma1,sigma2,radius1,radius2, deltac
-      integer*4 niceframe, readCheckWarpFile
+      integer*4 niceframe
 c
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -230,14 +230,7 @@ c
 c       if reading in a transform, get it and convert to natural if necessary
 c       
       if(xfinfile.ne.' ')then
-        ierr = readCheckWarpFile(xfinfile, 0, 0, idx, idy, itmp, i, deltac, jj, strntmp)
-        if (ierr .ge. 0) call exitError(
-     &      'THE INITIAL TRANSFORM FILE CONTAINS WARPING TRANSFORMS')
-        if (ierr .ne. -1) then
-          write(*, '(/,a)')'ERROR: A PROBLEM OCCURRED TESTING WHETHER THE INITIAL'//
-     &        ' TRANSFORM FILE HAD WARPINGS'
-          call exitError(strntmp)
-        endif
+        call checkForWarpFile(xfInFile)
         call dopen(1,xfinfile,'old','f')
         do i = 0, lineuse
           read(1,*,err=94,end=95)((amat(ii,jj),jj=1,2),ii=1,2),a(1),a(2)
@@ -1101,64 +1094,23 @@ c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
       return
 99    call exiterror('READING FILE')
       end
-c       
-c       $Log$
-c       Revision 3.17  2010/06/30 04:41:34  mast
-c       Fix for shortcircuit assumption
+
+
+c       Routine to check for a warp file and exit with error if so
 c
-c       Revision 3.16  2010/03/11 04:45:19  mast
-c       Copied fixed values of rest of variables in func when fewer than 6
-c       variables - fixes bug in latest version
-c
-c       Revision 3.15  2009/10/14 17:48:48  mast
-c       Allocated big array in module to avoid compile error in gfortran/Mac
-c
-c       Revision 3.14  2009/10/13 13:44:05  mast
-c       bad if test
-c
-c       Revision 3.13  2009/10/12 17:54:42  mast
-c       Added weighted averaging of local patch cross-correlation or SD of
-c       difference
-c
-c       Revision 3.12  2009/09/07 17:24:20  mast
-c       Switched centering of transform to be consistent with cubinterp
-c
-c       Revision 3.11  2008/07/01 14:26:27  mast
-c       Converted to PIP, added fourier and sobel filtering, limits to search,
-c       subarea specification, correlation coefficient, sections to use,
-c       transform line to use (with an eye to stripping xfalign down).
-c
-c       Revision 3.10  2006/06/22 01:06:59  mast
-c       Changed initialization to avoid big executable on Intel Mac
-c
-c       Revision 3.9  2006/06/18 19:37:59  mast
-c       Changed to use new C function for amoeba
-c
-c       Revision 3.8  2006/06/08 18:31:15  mast
-c       Changed to read in data binned and to handle 4x2K after binning
-c
-c       Revision 3.7  2006/05/14 03:13:15  mast
-c       Output normalized difference and distance measures, standardize
-c       error outputs
-c
-c       Revision 3.6  2005/05/26 04:34:52  mast
-c       Made sums args for iclavgsd real*8
-c	
-c       Revision 3.5  2003/12/24 19:07:27  mast
-c       Moved amoeba subroutine to a library
-c	
-c       Revision 3.4  2002/08/20 19:23:48  mast
-c       Didn't change both calls to iclavgsd
-c	
-c       Revision 3.3  2002/08/18 23:13:05  mast
-c       Changed to call iclavgsd in library
-c	
-c       Revision 3.2  2002/05/20 15:47:33  mast
-c       Made the DIFF function put out a very high value when the number of
-c       pixels evaluated falls below 1% of total pixels, to keep it from
-c       running away into impossible shifts.  Also increased dimensions of
-c       input array to allow 4Kx4K images.
-c	
-c       Revision 3.1  2002/04/29 16:18:37  mast
-c       Added test to keep it from failing when images match perfectly
-c	
+      subroutine checkForWarpFile(xfInFile)
+      character*(*) xfInFile
+      character*240 strntmp
+      integer*4 ierr, idx, idy, itmp, i, jj
+      real*4 deltac
+      integer*4 readCheckWarpFile
+      ierr = readCheckWarpFile(xfinfile, 0, 0, idx, idy, itmp, i, deltac, jj, strntmp)
+      if (ierr .ge. 0) call exitError(
+     &    'THE INITIAL TRANSFORM FILE CONTAINS WARPING TRANSFORMS')
+      if (ierr .ne. -1) then
+        write(*, '(/,a)')'ERROR: A PROBLEM OCCURRED TESTING WHETHER THE INITIAL'//
+     &      ' TRANSFORM FILE HAD WARPINGS'
+        call exitError(strntmp)
+      endif
+      return
+      end
