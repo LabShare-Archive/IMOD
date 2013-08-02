@@ -25,8 +25,8 @@ This module provides the following functions:
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
   parselist(line)      -  convert list entry in <line> into list of integers
-  readTextFile(filename[ , descrip] [, returnOnErr]) - reads in text file, strips
-                                       line endings, returns a list of strings
+  readTextFile(filename[ , descrip] [, returnOnErr] [, maxLines) - reads in text file,
+                                    strips line endings, returns a list of strings
   writeTextFile(filename, strings [, returnOnErr]) - writes set of strings to a text file
   optionValue(linelist, option, type, ignorecase = False, numVal = 0, otherSep = None) -
                                            finds option value in list of lines
@@ -558,15 +558,16 @@ def parselist (line):
 
 
 # Function to read in a text file and strip line endings
-def readTextFile(filename, descrip = None, returnOnErr = False):
+def readTextFile(filename, descrip = None, returnOnErr = False, maxLines = None):
    """readTextFile(filename[ , descrip])  - read in text file, strip endings
 
    Reads in the text file in <filename> if this is a string, or reads from it
    as an open file object if not, strips the line endings and blanks
-   from the end of each line, and returns a list of strings.  Exits with
+   from the end of each line, and returns a list of strings.  If maxLines is 
+   passed, then it reads up to that number of lines.  Exits with
    exitError on an error opening or reading the file, and adds the optional
    description in <descrip> to the error message.  Or, if returnOnErr is True,
-   it returns the error string itself
+   it returns the error string itself.
    """
    if not descrip:
       descrip = " "
@@ -577,7 +578,16 @@ def readTextFile(filename, descrip = None, returnOnErr = False):
       else:
          textfile = filename
       errString = "Reading"
-      lines = textfile.readlines()
+      if maxLines:
+         lines = []
+         for ind in range(maxLines):
+            line = textfile.readline()
+            if not line:
+               break
+            lines.append(line)
+      else:
+         lines = textfile.readlines()
+
    except IOError:
       errString = fmtstr("{} {} {}: {}", errString, descrip, filename, \
                        str(sys.exc_info()[1]))
