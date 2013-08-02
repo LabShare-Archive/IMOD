@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/2/13: In eTomo handling messages starting with "LOGFILE:".  The message
+following this tag will be treated as a local file name, the contents of which
+will be placed in the project log.(Bug# 1700)
+
+8/2/13: Added an option for the PEET Help pages to the eTomo menus.
+(Bug# 1650)
+
 7/31/13: Clip multiply/divide can have a stack as first file and a single
 image as the second file.
 

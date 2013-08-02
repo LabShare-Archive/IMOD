@@ -309,6 +309,10 @@ public final class LogPanel implements Storable, LogInterface {
     logger.logMessage(message);
   }
 
+  public void logMessage(final File file) {
+    logger.logMessage(file);
+  }
+
   public void msgChanged() {
     changed = true;
   }

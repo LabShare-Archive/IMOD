@@ -1,5 +1,6 @@
 package etomo.ui.swing;
 
+import java.io.File;
 import java.util.List;
 
 import javax.swing.text.BadLocationException;
@@ -45,6 +46,8 @@ public interface LogInterface {
   public void logMessage(String title, AxisID axisID);
 
   public void logMessage(String message);
+
+  public void logMessage(File file);
 
   public void save();
 

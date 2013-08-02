@@ -16,8 +16,10 @@ import javax.swing.JPopupMenu;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.process.BaseProcessManager;
 import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
+import etomo.util.EnvironmentVariable;
 
 /**
  * <p>Description: </p>
@@ -193,6 +195,7 @@ public class ContextPopup {
   private JMenuItem etomoGuideItem = new MenuItem("Etomo Users Guide ...");
   private JMenuItem joinGuideItem = new MenuItem("Join Users Guide ...");
   private JMenuItem peetGuideItem = new MenuItem("PEET Users Guide ...");
+  private JMenuItem peetHelpItem = new MenuItem("PEET Help ...");
   private ActionListener actionListener;
   private MouseEvent mouseEvent;
 
@@ -791,11 +794,17 @@ public class ContextPopup {
   /**
    *
    */
-  private void addStandardMenuItems(boolean addPeetGuide) {
+  private void addStandardMenuItems(final boolean addPeetGuide) {
     // Construct the context menu
     if (addPeetGuide) {
       contextMenu.add(peetGuideItem);
+      contextMenu.add(peetHelpItem);
       peetGuideItem.addActionListener(actionListener);
+      peetHelpItem.addActionListener(actionListener);
+      if (!EnvironmentVariable.INSTANCE.exists(null, null,
+          EnvironmentVariable.PARTICLE_DIR, null)) {
+        peetHelpItem.setEnabled(false);
+      }
     }
     contextMenu.add(tomoGuideItem);
     tomoGuideItem.addActionListener(actionListener);
@@ -887,6 +896,12 @@ public class ContextPopup {
 
     if (actionEvent.getActionCommand() == peetGuideItem.getText()) {
       ImodqtassistProcess.INSTANCE.open(manager, "PEETmanual.html" + TOP_ANCHOR, axisID);
+    }
+    if (actionEvent.getActionCommand() == peetHelpItem.getText()) {
+      BaseProcessManager.startSystemProgramThread(
+          new String[] { new File(new File(new File(EnvironmentVariable.INSTANCE
+              .getValue(null, null, EnvironmentVariable.PARTICLE_DIR, null)), "bin"),
+              "PEETHelp").getAbsolutePath() }, axisID, manager);
     }
   }
 

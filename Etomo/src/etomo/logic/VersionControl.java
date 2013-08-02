@@ -34,7 +34,7 @@ import etomo.util.EnvironmentVariable;
 public final class VersionControl {
   public final String rcsid = "$$Id$$";
 
-  public static final String TIME_STAMP = "7/31/2013 18:06";
+  public static final String TIME_STAMP = "8/2/2013 14:20";
 
   private static final String DEPENDANT_IMOD_VERSION = "4.4.4";
   private static final String DEPENDANT_PEET_VERSION = "1.8.0";
@@ -82,8 +82,8 @@ public final class VersionControl {
     LogFile.ReaderId id = null;
     try {
       peetVersionFile = LogFile.getInstance(
-          new File(EnvironmentVariable.INSTANCE.getValue(null, null, "PARTICLE_DIR",
-              AxisID.ONLY)), "PEETVersion.txt");
+          new File(EnvironmentVariable.INSTANCE.getValue(null, null,
+              EnvironmentVariable.PARTICLE_DIR, AxisID.ONLY)), "PEETVersion.txt");
       id = peetVersionFile.openReader();
       String version = peetVersionFile.readLine(id);
       if (version != null && !version.matches("\\s*")) {

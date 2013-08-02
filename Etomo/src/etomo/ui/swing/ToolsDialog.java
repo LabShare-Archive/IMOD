@@ -2,6 +2,7 @@ package etomo.ui.swing;
 
 import java.awt.Container;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -108,6 +109,10 @@ public final class ToolsDialog implements ContextMenu, LogInterface {
 
   public void logMessage(final String message) {
     logger.logMessage(message);
+  }
+
+  public void logMessage(final File file) {
+    logger.logMessage(file);
   }
 
   public void save() {

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import etomo.BaseManager;
 import etomo.storage.LogFile;
 
 /**
@@ -40,8 +41,10 @@ public final class ProcessMessages {
   private static final String PIP_WARNING_END_TAG = "Using fallback options in main program";
   private static final int MAX_MESSAGE_SIZE = 10;
   private static final String[] IGNORE_TAG = { "prnstr('ERROR:", "log.write('ERROR:" };
+  private static final String LOG_FILE_TAG = "LOGFILE:";
 
   private final boolean chunks;
+  private final BaseManager manager;
 
   private OutputBufferManager outputBufferManager = null;
   private BufferedReader bufferedReader = null;
@@ -99,40 +102,45 @@ public final class ProcessMessages {
         + ",\nsuccess:" + success + ",multiLineMessages:" + multiLineAllMessages + "]");
   }
 
-  static ProcessMessages getInstance() {
-    return new ProcessMessages(false, false, null, null, false, false);
+  static ProcessMessages getInstance(final BaseManager manager) {
+    return new ProcessMessages(manager, false, false, null, null, false, false);
   }
 
-  static ProcessMessages getInstance(final String successTag) {
-    return new ProcessMessages(false, false, successTag, null, false, false);
+  static ProcessMessages getInstance(final BaseManager manager, final String successTag) {
+    return new ProcessMessages(manager, false, false, successTag, null, false, false);
   }
 
-  static ProcessMessages getInstance(final String successTag1, String successTag2) {
-    return new ProcessMessages(false, false, successTag1, successTag2, false, false);
+  static ProcessMessages getInstance(final BaseManager manager, final String successTag1,
+      String successTag2) {
+    return new ProcessMessages(manager, false, false, successTag1, successTag2, false,
+        false);
   }
 
-  static ProcessMessages getMultiLineInstance() {
-    return new ProcessMessages(true, false, null, null, false, false);
+  static ProcessMessages getMultiLineInstance(final BaseManager manager) {
+    return new ProcessMessages(manager, true, false, null, null, false, false);
   }
 
-  static ProcessMessages getInstanceForParallelProcessing(final boolean multiLineMessages) {
-    return new ProcessMessages(multiLineMessages, true, null, null, false, false);
+  static ProcessMessages getInstanceForParallelProcessing(final BaseManager manager,
+      final boolean multiLineMessages) {
+    return new ProcessMessages(manager, multiLineMessages, true, null, null, false, false);
   }
 
-  static ProcessMessages getMultiLineInstance(final boolean multiLineWarning,
-      final boolean multiLineInfo) {
-    return new ProcessMessages(false, false, null, null, multiLineWarning, multiLineInfo);
+  static ProcessMessages getMultiLineInstance(final BaseManager manager,
+      final boolean multiLineWarning, final boolean multiLineInfo) {
+    return new ProcessMessages(manager, false, false, null, null, multiLineWarning,
+        multiLineInfo);
   }
 
-  private ProcessMessages(final boolean multiLineMessages, final boolean chunks,
-      final String successTag1, final String successTag2, final boolean multiLineWarning,
-      final boolean multiLineInfo) {
+  private ProcessMessages(final BaseManager manager, final boolean multiLineMessages,
+      final boolean chunks, final String successTag1, final String successTag2,
+      final boolean multiLineWarning, final boolean multiLineInfo) {
     this.multiLineAllMessages = multiLineMessages;
     this.multiLineWarning = multiLineWarning;
     this.multiLineInfo = multiLineInfo;
     this.chunks = chunks;
     this.successTag1 = successTag1;
     this.successTag2 = successTag2;
+    this.manager = manager;
   }
 
   /**
@@ -572,11 +580,50 @@ public final class ProcessMessages {
    * Looks for single line errors, warnings, and info messages.
    * Messages have start tags and may start in the middle of the line.
    * If a message is found, line will be set to a new line.
+   * Looks for a log file entry.  A log file entry is a single line.  The tag may have
+   * text preceeding it.  The text following the tag is the path of a file, the contents
+   * of which should be added to _project.log.
    * @return true if a message is found
    */
   private boolean parseSingleLineMessage() {
     if (line == null) {
       return false;
+    }
+    int logFileIndex = line.indexOf(LOG_FILE_TAG);
+    if (logFileIndex != -1) {
+      File file = new File(manager.getPropertyUserDir(), line.substring(
+          logFileIndex + LOG_FILE_TAG.length()).trim());
+      if (file.exists() && file.isFile() && file.canRead()) {
+        if (manager != null) {
+          manager.logMessage(file);
+        }
+        else {
+          System.err.println(LOG_FILE_TAG + " " + file.getAbsolutePath());
+          try {
+            LogFile logFile = LogFile.getInstance(file);
+            LogFile.ReaderId id = logFile.openReader();
+            String logFileLine = null;
+            while ((logFileLine = logFile.readLine(id)) != null) {
+              System.err.println(logFileLine);
+            }
+          }
+          catch (LogFile.LockException e) {
+            e.printStackTrace();
+            System.err.println("Unable to process " + line + ".  " + e.getMessage());
+          }
+          catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.err.println("Unable to process " + line + ".  " + e.getMessage());
+          }
+          catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Unable to process " + line + ".  " + e.getMessage());
+          }
+        }
+      }
+      else {
+        System.err.println("Warning: unable to log from file:" + file.getAbsolutePath());
+      }
     }
     // look for a message
     int errorIndex = -1;
