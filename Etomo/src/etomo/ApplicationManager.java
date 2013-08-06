@@ -3006,32 +3006,10 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final AxisID axisID, final boolean value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(axisID, value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
       final StringBuffer errmsg, final ConstEtomoNumber value) {
     Directive directive = map.get(key);
     if (directive != null) {
       directive.setValue(value);
-    }
-    else {
-      errmsg.append("Missing directive: " + key + ".  ");
-    }
-  }
-
-  private void updateDirective(final DirectiveMap map, final String key,
-      final StringBuffer errmsg, final AxisID axisID, final ConstEtomoNumber value) {
-    Directive directive = map.get(key);
-    if (directive != null) {
-      directive.setValue(axisID, value);
     }
     else {
       errmsg.append("Missing directive: " + key + ".  ");
@@ -3136,7 +3114,6 @@ public final class ApplicationManager extends BaseManager implements
       firstAxisID = AxisID.ONLY;
     }
     AxisID curAxisID = firstAxisID;
-    // setup map
     // setupset.copyarg directvies
     String prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.COPY_ARG_NAME + AutodocTokenizer.SEPARATOR_CHAR;
@@ -3275,7 +3252,7 @@ public final class ApplicationManager extends BaseManager implements
     updateDirective(directiveMap, prepend + DirectiveFile.USER_TEMPLATE_NAME, errmsg,
         metaData.getOrigUserTemplate());
 
-    // param map
+    // runtime
     prepend = DirectiveType.RUNTIME.toString() + AutodocTokenizer.SEPARATOR_CHAR;
     String module;
 
@@ -3283,36 +3260,17 @@ public final class ApplicationManager extends BaseManager implements
     module = "Preprocessing" + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS, errmsg,
-        curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
-    if (dualAxis) {
-      curAxisID = AxisID.SECOND;
-      updateDirective(directiveMap, prepend + module + DirectiveFile.REMOVE_XRAYS,
-          errmsg, curAxisID, FileType.ERASER_LOG.getFile(this, curAxisID).exists());
-    }
-    curAxisID = firstAxisID;
+        FileType.ERASER_LOG.getFile(this, curAxisID).exists());
     module = DirectiveFile.FIDUCIALS_NAME + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.ANY_AXIS_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     // Coarse alignment
     updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME,
-        errmsg, curAxisID, metaData.isFiducialess(curAxisID));
-    if (dualAxis) {
-      curAxisID = AxisID.SECOND;
-      updateDirective(directiveMap, prepend + module + DirectiveFile.FIDUCIALLESS_NAME,
-          errmsg, curAxisID, metaData.isFiducialess(curAxisID));
-    }
-    curAxisID = firstAxisID;
+        errmsg, metaData.isFiducialess(curAxisID));
     // Tracking choices
     updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-        errmsg, curAxisID,
-        TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
+        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
+
     // TODO finish runtime directives
-    if (dualAxis) {
-      curAxisID = AxisID.SECOND;
-      updateDirective(directiveMap,
-          prepend + module + DirectiveFile.TRACKING_METHOD_NAME, errmsg, curAxisID,
-          TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
-    }
-    curAxisID = firstAxisID;
   }
 
   /**
