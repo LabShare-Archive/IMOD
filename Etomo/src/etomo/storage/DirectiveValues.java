@@ -7,7 +7,6 @@ import etomo.storage.Directive.NumericValue;
 import etomo.storage.Directive.StringValue;
 import etomo.storage.Directive.Value;
 import etomo.storage.Directive.ValueFactory;
-import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
 import etomo.type.EtomoNumber;
@@ -31,54 +30,23 @@ public final class DirectiveValues {
   final DirectiveValueType valueType;
 
   private Value defaultValue = null;
-  private Value defaultValueA = null;
-  private Value defaultValueB = null;
   private Value value = null;
-  private Value valueA = null;
-  private Value valueB = null;
   private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   DirectiveValues(final DirectiveValueType valueType) {
     this.valueType = valueType;
   }
 
-  public Value getValue(final AxisID axisID) {
-    if (axisID == null) {
-      return value;
-    }
-    else if (axisID == AxisID.SECOND) {
-      return valueB;
-    }
-    else if (axisID == AxisID.FIRST) {
-      return valueA;
-    }
-    return null;
+  public Value getValue() {
+    return value;
   }
 
-  public Value getDefaultValue(final AxisID axisID) {
-    if (axisID == null) {
-      return defaultValue;
-    }
-    else if (axisID == AxisID.SECOND) {
-      return defaultValueB;
-    }
-    else if (axisID == AxisID.FIRST) {
-      return defaultValueA;
-    }
-    return null;
+  public Value getDefaultValue() {
+    return defaultValue;
   }
 
-  public boolean isSet(final AxisID axisID) {
-    if (axisID == null) {
-      return value != null;
-    }
-    else if (axisID == AxisID.FIRST) {
-      return valueA != null;
-    }
-    else if (axisID == AxisID.SECOND) {
-      return valueB != null;
-    }
-    return false;
+  public boolean isSet() {
+    return value != null;
   }
 
   /**
@@ -88,91 +56,7 @@ public final class DirectiveValues {
    * @return
    */
   public boolean isChanged() {
-    if (value != null) {
-      if (isChanged(value, defaultValue)) {
-        if (debug > 1) {
-          System.out.println("A:value:" + value + ",defaultValue:" + defaultValue);
-        }
-        return true;
-      }
-    }
-    if (valueA != null) {
-      if (defaultValueA != null) {
-        if (isChanged(valueA, defaultValueA)) {
-          if (debug > 1) {
-            System.out.println("B");
-          }
-          return true;
-        }
-      }
-      else if (isChanged(valueA, defaultValue)) {
-        if (debug > 1) {
-          System.out.println("C");
-        }
-        return true;
-      }
-    }
-    if (valueB != null) {
-      if (defaultValueB != null) {
-        if (isChanged(valueB, defaultValueB)) {
-          if (debug > 1) {
-            System.out.println("D");
-          }
-          return true;
-        }
-      }
-      else if (isChanged(valueB, defaultValue)) {
-        if (debug > 1) {
-          System.out.println("E");
-        }
-        return true;
-      }
-    }
-    if (debug > 1) {
-      System.out.println("F");
-    }
-    return false;
-  }
-
-  /**
-   * Returns true if any of the values when changed from their coresponding default
-   * values.  If an A or B default value has not been set, compare the value to non-axis
-   * default value.
-   * @return
-   */
-  public boolean isChanged(final AxisID axisID) {
-    if (axisID == null) {
-      if (value != null) {
-        if (isChanged(value, defaultValue)) {
-          return true;
-        }
-      }
-    }
-    else if (axisID == AxisID.FIRST) {
-      if (valueA != null) {
-        if (defaultValueA != null) {
-          if (isChanged(valueA, defaultValueA)) {
-            return true;
-          }
-        }
-        else if (isChanged(valueA, defaultValue)) {
-          return true;
-        }
-      }
-    }
-    else if (axisID == AxisID.SECOND) {
-      if (valueB != null) {
-        if (defaultValueB != null) {
-          if (isChanged(valueB, defaultValueB)) {
-            return true;
-          }
-        }
-        else if (isChanged(valueB, defaultValue)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return isChanged(value, defaultValue);
   }
 
   /**
@@ -239,42 +123,18 @@ public final class DirectiveValues {
     debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
   }
 
-  void setDefaultValue(final AxisID axisID, final boolean input) {
-    createDefaultValue(axisID);
-    if (axisID == null) {
-      defaultValue.set(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      defaultValueB.set(input);
-    }
-    else {
-      defaultValueA.set(input);
-    }
+  void setDefaultValue(final boolean input) {
+    createDefaultValue();
+    defaultValue.set(input);
   }
 
-  void setDefaultValue(final AxisID axisID, final String input) {
+  void setDefaultValue(final String input) {
     if (input == null || input.matches("\\ss*")) {
-      if (axisID == null) {
-        defaultValue = null;
-      }
-      else if (axisID == AxisID.SECOND) {
-        defaultValueB = null;
-      }
-      else {
-        defaultValueA = null;
-      }
+      defaultValue = null;
     }
     else {
-      createDefaultValue(axisID);
-      if (axisID == null) {
-        defaultValue.set(input);
-      }
-      else if (axisID == AxisID.SECOND) {
-        defaultValueB.set(input);
-      }
-      else {
-        defaultValueA.set(input);
-      }
+      createDefaultValue();
+      defaultValue.set(input);
     }
   }
 
@@ -283,78 +143,13 @@ public final class DirectiveValues {
       defaultValue = null;
     }
     else {
-      createDefaultValue(null);
+      createDefaultValue();
       defaultValue.set(input);
     }
   }
 
-  void setValue(final AxisID axisID, final boolean input) {
-    createValue(axisID);
-    if (axisID == null) {
-      value.set(input);
-    }
-    else if (axisID == AxisID.SECOND) {
-      valueB.set(input);
-    }
-    else {
-      valueA.set(input);
-    }
-  }
-
-  void setValue(final AxisID axisID, final ConstEtomoNumber input) {
-    if (input == null || input.isNull()) {
-      if (axisID == null) {
-        value = null;
-      }
-      else if (axisID == AxisID.SECOND) {
-        valueB = null;
-      }
-      else {
-        valueA = null;
-      }
-    }
-    else {
-      createValue(axisID);
-      if (axisID == null) {
-        value.set(input);
-      }
-      else if (axisID == AxisID.SECOND) {
-        valueB.set(input);
-      }
-      else {
-        valueA.set(input);
-      }
-    }
-  }
-
-  void setValue(final AxisID axisID, final String input) {
-    if (input == null || input.matches("\\s*")) {
-      if (axisID == null) {
-        value = null;
-      }
-      else if (axisID == AxisID.SECOND) {
-        valueB = null;
-      }
-      else {
-        valueA = null;
-      }
-    }
-    else {
-      createValue(axisID);
-      if (axisID == null) {
-        value.set(input);
-      }
-      else if (axisID == AxisID.SECOND) {
-        valueB.set(input);
-      }
-      else {
-        valueA.set(input);
-      }
-    }
-  }
-
   void setValue(final boolean input) {
-    createValue(null);
+    createValue();
     value.set(input);
   }
 
@@ -363,7 +158,7 @@ public final class DirectiveValues {
       value = null;
     }
     else {
-      createValue(null);
+      createValue();
       value.set(input);
     }
   }
@@ -373,7 +168,7 @@ public final class DirectiveValues {
       value = null;
     }
     else {
-      createValue(null);
+      createValue();
       value.set(input);
     }
   }
@@ -383,7 +178,7 @@ public final class DirectiveValues {
       value = null;
     }
     else {
-      createValue(null);
+      createValue();
       value.set(input);
     }
   }
@@ -393,7 +188,7 @@ public final class DirectiveValues {
       value = null;
     }
     else {
-      createValue(null);
+      createValue();
       value.set(input);
     }
   }
@@ -402,7 +197,7 @@ public final class DirectiveValues {
     if (input == EtomoNumber.INTEGER_NULL_VALUE) {
       value = null;
     }
-    createValue(null);
+    createValue();
     value.set(input);
   }
 
@@ -411,44 +206,20 @@ public final class DirectiveValues {
       value = null;
     }
     else {
-      createValue(null);
+      createValue();
       value.set(input);
     }
   }
 
-  private void createDefaultValue(final AxisID axisID) {
-    if (axisID == null) {
-      if (defaultValue == null) {
-        defaultValue = ValueFactory.getValue(valueType);
-      }
-    }
-    else if (axisID == AxisID.SECOND) {
-      if (defaultValueB == null) {
-        defaultValueB = ValueFactory.getValue(valueType);
-      }
-    }
-    else {
-      if (defaultValueA == null) {
-        defaultValueA = ValueFactory.getValue(valueType);
-      }
+  private void createDefaultValue() {
+    if (defaultValue == null) {
+      defaultValue = ValueFactory.getValue(valueType);
     }
   }
 
-  private void createValue(final AxisID axisID) {
-    if (axisID == null) {
-      if (value == null) {
-        value = ValueFactory.getValue(valueType);
-      }
-    }
-    else if (axisID == AxisID.SECOND) {
-      if (valueB == null) {
-        valueB = ValueFactory.getValue(valueType);
-      }
-    }
-    else {
-      if (valueA == null) {
-        valueA = ValueFactory.getValue(valueType);
-      }
+  private void createValue() {
+    if (value == null) {
+      value = ValueFactory.getValue(valueType);
     }
   }
 }
