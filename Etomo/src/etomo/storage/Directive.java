@@ -7,7 +7,6 @@ import etomo.EtomoDirector;
 import etomo.comscript.FortranInputString;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
 import etomo.type.DirectiveFileType;
@@ -44,12 +43,8 @@ public class Directive {
   private final String label;
   private final DirectiveDescrFile.ChoiceList choiceList;
 
-  private AxisLevelData axisLevelDataAny = null;
-  private AxisLevelData axisLevelDataA = null;
-  private AxisLevelData axisLevelDataB = null;
+  private boolean[] inDirectiveFile = null;
   private boolean include = false;
-  private boolean includeA = false;
-  private boolean includeB = false;
 
   public Directive(final DirectiveDescr descr) {
     directiveName.setKey(descr);
@@ -81,14 +76,14 @@ public class Directive {
     choiceList = null;
   }
 
-  void write(final AxisID axisID, final LogFile logFile, LogFile.WriterId id)
-      throws LogFile.LockException, IOException {
-    Value value = values.getValue(axisID);
+  void write(final LogFile logFile, LogFile.WriterId id) throws LogFile.LockException,
+      IOException {
+    Value value = values.getValue();
     String valueString = "";
     if (value != null) {
       valueString = value.toString();
     }
-    logFile.write(directiveName.getName(axisID) + AutodocTokenizer.DEFAULT_DELIMITER
+    logFile.write(directiveName.getName() + AutodocTokenizer.DEFAULT_DELIMITER
         + valueString, id);
     logFile.newLine(id);
   }
@@ -109,6 +104,22 @@ public class Directive {
     return etomoColumn;
   }
 
+  public String getInDirectiveFileDebugString() {
+    if (inDirectiveFile != null) {
+      StringBuffer buffer = new StringBuffer();
+      for (int i = 0; i < inDirectiveFile.length; i++) {
+        if (inDirectiveFile[i]) {
+          buffer.append((buffer.length() > 0 ? ", " : "") + "in "
+              + DirectiveFileType.getInstance(i) + " directive file");
+        }
+      }
+      if (buffer.length() > 0) {
+        return buffer.toString();
+      }
+    }
+    return null;
+  }
+
   public DirectiveDescrFile.ChoiceList getChoiceList() {
     return choiceList;
   }
@@ -125,8 +136,8 @@ public class Directive {
     return directiveName.getKeyDescription();
   }
 
-  public String getName(final AxisID axisID) {
-    return directiveName.getName(axisID);
+  public String getName() {
+    return directiveName.getName();
   }
 
   public String getTitle() {
@@ -156,17 +167,8 @@ public class Directive {
     return choiceList != null && !choiceList.isEmpty();
   }
 
-  public boolean isInclude(final AxisID axisID) {
-    if (axisID == null) {
-      return include;
-    }
-    if (axisID == AxisID.FIRST) {
-      return includeA;
-    }
-    if (axisID == AxisID.SECOND) {
-      return includeB;
-    }
-    return false;
+  public boolean isInclude() {
+    return include;
   }
 
   public boolean isCopyArg() {
@@ -177,112 +179,69 @@ public class Directive {
     return directiveName.isValid();
   }
 
-  public AxisLevelData getAxisLevelData(final AxisID axisID) {
-    if (axisID == AxisID.FIRST) {
-      return axisLevelDataA;
-    }
-    if (axisID == AxisID.SECOND) {
-      return axisLevelDataB;
-    }
-    return axisLevelDataAny;
-  }
-
   /**
    * Returns true if inDirectiveFile is true for the index and the axis (or for any axes).
    * @param index
    * @param axisID
    * @return
    */
-  public boolean isInDirectiveFile(final int index, final AxisID axisID) {
-    if (index < 0 || index >= DirectiveFileType.NUM) {
+  public boolean isInDirectiveFile(final int index) {
+    if (inDirectiveFile == null || index < 0 || index >= DirectiveFileType.NUM) {
       return false;
     }
-    boolean retval = false;
-    if (axisID == AxisID.FIRST && axisLevelDataA != null) {
-      retval = axisLevelDataA.inDirectiveFile[index];
-    }
-    else if (axisID == AxisID.SECOND && axisLevelDataB != null) {
-      retval = axisLevelDataB.inDirectiveFile[index];
-    }
-    if (!retval && axisLevelDataAny != null) {
-      retval = axisLevelDataAny.inDirectiveFile[index];
-    }
-    return retval;
+    return inDirectiveFile[index];
   }
 
   public boolean isTemplate() {
     return template;
   }
 
-  public void setDefaultValue(final AxisID axisID, final boolean input) {
-    values.setDefaultValue(axisID, input);
+  public void setDefaultValue(final boolean input) {
+    values.setDefaultValue(input);
   }
 
-  public void setDefaultValue(final AxisID axisID, final String input) {
-    values.setDefaultValue(axisID, input);
+  public void setDefaultValue(final String input) {
+    values.setDefaultValue(input);
   }
 
   public void setDefaultValue(final int input) {
     values.setDefaultValue(input);
   }
 
-  public void setInclude(final AxisID axisID, final boolean input) {
-    if (axisID == null) {
-      include = input;
-    }
-    else if (axisID == AxisID.FIRST) {
-      includeA = input;
-    }
-    else if (axisID == AxisID.SECOND) {
-      includeB = input;
-    }
+  public void setInclude(final boolean input) {
+    include = input;
   }
 
-  public void setInDirectiveFile(final DirectiveFileType type, final AxisID axisID,
-      final boolean input) {
+  public void setInDirectiveFile(final DirectiveFileType type, final boolean input) {
     if (type == null) {
       return;
     }
     int index = type.getIndex();
-    if (axisID == null) {
-      if (axisLevelDataAny == null) {
-        axisLevelDataAny = new AxisLevelData();
+    if (inDirectiveFile == null) {
+      // Initialize inDirectiveFile, and add input value.
+      inDirectiveFile = new boolean[DirectiveFileType.NUM];
+      for (int i = 0; i < inDirectiveFile.length; i++) {
+        if (i == index) {
+          inDirectiveFile[i] = input;
+        }
+        else {
+          inDirectiveFile[i] = false;
+        }
       }
-      axisLevelDataAny.inDirectiveFile[index] = input;
     }
-    else if (axisID == AxisID.FIRST) {
-      if (axisLevelDataA == null) {
-        axisLevelDataA = new AxisLevelData();
-      }
-      axisLevelDataA.inDirectiveFile[index] = input;
-    }
-    else if (axisID == AxisID.SECOND) {
-      if (axisLevelDataB == null) {
-        axisLevelDataB = new AxisLevelData();
-      }
-      axisLevelDataB.inDirectiveFile[index] = input;
+    else if (index >= 0 && index < inDirectiveFile.length) {
+      // Add input value.
+      inDirectiveFile[index] = input;
     }
   }
 
-  public void setValue(final AxisID axisID, final File input) {
+  public void setValue(final File input) {
     if (input != null) {
-      values.setValue(axisID, input.getAbsolutePath());
+      values.setValue(input.getAbsolutePath());
     }
     else {
-      values.setValue(axisID, "");
+      values.setValue("");
     }
-  }
-
-  public void setValue(final AxisID axisID, final boolean input) {
-    values.setValue(axisID, input);
-  }
-
-  public void setValue(final AxisID axisID, final ConstEtomoNumber input) {
-    values.setValue(axisID, input);
-  }
-
-  public void setValue(final AxisID axisID, final String input) {
-    values.setValue(axisID, input);
   }
 
   public void setValue(final boolean input) {
@@ -290,6 +249,10 @@ public class Directive {
   }
 
   public void setValue(final ConstEtomoNumber input) {
+    values.setValue(input);
+  }
+
+  public void setValue(final String input) {
     values.setValue(input);
   }
 
@@ -306,10 +269,6 @@ public class Directive {
   }
 
   public void setValue(final int input) {
-    values.setValue(input);
-  }
-
-  public void setValue(final String input) {
     values.setValue(input);
   }
 
