@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import etomo.BaseManager;
-import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
 import etomo.ui.swing.UIHarness;
 
@@ -101,17 +100,8 @@ public final class DirectiveWriter {
         Iterator<Directive> iterator = directiveList.iterator();
         while (iterator.hasNext()) {
           Directive directive = iterator.next();
-          if (directive.isInclude(null)) {
-            directive.write(null, logFile, id);
-          }
-          else {
-            if (directive.isInclude(AxisID.FIRST)) {
-              directive.write(AxisID.FIRST, logFile, id);
-            }
-            if (directive.isInclude(AxisID.SECOND)) {
-              directive.write(AxisID.SECOND, logFile, id);
-
-            }
+          if (directive.isInclude()) {
+            directive.write(logFile, id);
           }
         }
       }
