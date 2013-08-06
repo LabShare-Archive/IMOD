@@ -40,7 +40,7 @@ public final class DirectiveSectionPanel {
 
   private final JPanel pnlRoot = new JPanel();
   private final JPanel pnlBody = new JPanel();
-  private final List<DirectiveSetInterface> directiveSetArray = new ArrayList<DirectiveSetInterface>();
+  private final List<DirectivePanel> directivePanelArray = new ArrayList<DirectivePanel>();
   private final JPanel pnlDirectives = new JPanel();
 
   private final CheckBox cbShow;
@@ -95,26 +95,26 @@ public final class DirectiveSectionPanel {
         continue;
       }
       // directive set panels
-      DirectiveSetInterface directiveSet = DirectiveSetFactory.createDirectiveSet(
-          manager, directive, tool, sourceAxisType);
-      directiveSetArray.add(directiveSet);
-      pnlDirectives.add(directiveSet.getComponent());
+      DirectivePanel directivePanel = DirectivePanel.getInstance(manager, directive,
+          tool, sourceAxisType);
+      directivePanelArray.add(directivePanel);
+      pnlDirectives.add(directivePanel.getComponent());
     }
     msgControlChanged(false, true, true);
   }
 
   void msgControlChanged(final boolean includeChange, final boolean showChange,
       final boolean expandChange) {
-    Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
+    Iterator<DirectivePanel> iterator = directivePanelArray.iterator();
     boolean visibleDirectives = false;
     boolean include = false;
     while (iterator.hasNext()) {
-      DirectiveSetInterface directiveSet = iterator.next();
-      if (directiveSet.msgControlChanged(includeChange, expandChange)
+      DirectivePanel directivePanel = iterator.next();
+      if (directivePanel.msgControlChanged(includeChange, expandChange)
           && !visibleDirectives) {
         visibleDirectives = true;
       }
-      if (showChange && !include && directiveSet.isInclude()) {
+      if (showChange && !include && directivePanel.isInclude()) {
         include = true;
       }
     }
@@ -126,7 +126,7 @@ public final class DirectiveSectionPanel {
   }
 
   boolean isDifferentFromCheckpoint(final boolean checkInclude) {
-    Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
+    Iterator<DirectivePanel> iterator = directivePanelArray.iterator();
     while (iterator.hasNext()) {
       if (iterator.next().isDifferentFromCheckpoint(checkInclude)) {
         return true;
@@ -154,9 +154,9 @@ public final class DirectiveSectionPanel {
 
   public Collection<Directive> getIncludeDirectiveList() {
     Collection<Directive> directiveList = new ArrayList<Directive>();
-    Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
+    Iterator<DirectivePanel> iterator = directivePanelArray.iterator();
     while (iterator.hasNext()) {
-      DirectiveSetInterface directiveSet = iterator.next();
+      DirectivePanel directiveSet = iterator.next();
       if (directiveSet.isInclude()) {
         directiveList.add(directiveSet.getState());
       }
@@ -165,7 +165,7 @@ public final class DirectiveSectionPanel {
   }
 
   public void checkpoint() {
-    Iterator<DirectiveSetInterface> iterator = directiveSetArray.iterator();
+    Iterator<DirectivePanel> iterator = directivePanelArray.iterator();
     while (iterator.hasNext()) {
       iterator.next().checkpoint();
     }
