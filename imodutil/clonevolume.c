@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include <math.h>
 
 #include "b3dutil.h"
 #include "imodel.h"
@@ -71,7 +72,7 @@ int main( int argc, char *argv[])
   int iSlice, numOptArgs, numNonOptArgs, inMode, intoMode;
   int *contourList = NULL, numContours = 0;
   int nClones = 0, maxClones = 100, iClone, ix, iy;
-  float alpha, x, y, xMin, xMax, yMin, yMax, zMin, zMax;
+  float alpha, xMin, xMax, yMin, yMax, zMin, zMax;
   Imat **xform = NULL;
   bndBox3D inBBox, intoBBox, *outBBox = NULL;
   MrcHeader inHeader, intoHeader, outHeader;
@@ -259,12 +260,14 @@ int main( int argc, char *argv[])
       /* If cloned volume intersects the current slice... */
       if (iSlice >= outBBox[iClone].zMin && iSlice <= outBBox[iClone].zMax) {
         Ival oldVal = {0, 0, 0}, newVal = {0, 0, 0};
-        /* Process all the points in the clone's bounding box */
-        for (x = outBBox[iClone].xMin; x <= outBBox[iClone].xMax; x++) {
-          for (y = outBBox[iClone].yMin; y <= outBBox[iClone].yMax; y++) {
+        /* Process the points in the clone's bounding box */
+        for (ix = (int)ceil(outBBox[iClone].xMin);
+             ix <= (int)floor(outBBox[iClone].xMax); ix++) {
+          for (iy = (int)ceil(outBBox[iClone].yMin); 
+	       iy <= (int)floor(outBBox[iClone].yMax); iy++) {
             Ipoint inPt, outPt;
-            outPt.x = x;
-            outPt.y = y;
+            outPt.x = (float)ix;
+            outPt.y = (float)iy;
             outPt.z = (float)iSlice;
             /* Tranform output/into coords back to the input */
             imodMatTransform3D(xform[iClone], &outPt, &inPt);
@@ -275,8 +278,6 @@ int main( int argc, char *argv[])
             /* dimension are within input vol for trilinear interpolation. */
             if (isInside(&inPt, &inBBox, 1.0001)) {
               float inVal;
-              ix = (int)x;
-              iy = (int)y;
               if (sliceGetVal(slice, ix, iy, oldVal))
                 exitError("Error retrieving value from slice");
               inVal = trilinearInterpolation(
@@ -497,9 +498,8 @@ float trilinearInterpolation(float **inVol, MrcHeader *inHeader,
 
   const int ix = (int)x;
   const int iy = (int)y;
-  const int iz = (int)z;
-  int iiz = (int)(z + 0.5); /* For indexing into the inVol */
-
+  int iz = (int)z;
+  
   /* dx, dy, and dz will each be >= 0 and strictly less than 1 */
   const float dx = x - ix;
   const float dy = y - iy;
@@ -512,22 +512,22 @@ float trilinearInterpolation(float **inVol, MrcHeader *inHeader,
   const float d22 = dx * dy;
 
   const int ibase = ix + iy * inHeader->nx;
-  newVal = d11 * inVol[iiz][ibase];  /* d11 is always non-zero */
+  newVal = d11 * inVol[iz][ibase];   /* d11 is always non-zero */
   if (d12 != 0)
-    newVal += d12 * inVol[iiz][ibase + inHeader->nx];
+    newVal += d12 * inVol[iz][ibase + inHeader->nx];
   if (d21 != 0)
-    newVal += d21 * inVol[iiz][ibase + 1];
+    newVal += d21 * inVol[iz][ibase + 1];
   if (d22 != 0)
-    newVal += d22 * inVol[iiz++][ibase + inHeader->nx + 1];
+    newVal += d22 * inVol[iz++][ibase + inHeader->nx + 1];
   newVal *= (1.0 - dz);              /* 1 - dz is always non-zero */
   if (dz != 0) {
-    temp = d11 * inVol[iiz][ibase];  /* d11 is always non-zero */
+    temp = d11 * inVol[iz][ibase];   /* d11 is always non-zero */
     if (d12 != 0)
-      temp += d12 * inVol[iiz][ibase + inHeader->nx];
+      temp += d12 * inVol[iz][ibase + inHeader->nx];
     if (d21 != 0)
-      temp += d21 * inVol[iiz][ibase + 1];
+      temp += d21 * inVol[iz][ibase + 1];
     if (d22 != 0)
-      temp += d22 * inVol[iiz][ibase + inHeader->nx + 1];
+      temp += d22 * inVol[iz][ibase + inHeader->nx + 1];
     newVal += dz * temp;
   }
 
