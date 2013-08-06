@@ -3,9 +3,7 @@ package etomo.logic;
 import etomo.EtomoDirector;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescrEtomoColumn;
-import etomo.storage.DirectiveType;
 import etomo.storage.DirectiveValues;
-import etomo.type.AxisID;
 import etomo.type.DirectiveFileType;
 import etomo.ui.DirectiveDisplaySettings;
 
@@ -58,13 +56,9 @@ public final class DirectiveTool {
    * @return
    */
   public boolean isToggleDirectiveIncluded(final Directive directive,
-      final AxisID axisID, final boolean includeChecked) {
-    if (directive == null ) {
+      final boolean includeChecked) {
+    if (directive == null) {
       return includeChecked != false;
-    }
-    // "Any" directives are set indirectly
-    if (axisID == null && directive.getType() != DirectiveType.SETUP_SET) {
-      return false;
     }
     if (!isMatchesType(directive)) {
       return includeChecked != false;
@@ -82,9 +76,7 @@ public final class DirectiveTool {
     for (int i = 0; i < DirectiveFileType.NUM; i++) {
       // Override the lower precedence settings. If the directive, or the any axis version
       // of the directive is in the file, then it may have an effect.
-      if (i != matchingIndex
-          && (directive.isInDirectiveFile(i, axisID) || (axisID != null && directive
-              .isInDirectiveFile(i, null)))) {
+      if (i != matchingIndex && directive.isInDirectiveFile(i)) {
         // Include and exclude cannot be set at the same time (but they can both be off).
         if (displaySettings.isInclude(i)) {
           if (debug > 1) {
@@ -99,8 +91,7 @@ public final class DirectiveTool {
       }
     }
     // the directive file matching the type of the editor has the highest precedence.
-    if (directive.isInDirectiveFile(matchingIndex, axisID)
-        || (axisID != null && directive.isInDirectiveFile(matchingIndex, null))) {
+    if (directive.isInDirectiveFile(matchingIndex)) {
       if (displaySettings.isInclude(matchingIndex)) {
         include = true;
         exclude = false;
@@ -117,14 +108,10 @@ public final class DirectiveTool {
       return includeChecked != false;
     }
     if (!fileTypeExists) {
-      // Any directives are set indirectly
-      if (axisID == null && directive.getType() != DirectiveType.SETUP_SET) {
-        return includeChecked != false;
-      }
       DirectiveValues values = directive.getValues();
       return includeChecked != (type == DirectiveFileType.USER
           && directive.getEtomoColumn() == DirectiveDescrEtomoColumn.SD
-          && isMatchesType(directive) && (values.isChanged(axisID)));
+          && isMatchesType(directive) && (values.isChanged()));
     }
     return includeChecked != false;
   }
