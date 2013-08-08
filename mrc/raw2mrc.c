@@ -245,7 +245,6 @@ int main( int argc, char *argv[] )
 
   for (j = iarg ; j < argc-1 ; j++) {
     jread = invertFiles ? iarg + argc - 2 - j : j;
-    printf("%d %d %s\n", j, jread, argv[jread]);
     fin = fopen(argv[jread], "rb");
     if (!fin)
       exitError("Opening %s for input", argv[jread]);
