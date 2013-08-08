@@ -81,7 +81,7 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     if (opt->sano)
       truncToMean = 1;
     if (!truncLo && !truncHi) {
-      fprintf(stderr, "clip truncate: You must enter a low or a high limit\n");
+      show_error("clip truncate: You must enter a low or a high limit");
       return -1;
     }
     mrc_head_label(hout, "clip: truncated");
@@ -89,12 +89,11 @@ int clip_scaling(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   case IP_UNWRAP:
     show_status("Unwrap...\n");
     if (hin->mode != MRC_MODE_SHORT && hin->mode != MRC_MODE_USHORT) {
-      fprintf(stderr, "clip truncate: Mode must be short or unsigned short integers\n");
+      show_error("clip truncate: Mode must be short or unsigned short integers");
       return -1;
     }
     if (hin->mode == MRC_MODE_USHORT && opt->val == IP_DEFAULT) {
-      fprintf(stderr, "clip truncate: You must enter a value to add with -n for mode "
-              "6 input\n");
+      show_error("clip truncate: You must enter a value to add with -n for mode 6 input");
       return -1;
     }
     if (opt->val == IP_DEFAULT)
@@ -1373,12 +1372,12 @@ int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt
     return(clip2d_average(h1,hout,opt));
 
   if (opt->add2file != IP_APPEND_FALSE) {
-    fprintf(stderr, "clip volume combining: you cannot add to an existing output file");
+    show_error("clip volume combining: you cannot add to an existing output file");
     return -1;
   }
 
   if (opt->process == IP_SUBTRACT && opt->infiles != 2 || opt->infiles < 2) {
-    fprintf(stderr, "clip %s two input files.\n", opt->process == IP_SUBTRACT ?
+    show_error("clip %s two input files.", opt->process == IP_SUBTRACT ?
             "subtract: needs exactly" : "add: needs at least");
     return(-1);
   }
@@ -1441,18 +1440,16 @@ int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt
       return(-1);
     hdr[f]->fp = fopen(opt->fnames[f], "rb");
     if (!hdr[f]->fp){
-      fprintf(stderr, "clip volume combining: error opening %s.\n", opt->fnames[f]);
+      show_error("clip volume combining: error opening %s.", opt->fnames[f]);
       return(-1);
     }
     if (mrc_head_read(hdr[f]->fp, hdr[f])){
-      fprintf(stderr, "clip volume combining: error reading header of %s.\n", 
-              opt->fnames[f]);
+      show_error("clip volume combining: error reading header of %s.", opt->fnames[f]);
       return(-1);
     }
     if ( (h1->nx != hdr[f]->nx) || (h1->ny != hdr[f]->ny) ||
          (h1->nz != hdr[f]->nz) || (h1->mode != hdr[f]->mode )) {
-      fprintf(stderr, "clip volume combining: all files must be the same size and "
-              "mode.\n");
+      show_error("clip volume combining: all files must be the same size and mode.");
       return(-1);
     }
   }
@@ -1709,7 +1706,7 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   float tmp, denom;
 
   if (opt->infiles != 2) {
-    fprintf(stderr, "clip multiply/divide: Need exactly two input files.\n");
+    show_error("clip multiply/divide: Need exactly two input files.");
     return(-1);
   }
 
@@ -1718,7 +1715,7 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
     return(z);
 
   if (opt->add2file != IP_APPEND_FALSE) {
-    fprintf(stderr, "clip multiply/divide: you cannot add to an existing output file");
+    show_error("clip multiply/divide: you cannot add to an existing output file");
     return -1;
   }
 
@@ -1727,19 +1724,19 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   if (!(csize2 == 1 || (h1->mode == MRC_MODE_COMPLEX_FLOAT && 
                         h2->mode == MRC_MODE_COMPLEX_FLOAT) || 
         hout->mode == MRC_MODE_FLOAT)) {
-    fprintf(stderr, "clip multiply/divide: second file must have single-channel data "
-            "unless both are FFTs or output mode is float\n");
+    show_error("clip multiply/divide: second file must have single-channel data "
+            "unless both are FFTs or output mode is float");
     return(-1);
   }
 
   
   if ((h1->nx != h2->nx) || (h1->ny != h2->ny)) {
-    fprintf(stderr, "clip  multiply/divide: X and Y sizes must be equal\n");
+    show_error("clip  multiply/divide: X and Y sizes must be equal");
     return(-1);
   }
   if (h1->nz != h2->nz && h2->nz > 1) {
-    fprintf(stderr, "clip  multiply/divide: Z sizes must be the same, or equal to 1 "
-            "for second file\n");
+    show_error("clip  multiply/divide: Z sizes must be the same, or equal to 1 "
+            "for second file");
     return(-1);
   }
 
@@ -1765,7 +1762,7 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
     if (!so)
       return -1;
     if (hout->mode != so->mode && sliceNewMode(so, hout->mode) < 0) {
-      printf("ERROR: CLIP - getting memory for slice array\n");
+      show_error("CLIP - getting memory for slice array");
       return -1;
     }
 
@@ -1834,11 +1831,104 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   printf("\n");
   if (divByZero)
     printf("WARNING: Division by zero occurred %d times\n", divByZero);
-  hout->amean /= k;
   if (mrc_head_write(hout->fp, hout))
     return -1;
   return set_mrc_coords(opt);
 }
+
+/*
+ * Unpacking 4-bit data with scaling and truncation
+ */
+int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *opt)
+{
+  Islice *slRef, *slOut, *slIn;
+  int z, i, j, k, ival, base, truncVal, splitVal;
+  float offset, scale;
+  float val[3] = {0., 0., 0.};
+  int doRef = opt->infiles == 2 ? TRUE : FALSE;
+  int truncThresh = 100;
+
+  if (hin1->mode != MRC_MODE_BYTE || (doRef && hin2->mode != MRC_MODE_FLOAT)) {
+    show_error("clip unpack - mode of input file must be bytes, mode of second input "
+               "(if any) must be floats");
+    return -1;
+  }
+  if (doRef && (hin1->nx * 2 != hin2->nx || hin1->ny != hin2->ny)) {
+    show_error("clip unpack - reference size must match in Y and be twice the input size" 
+               " in X");
+    return -1;
+  }
+  if (opt->infiles > 2) {
+    show_error("clip unpack - There can be only 2 input files");
+    return -1;
+  }
+  z = set_options(opt, hin1, hout);
+  if (z < 0)
+    return z;
+  
+  // Read the reference if any and scale it by the factor
+  if (doRef) {
+    slRef =  sliceReadSubm(hin2, 0, 'z', opt->ix * 2, opt->iy, (int)(2. * opt->cx),
+                           (int)opt->cy);
+    if (!slRef)
+      return -1;
+    scale = 16.;
+    if (opt->val != IP_DEFAULT)
+      scale = opt->val;
+    for (i = 0; i < opt->ix * 2 * opt->iy; i++)
+      slRef->data.f[i] *= scale;
+  }
+  offset = hout->mode == MRC_MODE_FLOAT ? 0. : 0.5f;
+  slOut = sliceCreate(opt->ix * 2, opt->iy, hout->mode);
+  if (!slOut) {
+    show_error("CLIP - Memory error");
+    return -1;
+  }
+
+  // set up truncation to be to a high value, or to a low value if that is entered too
+  if (opt->high != IP_DEFAULT) {
+    truncThresh = opt->high;
+    truncVal = (opt->low == IP_DEFAULT) ? opt->high : opt->low;
+  }
+
+  // Loop on sections
+  for (k = 0; k < opt->nofsecs; k++) {
+    printf("\rclip: unpacking slice %d of %d", k + 1, opt->nofsecs);
+    fflush(stdout);
+    slIn = sliceReadSubm(hin1, opt->secs[k], 'z', opt->ix, opt->iy, (int)opt->cx, 
+                         (int)opt->cy);
+    if (!slIn)
+      return -1;
+    for (j = 0; j < opt->iy; j++) {
+      base = j * opt->ix;
+
+      // Unpack, low bits first, truncate, and scale
+      for (i = 0; i < opt->ix; i++) {
+        scale = doRef ? slRef->data.f[2 * (i + base)] : 1.;
+        ival = slIn->data.b[i + base];
+        splitVal = ival & 15;
+        if (splitVal > truncThresh)
+          splitVal = truncVal;
+        val[0] = splitVal * scale + offset;
+        slicePutVal(slOut, 2 * i, j, val);
+        splitVal = ival >> 4;
+        if (splitVal > truncThresh)
+          splitVal = truncVal;
+        val[0] = splitVal * scale + offset;
+        slicePutVal(slOut, 2 * i + 1, j, val);
+      }
+    }
+
+    if (clipWriteSlice(slOut, hout, opt, k, &z, 0))
+      return -1;
+  }
+  sliceFree(slIn);
+  if (doRef)
+    sliceFree(slRef);
+  printf("\n");
+  return set_mrc_coords(opt);
+}
+
 
 int clip_parxyz(Istack *v, 
                 int xmax, int ymax, int zmax,
@@ -2264,6 +2354,157 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
     printf("\n");
   }
   return(0);
+}
+
+/*
+ * Histograms
+ */
+int clipHistogram(MrcHeader *hin, ClipOptions *opt)
+{
+#define MAX_HIST_BINS 65536
+  int bins[MAX_HIST_BINS];
+  Islice *slice;
+  int numBins, i, j, ind, combine, maxBin, minBin, sum, k, iz;
+  int offset = 0;
+  int floatVals = FALSE;
+  float delta, histMin, histMax, val;
+  set_input_options(opt, hin);
+  switch (hin->mode) {
+
+    // For integer types, set up to  plac ecounts in bins without scaling
+  case MRC_MODE_BYTE:
+  case MRC_MODE_RGB:
+    numBins = 256;
+    break;
+  case MRC_MODE_SHORT:
+    offset = 32768;
+  case MRC_MODE_USHORT:
+    numBins = 65536;
+    break;
+  case MRC_MODE_FLOAT:
+  case MRC_MODE_COMPLEX_FLOAT:
+
+    // For floating point types, set up the min and max of the histogram as the file 
+    // min/max, modified by the entries
+    floatVals = TRUE;
+    histMin = hin->amin;
+    if (opt->low != IP_DEFAULT)
+      histMin = opt->low;
+    histMax = hin->amax;
+    if (opt->high != IP_DEFAULT)
+      histMax = opt->high;
+    if (histMin >= histMax) {
+      show_error("clip histogram - minimum (%f) must be less than maximum (%f)", histMin,
+                 histMax);
+      return -1;
+    }
+    delta = (histMax - histMin) / 256.;
+    if (opt->val != IP_DEFAULT) {
+      delta = opt->val;
+      if (delta <= 0) {
+        show_error("clip histogram - histogram bin size (%f) must be positive", delta);
+        return -1;
+      }
+    }
+    numBins = B3DNINT((histMax - histMin) / delta);
+    B3DCLAMP(numBins, 0, MAX_HIST_BINS - 1);
+  }
+  
+  for (ind = 0; ind < numBins; ind++)
+    bins[ind] = 0;
+  for (k = 0; k < opt->nofsecs; k++) {
+    iz = opt->secs[k];
+    slice = sliceReadSubm(hin, iz, 'z', opt->ix, opt->iy, (int)opt->cx, (int)opt->cy);
+    if (!slice){
+      show_error("clip histogram - error reading slice %f", iz);
+      return(-1);
+    }
+
+    // Get the values and put them in the bins
+    for (j = 0; j < slice->ysize; j++) {
+      if (floatVals) {
+        for (i = 0; i < slice->xsize; i++) {
+          val = sliceGetPixelMagnitude(slice, i, j);
+          ind = (val - histMin) / delta;
+          if (ind >= 0 && ind < numBins)
+            bins[ind]++;
+        }
+      } else {
+        for (i = 0; i < slice->xsize; i++) {
+          ind = B3DNINT(sliceGetPixelMagnitude(slice, i, j));
+          bins[ind + offset]++;
+        }
+      }
+    }
+  }
+
+  // Find first and last bin with counts
+  minBin = -1;
+  maxBin = -1;
+  for (ind = 0; ind < numBins; ind++) {
+    if (bins[ind]) {
+      maxBin = ind;
+      if (minBin < 0)
+        minBin = ind;
+    }
+  }
+
+  // For integers, revise the limits based on entries
+  if (!floatVals && minBin >= 0) {
+    if (opt->low != IP_DEFAULT && opt->high != IP_DEFAULT && opt->low > opt->high) {
+      show_error("clip histogram - minimum (%f) must be less than maximum (%f)", opt->low,
+                 opt->high);
+      return -1;
+    }
+    if (opt->low != IP_DEFAULT)
+      minBin = B3DMAX(minBin, B3DNINT(opt->low + offset));
+    if (opt->high != IP_DEFAULT)
+      maxBin = B3DMIN(maxBin, B3DNINT(opt->high + offset));
+    if (minBin > maxBin)
+      minBin = 1;
+  }
+  if (minBin < 0) {
+    printf("There are no values within the specified range\n");
+    return 0;
+  }
+  if (floatVals) {
+    printf(" Bin midpoint   counts    (bin interval is %f)\n", delta);
+    for (ind = minBin; ind <= maxBin; ind++)
+      printf("%13.6g %8d\n", histMin + (ind + 0.5) * delta, bins[ind]);
+  } else {
+
+    // For integers, figure out combining of bins
+    combine = 1;
+    if (opt->val != IP_DEFAULT) {
+      combine = B3DNINT(opt->val);
+      if (combine < 1) {
+        show_error("clip histogram - Entered bin size (%f) must be > 0.5", opt->val);
+        return -1;
+      }
+    } else {
+      combine = B3DNINT((maxBin - minBin) / 256.);
+      combine = B3DMAX(1, combine);
+    }
+
+    // COmbine and print bins
+    if (combine > 1) {
+      printf("Bin midpoint   counts    (bin interval is %d)\n", combine);
+      numBins = ((maxBin + 1 - minBin) + combine - 1) / combine;
+      for (ind = 0; ind < numBins; ind++) {
+        sum = 0;
+        for (i = 0; i < combine; i++)
+          sum += bins[B3DMIN(maxBin, minBin + ind * combine + i)];
+        printf("%12.1f %8d\n", minBin + (ind + 0.5) * combine - offset, sum);
+      }
+    } else {
+
+      // Or just print bins
+      printf(" Value   counts    (bin interval is %d)\n", combine);
+      for (ind = minBin; ind <= maxBin; ind++)
+        printf("%6d %8d\n", ind - offset, bins[ind]);
+    }
+  }
+  return 0;
 }
 
 

@@ -53,6 +53,9 @@ Calculate a bandpass filter.
 .I flip[xyz]
 Flip an image by x y or z.
 .TP
+.I histogram
+Print histogram of values.
+.TP
 .I joinrgb
 Join images from 3 byte files into one RGB file.
 .TP
@@ -103,6 +106,9 @@ Subtract one image volume from another.
 .TP
 .I truncate
 Limit pixel values at low or high end, or both.
+.TP
+.I unpack
+Unpack 4-bit values packed into bytes, with optional scaling by reference.
 .TP
 .I unwrap
 Undo wraparound of values in integer data.
@@ -262,9 +268,11 @@ Regardless of the representation in the file, bytes are read into IMOD programs 
 unsigned with a range of 0 to 255.
 .TP
 .B -h <level>
-Has three uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
+Has five uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 0. 2) High level for image truncation; the default is no
-truncation.  3) Width of area analyzed in quadrant correction.
+truncation.  3) Width of area analyzed in quadrant correction.  4) Upper
+limit for histogram output.  5) Threshold above
+which values will be truncated With 4-bit unpacking.
 .TP
 .B -k <value>
 K threshold value for anisotropic diffusion; the default is 2.0.
@@ -279,7 +287,9 @@ over which to determine outliers in the min and max values. 5) When using
 "add" or taking an average, standard deviation, or variance, sets a factor for
 scaling the output values. 5) With image truncation, sets the low level for
 truncation (default is no truncation). 6) With quadrant correction, sets a
-base to be added to values for scaling.
+base to be added to values for scaling.  7) Lower limit for histogram
+output.  8) When truncating values from 4-bit unpacking, sets the value to
+assign to a pixel above the truncation threshold.
 .TP
 .B -cc <value>
 Specifies type of edge stopping function for diffusion: 1 for exponential
@@ -291,7 +301,8 @@ for brightness/contrast/shadow, padding for correlations,
 iterations for smoothing or anisotropic diffusion, size for
 median filter, criterion for determining outliers in statistics, value to add
 when undoing wraparound, number of images to analyze together for quadrant
-correction.
+correction, bin size for histogram output, scaling for unpacking 4-bit values
+and applying a gain reference.
 .TP
 .B -r <value>
 Red value;   Range is (0.0 - 1.0) Default is 1.0.
@@ -509,6 +520,30 @@ standard output.  If the file is not an mrc file the
 information is still printed with a warning that the
 file is not an mrc file.
 .TP
+.B histogram
+Print a histogram of pixel values from the selected region of selected
+slices.  This function operates differently depending on the type of data.
+For byte, integer, or RGB data, a full histogram is built of all
+values.  For byte or RGB data, counts are then printed for all values between the
+min and the max values encountered.  For integer data, counts are combined
+into bins, if necessary, to give around 256 bins.  For floating point or
+complex data, values are counted directly in 256 bins between the min and max in
+the image file header, then bins are output between the min and max
+values actually encountered.  This behavior can be changed by entering a bin
+size with the
+.B -n
+option (the entry is rounded to the nearest integer for data with integer
+values).  You can also enter
+.B -l
+and
+.B -h
+with the lower and upper limits of the histogram to build (for floating point
+or complex values) or the limits of the range to output (for integer-valued
+data).  Only values with the given limits are counted in the histogram; values
+outside the range are ignored.  With integer-valued data, the last bin may
+have fewer counts because it represents a smaller range of values than the
+rest.
+.TP
 .B joinrgb
 Combine 3 input files containing red, green, and blue information into one 
 RGB file.  The 3 input files must all be byte mode and their names must
@@ -722,6 +757,31 @@ If the
 .B -s
 option is given, values beyond the limit will be replaced by the image mean.
 Standard input and output options can be used.
+.TP
+.B unpack
+Unpacks 4-bit data that have been packed into a byte mode file with half the
+actual size in X.  The low-order 4 bits are assumed to be the first of the two
+pixel values, going from left to right.  If only one input file is given, the
+data are not scaled and will range from 0 to 15.  If two input files are
+given, the second is assumed to be a file to multiply by (i.e., a gain
+reference file).  It must be mode 2 (floating point) and its size must match
+the first input file, and be twice the X size of the first input file.  In
+this case, data are scaled by 16, by default.  The
+.B -n
+option can be used to set a different scaling factor.  Values can be truncated
+at a level entered with the
+.B -h
+option.  Values above that level will be set to that level by default, or to a
+different value entered with the 
+.B -l
+option.  (The mean of the data are not yet known, so that cannot be used.)
+The 
+.B -m
+option can be used to set a different output mode, and all input and output size and
+centering options can be used.  However, input size and position in X are
+specified with the half-size coordinates of the input file, whereas an output size is
+relative to the full-size coordinates of the output file.  For example, "-ix
+100" and "-ox 200" would both produce 200 pixels of output in X.
 .TP
 .B unwrap
 Add the value specified by the 
