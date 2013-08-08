@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/7/13: Inverted the false color ramp for value displays to match the polarity
+of the ramp for image display, so that "hot" is bigger.  Added color ramp bar
+to the Values panel of the Model view Object Edit dialog.
+
 8/2/13: In eTomo handling messages starting with "LOGFILE:".  The message
 following this tag will be treated as a local file name, the contents of which
 will be placed in the project log.(Bug# 1700)

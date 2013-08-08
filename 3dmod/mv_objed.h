@@ -141,6 +141,15 @@ class ImodvObjed : public QObject
 
 };
 
+class MeshColorBar : public QWidget
+{
+  Q_OBJECT
 
+ public:
+  MeshColorBar(QWidget * parent = 0);
+  ~MeshColorBar() {};
+ protected:
+  void paintEvent ( QPaintEvent * event );
+  
+};
 #endif
-
