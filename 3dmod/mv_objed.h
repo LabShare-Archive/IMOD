@@ -16,6 +16,7 @@ typedef struct __imodv_struct ImodvApp;
 typedef struct Mod_Object Iobj;
 #include <qwidget.h>
 class QFrame;
+class QPaintEvent;
 
 /******************************************************************
  * Object Edit Field allows easier expansion
