@@ -17,9 +17,9 @@ package etomo.type;
  */
 public interface ProcessResultDisplay {
   public static final String rcsid = "$Id$";
-  
+
   public void dumpState();
-  
+
   /**
    * get the original state of the display.  Will return to this state if the
    * process fails to start.
@@ -38,9 +38,9 @@ public interface ProcessResultDisplay {
    * @param done
    */
   public void setProcessDone(boolean done);
-  
+
   public void setScreenState(BaseScreenState screenState);
-  
+
   public void msg(ProcessResult displayState);
 
   /**
@@ -97,18 +97,20 @@ public interface ProcessResultDisplay {
    * @param successDisplay
    */
   public void addSuccessDisplay(ProcessResultDisplay successDisplay);
-  
+
   /**
    * sets the display's location in the dependency list
    * @param dependencyIndex
    */
   public void setDependencyIndex(int dependencyIndex);
-  
+
   /**
    * gets the display's location in the dependency list
    * @return dependencyIndex
    */
   public int getDependencyIndex();
+
+  public String getButtonStateKey();
 }
 /**
  * <p> $Log$
