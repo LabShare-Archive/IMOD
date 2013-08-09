@@ -87,7 +87,7 @@ final class TemplatePanel {
     }
     else {
       cmbScopeTemplate.addItem(EMPTY_OPTION);
-      cmbScopeTemplate.setEnabled(false);
+      cmbScopeTemplate.setComboBoxEnabled(false);
     }
     cmbScopeTemplate.setSelectedIndex(0);
     systemTemplateFileList = ConfigTool.getSystemTemplateFiles();
@@ -100,7 +100,7 @@ final class TemplatePanel {
     }
     else {
       cmbSystemTemplate.addItem(EMPTY_OPTION);
-      cmbSystemTemplate.setEnabled(false);
+      cmbSystemTemplate.setComboBoxEnabled(false);
     }
     cmbSystemTemplate.setSelectedIndex(0);
     loadUserTemplate();
@@ -140,14 +140,14 @@ final class TemplatePanel {
     if (userTemplateFileList != null && userTemplateFileList.length > 0) {
       cmbUserTemplate.addItem(SELECT_OPTION1 + userTemplateFileList.length
           + SELECT_OPTION2);
-      cmbUserTemplate.setEnabled(true);
+      cmbUserTemplate.setComboBoxEnabled(true);
       for (int i = 0; i < userTemplateFileList.length; i++) {
         cmbUserTemplate.addItem(userTemplateFileList[i].getName());
       }
     }
     else {
       cmbUserTemplate.addItem(EMPTY_OPTION);
-      cmbUserTemplate.setEnabled(false);
+      cmbUserTemplate.setComboBoxEnabled(false);
     }
     cmbUserTemplate.setSelectedIndex(0);
   }
