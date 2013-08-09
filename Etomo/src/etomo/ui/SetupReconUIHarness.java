@@ -8,6 +8,7 @@ import etomo.Arguments;
 import etomo.EtomoDirector;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.logic.DatasetTool;
+import etomo.logic.SeedingMethod;
 import etomo.logic.TrackingMethod;
 import etomo.storage.DirectiveFile;
 import etomo.storage.DirectiveFileCollection;
@@ -523,17 +524,17 @@ public final class SetupReconUIHarness {
       metaData.setFiducialessAlignment(axisID, value);
     }
     if (directiveFile.containsFiducialsSeedingMethod(axisID)) {
-      DirectiveFile.FiducialsSeedingMethod seedingMethod = directiveFile
+      SeedingMethod seedingMethod = directiveFile
           .getFiducialsSeedingMethod(axisID);
-      if (seedingMethod == DirectiveFile.FiducialsSeedingMethod.MANUAL) {
+      if (seedingMethod == SeedingMethod.MANUAL) {
         metaData.setTrackSeedModelManual(true, axisID);
       }
       // If both is set, assume that autofidseed was done after manual.
-      else if (seedingMethod == DirectiveFile.FiducialsSeedingMethod.AUTO_FID_SEED
-          || seedingMethod == DirectiveFile.FiducialsSeedingMethod.BOTH) {
+      else if (seedingMethod == SeedingMethod.AUTO_FID_SEED
+          || seedingMethod == SeedingMethod.BOTH) {
         metaData.setTrackSeedModelAuto(true, axisID);
       }
-      else if (seedingMethod == DirectiveFile.FiducialsSeedingMethod.TRANSFER_FID) {
+      else if (seedingMethod == SeedingMethod.TRANSFER_FID) {
         metaData.setTrackSeedModelTransfer(true, axisID);
       }
     }
