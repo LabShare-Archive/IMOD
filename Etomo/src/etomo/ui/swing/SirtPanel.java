@@ -292,7 +292,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
         && !differentFromCheckpointFlag;
     rbResumeFromLastIteration.setEnabled(enableResume);
     rbResumeFromIteration.setEnabled(enableResume);
-    cmbResumeFromIteration.setEnabled(enableResume && rbResumeFromIteration.isSelected());
+    cmbResumeFromIteration.setComboBoxEnabled(enableResume && rbResumeFromIteration.isSelected());
     // Don't allow the resume radio buttons to be selected when they are disabled
     if (!enableResume
         && (rbResumeFromLastIteration.isSelected() || rbResumeFromIteration.isSelected())) {
@@ -304,7 +304,7 @@ final class SirtPanel implements Run3dmodButtonContainer, SirtsetupDisplay, Expa
     ltfSubareaSize.setEnabled(subarea && !resume);
     ltfYOffsetOfSubarea.setEnabled(subarea && !resume);
     radiusAndSigmaPanel.setEnabled(!resume);
-    cmbResumeFromIteration.setEnabled(rbResumeFromIteration.isEnabled()
+    cmbResumeFromIteration.setComboBoxEnabled(rbResumeFromIteration.isEnabled()
         && rbResumeFromIteration.isSelected());
   }
 
