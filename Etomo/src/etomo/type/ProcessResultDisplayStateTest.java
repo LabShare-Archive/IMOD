@@ -337,6 +337,10 @@ public final class ProcessResultDisplayStateTest extends TestCase {
     public String getName() {
       return "";
     }
+
+    public String getButtonStateKey() {
+      return null;
+    }
   }
 }
 /**
