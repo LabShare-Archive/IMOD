@@ -359,7 +359,7 @@ class MultiLineButton implements ProcessResultDisplay {
    * is available, creates the button state key.
    * @return
    */
-  final String getButtonStateKey() {
+  public final String getButtonStateKey() {
     if (stateKey == null && dialogType != null) {
       return createButtonStateKey(dialogType);
     }
