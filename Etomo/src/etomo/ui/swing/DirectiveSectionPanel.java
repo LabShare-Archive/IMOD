@@ -50,6 +50,8 @@ public final class DirectiveSectionPanel {
   private final DirectiveDescrSection descrSection;
   private final DirectiveMap directiveMap;
 
+  private boolean debug = false;
+
   private DirectiveSectionPanel(BaseManager manager, final AxisType sourceAxisType,
       final DirectiveTool tool, final DirectiveDescrSection descrSection,
       final DirectiveMap directiveMap) {
