@@ -32,6 +32,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QDoubleSpinBox>
+#include <qpainter.h>
 #include "tooledit.h"
 #include "formv_objed.h"
 #include "multislider.h"
