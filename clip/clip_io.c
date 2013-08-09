@@ -37,6 +37,7 @@ int set_mrc_coords(ClipOptions *opt)
   float tx, ty, tz, sx, sy, sz;
   MrcHeader *hin = opt->hin;
   MrcHeader *hout = opt->hout;
+  int ixScale = (opt->process == IP_UNPACK) ? 2 : 1;
 
   mrc_coord_cp(hout, hin);
   mrc_get_scale(hout, &sx, &sy, &sz);
@@ -49,8 +50,8 @@ int set_mrc_coords(ClipOptions *opt)
   /* DNM 9/21/01: subtract rather than add tx, ty, tz, because of weird
      definition of origin 
      4/15/12: Argh!  It needs to multiply by the scale */
-  tx = (int)opt->cx - opt->ix / 2;
-  tx += (opt->ix - opt->ox)/2;
+  tx = (int)(opt->cx * ixScale) - (opt->ix * ixScale) / 2;
+  tx += (opt->ix * ixScale - opt->ox)/2;
   if (sx)
     tx *= sx;
   hout->xorg -= tx;
@@ -144,9 +145,11 @@ void set_input_options(ClipOptions *opt, MrcHeader *hin)
     opt->ix = hin->nx;
   if ((int)opt->cx == IP_DEFAULT)
     opt->cx = hin->nx * 0.5f;
-  if (opt->ox == IP_DEFAULT)
+  if (opt->ox == IP_DEFAULT) {
     opt->ox = opt->ix;
-  else{
+    if (opt->process == IP_UNPACK)
+      opt->ox *= 2;
+  } else {
     if (!opt->ocanresize){
       show_warning("clip - Process can't change output size.");
       opt->ox = opt->ix;

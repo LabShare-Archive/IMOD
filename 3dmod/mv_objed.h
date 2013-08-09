@@ -16,6 +16,7 @@ typedef struct __imodv_struct ImodvApp;
 typedef struct Mod_Object Iobj;
 #include <qwidget.h>
 class QFrame;
+class QPaintEvent;
 
 /******************************************************************
  * Object Edit Field allows easier expansion
@@ -141,6 +142,15 @@ class ImodvObjed : public QObject
 
 };
 
+class MeshColorBar : public QWidget
+{
+  Q_OBJECT
 
+ public:
+  MeshColorBar(QWidget * parent = 0);
+  ~MeshColorBar() {};
+ protected:
+  void paintEvent ( QPaintEvent * event );
+  
+};
 #endif
-

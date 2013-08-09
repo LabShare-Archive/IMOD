@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include "mrcfiles.h"
 #include "mrcslice.h"
 #include "clip.h"
@@ -43,6 +44,7 @@ void usage(void)
   fprintf(stderr, "\tdivide      - Divide one image volume by another.\n");
   fprintf(stderr, "\tgradient    - Compute gradient as in 3dmod.\n");
   fprintf(stderr, "\tgraham      - Apply Graham filter as in 3dmod.\n");
+  fprintf(stderr, "\thistogram   - Print histogram of values.\n");
   fprintf(stderr, "\tinfo        - Print information to stdout.\n");
   fprintf(stderr, "\tfft         - Do a fft or inverse fft transform.\n");
   fprintf(stderr, "\tfilter      - Do a bandpass filter.\n");
@@ -67,6 +69,8 @@ void usage(void)
   fprintf(stderr, "\tsubtract    - Subtract one image volume from another.\n");
   fprintf(stderr, "\ttruncate    - Limit image values at low or high end.\n");
   fprintf(stderr, "\tunwrap      - Undo a wraparound of integer intensity values.\n");
+  fprintf(stderr, "\tunpack      - Unpack 4-bit data into bytes [& multiply by gain "
+          "ref].\n");
   fprintf(stderr, "\tvariance    - Compute variance for averaged images.\n");
   /* fprintf(stderr, "\ttranslate   - translate image.\n");
   fprintf(stderr, "\tzoom        - magnify image.\n"); */
@@ -93,9 +97,13 @@ void usage(void)
 }
 
 /* 11/4/04: switch to standard out and standard format to some extent */
-void show_error(char *reason)
+void show_error(const char *format, ...)
 {
-  printf("ERROR: %s\n", reason);
+  char errorMess[512];
+  va_list args;
+  va_start(args, format);
+  vsprintf(errorMess, format, args);
+  printf("ERROR: %s\n", errorMess);
 }
 
 void show_warning(char *reason)
@@ -220,6 +228,10 @@ int main( int argc, char *argv[] )
     process = IP_GRADIENT;
   if (!strncmp( argv[1], "graham", 4))
     process = IP_GRAHAM;
+  if (!strncmp( argv[1], "histogram", 2)) {
+    process = IP_HISTOGRAM;
+    procout = FALSE;
+  }
   if (!strncmp( argv[1], "laplacian", 2))
     process = IP_LAPLACIAN;
   if (!strncmp( argv[1], "median", 2))
@@ -262,6 +274,8 @@ int main( int argc, char *argv[] )
     process = IP_QUADRANT;
     opt.dim = 2;
   } 
+  if (!strncmp( argv[1], "unpack", 3))
+    process = IP_UNPACK;
   if (!strncmp( argv[1], "splitrgb", 3)){
     process = IP_SPLITRGB;
   }
@@ -556,6 +570,9 @@ int main( int argc, char *argv[] )
   case IP_DIVIDE:
     retval = clip_multdiv(&hin, &hin2, &hout, &opt);
     break;
+  case IP_UNPACK:
+    retval = clipUnpack(&hin, &hin2, &hout, &opt);
+    break;
   case IP_BRIGHTNESS:
   case IP_CONTRAST:
   case IP_SHADOW:
@@ -594,6 +611,9 @@ int main( int argc, char *argv[] )
     break;
   case IP_FLIP:
     retval = clip_flip(&hin, &hout, &opt);
+    break;
+  case IP_HISTOGRAM:
+    retval = clipHistogram(&hin, &opt);
     break;
   case IP_JOINRGB:
     retval = clip_joinrgb(&hin, &hin2, &hout, &opt);

@@ -1113,7 +1113,7 @@ static void ifgMapFalseColor(int gray, int *red, int *green, int *blue)
   int *rampData;
 
   if (first){
-    rampData = cmapInvertedRamp();
+    rampData = cmapStandardRamp();
     cmapConvertRamp(rampData, cmap);
     first = 0;
   }

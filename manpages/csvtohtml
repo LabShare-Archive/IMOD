@@ -68,8 +68,9 @@ else:
 inrows = []
 maxlen = 0
 for row in reader:
-   inrows.append(row)
-   maxlen = min(maxUse, max(maxlen, len(row)))
+   if not (len(row) and row[0].startswith('#')):
+      inrows.append(row)
+      maxlen = min(maxUse, max(maxlen, len(row)))
 
 print maxlen
 

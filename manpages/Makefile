@@ -11,6 +11,7 @@ HERE = .
 
 install : mantohtml autodoc2man
 	./convert $(HERE)
+	if `grep -q '\"' ../com/directives.csv` ; then echo "QUOTES IN directives.csv" ; exit 1 ; fi
 	./csvtohtml -m 7 ../com/directives.csv ../html/directives.html directives.stub
 	\mv *.1 $(INSTDIR)/man/cat1
 	\mv *.html ../html/man

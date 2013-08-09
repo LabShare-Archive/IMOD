@@ -32,6 +32,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QDoubleSpinBox>
+#include <qpainter.h>
 #include "tooledit.h"
 #include "formv_objed.h"
 #include "multislider.h"
@@ -50,6 +51,8 @@
 #include "mv_menu.h"
 #include "mv_window.h"
 #include "vertexbuffer.h"
+#include "display.h"
+#include "xcramp.h"
 #include "preferences.h"
 #include "control.h"
 
@@ -1178,9 +1181,12 @@ static QCheckBox *wMeshFalse;
 static QCheckBox *wMeshConstant;
 static MultiSlider *meshSliders;
 static QButtonGroup *wMeshGroup;
+static MeshColorBar *wMeshColorBar;
 static int meshMin, meshMax;
+static float meshRmin, meshRmax;
 
 static const char *bwLabels[] = {"Black Level", "White Level"};
+#define COLOR_BAR_HEIGHT 6
 
 void ImodvObjed::meshShowSlot(int value)
 {
@@ -1189,12 +1195,14 @@ void ImodvObjed::meshShowSlot(int value)
   wMeshSkipLo->setEnabled(value == 1);
   wMeshSkipHi->setEnabled(value == 1);
   finishChangeAndDraw(1, 1);
+  wMeshColorBar->update();
 }
 
 void ImodvObjed::meshFalseSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_MCOLOR, state ? 1 : 0);
   finishChangeAndDraw(1, 1);
+  wMeshColorBar->update();
 }
 
 void ImodvObjed::meshConstantSlot(bool state)
@@ -1210,6 +1218,7 @@ void ImodvObjed::meshLevelSlot(int which, int value, bool dragging)
   materialSlot(which + 4, sclval, dragging);
   if (drawOnSliderChange(dragging))
     imodvDrawImodImages();
+  wMeshColorBar->update();
 }
 
 void ImodvObjed::meshSkipLoSlot(bool state)
@@ -1228,18 +1237,17 @@ static void setScalar_cb(void)
 {
   unsigned char *ub;
   int which, i, decimals = 0;
-  float min, max;
   Iobj *obj = objedObject();
   if (!obj) 
     return;
   ub = (unsigned char *)&(obj->valblack);
 
   which = (IMOD_OBJFLAG_SCALAR & obj->flags) ? 2 : 0;
-  min = 0.;
-  max = 255.;
+  meshRmin = 0.;
+  meshRmax = 255.;
   if (IMOD_OBJFLAG_USE_VALUE & obj->flags) {
     which = 1;
-    istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min, &max);
+    istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &meshRmin, &meshRmax);
   }
 
   diaSetGroup(wMeshGroup, which);
@@ -1253,11 +1261,11 @@ static void setScalar_cb(void)
   wMeshSkipHi->setEnabled(which == 1);
      
   // Set up scaling of slider values
-  if (max > min)
-    decimals = (int)(-log10((max - min) / 1500.));
+  if (meshRmax > meshRmin)
+    decimals = (int)(-log10((meshRmax - meshRmin) / 1500.));
   decimals = B3DMIN(6, B3DMAX(0, decimals));
-  meshMin = (int)floor(min * pow(10., (double)decimals) + 0.5);
-  meshMax = (int)floor(max * pow(10., (double)decimals) + 0.5);
+  meshMin = (int)floor(meshRmin * pow(10., (double)decimals) + 0.5);
+  meshMax = (int)floor(meshRmax * pow(10., (double)decimals) + 0.5);
   if (meshMin >= meshMax)
     meshMax = meshMin + 1;
 
@@ -1267,6 +1275,7 @@ static void setScalar_cb(void)
     meshSliders->setValue(i, (int)floor(ub[i] * (meshMax - meshMin) / 255. + 
                                         meshMin + 0.5));
   }
+  wMeshColorBar->update();
 }
 
 static void mkScalar_cb(int index)
@@ -1297,6 +1306,10 @@ static void mkScalar_cb(int index)
                 "contrast ramp for displaying values");
   meshSliders->getSlider(1)->setToolTip("Set high end of "
                 "contrast ramp for displaying values");
+
+  wMeshColorBar = new MeshColorBar(oef->control);
+  layout1->addWidget(wMeshColorBar);
+  wMeshColorBar->setFixedHeight(COLOR_BAR_HEIGHT);
 
   QHBoxLayout *hLayout = diaHBoxLayout(layout1);
   QLabel *label = new QLabel("Color:", oef->control);
@@ -1332,6 +1345,37 @@ static void mkScalar_cb(int index)
   finalSpacer(oef->control, layout1);
 }
 
+/*
+ * The value color bar widget constructor and paint function
+ */
+MeshColorBar::MeshColorBar(QWidget * parent)
+  : QWidget(parent)
+{
+}
+void MeshColorBar::paintEvent(QPaintEvent * event)
+{
+  int ix, index, length = wMeshColorBar->width();
+  int red, green, blue;
+  float black, white, val, minDiff = (meshRmax - meshRmin) / 255.;
+  Iobj *obj = objedObject();
+
+  // It is cleared to background so if don't need the bar, don't draw anything
+  if (!obj || !(IMOD_OBJFLAG_MCOLOR & obj->flags))
+    return;
+
+  QPainter painter(this);
+  unsigned char *ub = (unsigned char *)&(obj->valblack);
+  black = B3DMIN(ub[0], ub[1]) * (meshRmax - meshRmin) / 255. + meshRmin;
+  white = B3DMAX(ub[0], ub[1]) * (meshRmax - meshRmin) / 255. + meshRmin;
+  for (ix = 0; ix < length; ix++) {
+    val = meshRmin + (meshRmax - meshRmin) * ix / (length - 1.);
+    index = B3DNINT(255. * (val - black) / B3DMAX(minDiff, white - black));
+    B3DCLAMP(index, 0, 255);
+    xcramp_mapfalsecolor(index, &red, &green, &blue);
+    painter.setPen(QColor(red, green, blue));
+    painter.drawLine(ix, 0, ix, COLOR_BAR_HEIGHT - 1);
+  }
+}
 
 /*****************************************************************************
  * The clip edit field
