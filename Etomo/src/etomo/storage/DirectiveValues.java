@@ -1,6 +1,7 @@
 package etomo.storage;
 
 import etomo.EtomoDirector;
+import etomo.comscript.FortranInputString;
 import etomo.storage.Directive.BooleanValue;
 import etomo.storage.Directive.NumericPairValue;
 import etomo.storage.Directive.NumericValue;
@@ -192,7 +193,15 @@ public final class DirectiveValues {
       value.set(input);
     }
   }
-
+  void setValue(final FortranInputString input) {
+    if (input == null) {
+      value = null;
+    }
+    else {
+      createValue();
+      value.set(input);
+    }
+  }
   void setValue(final int input) {
     if (input == EtomoNumber.INTEGER_NULL_VALUE) {
       value = null;
