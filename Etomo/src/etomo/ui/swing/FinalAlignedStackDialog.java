@@ -634,6 +634,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
     setCtfCorrectionHeaderState(screenState.getStackCtfCorrectionHeaderState());
     setUseFilterButtonState(screenState);
     setFilterButtonState(screenState);
+    setCtfCorrectionButtonState(screenState);
   }
 
   void setStartingAndEndingZ(String startingAndEndingZ) {
