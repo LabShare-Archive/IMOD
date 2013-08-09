@@ -268,6 +268,10 @@ public class Directive {
     values.setValue(input);
   }
 
+  public void setValue(final FortranInputString input) {
+    values.setValue(input);
+  }
+
   public void setValue(final int input) {
     values.setValue(input);
   }
@@ -316,6 +320,8 @@ public class Directive {
     abstract void set(double input);
 
     abstract void set(double[] input);
+
+    abstract void set(FortranInputString input);
 
     abstract void set(int input);
 
@@ -411,6 +417,20 @@ public class Directive {
       }
     }
 
+    public void set(FortranInputString input) {
+      if (input == null || input.size() == 0) {
+        value = false;
+      }
+      else {
+        if (input.isIntegerType(0)) {
+          set(input.getInt(0));
+        }
+        else {
+          set(input.getDouble(0));
+        }
+      }
+    }
+
     public void set(int input) {
       if (input == 1) {
         value = true;
@@ -500,6 +520,20 @@ public class Directive {
       }
     }
 
+    public void set(FortranInputString input) {
+      if (input == null || input.size() == 0) {
+        value.reset();
+      }
+      else {
+        if (input.isIntegerType(0)) {
+          set(input.getInt(0));
+        }
+        else {
+          set(input.getDouble(0));
+        }
+      }
+    }
+
     public void set(int input) {
       value.set(input);
     }
@@ -568,6 +602,20 @@ public class Directive {
       if (input != null) {
         for (int i = 0; i < input.length; i++) {
           value.set(i, input[i]);
+        }
+      }
+    }
+
+    public void set(FortranInputString input) {
+      value.setDefault();
+      if (input != null) {
+        for (int i = 0; i < input.size(); i++) {
+          if (input.isIntegerType(i)) {
+            value.set(i, input.getInt(i));
+          }
+          else {
+            value.set(i, input.getDouble(i));
+          }
         }
       }
     }
@@ -666,6 +714,15 @@ public class Directive {
         if (buffer.length() > 0) {
           value = buffer.toString();
         }
+      }
+    }
+
+    public void set(FortranInputString input) {
+      if (input == null || input.isNull()) {
+        value = null;
+      }
+      else {
+        value = input.toString();
       }
     }
 
