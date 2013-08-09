@@ -167,7 +167,7 @@ final class TrialTiltPanel implements Expandable, Run3dmodButtonContainer,
   }
 
   private void updateDisplay() {
-    cmboTrialTomogramName.setEnabled(!resume);
+    cmboTrialTomogramName.setComboBoxEnabled(!resume);
     btnTrial.setEnabled(!resume);
     btn3dmodTrial.setEnabled(!resume);
     btnUseTrial.setEnabled(!resume);
