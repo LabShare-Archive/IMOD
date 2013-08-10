@@ -106,13 +106,15 @@ public final class DirectiveWriter {
         }
       }
       if (droppedDirectives != null) {
-        logFile.newLine(id);
-        logFile.write("# Directives that could not be included:", id);
-        logFile.newLine(id);
         Iterator<String> iterator = droppedDirectives.iterator();
-        while (iterator.hasNext()) {
-          logFile.write("# " + iterator.next(), id);
+        if (iterator != null && iterator.hasNext()) {
           logFile.newLine(id);
+          logFile.write("# Directives that could not be included:", id);
+          logFile.newLine(id);
+          while (iterator.hasNext()) {
+            logFile.write("# " + iterator.next(), id);
+            logFile.newLine(id);
+          }
         }
       }
     }
