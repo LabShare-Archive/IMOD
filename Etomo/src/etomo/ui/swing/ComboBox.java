@@ -149,9 +149,16 @@ final class ComboBox {
   }
 
   void setEnabled(final boolean enabled) {
+    if (label != null) {
+      label.setEnabled(enabled);
+    }
     comboBox.setEnabled(enabled);
   }
-  
+
+  void setComboBoxEnabled(final boolean enabled) {
+    comboBox.setEnabled(enabled);
+  }
+
   String getLabel() {
     return label.getText();
   }
@@ -209,6 +216,9 @@ final class ComboBox {
   }
 
   void setToolTipText(final String tooltip) {
+    if (label != null) {
+      label.setToolTipText(tooltip);
+    }
     comboBox.setToolTipText(tooltip);
   }
 }

@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/9/13: Fixed problems with values not showing up in the Directive Editor.
+(Bug# 1728)
+
 8/8/13: Added Clip options to print histogram and unpack 4-bit data.
 
 8/7/13: Inverted the false color ramp for value displays to match the polarity

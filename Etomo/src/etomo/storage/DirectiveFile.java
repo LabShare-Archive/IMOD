@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.SeedingMethod;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAttributeIterator;
@@ -40,16 +41,17 @@ public final class DirectiveFile {
   public static final String rcsid = "$Id:$";
 
   static final String A_AXIS_NAME = "a";
-  private static final String ALIGNED_STACK_NAME = "AlignedStack";
+  public static final String ALIGNED_STACK_MODULE_NAME = "AlignedStack";
   public static final String ANY_AXIS_NAME = "any";
-  private static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
+  public static final String ARCHIVE_ORIGINAL_NAME = "archiveOriginal";
+  public static final String AUTO_FIT_RANGE_AND_STEP_NAME = "autoFitRangeAndStep";
   static final String B_AXIS_NAME = "b";
-  private static final String BIN_BY_FACTOR_NAME = "binByFactor";
+  public static final String BIN_BY_FACTOR_NAME = "binByFactor";
   public static final String BINNING_NAME = "binning";
   public static final String COPY_ARG_NAME = "copyarg";
   public static final String CS_NAME = "Cs";
   public static final String CTF_NOISE_NAME = "ctfnoise";
-  private static final String CTF_PLOTTING_NAME = "CTFplotting";
+  public static final String CTF_PLOTTING_MODULE_NAME = "CTFplotting";
   static final String DATASET_DIRECTORY_NAME = "datasetDirectory";
   public static final String DEFOCUS_NAME = "defocus";
   public static final String DISTORT_NAME = "distort";
@@ -57,38 +59,39 @@ public final class DirectiveFile {
   public static final String EXTRACT_NAME = "extract";
   static final String FALSE_VALUE = "0";
   public static final String FIDUCIALLESS_NAME = "fiducialless";
-  public static final String FIDUCIALS_NAME = "Fiducials";
+  public static final String FIDUCIALS_MODULE_NAME = "Fiducials";
   public static final String FIRST_INC_NAME = "firstinc";
   public static final String FOCUS_NAME = "focus";
-  private static final String GOLD_ERASING_NAME = "GoldErasing";
+  public static final String GOLD_ERASING_MODULE_NAME = "GoldErasing";
   public static final String GOLD_NAME = "gold";
   public static final String GRADIENT_NAME = "gradient";
   public static final String MONTAGE_NAME = "montage";
   public static final String NAME_NAME = "name";
-  private static final String NUMBER_OF_MARKERS_NAME = "numberOfMarkers";
+  public static final String NUMBER_OF_MARKERS_NAME = "numberOfMarkers";
   public static final String PIXEL_NAME = "pixel";
-  private static final String POSITIONING_NAME = "Positioning";
-  private static final String RAPTOR_NAME = "RAPTOR";
-  private static final String RECONSTRUCTION_NAME = "Reconstruction";
-  public static final String REMOVE_XRAYS = "removeXrays";
+  public static final String POSITIONING_MODULE_NAME = "Positioning";
+  public static final String RAPTOR_MODULE_NAME = "RAPTOR";
+  public static final String RECONSTRUCTION_MODULE_NAME = "Reconstruction";
+  public static final String REMOVE_XRAYS_NAME = "removeXrays";
+  public static final String REORIENT_NAME = "reorient";
   public static final String ROTATION_NAME = "rotation";
   static final String RUNTIME_NAME = "runtime";
   static final String SCAN_HEADER_NAME = "scanHeader";
   public static final String SCOPE_TEMPLATE_NAME = "scopeTemplate";
-  private static final String SEEDING_METHOD_NAME = "seedingMethod";
+  public static final String SEEDING_METHOD_NAME = "seedingMethod";
   static final String SETUP_SET_NAME = "setupset";
-  private static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
+  public static final String SIZE_IN_X_AND_Y_NAME = "sizeInXandY";
   public static final String SKIP_NAME = "skip";
   public static final String SYSTEM_TEMPLATE_NAME = "systemTemplate";
-  private static final String THICKNESS_NAME = "thickness";
+  public static final String THICKNESS_NAME = "thickness";
   public static final String TRACKING_METHOD_NAME = "trackingMethod";
   static final String TRUE_VALUE = "1";
-  private static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
+  public static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
   public static final String USE_RAW_TLT_NAME = "userawtlt";
-  private static final String USE_SIRT_NAME = "useSirt";
+  public static final String USE_SIRT_NAME = "useSirt";
   public static final String USER_TEMPLATE_NAME = "userTemplate";
   public static final String VOLTAGE_NAME = "voltage";
-  private static final String WHOLE_TOMOGRAM_NAME = "wholeTomogram";
+  public static final String WHOLE_TOMOGRAM_NAME = "wholeTomogram";
 
   private static boolean debug = false;
 
@@ -372,17 +375,17 @@ public final class DirectiveFile {
   }
 
   public boolean containsAlignedStackBinByFactor(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, ALIGNED_STACK_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
         BIN_BY_FACTOR_NAME);
   }
 
   public boolean containsAlignedStackSizeInXandY(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, ALIGNED_STACK_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
         SIZE_IN_X_AND_Y_NAME);
   }
 
   public boolean containsCTFplottingAutoFitRangeAndStep(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, CTF_PLOTTING_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, CTF_PLOTTING_MODULE_NAME, axisID,
         AUTO_FIT_RANGE_AND_STEP_NAME);
   }
 
@@ -391,27 +394,27 @@ public final class DirectiveFile {
   }
 
   public boolean containsFiducialsFiducialless(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
         FIDUCIALLESS_NAME);
   }
 
   public boolean containsFiducialsSeedingMethod(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
         SEEDING_METHOD_NAME);
   }
 
   public boolean containsFiducialsTrackingMethod(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
         TRACKING_METHOD_NAME);
   }
 
   public boolean containsGoldErasingBinning(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID,
         BINNING_NAME);
   }
 
   public boolean containsGoldErasingThickness(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID,
         THICKNESS_NAME);
   }
 
@@ -420,32 +423,32 @@ public final class DirectiveFile {
   }
 
   public boolean containsPositioningBinByFactor(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
         BIN_BY_FACTOR_NAME);
   }
 
   public boolean containsPositioningThickness(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
         THICKNESS_NAME);
   }
 
   public boolean containsPositioningWholeTomogram(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
         WHOLE_TOMOGRAM_NAME);
   }
 
   public boolean containsRaptorNumberOfMarkers(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, RAPTOR_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, RAPTOR_MODULE_NAME, axisID,
         NUMBER_OF_MARKERS_NAME);
   }
 
   public boolean containsRaptorUseAlignedStack(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, RAPTOR_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, RAPTOR_MODULE_NAME, axisID,
         USE_ALIGNED_STACK_NAME);
   }
 
   public boolean containsReconstructionUseSirt(final AxisID axisID) {
-    return containsAttribute(AttributeName.RUN_TIME, RECONSTRUCTION_NAME, axisID,
+    return containsAttribute(AttributeName.RUN_TIME, RECONSTRUCTION_MODULE_NAME, axisID,
         USE_SIRT_NAME);
   }
 
@@ -454,17 +457,17 @@ public final class DirectiveFile {
   }
 
   public String getAlignedStackBinByFactor(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, ALIGNED_STACK_NAME, axisID,
+    return getValue(AttributeName.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
         BIN_BY_FACTOR_NAME);
   }
 
   public String getAlignedStackSizeInXandY(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, ALIGNED_STACK_NAME, axisID,
+    return getValue(AttributeName.RUN_TIME, ALIGNED_STACK_MODULE_NAME, axisID,
         SIZE_IN_X_AND_Y_NAME);
   }
 
   public String getAlignedStackSizeInXandYDescr() {
-    return AttributeName.RUN_TIME + "." + ALIGNED_STACK_NAME + "..."
+    return AttributeName.RUN_TIME + "." + ALIGNED_STACK_MODULE_NAME + "..."
         + SIZE_IN_X_AND_Y_NAME;
   }
 
@@ -484,22 +487,23 @@ public final class DirectiveFile {
   }
 
   public String getCTFplottingAutoFitRangeAndStep(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, CTF_PLOTTING_NAME, axisID,
+    return getValue(AttributeName.RUN_TIME, CTF_PLOTTING_MODULE_NAME, axisID,
         AUTO_FIT_RANGE_AND_STEP_NAME);
   }
 
   public String getCTFplottingAutoFitRangeAndStepDescr() {
-    return AttributeName.RUN_TIME + "." + CTF_PLOTTING_NAME + "..."
+    return AttributeName.RUN_TIME + "." + CTF_PLOTTING_MODULE_NAME + "..."
         + AUTO_FIT_RANGE_AND_STEP_NAME;
   }
 
-  public FiducialsSeedingMethod getFiducialsSeedingMethod(final AxisID axisID) {
-    return FiducialsSeedingMethod.getInstance(getValue(AttributeName.RUN_TIME,
-        FIDUCIALS_NAME, axisID, SEEDING_METHOD_NAME));
+  public SeedingMethod getFiducialsSeedingMethod(final AxisID axisID) {
+    return SeedingMethod.getInstance(getValue(AttributeName.RUN_TIME,
+        FIDUCIALS_MODULE_NAME, axisID, SEEDING_METHOD_NAME));
   }
 
   public String getFiducialsTrackingMethod(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID, TRACKING_METHOD_NAME);
+    return getValue(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
+        TRACKING_METHOD_NAME);
   }
 
   public File getFile() {
@@ -507,23 +511,26 @@ public final class DirectiveFile {
   }
 
   public String getGoldErasingBinning(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_NAME, axisID, BINNING_NAME);
+    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID, BINNING_NAME);
   }
 
   public String getGoldErasingThickness(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_NAME, axisID, THICKNESS_NAME);
+    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID, THICKNESS_NAME);
   }
 
   public String getPositioningBinByFactor(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, POSITIONING_NAME, axisID, BIN_BY_FACTOR_NAME);
+    return getValue(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
+        BIN_BY_FACTOR_NAME);
   }
 
   public String getPositioningThickness(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, POSITIONING_NAME, axisID, THICKNESS_NAME);
+    return getValue(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
+        THICKNESS_NAME);
   }
 
   public String getRaptorNumberOfMarkers(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, RAPTOR_NAME, axisID, NUMBER_OF_MARKERS_NAME);
+    return getValue(AttributeName.RUN_TIME, RAPTOR_MODULE_NAME, axisID,
+        NUMBER_OF_MARKERS_NAME);
   }
 
   public String getScopeTemplate() {
@@ -579,19 +586,22 @@ public final class DirectiveFile {
   }
 
   public boolean isFiducialsFiducialless(final AxisID axisID) {
-    return isValue(AttributeName.RUN_TIME, FIDUCIALS_NAME, axisID, FIDUCIALLESS_NAME);
+    return isValue(AttributeName.RUN_TIME, FIDUCIALS_MODULE_NAME, axisID,
+        FIDUCIALLESS_NAME);
   }
 
   public boolean isPositioningWholeTomogram(final AxisID axisID) {
-    return isValue(AttributeName.RUN_TIME, POSITIONING_NAME, axisID, WHOLE_TOMOGRAM_NAME);
+    return isValue(AttributeName.RUN_TIME, POSITIONING_MODULE_NAME, axisID,
+        WHOLE_TOMOGRAM_NAME);
   }
 
   public boolean isRaptorUseAlignedStack(final AxisID axisID) {
-    return isValue(AttributeName.RUN_TIME, RAPTOR_NAME, axisID, USE_ALIGNED_STACK_NAME);
+    return isValue(AttributeName.RUN_TIME, RAPTOR_MODULE_NAME, axisID,
+        USE_ALIGNED_STACK_NAME);
   }
 
   public boolean isReconstructionUseSirt(final AxisID axisID) {
-    return isValue(AttributeName.RUN_TIME, RECONSTRUCTION_NAME, axisID, USE_SIRT_NAME);
+    return isValue(AttributeName.RUN_TIME, RECONSTRUCTION_MODULE_NAME, axisID, USE_SIRT_NAME);
   }
 
   boolean isScanHeader() {
@@ -623,40 +633,6 @@ public final class DirectiveFile {
     static final AttributeName RUN_TIME = new AttributeName();
 
     private AttributeName() {
-    }
-  }
-
-  public static final class FiducialsSeedingMethod {
-    public static final FiducialsSeedingMethod MANUAL = new FiducialsSeedingMethod("0");
-    public static final FiducialsSeedingMethod AUTO_FID_SEED = new FiducialsSeedingMethod(
-        "1");
-    public static final FiducialsSeedingMethod TRANSFER_FID = new FiducialsSeedingMethod(
-        "2");
-    public static final FiducialsSeedingMethod BOTH = new FiducialsSeedingMethod("3");
-
-    private final String value;
-
-    private FiducialsSeedingMethod(final String value) {
-      this.value = value;
-    }
-
-    private static FiducialsSeedingMethod getInstance(final String value) {
-      if (value == null) {
-        return null;
-      }
-      if (value.equals(MANUAL.value)) {
-        return MANUAL;
-      }
-      if (value.equals(AUTO_FID_SEED.value)) {
-        return AUTO_FID_SEED;
-      }
-      if (value.equals(TRANSFER_FID.value)) {
-        return TRANSFER_FID;
-      }
-      if (value.equals(BOTH.value)) {
-        return BOTH;
-      }
-      return null;
     }
   }
 }

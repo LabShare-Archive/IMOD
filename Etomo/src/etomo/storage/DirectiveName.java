@@ -260,16 +260,13 @@ public final class DirectiveName {
    * @param axisID
    * @return
    */
-  public String getName(final AxisID axisID) {
+  public String getName() {
     if (key == null) {
       return null;
     }
-    // Set ext to the correct form of the axisID
+    // Set ext to the correct form
     String ext = "";
-    if (axisID == AxisID.FIRST || axisID == AxisID.SECOND) {
-      ext = axisID.getExtension();
-    }
-    else if (type == DirectiveType.RUNTIME) {
+    if (type == DirectiveType.RUNTIME) {
       ext = DirectiveFile.ANY_AXIS_NAME;
     }
     // Create a string version of the directive name with the correct axisID string

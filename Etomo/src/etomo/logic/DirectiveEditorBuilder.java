@@ -154,63 +154,32 @@ public final class DirectiveEditorBuilder {
     // Get a sorted list of comparam directive names
     DirectiveMap.Iterator iterator = directiveMap.keySet(DirectiveType.COM_PARAM)
         .iterator();
-    boolean dualAxis = sourceAxisType == AxisType.DUAL_AXIS;
     AxisID firstAxisID;
-    if (dualAxis) {
+    if (sourceAxisType == AxisType.DUAL_AXIS) {
       firstAxisID = AxisID.FIRST;
     }
     else {
       firstAxisID = AxisID.ONLY;
     }
-    // A axis
-    AxisID curAxisID = firstAxisID;
-    ComFile comFileA = new ComFile(manager, curAxisID);
-    Map<String, String> commandMapA = null;
-    ComFile comFileADefaults = new ComFile(manager, curAxisID, "origcoms");
-    Map<String, String> commandMapADefaults = null;
-    // B axis
-    ComFile comFileB = null;
-    Map<String, String> commandMapB = null;
-    ComFile comFileBDefaults = null;
-    Map<String, String> commandMapBDefaults = null;
-    if (dualAxis) {
-      curAxisID = AxisID.SECOND;
-      comFileB = new ComFile(manager, curAxisID);
-      comFileBDefaults = new ComFile(manager, curAxisID, "origcoms");
-    }
-    curAxisID = firstAxisID;
+    // A or only axis
+    ComFile comFile = new ComFile(manager, firstAxisID);
+    Map<String, String> commandMap = null;
+    ComFile comFileDefaults = new ComFile(manager, firstAxisID, "origcoms");
+    Map<String, String> commandMapDefaults = null;
     DirectiveName directiveName = new DirectiveName();
     while (iterator.hasNext()) {
       directiveName.setKey(iterator.next());
-      // save axis A value
-      commandMapA = getCommandMap(directiveName, comFileA, curAxisID, commandMapA, errmsg);
-      if (commandMapA != null) {
-        setDirectiveValue(commandMapA, directiveMap, directiveName, curAxisID, false);
+      // save values
+      commandMap = getCommandMap(directiveName, comFile, commandMap, errmsg);
+      if (commandMap != null) {
+        setDirectiveValue(commandMap, directiveMap, directiveName, false);
       }
-      // save axis A default value
-      commandMapADefaults = getCommandMap(directiveName, comFileADefaults, curAxisID,
-          commandMapADefaults, errmsg);
-      if (commandMapADefaults != null) {
-        setDirectiveValue(commandMapADefaults, directiveMap, directiveName, curAxisID,
-            true);
+      // save default values
+      commandMapDefaults = getCommandMap(directiveName, comFileDefaults,
+          commandMapDefaults, errmsg);
+      if (commandMapDefaults != null) {
+        setDirectiveValue(commandMapDefaults, directiveMap, directiveName, true);
       }
-      if (dualAxis) {
-        curAxisID = AxisID.SECOND;
-        // save axis B value
-        commandMapB = getCommandMap(directiveName, comFileB, curAxisID, commandMapB,
-            errmsg);
-        if (commandMapB != null) {
-          setDirectiveValue(commandMapB, directiveMap, directiveName, curAxisID, false);
-        }
-        // save axis B default value
-        commandMapBDefaults = getCommandMap(directiveName, comFileBDefaults, curAxisID,
-            commandMapBDefaults, errmsg);
-        if (commandMapBDefaults != null) {
-          setDirectiveValue(commandMapBDefaults, directiveMap, directiveName, curAxisID,
-              true);
-        }
-      }
-      curAxisID = firstAxisID;
     }
     return errmsg;
   }
@@ -243,6 +212,10 @@ public final class DirectiveEditorBuilder {
               if (directive == null) {
                 // Handle undefined directives.
                 directive = new Directive(directiveName);
+                // Ignoring B axis values and directives.
+                if (axisID == AxisID.SECOND) {
+                  break;
+                }
                 // Only comparam directives are used generically by batchruntomo, so
                 // undefined ones may be useful.
                 if (directive.isValid() && directive.getType() == DirectiveType.COM_PARAM) {
@@ -262,7 +235,7 @@ public final class DirectiveEditorBuilder {
                 }
               }
               if (directive != null) {
-                directive.setInDirectiveFile(type, axisID, true);
+                directive.setInDirectiveFile(type, true);
               }
             }
           }
@@ -288,13 +261,11 @@ public final class DirectiveEditorBuilder {
    * commandMap.
    * @param directiveName
    * @param comFile
-   * @param axisID
    * @param commandMap
    * @return
    */
   private Map<String, String> getCommandMap(final DirectiveName directiveName,
-      final ComFile comFile, final AxisID axisID, Map<String, String> commandMap,
-      final StringBuffer errmsg) {
+      final ComFile comFile, Map<String, String> commandMap, final StringBuffer errmsg) {
     // Get a new comfile and origcoms comfile each time the comfile name changes in the
     // sorted list of comparam directives.
     String comFileName = directiveName.getComFileName();
@@ -321,7 +292,7 @@ public final class DirectiveEditorBuilder {
    */
   private void setDirectiveValue(final Map<String, String> commandMap,
       final DirectiveMap directiveMap, final DirectiveName directiveName,
-      final AxisID axisID, final boolean isDefaultValue) {
+      final boolean isDefaultValue) {
     if (commandMap == null) {
       return;
     }
@@ -332,19 +303,19 @@ public final class DirectiveEditorBuilder {
       String value = commandMap.get(directiveName.getParameterName());
       if (value != null) {
         if (!isDefaultValue) {
-          directive.setValue(axisID, value);
+          directive.setValue(value);
         }
         else {
-          directive.setDefaultValue(axisID, value);
+          directive.setDefaultValue(value);
         }
       }
       else {
         // no value - treat as a boolean
         if (!isDefaultValue) {
-          directive.setValue(axisID, true);
+          directive.setValue(true);
         }
         else {
-          directive.setDefaultValue(axisID, true);
+          directive.setDefaultValue(true);
         }
       }
     }
@@ -357,8 +328,8 @@ public final class DirectiveEditorBuilder {
   public boolean[] getFileTypeExists() {
     return fileTypeExists;
   }
-  
-  public List<String>getDroppedDirectives(){
+
+  public List<String> getDroppedDirectives() {
     return droppedDirectives;
   }
 

@@ -20,7 +20,6 @@ import etomo.storage.DirectiveDescrFile;
 import etomo.storage.DirectiveType;
 import etomo.storage.DirectiveValueType;
 import etomo.storage.DirectiveValues;
-import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.ui.FieldType;
 
@@ -39,7 +38,7 @@ import etomo.ui.FieldType;
 * 
 * <p> $Log$ </p>
 */
-final class DirectivePanel implements DirectiveSetInterface {
+final class DirectivePanel  {
   public static final String rcsid = "$Id:$";
 
   private static final int NO_INDEX = 1;
@@ -53,13 +52,9 @@ final class DirectivePanel implements DirectiveSetInterface {
   private final SimpleButton sbFileValue;
   private final DirectiveTool tool;
   private final Directive directive;
-  private final AxisID axisID;
   private final FieldType fieldType;
   private final String actionCommand;
-  private final boolean solo;
   private final AxisType sourceAxisType;
-  private final DirectivePanel siblingA;
-  private final DirectivePanel siblingB;
   private final String[] valueList;
   private final boolean booleanValueType;
 
@@ -67,30 +62,17 @@ final class DirectivePanel implements DirectiveSetInterface {
   private File lastFileChooserLocation = null;
 
   private DirectivePanel(final BaseManager manager, final Directive directive,
-      final AxisID axisID, final DirectiveTool tool, final boolean solo,
-      final AxisType sourceAxisType, final DirectivePanel siblingA,
-      final DirectivePanel siblingB) {
+      final DirectiveTool tool, final AxisType sourceAxisType) {
     this.directive = directive;
-    this.axisID = axisID;
     this.tool = tool;
-    this.solo = solo;
     this.sourceAxisType = sourceAxisType;
-    this.siblingA = siblingA;
-    this.siblingB = siblingB;
     fieldType = FieldType.getInstance(directive.getValueType());
     // Initialize the value field that matches the value type. Set the other one to null.
     DirectiveType type = directive.getType();
-    String axisTitle = "";
-    if (axisID == AxisID.FIRST) {
-      axisTitle = " - Axis A";
-    }
-    else if (axisID == AxisID.SECOND) {
-      axisTitle = " - Axis B";
-    }
-    String title = directive.getTitle() + axisTitle + ":  ";
+    String title = directive.getTitle() + ":  ";
     // Need to be able to distinguish the include checkbox action commands from the three
     // directives in each directive set.
-    actionCommand = "include" + axisTitle;
+    actionCommand = "include";
     cbInclude.setActionCommand(actionCommand);
     DirectiveValueType valueType = directive.getValueType();
     FieldType fieldType = FieldType.getInstance(valueType);
@@ -129,33 +111,9 @@ final class DirectivePanel implements DirectiveSetInterface {
     }
   }
 
-  static DirectivePanel getSoloInstance(final BaseManager manager,
-      final Directive directive, final DirectiveTool tool, final AxisType sourceAxisType) {
-    DirectivePanel instance = new DirectivePanel(manager, directive, null, tool, true,
-        sourceAxisType, null, null);
-    instance.createPanel(directive);
-    instance.setTooltips();
-    instance.addListeners();
-    return instance;
-  }
-
-  static DirectivePanel getSetInstance(final BaseManager manager,
-      final Directive directive, final AxisID axisID, final DirectiveTool tool,
-      final AxisType sourceAxisType) {
-    DirectivePanel instance = new DirectivePanel(manager, directive, axisID, tool, false,
-        sourceAxisType, null, null);
-    instance.createPanel(directive);
-    instance.setTooltips();
-    instance.addListeners();
-    return instance;
-  }
-
-  static DirectivePanel getAnyInstance(final BaseManager manager,
-      final Directive directive, final AxisID axisID, final DirectiveTool tool,
-      final DirectivePanel siblingA, final DirectivePanel siblingB,
-      final AxisType sourceAxisType) {
-    DirectivePanel instance = new DirectivePanel(manager, directive, axisID, tool, false,
-        sourceAxisType, siblingA, siblingB);
+  static DirectivePanel getInstance(final BaseManager manager, final Directive directive,
+      final DirectiveTool tool, final AxisType sourceAxisType) {
+    DirectivePanel instance = new DirectivePanel(manager, directive, tool, sourceAxisType);
     instance.createPanel(directive);
     instance.setTooltips();
     instance.addListeners();
@@ -181,9 +139,7 @@ final class DirectivePanel implements DirectiveSetInterface {
       }
     }
     pnlRoot.add(Box.createHorizontalGlue());
-    if (solo) {
-      init();
-    }
+    init();
   }
 
   public Component getComponent() {
@@ -203,24 +159,24 @@ final class DirectivePanel implements DirectiveSetInterface {
   }
 
   void setStateInDirective() {
-    directive.setInclude(axisID, isInclude());
+    directive.setInclude(isInclude());
     if (cbValue != null) {
       if (booleanValueType) {
-        directive.setValue(axisID, cbValue.getSelectedIndex() == YES_INDEX);
+        directive.setValue(cbValue.getSelectedIndex() == YES_INDEX);
       }
       else {
         int index = cbValue.getSelectedIndex();
         if (index >= 0) {
-          directive.setValue(axisID, valueList[index]);
+          directive.setValue(valueList[index]);
         }
         else {
           // Handle empty pulldown choice
-          directive.setValue(axisID, (String) null);
+          directive.setValue((String) null);
         }
       }
     }
     else {
-      directive.setValue(axisID, ltfValue.getText());
+      directive.setValue(ltfValue.getText());
     }
   }
 
@@ -233,37 +189,15 @@ final class DirectivePanel implements DirectiveSetInterface {
     if (ltfValue != null) {
       ltfValue.setColumns(directive.getValueType().getColumns());
     }
-    // Initialize solo directive - set include, set and checkpoint the value, and set root
+    // Initialize directive - set include, set and checkpoint the value, and set root
     // panel visibility.
-    if (solo) {
-      setIncluded();
-      initValue(directive);
-      tool.setDebug(debug);
-      if (!tool.isDirectiveVisible(directive, cbInclude.isSelected(), false)) {
-        pnlRoot.setVisible(false);
-      }
-      tool.resetDebug();
+    setIncluded();
+    initValue(directive);
+    tool.setDebug(debug);
+    if (!tool.isDirectiveVisible(directive, cbInclude.isSelected(), false)) {
+      pnlRoot.setVisible(false);
     }
-    // Initialize the Any directive
-    else if (axisID == null) {
-      siblingA.init();
-      // For single axis datasets, get everything from axis A.
-      if (sourceAxisType == AxisType.SINGLE_AXIS) {
-        siblingB.copy(siblingA);
-        siblingB.checkpoint();
-        copy(siblingA);
-      }
-      else {
-        // For dual axis datasets initialize A and B, and use them to setup the Any
-        // directive.
-        siblingB.init();
-        updateFromSiblings();
-      }
-    }
-    else if (sourceAxisType != AxisType.SINGLE_AXIS || axisID == AxisID.FIRST) {
-      setIncluded();
-      initValue(directive);
-    }
+    tool.resetDebug();
     checkpoint();
   }
 
@@ -271,12 +205,6 @@ final class DirectivePanel implements DirectiveSetInterface {
   * Responds to selection changes in the include checkbox.
   */
   private void action() {
-    if (siblingA != null && !cbInclude.isSelected()) {
-      // A and B must be unchecked at this, or they will be treated as if they where check
-      // until the directive panel is expanded.
-      siblingA.cbInclude.setSelected(false);
-      siblingB.cbInclude.setSelected(false);
-    }
     enableValue();
   }
 
@@ -308,25 +236,6 @@ final class DirectivePanel implements DirectiveSetInterface {
   }
 
   /**
-  * Called by DirectiveSet.expand.
-  * @param expanded
-  */
-  void expand(final boolean expanded) {
-    if (axisID != null || solo || siblingA == null) {
-      return;
-    }
-    if (expanded) {
-      if (isEnabled()) {
-        siblingA.copy(this);
-        siblingB.copy(this);
-      }
-    }
-    else {
-      updateFromSiblings();
-    }
-  }
-
-  /**
    * For solo directives function changes the include checkbox and root panel visibility.  For
    * the Any directive in a set, it changes the A and B include checkboxes, and updates
    * the include checkbox in the Any directive.  The Any checkbox is
@@ -337,24 +246,13 @@ final class DirectivePanel implements DirectiveSetInterface {
    * @return the solo instance visibility, or true
    */
   public boolean msgControlChanged(final boolean includeChange, final boolean expandChange) {
-    if (axisID != null) {
-      return true;
+    if (includeChange) {
+      setIncluded();
     }
-    if (solo) {
-      if (includeChange) {
-        setIncluded();
-      }
-      boolean visible = tool.isDirectiveVisible(directive, cbInclude.isSelected(),
-          isDifferentFromCheckpoint(false));
-      pnlRoot.setVisible(visible);
-      return visible;
-    }
-    else if (includeChange) {
-      siblingA.setIncluded();
-      siblingB.setIncluded();
-      updateFromSiblings();
-    }
-    return true;
+    boolean visible = tool.isDirectiveVisible(directive, cbInclude.isSelected(),
+        isDifferentFromCheckpoint(false));
+    pnlRoot.setVisible(visible);
+    return visible;
   }
 
   /**
@@ -451,10 +349,7 @@ final class DirectivePanel implements DirectiveSetInterface {
 
   private void initValue(final Directive directive) {
     DirectiveValues values = directive.getValues();
-    Directive.Value value = values.getValue(axisID);
-    if (value == null && axisID != null) {
-      value = values.getValue(null);
-    }
+    Directive.Value value = values.getValue();
     if (value != null) {
       if (cbValue != null) {
         if (booleanValueType) {
@@ -492,10 +387,7 @@ final class DirectivePanel implements DirectiveSetInterface {
   }
 
   public boolean isEnabled() {
-    if (solo || axisID != null || siblingA == null) {
-      return cbInclude.isEnabled();
-    }
-    return siblingA.equals(siblingB);
+    return cbInclude.isEnabled();
   }
 
   /**
@@ -536,7 +428,7 @@ final class DirectivePanel implements DirectiveSetInterface {
   private void setIncluded() {
     boolean included = cbInclude.isSelected();
     tool.setDebug(debug);
-    if (tool.isToggleDirectiveIncluded(directive, axisID, included)) {
+    if (tool.isToggleDirectiveIncluded(directive, included)) {
       cbInclude.setSelected(!included);
     }
     tool.resetDebug();
@@ -551,51 +443,24 @@ final class DirectivePanel implements DirectiveSetInterface {
     return directive.getTitle();
   }
 
-  /**
-   * This function updates the Any directive from A and B.  The Any directive is enabled
-   * if A and B are the same.  It is included if either A or B are included.  If A and B
-   * have the same value, the Any directive contains that value; otherwise it's value is
-   * blank or false.
-   */
-  private void updateFromSiblings() {
-    if (siblingA == null || axisID != null) {
-      return;
-    }
-    boolean equals = siblingA.equals(siblingB);
-    setEnabled(equals);
-    if (equals) {
-      copy(siblingA);
-    }
-    else {
-      cbInclude.setSelected(siblingA.cbInclude.isSelected()
-          || siblingB.cbInclude.isSelected());
-      if (siblingA.equalsValue(siblingB)) {
-        copyValue(siblingA);
-      }
-      else {
-        resetValue();
-      }
-    }
-  }
-
   private void setTooltips() {
     DirectiveValues values = directive.getValues();
     String valueString = null;
-    Directive.Value value = values.getValue(axisID);
+    Directive.Value value = values.getValue();
     if (value != null) {
       valueString = value.toString();
     }
     String defaultValueString = null;
-    value = values.getDefaultValue(axisID);
+    value = values.getDefaultValue();
     if (value != null) {
       defaultValueString = value.toString();
     }
     String debugString = "";
     if (debug > 0) {
-      debugString = "  AxisID:" + axisID + ", Type:" + directive.getValueType()
+      debugString = "  Type:" + directive.getValueType()
           + ", Batch:" + directive.isBatch() + ", Tmplt:" + directive.isTemplate()
           + ", eTomo:" + directive.getEtomoColumn() + ", AxisLevelData:"
-          + directive.getAxisLevelData(axisID);
+          + directive.getInDirectiveFileDebugString();
     }
     String tooltip = directive.getKeyDescription() + ":  " + directive.getDescription()
         + "." + (valueString != null ? "  Dataset value:" + valueString : "")
