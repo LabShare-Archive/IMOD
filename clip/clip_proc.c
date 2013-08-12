@@ -1890,6 +1890,7 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
     truncThresh = opt->high;
     truncVal = (opt->low == IP_DEFAULT) ? opt->high : opt->low;
   }
+  mrc_head_label(hout, "clip: Unpack 4-bit values");
 
   // Loop on sections
   for (k = 0; k < opt->nofsecs; k++) {
