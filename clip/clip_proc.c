@@ -1703,7 +1703,7 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   char *message;
   int i, j, k, z, dsize, csize1, csize2, divByZero = 0, readOnce;
   Ival val, oval;
-  float tmp, denom;
+  float tmp, denom, scaledVal, scale = 1.;
 
   if (opt->infiles != 2) {
     show_error("clip multiply/divide: Need exactly two input files.");
@@ -1728,7 +1728,6 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
             "unless both are FFTs or output mode is float");
     return(-1);
   }
-
   
   if ((h1->nx != h2->nx) || (h1->ny != h2->ny)) {
     show_error("clip  multiply/divide: X and Y sizes must be equal");
@@ -1739,6 +1738,9 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
             "for second file");
     return(-1);
   }
+
+  if (opt->val != IP_DEFAULT)
+    scale = opt->val;
 
   switch (opt->process) {
   case IP_MULTIPLY:
@@ -1785,14 +1787,16 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
 
           /* Ordinary mult or div, possible multi-channel */
           if (opt->process == IP_MULTIPLY) {
-            oval[0] *= val[0];
-            oval[1] *= val[0];
-            oval[2] *= val[0];
+            scaledVal = val[0] * scale;
+            oval[0] *= scaledVal;
+            oval[1] *= scaledVal;
+            oval[2] *= scaledVal;
           } else {
             if (val[0] != 0) {
-              oval[0] /= val[0];
-              oval[1] /= val[0];
-              oval[2] /= val[0];
+              scaledVal = scale / val[0];
+              oval[0] *= scaledVal;
+              oval[1] *= scaledVal;
+              oval[2] *= scaledVal;
             } else {
               divByZero++;
               oval[0] = oval[1] = oval[2] = 0.;
@@ -1802,14 +1806,14 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
          
           /* Complex mult/div */
           if (opt->process == IP_MULTIPLY) {
-            tmp = oval[0] * val[0] - oval[1] * val[1];
-            oval[1] = oval[0] * val[1] + val[0] * oval[1];
+            tmp = (oval[0] * val[0] - oval[1] * val[1]) * scale;
+            oval[1] = (oval[0] * val[1] + val[0] * oval[1]) * scale;
             oval[0] = tmp;
           } else {
             denom = val[0] * val[0] + val[1] * val[1];
             if (denom != 0) {
-              tmp = (oval[0] * val[0] + oval[1] * val[1]) / denom;
-              oval[1] = (oval[1] * val[0] - oval[0] * val[1]) / denom;
+              tmp = (oval[0] * val[0] + oval[1] * val[1]) * scale / denom;
+              oval[1] = (oval[1] * val[0] - oval[0] * val[1]) * scale / denom;
               oval[0] = tmp;
             } else {
               divByZero++;
@@ -1847,6 +1851,11 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
   float val[3] = {0., 0., 0.};
   int doRef = opt->infiles == 2 ? TRUE : FALSE;
   int truncThresh = 100;
+
+  if (opt->add2file != IP_APPEND_FALSE) {
+    show_error("clip unpack - you cannot add to an existing output file");
+    return -1;
+  }
 
   if (hin1->mode != MRC_MODE_BYTE || (doRef && hin2->mode != MRC_MODE_FLOAT)) {
     show_error("clip unpack - mode of input file must be bytes, mode of second input "
