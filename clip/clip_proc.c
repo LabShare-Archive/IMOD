@@ -1700,10 +1700,11 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
                  ClipOptions *opt)
 {
   Islice *s, *so;
-  char *message;
+  char *message, *titleProc;
   int i, j, k, z, dsize, csize1, csize2, divByZero = 0, readOnce;
   Ival val, oval;
   float tmp, denom, scaledVal, scale = 1.;
+  char title[54];
 
   if (opt->infiles != 2) {
     show_error("clip multiply/divide: Need exactly two input files.");
@@ -1745,15 +1746,20 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
   switch (opt->process) {
   case IP_MULTIPLY:
     message = "Multiplying";
-    mrc_head_label(hout, "clip: Multiply");
+    titleProc = "Multiply";
     break;
   case IP_DIVIDE:
     message = "Dividing";
-    mrc_head_label(hout, "clip: Divide");
+    titleProc = "Divide";
     break;
   default:
     return -1;
   }
+  if (opt->val != IP_DEFAULT)
+    sprintf(title, "clip: %s, scaled by %.2f", titleProc, scale);
+  else 
+    sprintf(title, "clip: %s", titleProc);
+  mrc_head_label(hout, title);
 
   readOnce = (h2->nz == 1 && h1->nz > 1) ? 1 : 0;
   for (k = 0; k < opt->nofsecs; k++) {
@@ -1851,6 +1857,7 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
   float val[3] = {0., 0., 0.};
   int doRef = opt->infiles == 2 ? TRUE : FALSE;
   int truncThresh = 100;
+  char title[54];
 
   if (opt->add2file != IP_APPEND_FALSE) {
     show_error("clip unpack - you cannot add to an existing output file");
@@ -1899,7 +1906,8 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
     truncThresh = opt->high;
     truncVal = (opt->low == IP_DEFAULT) ? opt->high : opt->low;
   }
-  mrc_head_label(hout, "clip: Unpack 4-bit values");
+  sprintf(title, "clip: Unpack 4-bit values, scaled by %.2f", scale);
+  mrc_head_label(hout, title);
 
   // Loop on sections
   for (k = 0; k < opt->nofsecs; k++) {
@@ -2322,7 +2330,7 @@ int clip_stat(MrcHeader *hin, ClipOptions *opt)
         printf("%4d  %9.4f%c(%4d,%4d) %9.4f%c(%7d,%7d) %9.4f  %9.4f\n", 
                opt->secs[kk]+ viewAdd, allmins[kk], starmin,
                stats[kk].xmin, stats[kk].ymin, allmaxes[kk], starmax,
-               stats[kk].x, stats[kk].y, stats[kk].mean, stats[kk].std);
+               B3DNINT(stats[kk].x), B3DNINT(stats[kk].y), stats[kk].mean, stats[kk].std);
         outlast = kk;
       }
       
