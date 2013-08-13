@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/12/13: IMOD_4-6-26
 8/12/13: Added ability to scale output from clip multiply and divide.
 
 8/12/13: Fixed problems with values not showing up in the Directive Editor.
