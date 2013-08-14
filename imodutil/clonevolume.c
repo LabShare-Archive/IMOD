@@ -262,9 +262,9 @@ int main( int argc, char *argv[])
         Ival oldVal = {0, 0, 0}, newVal = {0, 0, 0};
         /* Process the points in the clone's bounding box */
         for (ix = (int)ceil(outBBox[iClone].xMin);
-             ix <= (int)floor(outBBox[iClone].xMax); ix++) {
+             ix < (int)floor(outBBox[iClone].xMax); ix++) {
           for (iy = (int)ceil(outBBox[iClone].yMin); 
-	       iy <= (int)floor(outBBox[iClone].yMax); iy++) {
+	       iy < (int)floor(outBBox[iClone].yMax); iy++) {
             Ipoint inPt, outPt;
             outPt.x = (float)ix;
             outPt.y = (float)iy;
