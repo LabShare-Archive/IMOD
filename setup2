@@ -692,6 +692,7 @@ mkdir -p $inst_plug_parent
 mkdir -p $inst_plug_dir
 mkdir -p $inst_dir/com
 mkdir -p $inst_dir/autodoc
+mkdir -p $inst_dir/SystemTemplate
 mkdir -p $inst_dir/html
 mkdir -p $inst_dir/man/cat1
 mkdir -p $inst_dir/man/cat5
