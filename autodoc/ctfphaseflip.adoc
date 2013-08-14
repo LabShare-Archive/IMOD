@@ -128,7 +128,9 @@ short = cs
 type = F
 usage = Microscope spherical aberration in millimeters
 tooltip =
-manpage = Microscope spherical aberration in millimeters
+manpage = Microscope spherical aberration in millimeters.  A value of 0 can be
+entered; it will be made slightly larger to prevent division by 0 in the CTF
+equations.
 
 [Field = AmplitudeContrast]
 short = ampContrast
