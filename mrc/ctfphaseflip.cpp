@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
     exitError("Voltage is not specified");
   if (PipGetFloat("SphericalAberration", &cs))
     exitError("SphericalAberration is not specified");
+  cs = B3DMAX(0.01, cs);
   if (PipGetFloat("AmplitudeContrast", &ampContrast))
     exitError("No AmplitudeContrast is specified");
   if (PipGetTwoIntegers("TotalViews", &startingTotal, &endingTotal))
