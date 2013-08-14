@@ -116,6 +116,7 @@ int main(int argc, char *argv[])
   }
   if (PipGetFloat("SphericalAberration", &cs))
     exitError("Spherical Aberration is not specified");
+  cs = B3DMAX(0.01, cs);
   PipGetInteger("PSResolution", &nDim);
   PipGetInteger("TileSize", &tileSize);
   PipGetFloat("DefocusTol", &defocusTol);
