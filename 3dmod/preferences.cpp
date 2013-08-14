@@ -25,6 +25,7 @@
  *
  * Do not despair, just saving/restoring a program state variable just takes
  * one line in each place, see usewheelforsize, etc.
+ * Hint: settings file on Linux is ~/.config/BL3DEMC/3dmod.conf
  */
 
 #include <stdlib.h>
