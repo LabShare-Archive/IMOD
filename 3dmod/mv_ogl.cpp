@@ -91,7 +91,6 @@ static int sCTime = -1;
 static float sDepthShift;
 static int sCursurf, sCurCont;
 static int sThickCont, sThickObj, sObjBeingDrawn, sModBeingDrawn;
-static int sCurTessObj;
 
 static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
 {
@@ -532,7 +531,6 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
             (!drawTrans || (obj->flags & IMOD_OBJFLAG_TEMPUSE))) {
           set_curcontsurf(ob, imod);
           glLoadName(ob);
-          sCurTessObj = ob;
           clip_obj(imod, obj, 1);
           imodvDraw_object( obj , imod, drawTrans);
           clip_obj(imod, obj, 0);
@@ -1368,65 +1366,19 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
   return;
 }  
 
-
-
-static int tesserror;
-
-static void myerror(GLenum error)
-{
-  tesserror = error;
-  /*
-    imodPrintStderr("gluError %d: %s\n", error,
-    gluErrorString(error));
-  */
-  return;
-}
-
-static int newCount;
-static int curTessCont;
-
-/* DNM 12/12/00: The PC (mesa) crashes instead of giving an error callback
-   when there are crossings that require a combined point - so implement this
-   routine with a message that may get people to fix the contours.  However,
-   the SGI gave a call on every contour insted of just the ones with crossings,
-   so need to make this all conditional */
-
-#ifdef TESS_HACK
-#define MAX_CROSSES 20
-static Ipoint newPoints[MAX_CROSSES];
-
-static void myCombine( GLdouble coords[3], Ipoint *d[4],
-                       GLfloat w[4], Ipoint **dataOut )
-{
-  if (newCount == MAX_CROSSES){
-    imodPrintStderr ("This contour has over %d crossings - fix it!\n", 
-            MAX_CROSSES);
-    *dataOut = &(newPoints[0]);
-    return;
-  }
-  if (!newCount)
-    imodPrintStderr("Warning: contour %d of object %d crosses itself; this may "
-           "cause crashes.\n", curTessCont + 1, sCurTessObj + 1);
-  newPoints[newCount].x=coords[0];
-  newPoints[newCount].y=coords[1];
-  newPoints[newCount].z=coords[2];
-  *dataOut = &(newPoints[newCount++]);
-}
-#endif
+// DMN 8/12/13: Removed TESS_HACK code before moving tesselator stuff to utilities.
 
 #ifndef GLU_CALLBACK
 #define GLU_CALLBACK GLvoid (*)()
 #endif
 
+/*
+ * Draw filled contours with polygon tesselation
+ */
 static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
 {
-  static GLUtesselator *tobj = NULL;
-  GLdouble v[3];
   Icont   *cont;
-  Ipoint *pts;
-  int      co, pt;
-  int psize;
-  int ptstr, ptend;
+  int      co;
   DrawProps contProps, ptProps;
   int stateFlags;
   int handleFlags = ((obj->flags & IMOD_OBJFLAG_FCOLOR) 
@@ -1434,8 +1386,6 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
   int checkTime = (int)iobjTime(obj->flags);
   if (!sCTime)
     checkTime = 0;
-
-  tesserror = 0;
 
   if (!obj->contsize)
     return;
@@ -1453,17 +1403,7 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
   if (imodDebug('v'))
     imodPrintStderr("filled contours %s\n", drawTrans ? "trans" : "solid");
 
-  if (!tobj){
-    tobj = gluNewTess();
-    gluTessCallback(tobj, GLU_BEGIN, (GLU_CALLBACK)glBegin);
-    gluTessCallback(tobj, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
-    gluTessCallback(tobj, GLU_END, (GLU_CALLBACK)glEnd);
-    /*        gluTessCallback(tobj, GLU_EDGE_FLAG, glEdgeFlag); */
-#ifdef TESS_HACK
-    gluTessCallback(tobj, GLU_TESS_COMBINE, (GLU_CALLBACK)myCombine);
-#endif
-    gluTessCallback(tobj, GLU_ERROR, (GLU_CALLBACK)myerror);
-  }
+  setupFilledContTesselator();
 
   glPushName(NO_NAME);
   for(co = 0; co < obj->contsize ; co++){
@@ -1482,75 +1422,7 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
       obj->flags |= IMOD_OBJFLAG_TEMPUSE;
       continue;
     }
-
-    tesserror = 0;
-    ptend = cont->psize;
-    ptstr = 0;
-    pts = cont->pts;
-    curTessCont = co;
-    /* imodPrintStderr(".%d-%d", co, ptend);
-       fflush(stdout); */
-    newCount = 0;
-    if (ptend){
-
-#ifdef TESS_HACK
-      /* Hack for PC (mesa), need to eliminate colinear points
-         from the start and end of contour, just test for points at
-         same X and Y levels */
-      while (ptend > 2) {
-        if (((pts[0].x == pts[ptend - 1].x) && 
-             (pts[ptend - 1].x == pts[ptend - 2].x) ) ||
-            ((pts[0].y == pts[ptend - 1].y) && 
-             (pts[ptend - 1].y == pts[ptend - 2].y) ))
-          ptend--;
-        else
-          break;
-      }
-      while (ptend - ptstr > 2) {
-        if (((pts[ptstr].x == pts[ptend - 1].x) && 
-             (pts[ptstr].x == pts[ptstr + 1].x) ) ||
-            ((pts[ptstr].y == pts[ptend - 1].y) && 
-             (pts[ptstr].y == pts[ptstr + 1].y) ))
-          ptstr++;
-        else
-          break;
-      }
-#endif
-
-      psize = ptend + 1;
-      do {
-        tesserror = 0;
-        psize--;
-
-        if (psize - ptstr < 3)
-          break;
-
-        gluTessBeginPolygon(tobj, NULL);
-        gluTessBeginContour(tobj);
-        for(pt = ptstr; pt < psize; pt++){
-          v[0] = pts[pt].x;
-          v[1] = pts[pt].y;
-          v[2] = pts[pt].z;
-          gluTessVertex(tobj, v, &(pts[pt]));
-        }
-        gluTessEndContour(tobj);
-        gluTessEndPolygon(tobj);
-
-        if ((!tesserror) && ((psize - ptend) > 3)){
-          gluTessBeginPolygon(tobj, NULL);
-          gluTessBeginContour(tobj);
-          for(pt = psize; pt < ptend; pt++){
-            v[0] = pts[pt].x;
-            v[1] = pts[pt].y;
-            v[2] = pts[pt].z;
-            gluTessVertex(tobj, v, &(pts[pt]));
-          }
-          gluTessEndContour(tobj);
-          gluTessEndPolygon(tobj);
-        }
-
-      }while(tesserror);
-    }
+    drawFilledPolygon(cont);
   }
   glPopName();
   return;
