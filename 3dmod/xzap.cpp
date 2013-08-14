@@ -511,6 +511,7 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   mZoom   = 1.0;
   mData   = NULL;
   mImage  = NULL;
+  mTessCont = NULL;
   mGinit  = 0;
   mLock   = 0;
   mKeepcentered = 0;
@@ -4458,7 +4459,7 @@ void ZapFuncs::fillOverlayRGB(unsigned char **lines, int nx, int ny, int chan,
 void ZapFuncs::drawModel()
 {
   ImodView *vi = mVi;
-  int ob, co;
+  int ob, co, pt, maxPts = 0;
   int surf = -1;
   Icont *cont = imodContourGet(vi->imod);
 
@@ -4477,15 +4478,33 @@ void ZapFuncs::drawModel()
     b3dLineWidth(sScaleSizes * vi->imod->obj[ob].linewidth2); 
     ifgSetupValueDrawing(&vi->imod->obj[ob], GEN_STORE_MINMAX1);
 
-    for (co = 0; co < vi->imod->obj[ob].contsize; co++){
-      if (ob == vi->imod->cindex.object){
-        if (co == vi->imod->cindex.contour){
+    // Set up for filled contour tesselator drawing
+    if (vi->imod->obj[ob].extra[IOBJ_EX_2D_TRANS]) {
+      setupFilledContTesselator();
+      for (co = 0; co < vi->imod->obj[ob].contsize; co++)
+        maxPts = B3DMAX(maxPts, vi->imod->obj[ob].cont[co].psize);
+      mTessCont = imodContourNew();
+      if (mTessCont) {
+        mTessCont->pts = B3DMALLOC(Ipoint, maxPts);
+        if (!mTessCont->pts) {
+          imodContourDelete(mTessCont);
+          mTessCont = NULL;
+        } else {
+          for (pt = 0; pt < maxPts; pt++)
+            mTessCont->pts[pt].z = 0.;
+        }
+      }
+    }
+
+    for (co = 0; co < vi->imod->obj[ob].contsize; co++) {
+      if (ob == vi->imod->cindex.object) {
+        if (co == vi->imod->cindex.contour) {
           drawContour(co, ob);
           continue;
         }
         if (vi->ghostmode & IMOD_GHOST_SURFACE)
           if (surf >= 0)
-            if (surf != vi->imod->obj[ob].cont[co].surf){
+            if (surf != vi->imod->obj[ob].cont[co].surf) {
               b3dColorIndex(App->ghost); 
               drawContour(co, ob);
               imodSetObjectColor(ob);
@@ -4494,6 +4513,13 @@ void ZapFuncs::drawModel()
       }
 
       drawContour(co, ob); 
+    }
+
+    // Clean up the tesselator contour
+    if (mTessCont) {
+      mTessCont->psize = 1;
+      imodContourDelete(mTessCont);
+      mTessCont = NULL;
     }
   }
 }
@@ -4557,7 +4583,7 @@ void ZapFuncs::drawContour(int co, int ob)
   int checkSymbol = 0;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
   bool lastVisible, thisVisible, selected, drawAllZ, drawPntOffSec;
-  bool stippleGaps;
+  bool stippleGaps, skipOutline = false;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
 
@@ -4607,7 +4633,26 @@ void ZapFuncs::drawContour(int co, int ob)
   // Skip if not wild and not on section
   lastVisible = pointVisable(&(cont->pts[0])) || drawAllZ;
   if (!iobjScat(obj->flags) && ((cont->flags & ICONT_WILD) || lastVisible)) {
-    if ((cont->flags & ICONT_WILD) || nextChange >= 0) {
+
+    // Draw fill first if there is a 2d trans setting
+    if (obj->extra[IOBJ_EX_2D_TRANS] && mTessCont) {
+
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glColor4f(contProps.red, contProps.green, contProps.blue, 
+                1. - obj->extra[IOBJ_EX_2D_TRANS] / 100.);
+      for (pt = 0; pt < cont->psize; pt++) {
+        mTessCont->pts[pt].x = xpos(cont->pts[pt].x);
+        mTessCont->pts[pt].y = ypos(cont->pts[pt].y);
+      }
+      mTessCont->psize = cont->psize;
+      drawFilledPolygon(mTessCont);
+      glDisable(GL_BLEND);
+      glColor3f(contProps.red, contProps.green, contProps.blue);
+      skipOutline = !selected && !(obj->flags & IMOD_OBJFLAG_POLY_CONT) && !currentCont;
+    }
+
+    if (!skipOutline && ((cont->flags & ICONT_WILD) || nextChange >= 0)) {
       if (!nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
@@ -4657,7 +4702,7 @@ void ZapFuncs::drawContour(int co, int ob)
       if (stippleGaps)
         b3dStippleNextLine(false);
         
-    } else {
+    } else if (!skipOutline) {
 
       // For non-wild contour with no changes, draw all points without testing
       b3dBeginLine();

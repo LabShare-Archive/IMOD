@@ -951,6 +951,7 @@ void inputNewObject(ImodView *vi)
   obj->linewidth2 = props->linewidth2;
   obj->symflags = props->symflags;
   obj->extra[IOBJ_EX_PNT_LIMIT] = props->pointLimit;
+  obj->extra[IOBJ_EX_2D_TRANS] = props->fillTrans;
   vi->undo->finishUnit();
 
   /* DNM: need to find pixel value for new object, but no longer allocate */

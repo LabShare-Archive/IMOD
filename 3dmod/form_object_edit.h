@@ -1,8 +1,6 @@
 /*   form_object_edit.h  -  declarations for form_object_edit.cpp
  *
  *  $Id$
- *  $Log$
- *
  */
 #ifndef OBJECTEDITFORM_H
 #define OBJECTEDITFORM_H
@@ -38,6 +36,8 @@ class objectEditForm : public QWidget, public Ui::objectEditForm
   virtual void toggledOnSection( bool state );
   virtual void widthChanged( int value );
   virtual void toggledPlanar( bool state );
+  virtual void transChanged( int value );
+  virtual void toggledOutline( bool state );
   virtual void copyClicked();
   virtual void setDefaultsClicked();
   virtual void restoreClicked();
@@ -48,6 +48,7 @@ class objectEditForm : public QWidget, public Ui::objectEditForm
   virtual void setSymbolProperties( int which, bool fill, bool markEnds, int size );
   virtual void setDrawBox( bool state );
   virtual void setObjectName( char * name );
+  virtual void setObjectNum( int num );
   virtual void setTimeBox( bool state, bool enabled );
   virtual void setOnSecBox( bool state );
   virtual void setPointRadius( int value );
@@ -57,6 +58,7 @@ class objectEditForm : public QWidget, public Ui::objectEditForm
   virtual void setPlanarBox( bool state, bool enabled );
   virtual void setPointLimit( int value );
   virtual void setCopyObjLimit( int value );
+  virtual void setFillTrans(int value, bool state, bool enabled);
 
  protected:
   QButtonGroup *typeButtonGroup;

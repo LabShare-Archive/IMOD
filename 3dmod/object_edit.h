@@ -50,6 +50,8 @@ void ioew_symsize(int value);
 void ioew_sphere_on_sec(int state);
 void ioew_time(int state);
 void ioew_planar(int state);
+void ioew_outline(int state);
+void ioew_fillTrans(int value);
 void ioewCopyObj(int value);
 int imod_object_edit_draw(void);
 int  imod_object_edit();

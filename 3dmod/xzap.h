@@ -167,7 +167,7 @@ class ZapFuncs
   int    mLastStatus;            // And to keep track if this is a redraw with more data
   int    mXdrawsize, mYdrawsize;
   int    mLmx,       mLmy;
-
+  Icont *mTessCont;
 
   int    mHqgfx, mHide;
   int    mHqgfxsave;           /* Place to save hqgfx when dragging */

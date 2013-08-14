@@ -190,6 +190,22 @@ void ioew_pointLimit(int value)
   obj->extra[IOBJ_EX_PNT_LIMIT] = value;
 }
 
+void ioew_fillTrans(int value)
+{
+  Iobj *obj = getObjectOrClose();
+  if (!obj)
+    return;
+  App->cvi->undo->objectPropChg();
+  obj->extra[IOBJ_EX_2D_TRANS] = value;
+  App->cvi->undo->finishUnit();
+  imodDraw(App->cvi, IMOD_DRAW_MOD);
+}
+
+void ioew_outline(int state)
+{
+  setObjectFlag(state, 0, IMOD_OBJFLAG_POLY_CONT);
+}
+
 void ioewCopyObj(int value)
 {
   Iobj *obj = getObjectOrClose();
@@ -213,6 +229,7 @@ void ioewCopyObj(int value)
   obj->pdrawsize = fromObj->pdrawsize;
   obj->linewidth2 = fromObj->linewidth2;
   obj->extra[IOBJ_EX_PNT_LIMIT] = fromObj->extra[IOBJ_EX_PNT_LIMIT];
+  obj->extra[IOBJ_EX_2D_TRANS] = fromObj->extra[IOBJ_EX_2D_TRANS];
   App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
@@ -270,6 +287,8 @@ int imod_object_edit_draw(void)
 
   Ioew_dialog->setCopyObjLimit(Model->objsize);
   Ioew_dialog->setObjectName(obj->name);
+  Ioew_dialog->setObjectNum(Model->cindex.object);
+  
   Ioew_dialog->setDrawBox(!(obj->flags & IMOD_OBJFLAG_OFF));
 
   for (i = 0; i < MAX_SYMBOLS; i++) {
@@ -297,7 +316,9 @@ int imod_object_edit_draw(void)
   Ioew_dialog->setPointRadius(obj->pdrawsize);
   Ioew_dialog->setPlanarBox(iobjPlanar(obj->flags), iobjOpen(obj->flags));
   Ioew_dialog->setPointLimit(obj->extra[IOBJ_EX_PNT_LIMIT]);
-
+  Ioew_dialog->setFillTrans(obj->extra[IOBJ_EX_2D_TRANS], 
+                            (obj->flags & IMOD_OBJFLAG_POLY_CONT) != 0, 
+                            (obj->flags & IMOD_OBJFLAG_SCAT) == 0);
   return(0);
 }
 

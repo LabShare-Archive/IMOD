@@ -4,11 +4,16 @@
 <A NAME = "TOP"><H3>Editing Object Properties</H3></A>
 The Object Type dialog edits the current object. 
 One can leave this dialog open and change the current 
-object.
+object.  Its settings will be changed to reflect the new object.  The object
+number is shown in the upper right.
 <P>
 <B>Object Name:</B> Enter a name for the object.
 <P>
 <B>Draw:</B> Turns drawing on/off in image windows.
+<P>
+<B>Copy from Object:</B> Press this button to copy all of the properties shown
+in this dialog from another object.  Select the object number to copy from in
+the spin box.
 <P>
 <B>Open/Closed/Scattered radio buttons:</B> 
 Set how points in object are connected.  Open and closed 
@@ -72,5 +77,22 @@ time value of a contour.  If the button is off, then new
 contours will not be assigned to the current time but 
 rather will have a time value of 0 and will appear over 
 images at all times.
+<P>
+<B>Filled contours in Zap:</B> If you set the transparency slider to a value
+above 0, the area enclosed by contours will be drawn with a transparent color
+in the Zap Window.  Specifically, this will happen with closed contours and
+open contours that lie entirely in the plane.  Low transparencies are fairly
+opaque, so you will generally need values above 50.  Select 
+<B>Draw contour outline also</B> to have the contour lines drawn around the
+filled area; if this option is off, lines will be only for the current contour
+and other selected contours.
+<P>
+<B>Set as Defaults</B> Press this button to save all of the properties
+controlled in this dialog as defaults for creating new objects.  These
+defaults are stored in your 3dmod settings.
+<P>
+<B>Restore</B> Press this button to return to the built-in default properties
+for new objects, which specify closed contours with no symbol display or other
+special features.
 <P>
 <A HREF="index.html#TOP">Help Index<A>

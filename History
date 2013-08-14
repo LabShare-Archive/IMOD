@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/13/13: IMOD_4-6-27
+8/13/13: Added ability to draw the interior of contours in the Zap window with
+transparent color (see Edit-Object-type dialog).
+
 8/13/13: Allowed 0 to be entered for Cs in Ctfplotter and Ctfphaseflip.
 
 8/12/13: IMOD_4-6-26

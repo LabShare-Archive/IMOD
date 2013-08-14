@@ -171,6 +171,7 @@ double imodObjectChecksum(Iobj *obj, int obNum)
     osum += clips->point[i].x + clips->point[i].y + 
       clips->point[i].z;
   }
+  osum += obj->extra[IOBJ_EX_PNT_LIMIT] + obj->extra[IOBJ_EX_2D_TRANS];
   osum += obj->fillred + obj->fillgreen + obj->fillblue + obj->quality;
   osum += obj->valblack + obj->valwhite + obj->matflags2 + obj->mat3b3;
   osum += istoreChecksum(obj->store);

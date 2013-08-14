@@ -159,6 +159,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mNewObjPropsDflt.linewidth2 = 1;
   mNewObjPropsDflt.symflags = 0;
   mNewObjPropsDflt.pointLimit = 0;
+  mNewObjPropsDflt.fillTrans = 0;
   prefs->bwStepDflt = 3;
   prefs->pageStepDflt = 10;
   prefs->iconifyImodvDlgDflt = 1;
@@ -320,13 +321,15 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mNewObjPropsChgd= settings->contains("newObjectProps");
   if (mNewObjPropsChgd) {
     str = settings->value("newObjectProps").toString();
-    sscanf(LATIN1(str), "%u,%d,%d,%d,%d,%d,%d", &mNewObjProps.flags, 
+    sscanf(LATIN1(str), "%u,%d,%d,%d,%d,%d,%d,%d", &mNewObjProps.flags, 
            &mNewObjProps.pdrawsize, &mNewObjProps.symbol, &mNewObjProps.symsize,
-           &mNewObjProps.linewidth2, &mNewObjProps.symflags, &mNewObjProps.pointLimit);
+           &mNewObjProps.linewidth2, &mNewObjProps.symflags, &mNewObjProps.pointLimit, 
+           &mNewObjProps.fillTrans);
     B3DCLAMP(mNewObjProps.pdrawsize, 0, 999);
     B3DCLAMP(mNewObjProps.symbol, 0, IOBJ_SYM_LAST);
     B3DCLAMP(mNewObjProps.symsize, 0, 100);
     B3DCLAMP(mNewObjProps.linewidth2, 0, 10);
+    B3DCLAMP(mNewObjProps.fillTrans, 0, 100);
   }
 
   // Get multi Z window geometry and params
@@ -591,7 +594,7 @@ void ImodPreferences::saveSettings(int modvAlone)
     str.sprintf("%u,%d,%d,%d,%d,%d,%d,%d,%d,%d", mNewObjProps.flags,
                 mNewObjProps.pdrawsize, mNewObjProps.symbol, mNewObjProps.symsize,
                 mNewObjProps.linewidth2, mNewObjProps.symflags, mNewObjProps.pointLimit,
-                0,0,0);
+                mNewObjProps.fillTrans,0,0);
     settings->setValue("newObjectProps", str);
   }
 
@@ -1138,6 +1141,7 @@ void ImodPreferences::setDefaultObjProps()
   mNewObjProps.linewidth2 = obj->linewidth2;
   mNewObjProps.symflags = obj->symflags;
   mNewObjProps.pointLimit = obj->extra[IOBJ_EX_PNT_LIMIT];
+  mNewObjProps.fillTrans = obj->extra[IOBJ_EX_2D_TRANS];
   mNewObjPropsChgd = true;
 }
 

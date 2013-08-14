@@ -45,6 +45,7 @@
 #define IMOD_OBJFLAG_EXTRA_EDIT (1l << 22) /* Allow editing of extra object  */
 #define IMOD_OBJFLAG_PNT_NOMODV (1l << 23) /* Draw no spheres in model view  */
 #define IMOD_OBJFLAG_MODV_ONLY  (1l << 24) /* Draw extra only in model view */
+#define IMOD_OBJFLAG_POLY_CONT  (1l << 26) /* Draw contour with overlay polygon */
 #define IMOD_OBJFLAG_TEMPUSE    (1l << 31) /* For temporary use              */
 
 #define IMOD_OBJFLAG_LINE IMOD_OBJFLAG_NOLINE
@@ -112,6 +113,7 @@
 /* Indices to extra array.  Elements used temporarily by extra objects can be assigned 
    at top of array until the space is needed. */
 #define IOBJ_EX_PNT_LIMIT  0
+#define IOBJ_EX_2D_TRANS   1
 #define IOBJ_EX_LASSO_ID   (IOBJ_EXSIZE - 1)
 
 /*****************************************************************************/

@@ -62,6 +62,7 @@ typedef struct new_obj_props
   int     linewidth2;
   int     symflags;
   int     pointLimit;
+  int     fillTrans;
 } NewObjectProps;
 
 // The structure of preferences.

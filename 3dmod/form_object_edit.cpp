@@ -54,6 +54,9 @@ objectEditForm::objectEditForm(QWidget* parent, Qt::WindowFlags fl)
   connect(copyObjButton, SIGNAL(clicked()), this, SLOT(copyClicked()));
   connect(setDefaultsButton, SIGNAL(clicked()), this, SLOT(setDefaultsClicked()));
   connect(restoreDefaultsButton, SIGNAL(clicked()), this, SLOT(restoreClicked()));
+
+  connect(transSlider, SIGNAL(valueChanged(int)), this, SLOT(transChanged(int)));
+  connect(outlineCheckBox, SIGNAL(toggled(bool)), this, SLOT(toggledOutline(bool)));
 }
 
 /*
@@ -157,6 +160,16 @@ void objectEditForm::toggledPlanar( bool state )
   ioew_planar(state ? 1 : 0);
 }
 
+void objectEditForm::transChanged( int value )
+{
+  ioew_fillTrans(value);
+}
+
+void objectEditForm::toggledOutline( bool state )
+{
+  ioew_outline(state ? 1 : 0);
+}
+
 void objectEditForm::copyClicked()
 {
   ioewCopyObj(copyObjSpinBox->value());
@@ -204,6 +217,13 @@ void objectEditForm::setObjectName( char *name )
   diaSetEditText(nameEdit, str);
 }
 
+void objectEditForm::setObjectNum( int num )
+{
+  QString str;
+  str.sprintf("# %d", num + 1);
+  objectNumLabel->setText(str);
+}
+
 void objectEditForm::setTimeBox( bool state, bool enabled )
 {
   diaSetChecked(timeCheckBox, state);
@@ -244,6 +264,19 @@ void objectEditForm::setPlanarBox( bool state, bool enabled )
 void objectEditForm::setPointLimit( int value )
 {
   diaSetSpinBox(ptsPerContSpinBox, value);
+}
+ 
+void objectEditForm::setFillTrans(int value, bool state, bool enabled)
+{
+  diaSetSlider(transSlider, value);
+  QString str;
+  str.sprintf("%d", value);
+  transLabel->setText(str);
+  diaSetChecked(outlineCheckBox, state);
+  fillLabel->setEnabled(enabled);
+  transLabel->setEnabled(enabled);
+  transSlider->setEnabled(enabled);
+  outlineCheckBox->setEnabled(enabled);
 }
 
 // Handle close event; pass on keypress
