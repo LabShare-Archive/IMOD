@@ -545,6 +545,86 @@ void utilExchangeFlipRotation(Imod *imod, int direction)
   setOrClearFlags(&imod->flags, IMODF_FLIPYZ, direction == ROTATION_TO_FLIP ? 1 : 0);
 }
 
+static GLUtesselator *sTessel = NULL;
+static int sTessError;
+
+#ifndef GLU_CALLBACK
+#define GLU_CALLBACK GLvoid (*)()
+#endif
+
+static void tessError(GLenum error)
+{
+  sTessError = error;
+  /*
+    imodPrintStderr("gluError %d: %s\n", error,
+    gluErrorString(error));
+  */
+}
+
+void setupFilledContTesselator()
+{
+  if (sTessel)
+    return;
+  sTessel = gluNewTess();
+  gluTessCallback(sTessel, GLU_BEGIN, (GLU_CALLBACK)glBegin);
+  gluTessCallback(sTessel, GLU_VERTEX, (GLU_CALLBACK)glVertex3fv);
+  gluTessCallback(sTessel, GLU_END, (GLU_CALLBACK)glEnd);
+  /*        gluTessCallback(sTessel, GLU_EDGE_FLAG, glEdgeFlag); */
+  gluTessCallback(sTessel, GLU_ERROR, (GLU_CALLBACK)tessError);
+}
+
+void drawFilledPolygon(Icont *cont)
+{
+  GLdouble v[3];
+  Ipoint *pts;
+  int pt;
+  int psize;
+  int ptstr, ptend;
+
+  sTessError = 0;
+  ptend = cont->psize;
+  ptstr = 0;
+  pts = cont->pts;
+  /* imodPrintStderr(".%d-%d", co, ptend);
+     fflush(stdout); */
+  if (ptend) {
+
+    psize = ptend + 1;
+    do {
+      sTessError = 0;
+      psize--;
+      
+      if (psize - ptstr < 3)
+        break;
+      
+      gluTessBeginPolygon(sTessel, NULL);
+      gluTessBeginContour(sTessel);
+      for (pt = ptstr; pt < psize; pt++) {
+        v[0] = pts[pt].x;
+        v[1] = pts[pt].y;
+        v[2] = pts[pt].z;
+        gluTessVertex(sTessel, v, &(pts[pt]));
+      }
+      gluTessEndContour(sTessel);
+      gluTessEndPolygon(sTessel);
+      
+      if ((!sTessError) && ((psize - ptend) > 3)) {
+        gluTessBeginPolygon(sTessel, NULL);
+        gluTessBeginContour(sTessel);
+        for (pt = psize; pt < ptend; pt++) {
+          v[0] = pts[pt].x;
+          v[1] = pts[pt].y;
+          v[2] = pts[pt].z;
+          gluTessVertex(sTessel, v, &(pts[pt]));
+        }
+        gluTessEndContour(sTessel);
+        gluTessEndPolygon(sTessel);
+      }
+      
+    } while(sTessError);
+  }
+}
+
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
 char *imodwEithername(const char *intro, const char *filein, int modelFirst)
