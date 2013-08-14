@@ -337,7 +337,7 @@ int ivwPlistBlank(ImodView *vi, int cz)
 /* Read a section of data into the cache */
 void ivwReadZ(ImodView *vi, unsigned char *buf, int cz)
 {
-  int zread, i, fill;
+  int zread, fill;
   b3dUInt16 *usbuf = (b3dUInt16 *)buf;
 
   /* Image in not a stack but loaded into pieces. */
