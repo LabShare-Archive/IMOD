@@ -42,7 +42,7 @@ newmode = ''
 newsize = None
 trial = ''
 fitopt = '-nfit 0'
-refarg = ' '
+refarg = ''
 binning = 1
 
 # Fallbacks from ../manpages/autodoc2man 3 1 finishjoin
@@ -116,6 +116,9 @@ sizeOnly = PipGetBoolean('MaximumSizeOnly', 0)
 localFits = PipGetBoolean('LocalFits', 0)
 if localFits:
    fitopt = ' '
+   if refarg:
+      exitError('You cannot use local fitting together with a reference section')
+      
 xformFile = PipGetString('TransformFile', '')
 gaps = PipGetBoolean('FillGaps', 0)
 noImage = PipGetBoolean('NoImage', 0)
