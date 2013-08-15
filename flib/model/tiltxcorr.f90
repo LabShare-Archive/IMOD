@@ -1253,11 +1253,15 @@ program tiltxcorr
         yshift = idir * nbinning * unstretchDy + iyBoxForAdj - iyBoxCur
         if (tracking) then
           if (findWarp) then
-            numControl = numControl + 1
-            xControl(numControl) = xmodel(ipatch, ivCur)
-            yControl(numControl) = ymodel(ipatch, ivCur)
-            xVector(numControl) = -nbinning * xpeak
-            yVector(numControl) = -nbinning * ypeak
+            !
+            ! Only add control point if there was a peak found within limits
+            if (peakVal > -1.e29) then
+              numControl = numControl + 1
+              xControl(numControl) = xmodel(ipatch, ivCur)
+              yControl(numControl) = ymodel(ipatch, ivCur)
+              xVector(numControl) = -nbinning * xpeak
+              yVector(numControl) = -nbinning * ypeak
+            endif
           else
             !
             ! compensate the shift that is to be accumulated for the
