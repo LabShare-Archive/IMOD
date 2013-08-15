@@ -193,7 +193,7 @@ void MyApp::plotFitPS(bool flagSetInitSetting)
 }
 
 /*
- * Fits the power spectrum by thechosen method and finds the zero
+ * Fits the power spectrum by the chosen method and finds the zero
  */
 void MyApp::fitPsFindZero()
 {

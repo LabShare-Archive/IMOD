@@ -292,8 +292,10 @@ void SimplexFitting::funkCTF(float* param, float* fValue)
     err *= 5. * (3. - fabs(mExpZero - zero2) / mExpZero);
   if (zero1 > 0.9)
     err *= 5. * (1. + 5. * (zero1 - 0.9));
-  if (zero1 < 0.01)
-    err *= 5. * (1. + 5. * (0.01 - zero1));
+
+  // Make error much bigger if defocus becomes negative (overfocus)
+  if (parUse[0] < 0.0)
+    err *= 5. * (1. - 5. * parUse[0]);
 
   *fValue = (float)err;
   /*printf("err=%f  def=%f  fc=%f  scale=%f  decay=%f\n", err, parUse[0], parUse[1],
