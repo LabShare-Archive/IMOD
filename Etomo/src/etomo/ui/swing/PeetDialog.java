@@ -818,7 +818,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     yAxisTypePanel.setParameters(matlabParam);
     volumeTable.setParameters(matlabParam, rbInitMotlFiles.isSelected(),
-        missingWedgeCompensationPanel.isTiltRangeRequired(), importDir);
+        missingWedgeCompensationPanel.isTiltRangeRequired(),
+        missingWedgeCompensationPanel.isTiltRangeMultiAxes(), importDir);
     sphericalSamplingForThetaAndPsiPanel.setParameters(matlabParam);
     maskingPanel.setParameters(matlabParam);
     cbflgAlignAverages.setSelected(matlabParam.isFlgAlignAverages());
@@ -1308,7 +1309,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .isSampleSphereNoneSelected());
     // volume table
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(),
-        missingWedgeCompensationPanel.isTiltRangeRequired());
+        missingWedgeCompensationPanel.isTiltRangeRequired(),
+        missingWedgeCompensationPanel.isTiltRangeMultiAxes());
     maskingPanel.updateDisplay();
     cbflgAlignAverages
         .setEnabled(yAxisTypePanel.getYAxisType() != MatlabParam.YAxisType.Y_AXIS);
