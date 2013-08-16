@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/15/13: Made Newstack floating scale images with extreme ranges to different
+mean and SD  to preserve dynamic range for other images.
+
 8/13/13: IMOD_4-6-27
 8/13/13: Added ability to draw the interior of contours in the Zap window with
 transparent color (see Edit-Object-type dialog).

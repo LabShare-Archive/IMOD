@@ -40,7 +40,7 @@ program newstack
   real*4 optimalMax(16)
   integer*4 lineOutSt(maxChunks+1), numLinesOut(maxChunks)
   integer*4 lineInSt(maxChunks+1), numLinesIn(maxChunks)
-  real*4, allocatable :: scaleFacs(:), scaleConsts(:)
+  real*4, allocatable :: scaleFacs(:), scaleConsts(:), secZmins(:), secZmaxes(:), ztemp(:)
   integer*1, allocatable :: extraIn(:), extraOut(:)
   data optimalMax/255., 32767., 255., 32767., 255., 255., 65535., 255., 255., &
       511., 1023., 2047., 4095., 8191., 16383., 32767./
@@ -82,7 +82,7 @@ program newstack
   integer*4 ix1, ix2, nByteCopy, nByteClear, ifLinear, limEntered, insideTaper, indFile
   real*4 constAdd, densOutMin, dens, tmin2, tmax2, tmean2, avgSec, enteredSD, enteredMean
   integer*4 numInputFiles, numSecLists, numOutputFiles, numToGet, maxNxGrid, maxNyGrid
-  integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy
+  integer*4 numOutValues, numOutEntries, ierr, ierr2, i, kti, iy, ind
   integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
   integer*4 lenTemp, ierr3, applyFirst, numTaper, numberOffset, numExclude
   integer*4 ifOnePerFile, ifUseFill, listIncrement, indOut, ifMeanSdEntered
@@ -921,6 +921,8 @@ program newstack
         floatText = ', floated to means'
         zmin = 1.e10
         zmax = -1.e10
+        allocate(secZmins(numOutTot), secZmaxes(numOutTot), ztemp(numOutTot), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR Z MIN/MAX')
       else
         diffMinMean = 0.
         diffMaxMean = 0.
@@ -956,22 +958,25 @@ program newstack
         call reallocateIfNeeded()
         !
         do ilist = 1, nlist(iFile)
-          iSecRead = inList(ilist + listInd(iFile) - 1)
+          ind = ilist + listInd(iFile) - 1
+          iSecRead = inList(ind)
           if (iSecRead >= 0 .and. iSecRead < nz) then
             !
             if (iVerbose > 0) print *,'scanning for mean/sd', iSecRead
             call scanSection(array, idimInOut, nxBin, nyBin, 0, readReduction, rxOffset, &
                 ryOffset, iSecRead, ifFloat, dmin2, dmax2, dmean2, sdSec, loadYstart, &
                 loadYend, indFilter, readShrunk, array(idimInOut + 1), lenTemp)
-            secMean(ilist + listInd(iFile) - 1) = dmean2
+            secMean(ind) = dmean2
             !
             if (ifFloat == 2) then
               !
               ! find the min and max Z values ((density-mean) /sd)
               !
+              secZmins(ind) = 0.
+              secZmaxes(ind) = 0.
               if (dmax2 > dmin2 .and. sdSec > 0.) then
-                zmin = min(zmin, (dmin2 - dmean2) / sdSec)
-                zmax = max(zmax, (dmax2 - dmean2) / sdSec)
+                secZmins(ind) = (dmin2 - dmean2) / sdSec
+                secZmaxes(ind) = (dmax2 - dmean2) / sdSec
               endif
             else
               !
@@ -1001,6 +1006,34 @@ program newstack
               optimalMax(mode + 1) / shiftMax, ' to fit in range'
           floatText = ', mean shift&scaled'
         endif
+      endif
+      !
+      ! For float to mean, find outliers and get zmin and zmax without them
+      if (ifFloat == 2) then
+        !call rsMedian(secZmaxes, numOutTot, ztemp, zmaxMed)
+        !call rsMADN(secZmaxes, numOutTot, zmaxMed, ztemp, zmaxMADN)
+        !print *,'median', zmaxMed, '   MADN', zmaxMADN
+        !write(*,'(8f9.2)')(ztemp(i) / zmaxMADN, i = 1, numOutTot)
+        isecOut =   0
+        call rsMadMedianOutliers(secZmins, numOutTot, 8., ztemp)
+        do i = 1, numOutTot
+          if (ztemp(i) >= 0.) then
+            zmin = min(zmin, secZmins(i))
+          else
+            isecOut = isecOut + 1
+          endif
+        enddo
+        call rsMadMedianOutliers(secZmaxes, numOutTot, 8., ztemp)
+        do i = 1, numOutTot
+          if (ztemp(i) <= 0.) then
+            zmax = max(zmax, secZmaxes(i))
+          else
+            isecOut = isecOut + 1
+          endif
+        enddo
+        deallocate(secZmins, secZmaxes, ztemp)
+        if (isecOut > 0) write(*,'(/,a,i3,a)')'WARNING: NEWSTACK - ',isecOut, &
+            ' sections have extreme ranges and will be scaled to a different mean & SD'
       endif
     endif
   endif
@@ -1997,8 +2030,8 @@ CONTAINS
         call sums_to_avgsd8(dsum, dsumSq, nxOut, nyOut, avgSec, sdSec)
         ! print *,'overall mean & sd', avgSec, sdSec
         if (tmpMin == tmpMax .or. sdSec == 0.) sdSec = 1.
-        zminSec = (tmpMin - avgSec) / sdSec
-        zmaxSec = (tmpMax - avgSec) / sdSec
+        zminSec = max(zmin, (tmpMin - avgSec) / sdSec)
+        zmaxSec = min(zmax, (tmpMax - avgSec) / sdSec)
         dmin2 = (zminSec - zmin) * optimalOut / (zmax - zmin)
         dmax2 = (zmaxSec - zmin) * optimalOut / (zmax - zmin)
         dmin2 = max(0., dmin2)
