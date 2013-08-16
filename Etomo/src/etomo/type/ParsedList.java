@@ -170,7 +170,8 @@ public final class ParsedList {
     this.type = type;
     this.allowNan = allowNan;
     this.descr = descr;
-    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan,descr);
+    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan,
+        descr);
     this.etomoNumberType = etomoNumberType;
   }
 
@@ -190,7 +191,7 @@ public final class ParsedList {
   /**
    * This is a list only if starts with "{" (ignoring whitespace).
    * @param attribute
-   * @return
+   * @return 
    */
   public static boolean isList(ReadOnlyAttribute attribute) {
     if (attribute == null) {
@@ -200,8 +201,18 @@ public final class ParsedList {
     if (value == null) {
       return false;
     }
-    if (value.trim().charAt(0) == OPEN_SYMBOL.charValue()) {
-      return true;
+    return value.trim().charAt(0) == OPEN_SYMBOL.charValue();
+  }
+
+  /**
+   * This is a string list only if starts with "{'" (ignoring whitespace).
+   * @param attribute
+   * @return
+   */
+  public static boolean isStringList(ReadOnlyAttribute attribute) {
+    if (isList(attribute)) {
+      // String off the list character and check for the string character
+      return ParsedQuotedString.isQuotedString(attribute.getValue().trim().substring(1));
     }
     return false;
   }
@@ -411,13 +422,13 @@ public final class ParsedList {
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       // Found an empty element.
       list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(), defaultValue,
-          allowNan,descr));
+          allowNan, descr));
       return token;
     }
     // May have found an element.
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
-      element = ParsedQuotedString.getInstance(isDebug(),descr);
+      element = ParsedQuotedString.getInstance(isDebug(), descr);
       token = element.parse(token, tokenizer);
     }
     else if (ParsedArray.isArray(token)) {

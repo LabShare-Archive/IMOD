@@ -65,6 +65,8 @@ public interface ConstPeetMetaData {
 
   public String getInitMotlFile(int key);
 
+  public String getTiltRangeMultiAxesFile(int key);
+
   public String getTiltRangeMin(int key);
 
   public String getTiltRangeMax(int key);
@@ -76,7 +78,7 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getReferenceParticle();
 
   public ConstEtomoNumber getReferenceVolume();
-  
+
   public int getReferenceMultiparticleLevel();
 
   public ConstEtomoNumber getEdgeShift();
@@ -94,4 +96,6 @@ public interface ConstPeetMetaData {
   public boolean isTiltRange();
 
   public boolean isManualCylinderOrientation();
+
+  public boolean isTiltRangeMultiAxes();
 }
