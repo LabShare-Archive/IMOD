@@ -691,7 +691,7 @@ int PipGetFloatArray(const char *option, float *array, int *numToGet, int arrayS
 int PipPrintHelp(const char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
 {
-  int i, j, abbrevOK, lastOpt, jlim, optLen, numOut = 0, numReal = 0;
+  int i, j, abbrevOK, lastOpt, jlim, optLen, numOut = 0, numReal = 0, brokeAtSpace;
   int helplim = 74;
   char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
@@ -865,17 +865,23 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
         if (newLinePt && newLinePt - sname <= helplim) {
           j = newLinePt - sname;
           newLinePt = strchr(sname + j + 1, '\n');
+          brokeAtSpace = 0;
         } else {
 
           /* Or break string at last space before limit */
           for (j = helplim; j >= 1; j--)
             if (sname[j] == ' ')
               break;
+          brokeAtSpace = 1;
         }
 
-        /* Replace break point with null, print and reset pointer and count */
+        /* Replace break point with null, print and reset pointer and count 
+           Also advance past a leading space for manpage output if broke at a space */
         sname[j] = 0x00;
         fprintf(out, "%s%s\n", indentStr, sname);
+        if (brokeAtSpace && sOutputManpage > 0)
+          while (sname[j + 1] == ' ')
+            j++;
         sname += j + 1;
         optLen -= j + 1;
       }
