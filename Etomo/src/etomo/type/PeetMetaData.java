@@ -140,6 +140,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   // do not change the names of these veriables unless backward compatibility work is done
   private final StringProperty rootName = new StringProperty("RootName");
   private final IntKeyList initMotlFile = IntKeyList.getStringInstance("InitMotlFile");
+  private final IntKeyList tiltRangeMultiAxesFile = IntKeyList
+      .getStringInstance("TiltRangeMultiAxesFile");
   private final IntKeyList tiltRangeMin = IntKeyList.getStringInstance(TILT_RANGE_KEY
       + "." + START_KEY);
   private final IntKeyList tiltRangeMax = IntKeyList.getStringInstance(TILT_RANGE_KEY
@@ -180,6 +182,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       "MaskType.ManualCylinderOrientation");
   private final EtomoNumber referenceMultiparticleLevel = new EtomoNumber(REFERENCE_KEY
       + ".Multiparticle.level");
+  private final EtomoBoolean2 tiltRangeMultiAxes = new EtomoBoolean2("TiltRangeMultiAxes");
 
   public PeetMetaData() {
     fileExtension = DataFileType.PEET.extension;
@@ -208,6 +211,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     revisionNumber.set(input.revisionNumber);
     manualCylinderOrientation.set(input.manualCylinderOrientation);
     referenceMultiparticleLevel.set(input.referenceMultiparticleLevel);
+    tiltRangeMultiAxes.set(input.tiltRangeMultiAxes);
+    tiltRangeMultiAxesFile.reset();
+    tiltRangeMultiAxesFile.set(input.tiltRangeMultiAxesFile);
   }
 
   public String getMetaDataFileName() {
@@ -273,6 +279,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     tiltRange.reset();
     revisionNumber.reset();
     referenceMultiparticleLevel.reset();
+    tiltRangeMultiAxes.reset();
+    tiltRangeMultiAxesFile.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -292,6 +300,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     tiltRange.load(props, prepend);
     manualCylinderOrientation.load(props, prepend);
     referenceMultiparticleLevel.load(props, prepend);
+    tiltRangeMultiAxes.load(props, prepend);
+    tiltRangeMultiAxesFile.load(props, prepend);
 
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
@@ -340,6 +350,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     revisionNumber.store(props, prepend);
     manualCylinderOrientation.store(props, prepend);
     referenceMultiparticleLevel.store(props, prepend);
+    tiltRangeMultiAxes.store(props, prepend);
+    tiltRangeMultiAxesFile.store(props, prepend);
   }
 
   public void setRootName(final String input) {
@@ -394,8 +406,16 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     return initMotlFile.getString(key);
   }
 
+  public String getTiltRangeMultiAxesFile(final int key) {
+    return tiltRangeMultiAxesFile.getString(key);
+  }
+
   public void setInitMotlFile(final String initMotlFile, final int key) {
     this.initMotlFile.put(key, initMotlFile);
+  }
+
+  public void setTiltRangeMultiAxesFile(final String input, final int key) {
+    tiltRangeMultiAxesFile.put(key, input);
   }
 
   public void resetInitMotlFile() {
@@ -468,6 +488,14 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void setFlgWedgeWeight(final boolean input) {
     flgWedgeWeight.set(input);
+  }
+
+  public void setTiltRangeMultiAxes(final boolean input) {
+    tiltRangeMultiAxes.set(input);
+  }
+
+  public boolean isTiltRangeMultiAxes() {
+    return tiltRangeMultiAxes.is();
   }
 
   public boolean isFlgWedgeWeight() {
