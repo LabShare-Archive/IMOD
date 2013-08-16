@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
@@ -121,13 +122,18 @@ final class ReferencePanel implements UIComponent, SwingComponent {
     JPanel pnlParticle = new JPanel();
     JPanel pnlFile = new JPanel();
     JPanel pnlMultiparticle = new JPanel();
+    JPanel pnlBorder = new JPanel();
     // Root
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
-    pnlRoot.setBorder(new EtchedBorder(TITLE).getBorder());
-    pnlRoot.add(pnlParticle);
-    pnlRoot.add(pnlFile);
-    pnlRoot.add(pnlMultiparticle);
-    pnlRoot.add(Box.createRigidArea(FixedDim.x0_y15));
+    pnlRoot.add(pnlBorder);
+    pnlRoot.add(Box.createRigidArea(new Dimension(0, 8)));
+    //border
+    pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.Y_AXIS));
+    pnlBorder.setBorder(new EtchedBorder(TITLE).getBorder());
+    pnlBorder.add(pnlParticle);
+    pnlBorder.add(pnlFile);
+    pnlBorder.add(pnlMultiparticle);
+    pnlBorder.add(Box.createRigidArea(new Dimension(0, 34)));
     // particle panel
     pnlParticle.setLayout(new BoxLayout(pnlParticle, BoxLayout.X_AXIS));
     pnlParticle.add(rtfParticle.getContainer());
