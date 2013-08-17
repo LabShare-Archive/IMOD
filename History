@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/16/13: Added support for dual/multi tilt missing wedge compensation during
+PEET averaging.(Bug# 1688)
+
 8/15/13: Made Newstack floating scale images with extreme ranges to different
 mean and SD  to preserve dynamic range for other images.
 
