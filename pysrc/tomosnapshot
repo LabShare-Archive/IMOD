@@ -46,22 +46,30 @@ eppSetFiles = []
 eppAxisHeaders = []
 eppSingleFiles = ['processchunks.out', 'processchunks.csh']
 eppSingleHeaders = []
-allSetFiles = [edfSetFiles, ejfSetFiles, epeSetFiles, nadSetFiles, eppSetFiles]
+essSetFiles = ['.xf', '.xg', '_auto.xcxf', '_auto.xf', '_auto.linxf', '_midas.xf']
+essAxisHeaders = ['_preblend.mrc', '_ali.mrc']
+essSingleFiles = []
+essSingleHeaders = []
+essAxisThumbs = ['_preblend.mrc', '_ali.mrc']
+
+allSetFiles = [edfSetFiles, ejfSetFiles, epeSetFiles, nadSetFiles, eppSetFiles, 
+               essSetFiles]
 allAxisHeaders = [edfAxisHeaders, ejfAxisHeaders, epeAxisHeaders, nadAxisHeaders,
-                  eppAxisHeaders]
+                  eppAxisHeaders, essAxisHeaders]
 allSingleFiles = [edfSingleFiles, ejfSingleFiles, epeSingleFiles, nadSingleFiles,
-                  eppSingleFiles]
+                  eppSingleFiles, essSingleFiles]
 allSingleHeaders = [edfSingleHeaders, ejfSingleHeaders, epeSingleHeaders,
-                    nadSingleHeaders, eppSingleHeaders]
-allAxisThumbs = [edfAxisThumbs, [], [], [], []]
-allSingleThumbs = [edfSingleThumbs, [], [], [], []]
+                    nadSingleHeaders, eppSingleHeaders, essSingleHeaders]
+allAxisThumbs = [edfAxisThumbs, [], [], [], [], essAxisThumbs]
+allSingleThumbs = [edfSingleThumbs, [], [], [], [], []]
 
 # The extensions of file types
-extList = ['edf', 'ejf', 'epe', 'epp']
+extList = ['edf', 'ejf', 'epe', 'epp', 'ess']
 
 # Keys for different types of files in each file type
 allSetKeys = [['Setup.DatasetName'], ['Join.RootName'], ['Peet.RootName'],
-               ['AnisotropicDiffusion.RootName', 'Parallel.RootName']]
+              ['AnisotropicDiffusion.RootName', 'Parallel.RootName'],
+              ['SerialSections.RootName']]
 
 # Some global variables
 tempdir = '.'
@@ -204,6 +212,7 @@ options = ["e:EtomoFile:FN:Etomo data file to define type of snapshot (can be " 
            "w:WriteableDirectory:FN:Location at which to place output and temporary "+ \
            "files",
            "t:Thumbnails:B:Make thumbnails of middle sections of some image files",
+           "s:SkipCygcheck:B:Skip running cygcheck on Windows",
            "help:usage:B:Print usage output"]
 PipExitOnError(0, prefix)
 (numOpts, numNonOpts) = PipParseInput(sys.argv, options)
@@ -233,6 +242,7 @@ if etomoFile:
 
 doThumbnails = PipGetBoolean('Thumbnails', 0)
 writeableDir = PipGetString('WriteableDirectory', '.')
+skipCygcheck = PipGetBoolean('SkipCygcheck', 0)
 
 if not os.path.isdir(writeableDir):
    exitError(writeableDir + ' is not a directory')
@@ -366,7 +376,8 @@ for k, v in os.environ.items():
    unameOut.append(k + '=' + v)
 
 # Should we do the registry with -r?  It takes 3 seconds
-if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly:
+if (sys.platform.find('cygwin') >= 0 or sys.platform.find('win32') >= 0) and not winOnly \
+   and not skipCygcheck:
    unameOut += runcmd('cygcheck -s -v -r', None, None, 'stdout')
 
 # Type-specific additions to lists here:
@@ -443,6 +454,14 @@ if typeInd == 3:
    tests = glob.glob(os.path.join(naddir, 'test.K*[0-9]'))
    singleHeaders += tests
    
+#
+# Serial sections
+if typeInd == 5:
+   if etomoFile:
+      stack = getKeyValue(etomoLines, 'SerialSections.Stack')
+      if stack:
+         singleHeaders.append(stack)
+         singleThumbs.append(stack)
 
 # Run the file listing now that we know if we need a subdir
 curDir = os.getcwd()
