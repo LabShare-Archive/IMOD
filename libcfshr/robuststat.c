@@ -19,6 +19,9 @@
 #define rssortindexedfloats RSSORTINDEXEDFLOATS
 #define rsmedianofsorted RSMEDIANOFSORTED
 #define rsmedian RSMEDIAN
+#define rsmedian RSMEDIAN
+#define rsfastmedian RSFASTMEDIAN
+#define rsfastmadn RSFASTMADN
 #define rstrimmedmeanofsorted RSTRIMMEDMEANOFSORTED
 #define rstrimmedmean RSTRIMMEDMEAN
 #define rsmadn RSMADN
@@ -28,6 +31,9 @@
 #define rssortindexedfloats rssortindexedfloats_
 #define rsmedianofsorted rsmedianofsorted_
 #define rsmedian rsmedian_
+#define rsfastmedian rsfastmedian_
+#define rsfastmadn rsfastmadn_
+#define rsfastmedianinplace rsfastmedianinplace_
 #define rstrimmedmeanofsorted rstrimmedmeanofsorted_
 #define rstrimmedmean rstrimmedmean_
 #define rsmadn rsmadn_
@@ -166,6 +172,40 @@ void rsmedian(float *x, int *n, float *xsort, float *median)
 }
 
 /*!
+ * Computes the median of the [n] values in [x] in linear time.  The value is returned in 
+ * [median] and [x] is rearranged by one or two calls to @@percentileFloat@.  This 
+ * routine is faster than @rsMedian even for small [n], and much faster for large [n].
+ */
+void rsFastMedianInPlace(float *x, int n, float *median)
+{
+  *median = (float)percentileFloat((n + 1) / 2, x, n);
+  if (n % 2 == 0)
+    *median = (float)((*median + percentileFloat(n / 2 + 1, x, n) )/ 2.);
+}
+
+/*! Fortran wrapper for @rsFastMedianInPlace */
+void rsfastmedianinplace(float *x, int *n, float *median)
+{
+  rsFastMedianInPlace(x, *n, median);
+}
+
+/*!
+ * Computes the median of the [n] values in [x] in linear time.  The value is returned in 
+ * [median], and [xjumble] is used for calling @@rsFastMedianInPlace@.
+ */
+void rsFastMedian(float *x, int n, float *xjumble, float *median)
+{
+  memcpy(xjumble, x, n * sizeof(float));
+  rsFastMedianInPlace(xjumble, n, median);
+}
+
+/*! Fortran wrapper for @rsFastMedian */
+void rsfastmedian(float *x, int *n, float *xjumble, float *median)
+{
+  rsFastMedian(x, *n, xjumble, median);
+}
+
+/*!
  * Computes the normalized median absolute deviation from the median for the
  * [n] values in [x], using the value already computed for the median in 
  * [median].  The result is returned in [MADN], and [tmp] is returned with
@@ -181,12 +221,31 @@ void rsMADN(float *x, int n, float median, float *tmp, float *MADN)
   (*MADN) /= 0.6745;
 }
 
-/*!
- * Fortran wrapper for @rsMADN
- */
+/*! Fortran wrapper for @rsMADN */
 void rsmadn(float *x, int *n, float *median, float *tmp, float *MADN)
 {
   rsMADN(x, *n, *median, tmp, MADN);
+}
+
+/*!
+ * Computes the normalized median absolute deviation from the median for the
+ * [n] values in [x] in linear time, using the value already computed for the median in 
+ * [median].  The result is returned in [MADN], and [tmp] is used for storing absolute 
+ * deviations.
+ */
+void rsFastMADN(float *x, int n, float median, float *tmp, float *MADN)
+{
+  int i;
+  for (i = 0; i < n; i++)
+    tmp[i] = (float)fabs((double)(x[i] - median));
+  rsFastMedianInPlace(tmp, n, MADN);
+  (*MADN) /= 0.6745;
+}
+
+/*! Fortran wrapper for @rsFastMADN */
+void rsfastmadn(float *x, int *n, float *median, float *tmp, float *MADN)
+{
+  rsFastMADN(x, *n, *median, tmp, MADN);
 }
 
 /*!
@@ -200,8 +259,8 @@ void rsMadMedianOutliers(float *x, int n, float kcrit, float *out)
 {
   int i;
   float median, madn;
-  rsMedian(x, n, out, &median);
-  rsMADN(x, n, median, out, &madn);
+  rsFastMedian(x, n, out, &median);
+  rsFastMADN(x, n, median, out, &madn);
   for (i = 0; i < n; i++) {
     if (fabs((double)(x[i] - median)) / madn > kcrit)
       out[i] = x[i] > median ? 1. : -1.;

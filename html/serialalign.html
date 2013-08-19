@@ -4,30 +4,520 @@ Serial Section Alignment with IMOD
 
 <body>
 <A NAME = "TOP"></A>
-<H2 ALIGN=center>Serial Section Alignment with IMOD</H2>
+<H2 ALIGN=center>Serial Section Alignment and Montage Blending with IMOD</H2>
 <HR>
-<BR><A HREF = "#Linear">Linear Transformations</A>
-<BR><A HREF = "#FandG">F and G Transforms</A>
-<BR><A HREF = "#Automatic">Automatic alignment</A>
-<BR><A HREF = "#Fiducial">Generating or Editing an Alignment with Fiducial Points</A>
-<BR><A HREF = "#Manual">Manually Editing an Alignment and Adding Warping with Midas</A>
-<BR><A HREF = "#FtoG2">Converting from an F List to a G List</A>
-<BR><A HREF = "#Images">Creating Transformed Images</A>
-<BR><A HREF = "#Montages">Working with Montaged Images</A>
-<BR><A HREF = "#Realigning">Realigning Images and Models</A>
+<BR><A HREF = "#Starting">Getting Started</A>
+<BR><A HREF = "#Blending">Blending Montaged Images</A>
+<BR><A HREF = "#Aligning">Aligning the Serial Sections with Linear Transformations</A>
+<BR><A HREF = "#Manual"> Manually Editing an Alignment</A>
+<BR><A HREF = "#UsingBoth">Combining Automatic and Manual Alignment</A>
+<BR><A HREF = "#Warping">Aligning Images with Warping</A>
+<BR><A HREF = "#Images">Creating the Aligned Stack</A>
 <BR><A HREF = "#Handedness">Stacking Order and Handedness of Structures</A>
+<BR><A HREF = "#Linear">Background on Linear Transformations</A>
+<BR><A HREF = "#FandG">Background on F and G Transforms</A>
+<BR><A HREF = "#FtoG2">Converting from an F List to a G List</A>
+<BR><A HREF = "#Fiducial">Generating or Editing an Alignment with Fiducial Points</A>
+<BR><A HREF = "#Realigning">Realigning Images and Models</A>
 <HR>
 <P>
-This document gives an overview and some background information on the
-tools available in IMOD for aligning images from serial sections.  First there
-is a description of the transformations that are used for aligning images and
-the ways that their parameters are represented.  There follows an explanation
-of why it is necessary to process transformations before they can be used to
-align serial images.  Three ways of obtaining transformations are then
-described, followed by more detailed explanations of the options for
-processing transformations for particular kinds of data sets.
+This document provides a step-by-step guide for using the interface in eTomo
+for aligning images from serial sections.
+It also presents some background information on the
+concepts and tools involved in this process, and describes some of the
+other operations that can be run outside of the eTomo interface.
+This interface is also useful if you have some montaged images that need to be
+blended into single frames without any alignment; in that case you just need
+to go through <A HREF = "#Starting">Getting Started</A> and 
+<A HREF = "#Blending">Blending Montaged Images</A>.
+<P>
+Most images can be aligned adequately by applying general linear
+transformations (also known as affine transformations).  These transformations
+can include a shift, a rotation, a magnification (size change), and a stretch,
+all of which occur uniformly across an image.  See 
+<A HREF = "#Linear">Background on Linear Transformations</A> for more details
+about the properties of these transforms and the terminology that we use.
+When the changes between
+two images are nonlinear (e.g., if distortions occurs differently in different
+areas), then it is necessary to use a nonlinear or warping transformation to
+align them.  Warping transformations in IMOD are specified by a set of
+shifts between images at a collection of points.  The interface supports two
+different methods of
+aligning images: automatically by image correlations with 
+<A HREF = "man/Xfalign.html#TOP">Xfalign</A>, or manually by displaying pairs of
+images in <A HREF = "man/midas.html#TOP">Midas</A>.  A third method of
+aligning with linear transformations, fiducial points marked between images,
+is not supported by the interface and is described in 
+<A HREF = "#Fiducial">Generating or Editing an Alignment with Fiducial 
+  Points</A>.  Other operations not supported by the interface,
+  refining the alignment after you have created a model on the aligned stack
+  and transforming the model to that new alignment, are described in 
+<A HREF = "#Realigning">Realigning Images and Models</A>.
+<P>
+If you are working with serial sections, you should also consider the issues
+discussed in <A HREF = "#Handedness">Stacking Order and Handedness of Structures</A>.
+<P>
+The interface has several features to alleviate the difficulties of dealing
+with very large images.  For any button that opens an image file in
+<A HREF = "man/3dmod.html#TOP">3dmod</A>, you
+can right click and select either <B>Open binned by 2</B> or 
+<B>Open with startup window</B>.  The latter allows you to select a
+higher binning in X and Y, and even binning in Z if that would be
+appropriate.  You can make one of these two choices be the default when
+opening <A HREF = "man/3dmod.html#TOP">3dmod</A> by selecting the same option
+in the eTomo Options menu. There is also an option on the Align tab to load
+data into <A HREF = "man/midas.html#TOP">Midas</A> with binning, which will
+save memory, make the program run faster, and may make the images look better
+than full-sized images zoomed down.
 
-<H3><A NAME = "Linear"></A>Linear Transformations</H3>
+<H3><A NAME = "Starting"></A>Getting Started</H3>
+The images that you want to align need to be in a single MRC file, referred to as
+a stack.  If your images are in one section per file, then they can be stacked
+with <A HREF = "man/newstack.html#TOP">Newstack</A> (if they are already in
+MRC format), <A HREF = "man/tif2mrc.html#TOP">Tif2mrc</A> (if they are TIFF
+files), or possibly <A HREF = "man/raw2mrc.html#TOP">Raw2mrc</A> (for some
+other file formats).  See the <A HREF = "guide.html#GettingStarted">IMOD
+  Guide</A> for details on stacking files.  Color (RGB) images can also be
+aligned with these procedures; <A HREF = "man/tif2mrc.html#TOP">Tif2mrc</A>
+will make an RGB-mode MRC file by default when given color images.
+<P>
+Your unaligned image stack may have any extension: ".st", ".mrc", or anything
+else.  The root name of this stack (before the extension) is used as the dataset
+name (referred to as "setname") from which other files are named.
+<P>
+Only one serial section data set can reside in a directory, so generally you
+should start by creating a directory and moving the raw stack into it.  If you
+are just blending montages and want to blend one after another in the same
+directory, you need to remove the ".ess" file that eTomo uses to keep track of
+serial section data sets.
+<P>
+Start eTomo.  The Front Page will appear; press the button <B>Align Serial
+    Sections / Blend Montages</B>.  This will open both the main eTomo window
+    and a starting dialog titled "Starting Serial Sections" where you
+    select the unaligned image stack and indicate whether it consists
+    of <B>Single frames</B> or <B>Montages</B>.  The Log window also appears; 
+    messages are copied there and you can also enter notes there.
+<P>
+This dialog also has a place
+    to select an image distortion field file, which can be helpful when
+    blending montages taken with side-entry (wide-angle) cameras.  There are
+    tools in IMOD for computing such image distortion fields from a set of
+    overlapping images at a particular magnification.  The file
+    chooser will open in the directory where such files should be kept 
+(<code>/usr/local/ImodCalib/Distortion</code> by default).  If you select a
+    distortion file, be sure to set the binning on the camera at which the
+    images were acquired.
+
+<H3><A NAME = "Blending"></A>Blending Montaged Images</H3>
+<P>
+If you have a montaged image stack, the interface opens with the <B>Initial
+Blend</B> tab after you finish with the starting dialog.  It will first
+extract the piece list file from the image file if one is not already present
+(named "setname.pl").  The progress area at the top of the window will
+indicate that this has happened. The alignment tools work only with
+single-frame images, so it is necessary to run 
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> to create the needed images
+in a file named "setname_blend.mrc".  This program uses correlations in
+overlap zones to determine the shift in X and Y between each pair of
+horizontally or vertically adjacent montage pieces. It takes all of these
+shifts into account to solve for a shift to be applied to each individual
+piece when placing it in the blended image.
+<P>
+Select
+<B>Treat as very sloppy montage</B> if the montage was acquired with stage
+movement.  With this option, the program will correlate larger portions of the
+overlap zones and be able to find the shifts when the overlap varies
+substantially from the nominal amount.
+<P>
+The option for <B>Robust fitting</B> is useful if a minor fraction of the
+correlations in the overlap zones fail because of grid bars, insufficient
+image features, or inadequate overlap.  This is rare with serial section data
+but common when blending montages used for mapping in SerialEM.  With robust
+fitting, the program can give less weight to correlation shifts that have
+larger errors when solving for the overall shifts of the individual pieces.
+In the best case, the erroneous correlation shifts may be completely
+discounted and the correct solution obtained from the rest of the
+data.  The criterion entered in the text box controls the sensitivity for
+considering a shift to be an outlier; a value smaller than 1 will down-weight
+more shifts.
+<P>
+Press <B>Make Blended Stack</B> to run  
+<A HREF = "man/blendmont.html#TOP">Blendmont</A>.  Press <B>Open Blended Stack</B>
+to see the resulting blended file.
+If the shifts between pieces were not all determined
+accurately, you may be able to see this in the blended file.  However, it can be
+difficult to see this problem in the unaligned images, so you may not see a
+problem until you make an aligned stack.  The log file from the blending run
+does have useful information about the errors in aligning the pieces, unless
+you have a montage that consists of just one row or one column of pieces.
+Thus, except in that case, you should open the "preblend.log" to examine the
+errors in aligning pieces. (Right-click in
+the panel and select this file from the popup menu.)
+For each section, you will see a line like
+<pre>
+ 8 edges, mean&max error before:  25.22  88.08, after by edges:   1.24   3.06
+</pre>
+The two numbers on the right are the ones that indicate whether the pieces
+line up well after being shifting into registration as well as possible.  If
+these numbers are large (more than a few pixels), it is likely that one or
+more of the correlations used to align adjacent pieces in that section has
+failed.  It is hard to give a fixed rule for when the numbers are too large,
+because when there are no errors in the correlations, the errors shown will
+depend on the amount and kind of distortion in your images.  Until you have
+some experience about what size of errors to expect, you should open the
+data set in <A HREF = "man/midas.html#TOP">Midas</A> and verify the alignment
+of pieces in a few of the sections with the biggest errors.
+Beware: sections are numbered from zero in this log file but from
+1 in <A HREF = "man/3dmod.html#TOP">3dmod</A> and 
+<A HREF = "man/midas.html#TOP">Midas</A>.
+<P>
+If there is a problem with the alignment of pieces, you can
+use <A HREF = "man/midas.html#TOP">Midas</A> to adjust the
+shifts between pieces ("Fix edges") manually until the error in solving for
+the overall shifts of the pieces is minimal.  
+<A HREF = "man/midas.html#TOP">Midas</A> will display an overlap zone between
+two pieces.  Here and elsewhere, 
+the overlap zones are referred to as "edges"; edges between horizontally or
+vertically adjacent pieces are referred to as edges in X or Y, respectively.
+You can use the spin boxes or the hot keys to go between one edge and the next
+or one section and the next (the hot keys are "a" and "b" to move between
+sections and "A" and "B" to move between edges).  Basically, you need to find
+each bad displacement and adjust it by shifting with the left mouse button.
+The buttons in the lower left showing the largest errors will assist in
+finding the bad shifts on a section.  If the shift is bad, you can try the 
+<B>Apply Leave-out Error</B> button near the bottom, as this will often place
+the piece correctly based on its overlap with other pieces.
+There are several other features to assist in this task when there are many
+errors (which can be the case when fixing shifts for a low-magnification
+map).  See <A HREF = "midasHelp/controls.html#Controls">Controls when Fixing Montages</A> 
+in the <A HREF = "man/midas.html#TOP">Midas</A> online
+help and the section on <B>Fixing Montage Overlaps</B> in the 
+<A HREF = "man/midas.html#TOP">Midas man page</A>.
+<P>
+After fixing edges, you need to save the shifts, exit 
+<A HREF = "man/midas.html#TOP">Midas</A>, and remake the blended stack.
+
+<H3><A NAME = "Aligning"></A>Aligning the Serial Sections with Linear Transformations</H3>
+On the <B>Align</B> tab in the eTomo interface, you can do both automated alignment with 
+<A HREF = "man/xfalign.html#TOP">Xfalign</A> and manual alignment with 
+<A HREF = "man/midas.html#TOP">Midas</A>.  Nearly all of the controls are for
+automated alignment; if you just want to do manual alignment then you only
+need to press the <B>Midas</B> button.  The automated alignment works only if
+there are sufficient image features that are similar from one section to the
+next.  For a substantial number of
+sections, or a project with numerous similar data sets, it is worth trying the
+automated alignment and experimenting with parameters to see if it can be made
+to work.  The primary program run by 
+<A HREF = "man/xfalign.html#TOP">Xfalign</A> is 
+<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>, which performs an iterative search for
+the transformation parameters that minimize a measure of difference between
+two images.  With the radio butttons, you can choose whether it finds 
+the <B>Full linear transformation</B>, or a restricted
+transformation consisting of </B>Rotation/translation</B> or
+</B>Rotation/translation/magnification</B> (size change).  The search starts
+with no shift between images (at least, when you start it with 
+<B>Initial Auto Alignment</B>) and it can get stuck in a local minimum and not
+find the alignment if the images have a substantial shift between them.  
+Thus, if you observe big shifts between the images when you open the unaligned
+stack, you should
+turn on the option <B>Find initial shifts with cross-correlation</B>,
+which will make <A HREF = "man/xfalign.html#TOP">Xfalign</A> run 
+<A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A> first to correlate the images
+at all possible shifts and find the best one.
+[FUTURE: By turning off the <B>Search For</B> checkbox, it is also possible to
+find just the shifts by cross-correlation and skip the search in 
+<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>.]
+<P>
+The automatic alignment should work better if images are processed to
+emphasize corresponding features.  The processing and area selection options
+available through the
+interface consist of the <B>Fraction to ignore on edges</B>, the
+image <B>Binning</B> (which is 2 by default) and low and high pass filtering
+by Gaussian functions.  The three filter parameters, the
+sigma for a low-frequency filter and the cutoff radius and sigma for a
+high-frequency filter, have the same meaning as the parameters used in many other IMOD
+programs.  You can experiment with these filter settings in the Fourier Filtering
+panel of the 
+<A HREF = "3dmodHelp/imageProc.html#FourierFilter">3dmod Image Processing</A>
+dialog, which you can open by selecting <B>Image-Process</B> from
+the <B>Edit</B> menu and then clicking on <B>Fourier filter</B>.
+<A HREF = "man/xfalign.html#TOP">Xfalign</A> has several other
+options for image filtering that are not available through the interface, and
+you would have to run the program outside of eTomo to access those options.
+See the man pages for  <A HREF = "man/xfalign.html#TOP">Xfalign</A> and
+ <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> for more guidance on
+ processing options; let us know if you think other options should be added to
+ the interface.
+<P>
+You can skip over sections with features that will impair alignment by listing
+them in <B>Sections to skip</B>, with sections numbered from 1.  The programs
+will align the section after a skipped one to a section before a skipped one.
+Note that if you then align the skipped sections manually, you will need to
+align both the skipped section to the previous one and the next one to the
+skipped one.
+<P> To run automatic alignment when there is no preliminary alignment of
+  images, press <B>Initial Auto Autoalignment</B>.  You can then examine how
+  well the alignment worked in <A HREF = "man/midas.html#TOP">Midas</A>, as
+  described in the next section.
+
+<h3><A NAME = "Manual"></A> Manually Editing an Alignment</H3>
+The program <A HREF = "man/midas.html#TOP">Midas</A> provides for interactive
+visualization and manual adjustment of the alignment between two images.  Like
+automatic alignment, it works with a list of transformations that relate each
+section to the previous one.  It can be used exclusively for alignment, or it
+can be used to assess the quality of transforms produced by automatic
+alignment and adjust them as needed, without having to build an aligned stack.
+The program works with the unaligned images and applies a transform to one of
+them to show how two images are aligned.
+<P>
+Here are a few key points about using 
+<A HREF = "man/midas.html#TOP">Midas</A> to align images with a linear
+transformation:
+<UL>
+<LI> The program always considers one pair of images at a time.  The hot keys
+  "a" and "b" advance and back up the pair of sections being viewed.
+<LI> The program starts out in green-magenta overlay, where the section being
+  aligned, referred to as the "current section", is in green, and the previous
+  one, the "reference section", is in magenta.  Toggling between images is
+  often more useful and can be done with the <B>Toggle Ref/Cur</B> button or 
+  the "PageUp" and "PageDown" keys.  The <B>Overlay view</B> checkbox or the
+  "Insert" key will restore the color overlay.
+<LI> Aligning is generally done with the mouse.  In the middle of the panel on
+  the left are three lines in red and blue showing what each mouse button
+  does with different control keys pressed; the line in red shows what actions
+  are currently available.
+<LI> Shifting, rotating, and changing magnification with the mouse are
+  relatively straightforward (left button, middle button, and right button
+  with "Shift" key, respectively).  
+<LI> Stretching the image with the right mouse button is seemingly
+  intuitive, but it takes some experience to know what stretch is needed to
+  fix a particular misalignment.  To make this easier, there are two other
+  ways to impose a stretch.  
+<LI> A second way to impose stretch involves aligning the image at two points:
+  the yellow "center" point, which you may need to move with the Ctrl and the
+  middle mouse button; and a "second fixed point", which you set at an aligned
+  place with Ctrl and the right mouse button.  Then you drag the image at another
+  location until the images line up as well as possible.
+<LI> The third way is equivalent to the second but may seem easier: turn
+  on <B>Add/edit warp points</B>, add three well-spaced points at places where
+  the images can be aligned, and shift the images into alignment at each
+  point.  As long as you do not exceed 3 points, you still have a linear
+  transformation.  The middle mouse button adds a point, and the left mouse
+  button can be used to drag the currently selected point, which is shown in
+  yellow.  A different point can be selected by clicking it with the left
+  mouse button.
+<LI> The Edit menu has entries for resetting the transform to the "unit"
+  transform or to a previously saved one.
+<LI> Use the "S" hot key to save the transforms before exiting.
+</UL>
+
+<h3><A NAME = "UsingBoth"></A>Combining Automatic and Manual Alignment</H3>
+The action buttons at the bottom of the alignment panel provide for several
+alternative strategies and do not all need to be used.  Possibilities are:
+<UL>
+<LI> Use <B>Midas</B> only.
+<LI> Use <B>Initial Auto Alignment</B> followed by <B>Midas</B>.
+<LI> Use <B>Midas</B> to get images roughly aligned, followed by <B>Refine
+    with Auto Alignment</B>, then <B>Midas</B> to check the result.
+<LI> Use <B>Initial Auto Alignment</B> to find a restricted set of parameters, 
+check and fix the result with <B>Midas</B>, then use  <B>Refine
+    with Auto Alignment</B> with less restricted parameters and check again
+      with  <B>Midas</B>.
+</UL>
+<P> The program keeps track of the last alignment done and uses that as the
+  basis for the next operation.  However, if you run an initial autoalignment
+  and the results are bad enough that you want to start from scratch and align
+  just with <A HREF = "man/midas.html#TOP">Midas</A>, you can press 
+  <B>Revert to No Transforms</B> then <B>Midas</B>.  If you do some alignment
+  in <A HREF = "man/midas.html#TOP">Midas</A> then do a refining autoalignment
+  that produces results not worth working from, you can press 
+<B>Revert Auto Alignment to Midas</B> to restore the transforms that were
+saved from <A HREF = "man/midas.html#TOP">Midas</A>. 
+  
+<h3><A NAME = "Warping"></A>Aligning Images with Warping</H3>
+<P>
+A warping (nonlinear) transformation is specified by a set of shifts between
+the images at particular points, which are commonly referred to as control
+points.  Warping becomes
+important for very large images where nonlinearities make it difficult to line
+them up everywhere with a single linear transformation.  Although a warping
+can be set up with as few as 4 points, in practice
+you will generally need more than this minimum in order to align two images 
+properly over their whole area.  Thus, warping requires more image features
+that obviously correspond between images than does a linear transformation.
+Warping can be introduced either manually or
+automatically.  Because of the requirement for well-distributed image
+features suitable for correlation, the automatic warping will work on an even
+smaller subset of data sets than automatic searches for linear
+transformations.  However, it is likely to work with data sets based on serial
+block face imaging. 
+<P>
+[FUTURE: To compute a warping automatically, select <B>Find warping
+transformations</B>, which will enable all of the related fields.  
+<UL>
+<LI> Enter
+sizes in X and Y in the fields for <B>Correlation patch size</B>; these
+  should be large values (even more than 500) for images with relatively few
+  features, but can be small if the images are feature-rich.  Patches will be
+  set up on a regular grid, overlapping by 33%.
+<LI>If the images contain areas not suitable for correlation, the best way to
+  deal with this is with a boundary model.  Check <B>Use boundary model</B>
+and press <B>Create/View Boundary Model</B> to make the model.  Draw one or
+  more contours around the areas suitable for correlation.  If this area
+  changes, draw them on multiple sections as needed to capture the change in
+  area.  See the BOUNDARY CONTOURS section of the
+  <A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr man page</A> for more
+  guidance.
+<LI> It is also possible to limit the shift at each patch, so that wild
+  shifts from a strong correlation peak in the wrong place will be rejected.
+  To do so, enter values for the maximum shifts in X and Y in the fields for
+  <B>Limit to shift</B>.  If there is no correlation peak with the limits, a
+  warp point will not be added.
+</UL>
+<P>
+After computing warping transformations, you can open the result in 
+<A HREF = "man/midas.html#TOP">Midas</A> for examination and adjustment, just
+as you can for linear transformations.  If there are some aberrant shifts that
+need fixing, you can navigate to them with the <B>Biggest Warp</B> button at
+the bottom of the controls, and select points with the next higher or lower
+shift with the adjacent up and down arrow buttons.  As mentioned above,
+clicking with the left mouse button selects the nearest point and dragging
+with it adjusts the shift for the current point.  There is a hot key, "D", for
+deleting the current point.
+<BR>END FUTURE]
+<P>
+To add warping in <A HREF = "man/midas.html#TOP">Midas</A>, select the
+option <B>Add/edit warp points</B> after aligning as much you wish with a
+linear transformation.  Then add a series of points at locations where there
+are features that can be aligned, using the middle mouse button. The new point
+will be the active one, shown in yellow, and the yellow box around it shows
+the area that would be used if you press <B>Cross-correlate</B>.  At each
+location, you shift the image locally into alignment with the left mouse
+button.  Start by adding points where the images are already
+aligned, then add points where shifts are needed. See the section 
+<b>Warping Images</b> in the <A HREF = "man/midas.html#TOP">Midas man page</A>
+for more details.  
+<P>
+You can find warping automatically in conjunction with either an initial
+alignment search or a search to refine an existing alignment.  However,
+you cannot use <B>Refine with Auto Alignment</B> once you have a warping
+alignment.  [FUTURE: If you run an initial autoalignment with warping and it runs
+into problems with getting the initial shifts or linear
+transformations, then the best approach is to rerun the initial search
+without the warping.  Use <A HREF = "man/midas.html#TOP">Midas</A>
+to fix any problems from that search.  Then use <B>Refine with Auto
+    Alignment</B> to add the warping, omitting the linear search by turning
+off <B>Search For</B>.  END FUTURE]
+
+<h3><A NAME = "Images"></A>Creating the Aligned Stack</H3>
+<P>
+Once you have satisfactory transforms for aligning the images, go to the 
+<B>Make Stack</B> tab to make a stack of aligned images.  Up until now, you
+have been working with transforms that align an image to the previous one, and
+these need to be converted to 
+transforms that will bring every section into a common, global alignment
+(see <A HREF = "#FandG">Background on F and G Transforms</A> for more explanation of this
+point).  Pressing
+<B>Make Aligned Stack</B> runs two programs, first 
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> to convert the 
+transforms, then either
+<A HREF = "man/newstack.html#TOP">Newstack</A> or
+<A HREF = "man/blendmont.html#TOP">Blendmont</A> to apply the transforms to the images.
+The options at the top, in the <B>Stack alignment transforms</B> box, control how 
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> works.  Most of the time, the
+default choice of <B>Local fitting (retain trends)</B> is appropriate.  What
+"retain trends" means is that if the structures dominating the alignment
+persistently shift or rotate in one direction, they will still do so in the
+aligned stack, only more smoothly.  See the section on 
+><A HREF = "#FtoG">Converting from an F List to a G List</A> for a detailed 
+explanation of the
+effects of these different choices and when you might need them.  Global
+alignments are generally not suitable except for relatively small numbers of
+sections, especially if there are warping transformations. If you do use
+this choice, there is an option to pick one section as a reference; it will
+not be modified, and all other images will be aligned to it.
+<P>
+One consequence of the linear fitting is that the
+originally captured image area will be nearly all present in the output
+images.
+If for some reason you do want to remove
+the trends with one of the other choices, and the trends include shifts, then
+you would need a
+larger size to retain all of the aligned image.  Thus there are two sets of
+fields to control the output, ones for the size in X and Y, and ones for a
+shift in X and Y, where positive numbers shift images up and to the right.
+You can enter a number in one field and leave the other blank.  These entries
+are all in unbinned coordinates.  Thus, if you make a stack with binning in
+order to work out the size and shift needed, you need to multiply the numbers
+that you see in <A HREF = "man/3dmod.html#TOP">3dmod</A> by the binning, but
+once you have the right numbers, they can be used to make an unbinned stack.
+<P>
+If you have a very large aligned image file, there are tools in IMOD that make
+it easier to deal with such files in <A HREF = "man/3dmod.html#TOP">3dmod</A>.
+Specifically, you can make an "image pyramid", a set of files at different
+resolutions, using the command-line program 
+<A HREF = "man/makepyramid.html#TOP">Makepyramid</A>, which allows relatively fast
+access to the image data in <A HREF = "man/3dmod.html#TOP">3dmod</A>
+without needing huge amounts of memory.
+
+<H3><A NAME = "Handedness"></A>Stacking Order and Handedness of Structures</H3>
+The order in which your images are stacked affects whether structures in your
+reconstruction have the correct handedness.  Handedness matters if you are
+reconstructing structures such as microtubule bundles that may twist,
+axonemes, or basal bodies.  Note that as sections come off of the block, they
+represent slices from the top down, when viewing the block face from the outside.
+Assuming that sections do not get flipped before being loaded onto a grid, the
+top side of each section faces up and the bottom is against the grid.
+Handedness will be preserved if the images of the sections represent views
+from the top of the sections, and if the volume is stacked in order from
+bottom (deeper in the block) to top.  More generally,
+the handedness of a transmission EM serial section reconstruction
+depends on the product of a sequence of factors, each of which you should be
+able to control or assess:
+<UL>
+<LI> Whether the grid is loaded into the rod with the sections facing up (+1)
+  or down (-1).
+<LI> Whether the rod is turned upside down (-1) or stays upright (+1) when
+  inserted into the microscope.
+<LI> Whether images are inverted (-1) or not (+1) between the specimen plane
+  and the camera.  Images are inverted in some JEOL microscopes with omega
+  filters.  Images may be inverted relative to what appears on the viewing
+  screen by the CCD camera software.
+<LI> Whether you acquire images in order from first to last one cut (+1)
+  or in inverse order (-1).  Note that
+  when the block face is trimmed to a trapezoid, the short edge of the
+  trapezoid for a section abuts the long edge for the next section cut.
+<LI> Whether images are stacked in the order they are acquired (-1) or in the
+  inverse order (+1).  This inversion is counter-intuitive.  It occurs because
+  the first and last sections in the stack are at the
+  bottom and top of the image volume, respectively, when it is viewed from the
+  high-Z side, which is the way in which images are viewed in the Zap window.
+  Yet if the first section is in fact the first one cut, it is from the
+  top of the physical volume, and the top of the volume should end up at high Z,
+  not low Z.
+</UL>
+If you find that the handedness of your stack is wrong, the simplest way to
+get a stack with the right handedness is with
+<pre>
+     clip flipz input_file output_file
+</pre>
+<P>
+For serial block-face imaging with scanning EM, the handedness depends on two factors:
+<UL>
+<LI> Whether the acquired images are inverted (-1) or not (+1) relative to the
+  actual appearance of the block face when viewed from the outside.
+<LI> Whether the images are stacked in the order in which they are acquired
+  (-1) or in inverted order (1), for the same reasons as with transmission EM.
+</UL>
+Yes, if the images are not inverted and they are stacked in order,
+handedness <I>will</I> be inverted.  The programs
+<A HREF = "man/tif2mrc.html#TOP">Tif2mrc</A>,
+<A HREF = "man/dm2mrc.html#TOP">Dm2mrc</A>, and 
+<A HREF = "man/raw2mrc.html#TOP">Raw2mrc</A> all have an option "-i" to stack
+images in inverted order, specifically in order to preserve handedness when
+converting these kind of data to MRC files.
+
+<H3><A NAME = "Linear"></A>Background on Linear Transformations</H3>
 <P>
 Two images can be aligned by applying a coordinate transformation to
 one image to make the transformed image match the other image as well as
@@ -90,10 +580,11 @@ line of the file specifies:
 <pre>
    A11   A12   A21   A22   DX  DY
 </pre>
-The program <A HREF = "man/xf2rotmagstr.html#TOP">Xf2rotmagstr</A> can be used to
-convert the transforms in a file into natural parameters.
+The command-line program 
+<A HREF = "man/xf2rotmagstr.html#TOP">Xf2rotmagstr</A> can be used to convert
+the transforms in a file into natural parameters.
 
-<h3><A NAME = "FandG"></A>F and G Transforms</h3>
+<h3><A NAME = "FandG"></A>Background on F and G Transforms</h3>
 Whenever there are more than two images, a series of transforms will be
 needed to align the whole stack of images.  This series is obtained in two
 stages.  First, each successive pair of images is considered separately, and a
@@ -123,8 +614,8 @@ align it to 1.  Performing those operations would give:
 misalignment here indicates that a second stage is necessary: one must obtain
 the transforms for each image that will produce an aligned stack when actually
 applied to the images.  This list is consistently referred to as a list of 
-"<b>g</b>" transforms.  In our example, the appropriate <b>g</b> transforms produce a
-proper alignment:
+"<b>g</b>" or global transforms.  In our example, the appropriate <b>g</b>
+transforms produce a proper alignment:
 <pre>
  2 __---+------+---    g: DX = +2
  1 ____-+------+---    g: DX = +4
@@ -132,153 +623,10 @@ proper alignment:
 </pre>
 In summary, <b>f</b> transforms align each section to the preceding
 one; <b>g</b> transforms align each section to the whole stack.
-<P>
-There are three general methods for obtaining alignment transforms:
-automated search for the best fit between two images, solving for a transform
-from a set of fiducial points that correspond between two sections, and manual
-adjustment of transformation parameters while viewing the two sections.  The
-latter methods were developed because the automated method is not usually
-sufficient.
-
-<H3><A NAME = "Automatic"></A>Automatic alignment</H3>
-The Python script <A HREF = "man/xfalign.html#TOP">Xfalign</A> will do automated
-alignment of a set of serial sections.  The main tool that it runs is the
-program <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>, which varies the six
-transformation parameters until it finds the best "fit" between two images.
-Its primary method of measuring fit is with a difference measure, which
-is just the sum of the absolute values of pixel-by-pixel differences
-between the two images.  This measure can lead to success if the features that
-correspond between the two images are relatively large or comprise a
-substantial fraction of the image area. 
-Two important factors governing the success
-of <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> are: 1) appropriate
-pre-processing of the images to emphasize features that correspond; 
-and 2) proper choice of the
-parameters for <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>, particularly
-how much to reduce the size of images in X and Y.  
-See the man pages for <A HREF = "man/xfalign.html#TOP">Xfalign</A> and 
-<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> for more guidance on these points.
-<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> provides low-pass and high-pass
-Fourier filtering, controlled by four parameters specifying the location and
-width of Gaussian functions.  These are the same parameters used by numerous
-other IMOD programs.  You can experiment with simple low- and high-pass filters
-in the image processing window of <A HREF = "man/3dmod.html#TOP">3dmod</A>; the
-low-frequency sigma, high-frequency cutoff and high-frequency falloff there
-correspond to the sigma1, radius2, and sigma2 entries to the "-filter" option
-of <A HREF = "man/xfalign.html#TOP">Xfalign</A>.  You can visualize the filter
-functions for the full range of possible filters with 
-<A HREF = "man/filterplot.html#TOP">Filterplot</A>; see that man page for a
-description of all the effects of the parameters.  You can use the same
-four parameters with <A HREF = "man/mtffilter.html#TOP">Mtffilter</A> to see how more
-complicated filters treat your data.
-<P>
-<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> will normally search for the
-values of the six formal transformation parameters, but one can select a
-mode in which it will search
-for the six semi-natural parameters or selected subsets of them.  Unless one
-wishes to vary only a subset of parameters (e.g. displacement only or
-displacement, rotation, and uniform magnification only), the semi-natural
-parameters seem to present no advantage.
-<P>
-In the simplest case, one would invoke <A HREF = "man/xfalign.html#TOP">Xfalign</A> with 
-<pre>
-    xfalign sections.st sections.xf
-</pre>
-which would find search for alignments between the images in "sections.st"
-and output the <b>f</b> transforms into the file "sections.xf".
-<P>
-Because <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> does an iterative search
-for a local optimum in the fitting measure, it cannot find the right alignment
-if there is a big initial
-displacement between the images.  <A HREF = "man/xfalign.html#TOP">Xfalign</A> has
-an option to do an initial cross-correlationusing 
-<A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A>, which
-will find the displacement that gives a global optimum in the correlation
-between the images.  These displacements are then
-passed to <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>, which searches with
-them as a starting point.  This option can be invoked with 
-<pre>
-     xfalign -pr sections.st sections.xf
-</pre>
-Another alternative, if cross-correlations do not work well, is to run 
-<A HREF = "man/midas.html#TOP">Midas</A>
-initially (see below) and use it to quickly shift the images into approximate
-alignment.  <A HREF = "man/xfalign.html#TOP">Xfalign</A> can then be told to use
-these initial alignments, rather than trying to find initial alignments by
-correlation.  If the <b>f</b> transforms
-produced by <A HREF = "man/midas.html#TOP">Midas</A> are in the file
-"sections.prexf", then this option can be invoked with
-<pre>
-     xfalign -in sections.prexf sections.st sections.xf
-</pre>
-
-<H3><A NAME = "Fiducial"></A>
-Generating or Editing an Alignment with Fiducial Points</H3>
-The program <A HREF = "man/xfmodel.html#TOP">Xfmodel</A> can solve for the
-parameters of a transformation between sections from the locations of points
-that are known or assumed to
-correspond between the sections.  <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>
-works with a model of connected fiducial points built in 3dmod.  In the
-simplest case, if you built a model
-of fiducial points named "sections.fid", you would just enter
-<pre>
-     xfmodel sections.fid sections.xf
-</pre>
-to compute a list of <b>f</b> transforms.  By default, it will solve for the full
-linear transformation, but there are also options to solve for translations
-only, translations and rotations, or translations, rotations, and
-magnifications.  Although it is most common to use this method to align an
-entire image stack, one can also use <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>
-to "edit" an existing list of f
-transforms.  That is, if one enters fiducial points for a subset of
-troublesome sections, the program will solve for the transforms for those
-sections only, and replace those transforms in the existing list.
-<A HREF = "man/xfmodel.html#TOP">Xfmodel</A> can also be used to transform a model
-to a new alignment (see below). 
-
-<h3><A NAME = "Manual"></A>
-Manually Editing an Alignment and Adding Warping with Midas</H3>
-The program <A HREF = "man/midas.html#TOP">Midas</A> provides for interactive
-visualization and manual adjustment of the alignment between two images.  It
-can be used to edit a list of <b>f</b> transforms.  By using 
-<A HREF = "man/midas.html#TOP">Midas</A>, it is not necessary to build an aligned
-stack to assess the quality of transforms produced by automatic alignment.
-The program will take the unaligned images, apply any existing transforms,
-such as those generated by automatic or fiducial alignment, and allow the user
-to manipulate each transform.  It works with the fully natural transform
-parameters.  Midas can be invoked with
-<pre>
-     midas sections.st sections.xf
-</pre>
-which will load in images from "sections.st".  If "sections.xf" is an
-already-existing file of <b>f</b> transforms, you can then edit the transforms in
-that file; if the file does not exist, it will be defined as the output file
-into which transforms will be saved.
-<P>
-<A HREF = "man/midas.html#TOP">Midas</A> allows one to use a nonlinear
-transformation, or warping, to align any pair of sections.  Warping becomes
-important for very large images where nonlinearities make it difficult to line
-them up everywhere with a single linear transformation.
-Essentially, after aligning as much you wish with a linear
-transformation, you select the option to add warping points.  You then add a
-series of points at locations where there are features that can be aligned.
-At each location, you shift the image locally into alignment.  See the section
-<b>Warping Images</b> in the <A HREF = "man/midas.html#TOP">Midas man page</A> for
-more details.
-<P>
-Once you have introduced warping in <A HREF = "man/midas.html#TOP">Midas</A>, 
-the transformation files become
-much more complex than the single line per section described above.  However,
-all of the programs described below will read these warping transform
-files interchangeably with simple linear transform files and operate
-appropriately, which means that all of the operations described below work
-with warping and require no special options.  Two
-limitations are that a warping transform file cannot be used with the
-"-initial" option to <A HREF = "man/xalign.html#TOP">Xfalign</A> or as an existing
-transform file to be edited by <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>.
 
 <h3><A NAME = "FtoG2"></A>Converting from an F List to a G List</h3>
-As discussed above, to get from the list of <b>f</b> transforms to a useful
+As discussed in <A HREF = "#FandG">Background on F and G Transforms</A>, to get from the
+list of <b>f</b> transforms to a useful
 stack of aligned images, one must first convert them to <b>g</b> transforms using the
 program <A HREF = "man/xftoxg.html#TOP">Xftoxg</A>.  This will produce transforms
 that can be used to transform each section into a common alignment.  
@@ -293,16 +641,10 @@ of trends.  Suppose we have sections with a progressive shift of positions:
  0  --------+------+--
 </pre>
 To get <b>g</b> transforms that will align all of the images to a single average
-position, and eliminate the progressive shift, run
-<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> with the option "-n 0" as follows:
-<pre>
-   xftoxg -n 0 sections.xf
-</pre>
-This entry takes advantage of a feature of 
-<A HREF = "man/xftoxg.html#TOP">Xftoxg</A>: you do not have to enter
-an output file name if the input file name ends in "f".  This command produces 
-a file "sections.xg" of <b>g</b> transforms, which when applied to the images, would
-give:
+position, and eliminate the progressive shift, you can choose 
+<B>Global alignments (remove all trends)</B>, which will make
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> be run with the option "-n 0".
+The resulting <b>g</b> transforms, when applied to the images, would give:
 <pre>
  3  ___--+------+-----
  2  __---+------+-----
@@ -312,18 +654,17 @@ give:
 This result is generally usable if there are relatively few sections and if
 you do not care about the image that is lost off the edges for sections
 farther away from the center of the stack.  However, if there are a large
-number of sections (say, > 50), the shifts can accumulate unacceptably.  Also,
+number of sections (say, > 30), the shifts can accumulate unacceptably.  Also,
 there may be cases in which the cues that are used for alignment actually
 should progress across the image area through the sections.  To avoid these
 problems, it is possible to have each section aligned to a "local" average
 alignment based on a linear fit to trends in the transformations for the
 nearby sections.  This procedure will retain the trends but align adjacent
 sections as well as possible by eliminating deviations from the trends.  This
-is the default mode of operation of <A HREF = "man/xftoxg.html#TOP">Xftoxg</A>, invoked by
-<pre>
-   xftoxg sections.xf
-</pre>
-and the resulting transforms in sections.xg would give:
+is the default mode of operation of 
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A>, invoked by the 
+<B>Local fitting (retain trends)</B> choice.
+The resulting transforms would give:
 <pre>
  3  --+------+--------
  2  _---+------+------
@@ -342,7 +683,7 @@ series.  Here is a series of sections with such a size change:
  1  -----+----x----+----
  0  -----+-----x-----+--
 </pre>
-Aligning to a single central position with the "-n 0" option is clearly
+Aligning to a single central position is clearly
 inappropriate here because it squeezes the images at one end of the stack and
 expands them at the other:
 <pre>
@@ -353,8 +694,8 @@ expands them at the other:
 </pre>
 Aligning to a single central position tends to convert features of interest
 into a right cylinder, regardless of their true geometry.  Again, we can avoid
-this problem and retain all trends with the default entry to 
-<A HREF = "man/xftoxg.html#TOP">Xftoxg</A>, with the following result:
+this problem and retain all trends with the default choice,
+with the following result:
 <pre>
  3  --+--x--+-----------
  2  _--+---x---+--------
@@ -366,11 +707,8 @@ sections.  However, it is frequently desirable to eliminate the trend in
 lateral displacements, particularly for images acquired on a CCD camera on the
 microscope or digitized by a method that does not provide a good preliminary
 alignment.  To handle these situation, there is a hybrid or mixed alignment 
-method that will eliminate trends in position but retain trends in size.  It
-is invoked by
-<pre>
-    xftoxg -m 2 sections.xf
-</pre>
+method that 
+is invoked with the choice <B>Remove trends in translation</B>.
 The resulting transforms applied to the sections give the desired result
 and avoid distorting the sizes of the objects:
 <pre>
@@ -387,128 +725,56 @@ by features that actually rotate within the volume, in which case rotation
 trends should be preserved.  For example, a tightly packed bundle of
 microtubules may have a twist, and if these microtubules dominate the
 alignment, the alignment will contain a progressive rotation that should be
-preserved.  Use the "-m 2" option to retain rotation trends or "-m 3" to
-eliminate them.
+preserved.  Choose <B>Remove trends in translation & rotation</B> to eliminate
+rotation trends.
 
-<h3><A NAME = "Images"></A>Creating Transformed Images</h3>
-Given a list of <b>g</b> transforms, the program 
-<A HREF = "man/newstack.html#TOP">Newstack</A> will transform the
-images to create an aligned stack.  This program can also "float" the images
-to have a common range or mean of intensity, change the size of the images, or
-extract a portion of the images.  See the man page for 
-<A HREF = "man/newstack.html#TOP">Newstack</A> for more information or enter
-"newstack -h". A simple example, which will float the images to the same mean
-intensity and contrast, is
+<H3><A NAME = "Fiducial"></A>
+Generating or Editing an Alignment with Fiducial Points</H3>
+The program <A HREF = "man/xfmodel.html#TOP">Xfmodel</A> can solve for the
+parameters of a transformation between sections from the locations of points
+that are known or assumed to
+correspond between the sections.  <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>
+works with a model of connected fiducial points built in 
+<A HREF = "man/3dmod.html#TOP">3dmod</A>.  In the
+simplest case, if you built a model
+of fiducial points named "setname.fid", you would just enter
 <pre>
-    newstack -xf sections.xg -fl 2 sections.st sections.ali
+     xfmodel setname.fid setname.xf
 </pre>
-Here, "sections.xg" is your file of <b>g</b> transforms produced by 
-<A HREF = "man/xftoxg.html#TOP">Xftoxg</A>, "-fl 2"
-specifies floating to mean, "sections.st" is your input stack of unaligned
-images, and "sections.ali" is your output stack of aligned images.
-
-<h3><A NAME = "Montages"></A>Working with Montaged Images</h3>
-If you have serial images each consisting of a montage of overlapping
-frames, as can be acquired with SerialEM, then you need to follow different
-procedures for getting an initial stack to align, and for getting an aligned
-stack.  The first step is to extract a text file with a list of the X, Y, and
-Z coordinates for each frame, called a piece list.  Do this with
-<pre>
-    extractpieces sections.st sections.pl
-</pre>
+to compute a list of <b>f</b> transforms.  By default, it will solve for the full
+linear transformation, but there are also options to solve for translations
+only, translations and rotations, or translations, rotations, and
+magnifications.  Although it is most common to use this method to align an
+entire image stack, one can also use <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>
+to "edit" an existing list of f
+transforms.  That is, if one enters fiducial points for a subset of
+troublesome sections, the program will solve for the transforms for those
+sections only, and replace those transforms in the existing list.
+<A HREF = "man/xfmodel.html#TOP">Xfmodel</A> can also be used to transform a model
+to a new alignment (see below). 
 <P>
-Next, get a copy of a command file for running the program 
-<A HREF = "man/blendmont.html#TOP">Blendmont</A>, which
-can analyze the overlapping image area between adjacent frames and compose a
-single image for each section.  Do:
-<pre>
-    cp $IMOD_DIR/com/sloppyblend.com .
-</pre>
-<P>
-Edit this file, replacing "g5a" with the root name of your data file
-("sections", in our example here).  If you acquired the montage with stage
-shifts instead of image shift, you should change the entry "SloppyMontage" to
-"VerySloppyMontage".  Now run the program by entering:
-<pre>
-    subm sloppyblend
-</pre>
-<P>
-<A HREF = "man/blendmont.html#TOP">Blendmont</A> will run in the background, and a
-message will be printed when it finishes. The output file is named
-sections.bl.  Open this in <A HREF = "man/3dmod.html#TOP">3dmod</A> and see if the
-frames appear to have fused properly.  Also, unless you have a 1 by n or n by 1
-montage, examine the log from <A HREF = "man/blendmont.html#TOP">Blendmont</A>, in
-the file sloppyblend.log:
-<pre>
-    less sloppyblend.log
-</pre>
-For each section, you will see a line like
-<pre>
- 8 edges, mean&max error before:  25.22  88.08, after by edges:   1.24   3.06
-</pre>
-The two numbers on the right are the ones that indicate whether the pieces
-line up well after being shifting into registration as well as possible.  If
-these numbers are large (more than a few pixels), it is likely that one or
-more of the correlations used to align adjacent pieces in that section has
-failed.  If this seems to have happened, then open the file in Midas in order
-to fix the alignment between pieces:
-<pre>
-    midas -b 0  -p sections.pl sections.st sections.ecd 
-</pre>
-<P>
-In <A HREF = "man/midas.html#TOP">Midas</A>, you can go to each troublesome
-section and examine each of the overlap zones, adjusting the ones where the
-pieces do not line up.  See the
-section "Fixing Montage Overlaps" in the <A HREF = "man/midas.html#TOP">Midas</A>
-man page.  (Beware: sections are numbered from zero in sloppyblend.log but
-from 1 in <A HREF = "man/midas.html#TOP">Midas</A>.)  After fixing
-overlaps, save the shifts (this saves a new copy of sections.ecd).  Then edit
-sloppyblend.com and change the 0 to a 1 on the line "ReadInXcorrs".  Rerun
-the program with subm.
-<P>
-Once you have a blended stack, you can use the same procedures on it that 
-were described above with sections.st to align the stack.  Once you have a set
-of <b>g</b> transforms, edit slopyblend.com again to apply these transforms to the
-original stack in the blending operations.  To do this,
-<OL>
-<LI> change the name on
-the ImageOutputFile line from ".bl" to ".ali"
-<LI> remove the "#" before
-"TransformFile"
-<LI> change "g5a.xf" on that line to the name of your g
-transform file ("sections.xg").  Then rerun sloppyblend, and you will get an
-aligned stack.
-</OL>
+One
+limitation is that a warping transform file cannot be used as an existing
+transform file to be edited by <A HREF = "man/xfmodel.html#TOP">Xfmodel</A>.
 
 <H3><A NAME = "Realigning"></A>Realigning Images and Models</H3>
 Sometimes one will find after modeling on a set of images that the
-alignment needs to be improved.  There are several tools that can be used to
-get a better alignment.  The operations to run depend first on whether you
-are going to go back to the original data or operate on the aligned data.
+alignment needs to be improved.  
+The operations to run depend on whether you
+are going to reopen eTomo to modify the alignment of the original data, or
+derive a refining alignment from the aligned data.  In either case, you should
+first make a copy of the final <b>g</b> transforms from the original
+alignment:
+<pre>
+    cp setname.xg setname_orig.xg
+</pre>
+since this will be needed and is going to be overwritten.
 <P>
-1) You can go back to the original data and modify the <b>f</b> transforms, or
-rerun <A HREF = "man/xtftoxg.html#TOP">Xtftoxg</A> with different parameters to
-get different <b>g</b> transforms. First make a copy of the xf file:
+1) You can reopen eTomo and modify the <b>f</b> transforms or the choice of how
+<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> is run, then make a new aligned
+stack.  To transform a model "setname.mod" into alignment with these images, run
 <pre>
-    cp sections.xf sections.newxf
-</pre>
-If you want to fix <b>f</b> transforms, you would probably do this by running 
-<A HREF = "man/midas.html#TOP">Midas</A> on the raw stack:
-<pre>
-    midas sections.st sections.newxf
-</pre>
-After adjusting the alignment or not, you would rerun 
-<A HREF = "man/xftoxg.html#TOP">Xftoxg</A> (using whatever
-parameters you used before, or new ones if appropriate), for example:
-<pre>
-    xftoxg sections.newxf
-</pre>
-This will give you a new file of <b>g</b> transforms, "sections.newxg".  Making a
-new aligned stack it easy; just rerun the newstack command with this new file
-instead of the old "xg" file.  To transform a model into alignment with these
-images, run
-<pre>
-    xfmodel -pre sections.xg -xf sections.newxg sections.mod sections.newmod
+    xfmodel -pre setname_orig.xg -xf setname.xg setname.mod setname.newmod
 </pre>
 The "-pre" argument tells <A HREF = "man/xfmodel.html#TOP">Xfmodel</A> to
 back-transform the model by the old <b>g</b> transforms, which aligns it to the raw
@@ -517,11 +783,11 @@ new transforms.
 <P>
 2) Suppose you work from the already aligned images or a model on them, and
 derive a set of <b>f</b> transforms that would improve their alignment, in the file
-"sections.xf2". These need to be converted to <b>g</b> transforms, but then
+"setname_refine.xf". These need to be converted to <b>g</b> transforms, but then
 transforming the model is easy:
 <pre>
-    xftoxg sections.xf2 sections.xg2
-    xfmodel -xf sections.xg2 sections.mod sections.newmod
+    xftoxg setname_refine.xf setname_refine.xg
+    xfmodel -xf setname_refine.xg setname.mod setname.newmod
 </pre>
 However, to get a new aligned stack, you should go back to the raw stack
 instead of applying a second transformation to the aligned stack, in order to
@@ -530,34 +796,41 @@ interpolation step potentially degrades the images).  To do this,
 you need to multiply the first and second set of <b>g</b> transforms and apply the
 product:
 <pre>
-    xfproduct sections.xg sections.xg2 sections.prod
-    newstack -xf sections.prod sections.st sections.newali
+    xfproduct setname_orig.xg setname_refine.xg setname.xg
 </pre>
-If you have a montage, instead of running 
-<A HREF = "man/newstack.html#TOP">Newstack</A>, edit
-sloppyblend.com to change "sections.xg" to "sections.prod" and rerun 
-<A HREF = "man/blendmont.html#TOP">Blendmont</A>.
+Then run:
+<pre>
+    subm newst
+</pre>
+for single-frame images or
+<pre>
+    subm blend
+</pre>
+for montages.  The existing aligned stack, if still present in the directory,
+will be renamed with a "~" on the end, but you could rename this first to a
+preferred name if you want to keep it.
 <P>
 There are several ways that you could work from an existing model to get
 a refined alignment.  One way is to take Tiff snapshots of the Zap window in
 <A HREF = "man/3dmod.html#TOP">3dmod</A> through the entire set of sections, with
 either the model displayed on the images or just the model showing on a black
-background.  (You can take such snapshots automatically with the Edit-Movies
-dialog box.)  Stack the Tiff files into a single color MRC file:
+background.  (You can take such snapshots automatically with the dialog box
+opened with File-Movie/Montage.)
+Stack the Tiff files into a single color MRC file:
 <pre>
     tif2mrc zap*.tif zapstack.mrc
 </pre>
 <A HREF = "man/midas.html#TOP">Midas</A> can read this file and display the colors
 in gray scale, allowing you to adjust the alignment based on model features:
 <pre>
-    midas zapstack.mrc sections.xf2
+    midas zapstack.mrc setname_refine.xf
 </pre>
 <P>
 An existing model can also be used to provide a new fiducial alignment,
 provided that it has features that have been modeled across the sections.
 For example,
 <pre>
-    xfmodel sections.mod sections.xf2
+    xfmodel setname.mod setname_refine.xf
 </pre>
 There is a script, <A HREF = "man/selfalign.html#TOP">Selfalign</A>, that will do
 this operation as well as realign the model, producing new <b>f</b> transforms in a
@@ -565,42 +838,8 @@ this operation as well as realign the model, producing new <b>f</b> transforms i
 in ".selfmod".  Aside from convenience, the script has the advantage that it
 can be given a limited number of sections over which to find the alignment,
 and it will properly handle the transitions between the regions being
-realigned and those being left as they were.
-
-<H3><A NAME = "Handedness"></A>Stacking Order and Handedness of Structures</H3>
-The order in which your images are stacked affects whether structures in your
-reconstruction have the correct handedness.  Handedness matters if you are
-reconstructing structures such as microtubule bundles that may twist,
-axonemes, or basal bodies.  Note that as sections come off of the block, they
-represent slices from the top down, when viewing the block face from the outside.
-Assuming that sections do not get flipped before being loaded onto a grid, the
-top side of each section faces up and the bottom is against the grid.
-Handedness will be preserved if the images of the sections represent views
-from the top of the sections, and if the volume is stacked in order from
-bottom (deeper in the block) to top.  More generally,
-the handedness of a serial section reconstruction
-depends on the product of a sequence of factors, each of which you should be
-able to control or assess:
-<UL>
-<LI> Whether the grid is loaded into the rod with the sections facing up (+1)
-  or down (-1).
-<LI> Whether the rod is turned upside down (-1) or stays upright (+1) when
-  inserted into the microscope.
-<LI> Whether images are inverted (-1) or not (+1) between the specimen plane
-  and the camera.  Images are inverted in some JEOL microscopes with omega
-  filters.  Images may be inverted relative to what appears on the viewing
-  screen by the CCD camera software.
-<LI> Whether you acquire images in order from first to last one cut (from
-  top to bottom, -1) or in inverse order (from bottom to top, +1).
-<LI> Whether images are stacked in the order they are acquired (+1) or in the
-  inverse order (-1).  The first and last sections in the stack are at the
-  bottom and top of the volume, respectively, when it is viewed from the
-  high-Z side, which is the way in which images are viewed in the Zap window.
-</U>
-If you find that the handedness of your stack is wrong, the simplest way to
-get a stack with the right handedness is with
-<pre>
-     clip flipz input_file output_file
-</pre>
+realigned and those being left as they were.  Use the ".selfxg" file like
+"setname_refine.xg" in the xfproduct command above to get new <b>g</b>
+transforms for building a new aligned stack.
 </body>
 </html>

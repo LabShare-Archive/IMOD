@@ -217,7 +217,6 @@ for ind in range(len(columns)):
    colstr += str(columns[ind])
 comlines.append(colstr)
 if ifTypes:
-   comlines.append('IfTypesInFirstColumn 1')
    comlines.append('TypesToPlot 1,2')
 
 symstr = 'SymbolsForTypes '

@@ -53,14 +53,14 @@ stockColors = {'aqua' : (0, 255, 255),
                'yellow' : (255, 255, 0)}
 
 # Fallbacks from ../manpages/autodoc2man 3 1 onegenplot
-options = ["input:InputDataFile:FN:", "iftypes:IfTypesInFirstColumn:B:",
-           "ncol:NumberOfColumns:I:", "skip:SkipLinesAtStart:I:",
-           "columns:ColumnsToPlot:IA:", "types:TypesToPlot:IA:",
-           "symbols:SymbolsForTypes:IA:", "connect:ConnectWithLines:B:",
-           "ordinal:OrdinalsForXvalues:B:", "xlog:XLogOrRootAndBase:FP:",
-           "ylog:YLogOrRootAndBase:FP:", "hue:HueOfGroup:CHM:",
-           "stock:StockColorList:B:", "axis:XaxisLabel:CH:", "keys:KeyLabels:CHM:",
-           "message:MessageBoxLine:CHM:", "tooltip:ToolTipLine:CHM:"]
+options = ["input:InputDataFile:FN:", "ncol:NumberOfColumns:I:",
+           "skip:SkipLinesAtStart:I:", "columns:ColumnsToPlot:IA:",
+           "types:TypesToPlot:IA:", "symbols:SymbolsForTypes:IA:",
+           "connect:ConnectWithLines:B:", "ordinal:OrdinalsForXvalues:B:",
+           "xlog:XLogOrRootAndBase:FP:", "ylog:YLogOrRootAndBase:FP:",
+           "hue:HueOfGroup:CHM:", "stock:StockColorList:B:", "axis:XaxisLabel:CH:",
+           "keys:KeyLabels:CHM:", "message:MessageBoxLine:CHM:",
+           "tooltip:ToolTipLine:CHM:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
 
@@ -76,11 +76,13 @@ dataName = PipGetInOutFile('InputDataFile', 0)
 if not dataName:
    exitError('The data file name must be entered')
 
-ifTypes = PipGetBoolean('IfTypesInFirstColumn', 0)
 skipLines = PipGetInteger('SkipLinesAtStart', -1)
 numCol = PipGetInteger('NumberOfColumns', -1)
 columnList = PipGetIntegerArray('ColumnsToPlot', 0)
 typeList = PipGetIntegerArray('TypesToPlot', 0)
+ifTypes = 0
+if typeList:
+   ifTypes = 1
 symbols = PipGetIntegerArray('SymbolsForTypes', 0)
 (xlog, xbase) = PipGetTwoFloats('XLogOrRootAndBase', 0., 0.)
 (ylog, ybase) = PipGetTwoFloats('YLogOrRootAndBase', 0., 0.)
@@ -225,15 +227,11 @@ if len(columnList) == 1:
 # Check the column/type entry, set up type conversion if needed
 if ifTypes:
    defKeyBase = 'Type '
-   if not typeList:
-      exitError('You must enter a list of types to plot with -types')
    if len(columnList) > 2:
       exitError('When plotting by types, you cannot enter more than two columns')
 
 else:
    defKeyBase = 'Column '
-   if typeList:
-      exitError('You cannot enter a list of types if there are no types in the data file')
    if len(columnList) > 2 - ordinals:
       ifTypes = -1
       typeList = columnList[1 - ordinals:]

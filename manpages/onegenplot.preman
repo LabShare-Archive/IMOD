@@ -55,7 +55,7 @@ will plot column and 3 and 5 versus column 1, with circles and X's,
 respectively, connected by lines.
 .P
 If the data file has type numbers 10, 20, 30, and 40 and at least 5 data columns,
-  onegenplt -iftype -col 2,4 -type 20,40 -sym 10,9 data_file
+  onegenplt -col 2,4 -type 20,40 -sym 10,9 data_file
 .br
 will plot column 4 versus column 2 for types 20 and 40 with closed and open
 circles, respectively.
