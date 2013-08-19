@@ -9,14 +9,6 @@ tooltip =
 manpage = Name of file with data to plot.  If this option is not entered, the
 first non-option argument is used for the name.
 
-[Field = IfTypesInFirstColumn]
-short = iftypes
-type = B
-usage = There is a type number for each item before first column of data
-tooltip =
-manpage = There is a type number or group identifier before the first column
-of data
-
 [Field = NumberOfColumns]
 short = ncol
 type = I
@@ -38,10 +30,10 @@ lines to be ignored automatically.  This should work provided that any one of
 these conditions is the case:
 ^  1) the extra lines always start with non-numeric text; 
 ^  2) the number of numeric values at the beginning of extra lines is fewer
-than the number of columns entered with -ncol (minus 1 if -iftypes is entered
+than the number of columns entered with -ncol (minus 1 if -types is entered
 too); 
 ^  3) extra lines start with a non-integer if -ncol is entered as 0;
-^  4) extra lines start with only one number if -iftypes is entered.
+^  4) extra lines start with only one number if -types is entered.
 
 [Field = ColumnsToPlot]
 short = columns
@@ -63,8 +55,11 @@ type = IA
 usage = One or more data types to plot
 tooltip =
 manpage = One or more data types to plot; types are not numbered from one but
-correspond to the arbitrary type values in the data file.  This entry is
-required if there are types in the data file.
+correspond to the arbitrary type values in the data file.  With this entry,
+the first column of numbers in the file will be read as type values, and the
+column after that will become the first column of data.  If there are type
+numbers in the file and this entry is not given, the type numbers will end up
+in the first column of data.
 
 [Field = SymbolsForTypes]
 short = symbols
