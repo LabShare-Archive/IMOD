@@ -453,6 +453,7 @@ public final class MatlabParam {
   private boolean useReferenceFile = false;
   private YAxisType yAxisType = YAxisType.DEFAULT;
   private boolean tiltRangeEmpty = false;
+  private boolean isTiltRangeMultiAxes = false;
 
   private boolean newFile;
   private File file;
@@ -637,6 +638,10 @@ public final class MatlabParam {
     return ((Volume) volumeList.get(index)).getFnModParticleString();
   }
 
+  public String getTiltRangeMultiAxes(final int index) {
+    return ((Volume) volumeList.get(index)).getTiltRangeMultiAxesString();
+  }
+
   public InitMotlCode getInitMotlCode() {
     return initMotlCode;
   }
@@ -694,6 +699,14 @@ public final class MatlabParam {
    */
   public void setTiltRangeEmpty() {
     tiltRangeEmpty = true;
+  }
+
+  public void setTiltRangeMultiAxes(final boolean input) {
+    isTiltRangeMultiAxes = input;
+  }
+
+  public boolean isTiltRangeMultiAxes() {
+    return isTiltRangeMultiAxes;
   }
 
   /**
@@ -1275,8 +1288,8 @@ public final class MatlabParam {
     flgRemoveDuplicates.parse(autodoc.getAttribute(FLG_REMOVE_DUPLICATES_KEY));
     addError(flgRemoveDuplicates, errorList);
     if (!addError(flgRemoveDuplicates, errorList)) {
-      checkValue(flgRemoveDuplicates, new int[] { 0, 1 }, component, FLG_REMOVE_DUPLICATES_KEY,
-          FieldLabels.FLG_REMOVE_DUPLICATES_LABEL, 1);
+      checkValue(flgRemoveDuplicates, new int[] { 0, 1 }, component,
+          FLG_REMOVE_DUPLICATES_KEY, FieldLabels.FLG_REMOVE_DUPLICATES_LABEL, 1);
     }
     // flgAlignAverages
     flgAlignAverages.parse(autodoc.getAttribute(FLG_ALIGN_AVERAGES_KEY));
@@ -1301,8 +1314,8 @@ public final class MatlabParam {
     flgStrictSearchLimits.parse(autodoc.getAttribute(FLG_STRICT_SEARCH_LIMITS_KEY));
     addError(flgStrictSearchLimits, errorList);
     if (!addError(flgStrictSearchLimits, errorList)) {
-      checkValue(flgStrictSearchLimits, new int[] { 0, 1 }, component, FLG_STRICT_SEARCH_LIMITS_KEY,
-          FieldLabels.FLG_STRICT_SEARCH_LIMITS_LABEL, 1);
+      checkValue(flgStrictSearchLimits, new int[] { 0, 1 }, component,
+          FLG_STRICT_SEARCH_LIMITS_KEY, FieldLabels.FLG_STRICT_SEARCH_LIMITS_LABEL, 1);
     }
     // selectClassID
     selectClassID.parse(autodoc.getAttribute(SELECT_CLASS_ID_KEY));
@@ -1435,9 +1448,17 @@ public final class MatlabParam {
       initMotlCode = InitMotlCode.getInstance(attribute, component);
     }
     // tiltRange
-    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
-        TILT_RANGE_KEY);
-    tiltRange.parse(autodoc.getAttribute(TILT_RANGE_KEY));
+    ParsedList tiltRange;
+    attribute = autodoc.getAttribute(TILT_RANGE_KEY);
+    if (!ParsedList.isStringList(attribute)) {
+      isTiltRangeMultiAxes = false;
+      tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, TILT_RANGE_KEY);
+    }
+    else {
+      isTiltRangeMultiAxes = true;
+      tiltRange = ParsedList.getStringInstance(TILT_RANGE_KEY);
+    }
+    tiltRange.parse(attribute);
     addError(tiltRange, errorList);
     size = Math.max(size, tiltRange.size());
     // Add elements to volumeList
@@ -1607,8 +1628,13 @@ public final class MatlabParam {
     if (initMotlCode == null) {
       initMotlFile = ParsedList.getStringInstance(InitMotlCode.KEY);
     }
-    ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
-        TILT_RANGE_KEY);
+    ParsedList tiltRange;
+    if (!isTiltRangeMultiAxes) {
+      tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, TILT_RANGE_KEY);
+    }
+    else {
+      tiltRange = ParsedList.getStringInstance(TILT_RANGE_KEY);
+    }
     // build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -1617,7 +1643,7 @@ public final class MatlabParam {
       if (initMotlCode == null) {
         initMotlFile.addElement(volume.getInitMotl());
       }
-      tiltRange.addElement(volume.getTiltRange());
+      tiltRange.addElement(volume.getTiltRange(isTiltRangeMultiAxes));
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
@@ -2183,6 +2209,8 @@ public final class MatlabParam {
         .getInstance(FN_MOD_PARTICLE_KEY);
     private final ParsedQuotedString initMotl = ParsedQuotedString
         .getInstance(InitMotlCode.KEY);
+    private final ParsedQuotedString tiltRangeMultiAxes = ParsedQuotedString
+        .getInstance(TILT_RANGE_KEY);
 
     private final BaseManager manager;
     private final AxisID axisID;
@@ -2228,6 +2256,10 @@ public final class MatlabParam {
       return fnModParticle.getRawString();
     }
 
+    public String getTiltRangeMultiAxesString() {
+      return tiltRangeMultiAxes.getRawString();
+    }
+
     public String getInitMotlString() {
       return initMotl.getRawString();
     }
@@ -2246,6 +2278,10 @@ public final class MatlabParam {
 
     public void setInitMotl(final String initMotl) {
       this.initMotl.setRawString(initMotl);
+    }
+
+    public void setTiltRangeMultiAxes(final String input) {
+      tiltRangeMultiAxes.setRawString(input);
     }
 
     public String getTiltRangeStart() {
@@ -2280,8 +2316,13 @@ public final class MatlabParam {
       return tiltRange.isEmpty();
     }
 
-    private ParsedArray getTiltRange() {
-      return tiltRange;
+    private ParsedElement getTiltRange(final boolean isTiltRangeMultiAxes) {
+      if (!isTiltRangeMultiAxes) {
+        return tiltRange;
+      }
+      else {
+        return tiltRangeMultiAxes;
+      }
     }
 
     private void setRelativeOrient(final ParsedElement relativeOrient) {

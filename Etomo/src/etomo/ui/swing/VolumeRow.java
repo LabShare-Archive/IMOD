@@ -165,6 +165,8 @@ final class VolumeRow implements Highlightable {
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
   private final BaseManager manager;
+  private final FieldCell tiltRangeMultiAxes;
+  private final FileButtonCell fbTiltRangeMultiAxes;
 
   private int imodIndex = -1;
   private int index;
@@ -180,22 +182,24 @@ final class VolumeRow implements Highlightable {
   }
 
   static VolumeRow getInstance(final BaseManager manager, final File fnVolume,
-      final File fnModParticle, final int index, final VolumeTable table,
-      final JPanel panel, final GridBagLayout layout,
+      final File fnModParticle, final File tiltRangeMultiAxesFile, final int index,
+      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
-    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index, table,
-        panel, layout, constraints, tomogramFileFilter);
+    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle,
+        tiltRangeMultiAxesFile, index, table, panel, layout, constraints,
+        tomogramFileFilter);
     instance.addActionTargets();
     instance.setTooltips();
     return instance;
   }
 
   static VolumeRow getInstance(final BaseManager manager, final String fnVolume,
-      final String fnModParticle, final int index, final VolumeTable table,
-      final JPanel panel, final GridBagLayout layout,
+      final String fnModParticle, final String tiltRangeMultiAxesFile, final int index,
+      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
-    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle, index, table,
-        panel, layout, constraints, tomogramFileFilter);
+    VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle,
+        tiltRangeMultiAxesFile, index, table, panel, layout, constraints,
+        tomogramFileFilter);
     instance.addActionTargets();
     instance.setTooltips();
     return instance;
@@ -233,6 +237,9 @@ final class VolumeRow implements Highlightable {
     fbInitMotlFile.setFileFilter(new MotlFileFilter());
     tiltRangeMin = FieldCell.getEditableMatlabInstance();
     tiltRangeMax = FieldCell.getEditableMatlabInstance();
+    tiltRangeMultiAxes = FieldCell.getExpandableInstance(rootDir);
+    fbTiltRangeMultiAxes = FileButtonCell.getInstance(table);
+    fbTiltRangeMultiAxes.setFileFilter(tomogramFileFilter);
   }
 
   private VolumeRow(final VolumeRow volumeRow, final int index) {
@@ -253,11 +260,13 @@ final class VolumeRow implements Highlightable {
     fbInitMotlFile = FileButtonCell.getInstance(volumeRow.fbInitMotlFile);
     tiltRangeMin = FieldCell.getInstance(volumeRow.tiltRangeMin);
     tiltRangeMax = FieldCell.getInstance(volumeRow.tiltRangeMax);
+    tiltRangeMultiAxes = FieldCell.getInstance(volumeRow.tiltRangeMultiAxes);
+    fbTiltRangeMultiAxes = FileButtonCell.getInstance(volumeRow.fbTiltRangeMultiAxes);
   }
 
   private VolumeRow(final BaseManager manager, final File fnVolumeFile,
-      final File fnModParticleFile, final int index, final VolumeTable table,
-      final JPanel panel, final GridBagLayout layout,
+      final File fnModParticleFile, final File tiltRangeMultiAxesFile, final int index,
+      final VolumeTable table, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
     this.manager = manager;
     this.index = index;
@@ -281,12 +290,17 @@ final class VolumeRow implements Highlightable {
     fbInitMotlFile.setFileFilter(new MotlFileFilter());
     tiltRangeMin = FieldCell.getEditableMatlabInstance();
     tiltRangeMax = FieldCell.getEditableMatlabInstance();
+    tiltRangeMultiAxes = FieldCell.getExpandableInstance(rootDir);
+    setValue(tiltRangeMultiAxes, tiltRangeMultiAxesFile);
+    fbTiltRangeMultiAxes = FileButtonCell.getInstance(table);
+    fbTiltRangeMultiAxes.setFileFilter(tomogramFileFilter);
   }
 
   private VolumeRow(final BaseManager manager, final String fnVolumeFile,
-      final String fnModParticleFile, final int index, final VolumeTable table,
-      final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+      final String fnModParticleFile, final String tiltRangeMultiAxesFile,
+      final int index, final VolumeTable table, final JPanel panel,
+      final GridBagLayout layout, final GridBagConstraints constraints,
+      final TomogramFileFilter tomogramFileFilter) {
     this.manager = manager;
     this.index = index;
     this.table = table;
@@ -309,12 +323,17 @@ final class VolumeRow implements Highlightable {
     fbInitMotlFile.setFileFilter(new MotlFileFilter());
     tiltRangeMin = FieldCell.getEditableMatlabInstance();
     tiltRangeMax = FieldCell.getEditableMatlabInstance();
+    tiltRangeMultiAxes = FieldCell.getExpandableInstance(rootDir);
+    setValue(tiltRangeMultiAxes, tiltRangeMultiAxesFile);
+    fbTiltRangeMultiAxes = FileButtonCell.getInstance(table);
+    fbTiltRangeMultiAxes.setFileFilter(tomogramFileFilter);
   }
 
   private void addActionTargets() {
     fbFnVolume.setActionTarget(fnVolume);
     fbFnModParticle.setActionTarget(fnModParticle);
     fbInitMotlFile.setActionTarget(initMotlFile);
+    fbTiltRangeMultiAxes.setActionTarget(tiltRangeMultiAxes);
   }
 
   void setNames() {
@@ -323,6 +342,8 @@ final class VolumeRow implements Highlightable {
     setHeaders(fnVolume, fbFnVolume, table.getFnVolumeHeaderCell());
     setHeaders(fnModParticle, fbFnModParticle, table.getFnModParticleHeaderCell());
     setHeaders(initMotlFile, fbInitMotlFile, table.getInitMotlFileHeaderCell());
+    setHeaders(tiltRangeMultiAxes, fbTiltRangeMultiAxes,
+        table.getTiltRangeMultiAxesHeaderCell());
     fbInitMotlFile.setLabel(VolumeTable.INIT_MOTL_FILE_HEADER1 + " "
         + VolumeTable.INIT_MOTL_FILE_HEADER2);
     tiltRangeMin.setHeaders(VolumeTable.LABEL, number, table.getTiltRangeHeaderCell());
@@ -333,10 +354,11 @@ final class VolumeRow implements Highlightable {
    * Return the text size, or an estimate or the minimum field text width of the three
    * changeable field (volume, model, and MOTL).
    */
-  int getTextSize() {
+  int getTextSize(final boolean isTiltRangeMultiAxes) {
     return Math.max(fnVolume.getValue().length(), 6)
         + Math.max(fnModParticle.getValue().length(), 5)
-        + Math.max(initMotlFile.getValue().length(), 5);
+        + Math.max(initMotlFile.getValue().length(), 5)
+        + (isTiltRangeMultiAxes ? Math.max(tiltRangeMultiAxes.getValue().length(), 5) : 0);
   }
 
   void setHeaders(final FieldCell fieldCell, final FileButtonCell fileButtonCell,
@@ -353,8 +375,10 @@ final class VolumeRow implements Highlightable {
     fnVolume.setHighlight(highlight);
     fnModParticle.setHighlight(highlight);
     initMotlFile.setHighlight(highlight);
+    tiltRangeMultiAxes.setHighlight(highlight);
     tiltRangeMin.setHighlight(highlight);
     tiltRangeMax.setHighlight(highlight);
+    tiltRangeMultiAxes.setHighlight(highlight);
   }
 
   void remove() {
@@ -368,6 +392,8 @@ final class VolumeRow implements Highlightable {
     fbInitMotlFile.remove();
     tiltRangeMin.remove();
     tiltRangeMax.remove();
+    tiltRangeMultiAxes.remove();
+    fbTiltRangeMultiAxes.remove();
   }
 
   void display(int index, Viewport viewport) {
@@ -383,9 +409,16 @@ final class VolumeRow implements Highlightable {
     fbFnModParticle.add(panel, layout, constraints);
     initMotlFile.add(panel, layout, constraints);
     fbInitMotlFile.add(panel, layout, constraints);
-    tiltRangeMin.add(panel, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    tiltRangeMax.add(panel, layout, constraints);
+    if (!table.isTiltRangeMultiAxes()) {
+      tiltRangeMin.add(panel, layout, constraints);
+      constraints.gridwidth = GridBagConstraints.REMAINDER;
+      tiltRangeMax.add(panel, layout, constraints);
+    }
+    else {
+      tiltRangeMultiAxes.add(panel, layout, constraints);
+      constraints.gridwidth = GridBagConstraints.REMAINDER;
+      fbTiltRangeMultiAxes.add(panel, layout, constraints);
+    }
   }
 
   void expandFnVolume(final boolean expanded) {
@@ -409,10 +442,15 @@ final class VolumeRow implements Highlightable {
     initMotlFile.expand(expanded);
   }
 
+  void expandTiltRangeMultiAxes(final boolean expanded) {
+    tiltRangeMultiAxes.expand(expanded);
+  }
+
   void getParameters(final PeetMetaData metaData) {
     metaData.setInitMotlFile(initMotlFile.getExpandedValue(), index);
     metaData.setTiltRangeMin(tiltRangeMin.getValue(), index);
     metaData.setTiltRangeMax(tiltRangeMax.getValue(), index);
+    metaData.setTiltRangeMultiAxesFile(tiltRangeMultiAxes.getValue(), index);
   }
 
   /**
@@ -436,6 +474,10 @@ final class VolumeRow implements Highlightable {
       initMotlFile.setValue(FilePath.getRerootedRelativePath(origDatasetDir,
           propertyUserDir, initMotlFile.getExpandedValue()));
     }
+    if (!tiltRangeMultiAxes.isEmpty()) {
+      tiltRangeMultiAxes.setValue(FilePath.getRerootedRelativePath(origDatasetDir,
+          propertyUserDir, tiltRangeMultiAxes.getExpandedValue()));
+    }
   }
 
   /**
@@ -455,6 +497,11 @@ final class VolumeRow implements Highlightable {
     if (!initMotlFile.isEmpty()
         && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             initMotlFile.getExpandedValue()).exists()) {
+      return true;
+    }
+    if (!tiltRangeMultiAxes.isEmpty()
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
+            tiltRangeMultiAxes.getExpandedValue()).exists()) {
       return true;
     }
     return false;
@@ -479,6 +526,13 @@ final class VolumeRow implements Highlightable {
         && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             initMotlFile.getExpandedValue()).exists()) {
       if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
+        return false;
+      }
+    }
+    if (!tiltRangeMultiAxes.isEmpty()
+        && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
+            tiltRangeMultiAxes.getExpandedValue()).exists()) {
+      if (!fixIncorrectPath(tiltRangeMultiAxes, false, table.isInitMotlFileExpanded())) {
         return false;
       }
     }
@@ -538,26 +592,37 @@ final class VolumeRow implements Highlightable {
     setValue(initMotlFile, metaData.getInitMotlFile(index));
     setTiltRangeMin(metaData.getTiltRangeMin(index));
     setTiltRangeMax(metaData.getTiltRangeMax(index));
+    setValue(tiltRangeMultiAxes, metaData.getTiltRangeMultiAxesFile(index));
   }
 
-  void getParameters(final MatlabParam matlabParamFile) {
+  void getParameters(final MatlabParam matlabParamFile, final boolean isTiltRangeMultiAxes) {
     MatlabParam.Volume volume = matlabParamFile.getVolume(index);
     volume.setFnVolume(fnVolume.getExpandedValue());
     volume.setFnModParticle(fnModParticle.getExpandedValue());
     volume.setInitMotl(initMotlFile.getExpandedValue());
-    volume.setTiltRangeStart(tiltRangeMin.getValue());
-    volume.setTiltRangeEnd(tiltRangeMax.getValue());
+    if (!isTiltRangeMultiAxes) {
+      volume.setTiltRangeStart(tiltRangeMin.getValue());
+      volume.setTiltRangeEnd(tiltRangeMax.getValue());
+    }
+    else {
+      volume.setTiltRangeMultiAxes(tiltRangeMultiAxes.getValue());
+    }
   }
 
-  void setParameters(final MatlabParam matlabParam, boolean useInitMotlFile,
-      boolean useTiltRange) {
+  void setParameters(final MatlabParam matlabParam, final boolean useInitMotlFile,
+      final boolean useTiltRange, final boolean isTiltRangeMultiAxes) {
     MatlabParam.Volume volume = matlabParam.getVolume(index);
     if (useInitMotlFile) {
       setValue(initMotlFile, volume.getInitMotlString());
     }
     if (useTiltRange) {
-      setTiltRangeMin(volume.getTiltRangeStart());
-      setTiltRangeMax(volume.getTiltRangeEnd());
+      if (!isTiltRangeMultiAxes) {
+        setTiltRangeMin(volume.getTiltRangeStart());
+        setTiltRangeMax(volume.getTiltRangeEnd());
+      }
+      else {
+        setValue(tiltRangeMultiAxes, volume.getTiltRangeMultiAxesString());
+      }
     }
   }
 
@@ -570,9 +635,11 @@ final class VolumeRow implements Highlightable {
     column.add(fbInitMotlFile);
   }
 
-  void registerTiltRangeColumn(Column column) {
+  void registerTiltRangeColumn(final Column column) {
     column.add(tiltRangeMin);
     column.add(tiltRangeMax);
+    column.add(tiltRangeMultiAxes);
+    column.add(fbTiltRangeMultiAxes);
   }
 
   void imodVolume(Run3dmodMenuOptions menuOptions) {
@@ -584,14 +651,24 @@ final class VolumeRow implements Highlightable {
    * Validate for running.  Returns error message.
    * @return null if valid
    */
-  String validateRun(boolean tiltRangeRequired) {
+  String validateRun(final boolean tiltRangeRequired, final boolean isTiltRangeMultiAxes) {
     if (fnModParticle.isEmpty()) {
       return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
           + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.";
     }
-    if (tiltRangeRequired && (tiltRangeMin.isEmpty() || tiltRangeMax.isEmpty())) {
-      return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
-          + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required.";
+    if (tiltRangeRequired) {
+      if (!isTiltRangeMultiAxes) {
+        if (tiltRangeMin.isEmpty() || tiltRangeMax.isEmpty()) {
+          return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
+              + VolumeTable.TILT_RANGE_HEADER1_LABEL + " is required.";
+        }
+      }
+      else {
+        if (tiltRangeMultiAxes.isEmpty()) {
+          return VolumeTable.LABEL + ":  In row " + number.getText() + ", "
+              + VolumeTable.getTiltRangeMultiAxesLabel() + " is required.";
+        }
+      }
     }
     return null;
   }
@@ -703,5 +780,6 @@ final class VolumeRow implements Highlightable {
         + "wedge compensation is enabled.";
     tiltRangeMin.setToolTipText("The minimum" + tooltip);
     tiltRangeMax.setToolTipText("The maximum" + tooltip);
+    tiltRangeMultiAxes.setToolTipText("Mask file");
   }
 }

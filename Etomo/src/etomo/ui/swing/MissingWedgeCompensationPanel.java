@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JLabel;
 
 import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
@@ -59,6 +61,11 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
   private final Spinner sNWeightGroup = Spinner.getLabeledInstance(
       FieldLabels.N_WEIGHT_GROUP_LABEL + ": ", MatlabParam.N_WEIGHT_GROUP_DEFAULT,
       MatlabParam.N_WEIGHT_GROUP_MIN, MatlabParam.N_WEIGHT_GROUP_MAX);
+  private ButtonGroup bgTiltRange = new ButtonGroup();
+  private RadioButton rbTiltRangeSingle = new RadioButton("1", bgTiltRange);
+  private RadioButton rbTiltRangeMulti = new RadioButton("2 or more", bgTiltRange);
+  private JLabel lTiltRange = new JLabel("Number of Tilt Axes: ");
+
   /**
    * @deprecated
    * Replaced by cbMissingWedgeCompensation
@@ -72,11 +79,12 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
 
   private final MissingWedgeCompensationParent parent;
 
-  private MissingWedgeCompensationPanel(MissingWedgeCompensationParent parent) {
+  private MissingWedgeCompensationPanel(final MissingWedgeCompensationParent parent) {
     this.parent = parent;
   }
 
-  static MissingWedgeCompensationPanel getInstance(MissingWedgeCompensationParent parent) {
+  static MissingWedgeCompensationPanel getInstance(
+      final MissingWedgeCompensationParent parent) {
     MissingWedgeCompensationPanel instance = new MissingWedgeCompensationPanel(parent);
     instance.createPanel();
     instance.setTooltips();
@@ -87,18 +95,22 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
   private void addListeners() {
     ActionListener actionListener = new MissingWedgeCompensationActionListener(this);
     cbMissingWedgeCompensation.addActionListener(actionListener);
+    rbTiltRangeSingle.addActionListener(actionListener);
+    rbTiltRangeMulti.addActionListener(actionListener);
     cbTiltRange.addActionListener(actionListener);
     cbFlgWedgeWeight.addActionListener(actionListener);
   }
 
   private void createPanel() {
     // init
+    rbTiltRangeSingle.setSelected(true);
     cbTiltRange.setVisible(false);
     cbFlgWedgeWeight.setVisible(false);
     // local panels
     SpacedPanel pnlVolumeSize = SpacedPanel.getInstance();
     SpacedPanel pnlMissingWedgeCompensation = SpacedPanel.getInstance();
     SpacedPanel pnlEnabled = SpacedPanel.getInstance();
+    SpacedPanel pnlTiltRange = SpacedPanel.getInstance();
     // Root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
@@ -121,6 +133,7 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
         MISSING_WEDGE_COMPENSATION_LABEL).getBorder());
     pnlMissingWedgeCompensation.setComponentAlignmentX(Component.RIGHT_ALIGNMENT);
     pnlMissingWedgeCompensation.add(pnlEnabled);
+    pnlMissingWedgeCompensation.add(pnlTiltRange);
     pnlMissingWedgeCompensation.add(cbTiltRange);
     pnlMissingWedgeCompensation.add(cbFlgWedgeWeight);
     // enabled
@@ -131,6 +144,14 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
     pnlEnabled.add(sEdgeShift.getContainer());
     pnlEnabled.addRigidArea(FixedDim.x3_y0);
     pnlEnabled.add(sNWeightGroup.getContainer());
+    // TiltRange
+    pnlTiltRange.setBoxLayout(BoxLayout.X_AXIS);
+    pnlTiltRange.setComponentAlignmentX(Component.RIGHT_ALIGNMENT);
+    pnlTiltRange.add(lTiltRange);
+    pnlTiltRange.add(rbTiltRangeSingle);
+    pnlTiltRange.addRigidArea(FixedDim.x15_y0);
+    pnlTiltRange.add(rbTiltRangeMulti);
+    pnlTiltRange.addRigidArea(FixedDim.x45_y0);
   }
 
   public SwingComponent getUIComponent() {
@@ -151,6 +172,7 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
     else {
       metaData.setTiltRange(cbMissingWedgeCompensation.isSelected());
       metaData.setFlgWedgeWeight(cbMissingWedgeCompensation.isSelected());
+      metaData.setTiltRangeMultiAxes(rbTiltRangeMulti.isSelected());
     }
   }
 
@@ -167,6 +189,12 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
     cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
     sEdgeShift.setValue(metaData.getEdgeShift());
     sNWeightGroup.setValue(metaData.getNWeightGroup());
+    if (metaData.isTiltRangeMultiAxes()) {
+      rbTiltRangeMulti.setSelected(true);
+    }
+    else {
+      rbTiltRangeSingle.setSelected(true);
+    }
   }
 
   /**
@@ -184,19 +212,27 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
       cbTiltRange.setSelected(true);
       cbFlgWedgeWeight.setSelected(matlabParam.isFlgWedgeWeight());
     }
-    cbMissingWedgeCompensation.setSelected(cbTiltRange.isSelected()
-        && cbFlgWedgeWeight.isSelected());
-    if (!cbMissingWedgeCompensation.isSelected()) {
+    boolean missingWedgeCompensation = cbTiltRange.isSelected()
+        && cbFlgWedgeWeight.isSelected();
+    cbMissingWedgeCompensation.setSelected(missingWedgeCompensation);
+    if (!missingWedgeCompensation) {
       if (cbTiltRange.isSelected() || cbFlgWedgeWeight.isSelected()) {
         cbTiltRange.setVisible(true);
         cbFlgWedgeWeight.setVisible(true);
       }
     }
-    if (cbMissingWedgeCompensation.isSelected()
-        || (cbTiltRange.isVisible() && cbTiltRange.isSelected())) {
+    else {
+      if (matlabParam.isTiltRangeMultiAxes()) {
+        rbTiltRangeMulti.setSelected(true);
+      }
+      else {
+        rbTiltRangeSingle.setSelected(true);
+      }
+    }
+    if (missingWedgeCompensation || (cbTiltRange.isVisible() && cbTiltRange.isSelected())) {
       sEdgeShift.setValue(matlabParam.getEdgeShift());
     }
-    if (cbMissingWedgeCompensation.isSelected()
+    if (missingWedgeCompensation
         || (cbTiltRange.isVisible() && cbFlgWedgeWeight.isSelected())) {
       sNWeightGroup.setValue(matlabParam.getNWeightGroup());
     }
@@ -206,6 +242,10 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
   boolean isTiltRangeRequired() {
     return cbMissingWedgeCompensation.isSelected()
         || (cbTiltRange.isVisible() && cbTiltRange.isSelected());
+  }
+
+  boolean isTiltRangeMultiAxes() {
+    return rbTiltRangeMulti.isSelected();
   }
 
   public boolean getParameters(final MatlabParam matlabParam, final boolean doValidation) {
@@ -221,6 +261,7 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
       matlabParam.setFlgWedgeWeight(cbMissingWedgeCompensation.isSelected()
           || (cbTiltRange.isVisible() && cbTiltRange.isSelected() && cbFlgWedgeWeight
               .isSelected()));
+      matlabParam.setTiltRangeMultiAxes(rbTiltRangeMulti.isSelected());
       if (sEdgeShift.isEnabled()) {
         matlabParam.setEdgeShift(sEdgeShift.getValue());
       }
@@ -238,15 +279,19 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
   }
 
   public void updateDisplay() {
-    sEdgeShift.setEnabled(cbMissingWedgeCompensation.isSelected()
+    boolean missingWedgeCompensation = cbMissingWedgeCompensation.isSelected();
+    sEdgeShift.setEnabled(missingWedgeCompensation
         || (cbTiltRange.isVisible() && cbTiltRange.isSelected()));
-    sNWeightGroup.setEnabled(cbMissingWedgeCompensation.isSelected()
+    sNWeightGroup.setEnabled(missingWedgeCompensation
         || (cbTiltRange.isVisible() && !parent.isVolumeTableEmpty()
             && cbTiltRange.isSelected() && cbFlgWedgeWeight.isSelected()
             && parent.isReferenceParticleSelected() && cbFlgWedgeWeight.isSelected()));
+    lTiltRange.setEnabled(missingWedgeCompensation);
+    rbTiltRangeMulti.setEnabled(missingWedgeCompensation);
+    rbTiltRangeSingle.setEnabled(missingWedgeCompensation);
     // Get the new checkbox and the old backward compatibility checkboxes to sync to each
     // other.
-    if (cbMissingWedgeCompensation.isSelected()) {
+    if (missingWedgeCompensation) {
       cbTiltRange.setSelected(true);
       cbFlgWedgeWeight.setSelected(true);
     }
@@ -284,7 +329,9 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
   }
 
   private void action(final String actionCommand) {
-    if (actionCommand.equals(cbMissingWedgeCompensation.getActionCommand())) {
+    if (actionCommand.equals(cbMissingWedgeCompensation.getActionCommand())
+        || actionCommand.equals(rbTiltRangeSingle.getActionCommand())
+        || actionCommand.equals(rbTiltRangeMulti.getActionCommand())) {
       parent.updateDisplay();
     }
     if (actionCommand.equals(cbTiltRange.getActionCommand())
@@ -305,6 +352,7 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
     sEdgeShift.reset();
     cbFlgWedgeWeight.setSelected(false);
     sNWeightGroup.reset();
+    rbTiltRangeSingle.setSelected(true);
   }
 
   void setDefaults() {
@@ -332,6 +380,12 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
         + "correlation coefficient between groups.  Set to 0 or 1 to turn off.");
     sEdgeShift.setToolTipText("Number of pixels to shift the edge of the wedge mask to "
         + "include frequency information just inside the missing wedge.");
+    rbTiltRangeSingle
+        .setToolTipText("Use the tilt angles used to acquire the tilt series to "
+            + "compensate for the missing wedge during alignment and averaging.");
+    rbTiltRangeMulti
+        .setToolTipText("Use an array of files containing binary masks to compensate for "
+            + "the missing wedge during alignment and averaging.");
   }
 
   private static final class MissingWedgeCompensationActionListener implements

@@ -116,18 +116,23 @@ public final class ParsedQuotedString extends ParsedElement {
    * @param attribute
    * @return
    */
-  public static boolean isQuotedString(ReadOnlyAttribute attribute) {
+  public static boolean isQuotedString(final ReadOnlyAttribute attribute) {
     if (attribute == null) {
       return false;
     }
-    String value = attribute.getValue();
+    return isQuotedString(attribute.getValue());
+  }
+
+  /**
+   * This is a quoted string only if starts with a quote (ignoring whitespace).
+   * @param attribute
+   * @return
+   */
+  public static boolean isQuotedString(final String value) {
     if (value == null) {
       return false;
     }
-    if (value.trim().charAt(0) == DELIMITER_SYMBOL.charValue()) {
-      return true;
-    }
-    return false;
+    return value.trim().charAt(0) == DELIMITER_SYMBOL.charValue();
   }
 
   public void parse(ReadOnlyAttribute attribute) {
