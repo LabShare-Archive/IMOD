@@ -787,7 +787,7 @@ for ind in range(numSeedViews):
 
    if not oldValid:
       try:
-         cliplines = runcmd(fmtstr('clipmodel -zmin {0},{0} "{1}" "{2}"', seedVw,
+         cliplines = runcmd(fmtstr('clipmodel -keep -zmin {0},{0} "{1}" "{2}"', seedVw,
                                    tmppeak, tmpseed[ind]))
       except ImodpyError:
          cleanExitError('Running clipmodel to extract seed for view ' + viewStr)
