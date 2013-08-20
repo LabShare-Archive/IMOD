@@ -6,13 +6,14 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileFilter;
 
 import etomo.BaseManager;
 import etomo.process.ImodManager;
 import etomo.storage.MatlabParam;
 import etomo.storage.ModelFileFilter;
 import etomo.storage.MotlFileFilter;
-import etomo.storage.TomogramFileFilter;
+import etomo.storage.VolumeFileFilter;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
@@ -173,9 +174,9 @@ final class VolumeRow implements Highlightable {
 
   static VolumeRow getInstance(final BaseManager manager, final int index,
       final VolumeTable table, final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+      final GridBagConstraints constraints, final VolumeFileFilter volumeFileFilter) {
     VolumeRow instance = new VolumeRow(manager, index, table, panel, layout, constraints,
-        tomogramFileFilter);
+        volumeFileFilter);
     instance.addActionTargets();
     instance.setTooltips();
     return instance;
@@ -184,10 +185,10 @@ final class VolumeRow implements Highlightable {
   static VolumeRow getInstance(final BaseManager manager, final File fnVolume,
       final File fnModParticle, final File tiltRangeMultiAxesFile, final int index,
       final VolumeTable table, final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+      final GridBagConstraints constraints, final VolumeFileFilter volumeFileFilter) {
     VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle,
         tiltRangeMultiAxesFile, index, table, panel, layout, constraints,
-        tomogramFileFilter);
+        volumeFileFilter);
     instance.addActionTargets();
     instance.setTooltips();
     return instance;
@@ -196,10 +197,10 @@ final class VolumeRow implements Highlightable {
   static VolumeRow getInstance(final BaseManager manager, final String fnVolume,
       final String fnModParticle, final String tiltRangeMultiAxesFile, final int index,
       final VolumeTable table, final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+      final GridBagConstraints constraints, final VolumeFileFilter volumeFileFilter) {
     VolumeRow instance = new VolumeRow(manager, fnVolume, fnModParticle,
         tiltRangeMultiAxesFile, index, table, panel, layout, constraints,
-        tomogramFileFilter);
+        volumeFileFilter);
     instance.addActionTargets();
     instance.setTooltips();
     return instance;
@@ -214,7 +215,7 @@ final class VolumeRow implements Highlightable {
 
   private VolumeRow(final BaseManager manager, final int index, final VolumeTable table,
       final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+      final GridBagConstraints constraints, final VolumeFileFilter volumeFileFilter) {
     this.manager = manager;
     this.index = index;
     this.table = table;
@@ -227,7 +228,7 @@ final class VolumeRow implements Highlightable {
     fnVolume = FieldCell.getExpandableInstance(rootDir);
     // setValue(fnVolume, fnVolumeFile);
     fbFnVolume = FileButtonCell.getInstance(table);
-    fbFnVolume.setFileFilter(tomogramFileFilter);
+    fbFnVolume.setFileFilter(volumeFileFilter);
     fnModParticle = FieldCell.getExpandableInstance(rootDir);
     // setValue(fnModParticle, fnModParticleFile);
     fbFnModParticle = FileButtonCell.getInstance(table);
@@ -239,7 +240,7 @@ final class VolumeRow implements Highlightable {
     tiltRangeMax = FieldCell.getEditableMatlabInstance();
     tiltRangeMultiAxes = FieldCell.getExpandableInstance(rootDir);
     fbTiltRangeMultiAxes = FileButtonCell.getInstance(table);
-    fbTiltRangeMultiAxes.setFileFilter(tomogramFileFilter);
+    fbTiltRangeMultiAxes.setFileFilter(volumeFileFilter);
   }
 
   private VolumeRow(final VolumeRow volumeRow, final int index) {
@@ -267,7 +268,7 @@ final class VolumeRow implements Highlightable {
   private VolumeRow(final BaseManager manager, final File fnVolumeFile,
       final File fnModParticleFile, final File tiltRangeMultiAxesFile, final int index,
       final VolumeTable table, final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints, final TomogramFileFilter tomogramFileFilter) {
+      final GridBagConstraints constraints, final VolumeFileFilter volumeFileFilter) {
     this.manager = manager;
     this.index = index;
     this.table = table;
@@ -280,7 +281,7 @@ final class VolumeRow implements Highlightable {
     fnVolume = FieldCell.getExpandableInstance(rootDir);
     setValue(fnVolume, fnVolumeFile);
     fbFnVolume = FileButtonCell.getInstance(table);
-    fbFnVolume.setFileFilter(tomogramFileFilter);
+    fbFnVolume.setFileFilter(volumeFileFilter);
     fnModParticle = FieldCell.getExpandableInstance(rootDir);
     setValue(fnModParticle, fnModParticleFile);
     fbFnModParticle = FileButtonCell.getInstance(table);
@@ -293,14 +294,14 @@ final class VolumeRow implements Highlightable {
     tiltRangeMultiAxes = FieldCell.getExpandableInstance(rootDir);
     setValue(tiltRangeMultiAxes, tiltRangeMultiAxesFile);
     fbTiltRangeMultiAxes = FileButtonCell.getInstance(table);
-    fbTiltRangeMultiAxes.setFileFilter(tomogramFileFilter);
+    fbTiltRangeMultiAxes.setFileFilter(volumeFileFilter);
   }
 
   private VolumeRow(final BaseManager manager, final String fnVolumeFile,
       final String fnModParticleFile, final String tiltRangeMultiAxesFile,
       final int index, final VolumeTable table, final JPanel panel,
       final GridBagLayout layout, final GridBagConstraints constraints,
-      final TomogramFileFilter tomogramFileFilter) {
+      final VolumeFileFilter volumeFileFilter) {
     this.manager = manager;
     this.index = index;
     this.table = table;
@@ -313,7 +314,7 @@ final class VolumeRow implements Highlightable {
     fnVolume = FieldCell.getExpandableInstance(rootDir);
     setValue(fnVolume, fnVolumeFile);
     fbFnVolume = FileButtonCell.getInstance(table);
-    fbFnVolume.setFileFilter(tomogramFileFilter);
+    fbFnVolume.setFileFilter(volumeFileFilter);
     fnModParticle = FieldCell.getExpandableInstance(rootDir);
     setValue(fnModParticle, fnModParticleFile);
     fbFnModParticle = FileButtonCell.getInstance(table);
@@ -326,7 +327,7 @@ final class VolumeRow implements Highlightable {
     tiltRangeMultiAxes = FieldCell.getExpandableInstance(rootDir);
     setValue(tiltRangeMultiAxes, tiltRangeMultiAxesFile);
     fbTiltRangeMultiAxes = FileButtonCell.getInstance(table);
-    fbTiltRangeMultiAxes.setFileFilter(tomogramFileFilter);
+    fbTiltRangeMultiAxes.setFileFilter(volumeFileFilter);
   }
 
   private void addActionTargets() {
@@ -511,28 +512,32 @@ final class VolumeRow implements Highlightable {
     if (!fnVolume.isEmpty()
         && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             fnVolume.getExpandedValue()).exists()) {
-      if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded())) {
+      if (!fixIncorrectPath(fnVolume, choosePathEveryRow, table.isFnVolumeExpanded(),
+          fbFnVolume.getFileFilter())) {
         return false;
       }
     }
     if (!fnModParticle.isEmpty()
         && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             fnModParticle.getExpandedValue()).exists()) {
-      if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded())) {
+      if (!fixIncorrectPath(fnModParticle, false, table.isFnModParticleExpanded(),
+          fbFnModParticle.getFileFilter())) {
         return false;
       }
     }
     if (!initMotlFile.isEmpty()
         && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             initMotlFile.getExpandedValue()).exists()) {
-      if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded())) {
+      if (!fixIncorrectPath(initMotlFile, false, table.isInitMotlFileExpanded(),
+          fbInitMotlFile.getFileFilter())) {
         return false;
       }
     }
     if (!tiltRangeMultiAxes.isEmpty()
         && !FilePath.buildAbsoluteFile(manager.getPropertyUserDir(),
             tiltRangeMultiAxes.getExpandedValue()).exists()) {
-      if (!fixIncorrectPath(tiltRangeMultiAxes, false, table.isInitMotlFileExpanded())) {
+      if (!fixIncorrectPath(tiltRangeMultiAxes, false, table.isInitMotlFileExpanded(),
+          fbTiltRangeMultiAxes.getFileFilter())) {
         return false;
       }
     }
@@ -545,7 +550,8 @@ final class VolumeRow implements Highlightable {
    * @param choosePathEveryRow
    * @return false if the user cancels the file selector
    */
-  private boolean fixIncorrectPath(FieldCell fieldCell, boolean choosePath, boolean expand) {
+  private boolean fixIncorrectPath(FieldCell fieldCell, boolean choosePath,
+      boolean expand, final FileFilter fileFilter) {
     File newFile = null;
     while (newFile == null || !newFile.exists()) {
       // Have the user choose the location of the file if they haven't chosen
@@ -558,6 +564,7 @@ final class VolumeRow implements Highlightable {
             manager.getPropertyUserDir(), fieldCell.getExpandedValue()));
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileFilter(fileFilter);
         int returnVal = fileChooser.showOpenDialog(table.getContainer());
         if (returnVal != JFileChooser.APPROVE_OPTION) {
           return false;
