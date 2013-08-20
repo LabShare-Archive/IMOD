@@ -19,9 +19,9 @@
 #define rssortindexedfloats RSSORTINDEXEDFLOATS
 #define rsmedianofsorted RSMEDIANOFSORTED
 #define rsmedian RSMEDIAN
-#define rsmedian RSMEDIAN
 #define rsfastmedian RSFASTMEDIAN
 #define rsfastmadn RSFASTMADN
+#define rsfastmedianinplace RSFASTMEDIANINPLACE
 #define rstrimmedmeanofsorted RSTRIMMEDMEANOFSORTED
 #define rstrimmedmean RSTRIMMEDMEAN
 #define rsmadn RSMADN

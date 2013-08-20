@@ -25,6 +25,7 @@ EXPORTS
 	setSurfSortParam
 	sliceGetVal
 	AdocGetSectionName
+	rsFastMedian
 	GAUSSJ
 	sliceGetValMagnitude
 	PARWRTGETREGION
@@ -83,6 +84,7 @@ EXPORTS
 	B3DOMPTHREADNUM
 	ADOCWRITE
 	SUMS_TO_AVGSD
+	rsFastMADN
 	b3dRewind
 	PIPSETSPECIALFLAGS
 	XFCOPY
@@ -224,6 +226,7 @@ EXPORTS
 	ADOCSETINTEGER
 	PIDTOSTDERR
 	ilistNew
+	RSFASTMEDIANINPLACE
 	b3dHeaderItemBytes
 	IMODGETPID
 	AdocClear
@@ -232,6 +235,7 @@ EXPORTS
 	ilistDup
 	rsMedianOfSorted
 	AdocSetTwoFloats
+	rsFastMedianInPlace
 	ZOOMFILTINTERP
 	sliceTaperOutPad
 	xfInvert
@@ -269,6 +273,7 @@ EXPORTS
 	gaussj
 	INSIDECONTOUR
 	PipGetThreeFloats
+	RSFASTMEDIAN
 	XFMULT
 	PIPGETTHREEFLOATS
 	ADOCGETSTRING
@@ -288,6 +293,7 @@ EXPORTS
 	robustRegress
 	XCORRPEAKFIND
 	rsMedian
+	RSFASTMADN
 	XCorrCCCoefficient
 	tValue
 	sliceGaussianKernel
