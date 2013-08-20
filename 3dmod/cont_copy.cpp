@@ -166,12 +166,12 @@ static int copyContour(Icont *cont, int coNum)
   case COPY_TO_SECTION:
   case COPY_TO_NEXT_SECTION:
   case COPY_TO_PREV_SECTION:
-    toObj   = imodObjectGet(vw->imod);
+    toObj   = &vw->imod->obj[sData.currentObject];
     section = sData.sectionNumber-1; 
     for(pt = 0; pt < cont->psize; pt++){
       cont->pts[pt].z = section;
     }
-    vw->undo->contourAddition(obnum, toObj->contsize);
+    vw->undo->contourAddition(sData.currentObject, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
 
@@ -179,7 +179,7 @@ static int copyContour(Icont *cont, int coNum)
   case COPY_TO_NEXT_TIME:
     toObj   = &vw->imod->obj[sData.currentObject];
     cont->time = sData.timeIndex;
-    vw->undo->contourAddition(obnum, toObj->contsize);
+    vw->undo->contourAddition(sData.currentObject, toObj->contsize);
     imodObjectAddContour(toObj, cont);
     break;
   }
@@ -403,6 +403,7 @@ void ContourCopy::apply()
   Iobj *obj   = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
   Icont *ncont;
+  bool doingSection = false;
   int ob, co, errcode, maxcont;
 
   if (!obj){
@@ -450,6 +451,7 @@ void ContourCopy::apply()
       wprint("\a%sBad destination section.\n", badCopy);
       return;
     }
+    doingSection = true;
     break;
 
   case COPY_TO_TIME:
@@ -471,6 +473,7 @@ void ContourCopy::apply()
       return;
     }
     sData.sectionNumber = sData.currentSection + 2;
+    doingSection = true;
     break;
 
   case COPY_TO_PREV_SECTION:
@@ -480,63 +483,58 @@ void ContourCopy::apply()
       return;
     }
     sData.sectionNumber = sData.currentSection;
+    doingSection = true;
     break;
 
   }
 
 
-  /*  if (!(sData.doAll || sData.doAllObj || sData.doSurface)){
-    sData.currentObject = imod->cindex.object;
-    ncont = imodContourDup(cont);
-    copyContour(ncont, imod->cindex.contour);
-    free(ncont);
-    }else{ */
+  /* Loop on all objects, skip if not doing all or it is not current one or it is not 
+     selected and it is an allowed operation */
+  for (ob = 0; ob < (int)imod->objsize; ob++) {
+    if (!(sData.doAllObj || ob == imod->cindex.object || 
+          (!sData.doAllObj && !sData.doSurface && !sData.doAll && 
+           (doingSection || sData.copyOperation == COPY_TO_TIME) &&
+           imodSelectionListQuery(sData.vw, ob, -1) > -2)))
+      continue;
 
-    /* Loop on all objects, skip if not doing all or it is not current one */
-    for (ob = 0; ob < (int)imod->objsize; ob++) {
-      if (!(sData.doAllObj || ob == imod->cindex.object))
+    sData.currentObject = ob;
+    obj = &imod->obj[ob];
+    maxcont = obj->contsize;
+
+    /* look at all contours in current object */
+    for (co = 0; co < maxcont; co++) {
+      cont = &obj->cont[co];
+
+      /* If copying to section, check for being at source section */
+      if (doingSection) {
+        if (!cont->psize)
+          continue;
+        if (floor(cont->pts->z + 0.5) != sData.currentSection)
+          continue;
+      }
+        
+      /* If copying to time, check for being at source time */
+      if ((sData.copyOperation == COPY_TO_TIME) &&
+          (cont->time != sData.currentTime))
         continue;
 
-      sData.currentObject = ob;
-      obj = &imod->obj[ob];
-      maxcont = obj->contsize;
+      /* If copying surface, make sure surface matches */
+      if (sData.doSurface && cont->surf != sData.surfaceNumber)
+        continue;
 
-      /* look at all contours in current object */
-      for (co = 0; co < maxcont; co++) {
-        cont = &obj->cont[co];
-
-        /* If copying to section, check for being at source section */
-        if (sData.copyOperation == COPY_TO_SECTION ||
-            sData.copyOperation == COPY_TO_NEXT_SECTION ||
-            sData.copyOperation == COPY_TO_PREV_SECTION){
-          if (!cont->psize)
-            continue;
-          if (floor(cont->pts->z + 0.5) != sData.currentSection)
-            continue;
-        }
-        
-        /* If copying to time, check for being at source time */
-        if ((sData.copyOperation == COPY_TO_TIME) &&
-            (cont->time != sData.currentTime))
-          continue;
-
-        /* If copying surface, make sure surface matches */
-        if (sData.doSurface && cont->surf != sData.surfaceNumber)
-          continue;
-
-        /* copy the entire contour */
-        if (cont->psize && (sData.doAll || sData.doAllObj || 
-                            sData.doSurface || co == imod->cindex.contour || 
-                            imodSelectionListQuery(sData.vw, ob, co) > -2)) {
-          ncont  = imodContourDup(cont);
-          errcode = copyContour(ncont, co);
-          free(ncont);
-          if (errcode)
-            wprint("\a%sFailed to duplicate contour correctly.\n", badCopy);
-        }
+      /* copy the entire contour */
+      if (cont->psize && (sData.doAll || sData.doAllObj || sData.doSurface || 
+                          (co == imod->cindex.contour && ob == imod->cindex.object) || 
+                          imodSelectionListQuery(sData.vw, ob, co) > -2)) {
+        ncont  = imodContourDup(cont);
+        errcode = copyContour(ncont, co);
+        free(ncont);
+        if (errcode)
+          wprint("\a%sFailed to duplicate contour correctly.\n", badCopy);
       }
     }
-    //}
+  }
   sData.vw->undo->finishUnit();
   wprint("Copy operation completed\n");
   imodDraw(sData.vw, IMOD_DRAW_MOD);
