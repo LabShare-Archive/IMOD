@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/20/13: Fixed bug in autofidseed that made it use data only from the last
+track instead of from all three (caused by 12/13/12 Clipmodel change).
+
+8/20/13: Made contour copying to work with contours selected in multiple
+objects.
+
 8/15/13: Made Newstack floating scale images with extreme ranges to different
 mean and SD  to preserve dynamic range for other images.
 
