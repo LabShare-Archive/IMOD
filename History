@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/20/13: Added ".mrc" as a default volume file extension to the file choosers.
+(Bug# 1701)
+
 8/20/13: Fixed bug in autofidseed that made it use data only from the last
 track instead of from all three (caused by 12/13/12 Clipmodel change).
 
