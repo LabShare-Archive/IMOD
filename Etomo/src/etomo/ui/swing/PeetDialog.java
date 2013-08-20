@@ -25,8 +25,10 @@ import etomo.ProcessingMethodMediator;
 import etomo.comscript.AverageAllParam;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.FileFilterCollection;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.VolumeFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
@@ -677,6 +679,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         fileChooser.setSelectedFile(fileTextField.getFile());
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileFilter(fileTextField.getFileFilter());
         int returnVal = fileChooser.showOpenDialog(rootPanel);
         if (returnVal != JFileChooser.APPROVE_OPTION) {
           return false;
