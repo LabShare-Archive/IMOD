@@ -17,6 +17,7 @@ import etomo.BaseManager;
 import etomo.logic.MultiparticleReference;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.VolumeFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
@@ -118,6 +119,7 @@ final class ReferencePanel implements UIComponent, SwingComponent {
       cmbMultiparticle.addItem(MultiparticleReference.getParticleCount(i));
     }
     cmbMultiparticle.setSelectedIndex(MultiparticleReference.getDefaultIndex());
+    ftfFile.setFileFilter(new VolumeFileFilter());
     // local panels
     JPanel pnlParticle = new JPanel();
     JPanel pnlFile = new JPanel();

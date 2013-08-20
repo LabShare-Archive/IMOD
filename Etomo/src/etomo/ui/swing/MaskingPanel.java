@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
+import etomo.storage.VolumeFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
@@ -117,6 +118,8 @@ final class MaskingPanel implements UIComponent, SwingComponent {
   }
 
   private void createPanel() {
+    //init
+    ftfMaskTypeFile.setFileFilter(new VolumeFileFilter());
     // local panels
     JPanel pnlMaskType = new JPanel();
     JPanel pnlMaskVolumeRadii = new JPanel();

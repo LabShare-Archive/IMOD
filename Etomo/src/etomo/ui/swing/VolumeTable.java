@@ -27,7 +27,7 @@ import etomo.storage.TiltFile;
 import etomo.storage.TiltFileFilter;
 import etomo.storage.TiltLog;
 import etomo.storage.TiltLogFileFilter;
-import etomo.storage.TomogramFileFilter;
+import etomo.storage.VolumeFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
@@ -259,7 +259,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private final Column initMotlFileColumn = new Column();
   private final Column tiltRangeColumn = new Column();
-  private final TomogramFileFilter tomogramFileFilter = new TomogramFileFilter();
+  private final VolumeFileFilter volumeFileFilter = new VolumeFileFilter();
   private final MultiLineButton btnMoveUp = new MultiLineButton("Up");
   private final MultiLineButton btnMoveDown = new MultiLineButton("Down");
   private final MultiLineButton btnInsertRow = new MultiLineButton("Insert");
@@ -786,7 +786,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
 
   private VolumeRow addRow() {
     VolumeRow row = rowList.add(manager, this, pnlTable, layout, constraints,
-        initMotlFileColumn, tiltRangeColumn, tomogramFileFilter);
+        initMotlFileColumn, tiltRangeColumn, volumeFileFilter);
     row.expandFnVolume(btnExpandFnVolume.isExpanded());
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     return row;
@@ -796,7 +796,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
       final String tiltRangeMultiAxes) {
     VolumeRow row = rowList.add(manager, fnVolume, fnModParticle, tiltRangeMultiAxes,
         this, pnlTable, layout, constraints, initMotlFileColumn, tiltRangeColumn,
-        tomogramFileFilter);
+        volumeFileFilter);
     row.expandFnVolume(btnExpandFnVolume.isExpanded());
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     return row;
@@ -949,9 +949,9 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     private synchronized VolumeRow add(final BaseManager manager,
         final VolumeTable table, final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints, final Column initMotlFileColumn,
-        final Column tiltRangeColumn, final TomogramFileFilter tomogramFileFilter) {
+        final Column tiltRangeColumn, final VolumeFileFilter volumeFileFilter) {
       VolumeRow row = VolumeRow.getInstance(manager, list.size(), table, panel, layout,
-          constraints, tomogramFileFilter);
+          constraints, volumeFileFilter);
       list.add(row);
       row.registerInitMotlFileColumn(initMotlFileColumn);
       row.registerTiltRangeColumn(tiltRangeColumn);
@@ -967,10 +967,10 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
         final String fnModParticle, final String tiltRangeMultiAxes,
         final VolumeTable table, final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints, Column initMotlFileColumn,
-        Column tiltRangeColumn, final TomogramFileFilter tomogramFileFilter) {
+        Column tiltRangeColumn, final VolumeFileFilter volumeFileFilter) {
       VolumeRow row = VolumeRow.getInstance(manager, fnVolume, fnModParticle,
           tiltRangeMultiAxes, list.size(), table, panel, layout, constraints,
-          tomogramFileFilter);
+          volumeFileFilter);
       list.add(row);
       row.registerInitMotlFileColumn(initMotlFileColumn);
       row.registerTiltRangeColumn(tiltRangeColumn);
