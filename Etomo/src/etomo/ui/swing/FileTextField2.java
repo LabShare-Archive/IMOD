@@ -368,6 +368,10 @@ final class FileTextField2 implements FileTextFieldInterface {
     fileFilter = input;
   }
 
+  public FileFilter getFileFilter() {
+    return fileFilter;
+  }
+
   String getText() {
     return field.getText();
   }
