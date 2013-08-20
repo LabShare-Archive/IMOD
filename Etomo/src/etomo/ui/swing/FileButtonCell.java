@@ -51,7 +51,7 @@ final class FileButtonCell extends InputCell {
   private FileButtonCell(final CurrentDirectory currentDirectory) {
     this.currentDirectory = currentDirectory;
     button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
-    //button.setBorder(BorderFactory.createEtchedBorder());
+    // button.setBorder(BorderFactory.createEtchedBorder());
     Dimension size = button.getPreferredSize();
     if (size.width < size.height) {
       size.width = size.height;
@@ -114,6 +114,10 @@ final class FileButtonCell extends InputCell {
 
   void setFileFilter(final ExtensibleFileFilter input) {
     fileFilter = input;
+  }
+
+  FileFilter getFileFilter() {
+    return fileFilter;
   }
 
   Component getComponent() {
