@@ -1,5 +1,4 @@
-/*
- * myapp.h - the main class for ctfplotter, originally a QApplication
+/* myapp.h - the main class for ctfplotter, originally a QApplication
  *
  *  $Id$
  *
@@ -56,8 +55,13 @@ class MyApp : public QObject
     double getAutoFromAngle(){return mAutoFromAngle;}
     double getAutoToAngle(){return mAutoToAngle;}
     
-    void setPS(double *rAvg){mRAverage=rAvg;}
-    double* getPS(){return mRAverage;}
+    void setPS(double *rAvg, double *rAvg1, double *rAvg2) {
+      mRAverage = rAvg; 
+      mRAverage1 = rAvg1;
+      mRAverage2 = rAvg2;
+    }
+
+    double* getPS() {return mRAverage;}
     //recompute mRAverage for the central strips after calling setSlice();
     void computeInitPS(bool noisePS);  
     int autoFitToRanges(float minAngle, float maxAngle, float rangeSize, 
@@ -96,6 +100,7 @@ class MyApp : public QObject
     void showWarning(const char *title, const char *message);
     void setFitSingleViews(bool state) {mFitSingleViews = state;};
     bool getFitSingleViews() {return mFitSingleViews;};
+    void combinePowerSpectra();
     
     MyApp(int volt, double pSize, 
           double ampRatio, float cs, char *defFn, int dim, int hyper, 
@@ -122,7 +127,8 @@ class MyApp : public QObject
     void scaleAndAddStrip(
       double *psSum, double *stripAvg, int *stripCounter, int counter,
       double mean, double xScale, double xAdd, float freqInc, 
-      double delFmin, double delFmax, SliceCache *cachePtr);
+      double delFmin, double delFmax, SliceCache *cachePtr, double *avgPtr,
+      int *freqTileCounterPtr);
     void saveCurrentDefocus();
     void writeDefocusFile();
     void getScaleAndOffset(const double dz1, const double dz2, 
@@ -163,9 +169,12 @@ class MyApp : public QObject
     // x-direction tile numumber already included in PS computation;
     int *mTileIncluded; 
     int mTotalTileIncluded;
-    double *mRAverage; // is the signal PS;
+    double *mRAverage;  // is the signal PS
+    double *mRAverage1; // is the primary focal pair tilt-series PS
+    double *mRAverage2; // is the secondary focal pair tilt-series PS
     int *mFreqTileCounter;  // Count of tiles * pixels in each bin of PS
-    double mStackMean;
+    int *mFreqTileCounter2; // Count of tiles * pixels in each bin of secondary PS
+    double mStackMean, mStackMean2;
     double mTiltAxisAngle; //in degrees
     int mItrNum;
     int mX1MethodIndex;
@@ -191,6 +200,7 @@ class MyApp : public QObject
     int mDefVersionIn;      // Version number if any in read-in file
     int mDefVersionOut;     // Version number to write in output file
     bool mFitSingleViews;   // Flag to fit single views
+    bool mFocalPairProcessing;
 };
 
 #endif

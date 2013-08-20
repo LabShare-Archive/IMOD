@@ -151,7 +151,16 @@ int main(int argc, char *argv[])
     printf("Fitting 2 tilt series with a defocus offset of %g nm\n", fpdz);
   }
 
-  double *rAvg = (double *)malloc(nDim *sizeof(double));
+  double *rAvg = (double *)malloc(nDim * sizeof(double));
+  if (!rAvg)
+    exitError("Allocation failed: out of memory!");
+  double *rAvg1 = NULL, *rAvg2 = NULL;
+  if (focalPairProcessing) {
+    rAvg1 = (double *)malloc(nDim * sizeof(double));
+    rAvg2 = (double *)malloc(nDim * sizeof(double));
+    if (!rAvg1 || !rAvg2)
+      exitError("Allocation failed: out of memory!");
+  }
 
   // Instantiate the QApplication and Qt UI elements only if not doing autofit and exiting
   // so that the program can run without a window system available
@@ -167,7 +176,7 @@ int main(int argc, char *argv[])
   setlocale(LC_NUMERIC, "C");
 
   //set the angle range for noise PS computing;
-  app.setPS(rAvg);
+  app.setPS(rAvg, rAvg1, rAvg2);
   app.setRangeStep((double)autoStep);
   app.setSaveAndExit(saveAndExit != 0);
   app.setVaryCtfPowerInFit(varyExp != 0);
@@ -421,6 +430,8 @@ int main(int argc, char *argv[])
   B3DFREE(stackFn);
   B3DFREE(angleFn);
   B3DFREE(defFn);
+  B3DFREE(rAvg1);
+  B3DFREE(rAvg2);
 }
 
 int ctfShowHelpPage(const char *page)

@@ -77,21 +77,29 @@ MyApp::MyApp(int volt, double pSize,
   mFnDefocus = defFn;
   mTileIncluded = NULL;
   mStackMean = -1000.0;
+  mStackMean2 = -1000.0;
   mFreqTileCounter = (int *)malloc(mDim * sizeof(int));
   mNumNoiseFiles = 0;
   mNoisePS = (double *)malloc(mDim * sizeof(double));
   mTiltAngles = NULL;
   mSortedAngles = NULL;
   mAngleSign = invertAngles ? -1. : 1.;
+  mFocalPairProcessing = doFocalPairProcessing;
   if (doFocalPairProcessing) {
     mCache = new SliceCache(maxCacheSize / 2, this);
     mCache2 = new SliceCache(maxCacheSize / 2, this);
     mDefocusOffset = fpdz;
+    mFreqTileCounter2 = (int *)malloc(mDim * sizeof(double));
+    if (!mCache || !mCache2 || !mFreqTileCounter2)
+      exitError("Allocation failed: out of memory!");
   }
   else {
     mCache = new SliceCache(maxCacheSize, this);
     mCache2 = NULL;
     mDefocusOffset = 0;
+    mFreqTileCounter2 = NULL;
+    if (!mCache)
+      exitError("Allocation failed: out of memory!");
   }
 
   // read in existing defocus data
@@ -112,6 +120,7 @@ MyApp::~MyApp()
   B3DFREE(mSortedAngles);
   ilistDelete(mSaved);
   B3DFREE(mFreqTileCounter);
+  B3DFREE(mFreqTileCounter2);
   B3DFREE(mNoisePS);
   B3DFREE(mTileIncluded);
   //if(mSaveFp) fclose(mSaveFp);
@@ -307,7 +316,7 @@ void MyApp::fitPsFindZero()
 
 /*
  * Initializes slice cache, opens stack, reads angle file
- * This should only be called once with actual data stack
+ * This should only be called once (per cache) with actual data stack
  */
 void MyApp::setSlice(const char *stackFile, char *angleFile,
                      sliceCacheEnum cacheSelector)
@@ -388,7 +397,8 @@ void MyApp::computeInitPS(bool noisePS)
   // If doing focal pair processing, the secondary tilt series will be
   // initially stored into variables with a suffix "2" before scaling
   // to match the location of the 1st and 2nd zeros of the primary.
-  if (!noisePS && mCache2) {
+  const int numTiltSeries = (!noisePS && mCache2) ? 2 : 1;
+  if (numTiltSeries == 2) {
     psSum2 = (double *)malloc(psSize * sizeof(double));
     stripCounter = (int *)malloc(mDim * sizeof(int));
     stripSum = (double *)malloc(mDim * sizeof(double));
@@ -418,7 +428,6 @@ void MyApp::computeInitPS(bool noisePS)
 
     // For focal pair processing, loop over the 2 tilt series.
     // Noise power spectra never use focal pairs.
-    const int numTiltSeries = (!noisePS && mCache2) ? 2 : 1;
     for (int tiltSeries = 0; tiltSeries < numTiltSeries; tiltSeries++) {
       
       for (i = 0; i < mNxx / halfSize - 1; i++) {
@@ -428,7 +437,7 @@ void MyApp::computeInitPS(bool noisePS)
           r = sqrt((double)(centerX * centerX + centerY * centerY));
           alpha = atan2(centerY, centerX);
           //if(alpha<0) alpha=2.0*M_PI+alpha;//convert to [0,2*pi];
-          d = r * fabs(sin(alpha - axisXAngle)); // pixles to tilt axis
+          d = r * fabs(sin(alpha - axisXAngle)); // pixels to tilt axis
           
           //outside of the strip, continue;
           if (d > stripWidthPixels / 2.0)
@@ -465,6 +474,11 @@ void MyApp::computeInitPS(bool noisePS)
   for (i = 0; i < mDim; i++) {
     mRAverage[i] = 0.0;
     mFreqTileCounter[i] = 0;
+    if (numTiltSeries == 2) {
+      mRAverage1[i] = 0.0;
+      mRAverage2[i] = 0.0;
+      mFreqTileCounter2[i] = 0;
+    }
   }
 
   mStackMean = localMean / counter; //stack is Not noise, set mStackMean;
@@ -479,24 +493,33 @@ void MyApp::computeInitPS(bool noisePS)
   for (i = 0; i < psSize - mHyperRes / 2; i++) {
     ii = (i + mHyperRes / 2) / mHyperRes;
     if (mNumNoiseFiles)
-      mRAverage[ii] += psSum[i] / mNoisePS[ii];
+      if (numTiltSeries == 1)
+	mRAverage[ii] += psSum[i] / mNoisePS[ii];
+      else
+	mRAverage1[ii] += psSum[i] / mNoisePS[ii];
     else
       mRAverage[ii] += psSum[i];
     mFreqTileCounter[ii] += freqCounter[i] * counter;
   }
   // Divide to finish power spectrum computation to this point
   for (i = 0; i < mDim; i++) {
-    if (mFreqTileCounter[i])
-      mRAverage[i] = mRAverage[i] / mFreqTileCounter[i];
+    if (mFreqTileCounter[i]) {
+      if (numTiltSeries == 1 || !mNumNoiseFiles)
+	mRAverage[i] = mRAverage[i] / mFreqTileCounter[i];
+      else
+	mRAverage1[i] = mRAverage1[i] / mFreqTileCounter[i];
+    }
   }
   
   // For focal pair processing, add in the strip from the secondary
   // tilt series, adjusting the expected locations of the first and
   // second zeros to match those of the primary.
-
-  if (!noisePS && mCache2) {
+  if (numTiltSeries == 2) {
     double scale, offset, dfMin, dfMax, defocus1, defocus2;
     const double freqInc = 1.0 / (mDim - 1.0);
+
+    mStackMean2 = localMean2 / counter2;
+    setNoiseForMean(mStackMean2);
 
     if (mDefocusOption)
       defocus1 = defocusFinder.getDefocus();
@@ -505,7 +528,12 @@ void MyApp::computeInitPS(bool noisePS)
     defocus2 = defocus1 + mDefocusOffset / 1000.0;
     getScaleAndOffset(defocus1, defocus2, scale, offset, dfMin, dfMax);
     scaleAndAddStrip(psSum2, stripSum, stripCounter, counter2, localMean2,
-                     scale, offset, freqInc, dfMin, dfMax, mCache2);
+                     scale, offset, freqInc, dfMin, dfMax, mCache2, 
+                     mRAverage2, mFreqTileCounter2);
+
+    // For focal pair processing, combine the power spectra from the
+    // individual tilt series (in mRAverage{1|2}) and put in mRAverage.
+    combinePowerSpectra();
   }
 
   if (debugLevel >= 1)
@@ -618,9 +646,24 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
       rightMean = 0.0;
 
       // For focal pair processing, loop over the 2 tilt series
-      const int numTiltSeries = mCache2 ? 2 : 1;
+      const int numTiltSeries = mFocalPairProcessing ? 2 : 1;
       for (int tiltSeries = 0; tiltSeries < numTiltSeries; tiltSeries++) {
-        SliceCache *cachePtr = (tiltSeries == 0) ? mCache : mCache2;
+        SliceCache *cachePtr;
+        double *avgPtr;
+        int *freqTileCounterPtr;
+        if (tiltSeries == 0) {
+          cachePtr = mCache;
+          freqTileCounterPtr = mFreqTileCounter;
+	  if (mFocalPairProcessing)
+	    avgPtr = mRAverage1;
+	  else
+	    avgPtr = mRAverage;
+	}
+	else { // tiltSeries == 1
+	  cachePtr = mCache2;
+	  avgPtr = mRAverage2;
+          freqTileCounterPtr = mFreqTileCounter2;
+	}
         for (x = 0; x < mNxx / halfSize - 1; x++) {
           for (y = 0; y < mNyy / halfSize - 1; y++) {
             centerX = x * halfSize + halfSize - mNxx / 2; // tile center
@@ -691,7 +734,7 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
         // Add in right side strip
         scaleAndAddStrip(rightPsSum, stripAvg, stripCounter, rightCounter,
                          rightMean, scale, offset, freqInc, delFMin, 
-                         delFMax, cachePtr);
+                         delFMax, cachePtr, avgPtr, freqTileCounterPtr);
 
         // Compute scale and offset for the strip to the left of center
         tmpMean = effectiveDefocus - deltaZ;
@@ -702,8 +745,11 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
         // Add in left side strip
         scaleAndAddStrip(leftPsSum, stripAvg, stripCounter, leftCounter,
                          leftMean, scale, offset, freqInc, delFMin, 
-                         delFMax, cachePtr);
+                         delFMax, cachePtr, avgPtr, freqTileCounterPtr);
       }  // for tiltSeries
+
+      if (mFocalPairProcessing)
+	combinePowerSpectra();
 
       mTileIncluded[whichSlice] += leftCounter + rightCounter;
       if (debugLevel >= 2)
@@ -735,14 +781,14 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
 /*
  * Rotationally average the summed strip FFT data with frequency offset and 
  * scaling to match locations of the first and second CTF zeros and add into
- * mRAverage. Note that mRAverage (both input and output) is a real power
+ * mRAverage. Note that *avgPtr (both input and output) is a real power
  * spectrum, not just a sum of energies; i.e. the summed energy has already
  * divided by the product of the number of pixels and tiles.
  */
 void MyApp::scaleAndAddStrip
 (double *psSum, double *stripAvg, int *stripCounter, int counter,
  double mean, double xScale, double xAdd, float freqInc, double delFMin,
- double delFMax, SliceCache *cachePtr)
+ double delFMax, SliceCache *cachePtr, double *avgPtr, int *freqTileCounter)
 {
   int ii, jj, npsIndex, stripRIndex, stripLIndex, lnum;
   double freq, delfreq, freqst, freqnd, lfrac;
@@ -805,9 +851,9 @@ void MyApp::scaleAndAddStrip
   for (ii = 0; ii < mDim; ii++) {
     jj = stripCounter[ii];
     if (jj) {
-      mRAverage[ii] = (mFreqTileCounter[ii] * mRAverage[ii] + stripAvg[ii]) /
-                      (mFreqTileCounter[ii] + jj);
-      mFreqTileCounter[ii] += jj;
+      avgPtr[ii] = (freqTileCounter[ii] * avgPtr[ii] + stripAvg[ii]) /
+                   (freqTileCounter[ii] + jj);
+      freqTileCounter[ii] += jj;
     }
   }
 
@@ -862,16 +908,20 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
   //plot and fit the new initial PS;
   if (mInitialTileOption) {
     int i;
-    //following variables need to be re-set or re-initialized;
-    //mStackMean;
+    // following variables need to be re-set or re-initialized
+    // mStackMean and mStackMean2?
     mTotalTileIncluded = 0;
     for (i = 0; i < mNzz; i++)
       mTileIncluded[i] = 0;
     for (i = 0; i < mDim; i++) {
       mRAverage[i] = 0.0;
       mFreqTileCounter[i] = 0;
+      if (mFocalPairProcessing) {
+	mRAverage1[i] = 0.0;
+	mRAverage2[i] = 0.0;
+	mFreqTileCounter2[i] = 0.0;
+      }
     }
-
     moreTile(false); //include all the tiles and plot;
     plotFitPS(false);
   } else {
@@ -1167,3 +1217,34 @@ void MyApp::getScaleAndOffset(const double dz1, const double dz2,
   }
 }
 
+/*
+ * Combine primary and secondary power spectra for focal pair processing.
+ * We have to combine power spectra which may have different baselines. 
+ * All we really care about is locating the first 2 zeros of the CTF, so 
+ * one approach is to compute their geometric mean, which is equivalent to 
+ * averaging on the log plot of the spectra. If the secondary tilt series is 
+ * lower underfocus this runs in trouble, however, because after shifting /
+ * scaling guarantees that the secondary spectrum will have no data at 
+ * higher frequencies. We handle this case using the geometric mean below 
+ * this frequency; above this point, we use the primary spectrum adjusted
+ * for the baseline shift seen at lower frequencies.
+ */
+void MyApp::combinePowerSpectra()
+{
+  double runningAvgShift, shift;
+  int i, iCutoff = mDim;
+  while (mFreqTileCounter2[iCutoff - 1] == 0)
+    iCutoff--;
+
+  for (i = 0; i < iCutoff; i++) {
+    mRAverage[i] = sqrt(mRAverage1[i] * mRAverage2[i]);
+    shift = mRAverage1[i] - mRAverage[i];
+    if (i == 0)
+      runningAvgShift = shift;
+    else
+      runningAvgShift = 0.875 * runningAvgShift + 0.125 * shift;
+  }
+
+  for (i = iCutoff; i < mDim; i++)
+    mRAverage[i] = mRAverage1[i] - runningAvgShift;
+}
