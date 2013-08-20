@@ -3,8 +3,8 @@
 </head>
 <A NAME = "TOP"><H2>Contour Copy</H2></A>
 <P>
-This dialog allows one to copy the current contour, or selected contours in the
-current object to a selected section, object or time index.  If copying to a
+This dialog allows one to copy the current contour, or mutiple selected contours,
+to a selected section, object or time index.  If copying to a
 section or time index, only contours matching the section number or time of the
 current contour will be copied.
 <P>
@@ -19,9 +19,13 @@ The radio buttons determine the number of contours copied.  The standard choices
 are to copy just currently selected contours, all contours with the same
 surface number, or all contours in the object.  With the first choice,
 multiple contours can be copied at once by selecting them with Ctrl and the
-first mouse button, or with the Ctrl-A hot key.  Only those selected contours
-in the current object and on the same section as the current contour
-will be copied.  Again, only those contours matching the section
+first mouse button, or with the Ctrl-A or Ctrl-Shift-A hot keys (which select
+all contours on the section in the current object, or all objects,
+respectively).  Only those
+selected contours in the current object and on the same section as the current
+contour will be duplicated or copied to another object; but for copying to
+another section or time, selected contours from multiple objects can
+be copied.  Again, only those contours matching the section
 or time index of the current contour will be copied when copying to a section or
 time index, while all eligible contours in an object will be copied when copying
 to another object.  When copying to a time index, another option is available,
