@@ -14,6 +14,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileFilter;
 
 import etomo.type.ConstStringParameter;
 import etomo.ui.FieldType;
@@ -247,7 +248,7 @@ final class FileTextField implements FileTextFieldInterface {
   void checkpoint() {
     checkpointValue = getText();
   }
-  
+
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -333,6 +334,10 @@ final class FileTextField implements FileTextFieldInterface {
   String getFileAbsolutePath() {
     updateInternalValues();
     return file.getAbsolutePath();
+  }
+
+  public FileFilter getFileFilter() {
+    return null;
   }
 
   void setText(final String text) {
