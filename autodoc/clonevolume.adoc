@@ -81,3 +81,20 @@ manpage = A floating point number between 0 and 1 specifying the transparency
 to be used when cloning volumes  (default  0). If 0, cloned voxels will simply
 replace the originals. More generally, the output voxels will be alpha times
 the cloned voxel plus (1 - alpha) times the previous value. 
+
+[Field = rMin]
+short = rmin
+type = I
+usage = The minimum distance from the center of the input volume at
+which points should be cloned.
+tooltip = 
+manpage =  The input volume will not be cloned at radii smaller than this.
+
+[Field = rMax]
+short = rmax
+type = I
+usage = The maximum distance from the center of the input volume at
+which points should be cloned.
+tooltip = 
+manpage =  The input volume will not be cloned at radii larger than this.
+

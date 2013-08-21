@@ -58,6 +58,8 @@ Imat **freeMat3DArray(Imat **array, int nMats);
 float trilinearInterpolation(float **inVol, MrcHeader *inHeader, 
                              float x, float y, float z);
 
+float distance3D(Ipoint *p1, Ipoint *p2);
+
 /* 
  * Main entry
  */
@@ -71,7 +73,7 @@ int main( int argc, char *argv[])
   char *inFile, *intoFile, *outFile, *coordFile, *listString;
   int iSlice, numOptArgs, numNonOptArgs, inMode, intoMode;
   int *contourList = NULL, numContours = 0;
-  int nClones = 0, maxClones = 100, iClone, ix, iy;
+  int nClones = 0, maxClones = 100, iClone, ix, iy, rMin, rMax;
   float alpha, xMin, xMax, yMin, yMax, zMin, zMax;
   Imat **xform = NULL;
   bndBox3D inBBox, intoBBox, *outBBox = NULL;
@@ -81,11 +83,12 @@ int main( int argc, char *argv[])
   Islice *slice = NULL;
   Ipoint inCenter;
 
-  int numOptions = 9;
+  int numOptions = 11;
   const char *options[] = {
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
     "input:InputFile:FN:", "output:OutputFile:FN:",  "into:IntoFile:FN:",
-    "contours:ContourNumbers:LI:", "alpha:AlphaTransparency:F:"};
+    "contours:ContourNumbers:LI:", "alpha:AlphaTransparency:F:",
+    "rmin:rMin:I", "rmax:rMax:I"};
   const char *UsageString =
     "Usage: clonevolume [options] -into target -at locations inputVol outputVol";
   /* Parse parameters */
@@ -123,6 +126,11 @@ int main( int argc, char *argv[])
     alpha = 0.0;
   if (alpha < 0.0 || alpha > 1.0)
     exitError("Transparency must be between 0 and 1");
+  if (PipGetInteger("rMin", &rMin))
+    rMin = 0;
+  if (PipGetInteger("rMax", &rMax))
+    rMax = 32767;
+
   PipDone();
 
   /* Open the csv location/orientation file and skip the header line */
@@ -278,13 +286,16 @@ int main( int argc, char *argv[])
             /* dimension are within input vol for trilinear interpolation. */
             if (isInside(&inPt, &inBBox, 1.0001)) {
               float inVal;
-              if (sliceGetVal(slice, ix, iy, oldVal))
-                exitError("Error retrieving value from slice");
-              inVal = trilinearInterpolation(
-                inVol, &inHeader, inPt.x, inPt.y, inPt.z);
-              newVal[0] = alpha * oldVal[0] + (1.0 - alpha) * inVal;
-              if (slicePutVal(slice, ix, iy, newVal))
-                exitError("Error setting value in slice");
+              const float r = distance3D(&inPt, &inCenter); 
+              if (r >= rMin && r <= rMax) {
+                if (sliceGetVal(slice, ix, iy, oldVal))
+                  exitError("Error retrieving value from slice");
+                inVal = trilinearInterpolation(
+                  inVol, &inHeader, inPt.x, inPt.y, inPt.z);
+                newVal[0] = alpha * oldVal[0] + (1.0 - alpha) * inVal;
+                if (slicePutVal(slice, ix, iy, newVal))
+                  exitError("Error setting value in slice");
+              }
             }
           }
         }
@@ -532,6 +543,16 @@ float trilinearInterpolation(float **inVol, MrcHeader *inHeader,
   }
 
   return newVal;
+}
+
+/**********************************************************************/
+
+float distance3D(Ipoint *p1, Ipoint *p2)
+{
+  float r = sqrt((p1->x - p2->x) * (p1->x - p2->x) +
+                 (p1->y - p2->y) * (p1->y - p2->y) +
+                 (p1->z - p2->z) * (p1->z - p2->z));
+  return r;
 }
 
 /**********************************************************************/
