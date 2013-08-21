@@ -9,7 +9,7 @@ track instead of from all three (caused by 12/13/12 Clipmodel change).
 8/20/13: Made contour copying to work with contours selected in multiple
 objects.
 
-8/16/13: Added support for dual/multi tilt missing wedge compensation during
+8/20/13: Added support for dual/multi tilt missing wedge compensation during
 PEET averaging.(Bug# 1688)
 
 8/15/13: Made Newstack floating scale images with extreme ranges to different
