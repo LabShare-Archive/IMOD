@@ -1171,8 +1171,9 @@ final class AutodocTester extends Assert implements VariableList {
           // Make sure its the right fileChooser
           String fileChooserName = fileChooser.getName();
           if (fileChooserName == null || !fileChooserName.equals(subjectName)) {
-            //Close incorrect fileChooser and fail
-            helper.sendKeyAction(new KeyEventData(testRunner, fileChooser, KeyEvent.VK_ESCAPE));
+            // Close incorrect fileChooser and fail
+            helper.sendKeyAction(new KeyEventData(testRunner, fileChooser,
+                KeyEvent.VK_ESCAPE));
             fail("wrong file chooser - " + fileChooserName + " (" + command + ")");
           }
           wait = false;
@@ -1211,7 +1212,7 @@ final class AutodocTester extends Assert implements VariableList {
         // Make sure its the right popup
         String popupName = popup.getName();
         if (popupName == null || !popupName.equals(subjectName)) {
-          //Close incorrect popup and fail
+          // Close incorrect popup and fail
           helper.sendKeyAction(new KeyEventData(testRunner, popup, KeyEvent.VK_ESCAPE));
           fail("wrong popup - " + popupName + " (" + command + ")");
         }
@@ -2112,7 +2113,8 @@ final class AutodocTester extends Assert implements VariableList {
       // if value is present,only click on mini-button when it matches value
       // mb.title_with_mini_button =
       // mb.title_with_mini_button = current_label
-      if (value == null || miniButton.getText().equals("<html><b><center>" + value + "</center></b>")) {
+      if (value == null
+          || miniButton.getText().equals("<html><b><center>" + value + "</center></b>")) {
         helper.enterClickAndLeave(new MouseEventData(testRunner, miniButton));
         try {
           Thread.sleep(REDRAW_WAIT);
@@ -2126,7 +2128,12 @@ final class AutodocTester extends Assert implements VariableList {
     else if (fieldType == UITestFieldType.PANEL) {
       assertNull("value not valid in a panel command (" + command + ")", value);
       try {
-        Thread.sleep(5000);
+        if (Utilities.isMacOS()) {
+          Thread.sleep(3000);
+        }
+        else {
+          Thread.sleep(1000);
+        }
       }
       catch (InterruptedException e) {
       }
