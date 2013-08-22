@@ -677,6 +677,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         fileChooser.setSelectedFile(fileTextField.getFile());
         fileChooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileFilter(fileTextField.getFileFilter());
         int returnVal = fileChooser.showOpenDialog(rootPanel);
         if (returnVal != JFileChooser.APPROVE_OPTION) {
           return false;

@@ -2,6 +2,8 @@ package etomo.ui.swing;
 
 import java.io.File;
 
+import javax.swing.filechooser.FileFilter;
+
 /**
 * <p>Description: </p>
 * 
@@ -24,4 +26,6 @@ interface FileTextFieldInterface {
   public File getFile();
 
   public void setFile(final File file);
+  
+  public FileFilter getFileFilter();
 }
