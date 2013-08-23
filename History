@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/23/13: Improved the layout, behavior, labels, and tooltips of the "Align
+Serial Sections / Blend Montages" interface.(Bug# 1730)
+
 8/22/13: Added ".mrc" as a default volume file extension to the file choosers.
 (Bug# 1701)
 
