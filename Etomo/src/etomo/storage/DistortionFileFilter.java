@@ -39,7 +39,7 @@ public class DistortionFileFilter extends FileFilter {
    * @see javax.swing.filechooser.FileFilter#getDescription()
    */
   public String getDescription() {
-    return "Image Distortion FieldInterface File";
+    return "Image Distortion Field File";
   }
 
 }
