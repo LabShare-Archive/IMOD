@@ -110,6 +110,14 @@ final class CheckBoxSpinner {
     spinner.setEnabled(checkBox.isSelected() && checkBox.isEnabled());
   }
 
+  void addCheckBoxActionListener(final ActionListener actionListener) {
+    checkBox.addActionListener(actionListener);
+  }
+
+  String getCheckBoxActionCommand() {
+    return checkBox.getActionCommand();
+  }
+
   void setVisible(final boolean input) {
     panel.setVisible(input);
   }
@@ -117,6 +125,10 @@ final class CheckBoxSpinner {
   void setCheckBoxEnabled(final boolean enabled) {
     checkBox.setEnabled(enabled);
     enableSpinner();
+  }
+
+  boolean isCheckBoxEnabled() {
+    return checkBox.isEnabled();
   }
 
   void setModel(final SpinnerNumberModel model) {
