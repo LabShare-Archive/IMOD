@@ -291,7 +291,7 @@ public class XfalignParam implements Command {
       options.add("-reduce");
       options.add(reduceByBinning.toString());
     }
-    if (preCrossCorrelation) {
+    if (preCrossCorrelation && mode != Mode.REFINE) {
       options.add("-prexcorr");
     }
     if (skipSections != null) {
