@@ -867,6 +867,9 @@ program newstack
     enddo
     nLineUse = listTotal
     nXforms = 1
+    do while (rotateAngle > 180.01 .or. rotateAngle < -180.01)
+      rotateAngle = rotateAngle - sign(360., rotateAngle)
+    enddo
   endif
   !
   ! set up rotation and expansion transforms and multiply by transforms
