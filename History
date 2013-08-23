@@ -1,13 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/23/13: Fixed newstack to set output size properly for +/-270 rotation.
+
 8/22/13: Added ".mrc" as a default volume file extension to the file choosers.
 (Bug# 1701)
 
 8/20/13: Fixed bug in autofidseed that made it use data only from the last
 track instead of from all three (caused by 12/13/12 Clipmodel change).
 
-8/20/13: Made contour copying to work with contours selected in multiple
-objects.
+8/20/13: Made contour copying work with contours selected in multiple objects.
 
 8/20/13: Added support for dual/multi tilt missing wedge compensation during
 PEET averaging.(Bug# 1688)
