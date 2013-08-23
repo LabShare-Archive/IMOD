@@ -471,22 +471,7 @@ public final class SetupDialogExpert {
     return currentBackupDirectory;
   }
 
-  String getCurrentDistortionDir() {
-    // Open up the file chooser in the calibration directory, if available,
-    // otherwise open in the working directory
-    String currentDistortionDir = dialog.getDistortionFile();
-    if (currentDistortionDir.equals("")) {
-      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
-      File distortionDir = new File(calibrationDir.getAbsolutePath(), "Distortion");
-      if (distortionDir.exists()) {
-        currentDistortionDir = distortionDir.getAbsolutePath();
-      }
-      else {
-        currentDistortionDir = getPropertyUserDir();
-      }
-    }
-    return currentDistortionDir;
-  }
+
 
   String getCurrentMagGradientDir() {
     // Open up the file chooser in the calibration directory, if available,
