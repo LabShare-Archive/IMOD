@@ -58,13 +58,13 @@ if.not.var.montage.return=
 [[if = test-gui]]
   #test values
   assert.cb.treat-as-very-sloppy-montage=off
-  assert.cb.robust-fitting-for-criterion=off
-  assert.tf.robust-fitting-for-criterion=1.0
+  assert.cb.robust-fitting-with-criterion=off
+  assert.tf.robust-fitting-with-criterion=1.0
   assert.sp.binning=1
   #test enabled
   assert.enabled.cb.treat-as-very-sloppy-montage=
-  assert.enabled.cb.robust-fitting-for-criterion=
-  assert.disabled.tf.robust-fitting-for-criterion=
+  assert.enabled.cb.robust-fitting-with-criterion=
+  assert.disabled.tf.robust-fitting-with-criterion=
   assert.enabled.bn.open-raw-stack=
   assert.enabled.bn.make-blended-stack=
   assert.enabled.bn.open-blended-stack=
@@ -75,13 +75,13 @@ cb.treat-as-very-sloppy-montage=on
 bn.open-raw-stack=
 [[if = test-gui]]
   #field validation
-  cb.robust-fitting-for-criterion=on
-  tf.robust-fitting-for-criterion=1.0abc
+  cb.robust-fitting-with-criterion=on
+  tf.robust-fitting-with-criterion=1.0abc
   bn.make-blended-stack=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=
-  tf.robust-fitting-for-criterion=1.0
-  cb.robust-fitting-for-criterion=off
+  tf.robust-fitting-with-criterion=1.0
+  cb.robust-fitting-with-criterion=off
 [[]]
 bn.make-blended-stack=
 wait.process.initial-blend=done
@@ -207,13 +207,13 @@ tb.initial-blend.2=
   assert.enabled.bn.make-aligned-stack=
   assert.enabled.bn.open-aligned-stack=
   #test behavior
-  rb.global-alignments=on
+  rb.global-alignments=
   assert.enabled.cb.reference-section-for-alignment=
-  rb.remove-trends-in-translation=on
+  rb.remove-trends-in-translation=
   assert.disabled.cb.reference-section-for-alignment=
-  rb.remove-trends-in-translation-&-rotation=on
+  rb.remove-trends-in-translation-&-rotation=
   assert.disabled.cb.reference-section-for-alignment=
-  rb.global-alignments=on
+  rb.global-alignments=
   cb.reference-section-for-alignment=on
   assert.disabled.rb.local-fitting=
   assert.disabled.rb.remove-trends-in-translation=
@@ -222,7 +222,7 @@ tb.initial-blend.2=
   assert.enabled.rb.local-fitting=
   assert.enabled.rb.remove-trends-in-translation=
   assert.enabled.rb.remove-trends-in-translation-&-rotation=
-  rb.local-fitting=on
+  rb.local-fitting=
 [[]]
 if.var.montage.rb.remove-trends-in-translation-&-rotation=
 #run newst/blend
