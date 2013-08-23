@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/23/13: Fixed Tiltxcorr to compute warping with a seed point model.
+
 8/23/13: Fixed newstack to set output size properly for +/-270 rotation.
 
 8/22/13: Added ".mrc" as a default volume file extension to the file choosers.
