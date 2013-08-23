@@ -1111,10 +1111,6 @@ public final class JoinManager extends BaseManager {
     mainPanel.startProgressBar("Startjoin", AxisID.ONLY, ProcessName.STARTJOIN);
   }
 
-  public void enableMidas() {
-    joinDialog.enableMidas();
-  }
-
   public void xfjointomo(final ProcessSeries processSeries) {
     XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state.getRefineTrial()
         .is());

@@ -15,10 +15,11 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import etomo.EtomoDirector;
 import etomo.SerialSectionsManager;
+import etomo.logic.ConfigTool;
 import etomo.logic.DatasetTool;
 import etomo.logic.SerialSectionsStartupData;
+import etomo.storage.DistortionFileFilter;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -108,7 +109,8 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent,
     ftfStack.setOriginEtomoRunDir(true);
     ftfDistortionField.setAdjustedFieldWidth(175);
     ftfDistortionField.setAbsolutePath(true);
-    ftfDistortionField.setOrigin(EtomoDirector.INSTANCE.getIMODCalibDirectory());
+    ftfDistortionField.setOrigin(ConfigTool.getDistortionDir(manager, null));
+    ftfDistortionField.setFileFilter(new DistortionFileFilter());
     // panels
     JPanel pnlStack = new JPanel();
     JPanel pnlViewType = new JPanel();
