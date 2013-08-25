@@ -359,25 +359,47 @@ public final class TomogramTool {
   }
 
   /**
-   * Negates shiftX and shiftY
+   * Negates shiftX and shiftY.  When colornewst is true and only one value is set, the
+   * other one is set to zero.
    * @param shiftX
    * @param shiftY
+   * @param colornewst
    * @return
    */
   public static ConstEtomoNumber[] convertShiftsToOffsets(final String shiftX,
-      final String shiftY) {
+      final String shiftY, final boolean colornewst) {
     EtomoNumber[] offsets = new EtomoNumber[2];
     offsets[0] = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     offsets[1] = new EtomoNumber(EtomoNumber.Type.DOUBLE);
     int index = 0;
+    boolean xEmpty = false;
     offsets[index].set(shiftX);
-    if (!offsets[index].isNull() && offsets[index].isValid()) {
-      offsets[index].set(offsets[index].getDouble() * -1);
+    if (!offsets[index].isNull()) {
+      if (offsets[index].isValid()) {
+        offsets[index].set(offsets[index].getDouble() * -1);
+      }
+    }
+    else {
+      xEmpty = true;
     }
     index = 1;
+    boolean yEmpty = false;
     offsets[index].set(shiftY);
-    if (!offsets[index].isNull() && offsets[index].isValid()) {
-      offsets[index].set(offsets[index].getDouble() * -1);
+    if (!offsets[index].isNull()) {
+      if (offsets[index].isValid()) {
+        offsets[index].set(offsets[index].getDouble() * -1);
+      }
+    }
+    else {
+      yEmpty = true;
+    }
+    if (colornewst) {
+      if (xEmpty && !yEmpty) {
+        offsets[0].set(0);
+      }
+      else if (yEmpty && !xEmpty) {
+        offsets[1].set(0);
+      }
     }
     return offsets;
   }

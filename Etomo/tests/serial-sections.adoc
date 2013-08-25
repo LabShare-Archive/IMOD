@@ -57,31 +57,31 @@ run.function.make-stack=
 if.not.var.montage.return=
 [[if = test-gui]]
   #test values
-  assert.cb.treat-as-very-sloppy-blend=off
-  assert.cb.robust-fitting-for-criterion=off
-  assert.tf.robust-fitting-for-criterion=1.0
+  assert.cb.treat-as-very-sloppy-montage=off
+  assert.cb.robust-fitting-with-criterion=off
+  assert.tf.robust-fitting-with-criterion=1.0
   assert.sp.binning=1
   #test enabled
-  assert.enabled.cb.treat-as-very-sloppy-blend=
-  assert.enabled.cb.robust-fitting-for-criterion=
-  assert.disabled.tf.robust-fitting-for-criterion=
+  assert.enabled.cb.treat-as-very-sloppy-montage=
+  assert.enabled.cb.robust-fitting-with-criterion=
+  assert.disabled.tf.robust-fitting-with-criterion=
   assert.enabled.bn.open-raw-stack=
   assert.enabled.bn.make-blended-stack=
   assert.enabled.bn.open-blended-stack=
   assert.enabled.sp.binning=
   assert.enabled.bn.fix-edges-with-midas=
 [[]]
-cb.treat-as-very-sloppy-blend=on
+cb.treat-as-very-sloppy-montage=on
 bn.open-raw-stack=
 [[if = test-gui]]
   #field validation
-  cb.robust-fitting-for-criterion=on
-  tf.robust-fitting-for-criterion=1.0abc
+  cb.robust-fitting-with-criterion=on
+  tf.robust-fitting-with-criterion=1.0abc
   bn.make-blended-stack=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=
-  tf.robust-fitting-for-criterion=1.0
-  cb.robust-fitting-for-criterion=off
+  tf.robust-fitting-with-criterion=1.0
+  cb.robust-fitting-with-criterion=off
 [[]]
 bn.make-blended-stack=
 wait.process.initial-blend=done
@@ -119,11 +119,11 @@ tb.initial-blend.1=
   assert.rb.full-linear-transformation=on
   assert.rb.rotation/translation/magnification=off
   assert.rb.rotation/translation=off
-  assert.cb.do-cross-correlate-in-initial-alignment=off
+  assert.cb.find-initial-shifts-with-cross-correlation=off
   assert.tf.sections-to-skip=
   assert.tf.fraction-to-ignore-on-edges=0.05
   assert.sp.binning=2
-  assert.sp.midas-binning=1
+  assert.sp.binning-in-midas=1
   #test enabled
   assert.enabled.bn.open-stack=
   assert.enabled.tf.sigma-for-low-frequency-filter=
@@ -132,14 +132,14 @@ tb.initial-blend.1=
   assert.enabled.rb.full-linear-transformation=
   assert.enabled.rb.rotation/translation/magnification=
   assert.enabled.rb.rotation/translation=
-  assert.enabled.cb.do-cross-correlate-in-initial-alignment=
+  assert.enabled.cb.find-initial-shifts-with-cross-correlation=
   assert.enabled.tf.sections-to-skip=
   assert.enabled.tf.fraction-to-ignore-on-edges=
   assert.enabled.sp.binning=
-  assert.enabled.sp.midas-binning=
+  assert.enabled.sp.binning-in-midas=
   assert.enabled.bn.initial-auto-alignment=
   assert.enabled.bn.midas=
-  assert.enabled.bn.refine-auto-alignment=
+  assert.enabled.bn.refine-with-auto-alignment=
   assert.enabled.bn.revert-auto-alignment-to-midas=
   assert.enabled.bn.revert-to-no-transforms=
   #test field validation
@@ -158,7 +158,7 @@ wait.process.initial-xfalign=done
   assert.exists.file=%{dataset}.xf
 [[]]
 bn.midas=
-bn.refine-auto-alignment=
+bn.refine-with-auto-alignment=
 wait.process.refine-xfalign=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}_auto.xf~
@@ -196,7 +196,7 @@ tb.initial-blend.2=
   assert.enabled.rb.remove-trends-in-translation=
   assert.enabled.rb.remove-trends-in-translation-&-rotation=
   assert.enabled.rb.global-alignments=
-  assert.enabled.cb.reference-section-for-alignment=
+  assert.disabled.cb.reference-section-for-alignment=
   assert.disabled.sp.reference-section-for-alignment=
   assert.enabled.tf.size-in-x=
   assert.enabled.tf.y=
@@ -206,6 +206,23 @@ tb.initial-blend.2=
   assert.enabled.cb.fill-empty-areas-with-0=
   assert.enabled.bn.make-aligned-stack=
   assert.enabled.bn.open-aligned-stack=
+  #test behavior
+  rb.global-alignments=
+  assert.enabled.cb.reference-section-for-alignment=
+  rb.remove-trends-in-translation=
+  assert.disabled.cb.reference-section-for-alignment=
+  rb.remove-trends-in-translation-&-rotation=
+  assert.disabled.cb.reference-section-for-alignment=
+  rb.global-alignments=
+  cb.reference-section-for-alignment=on
+  assert.disabled.rb.local-fitting=
+  assert.disabled.rb.remove-trends-in-translation=
+  assert.disabled.rb.remove-trends-in-translation-&-rotation=
+  cb.reference-section-for-alignment=off
+  assert.enabled.rb.local-fitting=
+  assert.enabled.rb.remove-trends-in-translation=
+  assert.enabled.rb.remove-trends-in-translation-&-rotation=
+  rb.local-fitting=
 [[]]
 if.var.montage.rb.remove-trends-in-translation-&-rotation=
 #run newst/blend
