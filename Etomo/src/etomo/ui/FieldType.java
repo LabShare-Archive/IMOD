@@ -21,23 +21,23 @@ import etomo.storage.DirectiveValueType;
 public final class FieldType {
   public static final String rcsid = "$Id:$";
 
-  public static final FieldType STRING = new FieldType(ValidationType.STRING);
-  public static final FieldType FILE = new FieldType(ValidationType.STRING);
-  public static final FieldType INTEGER = new FieldType(ValidationType.INTEGER);
+  public static final FieldType STRING = new FieldType(ValidationType.STRING, 9);
+  public static final FieldType FILE = new FieldType(ValidationType.STRING, 15);
+  public static final FieldType INTEGER = new FieldType(ValidationType.INTEGER, 3);
   public static final FieldType FLOATING_POINT = new FieldType(
-      ValidationType.FLOATING_POINT);
+      ValidationType.FLOATING_POINT, 3);
   public static final FieldType INTEGER_PAIR = new FieldType(ValidationType.INTEGER,
-      CollectionType.ARRAY, 2);
+      CollectionType.ARRAY, 2, 6);
   public static final FieldType FLOATING_POINT_PAIR = new FieldType(
-      ValidationType.FLOATING_POINT, CollectionType.ARRAY, 2);
+      ValidationType.FLOATING_POINT, CollectionType.ARRAY, 2, 6);
   public static final FieldType INTEGER_TRIPLE = new FieldType(ValidationType.INTEGER,
-      CollectionType.ARRAY, 3);
+      CollectionType.ARRAY, 3, 9);
   public static final FieldType FLOATING_POINT_ARRAY = new FieldType(
-      ValidationType.FLOATING_POINT, CollectionType.ARRAY);
+      ValidationType.FLOATING_POINT, CollectionType.ARRAY, 9);
   public static final FieldType INTEGER_ARRAY = new FieldType(ValidationType.INTEGER,
-      CollectionType.ARRAY);
+      CollectionType.ARRAY, 9);
   public static final FieldType INTEGER_LIST = new FieldType(ValidationType.INTEGER,
-      CollectionType.LIST);
+      CollectionType.LIST, 9);
 
   public final ValidationType validationType;
   private final CollectionType collectionType;
@@ -45,25 +45,29 @@ public final class FieldType {
    * For arrays with a fixed number of elements (pairs and triples).
    */
   public final int requiredSize;
+  private final int columns;
 
-  private FieldType(final ValidationType validationType) {
+  private FieldType(final ValidationType validationType, final int columns) {
     this.validationType = validationType;
     collectionType = null;
     requiredSize = -1;
+    this.columns = columns;
   }
 
   private FieldType(final ValidationType validationType,
-      final CollectionType collectionType) {
+      final CollectionType collectionType, final int columns) {
     this.validationType = validationType;
     this.collectionType = collectionType;
     this.requiredSize = -1;
+    this.columns = columns;
   }
 
   private FieldType(final ValidationType validationType,
-      final CollectionType collectionType, final int requiredSize) {
+      final CollectionType collectionType, final int requiredSize, final int columns) {
     this.validationType = validationType;
     this.collectionType = collectionType;
     this.requiredSize = requiredSize;
+    this.columns = columns;
   }
 
   public static FieldType getInstance(final DirectiveValueType valueType) {
@@ -108,6 +112,10 @@ public final class FieldType {
 
   public boolean isCollection() {
     return collectionType != null;
+  }
+
+  public int getColumns() {
+    return columns;
   }
 
   public String getSplitter() {
