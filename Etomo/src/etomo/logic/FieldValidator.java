@@ -46,7 +46,7 @@ public final class FieldValidator {
   public static String validateText(final String fieldText, final FieldType fieldType,
       final UIComponent component, final String descr, final boolean required)
       throws FieldValidationFailedException {
-    if (required && (fieldText == null || fieldText.matches("\\s+"))) {
+    if (required && (fieldText == null || fieldText.matches("\\s*"))) {
       UIHarness.INSTANCE.openMessageDialog(component, descr + " is a required field.",
           TITLE);
       FieldValidationFailedException fe = new FieldValidationFailedException(descr
