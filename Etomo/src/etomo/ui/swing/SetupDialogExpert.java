@@ -417,9 +417,14 @@ public final class SetupDialogExpert {
     dialog.setExcludeList(AxisID.FIRST, metaData.getExcludeProjectionsA());
     tiltAnglePanelExpertB.setFields(metaData.getTiltAngleSpecB(), userConfig);
     dialog.setExcludeList(AxisID.SECOND, metaData.getExcludeProjectionsB());
+    dialog.setTwodir(AxisID.FIRST, metaData.isTwodir(AxisID.FIRST));
+    dialog.setTwodir(AxisID.SECOND, metaData.isTwodir(AxisID.SECOND));
+    dialog.setTwodir(AxisID.FIRST, metaData.getTwodir(AxisID.FIRST));
+    dialog.setTwodir(AxisID.SECOND, metaData.getTwodir(AxisID.SECOND));
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       tiltAnglePanelExpertB.setEnabled(false);
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
+      dialog.setTwodirEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
     dialog.setParameters(userConfig);
@@ -509,11 +514,13 @@ public final class SetupDialogExpert {
     if (dialog.equalsSingleAxisActionCommand(actionCommand)) {
       tiltAnglePanelExpertB.setEnabled(false);
       dialog.setExcludeListEnabled(AxisID.SECOND, false);
+      dialog.setTwodirEnabled(AxisID.SECOND, false);
       dialog.setViewRawStackEnabled(AxisID.SECOND, false);
     }
     else if (dialog.equalsDualAxisActionCommand(actionCommand)) {
       tiltAnglePanelExpertB.setEnabled(true);
       dialog.setExcludeListEnabled(AxisID.SECOND, true);
+      dialog.setTwodirEnabled(AxisID.SECOND, true);
       dialog.setViewRawStackEnabled(AxisID.SECOND, true);
     }
     else if (dialog.equalsSingleViewActionCommand(actionCommand)) {
@@ -532,7 +539,8 @@ public final class SetupDialogExpert {
     }
   }
 
-  void updateTiltAnglePanelTemplateValues(final DirectiveFileCollection directiveFileCollection) {
+  void updateTiltAnglePanelTemplateValues(
+      final DirectiveFileCollection directiveFileCollection) {
     tiltAnglePanelExpertA.updateTemplateValues(directiveFileCollection);
     tiltAnglePanelExpertB.updateTemplateValues(directiveFileCollection);
   }
@@ -587,6 +595,9 @@ public final class SetupDialogExpert {
         + "processing of this axis.  Ranges are allowed, separate ranges by "
         + "commas.  For example to exclude the first four and last four "
         + "images of a 60 view stack enter 1-4,57-60.");
+    dialog.setTwodirTooltip("Tilt series was acquired in two directions from the given "
+        + "starting angle; the break in the series is assumed to be after the first "
+        + "image in the stack at that angle.");
     dialog.setPostponeTooltip("This button will setup the processing for existing "
         + "command scripts.  <b>Be sure that parameters entered match the "
         + "existing command scripts.");
