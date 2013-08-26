@@ -24,6 +24,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileFilter;
 
@@ -58,6 +59,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String SINGLE_FRAME_LABEL = "Single frame";
   private final String BACKUP_DIRECTORY_LABEL = "Backup directory: ";
   private final int BINNING_DEFAULT = 1;
+  private static final String TWODIR_LABEL_1 = "Series was bidirectional from ";
+  private static final String TWODIR_LABEL_2 = " degrees";
 
   private final JPanel pnlDataParameters = new JPanel();
   // Dataset GUI objects
@@ -128,6 +131,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final JPanel pnlAdjustedFocusB = new JPanel();
   private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
+  private final CheckTextField ctfTwodir = CheckTextField.getInstance(
+      FieldType.FLOATING_POINT, TWODIR_LABEL_1);
+  private final CheckTextField ctfBtwodir = CheckTextField.getInstance(
+      FieldType.FLOATING_POINT, TWODIR_LABEL_1);
+  private final JLabel lTwodir = new JLabel(TWODIR_LABEL_2);
+  private final JLabel lBtwodir = new JLabel(TWODIR_LABEL_2);
 
   private final SetupDialogExpert expert;
   private final boolean calibrationAvailable;
@@ -277,6 +286,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     cbAdjustedFocusA.checkpoint();
     ltfExcludeListB.checkpoint();
     cbAdjustedFocusB.checkpoint();
+    ctfTwodir.checkpoint();
+    ctfBtwodir.checkpoint();
   }
 
   void updateTemplateValues() {
@@ -310,6 +321,20 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
     else {
       ltfPixelSize.resetToCheckpoint();
+    }
+    if (directiveFileCollection.isTwodir(AxisID.FIRST)) {
+      ctfTwodir.setSelected(true);
+      ctfTwodir.setText(directiveFileCollection.getTwodir(AxisID.FIRST, false));
+    }
+    else {
+      ctfTwodir.resetToCheckpoint();
+    }
+    if (directiveFileCollection.isTwodir(AxisID.SECOND)) {
+      ctfBtwodir.setSelected(true);
+      ctfBtwodir.setText(directiveFileCollection.getTwodir(AxisID.SECOND, false));
+    }
+    else {
+      ctfBtwodir.resetToCheckpoint();
     }
     if (directiveFileCollection.containsGold()) {
       ltfFiducialDiameter.setText(directiveFileCollection.getFiducialDiameter(false));
@@ -456,6 +481,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfExcludeListB.setToolTipText(tooltip);
   }
 
+  void setTwodirTooltip(final String tooltip) {
+    ctfTwodir.setToolTipText(tooltip);
+    ctfBtwodir.setToolTipText(tooltip);
+  }
+
   void setPostponeTooltip(final String tooltip) {
     btnPostpone.setToolTipText(tooltip);
   }
@@ -538,12 +568,56 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
+  public String getTwodir(AxisID axisID, boolean doValidation)
+      throws FieldValidationFailedException {
+    if (axisID == AxisID.SECOND) {
+      return ctfBtwodir.getText(doValidation);
+    }
+    return ctfTwodir.getText(doValidation);
+  }
+
+  public boolean isTwodir(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return ctfBtwodir.isSelected();
+    }
+    return ctfTwodir.isSelected();
+  }
+
+  void setTwodir(final AxisID axisID, final boolean selected) {
+    if (axisID == AxisID.SECOND) {
+      ctfBtwodir.setSelected(selected);
+    }
+    else {
+      ctfTwodir.setSelected(selected);
+    }
+  }
+
+  void setTwodir(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      ctfBtwodir.setText(input);
+    }
+    else {
+      ctfTwodir.setText(input);
+    }
+  }
+
   void setExcludeListEnabled(final AxisID axisID, final boolean enable) {
     if (axisID == AxisID.SECOND) {
       ltfExcludeListB.setEnabled(enable);
     }
     else {
       ltfExcludeListA.setEnabled(enable);
+    }
+  }
+
+  void setTwodirEnabled(final AxisID axisID, final boolean enable) {
+    if (axisID == AxisID.SECOND) {
+      ctfBtwodir.setCheckBoxEnabled(enable);
+      lBtwodir.setEnabled(enable);
+    }
+    else {
+      ctfTwodir.setCheckBoxEnabled(enable);
+      lTwodir.setEnabled(enable);
     }
   }
 
@@ -895,17 +969,25 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void createPerAxisInfoPanel() {
-    // Set the button size
+    // constructors
+    JPanel pnlTwodir = new JPanel();
+    JPanel pnlBtwodir = new JPanel();
+    // init
     btnViewRawStackA.setSize();
     btnViewRawStackB.setSize();
-
+    ctfTwodir.setColumns();
+    ctfTwodir.setRequired(true);
+    ctfBtwodir.setColumns();
+    ctfBtwodir.setRequired(true);
     // Tilt angle specification panels
     pnlAxisInfoA.setBorder(new BeveledBorder("Axis A: ").getBorder());
     pnlAxisInfoA.setLayout(new BoxLayout(pnlAxisInfoA, BoxLayout.Y_AXIS));
     ltfExcludeListA.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnViewRawStackA.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlAxisInfoA.add(expert.getTiltAnglesPanelExpert(AxisID.FIRST).getComponent());
-    pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAxisInfoA.add(pnlTwodir);
+    pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlAxisInfoA.add(ltfExcludeListA.getContainer());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(btnViewRawStackA.getComponent());
@@ -924,7 +1006,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     ltfExcludeListB.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnViewRawStackB.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlAxisInfoB.add(expert.getTiltAnglesPanelExpert(AxisID.SECOND).getComponent());
-    pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
+    pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlAxisInfoB.add(pnlBtwodir);
+    pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlAxisInfoB.add(ltfExcludeListB.getContainer());
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoB.add(btnViewRawStackB.getComponent());
@@ -941,6 +1025,13 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlPerAxisInfo.setLayout(new BoxLayout(pnlPerAxisInfo, BoxLayout.X_AXIS));
     pnlPerAxisInfo.add(pnlAxisInfoA);
     pnlPerAxisInfo.add(pnlAxisInfoB);
+    // twodir
+    pnlTwodir.setLayout(new BoxLayout(pnlTwodir, BoxLayout.X_AXIS));
+    pnlTwodir.add(ctfTwodir.getComponent());
+    pnlTwodir.add(lTwodir);
+    pnlBtwodir.setLayout(new BoxLayout(pnlBtwodir, BoxLayout.X_AXIS));
+    pnlBtwodir.add(ctfBtwodir.getComponent());
+    pnlBtwodir.add(lBtwodir);
   }
 
   private static final class BackupDirectoryActionListener implements ActionListener {
