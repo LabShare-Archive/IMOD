@@ -86,6 +86,7 @@ public final class DirectiveFile {
   public static final String THICKNESS_NAME = "thickness";
   public static final String TRACKING_METHOD_NAME = "trackingMethod";
   static final String TRUE_VALUE = "1";
+  public static final String TWODIR_NAME = "twodir";
   public static final String USE_ALIGNED_STACK_NAME = "useAlignedStack";
   public static final String USE_RAW_TLT_NAME = "userawtlt";
   public static final String USE_SIRT_NAME = "useSirt";
@@ -288,8 +289,7 @@ public final class DirectiveFile {
   }
 
   /**
-   * Returns null if the attribute called name is not there.  Returns an empty string if
-   * this attribute is there and it has no value.
+   * Returns null if the attribute called name is not there.
    * @param parentName
    * @param name
    * @return
