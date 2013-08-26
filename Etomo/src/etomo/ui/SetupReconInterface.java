@@ -47,6 +47,11 @@ public interface SetupReconInterface {
   public String getExcludeList(AxisID axisID, boolean doValidation)
       throws FieldValidationFailedException;
 
+  public String getTwodir(AxisID axisID, boolean doValidation)
+      throws FieldValidationFailedException;
+
+  public boolean isTwodir(AxisID axisID);
+
   public String getFiducialDiameter(boolean doValidation)
       throws FieldValidationFailedException;
 
