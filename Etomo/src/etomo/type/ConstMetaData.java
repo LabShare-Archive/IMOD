@@ -544,4 +544,8 @@ public interface ConstMetaData {
   public String getStack3dFindThickness(AxisID axisID);
 
   public boolean isSetFEIPixelSize();
+
+  public boolean isTwodir(AxisID axisID);
+
+  public String getTwodir(AxisID axisID);
 }
