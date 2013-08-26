@@ -56,7 +56,7 @@ public final class AutoAlignmentPanel {
       "Initial Auto Alignment");
   private final MultiLineButton btnMidas = new MultiLineButton("Midas");
   private final MultiLineButton btnRefineAutoAlignment = new MultiLineButton(
-      "Refine Auto Alignment");
+      "Refine with Auto Alignment");
   private final MultiLineButton btnRevertToMidas = new MultiLineButton(
       "Revert Auto Alignment to Midas");
   private final MultiLineButton btnRevertToEmpty = new MultiLineButton(
@@ -65,12 +65,13 @@ public final class AutoAlignmentPanel {
       "Binning: ", 2, 1, 50, 1, 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
       FieldType.INTEGER_LIST, "Sections to skip: ");
+  // TEMP 1730
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
-      "Do cross-correlate in initial alignment");
+      "Find initial shifts with cross-correlation");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
       FieldType.FLOATING_POINT, "Fraction to ignore on edges: ");
-  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Midas binning: ", 1,
-      1, 8);
+  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Binning in midas: ",
+      1, 1, 8);
 
   private final BaseManager manager;
   private final boolean tomogramAverages;
@@ -99,7 +100,6 @@ public final class AutoAlignmentPanel {
   private void createPanel(final boolean joinConfiguration) {
     // panels
     JPanel pnlPreCrossCorrelation = new JPanel();
-    JPanel pnlBinning = new JPanel();
     SpacedPanel pnlLeftButtons = SpacedPanel.getInstance();
     SpacedPanel pnlRightButtons = SpacedPanel.getInstance();
     // init
@@ -118,6 +118,7 @@ public final class AutoAlignmentPanel {
     // root
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.add(pnlParameters.getContainer());
+    pnlRoot.add(spMidasBinning.getContainer());
     pnlRoot.add(pnlButtons.getContainer());
     // parameters
     pnlParameters.setBoxLayout(BoxLayout.Y_AXIS);
@@ -125,21 +126,16 @@ public final class AutoAlignmentPanel {
     pnlParameters.add(ltfSigmaLowFrequency);
     pnlParameters.add(ltfCutoffHighFrequency);
     pnlParameters.add(ltfSigmaHighFrequency);
-    pnlParameters.add(tcAlign.getContainer());
     pnlParameters.add(pnlPreCrossCorrelation);
+    pnlParameters.add(tcAlign.getContainer());
     pnlParameters.add(ltfSkipSectionsFrom1.getContainer());
     pnlParameters.add(ltfEdgeToIgnore);
-    pnlParameters.add(pnlBinning);
+    pnlParameters.add(spReduceByBinning.getContainer());
     // pre cross correlation
     pnlPreCrossCorrelation.setLayout(new BoxLayout(pnlPreCrossCorrelation,
         BoxLayout.X_AXIS));
     pnlPreCrossCorrelation.add(cbPreCrossCorrelation);
     pnlPreCrossCorrelation.add(Box.createHorizontalGlue());
-    // binning
-    pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
-    pnlBinning.add(spReduceByBinning.getContainer());
-    pnlBinning.add(Box.createRigidArea(FixedDim.x10_y0));
-    pnlBinning.add(spMidasBinning.getContainer());
     // buttons
     pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlButtons.add(pnlLeftButtons);
@@ -244,10 +240,6 @@ public final class AutoAlignmentPanel {
     param.setBinning(spMidasBinning.getValue());
   }
 
-  public void enableMidas() {
-    btnMidas.setEnabled(true);
-  }
-
   /**
    * checking if panel is equal to meta data.  Set useDefault to match how 
    * useDefault is used in setMetaData()
@@ -270,16 +262,22 @@ public final class AutoAlignmentPanel {
     return true;
   }
 
+  public void msgProcessChange(final boolean processEnded) {
+    btnMidas.setEnabled(processEnded);
+    btnRevertToMidas.setEnabled(processEnded);
+    btnRevertToEmpty.setEnabled(processEnded);
+  }
+
   private void action(final String command) {
     if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
-      btnMidas.setEnabled(false);
+      msgProcessChange(false);
       controller.xfalignInitial(null, tomogramAverages);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       controller.midasSample(btnMidas.getQuotedLabel());
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
-      btnMidas.setEnabled(false);
+      msgProcessChange(false);
       controller.xfalignRefine(null, tomogramAverages,
           btnRefineAutoAlignment.getQuotedLabel());
     }
@@ -329,8 +327,10 @@ public final class AutoAlignmentPanel {
       except.printStackTrace();
     }
     if (autodoc != null) {
-      cbPreCrossCorrelation.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          XfalignParam.PRE_CROSS_CORRELATION_KEY));
+      cbPreCrossCorrelation
+          .setToolTipText("Use cross-correlation to find initial translations; needed if "
+              + "shifts are large.  This checkbox has no effect when refining with auto "
+              + "alignment");
       ltfEdgeToIgnore.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XfalignParam.EDGE_TO_IGNORE_KEY));
       spReduceByBinning.setToolTipText(EtomoAutodoc.getTooltip(autodoc,

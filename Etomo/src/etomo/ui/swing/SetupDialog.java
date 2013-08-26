@@ -29,6 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.filechooser.FileFilter;
 
 import etomo.ApplicationManager;
+import etomo.logic.ConfigTool;
 import etomo.logic.DatasetTool;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.MagGradientFileFilter;
@@ -779,8 +780,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void distortionFileAction() {
     try {
-      File file = getFile(expert.getCurrentDistortionDir(), new DistortionFileFilter(),
-          JFileChooser.FILES_ONLY);
+      File file = getFile(
+          ConfigTool.getDistortionDir(applicationManager, ftfDistortionFile.getFile()),
+          new DistortionFileFilter(), JFileChooser.FILES_ONLY);
       if (file != null) {
         ftfDistortionFile.setText(file.getAbsolutePath());
       }

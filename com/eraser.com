@@ -27,6 +27,12 @@ PeakCriterion   10.
 # This is the criterion # of SDs above the mean pixel-to-pixel difference
 DiffCriterion   8.
 #
+# These are criteria controlling elimination of an extra-large peak
+BigDiffCriterion 19.
+GiantCriterion   12.
+ExtraLargeRadius 8.
+
+#
 # This is the criterion # of SDs for including points in a peak
 GrowCriterion   4.
 #

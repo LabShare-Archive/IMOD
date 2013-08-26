@@ -1610,8 +1610,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     pnlSectionTable.enableAddSection();
   }
 
-  public void enableMidas() {
-    autoAlignmentPanel.enableMidas();
+  public void msgProcessEnded() {
+    autoAlignmentPanel.msgProcessChange(true);
   }
 
   /**

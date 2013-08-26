@@ -305,6 +305,13 @@ int main( int argc, char *argv[])
     }
   }
 
+  // Attach image file's size as the max values
+  if (fpimage) {
+    imod->xmax = hdata.nx;
+    imod->ymax = hdata.ny;
+    imod->zmax = hdata.nz;
+  }
+
   fclose(infp);
   if (imodBackupFile(filename)) 
     printf("Warning: %s - Failed to make old version of %s be a backup file\n",

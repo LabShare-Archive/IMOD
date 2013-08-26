@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.AutodocFilter;
 import etomo.type.UserConfiguration;
@@ -25,7 +26,7 @@ import etomo.type.UserConfiguration;
 */
 public final class ConfigTool {
   public static final String rcsid = "$Id:$";
-  
+
   private static final String DEFAULT_SYSTEM_TEMPLATE_DIR = "SystemTemplate";
 
   /**
@@ -58,8 +59,8 @@ public final class ConfigTool {
    * @return
    */
   public static File[] getSystemTemplateFiles() {
-    File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODDirectory(), DEFAULT_SYSTEM_TEMPLATE_DIR)
-        .listFiles(new AutodocFilter());
+    File[] fileArray = new File(EtomoDirector.INSTANCE.getIMODDirectory(),
+        DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter());
     SortedMap<String, File> map = null;
     if (fileArray != null) {
       map = new TreeMap<String, File>();
@@ -67,8 +68,8 @@ public final class ConfigTool {
         map.put(fileArray[i].getName(), fileArray[i]);
       }
     }
-    fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(), DEFAULT_SYSTEM_TEMPLATE_DIR)
-        .listFiles(new AutodocFilter());
+    fileArray = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory(),
+        DEFAULT_SYSTEM_TEMPLATE_DIR).listFiles(new AutodocFilter());
     if (fileArray != null) {
       if (map == null) {
         map = new TreeMap<String, File>();
@@ -149,5 +150,29 @@ public final class ConfigTool {
       return new File[] { map.get(map.firstKey()) };
     }
     return map.values().toArray(new File[size]);
+  }
+
+  /**
+   * Returns either the parent of currentDistortionFile, the distortion directory in
+   * ImodCalib, or the propery user directory.
+   * @param manager
+   * @param currentDistortionFile
+   * @return
+   */
+  public static String getDistortionDir(final BaseManager manager,
+      final File curtDistortionFile) {
+    File dir = null;
+    if (curtDistortionFile != null) {
+      dir = curtDistortionFile.getParentFile();
+      if (dir != null && dir.exists() && dir.isDirectory() && dir.canRead()) {
+        return dir.getAbsolutePath();
+      }
+    }
+    dir = new File(EtomoDirector.INSTANCE.getIMODCalibDirectory().getAbsolutePath(),
+        "Distortion");
+    if (dir.exists() && dir.isDirectory() && dir.canRead()) {
+      return dir.getAbsolutePath();
+    }
+    return manager.getPropertyUserDir();
   }
 }

@@ -71,7 +71,7 @@ public final class AutoAlignmentController {
       except.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(manager, "Can't run initial xfalign\n"
           + except.getMessage(), "SystemProcessException", axisID);
-      display.enableMidas();
+      display.msgProcessEnded();
       return;
     }
     manager.getMainPanel().startProgressBar("Initial xfalign", axisID,
@@ -100,7 +100,7 @@ public final class AutoAlignmentController {
       except.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(manager, "Can't run " + description + "\n"
           + except.getMessage(), "SystemProcessException", axisID);
-      display.enableMidas();
+      display.msgProcessEnded();
       return;
     }
     manager.getMainPanel()
@@ -120,8 +120,8 @@ public final class AutoAlignmentController {
     copyXfFile(emptyFile);
   }
 
-  public void enableMidas() {
-    display.enableMidas();
+  public void msgProcessEnded() {
+    display.msgProcessEnded();
   }
 
   /**

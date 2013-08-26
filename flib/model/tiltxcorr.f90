@@ -177,6 +177,7 @@ program tiltxcorr
   reverseOrder = .false.
   findWarp = .false.
   rawAlignedPair = .false.
+  addToWarps = .false.
   ivPairOffset = 0
   !
   ! Pip startup: set error, parse options, check help, set flag if used
@@ -474,10 +475,6 @@ program tiltxcorr
         allocate(patchCenX(ix), patchCenY(ix), patchCenXall(ix), patchCenYall(ix), &
             stat = ierr)
         call memoryError(ierr, 'ARRAYS FOR PATCH CENTERS')
-        if (findWarp) then
-          allocate(xControl(ix), yControl(ix), xVector(ix), yVector(ix), stat = ierr)
-          call memoryError(ierr, 'ARRAYS FOR WARP POINTS')
-        endif
         xOverlap = (numXpatch * nxPatch - nxUse) / max(1., numXpatch - 1.)
         yOverlap = (numYpatch * nyPatch - nyUse) / max(1., numYpatch - 1.)
         do j = 1, numYpatch
@@ -542,6 +539,10 @@ program tiltxcorr
         enddo
 
         deallocate(iobjFlags)
+      endif
+      if (findWarp) then
+        allocate(xControl(ix), yControl(ix), xVector(ix), yVector(ix), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR WARP POINTS')
       endif
       !
       ! Now eliminate patches outside boundary model or just copy centers

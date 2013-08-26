@@ -23,7 +23,7 @@ import etomo.type.DialogType;
 public interface AutoAlignmentDisplay {
   public static final String rcsid = "$Id:$";
 
-  public void enableMidas();
+  public void msgProcessEnded();
 
   public DialogType getDialogType();
 
