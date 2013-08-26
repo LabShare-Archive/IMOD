@@ -3218,6 +3218,9 @@ public final class ApplicationManager extends BaseManager implements
     updateDirective(directiveMap,
         prepend + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.SKIP_NAME),
         errmsg, metaData.getExcludeProjectionsA());
+    updateDirective(directiveMap,
+        prepend + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.TWODIR_NAME),
+        errmsg, metaData.getTwodir(curAxisID));
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
       updateDirective(
@@ -3225,6 +3228,11 @@ public final class ApplicationManager extends BaseManager implements
           prepend
               + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.SKIP_NAME),
           errmsg, metaData.getExcludeProjectionsA());
+      updateDirective(
+          directiveMap,
+          prepend
+              + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.TWODIR_NAME),
+          errmsg, metaData.getTwodir(curAxisID));
     }
     curAxisID = firstAxisID;
     updateDirective(directiveMap, prepend + DirectiveFile.DISTORT_NAME, errmsg,
