@@ -27,6 +27,9 @@ PeakCriterion   10.
 # This is the criterion # of SDs above the mean pixel-to-pixel difference
 DiffCriterion   8.
 #
+# This is the criterion # of SDs above mean background for an extra-large peak
+GiantCriterion   19.
+#
 # This is the criterion # of SDs for including points in a peak
 GrowCriterion   4.
 #
