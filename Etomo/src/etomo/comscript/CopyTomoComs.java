@@ -423,6 +423,10 @@ public final class CopyTomoComs {
       if (!excludeProjections.equals("")) {
         overrideParameter(commandMap, DirectiveFile.SKIP_NAME, excludeProjections);
       }
+      if (metaData.isTwodir(AxisID.FIRST)) {
+        overrideParameter(commandMap, DirectiveFile.TWODIR_NAME,
+            metaData.getTwodir(AxisID.FIRST));
+      }
       if (!voltage.isNull()) {
         overrideParameter(commandMap, DirectiveFile.VOLTAGE_NAME, voltage.toString());
       }
@@ -494,6 +498,10 @@ public final class CopyTomoComs {
               DirectiveFile.convertAttributeName(AxisID.SECOND, DirectiveFile.SKIP_NAME),
               excludeProjections);
         }
+        if (metaData.isTwodir(AxisID.SECOND)) {
+          overrideParameter(commandMap, DirectiveFile.convertAttributeName(AxisID.SECOND,
+              DirectiveFile.TWODIR_NAME), metaData.getTwodir(AxisID.SECOND));
+        }
         if (montage && gradient && metaData.getAdjustedFocusB().is()) {
           overrideParameter(
               commandMap,
@@ -515,7 +523,8 @@ public final class CopyTomoComs {
       command.add("fei");
     }
     if (directiveFileCollection != null) {
-      DirectiveFile directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SCOPE);
+      DirectiveFile directiveFile = directiveFileCollection
+          .getDirectiveFile(DirectiveFileType.SCOPE);
       if (directiveFile != null) {
         command.add(CHANGE_PARAMETERS_FILE_TAG + " "
             + directiveFile.getFile().getAbsolutePath());
