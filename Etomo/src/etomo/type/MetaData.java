@@ -800,6 +800,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final StringProperty origSystemTemplate = new StringProperty(
       "Orig.SystemTemplate");
   private final StringProperty origUserTemplate = new StringProperty("Orig.UserTemplate");
+  private final EtomoBoolean2 isTwodirA = new EtomoBoolean2(STACK_KEY + "."
+      + FIRST_AXIS_KEY + ".Is.Twodir");
+  private final EtomoBoolean2 isTwodirB = new EtomoBoolean2(STACK_KEY + "."
+      + SECOND_AXIS_KEY + ".Is.Twodir");
+  private final EtomoNumber twodirA = new EtomoNumber(EtomoNumber.Type.DOUBLE, STACK_KEY
+      + "." + FIRST_AXIS_KEY + ".Twodir");
+  private final EtomoNumber twodirB = new EtomoNumber(EtomoNumber.Type.DOUBLE, STACK_KEY
+      + "." + SECOND_AXIS_KEY + ".Twodir");
 
   public MetaData(final ApplicationManager manager) {
     this.manager = manager;
@@ -1448,6 +1456,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setTwodir(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      twodirB.set(input);
+    }
+    else {
+      twodirA.set(input);
+    }
+  }
+
+  public void setIsTwodir(final AxisID axisID, final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      isTwodirB.set(input);
+    }
+    else {
+      isTwodirA.set(input);
+    }
+  }
+
   public void setGenExists(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       genExistsB.set(input);
@@ -1739,6 +1765,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     setFEIPixelSize.reset();
     postTrimvolNewStyleZ.reset();
     postTrimvolScalingNewStyleZ.reset();
+    isTwodirA.reset();
+    isTwodirB.reset();
+    twodirA.reset();
+    twodirB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2044,6 +2074,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origScopeTemplate.load(props, prepend);
     origSystemTemplate.load(props, prepend);
     origUserTemplate.load(props, prepend);
+    isTwodirA.load(props, prepend);
+    isTwodirB.load(props, prepend);
+    twodirA.load(props, prepend);
+    twodirB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2407,6 +2441,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origScopeTemplate.store(props, prepend);
     origSystemTemplate.store(props, prepend);
     origUserTemplate.store(props, prepend);
+    isTwodirA.store(props, prepend);
+    isTwodirB.store(props, prepend);
+    twodirA.store(props, prepend);
+    twodirB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2855,6 +2893,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public void getTransferfidBFields(final TransferfidParam transferfidParam) {
     this.transferfidParamB.getStorableFields(transferfidParam);
+  }
+
+  public String getTwodir(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return twodirB.toString();
+    }
+    return twodirA.toString();
+  }
+
+  public boolean isTwodir(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return isTwodirB.is();
+    }
+    return isTwodirA.is();
   }
 
   public String getDatasetName() {
@@ -3585,6 +3637,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return false;
     }
     if (!stackEraseGoldModelUseFidB.equals(cmd.stackEraseGoldModelUseFidB)) {
+      return false;
+    }
+    if (!twodirA.equals(cmd.twodirA)) {
+      return false;
+    }
+    if (!twodirB.equals(cmd.twodirB)) {
       return false;
     }
     return true;
