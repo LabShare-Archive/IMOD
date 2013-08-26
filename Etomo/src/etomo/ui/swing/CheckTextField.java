@@ -76,6 +76,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
 
   private String checkpointValue = null;
   private EtomoNumber nCheckpointValue = null;
+  private boolean required = false;
 
   private CheckTextField(final FieldType fieldType, final String label,
       final EtomoNumber.Type numericType) {
@@ -137,6 +138,34 @@ final class CheckTextField implements UIComponent, SwingComponent {
     }
   }
 
+  void checkpoint() {
+    checkBox.checkpoint();
+    checkpointValue = getText();
+    if (numericType != null) {
+      if (nCheckpointValue == null) {
+        nCheckpointValue = new EtomoNumber(numericType);
+      }
+      nCheckpointValue.set(checkpointValue);
+    }
+  }
+
+  /**
+   * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
+   */
+  void resetToCheckpoint() {
+    checkBox.resetToCheckpoint();
+    if (checkpointValue == null) {
+      return;
+    }
+    setText(checkpointValue);
+  }
+
+  void setColumns() {
+    if (fieldType != null) {
+      textField.setColumns(fieldType.getColumns());
+    }
+  }
+
   /**
    * First checks the checkbox and returns true if the checkbox is different from its
    * checkpoint.  Then it returns false if the checkbox is not selected, since the value
@@ -171,6 +200,11 @@ final class CheckTextField implements UIComponent, SwingComponent {
   void setEnabled(final boolean enable) {
     checkBox.setEnabled(enable);
     textField.setEnabled(enable);
+  }
+
+  void setCheckBoxEnabled(final boolean enable) {
+    checkBox.setEnabled(enable);
+    updateDisplay();
   }
 
   private void createPanel() {
@@ -240,10 +274,15 @@ final class CheckTextField implements UIComponent, SwingComponent {
     return pnlRoot;
   }
 
+  void setRequired(final boolean required) {
+    this.required = required;
+  }
+
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
-      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(), false);
+      text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel(),
+          required);
     }
     return text;
   }
@@ -270,7 +309,7 @@ final class CheckTextField implements UIComponent, SwingComponent {
   }
 
   private void updateDisplay() {
-    textField.setEnabled(checkBox.isSelected());
+    textField.setEnabled(checkBox.isSelected() && checkBox.isEnabled());
   }
 
   private void action() {
