@@ -464,6 +464,14 @@ public final class SetupReconUIHarness {
           setupInterface.getExcludeList(AxisID.FIRST, doValidation), AxisID.FIRST);
       metaData.setExcludeProjections(
           setupInterface.getExcludeList(AxisID.SECOND, doValidation), AxisID.SECOND);
+      metaData.setIsTwodir(AxisID.FIRST,
+          setupInterface.isTwodir(AxisID.FIRST));
+      metaData.setIsTwodir(AxisID.SECOND,
+          setupInterface.isTwodir(AxisID.SECOND));
+      metaData.setTwodir(AxisID.FIRST,
+          setupInterface.getTwodir(AxisID.FIRST, doValidation));
+      metaData.setTwodir(AxisID.SECOND,
+          setupInterface.getTwodir(AxisID.SECOND, doValidation));
       if (axisType == AxisType.DUAL_AXIS) {
         File bStack = DatasetFiles
             .getStack(getPropertyUserDir(), metaData, AxisID.SECOND);
@@ -524,8 +532,7 @@ public final class SetupReconUIHarness {
       metaData.setFiducialessAlignment(axisID, value);
     }
     if (directiveFile.containsFiducialsSeedingMethod(axisID)) {
-      SeedingMethod seedingMethod = directiveFile
-          .getFiducialsSeedingMethod(axisID);
+      SeedingMethod seedingMethod = directiveFile.getFiducialsSeedingMethod(axisID);
       if (seedingMethod == SeedingMethod.MANUAL) {
         metaData.setTrackSeedModelManual(true, axisID);
       }
