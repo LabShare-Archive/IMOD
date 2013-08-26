@@ -82,6 +82,19 @@ public class DirectiveFileCollection implements SetupReconInterface {
     return value;
   }
 
+  /**
+   * Returns true if getValue does not return null.  If getValue does return null then
+   * either the attribute wasn't there, or it was there and was overridden (the last time
+   * it appeared in the collection there was no value).
+   * @param parentName
+   * @param name
+   * @return
+   */
+  private boolean isValueSet(final DirectiveFile.AttributeName parentName,
+      final String name) {
+    return getValue(parentName, name) != null;
+  }
+
   public boolean containsBinning() {
     return containsAttribute(AttributeName.COPY_ARG, DirectiveFile.BINNING_NAME);
   }
@@ -112,6 +125,11 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public boolean containsPixel() {
     return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.PIXEL_NAME);
+  }
+
+  public boolean containsTwodir(final AxisID axisID) {
+    return containsAttribute(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.convertAttributeName(axisID, DirectiveFile.TWODIR_NAME));
   }
 
   public boolean containsRotation() {
@@ -174,6 +192,19 @@ public class DirectiveFileCollection implements SetupReconInterface {
   public String getExcludeList(final AxisID axisID, final boolean doValidation) {
     return getValue(DirectiveFile.AttributeName.COPY_ARG,
         DirectiveFile.convertAttributeName(axisID, DirectiveFile.SKIP_NAME));
+  }
+
+  /**
+   * @param doValidation has no effect
+   */
+  public String getTwodir(final AxisID axisID, final boolean doValidation) {
+    return getValue(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.convertAttributeName(axisID, DirectiveFile.TWODIR_NAME));
+  }
+
+  public boolean isTwodir(final AxisID axisIDn) {
+    return isValueSet(DirectiveFile.AttributeName.COPY_ARG,
+        DirectiveFile.convertAttributeName(axisID, DirectiveFile.TWODIR_NAME));
   }
 
   /**
