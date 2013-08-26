@@ -4,6 +4,11 @@ IMOD History
 8/24/13: Improved the layout, behavior, labels, and tooltips of the "Align
 Serial Sections / Blend Montages" interface.(Bug# 1730)
 
+8/23/13: There are now two system templates that can be selected in the eTomo
+startup page; plasticSection just turns on Sobel filter centering in tracking;
+cyoSample turns that on with the correct filter and changes a few other
+settings; see Using Etomo for details.
+
 8/23/13: Fixed Tiltxcorr to compute warping with a seed point model.
 
 8/23/13: Fixed Newstack to set output size properly for +/-270 rotation.
