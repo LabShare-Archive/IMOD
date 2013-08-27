@@ -447,16 +447,18 @@ transforms are supplied with the -prexf option.
 
 [Field = FindWarpTransforms]
 short = warp
-type = B
+type = I
 usage = Use patch correlations to find and save warping transformations
 tooltip = 
 manpage = Use patch correlations to find and save warping transformations
 between successive images.  The output file will be a file with warp
-transforms, not a model.  Tilt angles cannot be entered with this option, nor can
-the -reverse option.  Unlike with tilt series patch tracking, you can break
-the alignment at views as well as skip views.  Limits in X and Y and a
-boundary model can be used to constrain patch locations, but there must be at
-least 3 patches in the area defined by all the boundary contours.
+transforms, not a model.  Enter 1 for transforms with the linear component
+separated out, and -1 to not separate the linear component.  Tilt angles
+cannot be entered with this option, nor can the -reverse option.  Unlike with
+tilt series patch tracking, you can break the alignment at views as well as
+skip views.  Limits in X and Y and a boundary model can be used to constrain
+patch locations, but there must be at least 3 patches in the area defined by
+all the boundary contours.
 
 [Field = RawAndAlignedPair]
 short = pair
