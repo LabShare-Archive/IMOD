@@ -1,11 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-8/26/13: Improved tooltips for eTomo - PEET.(Bug# 1740)
+8/27/13: Improved tooltips for eTomo - PEET.(Bug# 1740)
 
-8/26/13: Added complete version information to the etomo error log file.
+8/27/13: Added complete version information to the etomo error log file.
 (Bug# 1733)
 
-8/26/13: Added a bidirectional tilt series option to eTomo - Setup Tomogram.
+8/27/13: Added a bidirectional tilt series option to eTomo - Setup Tomogram.
 (Bug# 1732)
 
 8/24/13: IMOD_4-6-28
