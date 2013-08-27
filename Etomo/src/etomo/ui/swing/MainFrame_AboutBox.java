@@ -102,7 +102,6 @@ import javax.swing.JPanel;
 
 import etomo.logic.VersionControl;
 import etomo.type.AxisID;
-import etomo.type.ImodVersion;
 
 public class MainFrame_AboutBox extends JDialog {
   public static final String rcsid = "$Id$";
@@ -110,7 +109,7 @@ public class MainFrame_AboutBox extends JDialog {
   JPanel pnlAbout = new JPanel();
   JButton btnOK = new JButton("OK");
 
-  public MainFrame_AboutBox(final Frame parent,final AxisID axisID) {
+  public MainFrame_AboutBox(final Frame parent, final AxisID axisID) {
     super(parent);
     JPanel pnlRoot = (JPanel) getContentPane();
     JPanel pnlText = new JPanel();
@@ -123,8 +122,7 @@ public class MainFrame_AboutBox extends JDialog {
     pnlAbout.setLayout(new BoxLayout(pnlAbout, BoxLayout.Y_AXIS));
 
     JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
-    JLabel lblVersion = new JLabel("Version " + ImodVersion.CURRENT_VERSION + " "
-        + VersionControl.TIME_STAMP);
+    JLabel lblVersion = new JLabel("Version " + VersionControl.getEtomoVersion());
     JLabel lblAuthors = new JLabel("Written by: Rick Gaudette & Sue Held");
 
     btnOK.addActionListener(new AboutActionListener(this));
@@ -144,7 +142,7 @@ public class MainFrame_AboutBox extends JDialog {
     pnlText.add(lblAuthors);
     if (imodInfo != null && imodInfo.size() > 0) {
       pnlText.add(Box.createRigidArea(FixedDim.x0_y20));
-      pnlText.add(new JLabel("IMOD Version: "+imodInfo.get(0)));
+      pnlText.add(new JLabel("IMOD Version: " + imodInfo.get(0)));
     }
     String version = VersionControl.getPeetVersion();
     if (version != null) {
