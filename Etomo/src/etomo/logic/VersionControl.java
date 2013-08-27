@@ -12,6 +12,7 @@ import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.EtomoVersion;
+import etomo.type.ImodVersion;
 import etomo.ui.swing.UIHarness;
 import etomo.util.EnvironmentVariable;
 
@@ -102,6 +103,10 @@ public final class VersionControl {
       peetVersionFile.closeRead(id);
     }
     return null;
+  }
+
+  public static String getEtomoVersion() {
+    return ImodVersion.CURRENT_VERSION + " " + VersionControl.TIME_STAMP;
   }
 
   /**
