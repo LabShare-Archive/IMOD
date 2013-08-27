@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/24/13: Added a bidirectional tilt series option to eTomo - Setup Tomogram.
+(Bug# 1732)
+
 8/24/13: IMOD_4-6-28
 8/24/13: Improved the layout, behavior, labels, and tooltips of the "Align
 Serial Sections / Blend Montages" interface.(Bug# 1730)
