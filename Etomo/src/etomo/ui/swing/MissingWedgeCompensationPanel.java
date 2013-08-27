@@ -381,11 +381,12 @@ final class MissingWedgeCompensationPanel implements UIComponent, SwingComponent
     sEdgeShift.setToolTipText("Number of pixels to shift the edge of the wedge mask to "
         + "include frequency information just inside the missing wedge.");
     rbTiltRangeSingle
-        .setToolTipText("Use the tilt angles used to acquire the tilt series to "
-            + "compensate for the missing wedge during alignment and averaging.");
+        .setToolTipText("Single-axis tilt with range Tilt Range around the tomogram "
+            + "Y axis");
     rbTiltRangeMulti
-        .setToolTipText("Use an array of files containing binary masks to compensate for "
-            + "the missing wedge during alignment and averaging.");
+        .setToolTipText("Missing / valid data regions for each tomogram specified by a "
+            + "binary missing wedge mask file. Please see the PEET, dualAxisMask, and "
+            + "multiTiltMask man pages for more details.");
   }
 
   private static final class MissingWedgeCompensationActionListener implements
