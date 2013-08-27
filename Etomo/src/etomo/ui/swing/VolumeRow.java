@@ -787,6 +787,11 @@ final class VolumeRow implements Highlightable {
         + "wedge compensation is enabled.";
     tiltRangeMin.setToolTipText("The minimum" + tooltip);
     tiltRangeMax.setToolTipText("The maximum" + tooltip);
-    tiltRangeMultiAxes.setToolTipText("Mask file");
+    tiltRangeMultiAxes
+        .setToolTipText("A binary mask file in MRC format with 0's and 1's indicating "
+            + "missing and valid regions in Fourier space, respectively, for this "
+            + "volume.  The mask should be cubical, with an even number of voxels, at "
+            + "least as large as the largest dimension of the reference, along each "
+            + "edge.");
   }
 }
