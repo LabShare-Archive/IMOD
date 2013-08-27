@@ -82,13 +82,13 @@ program tiltxcorr
   integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
   integer*4 limitXlo, limitXhi, limitYlo, limitYhi, numControl, numBoundAll
-  integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset
+  integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset, ifFindWarp
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
   real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
   real*4 fracOverMax, critNonBlank, fillTaperFrac
   real*8 wallMask, wallTime, wallStart, wallInterp, wallfft
 
-  logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, findWarp
+  logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder
   logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut
   integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList, taperAtFill
   integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform, readWarpFile
@@ -124,7 +124,7 @@ program tiltxcorr
       'overlap:OverlapOfPatchesXandY:IP:@seed:SeedModel:FN:@objseed:SeedObject:I:@'// &
       'length:LengthAndOverlap:IP:@prexf:PrealignmentTransformFile:FN:@'// &
       'imagebinned:ImagesAreBinned:I:@unali:UnalignedSizeXandY:IP:@'// &
-      'warp:FindWarpTransforms:B:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
+      'warp:FindWarpTransforms:I:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
       'param:ParameterFile:PF:@help:usage:B:'
   !
   ! set defaults here where not dependent on image size
@@ -175,7 +175,7 @@ program tiltxcorr
   lenTemp = 1000000
   iAntiFiltType = 0
   reverseOrder = .false.
-  findWarp = .false.
+  ifFindWarp = 0
   rawAlignedPair = .false.
   addToWarps = .false.
   ivPairOffset = 0
@@ -203,7 +203,7 @@ program tiltxcorr
     plFile = ' '
     ierr = PipGetString('PieceListFile', plFile)
     ierr = PipGetLogical('VerboseOutput', verbose)
-    ierr = PipGetLogical('FindWarpTransforms', findWarp)
+    ierr = PipGetInteger('FindWarpTransforms', ifFindWarp)
   else
     write(*,'(1x,a,$)') 'Piece list file if there is one,'// &
         ' otherwise Return: '
@@ -245,7 +245,7 @@ program tiltxcorr
       xfFileOut) .ne. 0) call exitError('NO OUTPUT FILE SPECIFIED')
   !
   numAllViews = numViews
-  if (findWarp) then
+  if (ifFindWarp .ne. 0) then
     !
     ! Make sure warping has no tilt angles
     ierr = PipNumberOfEntries('TiltAngles', nz)
@@ -442,10 +442,10 @@ program tiltxcorr
         then
       if (ifCumulate .ne. 0) call exitError( &
           'YOU CANNOT USE CUMULATIVE CORRELATION WITH PATCH TRACKING')
-      if (breaking .and. .not. findWarp)  &
+      if (breaking .and. ifFindWarp == 0)  &
           call exitError('YOU CANNOT BREAK AT VIEWS WITH PATCH TRACKING')
       tracking = .true.
-      if (findWarp .and. reverseOrder) call exitError( &
+      if (ifFindWarp .ne. 0 .and. reverseOrder) call exitError( &
           'YOU CANNOT FIND WARP TRANSFORMS IN REVERSE ORDER')
       if (nxPatch > nxUse .or. nyPatch > nyUse) &
           call exitError('PATCHES DO NOT FIT WITHIN TRIMMED AREA OF IMAGE')
@@ -540,7 +540,7 @@ program tiltxcorr
 
         deallocate(iobjFlags)
       endif
-      if (findWarp) then
+      if (ifFindWarp .ne. 0) then
         allocate(xControl(ix), yControl(ix), xVector(ix), yVector(ix), stat = ierr)
         call memoryError(ierr, 'ARRAYS FOR WARP POINTS')
       endif
@@ -548,8 +548,8 @@ program tiltxcorr
       ! Now eliminate patches outside boundary model or just copy centers
       ! This is redone on every view for warping if there is more than one contour
       call makePatchListInsideBoundary()
-      if (findWarp .and. numPatches < 3) call exitError( 'THERE ARE TOO FEW PATCHES '// &
-            'INSIDE THE BOUNDARY CONTOUR(S) TO DEFINE CONTROL POINTS')
+      if (ifFindWarp .ne. 0 .and. numPatches < 3) call exitError( 'THERE ARE TOO FEW'// &
+          ' PATCHES INSIDE THE BOUNDARY CONTOUR(S) TO DEFINE CONTROL POINTS')
       if (numPatches == 0) call exitError( &
           'NO PATCHES ARE SUFFICIENTLY INSIDE THE BOUNDARY CONTOUR(S)')
       !
@@ -584,7 +584,7 @@ program tiltxcorr
           nxUnali = nx
           nyUnali = ny
         endif
-        if (.not. findWarp) then
+        if (ifFindWarp == 0) then
           !
           ! Scan around the minimum tilt for the view with the most patches left
           numBest = 0
@@ -622,7 +622,7 @@ program tiltxcorr
       nyUse = nyPatch
       
       ! Start the warping file
-      if (findWarp) then
+      if (ifFindWarp .ne. 0) then
         call irtdel(1, delta)
         if (addToWarps) then
           ierr = readWarpFile(xfFileOut, ix, iy, iz, ind, xpeakTmp, ipatch, iv)
@@ -661,7 +661,8 @@ program tiltxcorr
   if (tracking) then
     print *,numPatches, ' patches will be tracked'
   else
-    if (findWarp) call exitError('YOU MUST SPECIFY A PATCH SIZE TO FIND WARP TRANSFORMS')
+    if (ifFindWarp .ne. 0)  &
+        call exitError('YOU MUST SPECIFY A PATCH SIZE TO FIND WARP TRANSFORMS')
     numPatches = 1
     allocate(patchCenX(10), patchCenY(10), stat=ierr)
     call memoryError(ierr, 'TINY ARRAY FOR PATCH CENTERS')
@@ -881,8 +882,8 @@ program tiltxcorr
       ! If doing warp and there is more than one boundary contour or the contour needs
       ! to be transformed, get contour(s) from nearest Z to this and get new set of
       ! patch centers
-      if (findWarp .and. (numBoundAll > 1 .or. (numBoundAll > 0 .and. rawAlignedPair))) &
-          then
+      if (ifFindWarp .ne. 0 .and. (numBoundAll > 1 .or.  &
+          (numBoundAll > 0 .and. rawAlignedPair))) then
         !
         ! Find nearest view with boundaries
         ind = numAllViews + 10
@@ -945,10 +946,10 @@ program tiltxcorr
         ! If tracking, initialize model position on first time or get  reference
         ! box from model point
         if (tracking) then
-          if ((iloop == 1 .and. iview == ivStart) .or. findWarp) then
+          if ((iloop == 1 .and. iview == ivStart) .or. ifFindWarp .ne. 0) then
             xmodel(ipatch, ivRef) = ixBoxRef + ixCenStart + nxUse / 2.
             ymodel(ipatch, ivRef) = iyBoxRef + iyCenStart + nyUse / 2.
-            if (findWarp) then
+            if (ifFindWarp .ne. 0) then
               xmodel(ipatch, ivCur) = xmodel(ipatch, ivRef)
               ymodel(ipatch, ivCur) = ymodel(ipatch, ivRef)
             endif
@@ -1031,12 +1032,12 @@ program tiltxcorr
           endif
           if (curViewOut) then
             if (verbose) print *,'Skipping tracking of patch', ipatch
-            if (findWarp) xmodel(ipatch, ivRef) = -1.e10
+            if (ifFindWarp .ne. 0) xmodel(ipatch, ivRef) = -1.e10
             cycle
           endif
 
           ! If finding warp, skip if no reference view
-          if (findWarp .and. refViewOut) then
+          if (ifFindWarp .ne. 0 .and. refViewOut) then
             if (verbose) print *,'Skipping tracking of patch; no reference', ipatch
             xmodel(ipatch, ivRef) = -1.e10
             cycle
@@ -1253,7 +1254,7 @@ program tiltxcorr
         xshift = idir * nbinning * unstretchDx + ixBoxForAdj - ixBoxCur
         yshift = idir * nbinning * unstretchDy + iyBoxForAdj - iyBoxCur
         if (tracking) then
-          if (findWarp) then
+          if (ifFindWarp .ne. 0) then
             !
             ! Only add control point if there was a peak found within limits
             if (peakVal > -1.e29) then
@@ -1351,16 +1352,17 @@ program tiltxcorr
           dmeanSum = dmeanSum + dmean3
         endif
       enddo
-      if (findWarp) then
+      if (ifFindWarp .ne. 0) then
         if (verbose) print *,'View',ivCur,numControl,' warp points'
         ierr = 0
         iv = ivCur + ivPairOffset
         if (numControl > 2) then
           ierr = setWarpPoints(iv, numControl, xControl, yControl, xVector, yVector)
           if (ierr .ne. 0) call exitError('SETTING WARP POINTS FOR THE CURRENT VIEW')
-          if (rawAlignedPair) ierr = setLinearTransform(iv, fPreali(1, 1, iv), 2)
+          if (rawAlignedPair)  &
+              ierr = setLinearTransform(iv, fPreali(1, 1, iv), 2)
           if (ierr .ne. 0) call exitError('SETTING LINEAR TRANSFORM IN WARP FILE')
-          ierr = separateLinearTransform(iv)
+          if (ifFindWarp > 0) ierr = separateLinearTransform(iv)
           if (ierr .ne. 0) call exitError( &
               'SEPARATING LINEAR COMPONENT FROM WARP TRANSFORM')
         else if (numControl > 0) then
@@ -1469,7 +1471,7 @@ program tiltxcorr
       enddo
     endif
     close(1)
-  else if (findWarp) then
+  else if (ifFindWarp .ne. 0) then
     !
     ! Warp output
     ierr = writeWarpFile(xfFileOut, 0)
