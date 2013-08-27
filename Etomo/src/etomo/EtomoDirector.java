@@ -18,6 +18,7 @@ import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
+import etomo.logic.VersionControl;
 import etomo.process.IntermittentBackgroundProcess;
 import etomo.process.ProcessRestarter;
 import etomo.storage.EtomoFileFilter;
@@ -33,7 +34,6 @@ import etomo.type.DataFileType;
 import etomo.type.DialogType;
 import etomo.type.DirectiveFileType;
 import etomo.type.EtomoNumber;
-import etomo.type.ImodVersion;
 import etomo.type.JoinMetaData;
 import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
@@ -364,7 +364,17 @@ public class EtomoDirector {
     originalUserDir = System.getProperty("user.dir");
     System.err.println("GraphicsEnvironment.isHeadless()="
         + GraphicsEnvironment.isHeadless());
-    System.err.println("IMOD version:  " + ImodVersion.CURRENT_VERSION);
+    // print versions
+    System.err.println("\neTomo version:  " + VersionControl.getEtomoVersion());
+    List<String> imodInfo = VersionControl.getImodInfo(null);
+    if (imodInfo != null && imodInfo.size() > 0) {
+      System.err.println("IMOD Version: " + imodInfo.get(0));
+    }
+    String version = VersionControl.getPeetVersion();
+    if (version != null) {
+      System.err.println("PEET Version: " + VersionControl.getPeetVersion());
+    }
+    System.err.println();
     // Get the IMOD calibration directory so we know where to find documentation
     // Check to see if is defined on the command line first with -D
     // Otherwise check to see if we can get it from the environment
