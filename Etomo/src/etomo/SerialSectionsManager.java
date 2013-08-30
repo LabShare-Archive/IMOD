@@ -237,7 +237,7 @@ public final class SerialSectionsManager extends BaseManager {
     if (dialog == null) {
       dialog = SerialSectionsDialog.getInstance(this, AXIS_ID);
     }
-    autoAlignmentController = new AutoAlignmentController(this, dialog);
+    autoAlignmentController = new AutoAlignmentController(this, dialog, imodManager);
     dialog.setAutoAlignmentController(autoAlignmentController);
     if (loadedParamFile) {
       autoAlignmentController.createEmptyXfFile();
