@@ -16,6 +16,7 @@ import etomo.type.AxisTypeException;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.ViewType;
 import etomo.ui.AutoAlignmentDisplay;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
@@ -47,12 +48,15 @@ public final class AutoAlignmentController {
   private final AxisID axisID;
   private final AutoAlignmentProcessManager processManager;
   private final ImodManager imodManager;
+  private final String serialSectionRawStackName;
 
   public AutoAlignmentController(final BaseManager manager,
-      final AutoAlignmentDisplay display, final ImodManager imodManager) {
+      final AutoAlignmentDisplay display, final ImodManager imodManager,
+      final String serialSectionRawStackName) {
     this.manager = manager;
     this.display = display;
     this.imodManager = imodManager;
+    this.serialSectionRawStackName = serialSectionRawStackName;
     axisID = display.getAxisID();
     processManager = new AutoAlignmentProcessManager(manager, this);
   }
@@ -129,9 +133,16 @@ public final class AutoAlignmentController {
 
   public void imodBoundaryModel(final Run3dmodMenuOptions menuOptions) {
     try {
-      imodManager.open(ImodManager.PREBLEND_KEY, axisID,
-          FileType.AUTO_ALIGN_BOUNDARY_MODEL.getFileName(manager, axisID), true,
-          menuOptions);
+      if (manager.getViewType() == ViewType.MONTAGE) {
+        imodManager.open(ImodManager.PREBLEND_KEY, axisID,
+            FileType.AUTO_ALIGN_BOUNDARY_MODEL.getFileName(manager, axisID), true,
+            menuOptions);
+      }
+      else {
+        imodManager.open(ImodManager.RAW_STACK_KEY, axisID,
+            new File(manager.getPropertyUserDir(), serialSectionRawStackName),
+            menuOptions);
+      }
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
