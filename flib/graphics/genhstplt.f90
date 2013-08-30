@@ -20,13 +20,13 @@ subroutine realGraphicsMain()
   real*4 dmat(MAX_ROWS * 10), xx(MAX_ROWS), zz(MAX_ROWS), yy(MAX_ROWS)
   integer*4 iXgroup(MAX_ROWS), itype(MAX_ROWS), itypeGroup(MAX_GROUPS, MAX_GROUPS)
   integer*4 iSymbol(MAX_GROUPS), numTypeInGrp(MAX_GROUPS), igroupAvg(MAX_AVERAGES)
-  integer*4 numInAvg(MAX_AVERAGES)
+  integer*4 numInAvg(MAX_AVERAGES), numComboField
   real*4 avgX(MAX_AVERAGES), avgY(MAX_AVERAGES), groupSdY(MAX_ROWS)
-  real*4 selectMin(MAX_GROUPS), selectMax(MAX_GROUPS)
+  real*4 selectMin(MAX_GROUPS), selectMax(MAX_GROUPS), comboField(MAX_GROUPS)
   integer*4 icolSelect(MAX_GROUPS), ifSelExclude(MAX_GROUPS)
   integer*4 i, iGroup, icolDenom, icolDivide, icolIn, icolWithNum, icolWithSD
   integer*4 ifLogX, ifLogXin, ifLogY, ifOneTypePerGrp, ifRetain
-  integer*4 ifTerm, ifTypes, ifail, igroupStart, inGroup, iopt
+  integer*4 ifTerm, ifTypes, ifail, igroupStart, inGroup, iopt, numLinCombo
   integer*4 isel, ix, j, jEnd, jStart, k, newCol, nfields, nnVal, numAvgGroups, numAvgTot
   integer*4 numCol, numData, numGroups, numInGroup, numSelect, numSkip
   integer*4 numTypes, numXvals, nxTmp, numColOrig, ifReverse, ifNegOptShown
@@ -153,8 +153,9 @@ subroutine realGraphicsMain()
     newCol = 1
   endif
   if (newCol <= 0 .or. newCol > numCol) go to 20
+  numLinCombo = 0
   !
-  if (ifRetain == 0 .and. numXvals > 0) then
+32 if (ifRetain == 0 .and. numXvals > 0) then
     ifLogY = ifLogX
     do i = 1, numXvals
       yy(i) = xx(i)
@@ -184,7 +185,14 @@ subroutine realGraphicsMain()
       if (inGroup > 0) then
         numXvals = numXvals + 1
         iXgroup(numXvals) = iGroup
-        xx(numXvals) = dmat((k - 1) * numCol + newCol)
+        if (numLinCombo > 0) then
+          xx(numXvals) = 0
+          do j = 1, numLinCombo
+            xx(numXvals) = xx(numXvals) + avgX(j) * dmat((k - 1) * numCol + numInAvg(j))
+          enddo
+        else
+          xx(numXvals) = dmat((k - 1) * numCol + newCol)
+        endif
         if (ifLogX > 0) then
           if (ifLogX == 2) xx(numXvals) = sqrt(xx(numXvals) + baseLog)
           if (ifLogX .ne. 2) xx(numXvals) = alog10(xx(numXvals) + baseLog)
@@ -224,13 +232,14 @@ subroutine realGraphicsMain()
   if (ifTypes == 0 .and. numCol > 2) then
     write(*, 105)
 105 format('       15 to make a separate type from each column,   16 for ordinal ', &
-        'column')
+        'column,',/,'       18 for new column as linear combination')
   elseif (numColOrig > 0) then
     write(*, 107)
-107 format('       15 to restore columns from types,   16 for ordinal column')
+107 format('       15 to restore columns from types,   16 for ordinal column,',/, &
+        '       18 for new column as linear combination')
   else
     write(*, 106)
-106 format('       16 for ordinal column')
+106 format('       16 for ordinal column,   18 for new column as linear combination')
   endif
   read(5,*) iopt
   if (iopt == -123) go to 99
@@ -252,8 +261,9 @@ subroutine realGraphicsMain()
     go to 50
   endif
   if (iopt == 209) iopt = 7
-  if (iopt <= 0 .or. iopt > 17) go to 50
-  go to(30, 60, 70, 20, 5, 90, 90, 99, 110, 70, 70, 130, 1130, 1140, 1150, 1160, 60) iopt
+  if (iopt <= 0 .or. iopt > 18) go to 50
+  go to(30, 60, 70, 20, 5, 90, 90, 99, 110, 70, 70, 130, 1130, 1140, 1150, 1160, 60,  &
+      1180) iopt
   !
 60 ifConnect = 0
   if (iopt == 17) ifConnect = 1
@@ -481,6 +491,26 @@ subroutine realGraphicsMain()
     xx(i) = j
   enddo
   go to 50
+  !
+1180 print *,'Enter series of coefficient,column pairs in one line'
+  read(5, '(a)') name
+  call frefor3(name, comboField, numInAvg, 0, numComboField, MAX_GROUPS)
+  if (mod(numComboField, 2) > 0) then
+    print *,'You must enter an even number of values'
+    go to 50
+  endif
+  numLinCombo = numComboField / 2
+  do i = 1, numLinCombo
+    avgX(i) = comboField(2 * i - 1)
+    numInAvg(i) = nint(comboField(2 * i))
+    if (numInAvg(i) < 1 .or. numInAvg(i) > numCol) then
+      print *,'Column number out of range:', numInAvg(i)
+      go to 50
+    endif
+  enddo
+  write(*,'(1x,a,$)') '1 to replace existing Y and retain X, 0 to roll Y into X: '
+  read(5,*) ifRetain
+  go to 32
   !
 99 call scrnClose()
   call psExit()
