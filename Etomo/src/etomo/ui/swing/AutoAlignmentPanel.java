@@ -20,6 +20,7 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AutoAlignmentMetaData;
 import etomo.type.AxisID;
 import etomo.type.EtomoAutodoc;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.util.SharedConstants;
@@ -39,7 +40,7 @@ import etomo.util.SharedConstants;
 * 
 * <p> $Log$ </p>
 */
-public final class AutoAlignmentPanel {
+public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   public static final String rcsid = "$Id:$";
 
   private final SpacedPanel pnlRoot = SpacedPanel.getFocusableInstance();
@@ -50,7 +51,7 @@ public final class AutoAlignmentPanel {
       FieldType.FLOATING_POINT, "Cutoff for high-frequency filter: ");
   private final LabeledTextField ltfSigmaHighFrequency = new LabeledTextField(
       FieldType.FLOATING_POINT, "Sigma for high-frequency filter: ");
-  private final TransformChooserPanel tcAlign = new TransformChooserPanel();
+
   private final SpacedPanel pnlButtons = SpacedPanel.getInstance();
   private final MultiLineButton btnInitialAutoAlignment = new MultiLineButton(
       "Initial Auto Alignment");
@@ -65,7 +66,6 @@ public final class AutoAlignmentPanel {
       "Binning: ", 2, 1, 50, 1, 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
       FieldType.INTEGER_LIST, "Sections to skip: ");
-  // TEMP 1730
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
       "Find initial shifts with cross-correlation");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
@@ -74,13 +74,43 @@ public final class AutoAlignmentPanel {
       1, 1, 8);
 
   private final BaseManager manager;
-  private final boolean tomogramAverages;
-
+  private final boolean joinInterface;
+  private final TransformChooserPanel tcAlign;
+  private final CheckBox cbFindWarping;
+  private final LabeledTextField ltfWarpPatchSizeX;
+  private final LabeledTextField ltfWarpPatchSizeY;
+  private final CheckBox cbBoundaryModel;
+  private final Run3dmodButton btnBoundaryModel;
+  private final LabeledTextField ltfShiftLimitsForWarpX;
+  private final LabeledTextField ltfShiftLimitsForWarpY;
   private AutoAlignmentController controller = null;
 
-  private AutoAlignmentPanel(final BaseManager manager, final boolean tomogramAverages) {
+  private AutoAlignmentPanel(final BaseManager manager, final boolean joinInterface) {
     this.manager = manager;
-    this.tomogramAverages = tomogramAverages;
+    this.joinInterface = joinInterface;
+    if (joinInterface) {
+      tcAlign = TransformChooserPanel.getJoinAlignInstance();
+      cbFindWarping = null;
+      ltfWarpPatchSizeX = null;
+      ltfWarpPatchSizeY = null;
+      cbBoundaryModel = null;
+      btnBoundaryModel = null;
+      ltfShiftLimitsForWarpX = null;
+      ltfShiftLimitsForWarpY = null;
+    }
+    else {
+      tcAlign = TransformChooserPanel.getSerialSectionsInstance();
+      cbFindWarping = new CheckBox("Find warping transformations");
+      ltfWarpPatchSizeX = new LabeledTextField(FieldType.INTEGER,
+          "Correlation patch size in X: ");
+      ltfWarpPatchSizeY = new LabeledTextField(FieldType.INTEGER, " Y: ");
+      cbBoundaryModel = new CheckBox("Use boundary model:");
+      btnBoundaryModel = Run3dmodButton.get3dmodInstance("Create/View Boundary Model",
+          this);
+      ltfShiftLimitsForWarpX = new LabeledTextField(FieldType.INTEGER,
+          "Limits to shifts in X: ");
+      ltfShiftLimitsForWarpY = new LabeledTextField(FieldType.INTEGER, " Y: ");
+    }
   }
 
   static AutoAlignmentPanel getJoinInstance(final BaseManager manager) {
@@ -102,6 +132,18 @@ public final class AutoAlignmentPanel {
     JPanel pnlPreCrossCorrelation = new JPanel();
     SpacedPanel pnlLeftButtons = SpacedPanel.getInstance();
     SpacedPanel pnlRightButtons = SpacedPanel.getInstance();
+    JPanel pnlWarping = null;
+    JPanel pnlFindWarping = null;
+    JPanel pnlWarpPatchSize = null;
+    JPanel pnlBoundaryModel = null;
+    JPanel pnlShiftLimitsForWarp = null;
+    if (cbFindWarping != null) {
+      pnlWarping = new JPanel();
+      pnlFindWarping = new JPanel();
+      pnlWarpPatchSize = new JPanel();
+      pnlBoundaryModel = new JPanel();
+      pnlShiftLimitsForWarp = new JPanel();
+    }
     // init
     if (joinConfiguration) {
       spReduceByBinning.setVisible(false);
@@ -109,6 +151,9 @@ public final class AutoAlignmentPanel {
       cbPreCrossCorrelation.setVisible(false);
       ltfEdgeToIgnore.setVisible(false);
       spMidasBinning.setVisible(false);
+    }
+    if (cbFindWarping != null) {
+      btnBoundaryModel.setSize();
     }
     btnInitialAutoAlignment.setSize();
     btnMidas.setSize();
@@ -127,10 +172,42 @@ public final class AutoAlignmentPanel {
     pnlParameters.add(ltfCutoffHighFrequency);
     pnlParameters.add(ltfSigmaHighFrequency);
     pnlParameters.add(pnlPreCrossCorrelation);
-    pnlParameters.add(tcAlign.getContainer());
+    pnlParameters.add(tcAlign.getComponent());
+    if (pnlWarping != null) {
+      pnlParameters.add(pnlWarping);
+    }
     pnlParameters.add(ltfSkipSectionsFrom1.getContainer());
     pnlParameters.add(ltfEdgeToIgnore);
     pnlParameters.add(spReduceByBinning.getContainer());
+    // warping panel
+    if (pnlWarping != null) {
+      pnlWarping.setLayout(new BoxLayout(pnlWarping, BoxLayout.Y_AXIS));
+      pnlWarping.setBorder(new EtchedBorder("Warping").getBorder());
+      pnlWarping.add(pnlFindWarping);
+      pnlWarping.add(Box.createRigidArea(FixedDim.x0_y3));
+      pnlWarping.add(pnlWarpPatchSize);
+      pnlWarping.add(Box.createRigidArea(FixedDim.x0_y3));
+      pnlWarping.add(pnlBoundaryModel);
+      pnlWarping.add(Box.createRigidArea(FixedDim.x0_y3));
+      pnlWarping.add(pnlShiftLimitsForWarp);
+      // FindWarping panel
+      pnlFindWarping.setLayout(new BoxLayout(pnlFindWarping, BoxLayout.X_AXIS));
+      pnlFindWarping.add(cbFindWarping);
+      pnlFindWarping.add(Box.createHorizontalGlue());
+      // WarpPatchSize panel
+      pnlWarpPatchSize.setLayout(new BoxLayout(pnlWarpPatchSize, BoxLayout.X_AXIS));
+      pnlWarpPatchSize.add(ltfWarpPatchSizeX.getComponent());
+      pnlWarpPatchSize.add(ltfWarpPatchSizeY.getComponent());
+      // BoundaryModel panel
+      pnlBoundaryModel.setLayout(new BoxLayout(pnlBoundaryModel, BoxLayout.X_AXIS));
+      pnlBoundaryModel.add(cbBoundaryModel);
+      pnlBoundaryModel.add(btnBoundaryModel.getComponent());
+      // ShiftLimitsForWarp panel
+      pnlShiftLimitsForWarp.setLayout(new BoxLayout(pnlShiftLimitsForWarp,
+          BoxLayout.X_AXIS));
+      pnlShiftLimitsForWarp.add(ltfShiftLimitsForWarpX.getComponent());
+      pnlShiftLimitsForWarp.add(ltfShiftLimitsForWarpY.getComponent());
+    }
     // pre cross correlation
     pnlPreCrossCorrelation.setLayout(new BoxLayout(pnlPreCrossCorrelation,
         BoxLayout.X_AXIS));
@@ -149,6 +226,8 @@ public final class AutoAlignmentPanel {
     pnlRightButtons.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRightButtons.add(btnRevertToMidas);
     pnlRightButtons.add(btnRevertToEmpty);
+    // display
+    updateDisplay();
   }
 
   /**
@@ -162,6 +241,11 @@ public final class AutoAlignmentPanel {
 
   private void addListeners() {
     ActionListener listener = new AutoAlignmentActionListener(this);
+    if (cbFindWarping != null) {
+      cbFindWarping.addActionListener(listener);
+      cbBoundaryModel.addActionListener(listener);
+      btnBoundaryModel.addActionListener(listener);
+    }
     btnInitialAutoAlignment.addActionListener(listener);
     btnMidas.addActionListener(listener);
     btnRefineAutoAlignment.addActionListener(listener);
@@ -178,7 +262,15 @@ public final class AutoAlignmentPanel {
       metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText(doValidation));
       metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText(doValidation));
       metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText(doValidation));
-      metaData.setAlignTransform(tcAlign.get());
+      metaData.setAlignTransform(tcAlign.getTransform());
+      if (cbFindWarping != null) {
+        metaData.setFindWarping(cbFindWarping.isSelected());
+        metaData.setWarpPatchSizeX(ltfWarpPatchSizeX.getText());
+        metaData.setWarpPatchSizeY(ltfWarpPatchSizeY.getText());
+        metaData.setBoundaryModel(cbBoundaryModel.isSelected());
+        metaData.setShiftLimitsForWarpX(ltfShiftLimitsForWarpX.getText());
+        metaData.setShiftLimitsForWarpY(ltfShiftLimitsForWarpY.getText());
+      }
       metaData.setPreCrossCorrelation(cbPreCrossCorrelation.isSelected());
       metaData.setSkipSectionsFrom1(ltfSkipSectionsFrom1.getText(doValidation));
       metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText(doValidation));
@@ -195,12 +287,21 @@ public final class AutoAlignmentPanel {
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString());
     ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString());
     ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());
-    tcAlign.set(metaData.getAlignTransform());
+    tcAlign.setTransform(metaData.getAlignTransform());
+    if (cbFindWarping != null) {
+      cbFindWarping.setSelected(metaData.isFindWarping());
+      ltfWarpPatchSizeX.setText(metaData.getWarpPatchSizeX());
+      ltfWarpPatchSizeY.setText(metaData.getWarpPatchSizeY());
+      cbBoundaryModel.setSelected(metaData.isBoundaryModel());
+      ltfShiftLimitsForWarpX.setText(metaData.getShiftLimitsForWarpX());
+      ltfShiftLimitsForWarpY.setText(metaData.getShiftLimitsForWarpY());
+    }
     cbPreCrossCorrelation.setSelected(metaData.isPreCrossCorrelation());
     ltfSkipSectionsFrom1.setText(metaData.getSkipSectionsFrom1());
     ltfEdgeToIgnore.setText(metaData.getEdgeToIgnore());
     spReduceByBinning.setValue(metaData.getReduceByBinning());
     spMidasBinning.setValue(metaData.getMidasBinning());
+    updateDisplay();
   }
 
   public boolean getParameters(final XfalignParam param, final boolean doValidation) {
@@ -229,6 +330,20 @@ public final class AutoAlignmentPanel {
       else {
         param.resetReduceByBinning();
       }
+      if (cbFindWarping != null) {
+        if (cbFindWarping.isSelected()) {
+          param.setWarpPatchSize(ltfWarpPatchSizeX.getText(doValidation),
+              ltfWarpPatchSizeY.getText(doValidation));
+          param.setBoundaryModel(cbBoundaryModel.isSelected());
+          param.setShiftLimitsForWarp(ltfShiftLimitsForWarpX.getText(doValidation),
+              ltfShiftLimitsForWarpY.getText(doValidation));
+        }
+        else {
+          param.resetWarpPatchSize();
+          param.resetBoundaryModel();
+          param.resetShiftLimitsForWarp();
+        }
+      }
       return true;
     }
     catch (FieldValidationFailedException e) {
@@ -256,8 +371,28 @@ public final class AutoAlignmentPanel {
     if (!metaData.getSigmaHighFrequency().equals(ltfSigmaHighFrequency.getText())) {
       return false;
     }
-    if (tcAlign.get() != metaData.getAlignTransform()) {
+    if (tcAlign.getTransform() != metaData.getAlignTransform()) {
       return false;
+    }
+    if (cbFindWarping != null) {
+      if (cbFindWarping.isSelected() != metaData.isFindWarping()) {
+        return false;
+      }
+      if (!metaData.getWarpPatchSizeX().equals(ltfWarpPatchSizeX.getText())) {
+        return false;
+      }
+      if (!metaData.getWarpPatchSizeY().equals(ltfWarpPatchSizeY.getText())) {
+        return false;
+      }
+      if (cbBoundaryModel.isSelected() != metaData.isBoundaryModel()) {
+        return false;
+      }
+      if (!metaData.getShiftLimitsForWarpX().equals(ltfShiftLimitsForWarpX.getText())) {
+        return false;
+      }
+      if (!metaData.getShiftLimitsForWarpY().equals(ltfShiftLimitsForWarpY.getText())) {
+        return false;
+      }
     }
     return true;
   }
@@ -268,17 +403,22 @@ public final class AutoAlignmentPanel {
     btnRevertToEmpty.setEnabled(processEnded);
   }
 
-  private void action(final String command) {
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
+  }
+
+  private void action(final String command, final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       msgProcessChange(false);
-      controller.xfalignInitial(null, tomogramAverages);
+      controller.xfalignInitial(null, joinInterface);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       controller.midasSample(btnMidas.getQuotedLabel());
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
       msgProcessChange(false);
-      controller.xfalignRefine(null, tomogramAverages,
+      controller.xfalignRefine(null, joinInterface,
           btnRefineAutoAlignment.getQuotedLabel());
     }
     else if (command.equals(btnRevertToMidas.getActionCommand())) {
@@ -286,6 +426,29 @@ public final class AutoAlignmentPanel {
     }
     else if (command.equals(btnRevertToEmpty.getActionCommand())) {
       controller.revertXfFileToEmpty();
+    }
+    else if (cbFindWarping != null) {
+      if (command.equals(cbFindWarping.getActionCommand())) {
+        updateDisplay();
+      }
+      else if (command.equals(cbBoundaryModel.getActionCommand())) {
+        updateDisplay();
+      }
+      else if (command.equals(btnBoundaryModel.getActionCommand())) {
+        controller.imodBoundaryModel(run3dmodMenuOptions);
+      }
+    }
+  }
+
+  private void updateDisplay() {
+    if (cbFindWarping != null) {
+      boolean enable = cbFindWarping.isSelected();
+      ltfWarpPatchSizeX.setEnabled(enable);
+      ltfWarpPatchSizeY.setEnabled(enable);
+      cbBoundaryModel.setEnabled(enable);
+      btnBoundaryModel.setEnabled(enable && cbBoundaryModel.isSelected());
+      ltfShiftLimitsForWarpX.setEnabled(enable);
+      ltfShiftLimitsForWarpY.setEnabled(enable);
     }
   }
 
@@ -313,6 +476,22 @@ public final class AutoAlignmentPanel {
             + "state created by the most recent save done in Midas.");
     btnRevertToEmpty.setToolTipText("Use to remove all transformations.");
     spMidasBinning.setToolTipText(SharedConstants.MIDAS_BINNING_TOOLTIP);
+    if (cbFindWarping != null) {
+      cbFindWarping
+          .setToolTipText("Align with non-linear warping by cross-correlating overlapping "
+              + "patches.");
+      String text = "Size of patches to correlate in X and Y";
+      ltfWarpPatchSizeX.setToolTipText(text);
+      ltfWarpPatchSizeY.setToolTipText(text);
+      text = "Use model with contours around areas where patches should be correlated.  "
+          + "Open 3dmod to draw or see contours around around areas to use for "
+          + "correlation.";
+      cbBoundaryModel.setToolTipText(text);
+      btnBoundaryModel.setToolTipText(text);
+      text = "If the field is blank there are no limits.";
+      ltfShiftLimitsForWarpX.setToolTipText(text);
+      ltfShiftLimitsForWarpY.setToolTipText(text);
+    }
     ReadOnlyAutodoc autodoc = null;
     try {
       autodoc = AutodocFactory.getInstance(manager, AutodocFactory.XFALIGN, AxisID.ONLY);
@@ -354,7 +533,7 @@ public final class AutoAlignmentPanel {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      panel.action(event.getActionCommand());
+      panel.action(event.getActionCommand(), null);
     }
   }
 }
