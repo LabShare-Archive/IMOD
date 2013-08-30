@@ -9,10 +9,13 @@ import etomo.comscript.MidasParam.Mode;
 import etomo.comscript.XfalignParam;
 import etomo.process.AutoAlignmentProcessManager;
 import etomo.process.BaseProcessManager;
+import etomo.process.ImodManager;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
+import etomo.type.AxisTypeException;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.AutoAlignmentDisplay;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
@@ -43,23 +46,24 @@ public final class AutoAlignmentController {
   private final AutoAlignmentDisplay display;
   private final AxisID axisID;
   private final AutoAlignmentProcessManager processManager;
+  private final ImodManager imodManager;
 
   public AutoAlignmentController(final BaseManager manager,
-      final AutoAlignmentDisplay display) {
+      final AutoAlignmentDisplay display, final ImodManager imodManager) {
     this.manager = manager;
     this.display = display;
+    this.imodManager = imodManager;
     axisID = display.getAxisID();
     processManager = new AutoAlignmentProcessManager(manager, this);
   }
 
   public void xfalignInitial(final ProcessSeries processSeries,
-      final boolean tomogramAverages) {
+      final boolean joinInterface) {
     if (!updateMetaData(true)) {
       return;
     }
-    XfalignParam xfalignParam = new XfalignParam(manager.getName(),
-        manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
-        XfalignParam.Mode.INITIAL, tomogramAverages);
+    XfalignParam xfalignParam = new XfalignParam(manager,
+        manager.getAutoAlignmentMetaData(), XfalignParam.Mode.INITIAL, joinInterface);
     if (!display.getAutoAlignmentParameters(xfalignParam, true)) {
       return;
     }
@@ -78,14 +82,13 @@ public final class AutoAlignmentController {
         ProcessName.XFALIGN);
   }
 
-  public void xfalignRefine(ProcessSeries processSeries,
-      final boolean tomogramAverages, final String description) {
+  public void xfalignRefine(ProcessSeries processSeries, final boolean joinInterface,
+      final String description) {
     if (!updateMetaData(true)) {
       return;
     }
-    XfalignParam xfalignParam = new XfalignParam(manager.getName(),
-        manager.getPropertyUserDir(), manager.getAutoAlignmentMetaData(),
-        XfalignParam.Mode.REFINE, tomogramAverages);
+    XfalignParam xfalignParam = new XfalignParam(manager,
+        manager.getAutoAlignmentMetaData(), XfalignParam.Mode.REFINE, joinInterface);
     if (!display.getAutoAlignmentParameters(xfalignParam, true)) {
       return;
     }
@@ -122,6 +125,29 @@ public final class AutoAlignmentController {
 
   public void msgProcessEnded() {
     display.msgProcessEnded();
+  }
+
+  public void imodBoundaryModel(final Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(ImodManager.PREBLEND_KEY, axisID,
+          FileType.AUTO_ALIGN_BOUNDARY_MODEL.getFileName(manager, axisID), true,
+          menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
+          "AxisType problem", axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager, except.getMessage(),
+          "Can't open 3dmod with the tomogram", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "IO Exception",
+          axisID);
+    }
   }
 
   /**
