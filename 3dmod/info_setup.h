@@ -70,7 +70,7 @@ class InfoWindow : public QMainWindow
   void manageMenus();
   void keepOnTop(bool state);
   void setFontDependentWidths();
-  void openSelectedWindows(char *keys, int modelViewOpen);
+  void openSelectedWindows(const char *keys, int modelViewOpen);
   void setupAutoContrast();
   void setInitialHeights();
   void resizeToHeight(int newHeight);

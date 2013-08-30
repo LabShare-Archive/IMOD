@@ -27,6 +27,7 @@
 #define MESSAGE_NEWOBJ_PROPS_2 16
 #define MESSAGE_GHOST_MODE     17
 #define MESSAGE_ZAP_HQ_MODE    18
+#define MESSAGE_OPEN_DIALOGS   19
 
 /* Definitions for plugins/special modules */
 #define MESSAGE_BEADFIX_OPENFILE   1

@@ -51,7 +51,7 @@ void imodvMenuBgcolor(int state);
 int imodvLoadModel();
 void imodvSaveModelAs();
 int imodvAddBoundingBox(ImodvApp *a);
-void imodvOpenSelectedWindows(char *keys);
+void imodvOpenSelectedWindows(const char *keys);
 
 #endif
 

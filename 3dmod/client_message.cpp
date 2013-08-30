@@ -25,6 +25,7 @@
 #include "imodv.h"
 #include "mv_objed.h"
 #include "mv_input.h"
+#include "mv_menu.h"
 #include "mv_window.h"
 #include "imod_io.h"
 #include "xcramp.h"
@@ -611,6 +612,13 @@ bool ImodClipboard::executeMessage()
           zapSetNextOpenHQstate(mode);
         break;
 
+      case MESSAGE_OPEN_DIALOGS:
+        if (!ImodvClosed)
+          imodvOpenSelectedWindows(LATIN1(sMessageStrings[arg + 1]));
+        ImodInfoWin->openSelectedWindows(LATIN1(sMessageStrings[++arg]),
+                                         ImodvClosed ? 0 : 1);
+        break;
+
       case MESSAGE_PLUGIN_EXECUTE:
         arg++;
         if (imodPlugMessage(App->cvi, &sMessageStrings, &arg)) {
@@ -638,6 +646,10 @@ bool ImodClipboard::executeMessage()
         imodvInputRaise();
         break;
         
+      case MESSAGE_OPEN_DIALOGS:
+        imodvOpenSelectedWindows(LATIN1(sMessageStrings[++arg]));
+        break;
+
       default:
         imodPrintStderr("imodExecuteMessage: action %d not recognized by"
                         " 3dmodv\n" , sMessageAction);

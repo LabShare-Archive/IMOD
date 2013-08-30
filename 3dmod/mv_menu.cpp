@@ -566,7 +566,7 @@ int imodvAddBoundingBox(ImodvApp *a)
 }
 
 // Initially open selected windows
-void imodvOpenSelectedWindows(char *keys)
+void imodvOpenSelectedWindows(const char *keys)
 {
   if (!keys)
     return;

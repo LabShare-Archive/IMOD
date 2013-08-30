@@ -701,7 +701,7 @@ void InfoWindow::timerEvent(QTimerEvent *e)
     raise();
 }
 
-void InfoWindow::openSelectedWindows(char *keys, int modelViewOpen)
+void InfoWindow::openSelectedWindows(const char *keys, int modelViewOpen)
 {
   bool imageOK = !(App->cvi->fakeImage || App->cvi->rgbStore);
   if (!keys)
