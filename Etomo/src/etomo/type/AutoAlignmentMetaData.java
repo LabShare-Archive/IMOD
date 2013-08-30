@@ -39,6 +39,12 @@ public final class AutoAlignmentMetaData {
       "SkipSectionsFrom1");
   private final EtomoBoolean2 preCrossCorrelation = new EtomoBoolean2(
       "PreCrossCorrelation");
+  private final EtomoNumber shiftLimitsForWarpX = new EtomoNumber("ShiftLimitsForWarp.X");
+  private final EtomoNumber shiftLimitsForWarpY = new EtomoNumber("ShiftLimitsForWarp.Y");
+  private final EtomoNumber warpPatchSizeX = new EtomoNumber("WarpPatchSize.X");
+  private final EtomoNumber warpPatchSizeY = new EtomoNumber("WarpPatchSize.Y");
+  private final EtomoBoolean2 boundaryModel = new EtomoBoolean2("BoundaryModel");
+  private final EtomoBoolean2 findWarping = new EtomoBoolean2("FindWarping");
 
   private Transform alignTransform = Transform.DEFAULT;
 
@@ -70,6 +76,12 @@ public final class AutoAlignmentMetaData {
     midasBinning.reset();
     skipSectionsFrom1.reset();
     preCrossCorrelation.reset();
+    shiftLimitsForWarpX.reset();
+    shiftLimitsForWarpY.reset();
+    warpPatchSizeX.reset();
+    warpPatchSizeY.reset();
+    boundaryModel.reset();
+    findWarping.reset();
     // load
     sigmaLowFrequency.load(props, prepend);
     cutoffHighFrequency.load(props, prepend);
@@ -81,6 +93,12 @@ public final class AutoAlignmentMetaData {
     midasBinning.load(props, prepend);
     skipSectionsFrom1.load(props, prepend);
     preCrossCorrelation.load(props, prepend);
+    shiftLimitsForWarpX.load(props, prepend);
+    shiftLimitsForWarpY.load(props, prepend);
+    warpPatchSizeX.load(props, prepend);
+    warpPatchSizeY.load(props, prepend);
+    boundaryModel.load(props, prepend);
+    findWarping.load(props, prepend);
   }
 
   void store(final Properties props, String prepend) {
@@ -95,6 +113,12 @@ public final class AutoAlignmentMetaData {
     midasBinning.store(props, prepend);
     skipSectionsFrom1.store(props, prepend);
     preCrossCorrelation.store(props, prepend);
+    shiftLimitsForWarpX.store(props, prepend);
+    shiftLimitsForWarpY.store(props, prepend);
+    warpPatchSizeX.store(props, prepend);
+    warpPatchSizeY.store(props, prepend);
+    boundaryModel.store(props, prepend);
+    findWarping.store(props, prepend);
   }
 
   public ConstEtomoNumber setSigmaLowFrequency(String sigmaLowFrequency) {
@@ -127,6 +151,54 @@ public final class AutoAlignmentMetaData {
 
   public void setReduceByBinning(final Number input) {
     reduceByBinning.set(input);
+  }
+
+  public void setShiftLimitsForWarpX(final String input) {
+    shiftLimitsForWarpX.set(input);
+  }
+
+  public String getShiftLimitsForWarpX() {
+    return shiftLimitsForWarpX.toString();
+  }
+
+  public void setShiftLimitsForWarpY(final String input) {
+    shiftLimitsForWarpY.set(input);
+  }
+
+  public String getShiftLimitsForWarpY() {
+    return shiftLimitsForWarpY.toString();
+  }
+
+  public void setWarpPatchSizeX(final String input) {
+    warpPatchSizeX.set(input);
+  }
+
+  public String getWarpPatchSizeX() {
+    return warpPatchSizeX.toString();
+  }
+
+  public void setWarpPatchSizeY(final String input) {
+    warpPatchSizeY.set(input);
+  }
+
+  public String getWarpPatchSizeY() {
+    return warpPatchSizeY.toString();
+  }
+
+  public void setBoundaryModel(final boolean input) {
+    boundaryModel.set(input);
+  }
+
+  public boolean isBoundaryModel() {
+    return boundaryModel.is();
+  }
+
+  public void setFindWarping(final boolean input) {
+    findWarping.set(input);
+  }
+
+  public boolean isFindWarping() {
+    return findWarping.is();
   }
 
   public double getEdgeToIgnore() {
