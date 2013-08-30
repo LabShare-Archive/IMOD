@@ -162,25 +162,32 @@ Pickbestseed, the target is revised and Pickbetseed is run again.  The default
 is no limit, which means that the program will seek to reach the target number
 of beads regardless of the imbalance between surfaces.
 
+[Field = ElongatedPointsAllowed]
+short = elongated
+type = I
+usage = 1-3 to include elongated beads
+tooltip =
+manpage = Enter 1, 2, or 3 to include
+beads identified as elongated in up to 1/3, up to 2/3, or all of the Beadtrack
+runs, respectively.
+
 [Field = ClusteredPointsAllowed]
 short = cluster
 type = I
 usage = 1 to include beads near others, 2-4 to include elongated beads also
 tooltip =
-manpage = This option is used to allow two kinds of less desirable beads to be
-included: ones close to other beads, and ones that are elongated or overlap
-another bead over most of the views that they are tracked in.  Enter 1 to
-include clustered beads. i.e, ones that appear to be located within 2
-diameters of other beads, where foreshortening perpendicular to the tilt axis
-is taken into account in computing this separation.  Only one of a pair of
-clustered points will be accepted.  Enter 2, 3, or 4 to include
-beads identified as elongated in up to 1/3, up to 2/3, or all of the beadtrack
-runs, respectively.
+manpage = Enter 1 to include clustered beads. i.e, ones that appear to be
+located within 2 diameters of other beads, where foreshortening perpendicular
+to the tilt axis is taken into account in computing this separation.  Only one
+of a pair of clustered points will be accepted.  For compatibility with
+existing command files, if -elongated is not entered, 2, 3, or 4 can be
+entered to also include beads identified as elongated in up to 1/3, up to 2/3,
+or all of the Beadtrack runs, respectively.
 
 [Field = LowerTargetForClustered]
 short = lower
 type = F
-usage = Include clustered points only if # of beads is still below this target
+usage = Include clustered/elongated points only if # is still below this target
 tooltip =
 manpage = Include clustered and elongated points as allowed by the -cluster
 option only when the total number of beads is still below the reduced target
@@ -236,7 +243,9 @@ usage = One or more options to pass to Pickbestseed
 tooltip =
 manpage = Additional options to pass to Pickbestseed.  The entry should be a single
 string (quoted when running from the command line) that contains the text that
-would be entered directly to Pickbestseed, for example, "-ver 1 -phase -con 6,2". 
+would be entered directly to Pickbestseed, for example, 
+"-ver 1 -phase -con 6,2".  Each option, recognized by the dash, is placed on a
+separate line of input to Pickbestseed.
 
 [Field = RemoveTempFiles]
 short = remove
