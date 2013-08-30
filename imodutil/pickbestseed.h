@@ -1,4 +1,14 @@
+/*
+ *  pickbestseed.h -- header file for pickbestseed
+ *
+ *  $Id$
+ */
+
 #define MAX_MODELS 7
+
+#define MAX_AREAS  1000
+#define OPTION_FIT_TO_WSUM   1
+#define OPTION_WSUM_GROUPS   2
 
 // Structure to hold data from one track, indexed by contour number
 struct TrackData {
@@ -13,6 +23,10 @@ struct TrackData {
   float edgeSDsd;
   float elongMean;
   float elongMedian;
+  float elongSD;
+  // float outerMAD;
+  // float outerBkgd;
+  float wsumMean;
 };
 
 // Structure to hold data about a candidate point
@@ -57,8 +71,6 @@ struct GridDomain {
 #define PRINT3(a,b,c) cout << #a << " = " << a << ",  " #b << " = " << b << ",  " #c << " = " << c << endl
 #define PRINT4(a,b,c,d) cout << #a << " = " << a << ",  " #b << " = " << b << ",  " #c << " = " << c << ",  " #d << " = " << d << endl
 
-#define MAX_AREAS  1000
-
 class PickSeeds
 {
  public:
@@ -77,8 +89,9 @@ class PickSeeds
   void outputDensities(int topBot);
   void outputNumAccepted(int twoSurf, int final);
   bool beadsAreClustered(Candidate *cand1, Candidate *cand2);
-  void analyzeElongation(int maxConts, float *edgeSDs, float *elongs, float *edgeTmp,
-                         float *elongTmp, int which);
+  void analyzeElongation(int maxConts, int which, float *edgeTmp);
+  Iobj *clearModelAllocateConts(Imod *imod, int numCont);
+  void addSurfaceColors(Iobj *obj, int ncum, unsigned char rgba[][4], int maxColors);
   
  private:
   Imod *mTrackMods[MAX_MODELS];
@@ -106,6 +119,10 @@ class PickSeeds
   int mVerbose;
   float mOverlapTarget;
   char *mDensPlotName;
+  int mNumWsum;
+  float mWsumMean;
+  int mNumOuterMAD;
+  float mOuterMADMean;
 
   float mCloseDiamFrac;
   float mExcludeFac;
@@ -115,7 +132,11 @@ class PickSeeds
   float mCosRot, mSinRot;
   float mCosTilt;
   float mClusterCrit;
-  double mEdgeAdjustBySDpower;
   float mEdgeOutlierCrit;
   float mElongForOverlap;
+  float mElongCritScaling;
+  int mOptionFlags;
+  float mElongComboAngle;
+  float mEdgeComboAngle;
+  float mNormComboAngle;
 };

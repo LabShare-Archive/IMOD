@@ -27,14 +27,24 @@ which assignment predominates in the multiple surface analyses available.
 3) The total area to be analyzed is measured, so that it is possible to
 convert between number of beads and average density per unit area.
  
-4) Information on the elongation of beads is analyzed, namely values for the
-median standard deviation of pixels around the bead and for the median
-elongation.  The values are analyzed by taking the median, finding the median
-absolute deviation, and considering values as outliers if their deviation from
-the median is more than the normalized
-median absolute deviation (MADN) times a criterion (parameter 12 below).  A
-candidate is marked as elongated if it is an outlier by either of these
-measures or if the elongation exceeds an absolute threshold (parameter 16 below).
+4) Information on the elongation of beads is analyzed, namely statistics from
+the standard deviation of pixels around the bead and for the elongation.  An
+adjusted value for the mean of the elongation over the 11 views of a track is
+computed by, in effect, rotating a plot of mean elongation versus the standard
+deviation of the elongation by an angle (parameter 18 below) that removes much
+of the variability due to the SD of the elongation, and using the new Y
+coordinate as the adjusted value.  The same operation is performed with the SD
+of pixels around the beads to obtain an adjusted edge SD (rotation angle
+controlled by parameter 19).  The latter values are scaled to have the same
+standard deviation as the adjusted elongation values, and then a plot of
+adjusted elongation versus scaled, adjusted SD is rotated so as to combine
+them into a single measure (parameter 20 below), with a final elongation
+measure taken as the Y coordinate after rotation.  This measure is analyzed by
+taking the median, finding the median absolute deviation, and considering
+values as outliers if their deviation from the median is more than the
+normalized median absolute deviation (MADN) times a criterion (parameter 12
+below).  A candidate is marked as elongated if it is an outlier or if the
+median elongation exceeds an absolute threshold (parameter 16 below).
 
 5) Beads are identified as clustered if they are within a criterion
 distance (parameter 5 below) of any other bead on the same surface.  This
@@ -104,14 +114,14 @@ target density.  A revised target is used for the majority surface unless
 surface.  Densities are computed per surface, and the routine is called only
 once with the full number of rings.
 
-7.5) Phases 5-8: If clustered and elongated points are allowed to be included,
+7.5) Phases 5-8: If clustered and/or elongated points are allowed to be included,
 then it runs the same procedure as in phase 4, first allowing clustered points
-and then elongated points with progressively higher elongation numbers, which
-are based on the fraction of tracked models in which the bead was identified
-as elongated.
+if they are allowed, and then elongated points with progressively higher
+elongation numbers, which are based on the fraction of tracked models in which
+the bead was identified as elongated.
 
 8) Accepted points are put into the output model, along with a general value
-equal to inverse of the score.  With two surfaces, points on the top surface
+equal to the inverse of the score.  With two surfaces, points on the top surface
 are given surface number 1, which is assigned magenta color.
 
 .SS Options
