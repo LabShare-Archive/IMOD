@@ -217,6 +217,8 @@ public final class FileType {
       true, "_3dfind", ".mod");
   public static final FileType AUTOFIDSEED_BOUNDARY_MODEL = FileType.getInstance(true,
       true, "_afsbound", ".mod");
+  public static final FileType AUTO_ALIGN_BOUNDARY_MODEL = FileType.getInstance(true,
+      false, "_bound", ".mod");
   public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
       .getImodInstance(true, true, "_checkflat", ".mod",
           ImodManager.SMOOTHING_ASSESSMENT_KEY);
