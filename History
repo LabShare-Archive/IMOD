@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/30/13: Added warping to the xfalign interface in eTomo - Serial Sections.
+(Bug# 1731)
+
 8/27/13: Improved tooltips for eTomo - PEET.(Bug# 1740)
 
 8/27/13: Added complete version information to the etomo error log file.
