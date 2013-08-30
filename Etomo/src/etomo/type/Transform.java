@@ -23,23 +23,26 @@ import java.util.Properties;
 public class Transform {
   public static final String rcsid = "$Id$";
 
-  private static final String FULL_LINEAR_TRANSFORMATION_VALUE = "FullLinearTransformation";
-  private static final String ROTATION_TRANSLATION_MAGNIFICATION_VALUE = "RotationTranslationMagnification";
-  private static final String ROTATION_TRANSLATION_VALUE = "RotationTranslation";
-  private static final String TRANSLATION_VALUE = "Translation";
-
   public static final Transform FULL_LINEAR_TRANSFORMATION = new Transform(
-      FULL_LINEAR_TRANSFORMATION_VALUE);
+      "FullLinearTransformation", "0");
   public static final Transform ROTATION_TRANSLATION_MAGNIFICATION = new Transform(
-      ROTATION_TRANSLATION_MAGNIFICATION_VALUE);
+      "RotationTranslationMagnification", "4");
   public static final Transform ROTATION_TRANSLATION = new Transform(
-      ROTATION_TRANSLATION_VALUE);
-  public static final Transform TRANSLATION = new Transform(TRANSLATION_VALUE);
+      "RotationTranslation", "3");
+  public static final Transform TRANSLATION = new Transform("Translation", "2");
+  public static final Transform SKIP_SEARCH = new Transform("SkipSearch", "-1");
 
   public static final Transform DEFAULT = FULL_LINEAR_TRANSFORMATION;
 
   private static final String KEY = "Transform";
+
+  private final String name;
   private final String value;
+
+  private Transform(final String name, final String value) {
+    this.name = name;
+    this.value = value;
+  }
 
   public static void store(Transform transform, Properties props, String prepend,
       String key) {
@@ -69,28 +72,31 @@ public class Transform {
     return instance;
   }
 
-  public static Transform getInstance(String value) {
-    if (value.equals(FULL_LINEAR_TRANSFORMATION.value)) {
+  public static Transform getInstance(String name) {
+    if (name.equals(FULL_LINEAR_TRANSFORMATION.name)) {
       return FULL_LINEAR_TRANSFORMATION;
     }
-    if (value.equals(ROTATION_TRANSLATION_MAGNIFICATION.value)) {
+    if (name.equals(ROTATION_TRANSLATION_MAGNIFICATION.name)) {
       return ROTATION_TRANSLATION_MAGNIFICATION;
     }
-    if (value.equals(ROTATION_TRANSLATION.value)) {
+    if (name.equals(ROTATION_TRANSLATION.name)) {
       return ROTATION_TRANSLATION;
     }
-    if (value.equals(TRANSLATION.value)) {
+    if (name.equals(TRANSLATION.name)) {
       return TRANSLATION;
+    }
+    if (name.equals(SKIP_SEARCH.name)) {
+      return SKIP_SEARCH;
     }
     return null;
   }
 
   public String toString() {
-    return value;
+    return name;
   }
-
-  private Transform(String string) {
-    this.value = string;
+  
+  public String getValue() {
+    return value;
   }
 
   private static String createPrepend(String prepend) {
