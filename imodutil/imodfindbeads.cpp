@@ -160,6 +160,13 @@ void FindBeads::main(int argc, char *argv[])
   free(filename);
   if (mrc_head_read(mInFp, &mInHead))
     exitError("Reading header of image file %s", filename);
+  xscale = yscale = zscale = 1.;
+  if (mInHead.mx && mInHead.xlen)
+    xscale = mInHead.xlen / (float)mInHead.mx;
+  if (mInHead.my && mInHead.ylen)
+    yscale = mInHead.ylen / (float)mInHead.my;
+  if (mInHead.mz && mInHead.zlen)
+    zscale = mInHead.zlen / (float)mInHead.mz;
 
   // Check if it is the correct data type and set slice type
   sliceMode = sliceModeIfReal(mInHead.mode);
@@ -225,6 +232,10 @@ void FindBeads::main(int argc, char *argv[])
     imod = imodNew();
     if (!imod)
       exitError("Creating output model");
+    if (xscale != 1.0f) {
+      imod->pixsize = xscale / 10.f;
+      imod->units = IMOD_UNIT_NM;
+    }
   }
   mNumObjOrig  = imod->objsize;
 
@@ -401,13 +412,6 @@ void FindBeads::main(int argc, char *argv[])
         mrc_head_new(&outhead, mNxOut, mNyOut, nzout, MRC_MODE_FLOAT);
         mrc_head_label_cp(&mInHead, &outhead);
         mrc_head_label(&outhead, "imodfindbeads: Scaled and Sobel filtered");
-        xscale = yscale = zscale = 1.;
-        if (mInHead.mx && mInHead.xlen)
-          xscale = mInHead.xlen / (float)mInHead.mx;
-        if (mInHead.my && mInHead.ylen)
-          yscale = mInHead.ylen / (float)mInHead.my;
-        if (mInHead.mz && mInHead.zlen)
-          zscale = mInHead.zlen / (float)mInHead.mz;
 
         // Set scale and origin in new header to display the match input data
         outhead.xlen = mNxOut * xscale * mScaleFactor;
