@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/30/13: Added option to Genhstplt to form linear combination of columns.
+
 8/27/13: Improved tooltips for eTomo - PEET.(Bug# 1740)
 
 8/27/13: Added complete version information to the etomo error log file.
