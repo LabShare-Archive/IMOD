@@ -645,7 +645,8 @@ public final class JoinManager extends BaseManager {
       else {
         joinDialog = JoinDialog.getInstance(this, metaData, state);
       }
-      autoAlignmentController = new AutoAlignmentController(this, joinDialog, imodManager);
+      autoAlignmentController = new AutoAlignmentController(this, joinDialog,
+          imodManager, null);
       joinDialog.setAutoAlignmentController(autoAlignmentController);
     }
     if (loadedParamFile) {
