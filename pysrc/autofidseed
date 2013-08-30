@@ -311,12 +311,13 @@ options = ["track:TrackCommandFile:FN:", "append:AppendToSeedModel:B:",
            "exclude:ExcludeInsideAreas:B:", "border:BordersInXandY:IP:",
            "two:TwoSurfaces:B:", "number:TargetNumberOfBeads:I:",
            "density:TargetDensityOfBeads:F:", "ratio:MaxMajorToMinorRatio:F:",
-           "cluster:ClusteredPointsAllowed:I:", "lower:LowerTargetForClustered:F:",
-           "subarea:SubareaSize:I:", "sort:SortAreasMinNumAndSize:IP:",
-           "ignore:IgnoreSurfaceData:LI:", "drop:DropTracks:LI:",
-           "pick:PickSeedOptions:CH:", "remove:RemoveTempFiles:I:",
-           "output:OutputSeedModel:FN:", "info:InfoFile:FN:",
-           "tempdir:TemporaryDirectory:FN:", "leave:LeaveTempFiles:B:"]
+           "elongated:ElongatedPointsAllowed:I:", "cluster:ClusteredPointsAllowed:I:",
+           "lower:LowerTargetForClustered:F:", "subarea:SubareaSize:I:",
+           "sort:SortAreasMinNumAndSize:IP:", "ignore:IgnoreSurfaceData:LI:",
+           "drop:DropTracks:LI:", "pick:PickSeedOptions:CH:",
+           "remove:RemoveTempFiles:I:", "output:OutputSeedModel:FN:",
+           "info:InfoFile:FN:", "tempdir:TemporaryDirectory:FN:",
+           "leave:LeaveTempFiles:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 0, 0)
 
@@ -340,6 +341,7 @@ targetToAverageFB = 0.33
 targetToStorageFB = 2.0
 kernelSigmaDefault = 0.5   # THE DEFAULT IN BEADTRACK
 newBeadSize = 0
+candModel = 'clusterElong.mod'
 
 # Extensions for files that are always cleaned up, files that are left for resuming
 # and files that are left for user edification only.  Make all extensions unique
@@ -367,7 +369,7 @@ tmpdir = PipGetString('TemporaryDirectory', deftmpdir)
 if tmpdir == deftmpdir and not os.path.exists(tmpdir):
    try:
       os.mkdir(tmpdir)
-   except:
+   except OSError:
       exitError('Making the temporary directory ' + tmpdir)
 
 if not (os.path.isdir(tmpdir) and os.access(tmpdir, os.W_OK)):
@@ -399,7 +401,7 @@ if clean != 0 and oldValid and pidInfo:
          cleanupFiles(cleanlist)
          try:
             os.rmdir(tmpdir)
-         except:
+         except OSError:
             prnstr('WARNING: could not remove temporary directory ' + tmpdir)
       sys.exit(0)
    
@@ -427,7 +429,18 @@ subareaSize = PipGetInteger('SubareaSize', 0)
 if ifPick and subareaSize:
    exitError('You cannot enter both -sort and -subarea')
 leavetmp = PipGetBoolean('LeaveTempFiles', 0)
+
+# Get elongated and clustered and separate the latter if it is an old type of entry
+elongated = PipGetInteger("ElongatedPointsAllowed", 0)
 clustered = PipGetInteger("ClusteredPointsAllowed", 0)
+clustered = min(4, max(0, clustered))
+elongated = min(3, max(0, elongated))
+if clustered > 1:
+   if elongated:
+      exitError('You cannot enter a value > 1 for -cluster if you enter -elongated')
+   elongated = clustered - 1
+   clustered = 1
+   
 lowTarget = PipGetFloat("LowerTargetForClustered", 0.)
 maxMajorMinor = PipGetFloat("MaxMajorToMinorRatio", 0.)
 pickOptions = PipGetString('PickSeedOptions', '')
@@ -867,7 +880,7 @@ if not oldValid:
    cleanupFiles(comSaved)
    try:
       shutil.copyfile(trackcom, comSaved)
-   except:
+   except Exception:
       prnstr('WARNING: autofidseed - failed to copy ' + trackcom + ' to ' + tmpdir)
 
 # Sort the beads onto two surfaces for each model
@@ -906,7 +919,8 @@ pickcom = ['OutputSeedModel ' + seedFile,
            fmtstr('ImageSizeXandY {} {}', nx, ny),
            fmtstr('BordersInXandY {} {}', xborder, yborder),
            fmtstr('BeadSize {}', beadSize),
-           fmtstr('MiddleZvalue {}', includedViews[zeroView])]
+           fmtstr('MiddleZvalue {}', includedViews[zeroView]),
+           fmtstr('CandidateModel {}/{}', tmpdir, candModel)]
 for ind in range(numSeedViews):
    if ind not in dropList:
       pickcom += ['TrackedModel ' + tmptrack[ind], 'ElongationFile ' + tmpelong[ind]]
@@ -923,8 +937,10 @@ if boundModel:
       pickcom.append('ExcludeInsideAreas 1')
 if clustered:
    pickcom.append(fmtstr('ClusteredPointsAllowed {}', clustered))
-   if lowTarget:
-      pickcom.append(fmtstr('LowerTargetForClustered {}', lowTarget))
+if elongated:
+   pickcom.append(fmtstr('ElongatedPointsAllowed {}', elongated))
+if (clustered or elongated) and lowTarget:
+   pickcom.append(fmtstr('LowerTargetForClustered {}', lowTarget))
 if rotationArr:
    pickcom.append(fmtstr('RotationAngle {}', rotationArr[0]))
    pickcom.append(fmtstr('HighestTiltAngle {}', highestTilt))
@@ -947,25 +963,32 @@ try:
    for l in pickLines:
       prnstr(l, end='')
    if twoSurf and maxMajorMinor > 0.:
-      lsplit = pickLines[-1].split()
-      numBeads = []
-      for ind in range(len(lsplit) - 2, -1, -1):
-         if lsplit[ind].endswith('='):
-            numBeads.append(convertToInteger(lsplit[ind + 1],
-                                             'point number in last line'))
-      if  len(numBeads) < 3:
-         exitError('Unable to find enough point numbers in last line to assess ratio ' +\
-                      'between the surfaces')
-      major = max(numBeads[0], numBeads[1])
-      minor = min(numBeads[0], numBeads[1])
-      if major > maxMajorMinor * minor + 1:
-         prnstr(' ')
-         prnstr('The ratio between surfaces is too high; running again with lower target')
-         prnstr(' ')
-         newTarget = int(2 * maxMajorMinor * minor) + 1
-         pickcom[-1] = fmtstr('TargetNumberOfBeads {}', newTarget)
-         pickcom.append('LimitMajorityToTarget')
-         runcmd('pickbestseed -StandardInput', pickcom, 'stdout')
+      for lind in range(len(pickLines) - 1, -1, -1):
+         if pickLines[lind].startswith('Final:'):
+            lsplit = pickLines[lind].split()
+            numBeads = []
+            for ind in range(len(lsplit) - 2, -1, -1):
+               if lsplit[ind].endswith('='):
+                  numBeads.append(convertToInteger(lsplit[ind + 1],
+                                                   'point number in last line'))
+            if  len(numBeads) < 3:
+               exitError('Unable to find enough point numbers in last line to assess ' +\
+                            'ratio between the surfaces')
+            major = max(numBeads[0], numBeads[1])
+            minor = min(numBeads[0], numBeads[1])
+            if major > maxMajorMinor * minor + 1:
+               prnstr(' ')
+               prnstr('The ratio between surfaces is too high; running again with ' +\
+                         'lower target')
+               prnstr(' ')
+               newTarget = int(2 * maxMajorMinor * minor) + 1
+               pickcom[-1] = fmtstr('TargetNumberOfBeads {}', newTarget)
+               pickcom.append('LimitMajorityToTarget')
+               runcmd('pickbestseed -StandardInput', pickcom, 'stdout')
+
+            break
+      else:   # ELSE ON FOR
+         exitError('Unable to find line starting with Final: for final counts')
         
 except ImodpyError:
    cleanup(cleanExts, pid)

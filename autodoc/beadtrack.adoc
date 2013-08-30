@@ -70,12 +70,12 @@ usage = File name for output of mean residuals and bead elongation data
 tooltip =
 manpage = File name for output of mean residuals and bead elongation data,
 which can be used by Pickbestseed(1) when selecting optimal beads for a seed
-model.  The file has an entry for each bead with 8 columns: object and contour
+model.  The file has an entry for each bead with 10 columns: object and contour
 number, and mean of the contour's mean residuals from each local area that the
 bead occurs in, the mean, median, and standard deviation of one measure of
 elongation (the standard deviation of pixels around the edge of the bead when
-measuring the centroid), and the mean and median of the elongation of pixels
-above a threshold.
+measuring the centroid), the mean, median, and standard deviation of the
+elongation of pixels above a threshold, and the mean bead integral.
 
 [Field = SkipViews]
 short = 

@@ -143,6 +143,7 @@ DDEESSCCRRIIPPTTIIOONN
         to restore data from this reorganization
      16 to create an ordinal column, with values from 1 to the number of
         points in a group for each group
+     18 to form a linear combination of two or more columns
   
   If you select option 3, you first choose whether to plot error bars
   as a multiple of standard deviation or standard error of the mean,
@@ -211,6 +212,14 @@ DDEESSCCRRIIPPTTIIOONN
   group .  You will then have to use option 1 to select a new column for the Y
   axis, and the ordinal values will be moved into the "previous" column to
   serve as the X axis.
+
+  If you select option 18, enter a series of pairs of numbers, first a
+  coefficient then a column number, all on one line.  For example,
+  "0.5,1,0.25,2,0.25,4" will form a weighted average of columns 1, 2, and 4
+  with wieths 0.5, 0.25, and 0.25.  Coefficients need to add to one or be
+  positive.   After entering this line, enter 0 to have to current Y axis data
+  be moved to the X axis as usual, or 1 to replace it and retain the existing
+  X axis data.
 
   There are several additional options to control plotting, most of them used
   by Onegenplot(1); options -4 and -5 are also generally useful if making

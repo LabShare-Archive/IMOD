@@ -116,7 +116,8 @@ short = big
 type = F
 usage = Criterion for whether extra-large peak has big enough interpixel
 differences
-tooltip = 
+tooltip = Criterion for whether an extra-large peak has big enough interpixel
+differences to qualify for removal (the default is 19 SDs).
 manpage = An extra-large peak will be erased only if the value for 
 the maximum difference between adjacent pixels, averaged over the most
 extreme one-fourth of the pixels in the patch, exceeds this criterion,

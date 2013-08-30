@@ -149,6 +149,17 @@ low values will be worse, allowing them to be examined in the Bead Fixer in
 value, and then delete the points below threshold if desired.  The values
 there will be on the order of 2-3 for good beads, and less than 1 for the
 worse ones.
+.P
+Pickbestseed(1) places into the temporary directory another output model
+containing all of the points that are candidates for being selected,
+color-coded by whether they are clustered or elongated.  The contours are
+assigned to up to 8 model surfaces. Surface numbers 0 to 3 are for
+non-clustered points with elongation values of 0 to 3, and are colored dark
+green, magenta, bright green, and yellow, respectively.  Numbers 4 to 7 are
+for clustered points with elongation values of 0 to 3, and are colored mustard
+green, red, light blue, and orange.  Open the Surface/Contour/Point dialog in
+3dmod (Edit-Surface-Go To) to navigate to contours within and between surfaces
+and to see labels for the surfaces.
 .SS Options
 Autofidseed uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
@@ -173,6 +184,7 @@ afsnnn.#.elong   - text file with mean residual and elongation data
 afsnnn.#.xyzmod  - 3D model of beads tracked from one view
 afsnnn.#.sortmod - 3D model after sorting onto two surfaces
 afsnnn.#.surf    - text file with surface assignments
+clusterElong.mod - model of candidate points in Pickbestseed
 .fi
 The ".seed", ".xyzpt", and ".surf" files are cleaned after a run;
 the ".track", ".xyzmod", and ".elong" files are needed for rerunning

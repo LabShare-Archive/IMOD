@@ -3,6 +3,15 @@ IMOD History
 8/30/13: Added warping to the xfalign interface in eTomo - Serial Sections.
 (Bug# 1731)
 
+8/30/13: In Pickbestseed, implemented a new analysis of whether beads are
+elongated and tuned the parameters with a variety of data sets.  It will now
+identify many fewer beads as elongated inappropriately when they are over a
+dense background.  Autofidseed and Pickbestseed now allow the elongated points
+to be included without the clustered ones and generate a model of all
+candidate beads color-coded by elongation and clustering.
+
+8/30/13: Added option to Genhstplt to form linear combination of columns.
+
 8/27/13: Improved tooltips for eTomo - PEET.(Bug# 1740)
 
 8/27/13: Added complete version information to the etomo error log file.

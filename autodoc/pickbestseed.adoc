@@ -18,7 +18,7 @@ manpage = Name of file with surface information from one Sortbeadsurfs run.
 There must be the same number of surface file entries as tracked models.
 
 [Field = ElongationFile]
-short = elong
+short = resid
 type = FNM
 usage = Name of file with residual and elongation data from one Beadtrack run
 tooltip =
@@ -84,7 +84,7 @@ type = FN
 usage = Model containing contours enclosing areas in which to use or exclude beads
 tooltip =
 manpage = Name of model file whose first object contains contours enclosing
-areas in which to use or to exclude beads, depending on whther -exclude is
+areas in which to use or to exclude beads, depending on whether -exclude is
 entered.  If more than one contour is drawn on a view, points inside any one
 of the contours will be considered inside the area.  This program will
 use only the contours on the view closest to the middle section for tracking.
@@ -97,14 +97,22 @@ tooltip =
 manpage = Use the contours in the boundary model to define regions to exclude from
 analysis rather than regions to include.
 
+[Field = BoundaryForCounting]
+short = counting
+type = B
+usage = Use the boundary model just for counting candidates inside and outside
+tooltip =
+manpage = Use the contours in the boundary model just for counting candidates
+inside and outside the boundary when outputting a candidate model.
+
 [Field = TargetNumberOfBeads]
 short = number
 type = I
 usage = Desired total number of beads to choose for output seed model
 tooltip =
-manpage = Desired total number of beads to choose for output  seed model.  If
+manpage = Desired total number of beads to choose for output seed model.  If
 beads are on two surfaces, the program will seek to find half the target number
-on each surface, then pick more beads on either surface to reach the taget.
+on each surface, then pick more beads on either surface to reach the target.
 Either this option or -density must be entered.
 
 [Field = TargetDensityOfBeads]
@@ -124,34 +132,40 @@ usage = Accept no more than half the number of target beads on majority surface
 tooltip =
 manpage = Do not increase the number of beads on the surface with more beads
 to make up for a deficiency on the other surface.  Autofidseed(1) uses this
-option to limit the number beads on the majority surface in response to its
+option to limit the number of beads on the majority surface in response to its
 -ratio option.
+
+[Field = ElongatedPointsAllowed]
+short = elongated
+type = I
+usage = 1-3 to include elongated beads
+tooltip =
+manpage = Enter 1, 2, or 3 to include
+beads identified as elongated in up to 1/3, up to 2/3, or all of the Beadtrack
+runs, respectively.
 
 [Field = ClusteredPointsAllowed]
 short = cluster
 type = I
 usage = 1 to include beads near others, 2-4 to include elongated beads also
 tooltip =
-manpage = This option is used to allow two kinds of less desirable beads to be
-included: ones close to other beads, and ones that are elongated or overlap
-another bead over most of the views that they are tracked in.  Enter 1 to
-include clustered beads. i.e, ones that appear to be located within 2
-diameters of other beads, where foreshortening perpendicular to the tilt axis
-is taken into account in computing this separation.  Only one of a pair of
-clustered points will be accepted.  Enter 2, 3, or 4 to include
-beads identified as elongated in up to 1/3, up to 2/3, or all of the beadtrack
-runs, respectively.
+manpage = Enter 1 to include clustered beads. i.e, ones that appear to be
+located within 2 diameters of other beads, where foreshortening perpendicular
+to the tilt axis is taken into account in computing this separation.  Only one
+of a pair of clustered points will be accepted.  If -elongated is not entered,
+2, 3, or 4 can be entered to also include beads identified as elongated in up
+to 1/3, up to 2/3, or all of the Beadtrack runs, respectively.
 
 [Field = LowerTargetForClustered]
 short = lower
 type = F
-usage = Include clustered points only if # of beads is still below this target
+usage = Include clustered/elongated beads only if # is still below this target
 tooltip =
 manpage = Include clustered and elongated points as allowed by the -cluster
-option only when the total number of beads is still below the reduced target
-given here.  The value entered should be in the same form as the regular
-target was specified, i.e, a number of beads if -number was entered or a bead
-density if -density was entered.
+and -overlap options only when the total number of beads is still below the
+reduced target given here.  The value entered should be in the same form as
+the regular target was specified, i.e, a number of beads if -number was
+entered or a bead density if -density was entered.
 
 [Field = RotationAngle]
 short = rotation
@@ -197,7 +211,8 @@ target spacing (0.25)
 clustered (2.)
 ^ 6: Fraction of points that must be close in two tracks for them to be
 considered same (0.6)
-^ 7: Median edge SD is divided by this power of SD of edge SD (0.3)
+^ 7: Scaling factor for the two elongation criteria (parameters 12 and 16),
+applied to the default or entered values.
 ^ 8: Maximum fraction of target density at which to add points in initial
 phase (0.9)
 ^ 9: Higher fraction of target at which to add points in more desperate
@@ -209,6 +224,18 @@ searches (1.1)
 ^ 14: Fraction of nominal spacing allowed for initial addition of points (0.85)
 ^ 15: Fraction of spacing for adding best half of points on next phase (0.7)
 ^ 16: Absolute threshold for elongation to be considered overlap (2.5)
+^ 17: Option flags: the sum of 1 for fitting elongation measures versus bead
+integral and replacing measures with the residual of the fit (which does not
+help), and 2 for analyzing the elongation measure in successive groups of at
+least 50 values, when values are arranged in order by bead integral (which
+does not help)
+^ 18: Angle to rotate plot of mean of edge SD versus SD of edge SD to obtain
+an adjusted edge SD (-59 degrees, the mean from 7 data sets)
+^ 19: Angle to rotate plot of mean versus SD of elongation measure to obtain
+an adjusted elongation measure (-67 degrees, the mean of 8 data sets)
+^ 20: Angle to rotate plot of adjusted elongation measure versus adjusted edge
+SD to obtain the final elongation measure to analyze for outliers (45 degrees,
+corresponds to simply averaging the two adjusted values)
 
 [Field = PhaseOutput]
 short = phase
@@ -228,6 +255,20 @@ usage = Root name for output of density maps in gnuplot format
 tooltip =
 manpage = 
 
+[Field = CandidateModel]
+short = candidate
+type = FN
+usage = Name of output model with all candidates sorted by cluster/elongation
+tooltip =
+manpage = Filename for an output model with all candidates beads sorted by
+clustering and elongation scores.  Points will be assigned to up to 8
+model surfaces.  Surface numbers 0 to 3 are for non-clustered points with elongation
+values of 0 to 3, and are colored dark green, magenta, bright green, and yellow,
+respectively.  Numbers 4 to 7 are for clustered points with elongation values
+of 0 to 3, and are colored mustard green, red, light blue, and orange.  Open
+the Surface/Contour/Point dialog in 3dmod (Edit-Surface-Go To) to navigate to
+contours within and between surfaces and to see labels for the surfaces.
+
 [Field = VerboseOutput]
 short = verbose
 type = I
@@ -235,4 +276,3 @@ usage = 1 for verbose output, 2 for very verbose output
 tooltip =
 manpage = 1 for verbose output including lists of candidates and their
 properties; 2 for more verbose output from addPointsInGaps routine.
-
