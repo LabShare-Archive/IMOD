@@ -57,7 +57,9 @@ stack being tracked.
 short = adjust
 type = B
 usage = Change size-based parameters using measured size of averaged bead
-tooltip = 
+tooltip = Change size-based parameters for finding beads using measured size
+of averaged bead.  Use only for cryo or other data sets taken with significant
+underfocus.
 manpage = Change all size-based parameters in Imodfindbeads(1) using the
 measured size of the averaged bead.
 If the change in size is more than 5%, the new bead size will be used in tracking.
