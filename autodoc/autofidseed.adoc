@@ -190,10 +190,10 @@ type = F
 usage = Include clustered/elongated points only if # is still below this target
 tooltip =
 manpage = Include clustered and elongated points as allowed by the -cluster
-option only when the total number of beads is still below the reduced target
-given here.  The value entered should be in the same form as the regular
-target was specified, i.e, a number of beads if -number was entered or a bead
-density if -density was entered.
+and -elongated options only when the total number of beads is still below the
+reduced target given here.  The value entered should be in the same form as
+the regular target was specified, i.e, a number of beads if -number was
+entered or a bead density if -density was entered.
 
 [Field = SubareaSize]
 short = subarea
