@@ -964,7 +964,7 @@ public class ImodManager {
       }
     }
   }
-  
+
   public void open(String key, AxisID axisID, List<String> modelList,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
       IOException {
@@ -1050,6 +1050,20 @@ public class ImodManager {
       imodState.open(model, modelMode, menuOptions);
     }
     // rawStack.model(modelName, modelMode);
+  }
+
+  public void open(String key, final AxisID axisID, final File file, String model,
+      boolean modelMode, final Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID, file);
+      imodState = get(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.open(model, modelMode, menuOptions);
+    }
   }
 
   /**
@@ -2038,6 +2052,7 @@ public class ImodManager {
     imodState.setNoMenuOptions(true);
     return imodState;
   }
+
   private ImodState newSortedModels(AxisID axisID) {
     ImodState imodState = new ImodState(manager, ImodState.MODV, axisID);
     imodState.addWindowOpenOption(ImodProcess.WindowOpenOption.MODEL_EDIT);
