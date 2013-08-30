@@ -158,9 +158,12 @@ public class XfalignParam implements Command {
   private static final int commandSize = 4;
   private static final String commandName = "xfalign";
   private static final String outputFileExtension = "_auto.xf";
+  private static final AxisID AXIS_ID = AxisID.ONLY;
 
   private final EtomoNumber reduceByBinning = new EtomoNumber();
   private final EtomoNumber edgeToIgnore = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final FortranInputString warpPatchSize = new FortranInputString(2);
+  private final FortranInputString shiftLimitsForWarp = new FortranInputString(2);
 
   private final AutoAlignmentMetaData autoAlignmentMetaData;
   private final String rootName;
@@ -168,26 +171,31 @@ public class XfalignParam implements Command {
   private final File outputFile;
   private final boolean tomogramAverages;
   private final Mode mode;
+  private final BaseManager manager;
 
   private String inputFileName = null;
   private String[] commandArray = null;
   private boolean preCrossCorrelation = false;
   private String skipSections = null;
   private boolean sectionsNumberedFromOne = false;
+  private boolean boundaryModel = false;
 
-  public XfalignParam(final String rootName, final String propertyUserDir,
+  public XfalignParam(final BaseManager manager,
       final AutoAlignmentMetaData autoAlignmentMetaData, final Mode mode,
       final boolean tomogramAverages) {
     this.autoAlignmentMetaData = autoAlignmentMetaData;
     this.mode = mode;
     this.tomogramAverages = tomogramAverages;
-    this.rootName = rootName;
+    this.rootName = manager.getName();
+    this.manager = manager;
     outputFileName = rootName + outputFileExtension;
-    outputFile = new File(propertyUserDir, outputFileName);
+    outputFile = new File(manager.getPropertyUserDir(), outputFileName);
+    warpPatchSize.setIntegerType(true);
+    shiftLimitsForWarp.setIntegerType(true);
   }
 
   public AxisID getAxisID() {
-    return AxisID.ONLY;
+    return AXIS_ID;
   }
 
   public String[] getCommandArray() {
@@ -282,7 +290,12 @@ public class XfalignParam implements Command {
       throw new IllegalArgumentException("Unknown mode " + mode + ".");
     }
     genFilterOptions(options);
-    genParamsOptions(options);
+    Transform transform = autoAlignmentMetaData.getAlignTransform();
+    if (transform == null) {
+      transform = Transform.DEFAULT;
+    }
+    options.add("-par");
+    options.add(transform.getValue());
     if (!edgeToIgnore.isNull()) {
       options.add("-matt");
       options.add(edgeToIgnore.toString());
@@ -300,6 +313,18 @@ public class XfalignParam implements Command {
     }
     if (sectionsNumberedFromOne) {
       options.add("-one");
+    }
+    if (!warpPatchSize.isNull()) {
+      options.add("-warp");
+      options.add(warpPatchSize.toString());
+    }
+    if (boundaryModel) {
+      options.add("-boundary");
+      options.add(FileType.AUTO_ALIGN_BOUNDARY_MODEL.getFileName(manager, AXIS_ID));
+    }
+    if (!shiftLimitsForWarp.isNull()) {
+      options.add("-shift");
+      options.add(shiftLimitsForWarp.toString());
     }
     options.add(inputFileName);
     options.add(outputFileName);
@@ -324,26 +349,20 @@ public class XfalignParam implements Command {
     }
   }
 
-  private void genParamsOptions(ArrayList options) {
-    Transform transform = autoAlignmentMetaData.getAlignTransform();
-    if (transform != Transform.FULL_LINEAR_TRANSFORMATION) {
-      if (transform == Transform.ROTATION_TRANSLATION_MAGNIFICATION) {
-        options.add("-par");
-        options.add("4");
-      }
-      else if (transform == Transform.ROTATION_TRANSLATION) {
-        options.add("-par");
-        options.add("3");
-      }
-    }
-  }
-
   public void setReduceByBinning(final Number input) {
     reduceByBinning.set(input);
   }
 
   public void resetReduceByBinning() {
     reduceByBinning.reset();
+  }
+
+  public void setBoundaryModel(final boolean input) {
+    boundaryModel = input;
+  }
+
+  public void resetBoundaryModel() {
+    boundaryModel = false;
   }
 
   public void setEdgeToIgnore(final String input) {
@@ -372,6 +391,24 @@ public class XfalignParam implements Command {
 
   public void setPreCrossCorrelation(final boolean input) {
     preCrossCorrelation = input;
+  }
+
+  public void setWarpPatchSize(final String x, final String y) {
+    warpPatchSize.set(0, x);
+    warpPatchSize.set(1, y);
+  }
+
+  public void resetWarpPatchSize() {
+    warpPatchSize.reset();
+  }
+
+  public void setShiftLimitsForWarp(final String x, final String y) {
+    shiftLimitsForWarp.set(0, x);
+    shiftLimitsForWarp.set(1, y);
+  }
+
+  public void resetShiftLimitsForWarp() {
+    shiftLimitsForWarp.reset();
   }
 
   public void setInputFileName(final String input) {
