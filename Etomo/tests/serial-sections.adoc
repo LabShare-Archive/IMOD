@@ -123,8 +123,8 @@ tb.initial-blend.1=
   assert.cb.find-warping-transformations=off
   assert.tf.correlation-patch-size-in-x=
   assert.tf.y=
-  assert.cb.use-boundary-model=
-  assert.tf.limits-to=shifts-in-x=
+  assert.cb.use-boundary-model=off
+  assert.tf.limits-to-shifts-in-x=
   assert.tf.y.1=
   assert.cb.find-initial-shifts-with-cross-correlation=off
   assert.tf.sections-to-skip=
@@ -145,7 +145,7 @@ tb.initial-blend.1=
   assert.disabled.tf.y=
   assert.disabled.cb.use-boundary-model=
   assert.disabled.bn.create/view-boundary-model=
-  assert.disabled.tf.limits-to=shifts-in-x=
+  assert.disabled.tf.limits-to-shifts-in-x=
   assert.disabled.tf.y.1=
   assert.enabled.cb.find-initial-shifts-with-cross-correlation=
   assert.enabled.tf.sections-to-skip=
@@ -170,8 +170,8 @@ tb.initial-blend.1=
   assert.disabled.bn.create/view-boundary-model=
   cb.use-boundary-model=on
   assert.enabled.bn.create/view-boundary-model=
-  cb.use-boundary.model=
-  assert.enabled.tf.limits-to=shifts-in-x=
+  cb.use-boundary-model=
+  assert.enabled.tf.limits-to-shifts-in-x=
   assert.enabled.tf.y.1=
   cb.find-warping-transformations=
   #test field validation
