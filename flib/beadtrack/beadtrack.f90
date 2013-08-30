@@ -41,6 +41,7 @@ program beadtrack
   integer*4, allocatable :: ivList(:), ivSnapList(:)
   logical, allocatable :: missing(:)
   real*4, allocatable :: wsumSave(:,:), prevRes(:), edgeSDsave(:,:), elongSave(:,:)
+  real*4, allocatable :: outerMADsave(:,:), outerBackground(:,:)
   character*6 areaObjStr
   character*9 date
   character*8 tim
@@ -100,7 +101,7 @@ program beadtrack
   integer*4 ifMeanBad, isCur, nprev, ndel, missTot, numListZ, imodObj, imodCont
   real*4 peak, dist, tmin, tmax, tmean, cvbxcen, cvbycen, area, density, elongSigma
   integer*4 numVert, minInArea, minBeadOverlap, ifLocalArea, localTarget
-  integer*4 nvLocalIn, localViewPass, nSnapList, iobjSave
+  integer*4 nvLocalIn, localViewPass, nSnapList, iobjSave, limOuter
   logical*4 keepGoing, saveAllPoints, ignoreObjs, done, needTaper, splitFirstRound
   logical*4 inSplitRound
   integer*4 numNew, nOverlap, iseqPass, ipassSave, iAreaSave, maxObjOrig
@@ -110,9 +111,10 @@ program beadtrack
   integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound, nFarther
   integer*4 ivsOnAlign, ifAlignDone, imageBinned, maxSobelSum, maxAnySum, nFillTaper
   integer*4 nxSobel, nySobel, nxsPad, nysPad, ninSobel, kernelDim, ifReadXfs
-  real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel, edgeSD
+  real*4 xOffSobel, yOffSobel, scaleFacSobel, scaleByInterp, targetSobel, edgeSD, elongSD
   real*4 sdsum, sdsumsq, sdmin, sdmax, sdavg, sdmed, sdmean, edgeSDsd, elongMean, elongMed
-  real*4 percentileCritFrac, dblNormMinCrit, wcritToLocalMinRatio
+  real*4 percentileCritFrac, dblNormMinCrit, wcritToLocalMinRatio, outerSigma
+  real*4 omadMean, obackMean
   integer*4 maxWneigh, numWneighWant, minFilled, maxFilled
   character*320 concat
   integer*4 getImodObjsize, niceFrame, surfaceSort, scaledSobel
@@ -214,6 +216,7 @@ program beadtrack
   targetSobel = 8
   sobelSigma = 0.5
   elongSigma = 0.85
+  outerSigma = 0.    ! Was 3. when this was wanted
   interpType = 0
   maxPeaks = 20
   minPeakRatio = 0.2
@@ -1088,9 +1091,16 @@ program beadtrack
         elongSave(minViewDo:maxViewDo, maxAllReal), elongSmooth(nxBox, nyBox), &
         elongMask(nxBox, nyBox), ixElong(nxBox * nyBox), iyElong(nxBox * nyBox),  &
         stat=ierr)
-    call memoryError(ierr, 'ARRAY FOR EDGE SDS')
-    edgeSDsave = -1.
+    call memoryError(ierr, 'ARRAYS FOR EDGE SDS')
+    edgeSDsave(:,:) = -1.
     call scaledGaussianKernel(elongKernel, kernDimElong, 7, max(elongSigma, sobelSigma))
+  endif
+  if (outerSigma > 0) then
+    allocate(outerMADsave(minViewDo:maxViewDo, maxAllReal),  &
+        outerBackground(minViewDo:maxViewDo, maxAllReal), stat = ierr)
+    call memoryError(ierr, 'ARRAY FOR OUTER MAD')
+    outerMADsave(:,:) = -1.
+    call scaledGaussianKernel(outerKernel, kernDimOuter, 9, outerSigma)
   endif
   !
   allocate(xseek(i), yseek(i), wsumCrit(i), xr(msizeXR, i), ifFound(i), &
@@ -1162,17 +1172,27 @@ program beadtrack
   !
   ! get list of inside and edge pixels for centroid
   !
-  limInside = 3.5 * cgRadius**2 + 20.
-  limEdge = 3.5 * ((cgRadius + 1.5)**2 - cgRadius**2) + 20.
+  limInside = 3.5 * cgRadius**2 + 22.
+  limEdge = 3.5 * ((cgRadius + 1.5)**2 - cgRadius**2) + 22.
+  limcg = cgRadius + 4
   allocate(idxin(limInside), idyin(limInside), idxEdge(limEdge), idyEdge(limEdge), &
       edgePixels(limEdge), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR COMPUTING CENTROID')
+  numOuter = 1
+  limOuter = nxBox * nyBox - 3.14159 * diameter**2
+  if (outerSigma > 0.) then
+    allocate(idxOuter(limOuter), idyOuter(limOuter), outerPixels(limOuter), stat = ierr)
+    call memoryError(ierr, 'ARRAYS FOR OUTSIDE MAD')
+    limcg = max(nxBox, nyBox) / 2
+    numOuter = 0
+  endif
 
   numInside = 0
   numEdge = 0
-  limcg = cgRadius + 4
   do iy = -limcg, limcg
+    if (abs(iy) > nyBox / 2 - 2) cycle
     do ix = -limcg, limcg
+      if (abs(ix) > nxBox / 2 - 2) cycle
       radPix = sqrt((ix - 0.5)**2 + (iy - 0.5)**2)
       if (radPix <= cgRadius) then
         numInside = numInside + 1
@@ -1183,8 +1203,13 @@ program beadtrack
         idxEdge(numEdge) = ix
         idyEdge(numEdge) = iy
       endif
-      if (numInside > limInside .or. numEdge > limEdge) call errorExit( &
-          'PROGRAMMER ERROR COMPUTING SIZE OF CENTROID ARRAYS', 0)
+      if (outerSigma > 0. .and. radPix >= diameter) then
+        numOuter = numOuter + 1
+        idxOuter(numOuter) = ix
+        idyOuter(numOuter) = iy
+      endif
+      if (numInside >= limInside .or. numEdge >= limEdge .or. numOuter >= limOuter)  &
+          call errorExit('PROGRAMMER ERROR COMPUTING SIZE OF CENTROID ARRAYS', 0)
     enddo
   enddo
   !
@@ -1436,7 +1461,8 @@ program beadtrack
       call objToCont(iobj, obj_color, imodObj, imodCont)
       xpos = -1.
       if (numResSaved(iobj) > 0) xpos = resMean(iobj, 1) / numResSaved(iobj)
-      sdsum = 0. ; sdsumsq = 0.; sdmin = 1.e20; sdmax = -1.; iy = 0 ; ix = 0
+      sdsum = 0. ; sdsumsq = 0.; sdmin = 1.e20; sdmax = -1.; iy = 0 ; ix = 0 ; izv = 0
+      omadMean = 0.; obackMean = 0. ; wsum = 0. ; itry = 0
       do iview = minViewDo, maxViewDo
         xtmp = edgeSDsave(iview, iobj) / sdavg
         if (xtmp > 0) then
@@ -1451,23 +1477,37 @@ program beadtrack
           ix = ix + 1
           tiltAll(ix) = elongSave(iview, iobj)
         endif
+        if (outerSigma > 0.) then
+          if (outerMADsave(iview, iobj) > 0) then
+            izv = izv + 1
+            omadMean = omadMean + outerMADsave(iview, iobj)
+            obackMean = obackMean + outerBackground(iview, iobj)
+          endif
+        endif
+        if (wsumSave(iview, iobj) > 0) then
+          itry = itry + 1
+          wsum = wsum + wsumSave(iview, iobj)
+        endif
       enddo
       sdmean = -1. ; edgeSDsd = 0. ; sdmed = -1.
       if (iy < 1) then
         sdmin = -1.
       else if (iy > 1) then
         call sums_to_avgsd(sdsum, sdsumsq, iy, sdmean, edgeSDsd, xtmp)
-        call rsSortFloats(prevRes, iy)
-        call rsMedianOfSorted(prevRes, iy, sdmed)
+        call rsFastMedianInPlace(prevRes, iy, sdmed)
       endif
-      elongMean = 0.; elongMed = 0.
+      elongMean = 0.; elongMed = 0.; elongSD = 0.
       if (ix > 1) then
-        call avgsd(tiltAll, ix, elongMean, elongMed, xtmp)
-        call rsSortFloats(tiltAll, ix)
-        call rsMedianOfSorted(tiltAll, ix, elongMed)
+        call avgsd(tiltAll, ix, elongMean, elongMed, elongSD)
+        call rsFastMedianInPlace(tiltAll, ix, elongMed)
       endif
-      if (elongFile .ne. ' ') write(4, '(i3,i7,f12.4,5f11.4)')imodObj, imodCont, xpos, &
-          sdmean, sdmed, edgeSDsd, elongMean, elongMed
+      if (izv > 0) then
+        omadMean = omadMean / izv
+        obackMean = obackMean / izv
+      endif
+      if (itry > 0) wsum = wsum / itry
+      if (elongFile .ne. ' ') write(4, '(i3,i7,f12.4,6f11.4,f11.2)')imodObj, imodCont, &
+          xpos, sdmean, sdmed, edgeSDsd, elongMean, elongMed, elongSD, wsum
            
       if (xyzFile .ne. ' ' .and. xpos >= 0 .and. (xyzSave(1,iobj) .ne. 0. .or.  &
           xyzSave(2,iobj) .ne. 0. .or. xyzSave(3,iobj) .ne. 0.)) &
@@ -1652,6 +1692,9 @@ CONTAINS
                   edgeSDsave(izBox + 1, iobjSeq(iobjDo)) = edgeSD
                   call calcElongation(boxes(1, ib, iobjDo), nxBox, nyBox, 0., 0.,  &
                       elongSave(izBox + 1, iobjSeq(iobjDo)))
+                  if (outerSigma > 0.) call calcOuterMAD(boxes(1, ib, iobjDo), nxBox, &
+                      nyBox, 0., 0., outerMADsave(izBox + 1, iobjSeq(iobjDo)), &
+                      outerBackground(izBox + 1, iobjSeq(iobjDo)))
                 endif
 
                 ! Check the integrals of the seed for light/dark beads setting
@@ -2267,6 +2310,8 @@ CONTAINS
         edgeSDsave(iview, iobjSeq(iobjDo)) = edgeSD
         call calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak,  &
             elongSave(iview, iobjSeq(iobjDo)))
+        if (outerSigma > 0.) call calcOuterMAD(boxTmp, nxBox, nyBox, xpeak, ypeak,  &
+            outerMADsave(iview, iobjSeq(iobjDo)), outerBackground(iview, iobjSeq(iobjDo)))
       endif
       xpos = nint(xnext) + xpeak
       ypos = nint(ynext) + ypeak
