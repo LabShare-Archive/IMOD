@@ -589,7 +589,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
   private final BoundaryTable boundaryTable;
   private boolean refiningJoin = false;
   private SpacedPanel pnlTransformations = null;
-  private final TransformChooserPanel tcModel = new TransformChooserPanel();
+  private final TransformChooserPanel tcModel =  TransformChooserPanel.getJoinModelInstance();
   private final LabeledTextField ltfBoundariesToAnalyze = new LabeledTextField(
       FieldType.INTEGER_LIST, "Boundaries to analyze: ");
   private final LabeledTextField ltfObjectsToInclude = new LabeledTextField(
@@ -1133,8 +1133,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     // transformations panel
     pnlTransformations.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTransformations.setBorder(new EtchedBorder("Transformations").getBorder());
-    tcModel.includeTranslation();
-    pnlTransformations.add(tcModel.getContainer());
+    pnlTransformations.add(tcModel.getComponent());
     pnlTransformations.add(ltfBoundariesToAnalyze.getContainer());
     pnlTransformations.add(ltfObjectsToInclude.getContainer());
     pnlTransformations.add(pnlGapStartEndInc);
@@ -1458,7 +1457,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
 
   public boolean getParameters(XfjointomoParam param, final boolean doValidation) {
     try {
-      param.setTransform(tcModel.get());
+      param.setTransform(tcModel.getTransform());
       param.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText(doValidation));
       param.setObjectsToInclude(ltfObjectsToInclude.getText(doValidation));
       param.setPointsToFit(ltfPointsToFitMin.getText(doValidation),
@@ -1509,7 +1508,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
       metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
       metaData.setTrialBinning(spinTrialBinning.getValue());
       metaData.setMidasLimit(ltfMidasLimit.getText(doValidation));
-      metaData.setModelTransform(tcModel.get());
+      metaData.setModelTransform(tcModel.getTransform());
       metaData.setBoundariesToAnalyze(ltfBoundariesToAnalyze.getText(doValidation));
       metaData.setObjectsToInclude(ltfObjectsToInclude.getText(doValidation));
       metaData.setGap(cbGap.isSelected());
@@ -1552,7 +1551,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer,
     ltfSizeInX.setText(metaData.getSizeInX().toString());
     ltfSizeInY.setText(metaData.getSizeInY().toString());
     cbLocalFits.setSelected(metaData.isLocalFits());
-    tcModel.set(metaData.getModelTransform());
+    tcModel.setTransform(metaData.getModelTransform());
     ltfBoundariesToAnalyze.setText(metaData.getBoundariesToAnalyze());
     ltfObjectsToInclude.setText(metaData.getObjectsToInclude());
     cbGap.setSelected(metaData.getGap().is());
