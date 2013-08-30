@@ -459,6 +459,11 @@ ignoreStr = PipGetString('IgnoreSurfaceData', '')
 ignoreList = []
 if ignoreStr:
    ignoreList = parselist(ignoreStr)
+
+for ind in range(len(dropList)):
+   dropList[ind] -= 1
+for ind in range(len(ignoreList)):
+   ignoreList[ind] -= 1
    
 # Read com file and get critical entries
 rawTracklines = readTextFile(trackcom)
