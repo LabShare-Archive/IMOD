@@ -433,6 +433,8 @@ leavetmp = PipGetBoolean('LeaveTempFiles', 0)
 # Get elongated and clustered and separate the latter if it is an old type of entry
 elongated = PipGetInteger("ElongatedPointsAllowed", 0)
 clustered = PipGetInteger("ClusteredPointsAllowed", 0)
+clustered = min(4, max(0, clustered))
+elongated = min(3, max(0, elongated))
 if clustered > 1:
    if elongated:
       exitError('You cannot enter a value > 1 for -cluster if you enter -elongated')
