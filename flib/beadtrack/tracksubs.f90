@@ -1,11 +1,11 @@
 module cgPixels
   implicit none
   integer*4, allocatable :: idxIn(:), idyin(:), idxEdge(:), idyEdge(:)
-  real*4, allocatable :: edgePixels(:), elongSmooth(:,:)
+  real*4, allocatable :: edgePixels(:), elongSmooth(:,:), outerPixels(:)
   logical, allocatable :: elongMask(:,:)
-  integer*4, allocatable :: ixElong(:), iyElong(:)
-  real*4 elongKernel(49)
-  integer*4 numInside, numEdge, iPolarity, kernDimElong
+  integer*4, allocatable :: ixElong(:), iyElong(:), idxOuter(:), idyOuter(:)
+  real*4 elongKernel(49), outerKernel(81)
+  integer*4 numInside, numEdge, iPolarity, kernDimElong, numOuter, kernDimOuter
   logical*4 edgeMedian, getEdgeSD
 end module cgPixels
 
@@ -353,8 +353,7 @@ subroutine edgeForCG(boxTmp, nxBox, nyBox, ixcen, iycen, edge, edgeSD, ierr)
   ierr = 0
   if (getEdgeSD) call avgsd(edgePixels, nsum, edge, edgeSD, sum)
   if (edgeMedian) then
-    call rsSortFloats(edgePixels, nsum)
-    call rsMedianOfSorted(edgePixels, nsum, edge)
+    call rsFastMedianInPlace(edgePixels, nsum, edge)
   else if (.not. getEdgeSD) then
     edge = sum / nsum
   endif
@@ -647,7 +646,7 @@ subroutine calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak, elongation)
     enddo
     indCheck = indCheck + 1
   enddo
-  if (numPos == 1) return
+  if (numPos < 4) return
 
   ! Get the means and moments and apply the equation for elongation
   xmean = dxsum / numPos
@@ -667,6 +666,50 @@ subroutine calcElongation(boxTmp, nxBox, nyBox, xpeak, ypeak, elongation)
   ! angle = atan2(2. * dxysum, dxsqsum - dysqsum)
   return
 end subroutine calcElongation
+
+
+! calcOuterMAD computes a mean and a median absolute deviation in in an outer region
+! of the box.  This did not trun out to be useful
+!
+subroutine calcOuterMAD(boxTmp, nxBox, nyBox, xpeak, ypeak, outerMAD, background)
+  use cgPixels
+  implicit none
+  real*4 boxTmp(nxBox, nyBox), xpeak, ypeak, outerMAD, rmedian, background
+  integer*4 nxBox, nyBox
+  integer*4 i, ixcen, iycen, ix, iy, nsum
+ 
+  call applyKernelFilter(boxTmp, elongSmooth, nxBox, nxBox, nyBox, outerKernel, &
+      kernDimOuter)
+  nsum = 0
+  ixcen = nint(xpeak)
+  iycen = nint(ypeak)
+  do i = 1, numOuter
+    ix = ixcen + idxOuter(i)
+    iy = iycen + idyOuter(i)
+    if (ix >= 3 .and. ix <= nxBox - 2  .and. iy >= 3 .and. iy <= nyBox - 3) then
+      nsum = nsum + 1
+      outerPixels(nsum) = boxTmp(ix, iy)
+    endif
+  enddo
+  outerMAD = 0.
+  if (nsum < 11) return
+  !
+  call rsFastMedianInPlace(outerPixels, nsum, background)
+
+  nsum = 0
+  do i = 1, numOuter
+    ix = ixcen + idxOuter(i)
+    iy = iycen + idyOuter(i)
+    if (ix >= 3 .and. ix <= nxBox - 2  .and. iy >= 3 .and. iy <= nyBox - 3) then
+      nsum = nsum + 1
+      outerPixels(nsum) = elongSmooth(ix, iy)
+    endif
+  enddo
+  call rsFastMedianInPlace(outerPixels, nsum, rmedian)
+  outerPixels(1:nsum) = abs(outerPixels(1:nsum) - rmedian)
+  call rsFastMedianInPlace(outerPixels, nsum, outerMAD)
+  return
+end subroutine calcOuterMAD
 
 
 ! Adds a point to the output model
