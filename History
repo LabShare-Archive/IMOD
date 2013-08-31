@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/30/13: IMOD_4-6-29
 8/30/13: Changed options to drop and ignore models in Autofidseed to take
 lists numbered from 1, not 0.
 
