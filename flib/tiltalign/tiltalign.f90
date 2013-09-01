@@ -26,12 +26,13 @@ program tiltalign
   double precision error, errorScan(-20:20)
   real*4, allocatable :: tiltOrig(:), viewRes(:), xyzerr(:,:)
   integer*4, allocatable :: ninView(:), indSave(:), jptSave(:)
-  real*4, allocatable :: errSave(:)
+  real*4, allocatable :: errSave(:), wgtPrev(:), varSave(:)
   real*4, allocatable :: viewErrsum(:), viewErrsq(:)
   real*4, allocatable :: viewMeanRes(:), viewSdRes(:)
 
   logical orderErr, nearbyErr
   character*320 modelFile, residualFile, pointFile, unadjTiltFile
+  character*80 robFailMess
   !
   real*4, allocatable :: fl(:,:,:)
   real*4 fa(2,3), fb(2,3), fc(2,3), fpstr(2,3)
@@ -45,7 +46,7 @@ program tiltalign
   integer*4, allocatable :: mapLocalToAll(:)
   integer*4, allocatable :: mallFileToView(:), mallViewToFile(:)
   !
-  logical tooFewFid, useTarget, dirDone(-1:1)
+  logical tooFewFid, useTarget, dirDone(-1:1), warnOnRobFail
   integer*4 ncycle/500/
   real*4 DTOR/0.0174532/
   !
@@ -79,14 +80,15 @@ program tiltalign
   integer*4 imageBinned, numUnknownTot2, ifDoLocal, ninThresh, numInitSteps
   integer*4 numWgtTotal, numWgtZero, numWgt1, numWgt2, numWgt5, maxDelWgtBelowCrit
   integer*4 maxRobustOneCycle, numOneCycle, numTotCycles, maxTotCycles, numBelowCrit
-  real*4 robustTotCycleFac, delWgtMeanCrit, delWgtMaxCrit, rmsScale
-  real*4 wgtErrMean, wgtErrSumLocal, wgtErrLocalMin, wgtErrLocalMax
+  real*4 robustTotCycleFac, delWgtMeanCrit, delWgtMaxCrit, rmsScale, robustMaxDelErr
+  real*4 wgtErrMean, wgtErrSumLocal, wgtErrLocalMin, wgtErrLocalMax, undoWgtRelaxCrit
+  integer*4 numRobFailed
   character*20 message
   character*320 concat
   !
   logical pipinput
   integer*4 numOptArg, numNonOptArg
-  integer*4 PipGetInteger, PipGetBoolean
+  integer*4 PipGetInteger, PipGetBoolean, PipGetLogical
   integer*4 PipGetString, PipGetFloat, PipGetTwoIntegers
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  tiltalign
@@ -167,6 +169,9 @@ program tiltalign
   rotIncForInit = 10.
   rotScanErrCrit = 5.
   smallWgtMaxFrac = 0.25
+  undoWgtRelaxCrit = 2.
+  robustMaxDelErr = 4.
+  warnOnRobFail = .false.
   !
   ! set this to 1 to get inputs for X - axis tilting from sequential input
   !
@@ -239,12 +244,17 @@ program tiltalign
     ierr = PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust)
     if (PipGetFloat('KFactorScaling', cosTmp) .eq. 0)  &
         kfacRobust = kfacRobust * cosTmp
+    ierr = PipGetLogical('WarnOnRobustFailure', warnOnRobFail)
     ierr = PipGetFloat('AxisZShift', znewInput)
     ierr = PipGetBoolean('ShiftZFromOriginal', ifOriginalZ)
     ierr = PipGetFloat('AxisXShift', xtiltNew)
     ierr = PipGetInteger('ImagesAreBinned', imageBinned)
     imageBinned = max(1, imageBinned)
     ierr = PipGetBoolean('LocalAlignments', ifDoLocal)
+    if (ifDoRobust > 0) then
+      allocate(wgtPrev(maxProjPt), varSave(maxvar), stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR ROBUST FITTING')
+    endif
 
   else
     write(*,'(1x,a,/,a,$)') 'Criterion # of sd above mean residual' &
@@ -291,6 +301,7 @@ program tiltalign
   ifXyzOut = 1
   ifLocal = 0
   metroError = 0
+  numRobFailed = 0
   do i = 1, nrealPt
     indAllReal(i) = i
   enddo
@@ -464,12 +475,17 @@ program tiltalign
       endif
       write(*,119) errsumLocal / (numPatchX * numPatchY), errLocalMin, errLocalMax
 119   format(/,' Residual error local mean:  ',f9.3,'    range', f8.3, ' to',f8.3)
-      if (ifDoRobust > 0 )write(*,1191) wgtErrsumLocal / (numPatchX * numPatchY), wgtErrLocalMin, wgtErrLocalMax
+      if (ifDoRobust > 0 )write(*,1191) wgtErrsumLocal / (numPatchX * numPatchY), &
+          wgtErrLocalMin, wgtErrLocalMax
 1191   format(/,' Weighted error local mean:  ',f9.3,'    range', f8.3, ' to',f8.3)
     endif
   endif
   close(7)
   if (metroError .ne. 0) print *,'WARNING:', metroError, ' MINIMIZATION ERRORS OCCURRED'
+  if (ifLocal == 0 .and. numRobFailed > 0 .and. .not.warnOnRobFail)  &
+      call exitError(robFailMess)
+  if (numRobFailed > 0) write(*,'(a,i4,a)')'WARNING: ROBUST FITTING FAILED IN ', &
+      numRobFailed,' SEARCHES; NON-ROBUST RESULT WAS RESTORED'
   if (tooFewFid) call errorexit( &
       'Minimum numbers of fiducials are too high - check if '// &
       'there are enough fiducials on the minority surface', 0)
@@ -482,6 +498,9 @@ CONTAINS
   ! output, and output results
 
   subroutine alignAndOutputResults()
+    real*4 prevMean, prevMax, fPrevious, allMean, fLast, fOriginal
+    integer*4 ifAveraged, metroRobust
+    logical*4 robFailed, robTooFew
     real*4 atand, sind, cosd
     integer*4 nearest_view
     !
@@ -506,6 +525,7 @@ CONTAINS
     ! Do beam tilt search only for global alignment
     robustWeights = .false.
     rmsScale = scaleXY**2 / nprojpt
+    metroRobust = metroError
     if (ifBTSearch == 0 .or. ifLocal > 0) then
       call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
           rmsScale, fFinal, i, metroError)
@@ -515,8 +535,11 @@ CONTAINS
           rmsScale, fFinal, i, metroError)
     endif
     !
-    ! If doing robust fitting, just restart the start with all current values
-    if (ifDoRobust .ne. 0) then
+    ! If doing robust fitting, just restart the search with all current values
+    if (ifDoRobust .ne. 0 .and. metroError > metroRobust) then
+      write(*,'(/,a,/)') 'Skipping robust fitting because of minimization error'
+    endif
+    if (ifDoRobust .ne. 0 .and. metroError == metroRobust) then
       maxTotCycles = abs(ncycle) * robustTotCycleFac
       numTotCycles = 0
       numOneCycle = 0
@@ -535,13 +558,25 @@ CONTAINS
       endif
       call findMedianResidual()
       call setupWeightGroups(index, jpt, minTiltView, ierr)
-      if (ierr .ne. 0) call exitError('TOO FEW DATA POINTS TO DO ROBUST FITTING')
+      robTooFew = ierr .ne. 0
+      if (robTooFew) print *,'WARNING: TOO FEW DATA POINTS TO DO ROBUST FITTING'
       robustWeights = .true.
-      do while (numTotCycles .lt. maxTotCycles)
+      weight(1:nprojpt) = 1.
+      errSave(1:nprojpt) = 1.
+      fOriginal = fFinal
+      fFinal = fFinal * 10.
+      fLast = fFinal
+      ifAveraged = 1
+      metroRobust = 0
+      varSave(1:nvarSearch) = var(1:nvarSearch)
+      do while (numTotCycles .lt. maxTotCycles .and. .not. robTooFew)
+        fPrevious = fLast
+        fLast = fFinal
+        wgtPrev(1:nprojpt) = errSave(1:nprojpt)
         errSave(1:nprojpt) = weight(1:nprojpt)
         call computeWeights(indSave, jptSave, xyzerr)
-        call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, -abs(ncycle), 1, &
-            rmsScale, fFinal, i, metroError)
+        call runMetro(nvarSearch, var, varErr, grad, h, 1, facm, -abs(ncycle), 1, &
+            rmsScale, fFinal, i, metroRobust)
         numTotCycles = numTotCycles + i
         if (i <= 1) then
           numOneCycle = numOneCycle + 1
@@ -554,41 +589,92 @@ CONTAINS
         iv = 0
         errMean = 0.
         errSd = 0.
+        prevMean = 0.
+        prevMax = 0.
+        allMean = 0.
         do i = 1, nprojpt
           if (weight(i) < 0.5) then
             jpt = jpt + 1
             errMean = errMean + abs(weight(i) - errSave(i))
           endif
+          prevMean = prevMean + abs(weight(i) - wgtPrev(i))
+          allMean = allMean + abs(weight(i) - errSave(i))
           if (weight(i) == 0.) index = index + 1
           if (weight(i) < 0.1) ipt = ipt + 1
           if (weight(i) < 0.2) iv = iv + 1
           errSd = max(errSd, abs(weight(i) - errSave(i)))
+          prevMax = max(prevMax, abs(weight(i) - wgtPrev(i)))
         enddo
         if (jpt > 0) errMean = errMean / jpt
+        prevMean = prevMean / nprojpt
+        allMean = allMean / nprojpt
+        !write(*, '(i5,f12.6,f9.4,f11.6,f9.4,f11.6,f9.4)')numTotCycles, &
+        !    sqrt(fFinal*rmsScale),errMean, allMean, errSd, prevMean, prevMax
         if (errSd < delWgtMaxCrit .or. errMean < delWgtMeanCrit) then
           numBelowCrit = numBelowCrit + 1
         else
           numBelowCrit = 0
         endif
-        if (numBelowCrit >= maxDelWgtBelowCrit .or. numOneCycle >= maxRobustOneCycle) then
+        robFailed = metroRobust > 0 .or. fFinal > robustMaxDelErr * fOriginal
+        if (robFailed .or. numBelowCrit >= maxDelWgtBelowCrit .or. &
+            numOneCycle >= maxRobustOneCycle  .or. (ifAveraged == 1 .and. &
+            errSd < delWgtMaxCrit .and. errMean < delWgtMeanCrit)) then
           exit
         endif
+        if (ifAveraged == 0 .and.  &
+            ((prevMean < allMean .and. prevMax < errSd) .or. fFinal / fLast > 1.05 .or. &
+            (fFinal / fLast > 1.02 .and. fLast /  fPrevious > 1.01))) then
+          ! print *,'Averaging previous weights'
+          weight(1:nprojpt) = 0.5 * (errSave(1:nprojPt) + wgtPrev(1:nprojPt))
+          ifAveraged = 1
+        else
+          ifAveraged = 0
+        endif
       enddo
-      write(*,'(a,i5,t48,a,t61,f14.6)')' Total cycles for robust fitting:', &
-          numTotCycles, 'Final   F : ', sqrt(fFinal * rmsScale)
-      if (numTotCycles > maxTotCycles)  &
-          write(*,'(/,a,i5,a,/)') 'WARNING: Robust fitting ended after', &
-          numTotCycles,' cycles without meeting convergence criteria'
-      write(*,'(a,2f8.4)')' Final mean and max weight change',errMean, errSd
-      write(*,321) nprojpt, index, ipt, iv, jpt, (100. * jpt) / nprojpt
+      !
+      if (robFailed .or. (numTotCycles > maxTotCycles .and.  &
+          (errSd > undoWgtRelaxCrit * delWgtMaxCrit .or.  &
+          errMean > undoWgtRelaxCrit * delWgtMeanCrit))) then
+        !
+        ! Issue message and undo the failed search
+        if (metroRobust > 0) then
+          robFailMess = 'Robust fitting ended with minimization error'
+        elseif (robFailed) then
+          write(robFailMess,'(a,f14.6)') 'Robust fitting ended because F error '// &
+              'increased to', sqrt(fFinal * rmsScale)
+        else
+          write(robFailMess,'(a,i5)') 'Robust fitting ended after', numTotCycles, &
+              ' cycles without converging'
+        endif
+        write(*,'(/,a)')robFailMess
+        print *,'Restarting non-robust search to restore original result'
+        var(1:nvarSearch) = varSave(1:nvarSearch)
+        robustWeights = .false.
+        call runMetro(nvarSearch, var, varErr, grad, h, ifLocal, facm, ncycle, 0, &
+            rmsScale, fFinal, i, metroError)
+        numRobFailed = numRobFailed + 1
+      elseif (.not. robTooFew) then
+        !
+        ! Output results on success
+        write(*,'(a,i5,t48,a,t61,f14.6)')' Total cycles for robust fitting:', &
+            numTotCycles, 'Final   F : ', sqrt(fFinal * rmsScale)
+        if (numTotCycles > maxTotCycles)  &
+            write(*,'(/,a,i5,a,/)') 'Robust fitting ended after', &
+            numTotCycles,' cycles but meet relaxed convergence criteria'
+        write(*,'(a,2f8.4)')' Final mean and max weight change',errMean, errSd
+        write(*,321) nprojpt, index, ipt, iv, jpt, (100. * jpt) / nprojpt
 321     format(i6,' weights:',i5,' are 0,',i5,' are < .1,',i5,' are < .2,',i6, &
             ' (',f4.1,'%) are < .5',/)
-      if (ifLocal .ne. 0) then
-        numWgtTotal = numWgtTotal + nprojpt
-        numWgtZero = numWgtZero + index
-        numWgt1 = numWgt1 + ipt
-        numWgt2 = numWgt2 + iv
-        numWgt5 = numWgt5 + jpt
+        if (ifLocal .ne. 0) then
+          numWgtTotal = numWgtTotal + nprojpt
+          numWgtZero = numWgtZero + index
+          numWgt1 = numWgt1 + ipt
+          numWgt2 = numWgt2 + iv
+          numWgt5 = numWgt5 + jpt
+        endif
+      else
+        robFailMess = 'TOO FEW DATA POINTS TO DO ROBUST FITTING'
+        numRobFailed = numRobFailed + 1
       endif
     endif
 
