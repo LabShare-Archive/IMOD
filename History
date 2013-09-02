@@ -3,6 +3,13 @@ IMOD History
 8/30/13: Added warping to the xfalign interface in eTomo - Serial Sections.
 (Bug# 1731)
 
+9/1/13: In Tiltalign, made robust fitting try not to get stuck in
+oscillations, and made it restore non-robust fit upon failure.
+
+8/30/13: IMOD_4-6-29
+8/30/13: Changed options to drop and ignore models in Autofidseed to take
+lists numbered from 1, not 0.
+
 8/30/13: In Pickbestseed, implemented a new analysis of whether beads are
 elongated and tuned the parameters with a variety of data sets.  It will now
 identify many fewer beads as elongated inappropriately when they are over a
