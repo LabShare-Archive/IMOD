@@ -129,7 +129,7 @@ tb.initial-blend.1=
   assert.cb.find-initial-shifts-with-cross-correlation=off
   assert.tf.sections-to-skip=
   assert.tf.fraction-to-ignore-on-edges=0.05
-  assert.sp.binning=2
+  assert.sp.binning-in-search=2
   assert.sp.binning-in-midas=1
   #test enabled
   assert.enabled.bn.open-stack=
@@ -150,7 +150,7 @@ tb.initial-blend.1=
   assert.enabled.cb.find-initial-shifts-with-cross-correlation=
   assert.enabled.tf.sections-to-skip=
   assert.enabled.tf.fraction-to-ignore-on-edges=
-  assert.enabled.sp.binning=
+  assert.enabled.sp.binning-in-search=
   assert.enabled.sp.binning-in-midas=
   assert.enabled.bn.initial-auto-alignment=
   assert.enabled.bn.midas=
