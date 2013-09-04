@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/2/13: Added warping to the xfalign interface in eTomo - Serial Sections.
+9/3/13: Added warping to the xfalign interface in eTomo - Serial Sections.
 (Bug# 1731)
 
 9/1/13: In Tiltalign, made robust fitting try not to get stuck in
