@@ -63,7 +63,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   private final MultiLineButton btnRevertToEmpty = new MultiLineButton(
       "Revert to No Transforms");
   private final LabeledSpinner spReduceByBinning = LabeledSpinner.getDefaultedInstance(
-      "Binning: ", 2, 1, 50, 1, 1);
+      "Binning in search: ", 2, 1, 50, 1, 1);
   private final LabeledTextField ltfSkipSectionsFrom1 = new LabeledTextField(
       FieldType.INTEGER_LIST, "Sections to skip: ");
   private final CheckBox cbPreCrossCorrelation = new CheckBox(
