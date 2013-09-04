@@ -279,7 +279,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
       return retval;
     }
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID,".st");
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID, ".st");
     montagesize.read(manager);
     convertToStartingAndEnding(startingAndEndingX, montagesize.getX().getInt(),
         fisSizeToOutputInXandY.getInt(0));
@@ -475,6 +475,9 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
         else if (mode == Mode.BLEND || mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
           imageOutputFile = datasetName + axisID.getExtension() + ".ali";
           imageOutputFileType = FileType.ALIGNED_STACK;
+        }
+        if (mode == Mode.SERIAL_SECTION_BLEND) {
+          sloppyMontage.set(true);
         }
       }
     }
@@ -747,7 +750,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     public static final Mode UNDISTORT = new Mode("Undistort");
     public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode("WholeTomogramSample");
     public static final Mode SERIAL_SECTION_PREBLEND = new Mode("SerialSections_Preblend");
-    public static final Mode SERIAL_SECTION_BLEND = new Mode("SerialSections_Preblend");
+    public static final Mode SERIAL_SECTION_BLEND = new Mode("SerialSections_Blend");
 
     private final String string;
 
