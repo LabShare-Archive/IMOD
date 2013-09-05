@@ -51,6 +51,16 @@ tooltip =
 manpage = Order pieces in a newly created piece list so that successive pieces
 occur in columns (in Y) rather than in rows (in X).
 
+[Field = StacksOfPieces]
+short = stacks
+type = I
+usage = 1 to order pieces in created piece list first by Z, -1 for inverse Z order
+tooltip = 
+manpage = Order pieces in a newly created piece list so that successive pieces
+go through the entire set Z values at each position in X and Y.  Enter 1 to
+have pieces in order by Z, or -1 for pieces in inverse order.  This option can
+be used together with the -columns option. 
+
 [Field = DivideByBinning]
 short = divide
 type = I
