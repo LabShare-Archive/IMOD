@@ -18,7 +18,6 @@ RootNameForEdges        g5a
 #
 # Use VerySloppyMontage instead if overlaps are particularly variable
 SloppyMontage   1
-ShiftPieces     1
 #
 # Change this to 1 after the first run if you fix edges in midas
 ReadInXcorrs    0
