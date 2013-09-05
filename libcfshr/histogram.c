@@ -7,7 +7,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <math.h>
@@ -28,7 +27,8 @@
  * Computes a standard or kernel histogram from the [numVals] values in the 
  * array [values].  The histogram is placed in the array
  * [bins], and occupies [numBins] between [firstVal] and [lastVal].  
- * The kernel width is set by [h], use 0 for a standard binned histogram.
+ * The kernel half-width is set by [h], where a triweight kernel with shape 
+ * (1-(x/h)^2)^3 is added at each point.  Use 0 for a standard binned histogram.
  * Set [verbose] to 1 for a list of values, or 2 for a list of bin values.
  */
 void kernelHistogram(float *values, int numVals, float *bins, int numBins,
@@ -281,15 +281,3 @@ int findhistogramdip(float *values, int *numVals, int *minGuess, float *bins,
                           *firstVal, *lastVal, histDip, peakBelow, peakAbove,
                           *verbose);
 }
-
-/*
-
-$Log$
-Revision 1.2  2008/11/12 05:11:06  mast
-Add include of math.h
-
-Revision 1.1  2008/11/12 03:47:22  mast
-Added to library, simplified functions from imodfindbeads for fortran use
-
-
-*/
