@@ -3,6 +3,8 @@ IMOD History
 9/4/13: Added SloppyMontage parameter to blend.com in eTomo - Serial Sections.
 (Bug# 1742)
 
+9/3/13: Added option to Edpiecepoint to create list ordered first by Z.
+
 9/3/13: Added warping to the xfalign interface in eTomo - Serial Sections.
 (Bug# 1731)
 
