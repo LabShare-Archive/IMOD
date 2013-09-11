@@ -2,6 +2,7 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.ui.LogProperties;
 import etomo.ui.swing.AnisotropicDiffusionDialog;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
@@ -54,8 +55,8 @@ public final class ParallelMetaData extends BaseMetaData {
   private String revision = null;
   private String rootName = null;
 
-  public ParallelMetaData() {
-    super();
+  public ParallelMetaData(final LogProperties logProperties) {
+    super(logProperties);
     axisType = AxisType.SINGLE_AXIS;
     fileExtension = DataFileType.PARALLEL.extension;
   }
