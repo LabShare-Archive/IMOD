@@ -49,8 +49,6 @@ import etomo.type.SlicerAngles;
 import etomo.ui.UIComponent;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.JoinDialog;
-import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainJoinPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ProcessDisplay;
@@ -553,8 +551,6 @@ import etomo.util.Utilities;
 public final class JoinManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
-  private final LogPanel logPanel = LogPanel.getInstance(this);
-
   // Process dialog references
   private JoinDialog joinDialog = null;
   private AutoAlignmentController autoAlignmentController = null;
@@ -572,13 +568,13 @@ public final class JoinManager extends BaseManager {
 
   JoinManager(String paramFileName, AxisID axisID) {
     super();
-    this.metaData = new JoinMetaData(this);
+    this.metaData = new JoinMetaData(this,getLogProperties());
     createState();
     processMgr = new JoinProcessManager(this, state);
     initializeUIParameters(paramFileName, axisID);
     if (!paramFileName.equals("") && loadedParamFile) {
       imodManager.setMetaData(metaData);
-      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+      mainPanel.setStatusBarText(paramFile, metaData,logWindow);
     }
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openJoinDialog();
@@ -610,7 +606,7 @@ public final class JoinManager extends BaseManager {
         initializeUIParameters(file, AxisID.ONLY, false);
         if (loadedParamFile) {
           imodManager.setMetaData(metaData);
-          mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+          mainPanel.setStatusBarText(paramFile, metaData, logWindow);
         }
       }
     }
@@ -707,7 +703,7 @@ public final class JoinManager extends BaseManager {
       initializeUIParameters(paramFile, AxisID.ONLY, false);
       if (loadedParamFile) {
         imodManager.setMetaData(metaData);
-        mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+        mainPanel.setStatusBarText(paramFile, metaData, logWindow);
       }
     }
     joinDialog.getMetaData(metaData, false);
@@ -1027,7 +1023,7 @@ public final class JoinManager extends BaseManager {
     // imodManager.setMetaData(metaData);
     // mainPanel.setStatusBarText(paramFile, metaData, logPanel);
     // }
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     return true;
   }
 
@@ -1353,7 +1349,7 @@ public final class JoinManager extends BaseManager {
       return false;
     }
     // Update main window information and status bar
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     return true;
   }
 
@@ -1364,15 +1360,7 @@ public final class JoinManager extends BaseManager {
   public JoinMetaData getJoinMetaData() {
     return metaData;
   }
-
-  public LogInterface getLogInterface() {
-    return logPanel;
-  }
-
-  public LogPanel getLogPanel() {
-    return logPanel;
-  }
-
+  
   /**
    * Start the next process specified by the nextProcess string
    */
