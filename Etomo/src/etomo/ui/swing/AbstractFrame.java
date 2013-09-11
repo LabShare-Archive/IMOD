@@ -67,8 +67,6 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
 
   abstract void menuHelpAction(ActionEvent actionEvent);
 
-  abstract LogFrame getLogFrame();
-
   abstract FrameType getFrameType();
 
   abstract void cancel();
@@ -105,14 +103,6 @@ abstract class AbstractFrame extends JFrame implements UIComponent, SwingCompone
 
   AxisID getAxisID() {
     return AxisID.ONLY;
-  }
-
-  void msgLogChanged(LogPanel logPanel) {
-    LogFrame logFrame = getLogFrame();
-    if (logFrame != null) {
-      logFrame.msgChanged(logPanel);
-    }
-    toFront();
   }
 
   void pack(boolean force) {

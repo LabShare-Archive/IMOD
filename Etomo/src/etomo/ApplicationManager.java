@@ -153,8 +153,6 @@ import etomo.ui.swing.FinalAlignedStackDialog;
 import etomo.ui.swing.FinalAlignedStackExpert;
 import etomo.ui.swing.FindBeads3dDisplay;
 import etomo.ui.swing.FlattenWarpDisplay;
-import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainTomogramPanel;
 import etomo.ui.swing.NewstackDisplay;
@@ -205,8 +203,6 @@ import etomo.util.Utilities;
 public final class ApplicationManager extends BaseManager implements
     ContinuousListenerTarget {
   public static final String rcsid = "$Id$";
-
-  private final LogPanel logPanel = LogPanel.getInstance(this);
 
   // Process dialog references
   private SetupDialogExpert setupDialogExpert = null;
@@ -282,7 +278,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   ApplicationManager(final String paramFileName, AxisID axisID) {
     super();
-    metaData = new MetaData(this);
+    metaData = new MetaData(this,getLogProperties());
     createState();
     processMgr = new ProcessManager(this);
     initializeUIParameters(paramFileName, axisID);
@@ -298,7 +294,7 @@ public final class ApplicationManager extends BaseManager implements
         imodManager.setMetaData(metaData);
         if (loadedParamFile) {
           openProcessingPanel();
-          mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+          mainPanel.setStatusBarText(paramFile, metaData, logWindow);
         }
       }
       if (newDataset) {
@@ -492,7 +488,7 @@ public final class ApplicationManager extends BaseManager implements
         // set paramFile so meta data can be saved
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
         if (mainPanel != null) {
-          mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+          mainPanel.setStatusBarText(paramFile, metaData, logWindow);
         }
         if (userConfig.getSwapYAndZ()) {
           metaData.setPostTrimvolSwapYZ(true);
@@ -647,14 +643,6 @@ public final class ApplicationManager extends BaseManager implements
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.RECON;
-  }
-
-  public LogInterface getLogInterface() {
-    return logPanel;
-  }
-
-  public LogPanel getLogPanel() {
-    return logPanel;
   }
 
   /**
@@ -2917,18 +2905,6 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
-  /**
-   * When SetupDialog is displayed, save the log properties to user config.
-   * Always call BaseManager.saveParamFile after doing this.
-   */
-  public boolean saveParamFile() throws LogFile.LockException, IOException {
-    if (getParameterStore() == null && logPanel != null) {
-      EtomoDirector.INSTANCE.getUserConfiguration().setLogProperties(
-          logPanel.getCurrentFrameProperties());
-    }
-    return super.saveParamFile();
-  }
-
   public boolean save() throws LogFile.LockException, IOException {
     super.save();
     if (mainPanel != null) {
@@ -3218,8 +3194,10 @@ public final class ApplicationManager extends BaseManager implements
     updateDirective(directiveMap,
         prepend + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.SKIP_NAME),
         errmsg, metaData.getExcludeProjectionsA());
-    updateDirective(directiveMap,
-        prepend + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.TWODIR_NAME),
+    updateDirective(
+        directiveMap,
+        prepend
+            + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.TWODIR_NAME),
         errmsg, metaData.getTwodir(curAxisID));
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
@@ -8381,7 +8359,7 @@ public final class ApplicationManager extends BaseManager implements
       return false;
     }
     // Update main window information and status bar
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     return true;
   }
 

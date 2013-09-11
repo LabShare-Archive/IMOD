@@ -501,7 +501,6 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   private String title;
   private String[] mRUList;
   private boolean registered = false;
-  private final LogFrame logFrame = LogFrame.getInstance();
 
   /**
    * Main window constructor.  This sets up the menus and status line.
@@ -550,16 +549,17 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey,
       boolean newWindow) {
-    setEnabled(currentManager);
-    if (EtomoDirector.INSTANCE.getArguments().isTest() && logFrame.isVisible()) {
-      showHideLog();
+    // Hide log window from previous manager
+    if (this.currentManager != null) {
+      this.currentManager.msgCurrentManagerChanged(false);
     }
+    setEnabled(currentManager);
     this.currentManager = currentManager;
     if (currentManager == null) {
-      EtomoDirector.INSTANCE.makeCurrent();
+      EtomoDirector.INSTANCE.makeOriginalDirLocal();
     }
     else {
-      currentManager.makeCurrent();
+      currentManager.msgCurrentManagerChanged(true);
       Utilities.managerStamp(currentManager.getPropertyUserDir(),
           currentManager.getName());
     }
@@ -571,14 +571,11 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     if (currentManager == null) {
       title = ETOMO_TITLE;
       hideAxisB();
-      logFrame.setPanel(null, newWindow);
-
     }
     else {
       mainPanel = currentManager.getMainPanel();
       title = currentManager.getName() + " - " + ETOMO_TITLE;
       rootPanel.add(windowSwitch.getPanel(managerKey));
-      logFrame.setPanel(currentManager.getLogPanel(), newWindow);
       toFront();
       mainPanel.addMouseListener(mouseAdapter);
       mainPanel.repaint();
@@ -603,16 +600,10 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
   }
 
-  public LogFrame getLogFrame() {
-    return logFrame;
-  }
-
-  void msgUpdateLogProperties(LogPanel logPanel) {
-    logFrame.msgUpdateProperties(logPanel);
-  }
-
   void showHideLog() {
-    logFrame.showHide();
+    if (currentManager != null) {
+      currentManager.showHideLog();
+    }
   }
 
   MainPanel getMainPanel() {

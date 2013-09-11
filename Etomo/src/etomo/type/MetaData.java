@@ -13,6 +13,7 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.logic.TrackingMethod;
+import etomo.ui.LogProperties;
 import etomo.util.Utilities;
 
 /**
@@ -809,7 +810,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoNumber twodirB = new EtomoNumber(EtomoNumber.Type.DOUBLE, STACK_KEY
       + "." + SECOND_AXIS_KEY + ".Twodir");
 
-  public MetaData(final ApplicationManager manager) {
+  public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
+    super(logProperties);
     this.manager = manager;
     binning.setDisplayValue(1);
     squeezevolParam = new SqueezevolParam(manager);

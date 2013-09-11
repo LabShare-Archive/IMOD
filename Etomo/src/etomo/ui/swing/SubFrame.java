@@ -93,10 +93,6 @@ public final class SubFrame extends EtomoFrame {
     }
   }
 
-  public LogFrame getLogFrame() {
-    return mainFrame.getLogFrame();
-  }
-
   /**
    * Set the main panel when switching managers.
    *

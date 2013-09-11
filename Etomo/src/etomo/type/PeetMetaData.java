@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Properties;
 
 import etomo.logic.MultiparticleReference;
+import etomo.ui.LogProperties;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -184,7 +185,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + ".Multiparticle.level");
   private final EtomoBoolean2 tiltRangeMultiAxes = new EtomoBoolean2("TiltRangeMultiAxes");
 
-  public PeetMetaData() {
+  public PeetMetaData(final LogProperties logProperties) {
+   super(logProperties);
     fileExtension = DataFileType.PEET.extension;
     axisType = AxisType.SINGLE_AXIS;
     referenceMultiparticleLevel.setDefault(MultiparticleReference.DEFAULT_LEVEL);

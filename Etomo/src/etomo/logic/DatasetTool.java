@@ -102,6 +102,7 @@ public final class DatasetTool {
     if (inputFile == null) {
       UIHarness.INSTANCE.openMessageDialog(manager, null, "The input file is empty.",
           MESSAGE_TITLE, axisID);
+      return false;
     }
     return validateDatasetName(manager, null, axisID, inputFile.getParentFile(),
         inputFile.getName(), dataFileType, axisType, false);

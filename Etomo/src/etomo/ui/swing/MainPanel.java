@@ -380,11 +380,11 @@ public abstract class MainPanel extends EtomoPanel {
     }
   }
 
-  public void setStatusBarText(File paramFile, BaseMetaData metaData, LogPanel logPanel) {
+  public void setStatusBarText(File paramFile, BaseMetaData metaData, LogWindow logWindow) {
     // Set the title of log panel. SetStatusBarText is used by all of the
     // interfaces so this is good place to do it.
-    if (logPanel != null) {
-      logPanel.setTitle(paramFile, metaData, manager.getPropertyUserDir());
+    if (logWindow != null) {
+      logWindow.setTitle(paramFile, metaData, manager.getPropertyUserDir());
     }
     // Set the status bar
     int maxTitleLength = 79;

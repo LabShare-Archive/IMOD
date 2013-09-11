@@ -51,11 +51,12 @@ import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.type.ViewType;
+import etomo.ui.LogProperties;
 import etomo.ui.UIComponent;
 import etomo.ui.swing.FileChooser;
 import etomo.ui.swing.FixedDim;
 import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.LogWindow;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.ParallelPanel;
 import etomo.ui.swing.ProcessDisplay;
@@ -117,6 +118,7 @@ public abstract class BaseManager {
   final AxisProcessData axisProcessData = new AxisProcessData(this);
   private final ResumeData resumeDataA = new ResumeData();
   private final ResumeData resumeDataB = new ResumeData();
+  final LogWindow logWindow = createLogWindow();
 
   public void dumpState() {
     System.err.println("[headless:" + headless + ",loadedParamFile:" + loadedParamFile
@@ -143,10 +145,6 @@ public abstract class BaseManager {
   public abstract MainPanel getMainPanel();
 
   public abstract BaseProcessManager getProcessManager();
-
-  public abstract LogPanel getLogPanel();
-
-  public abstract LogInterface getLogInterface();
 
   abstract Storable[] getStorables(int offset);
 
@@ -190,6 +188,24 @@ public abstract class BaseManager {
 
   public AxisProcessData getAxisProcessData() {
     return axisProcessData;
+  }
+
+  LogWindow createLogWindow() {
+    return LogWindow.getInstance();
+  }
+
+  public void showHideLog() {
+    if (logWindow != null) {
+      logWindow.showHide();
+    }
+  }
+
+  public LogInterface getLogInterface() {
+    return logWindow;
+  }
+
+  public LogProperties getLogProperties() {
+      return logWindow;
   }
 
   private void initProgram() {
@@ -646,14 +662,13 @@ public abstract class BaseManager {
    * @return
    */
   private Storable[] getStorables() {
-    Storable[] storables = getStorables(3);
+    Storable[] storables = getStorables(2);
     if (storables == null) {
       // Manager does not have a data file.
       return null;
     }
     storables[0] = getProcessManager().getProcessData(AxisID.FIRST);
     storables[1] = getProcessManager().getProcessData(AxisID.SECOND);
-    storables[2] = getLogPanel();
     return storables;
   }
 
@@ -671,7 +686,6 @@ public abstract class BaseManager {
     parameterStore.setAutoStore(false);
     parameterStore.save(getProcessManager().getProcessData(AxisID.FIRST));
     parameterStore.save(getProcessManager().getProcessData(AxisID.SECOND));
-    parameterStore.save(getLogPanel());
     return true;
   }
 
@@ -705,7 +719,7 @@ public abstract class BaseManager {
     save();
     parameterStore.setAutoStore(true);
     parameterStore.storeProperties();
-    // save(getStorableArray(true), axisID);
+    saveStorables(AxisID.ONLY);
     // Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
     uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
@@ -1939,9 +1953,33 @@ public abstract class BaseManager {
     getProcessManager().stopLoad(param, monitor);
   }
 
-  public final void makeCurrent() {
+  /**
+   * Called when the manager's interface is either displayed or hidden
+   * @param current - true when interface is displayed
+   */
+  public final void msgCurrentManagerChanged(final boolean current) {
+    if (current) {
+      makePropertyUserDirLocal();
+    }
+    if (logWindow != null) {
+      logWindow.msgCurrentManagerChanged(current, isStartupPopupOpen());
+    }
+  }
+
+  /**
+   * Startup popup dialogs are used to set the dataset name and location in some
+   * interfaces.
+   * @return
+   */
+  public boolean isStartupPopupOpen() {
+    // Most interfaces don't use a startup popup.
+    return false;
+  }
+
+  public final void makePropertyUserDirLocal() {
+    // make the manager's directory the local directory
     if (propertyUserDir == null) {
-      EtomoDirector.INSTANCE.makeCurrent();
+      EtomoDirector.INSTANCE.makeOriginalDirLocal();
     }
     else {
       System.setProperty("user.dir", propertyUserDir);

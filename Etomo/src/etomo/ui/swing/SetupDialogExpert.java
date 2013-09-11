@@ -276,7 +276,7 @@ public final class SetupDialogExpert {
     // where one is done on A and the other is done on B, would be considered
     // sharing a directory.
     for (int i = 0; i < edfFiles.length; i++) {
-      MetaData savedMetaData = new MetaData(manager);
+      MetaData savedMetaData = new MetaData(manager,manager.getLogProperties());
       try {
         ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i]);
         if (paramStore != null) {
