@@ -13,7 +13,7 @@ import etomo.type.InterfaceType;
 import etomo.type.ProcessName;
 import etomo.ui.FrontPageUIHarness;
 import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.LogWindow;
 import etomo.ui.swing.MainFrontPagePanel;
 import etomo.ui.swing.MainPanel;
 
@@ -65,7 +65,7 @@ public final class FrontPageManager extends BaseManager {
 
   public FrontPageManager() {
     super();
-    this.metaData = new FrontPageMetaData();
+    this.metaData = new FrontPageMetaData(getLogProperties());
     createState();
     initializeUIParameters("", AXIS_ID);
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
@@ -96,10 +96,6 @@ public final class FrontPageManager extends BaseManager {
     return null;
   }
 
-  public LogPanel getLogPanel() {
-    return null;
-  }
-
   void processSucceeded(final AxisID axisID, final ProcessName processName) {
   }
 
@@ -110,6 +106,10 @@ public final class FrontPageManager extends BaseManager {
   }
 
   private void createState() {
+  }
+  
+  LogWindow createLogWindow(){
+    return null;
   }
 
   public BaseMetaData getBaseMetaData() {
