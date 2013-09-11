@@ -96,10 +96,6 @@ public final class ManagerFrame extends AbstractFrame {
     addWindowFocusListener(new ManagerWindowFocusListener(manager));
   }
 
-  public LogFrame getLogFrame() {
-    return null;
-  }
-
   public void menuFileAction(ActionEvent event) {
     menu.menuFileAction(event);
   }
@@ -207,7 +203,7 @@ public final class ManagerFrame extends AbstractFrame {
     }
 
     public void windowGainedFocus(WindowEvent e) {
-      manager.makeCurrent();
+      manager.makePropertyUserDirLocal();
     }
 
     public void windowLostFocus(WindowEvent e) {
