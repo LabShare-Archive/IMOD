@@ -30,7 +30,7 @@ import etomo.type.ToolsMetaData;
 import etomo.ui.swing.Deferred3dmodButton;
 import etomo.ui.swing.FlattenWarpDisplay;
 import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.LogWindow;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainToolsPanel;
 import etomo.ui.swing.ToolsDialog;
@@ -98,7 +98,7 @@ public final class ToolsManager extends BaseManager {
 
   public ToolsManager(final ToolType toolType) {
     this.toolType = toolType;
-    this.metaData = new ToolsMetaData(DIALOG_TYPE, toolType);
+    this.metaData = new ToolsMetaData(DIALOG_TYPE, toolType, getLogProperties());
     createState();
     processMgr = new ToolsProcessManager(this);
     initializeUIParameters(null, AXIS_ID);
@@ -122,7 +122,7 @@ public final class ToolsManager extends BaseManager {
       uiHarness.toFront(this);
     }
   }
-  
+
   public boolean closeFrame() {
     return true;
   }
@@ -442,10 +442,6 @@ public final class ToolsManager extends BaseManager {
     return toolsDialog;
   }
 
-  public LogPanel getLogPanel() {
-    return null;
-  }
-
   void createComScriptManager() {
     comScriptMgr = new ToolsComScriptManager(this);
   }
@@ -457,6 +453,10 @@ public final class ToolsManager extends BaseManager {
   }
 
   private void createState() {
+  }
+
+  LogWindow createLogWindow() {
+    return null;
   }
 
   public BaseMetaData getBaseMetaData() {
