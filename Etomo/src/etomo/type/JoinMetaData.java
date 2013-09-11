@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import etomo.BaseManager;
 import etomo.comscript.MakejoincomParam;
+import etomo.ui.LogProperties;
 import etomo.ui.swing.JoinDialog;
 import etomo.ui.swing.UIHarness;
 import etomo.util.Utilities;
@@ -236,7 +237,8 @@ public final class JoinMetaData extends BaseMetaData implements ConstJoinMetaDat
 
   private final BaseManager manager;
 
-  public JoinMetaData(BaseManager manager) {
+  public JoinMetaData(BaseManager manager, final LogProperties logProperties) {
+    super(logProperties);
     this.manager = manager;
     axisType = AxisType.SINGLE_AXIS;
     fileExtension = DataFileType.JOIN.extension;
