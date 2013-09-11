@@ -188,7 +188,7 @@ public final class SetupReconUIHarness {
     if (setupInterface == null) {
       return null;
     }
-    MetaData metaData = new MetaData(manager);
+    MetaData metaData = new MetaData(manager, manager.getLogProperties());
     metaData.setAxisType(getAxisType());
     // The dataset name needs to be set after the axis type so the metadata object
     // modifies the file ending correctly (if a file name is used).
@@ -464,10 +464,8 @@ public final class SetupReconUIHarness {
           setupInterface.getExcludeList(AxisID.FIRST, doValidation), AxisID.FIRST);
       metaData.setExcludeProjections(
           setupInterface.getExcludeList(AxisID.SECOND, doValidation), AxisID.SECOND);
-      metaData.setIsTwodir(AxisID.FIRST,
-          setupInterface.isTwodir(AxisID.FIRST));
-      metaData.setIsTwodir(AxisID.SECOND,
-          setupInterface.isTwodir(AxisID.SECOND));
+      metaData.setIsTwodir(AxisID.FIRST, setupInterface.isTwodir(AxisID.FIRST));
+      metaData.setIsTwodir(AxisID.SECOND, setupInterface.isTwodir(AxisID.SECOND));
       metaData.setTwodir(AxisID.FIRST,
           setupInterface.getTwodir(AxisID.FIRST, doValidation));
       metaData.setTwodir(AxisID.SECOND,
