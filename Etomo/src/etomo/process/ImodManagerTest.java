@@ -60,7 +60,7 @@ public class ImodManagerTest extends TestCase {
     super(arg0);
     EtomoDirector.INSTANCE.openTomogram(true, AxisID.ONLY);
     manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
-    metaData = new MetaData((ApplicationManager) manager);
+    metaData = new MetaData((ApplicationManager) manager,manager.getLogProperties());
   }
 
   //Regression test
