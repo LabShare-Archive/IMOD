@@ -3,6 +3,7 @@ package etomo.type;
 import java.util.Properties;
 
 import etomo.storage.Storable;
+import etomo.ui.LogProperties;
 
 /**
  * <p>Description: </p>
@@ -79,6 +80,8 @@ public abstract class BaseMetaData implements Storable {
   private final StringProperty currentProcesschunksSubdirNameB = new StringProperty("B."
       + CURRENT_PROCESSCHUNKS_SUBDIR_NAME);
 
+  private final LogProperties logProperties;
+
   public abstract String getMetaDataFileName();
 
   public abstract String getName();
@@ -86,8 +89,12 @@ public abstract class BaseMetaData implements Storable {
   public abstract String getDatasetName();
 
   public abstract boolean isValid();
-  
+
   abstract String getGroupKey();
+
+  BaseMetaData(final LogProperties logProperties) {
+    this.logProperties = logProperties;
+  }
 
   public String toString() {
     return "[fileExtension:" + fileExtension + ",revisionNumber:" + revisionNumber
@@ -115,6 +122,9 @@ public abstract class BaseMetaData implements Storable {
     currentProcesschunksRootNameB.store(props, prepend);
     currentProcesschunksSubdirNameA.store(props, prepend);
     currentProcesschunksSubdirNameB.store(props, prepend);
+    if (logProperties != null) {
+      logProperties.store(props, prepend);
+    }
   }
 
   public void load(Properties props, String prepend) {
@@ -129,6 +139,9 @@ public abstract class BaseMetaData implements Storable {
     currentProcesschunksRootNameB.load(props, prepend);
     currentProcesschunksSubdirNameA.load(props, prepend);
     currentProcesschunksSubdirNameB.load(props, prepend);
+    if (logProperties != null) {
+      logProperties.load(props, prepend);
+    }
   }
 
   public EtomoVersion getRevisionNumber() {
