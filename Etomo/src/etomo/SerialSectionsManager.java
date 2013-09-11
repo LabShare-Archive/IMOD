@@ -40,8 +40,6 @@ import etomo.type.SerialSectionsState;
 import etomo.type.ViewType;
 import etomo.ui.UIComponent;
 import etomo.ui.swing.Deferred3dmodButton;
-import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainSerialSectionsPanel;
 import etomo.ui.swing.ProcessDisplay;
@@ -72,8 +70,6 @@ public final class SerialSectionsManager extends BaseManager {
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
 
-  private final LogPanel logPanel = LogPanel.getInstance(this);
-
   private final SerialSectionsState state = new SerialSectionsState();
 
   private final SerialSectionsMetaData metaData;
@@ -98,7 +94,7 @@ public final class SerialSectionsManager extends BaseManager {
 
   SerialSectionsManager(final String paramFileName) {
     super();
-    metaData = new SerialSectionsMetaData();
+    metaData = new SerialSectionsMetaData(getLogProperties());
     processMgr = new SerialSectionsProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
   }
@@ -125,7 +121,7 @@ public final class SerialSectionsManager extends BaseManager {
   private void openDialog() {
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+      mainPanel.setStatusBarText(paramFile, metaData, logWindow);
       if (loadedParamFile) {
         openSerialSectionsDialog(null);
       }
@@ -133,6 +129,10 @@ public final class SerialSectionsManager extends BaseManager {
         openSerialSectionsStartupDialog();
       }
     }
+  }
+  
+  public boolean isStartupPopupOpen() {
+    return !loadedParamFile;
   }
 
   void display() {
@@ -211,7 +211,7 @@ public final class SerialSectionsManager extends BaseManager {
       return false;
     }
     imodManager.setMetaData(metaData);
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     return true;
   }
@@ -708,6 +708,7 @@ public final class SerialSectionsManager extends BaseManager {
   private void doneStartupDialog(final ConstProcessSeries processSeries,
       final AxisID axisID) {
     startupDialog.done();
+    logWindow.show();
     if (processSeries != null) {
       processSeries.startNextProcess(axisID);
     }
@@ -960,14 +961,6 @@ public final class SerialSectionsManager extends BaseManager {
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.SERIAL_SECTIONS;
-  }
-
-  public LogInterface getLogInterface() {
-    return logPanel;
-  }
-
-  public LogPanel getLogPanel() {
-    return logPanel;
   }
 
   public MainPanel getMainPanel() {
