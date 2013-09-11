@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.io.File;
 
+import etomo.ui.LogProperties;
+
 /**
 * <p>Description: </p>
 * 
@@ -23,7 +25,9 @@ public final class DirectiveEditorMetaData extends BaseMetaData {
 
   private String rootName = null;
 
-  public DirectiveEditorMetaData(final DirectiveFileType type) {
+  public DirectiveEditorMetaData(final DirectiveFileType type,
+      final LogProperties logProperties) {
+    super(logProperties);
     this.type = type;
     axisType = AxisType.SINGLE_AXIS;
   }
