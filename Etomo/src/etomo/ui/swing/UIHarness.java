@@ -623,18 +623,6 @@ public final class UIHarness {
     }
   }
 
-  public void msgLogChanged(BaseManager manager, LogPanel logPanel) {
-    if (isHead()) {
-      getFrame(manager).msgLogChanged(logPanel);
-    }
-  }
-
-  public void msgUpdateLogProperties(LogPanel logPanel) {
-    if (isHead()) {
-      mainFrame.msgUpdateLogProperties(logPanel);
-    }
-  }
-
   public void exit(final AxisID axisID, final int exitValue) {
     // Store the current location of the frame in case etomo exits.
     if (isHead()) {
