@@ -229,6 +229,13 @@ public class EtomoNumber extends ConstEtomoNumber {
     }
     set(defaultValue);
   }
+  
+  public void load(Properties props, String prepend, boolean defaultValue) {
+    if (loadIfPresent(props, prepend)) {
+      return;
+    }
+    set(defaultValue);
+  }
 
   public boolean isKeyPresent(Properties props, String prepend) {
     if (props.getProperty(prepend == null || prepend.matches("\\s*") ? name : prepend
