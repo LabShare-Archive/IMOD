@@ -67,28 +67,30 @@ float distance3D(Ipoint *p1, Ipoint *p2);
 int main( int argc, char *argv[])
 {
   FILE *coordFP = NULL, *inFP = NULL, *intoFP = NULL, *outFP = NULL;
+  FILE *maskFP = NULL;
   char line[lineSz];
   char msg[256];
   char *progname = imodProgName(argv[0]);
-  char *inFile, *intoFile, *outFile, *coordFile, *listString;
+  char *inFile, *intoFile, *maskFile, *outFile, *coordFile, *listString;
   int iSlice, numOptArgs, numNonOptArgs, inMode, intoMode;
-  int *contourList = NULL, numContours = 0;
+  int *contourList = NULL, numContours = 0, withinMask = 1;
   int nClones = 0, maxClones = 100, iClone, ix, iy, rMin, rMax;
-  float alpha, xMin, xMax, yMin, yMax, zMin, zMax;
+  float alpha, xMin, xMax, yMin, yMax, zMin, zMax, r = 0;
   Imat **xform = NULL;
   bndBox3D inBBox, intoBBox, *outBBox = NULL;
-  MrcHeader inHeader, intoHeader, outHeader;
+  MrcHeader inHeader, intoHeader, maskHeader, outHeader;
   corners3D inCorners;
   float **inVol = NULL, minGray = FLT_MAX, maxGray = -FLT_MIN, meanGray = 0.0;
+  unsigned char **maskVol = NULL;
   Islice *slice = NULL;
   Ipoint inCenter;
 
-  int numOptions = 11;
+  int numOptions = 12;
   const char *options[] = {
     "at:AtPoints:FN:", "x:XRange:IP:", "y:YRange:IP:", "z:ZRange:IP:",
     "input:InputFile:FN:", "output:OutputFile:FN:",  "into:IntoFile:FN:",
     "contours:ContourNumbers:LI:", "alpha:AlphaTransparency:F:",
-    "rmin:rMin:I", "rmax:rMax:I"};
+    "mask:MaskFile:FN:", "rmin:rMin:I:", "rmax:rMax:I"};
   const char *UsageString =
     "Usage: clonevolume [options] -into target -at locations inputVol outputVol";
   /* Parse parameters */
@@ -130,6 +132,8 @@ int main( int argc, char *argv[])
     rMin = 0;
   if (PipGetInteger("rMax", &rMax))
     rMax = 32767;
+  if (PipGetString("MaskFile", &maskFile))
+    maskFile = NULL;
 
   PipDone();
 
@@ -141,17 +145,17 @@ int main( int argc, char *argv[])
   }
   free(coordFile);
   if (fgets(line, lineSz, coordFP) == NULL) {
-    sprintf(msg, "Error reading location/orientation file :\n%s", coordFile);
+    sprintf(msg, "Error reading location/orientation file:\n%s", coordFile);
     exitError(msg);
   }
 
   /* Open the input file */
   if ((inFP = fopen(inFile, "rb")) == 0) {
-    sprintf(msg, "Error opening input file :\n%s", inFile);
+    sprintf(msg, "Error opening input file:\n%s", inFile);
     exitError(msg);
   }
   if (mrc_head_read(inFP, &inHeader)) {
-    sprintf(msg, "Error reading header of input file :\n%s", inFile);
+    sprintf(msg, "Error reading header of input file:\n%s", inFile);
     exitError(msg);
   }
   inMode = sliceModeIfReal(inHeader.mode);
@@ -160,11 +164,11 @@ int main( int argc, char *argv[])
 
   /* Open the into file */
   if ((intoFP = fopen(intoFile, "rb")) == 0) {
-    sprintf(msg, "Error opening into file :\n%s", intoFile);
+    sprintf(msg, "Error opening into file:\n%s", intoFile);
     exitError(msg);
   }
   if (mrc_head_read(intoFP, &intoHeader)) {
-    sprintf(msg, "Error reading header of into file :\n%s", intoFile);
+    sprintf(msg, "Error reading header of into file:\n%s", intoFile);
     exitError(msg);
   }
   intoMode = sliceModeIfReal(intoHeader.mode);
@@ -176,8 +180,27 @@ int main( int argc, char *argv[])
 
   /* Open the output file */
   if ((outFP = fopen(outFile, "wb")) == 0) {
-    sprintf(msg, "Error opening output file :\n%s", outFile);
+    sprintf(msg, "Error opening output file:\n%s", outFile);
     exitError(msg);
+  }
+
+  /* Open the mask file, if specified */
+  if (maskFile) {
+    if ((maskFP = fopen(maskFile, "r")) != 0) {
+      if (mrc_head_read(maskFP, &maskHeader)) {
+	sprintf(msg, "Error reading header of mask file:\n%s", maskFile);
+	exitError(msg);
+      }
+      if (inHeader.nx != maskHeader.nx || inHeader.ny != maskHeader.ny ||
+          inHeader.nz != maskHeader.nx)
+        exitError("Input and mask volumes must be the same size!");
+      if (maskHeader.mode != MRC_MODE_BYTE)
+        exitError("Mask file must be an unsigned byte file (mode 0)!");
+    }
+    else {
+      sprintf(msg, "Error opening mask file:\n%s", maskFile);
+      exitError(msg);
+    }
   }
    
   xform = allocateMat3DArray(maxClones);
@@ -255,6 +278,21 @@ int main( int argc, char *argv[])
   }
   fclose(inFP);
 
+  /* Read the mask volume (if any) as unsigned char */
+  if (maskFile) {
+    maskVol = (unsigned char **)malloc(maskHeader.nz * sizeof(unsigned char *));
+    if (!maskVol)
+      exitError("Allocation failed: out of memory");
+    for (iSlice = 0; iSlice < maskHeader.nz; iSlice++) {
+      slice = sliceReadMRC(&maskHeader, iSlice, 'Z');
+      if (!slice)
+	exitError("Error reading mask volume");
+      maskVol[iSlice] = slice->data.b;
+      free(slice); /* This frees the slice but not the data pointed to */
+    }
+    fclose(maskFP);
+  }
+
   slice = sliceCreate(intoHeader.nx, intoHeader.ny, intoMode);
   if (!slice)
     exitError("Allocation failed: out of memory");
@@ -286,8 +324,14 @@ int main( int argc, char *argv[])
             /* dimension are within input vol for trilinear interpolation. */
             if (isInside(&inPt, &inBBox, 1.0001)) {
               float inVal;
-              const float r = distance3D(&inPt, &inCenter); 
-              if (r >= rMin && r <= rMax) {
+              if (rMin != 0 || rMax != 32767)
+                r = distance3D(&inPt, &inCenter); 
+              if (maskVol) {
+                /* Use nearest neighbor interpolation for masking */
+                withinMask = maskVol[(int)(inPt.z + 0.5)]
+		  [(int)(inPt.x + 0.5) + maskHeader.nx * (int)(inPt.y + 0.5)];
+	      }
+              if (r >= rMin && r <= rMax && withinMask != 0) {
                 if (sliceGetVal(slice, ix, iy, oldVal))
                   exitError("Error retrieving value from slice");
                 inVal = trilinearInterpolation(
@@ -330,11 +374,15 @@ int main( int argc, char *argv[])
   fclose(intoFP);
   for (iSlice = 0; iSlice < inHeader.nz; iSlice++) {
     free(inVol[iSlice]);
+    if (maskVol)
+      free(maskVol[iSlice]);
   }
   free(inVol);
+  if (maskVol)
+    free(maskVol);
   xform = freeMat3DArray(xform, maxClones);
   free(outBBox);
-
+  
   printf("Finished!\n");
   exit(0);
 }

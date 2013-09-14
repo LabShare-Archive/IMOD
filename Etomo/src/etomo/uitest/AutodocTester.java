@@ -1202,15 +1202,22 @@ final class AutodocTester extends Assert implements VariableList {
         if (!wait) {
           wait = true;
         }
+        try {
+          Thread.sleep(3000);
+        }
+        catch (InterruptedException e) {
+        }
         // Try to get the pop up immediately
         setupComponentFinder(JOptionPane.class);
         Container popup = (Container) finder.find();
         // If popup hasn't popped up, keep waiting.
         if (popup == null) {
+          // System.out.println("B:subjectName:" + subjectName);
           return true;
         }
         // Make sure its the right popup
         String popupName = popup.getName();
+        // System.out.println("A:popupName:" + popupName + ",subjectName:" + subjectName);
         if (popupName == null || !popupName.equals(subjectName)) {
           // Close incorrect popup and fail
           helper.sendKeyAction(new KeyEventData(testRunner, popup, KeyEvent.VK_ESCAPE));
