@@ -8,3 +8,4 @@ PieceListInput	mediumscansb2.pl
 RootNameForEdges	mediumscansb2
 TransformFile	mediumscansb2.xg
 UnalignedStartingXandY	-3,0
+SloppyMontage	
