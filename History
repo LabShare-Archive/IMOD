@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/13/13: Fixed right-click menu in eTomo - Fiducial Model Dialog.(Bug# 1683)
+
 9/10/13: Resolved problems with the project log window.(Bug# 1690, Bug# 1616)
 
 9/4/13: Added SloppyMontage parameter to blend.com in eTomo - Serial Sections.
