@@ -12,7 +12,6 @@ ImageInputFile	mediumscansb2.rec
 PieceListInput	mediumscansb2.pl
 ImageOutputFile	mediumscansb2_preblend.mrc
 RootNameForEdges	mediumscansb2
-ShiftPieces     1
 #
 # Change this to 1 after the first run if you fix edges in midas
 ReadInXcorrs	0
