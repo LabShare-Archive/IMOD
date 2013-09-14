@@ -82,6 +82,15 @@ to be used when cloning volumes  (default  0). If 0, cloned voxels will simply
 replace the originals. More generally, the output voxels will be alpha times
 the cloned voxel plus (1 - alpha) times the previous value. 
 
+[Field = MaskFile]
+short = mask
+type = FN
+usage = An optional byte file for masking the input volume.
+tooltip = 
+manpage = The name of a byte (mode 0) file which will be used to mask the input
+volume. Non-zero values in this file indicate voxel locations in the input
+volume which should be cloned.
+
 [Field = rMin]
 short = rmin
 type = I
