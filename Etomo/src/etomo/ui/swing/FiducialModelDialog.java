@@ -829,7 +829,16 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private void addListeners() {
     btnSeed.setContainer(this);
     btnAutofidseed.setContainer(this);
-    rootPanel.addMouseListener(new GenericMouseAdapter(this));
+    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
+    rootPanel.addMouseListener(mouseAdapter);
+    for (int i = 0; i < SeedAndTrackTab.NUM_TABS; i++) {
+      pnlSeedAndTrackArray[i].addMouseListener(mouseAdapter);
+      pnlSeedAndTrackBodyArray[i].addMouseListener(mouseAdapter);
+    }
+    for (int i = 0; i < RunRaptorTab.NUM_TABS; i++) {
+      pnlRunRaptorArray[i].addMouseListener(mouseAdapter);
+      pnlRunRaptorBodyArray[i].addMouseListener(mouseAdapter);
+    }
     tpSeedAndTrack.addChangeListener(new SeedAndTrackTabChangeListener(this));
     tpRunRaptor.addChangeListener(new RunRaptorTabChangeListener(this));
     btnSeed.addActionListener(actionListener);
@@ -1129,13 +1138,15 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
    * Right mouse button context menu
    */
   public void popUpContextMenu(final MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Transferfid", "Beadtrack", "3dmod" };
-    String[] manPage = { "transferfid.html", "beadtrack.html", "3dmod.html" };
+    String[] manPagelabel = { "Autofidseed", "Beadtrack", "Transferfid", "3dmod" };
+    String[] manPage = { "autofidseed.html", "beadtrack.html", "transferfid.html",
+        "3dmod.html" };
 
-    String[] logFileLabel = { "Track", "Transferfid" };
-    String[] logFile = new String[2];
-    logFile[0] = "track" + axisID.getExtension() + ".log";
-    logFile[1] = "transferfid.log";
+    String[] logFileLabel = { "Autofidseed", "Track", "Transferfid" };
+    String[] logFile = new String[3];
+    logFile[0] = "autofidseed" + axisID.getExtension() + ".log";
+    logFile[1] = "track" + axisID.getExtension() + ".log";
+    logFile[2] = "transferfid.log";
 
     // ContextPopup contextPopup =
     new ContextPopup(rootPanel, mouseEvent, "GETTING FIDUCIAL", ContextPopup.TOMO_GUIDE,
@@ -1329,7 +1340,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     }
   }
 
-  /*public static final class MethodEnumeratedType implements EnumeratedType { public
+  /* public static final class MethodEnumeratedType implements EnumeratedType { public
    * static final MethodEnumeratedType SEED = new MethodEnumeratedType(true, 0, "Seed");
    * public static final MethodEnumeratedType PATCH_TRACKING = new MethodEnumeratedType(
    * false, 1, "PatchTracking"); public static final MethodEnumeratedType RAPTOR = new
