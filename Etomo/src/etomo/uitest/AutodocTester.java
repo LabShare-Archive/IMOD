@@ -791,10 +791,10 @@ final class AutodocTester extends Assert implements VariableList {
    * @param command
    * @return false if an optional command fails, otherwise return true or fail an assert
    */
-  private boolean executeCommand(final Command command) throws FileNotFoundException,
+  private void executeCommand(final Command command) throws FileNotFoundException,
       IOException, LogFile.LockException {
     if (command == null || !command.isKnown()) {
-      return true;
+      return;
     }
     BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     UITestActionType actionType = command.getActionType();
@@ -1202,22 +1202,17 @@ final class AutodocTester extends Assert implements VariableList {
         if (!wait) {
           wait = true;
         }
-        try {
-          Thread.sleep(3000);
-        }
-        catch (InterruptedException e) {
-        }
         // Try to get the pop up immediately
         setupComponentFinder(JOptionPane.class);
         Container popup = (Container) finder.find();
         // If popup hasn't popped up, keep waiting.
         if (popup == null) {
-          // System.out.println("B:subjectName:" + subjectName);
-          return true;
+          System.out.println("B:subjectName:" + subjectName+",wait:"+wait);
+          Thread.dumpStack();
+          return;
         }
         // Make sure its the right popup
         String popupName = popup.getName();
-        // System.out.println("A:popupName:" + popupName + ",subjectName:" + subjectName);
         if (popupName == null || !popupName.equals(subjectName)) {
           // Close incorrect popup and fail
           helper.sendKeyAction(new KeyEventData(testRunner, popup, KeyEvent.VK_ESCAPE));
@@ -1236,7 +1231,7 @@ final class AutodocTester extends Assert implements VariableList {
         }
         wait = false;
         if (wait) {
-          return true;
+          return;
         }
       }
       // wait.process.process_title = process_bar_end_text
@@ -1245,7 +1240,7 @@ final class AutodocTester extends Assert implements VariableList {
         assertNotNull("end state is required (" + command + ")", value);
         if (!wait) {
           wait = true;
-          return true;
+          return;
         }
         // Already waited at least once - now see whether the process is done.
         // Waiting for anything but a single process or the last process in a
@@ -1266,7 +1261,7 @@ final class AutodocTester extends Assert implements VariableList {
         assertNotNull("can't find progress bar label (" + command + ")", progressBar);
         // Decide if the process is still running
         if (killButton.isEnabled()) {
-          return true;
+          return;
         }
         // The killButton turns on and off in between processes. Avoid exiting
         // in that case.
@@ -1276,7 +1271,7 @@ final class AutodocTester extends Assert implements VariableList {
         catch (InterruptedException e) {
         }
         if (killButton.isEnabled()) {
-          return true;
+          return;
         }
         try {
           Thread.sleep(500);
@@ -1284,7 +1279,7 @@ final class AutodocTester extends Assert implements VariableList {
         catch (InterruptedException e) {
         }
         if (killButton.isEnabled()) {
-          return true;
+          return;
         }
         try {
           Thread.sleep(500);
@@ -1292,17 +1287,17 @@ final class AutodocTester extends Assert implements VariableList {
         catch (InterruptedException e) {
         }
         if (killButton.isEnabled()) {
-          return true;
+          return;
         }
         // Decide if this is the right process
         String progressBarName = Utilities.convertLabelToName(progressBarLabel.getText());
         if (!progressBarName.equals(subjectName)) {
-          return true;
+          return;
         }
         String progressString = progressBar.getString();
         if (!isFinalProgressString(progressString, value)) {
           // A final progress string is either the command, or "killed", "paused", etc.
-          return true;
+          return;
         }
         // The right process is done
         wait = false;
@@ -1336,7 +1331,7 @@ final class AutodocTester extends Assert implements VariableList {
     else if (!actionType.isNoOp()) {
       fail("unexpected command (" + command.toString() + ")");
     }
-    return true;
+    return;
   }
 
   /**
