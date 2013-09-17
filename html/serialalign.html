@@ -224,9 +224,9 @@ turn on the option <B>Find initial shifts with cross-correlation</B>,
 which will make <A HREF = "man/xfalign.html#TOP">Xfalign</A> run 
 <A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A> first to correlate the images
 at all possible shifts and find the best one.
-[FUTURE: By turning off the <B>Search For</B> checkbox, it is also possible to
+By turning off the <B>Search For</B> checkbox, it is also possible to
 find just the shifts by cross-correlation and skip the search in 
-<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>.]
+<A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A>.
 <P>
 The automatic alignment should work better if images are processed to
 emphasize corresponding features.  The processing and area selection options
@@ -352,7 +352,7 @@ smaller subset of data sets than automatic searches for linear
 transformations.  However, it is likely to work with data sets based on serial
 block face imaging. 
 <P>
-[FUTURE: To compute a warping automatically, select <B>Find warping
+To compute a warping automatically, select <B>Find warping
 transformations</B>, which will enable all of the related fields.  
 <UL>
 <LI> Enter
@@ -384,7 +384,7 @@ shift with the adjacent up and down arrow buttons.  As mentioned above,
 clicking with the left mouse button selects the nearest point and dragging
 with it adjusts the shift for the current point.  There is a hot key, "D", for
 deleting the current point.
-<BR>END FUTURE]
+<BR>
 <P>
 To add warping in <A HREF = "man/midas.html#TOP">Midas</A>, select the
 option <B>Add/edit warp points</B> after aligning as much you wish with a
@@ -401,13 +401,13 @@ for more details.
 You can find warping automatically in conjunction with either an initial
 alignment search or a search to refine an existing alignment.  However,
 you cannot use <B>Refine with Auto Alignment</B> once you have a warping
-alignment.  [FUTURE: If you run an initial autoalignment with warping and it runs
+alignment.  If you run an initial autoalignment with warping and it runs
 into problems with getting the initial shifts or linear
 transformations, then the best approach is to rerun the initial search
 without the warping.  Use <A HREF = "man/midas.html#TOP">Midas</A>
 to fix any problems from that search.  Then use <B>Refine with Auto
     Alignment</B> to add the warping, omitting the linear search by turning
-off <B>Search For</B>.  END FUTURE]
+off <B>Search For</B>.
 
 <h3><A NAME = "Images"></A>Creating the Aligned Stack</H3>
 <P>
