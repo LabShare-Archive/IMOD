@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Properties;
 
 import etomo.logic.SerialSectionsStartupData;
+import etomo.ui.LogProperties;
 
 /**
 * <p>Description: </p>
@@ -52,7 +53,8 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   private final EtomoNumber sizeY = new EtomoNumber("SizeY");
   private final EtomoNumber tab = new EtomoNumber("Tab");
 
-  public SerialSectionsMetaData() {
+  public SerialSectionsMetaData(final LogProperties logProperties) {
+    super(logProperties);
     fileExtension = DataFileType.SERIAL_SECTIONS.extension;
     axisType = AxisType.SINGLE_AXIS;
     noOptions.setDisplayValue(true);
@@ -79,6 +81,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   }
 
   public void load(final Properties props, String prepend) {
+    super.load(props,prepend);
     // reset
     rootName.reset();
     stack.reset();
@@ -122,6 +125,7 @@ public final class SerialSectionsMetaData extends BaseMetaData implements
   }
 
   public void store(final Properties props, String prepend) {
+    super.store(props, prepend);
     prepend = createPrepend(prepend);
     CURRENT_VERSION.store(props, prepend);
     autoAlignmentMetaData.store(props, prepend);

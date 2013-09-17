@@ -1,7 +1,13 @@
 package etomo.ui.swing;
 
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,19 +15,25 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.storage.Loggable;
-import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.BaseMetaData;
-import etomo.type.ConstLogProperties;
+import etomo.type.EtomoBoolean2;
+import etomo.type.EtomoNumber;
+import etomo.ui.LogProperties;
 
 /**
  * <p>Description: Text of a project log.  Associated with one manager.  Do not
@@ -70,18 +82,30 @@ import etomo.type.ConstLogProperties;
  * <p> bug# 1158 The log window panel.  One instance per manager is created.
  * <p> </p>
  */
-public final class LogPanel implements Storable, LogInterface {
+public final class LogWindow implements LogInterface, LogProperties {
   public static final String rcsid = "$Id$";
 
   static final String TITLE = "Project Log";
-  static final String SAVE_LABEL = "Save Log";
-  static final String LOG_WINDOW_LABEL = "Hide Log Window";
+  private static final boolean VISIBLE_DEFAULT = true;
+  private static final String PREPEND = "ProjectLog";
 
+  private final EtomoNumber frameSizeWidthProperty = new EtomoNumber("FrameSize.Width");
+  private final EtomoNumber frameSizeHeightProperty = new EtomoNumber("FrameSize.Height");
+  private final EtomoNumber frameLocationXProperty = new EtomoNumber("FrameLocation.X");
+  private final EtomoNumber frameLocationYProperty = new EtomoNumber("FrameLocation.Y");
+  private final EtomoBoolean2 visibleProperty = new EtomoBoolean2("Visible");
+  private final JMenuBar menuBar = new JMenuBar();
+  private final JMenu menuFile = new Menu("File");
+  private final JMenuItem menuSave = new MenuItem("Save Log", KeyEvent.VK_S);
+  private final JMenu menuView = new Menu("View");
+  private final JMenuItem menuHide = new MenuItem("Hide Log Window", KeyEvent.VK_H);
+  private final JMenuItem menuFitWindow = new MenuItem("Fit Log Window", KeyEvent.VK_F);
   private final EtomoPanel rootPanel = new EtomoPanel();
   private final EtchedBorder border = new EtchedBorder(TITLE);
   private final JTextArea textArea = new JTextArea(10, 60);
   private final JScrollPane scrollPane = new JScrollPane(textArea);
   private final EtomoLogger logger = new EtomoLogger(this);
+  private final LogFrame frame = new LogFrame(menuHide);
 
   private LogFile file = null;
   private String userDir = null;
@@ -89,29 +113,145 @@ public final class LogPanel implements Storable, LogInterface {
   private boolean changed = false;
   private boolean fileFailed = false;
   private boolean writeFailed = false;
-  private ConstLogProperties frameProperties = null;
-  private boolean frameVisible = true;
+  private boolean displayed = false;
 
-  private final BaseManager manager;
+  private LogWindow() {
+    frameSizeWidthProperty.setDisplayValue(683);
+    frameSizeHeightProperty.setDisplayValue(230);
+    visibleProperty.set(VISIBLE_DEFAULT);
+  }
 
-  private LogPanel(BaseManager manager) {
-    this.manager = manager;
+  public static LogWindow getInstance() {
+    if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
+      return null;
+    }
+    LogWindow instance = new LogWindow();
+    instance.createWindow();
+    instance.addListeners();
+    return instance;
+  }
+
+  private void createWindow() {
+    // init
+    frame.setVisible(false);
+    // frame
+    frame.setTitle(border.getTitle());
+    frame.setJMenuBar(menuBar);
+    // menu
+    menuBar.add(menuFile);
+    menuBar.add(menuView);
+    menuFile.add(menuSave);
+    menuView.add(menuHide);
+    menuView.add(menuFitWindow);
+    // content pane
+    Container contentPane = frame.getContentPane();
+    if (contentPane != null) {
+      contentPane.add(rootPanel);
+    }
+    // root panel
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(border.getBorder());
     rootPanel.add(scrollPane);
   }
 
-  public static LogPanel getInstance(BaseManager manager) {
-    if (EtomoDirector.INSTANCE.getArguments().isHeadless()) {
-      return null;
-    }
-    LogPanel instance = new LogPanel(manager);
-    instance.addListeners();
-    return instance;
+  private void addListeners() {
+    // Mnemonics for the main menu bar
+    menuFile.setMnemonic(KeyEvent.VK_F);
+    menuView.setMnemonic(KeyEvent.VK_V);
+    // Accelerators
+    menuHide.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.CTRL_MASK));
+    menuFitWindow.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
+        ActionEvent.CTRL_MASK));
+    // Bind the menu items to their listeners
+    MenuActionListener actionListener = new MenuActionListener(this);
+    menuSave.addActionListener(actionListener);
+    menuHide.addActionListener(actionListener);
+    menuFitWindow.addActionListener(actionListener);
+    // text area
+    textArea.addKeyListener(new LogWindowKeyListener(this));
   }
 
-  private void addListeners() {
-    textArea.addKeyListener(new LogPanelKeyListener(this));
+  private void action(String command) {
+    if (menuSave.getActionCommand().equals(command)) {
+      menuSave();
+    }
+    else if (menuHide.getActionCommand().equals(command)) {
+      hide();
+      visibleProperty.set(false);
+    }
+    if (menuFitWindow.getActionCommand().equals(command)) {
+      fit();
+    }
+  }
+
+  private void fit() {
+    frame.repaint();
+    frame.pack();
+  }
+
+  /**
+   * Called when the manager's interface is either displayed or hidden.  Hide the log
+   * window when the interface is hidden.  Remember whether is was visible or not.  When
+   * the interface is made current, show it if it was visible the last time the interface
+   * was displayed.
+   * @param current - true when interface is displayed
+   */
+  public final void msgCurrentManagerChanged(final boolean current,
+      final boolean startupPopupOpen) {
+    if (current && !startupPopupOpen && !EtomoDirector.INSTANCE.getArguments().isTest()) {
+      if (visibleProperty.is() && !frame.isVisible()) {
+        show();
+      }
+    }
+    else if (frame.isVisible()) {
+      // LogProperties.visible are being kept up to date, so just hide the frame. When
+      // the manager is made visible again, the log window will be made visible too.
+
+      // For test don't update the visibility property.
+      frame.setVisible(false);
+    }
+  }
+
+  /**
+   * Makes the window visible.  Use this function instead of calling
+   * JFrame.setVisible(true) directly.  Updates LogProperties.visible.  Sets the
+   * location and size the first time it is made visible.
+   * @param visible
+   */
+  public void show() {
+    if (!displayed) {
+      displayed = true;
+      if (!frameLocationXProperty.isNull()) {
+        frame.setLocation(frameLocationXProperty.getInt(),
+            frameLocationYProperty.getInt());
+      }
+      else {
+        frame.setLocationByPlatform(true);
+      }
+      frame.setSize(new Dimension(frameSizeWidthProperty.getInt(),
+          frameSizeHeightProperty.getInt()));
+    }
+    frame.setVisible(true);
+    visibleProperty.set(true);
+  }
+
+  /**
+   * Makes the window invisible.  Updates LogProperties.visible.  Do not use this when
+   * hiding the log because the manager interface is being hidden, because the properties
+   * should not be updated in that case.
+   */
+  private void hide() {
+    frame.setVisible(false);
+    visibleProperty.set(false);
+  }
+
+  public void showHide() {
+    if (!frame.isVisible()) {
+      show();
+    }
+    else {
+      hide();
+    }
   }
 
   /**
@@ -165,7 +305,7 @@ public final class LogPanel implements Storable, LogInterface {
       border.setTitle(TITLE);
       file = null;
     }
-    UIHarness.INSTANCE.msgLogChanged(manager, this);
+    frame.setTitle(border.getTitle());
   }
 
   /**
@@ -317,65 +457,8 @@ public final class LogPanel implements Storable, LogInterface {
     changed = true;
   }
 
-  String getTitle() {
-    return border.getTitle();
-  }
-
   JPanel getRootPanel() {
     return rootPanel;
-  }
-
-  /**
-   * Gets frame properties.-
-   * @return
-   */
-  public ConstLogProperties getFrameProperties() {
-    return frameProperties;
-  }
-
-  /**
-   * Sets frame properties
-   * @param constLogProperties
-   */
-  void setFrameProperties(ConstLogProperties constLogProperties) {
-    frameProperties = constLogProperties;
-  }
-
-  /**
-   * Loads the frame properties from props.
-   */
-  public void load(Properties props) {
-    if (frameProperties == null) {
-      frameProperties = new LogProperties();
-    }
-    frameProperties.load(props, "");
-  }
-
-  /**
-   * Updates the frame properties and returns them.
-   * @return
-   */
-  public ConstLogProperties getCurrentFrameProperties() {
-    UIHarness.INSTANCE.msgUpdateLogProperties(this);
-    return frameProperties;
-  }
-
-  /**
-   * Updates the frame properties and stores them.
-   */
-  public void store(Properties props) {
-    UIHarness.INSTANCE.msgUpdateLogProperties(this);
-    if (frameProperties != null) {
-      frameProperties.store(props, "");
-    }
-  }
-
-  boolean isFrameVisible() {
-    return frameVisible;
-  }
-
-  void setFrameVisible(boolean visible) {
-    frameVisible = visible;
   }
 
   public void append(String line) {
@@ -386,10 +469,57 @@ public final class LogPanel implements Storable, LogInterface {
     return textArea.getLineEndOffset(textArea.getLineCount() - 1);
   }
 
-  private static final class LogPanelKeyListener implements KeyListener {
-    private final LogPanel adaptee;
+  public void store(final Properties props, String prepend) {
+    prepend = getPrepend(prepend);
+    Dimension size = frame.getSize();
+    //A panel that has never been displayed will have a height and width of 0.
+    if (size.width <= 0 || size.height <= 0) {
+      return;
+    }
+    // update properties
+    frameSizeWidthProperty.set(size.width);
+    frameSizeHeightProperty.set(size.height);
+    Point point = frame.getLocation();
+    frameLocationXProperty.set(point.x);
+    frameLocationYProperty.set(point.y);
+    // store
+    frameSizeWidthProperty.store(props, prepend);
+    frameSizeHeightProperty.store(props, prepend);
+    frameLocationXProperty.store(props, prepend);
+    frameLocationYProperty.store(props, prepend);
+    visibleProperty.store(props, prepend);
+  }
 
-    private LogPanelKeyListener(LogPanel adaptee) {
+  public void load(final Properties props, String prepend) {
+    // reset
+    frameSizeWidthProperty.reset();
+    frameSizeHeightProperty.reset();
+    frameLocationXProperty.reset();
+    frameLocationYProperty.reset();
+    visibleProperty.set(VISIBLE_DEFAULT);
+    // load
+    prepend = getPrepend(prepend);
+    frameSizeWidthProperty.load(props, prepend);
+    frameSizeHeightProperty.load(props, prepend);
+    frameLocationXProperty.load(props, prepend);
+    frameLocationYProperty.load(props, prepend);
+    visibleProperty.load(props, prepend, VISIBLE_DEFAULT);
+  }
+
+  private String getPrepend(String prepend) {
+    if (prepend == null || prepend.matches("\\s*")) {
+      prepend = PREPEND;
+    }
+    else {
+      prepend += "." + PREPEND;
+    }
+    return prepend;
+  }
+
+  private static final class LogWindowKeyListener implements KeyListener {
+    private final LogWindow adaptee;
+
+    private LogWindowKeyListener(LogWindow adaptee) {
       this.adaptee = adaptee;
     }
 
@@ -401,6 +531,37 @@ public final class LogPanel implements Storable, LogInterface {
 
     public void keyTyped(KeyEvent event) {
       adaptee.msgChanged();
+    }
+  }
+
+  private static final class LogFrame extends JFrame {
+    private final JMenuItem menuHide;
+
+    private LogFrame(final JMenuItem menuHide) {
+      this.menuHide = menuHide;
+      setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    }
+
+    /**
+     * Overridden so we can hide when window is closed
+     */
+    protected void processWindowEvent(WindowEvent event) {
+      super.processWindowEvent(event);
+      if (event.getID() == WindowEvent.WINDOW_CLOSING) {
+        menuHide.doClick();
+      }
+    }
+  }
+
+  private static final class MenuActionListener implements ActionListener {
+    private LogWindow window;
+
+    private MenuActionListener(final LogWindow window) {
+      this.window = window;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      window.action(event.getActionCommand());
     }
   }
 }

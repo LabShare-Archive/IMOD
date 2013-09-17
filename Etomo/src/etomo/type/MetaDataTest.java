@@ -174,11 +174,11 @@ public class MetaDataTest extends TestCase {
     }
     assertTrue(testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
 
-    //Don't do tests involving file permissions in Windows, since they can't be set.
+    // Don't do tests involving file permissions in Windows, since they can't be set.
     String osName = System.getProperty("os.name").toLowerCase();
     windowsOs = osName.indexOf("windows") != -1;
-    //create test site
-    testInst = new MetaData(manager);
+    // create test site
+    testInst = new MetaData(manager, manager.getLogProperties());
     testDir = new File(TypeTests.TEST_ROOT_DIR, "ConstMetaData");
     if (testDir.isFile()) {
       testDir.delete();
@@ -188,38 +188,38 @@ public class MetaDataTest extends TestCase {
     }
     assertTrue(testDir.isDirectory() && testDir.canRead() && testDir.canWrite());
 
-    //make instance of a non-existant directory
+    // make instance of a non-existant directory
     dummyDir = new File(testDir, dummyDirName);
     if (!windowsOs) {
       assertTrue(!dummyDir.exists() || dummyDir.delete());
     }
 
-    //make a second instance of a non-existant directory
+    // make a second instance of a non-existant directory
     dummyDir2 = new File(testDir, dummyDir2Name);
     assertTrue(!dummyDir2.exists() || dummyDir2.delete());
 
-    //create empty directory
+    // create empty directory
     emptyDir = new File(testDir, emptyDirName);
     if (!emptyDir.exists()) {
       assertTrue(emptyDir.mkdir());
     }
     assertTrue(emptyDir.isDirectory() && emptyDir.canRead() && emptyDir.canWrite());
 
-    //create a second empty directory
+    // create a second empty directory
     emptyDir2 = new File(testDir, emptyDir2Name);
     if (!emptyDir2.exists()) {
       assertTrue(emptyDir2.mkdir());
     }
     assertTrue(emptyDir2.isDirectory() && emptyDir2.canRead() && emptyDir2.canWrite());
 
-    //create a directory containing valid files
+    // create a directory containing valid files
     validFileDir = new File(testDir, validFileDirName);
     if (!validFileDir.exists()) {
       assertTrue(validFileDir.mkdir());
     }
     assertTrue(validFileDir.isDirectory() && validFileDir.canRead()
         && validFileDir.canWrite());
-    //create valid files
+    // create valid files
     validFile = createValidFile(validFileDir, validFileName);
     validAFile = createValidFile(validFileDir, validAFileName);
   }
@@ -242,7 +242,7 @@ public class MetaDataTest extends TestCase {
   }
 
   protected File createValidFile(File dir, String name) throws IOException {
-    //create a valid file
+    // create a valid file
     File file = new File(dir, name);
     file.delete();
     file.createNewFile();
@@ -250,32 +250,28 @@ public class MetaDataTest extends TestCase {
     return file;
   }
 
-  /*
-   * Class to test for boolean isValid(File, boolean)
-   */
+  /* Class to test for boolean isValid(File, boolean) */
   final public void testIsValidFileboolean() throws IOException {
-    //Test failures
+    // Test failures
 
-    //null arg
+    // null arg
     assertFalse(MetaData.isValid(null, false));
-    //file doesn't exist
+    // file doesn't exist
     assertFalse(MetaData.isValid(dummyFile, false));
-    //Test successes
+    // Test successes
 
-    //file exists & readable
+    // file exists & readable
     assertTrue(MetaData.isValid(validFile, false));
-    //file writable
+    // file writable
     assertTrue(MetaData.isValid(validFileDir, true));
   }
 
-  /*
-   * Class to test for File findValidFile(String, File)
-   */
+  /* Class to test for File findValidFile(String, File) */
   final public void testFindValidFileStringFile() throws IOException {
     String invalidReason;
-    //Test failures
+    // Test failures
 
-    //null arg
+    // null arg
     try {
       testInst.findValidFile(null, validFileDir);
       fail("Should raise an IllegalArgumentException");
@@ -289,7 +285,7 @@ public class MetaDataTest extends TestCase {
     catch (IllegalArgumentException success) {
     }
 
-    //invalid directory
+    // invalid directory
     if (!windowsOs) {
       try {
         testInst.findValidFile(validFileName, dummyDir);
@@ -299,7 +295,7 @@ public class MetaDataTest extends TestCase {
       }
     }
 
-    //file doesn't exist
+    // file doesn't exist
     assertNull(testInst.findValidFile(validFileName, emptyDir));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
@@ -307,20 +303,18 @@ public class MetaDataTest extends TestCase {
         || invalidReason.indexOf(emptyDirName) == -1) {
       fail("invalidReason =" + invalidReason);
     }
-    //Test successes
+    // Test successes
 
-    //file exists & readable
+    // file exists & readable
     assertEquals(testInst.findValidFile(validFileName, validFileDir), validFileDir);
   }
 
-  /*
-   * Class to test for File findValidFile(String, File, File)
-   */
+  /* Class to test for File findValidFile(String, File, File) */
   final public void testFindValidFileStringFileFile() throws IOException {
     String invalidReason;
-    //Test failures
+    // Test failures
 
-    //null arg
+    // null arg
     try {
       testInst.findValidFile(null, validFileDir, validFileDir);
       fail("Should raise an IllegalArgumentException");
@@ -341,7 +335,7 @@ public class MetaDataTest extends TestCase {
     }
 
     if (!windowsOs) {
-      //invalid directory
+      // invalid directory
       try {
         testInst.findValidFile(validFileName, dummyDir, validFileDir);
         fail("Should raise an IllegalArgumentException");
@@ -350,8 +344,8 @@ public class MetaDataTest extends TestCase {
       }
     }
 
-    //file doesn't exist
-    //check one directory, second one invalid
+    // file doesn't exist
+    // check one directory, second one invalid
     if (!windowsOs) {
       assertNull(testInst.findValidFile(validFileName, emptyDir, dummyDir));
       invalidReason = testInst.getInvalidReason();
@@ -361,7 +355,7 @@ public class MetaDataTest extends TestCase {
         fail("invalidReason =" + invalidReason);
       }
     }
-    //check one directory
+    // check one directory
     assertNull(testInst.findValidFile(validFileName, emptyDir, emptyDir));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
@@ -369,7 +363,7 @@ public class MetaDataTest extends TestCase {
         || invalidReason.indexOf(emptyDirName) == -1) {
       fail("invalidReason =" + invalidReason);
     }
-    //check two directories
+    // check two directories
     assertNull(testInst.findValidFile(validFileName, emptyDir, emptyDir2));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("") || invalidReason.indexOf("exist") == -1
@@ -377,26 +371,24 @@ public class MetaDataTest extends TestCase {
         || invalidReason.indexOf(emptyDir2Name) == -1) {
       fail("invalidReason =" + invalidReason);
     }
-    //Test successes
+    // Test successes
 
-    //file exists & readable
-    //file found in first directory
+    // file exists & readable
+    // file found in first directory
     assertEquals(testInst.findValidFile(validFileName, validFileDir, emptyDir),
         validFileDir);
-    //file found in second directory
+    // file found in second directory
     assertEquals(testInst.findValidFile(validFileName, emptyDir, validFileDir),
         validFileDir);
   }
 
-  /*
-   * Class to test for boolean isDatasetNameValid()
-   */
+  /* Class to test for boolean isDatasetNameValid() */
   final public void testIsDatasetNameValid() {
     String invalidReason;
-    //Test failures
+    // Test failures
 
-    //invalid directories
-    //non-existant directories
+    // invalid directories
+    // non-existant directories
     String workingDir = EtomoDirector.INSTANCE.setCurrentPropertyUserDir(dummyDir
         .getAbsolutePath());
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
@@ -404,10 +396,10 @@ public class MetaDataTest extends TestCase {
     if (!windowsOs) {
       assertFalse(testInst.isDatasetNameValid());
     }
-    //Test successes
+    // Test successes
     testInst.setDatasetName(validDatasetName);
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(validFileDir.getAbsolutePath());
-    //backup dir, dual axis
+    // backup dir, dual axis
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(emptyDir.getAbsolutePath());
     testInst.setBackupDirectory(validFileDir.getAbsolutePath());
     testInst.setAxisType(AxisType.DUAL_AXIS);
@@ -415,23 +407,21 @@ public class MetaDataTest extends TestCase {
     EtomoDirector.INSTANCE.setCurrentPropertyUserDir(workingDir);
   }
 
-  /*
-   * Class to test for boolean isValid()
-   */
+  /* Class to test for boolean isValid() */
   final public void testIsValid() {
     String invalidReason;
     String workingDir = EtomoDirector.INSTANCE.setCurrentPropertyUserDir(validFileDir
         .getAbsolutePath());
-    //Test failures
+    // Test failures
 
-    //Testing boolean isValid(boolean fromSetupScreen)
-    //order of tests:
-    //Axis type
-    //dataset name
-    //pixel
-    //fiducial
+    // Testing boolean isValid(boolean fromSetupScreen)
+    // order of tests:
+    // Axis type
+    // dataset name
+    // pixel
+    // fiducial
 
-    //Axis type is always required
+    // Axis type is always required
     assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
     if (invalidReason.equals("")
@@ -445,7 +435,7 @@ public class MetaDataTest extends TestCase {
       fail("invalidReason=" + invalidReason);
     }
 
-    //Dataset name is always required
+    // Dataset name is always required
     testInst.setAxisType(AxisType.DUAL_AXIS);
     assertFalse(testInst.isValid(true));
     invalidReason = testInst.getInvalidReason();
@@ -460,8 +450,8 @@ public class MetaDataTest extends TestCase {
       fail("invalidReason=" + invalidReason);
     }
 
-    //fiducial diameter must be > 0
-    //fiducial is only checked for the Setup dialog
+    // fiducial diameter must be > 0
+    // fiducial is only checked for the Setup dialog
     testInst.setPixelSize(2.84);
     testInst.setFiducialDiameter(0);
     assertFalse(testInst.isValid(true));

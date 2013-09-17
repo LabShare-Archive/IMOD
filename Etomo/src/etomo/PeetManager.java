@@ -43,8 +43,6 @@ import etomo.type.ProcessingMethod;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.FieldValidationFailedException;
 import etomo.ui.UIComponent;
-import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainPeetPanel;
 import etomo.ui.swing.ParallelPanel;
@@ -330,7 +328,6 @@ public final class PeetManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
-  private final LogPanel logPanel = LogPanel.getInstance(this);
 
   private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
@@ -355,7 +352,7 @@ public final class PeetManager extends BaseManager {
 
   private PeetManager(final String paramFileName) {
     super();
-    metaData = new PeetMetaData();
+    metaData = new PeetMetaData(getLogProperties());
     state = new PeetState();
     createState();
     processMgr = new PeetProcessManager(this);
@@ -386,7 +383,7 @@ public final class PeetManager extends BaseManager {
     }
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+      mainPanel.setStatusBarText(paramFile, metaData, logWindow);
       if (loadedParamFile) {
         openPeetDialog(null);
       }
@@ -394,6 +391,10 @@ public final class PeetManager extends BaseManager {
         openPeetStartupDialog();
       }
     }
+  }
+  
+  public boolean isStartupPopupOpen() {
+    return !loadedParamFile;
   }
 
   void display() {
@@ -439,14 +440,6 @@ public final class PeetManager extends BaseManager {
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
-  }
-
-  public LogInterface getLogInterface() {
-    return logPanel;
-  }
-
-  public LogPanel getLogPanel() {
-    return logPanel;
   }
 
   public BaseMetaData getBaseMetaData() {
@@ -512,7 +505,7 @@ public final class PeetManager extends BaseManager {
     ParameterStore destParameterStore;
     try {
       destParameterStore = ParameterStore.getInstance(destPeetFile);
-      PeetMetaData destMetaData = new PeetMetaData();
+      PeetMetaData destMetaData = new PeetMetaData(getLogProperties());
       destParameterStore.load(destMetaData);
       PeetScreenState screenState = new PeetScreenState(AxisID.ONLY, AxisType.SINGLE_AXIS);
       destParameterStore.load(screenState);
@@ -602,7 +595,7 @@ public final class PeetManager extends BaseManager {
           peetFileCopied ? null : sourceMatlabFile.getParentFile());
       peetDialog.updateDisplay(true);
     }
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     if (peetDialog != null) {
       peetDialog.convertCopiedPaths(file.getParentFile().getAbsolutePath());
@@ -670,7 +663,7 @@ public final class PeetManager extends BaseManager {
       return false;
     }
     imodManager.setMetaData(metaData);
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
     if (matlabParam == null) {
       setMatlabParam(true);

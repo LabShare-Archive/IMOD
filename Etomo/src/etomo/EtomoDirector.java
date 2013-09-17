@@ -515,7 +515,10 @@ public class EtomoDirector {
         .setPropertyUserDir(propertyUserDir);
   }
 
-  public final void makeCurrent() {
+  /**
+   * Called when the propertyUserDir is empty, or there is no manager.
+   */
+  public final void makeOriginalDirLocal() {
     System.setProperty("user.dir", originalUserDir);
     Utilities.managerStamp(originalUserDir, null);
   }

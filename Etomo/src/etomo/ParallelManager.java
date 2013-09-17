@@ -33,8 +33,6 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.UIComponent;
 import etomo.ui.swing.AnisotropicDiffusionDialog;
 import etomo.ui.swing.Deferred3dmodButton;
-import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.ui.swing.MainParallelPanel;
 import etomo.ui.swing.ParallelChooser;
@@ -64,7 +62,6 @@ public final class ParallelManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   private static final AxisID AXIS_ID = AxisID.ONLY;
-  private final LogPanel logPanel = LogPanel.getInstance(this);
 
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
@@ -92,13 +89,13 @@ public final class ParallelManager extends BaseManager {
 
   public ParallelManager(final String paramFileName, final DialogType dialogType) {
     super();
-    this.metaData = new ParallelMetaData();
+    this.metaData = new ParallelMetaData(getLogProperties());
     createState();
     processMgr = new ParallelProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
     if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
-      mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+      mainPanel.setStatusBarText(paramFile, metaData, logWindow);
       if (paramFile == null) {
         if (dialogType == DialogType.PARALLEL) {
           openParallelDialog();
@@ -127,14 +124,6 @@ public final class ParallelManager extends BaseManager {
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.PP;
-  }
-
-  public LogInterface getLogInterface() {
-    return logPanel;
-  }
-
-  public LogPanel getLogPanel() {
-    return logPanel;
   }
 
   public boolean canSnapshot() {
@@ -353,7 +342,7 @@ public final class ParallelManager extends BaseManager {
       return false;
     }
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     return true;
   }
 
@@ -800,7 +789,7 @@ public final class ParallelManager extends BaseManager {
     }
     System.err.println("paramFile: " + paramFile);
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
-    mainPanel.setStatusBarText(paramFile, metaData, logPanel);
+    mainPanel.setStatusBarText(paramFile, metaData, logWindow);
     return true;
   }
 

@@ -2,6 +2,8 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.ui.LogProperties;
+
 /**
  * <p>Description: </p>
  * 
@@ -31,8 +33,8 @@ public final class FrontPageMetaData extends BaseMetaData {
    */
   private String name = null;
 
-  public FrontPageMetaData() {
-    super();
+  public FrontPageMetaData(final LogProperties logProperties) {
+    super(logProperties);
     axisType = AxisType.SINGLE_AXIS;
   }
 
@@ -61,7 +63,7 @@ public final class FrontPageMetaData extends BaseMetaData {
   }
 
   public String getName() {
-    //for testing
+    // for testing
     if (name != null) {
       return name;
     }
@@ -69,7 +71,7 @@ public final class FrontPageMetaData extends BaseMetaData {
   }
 
   public String getDatasetName() {
-    //for testing
+    // for testing
     if (name != null) {
       return name;
     }
@@ -77,7 +79,7 @@ public final class FrontPageMetaData extends BaseMetaData {
   }
 
   public String getMetaDataFileName() {
-    //for testing
+    // for testing
     if (name != null) {
       return name;
     }
@@ -94,8 +96,8 @@ public final class FrontPageMetaData extends BaseMetaData {
 
   public void load(Properties props, String prepend) {
     super.load(props, prepend);
-    //reset
-    //load
+    // reset
+    // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
   }
@@ -105,7 +107,7 @@ public final class FrontPageMetaData extends BaseMetaData {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
   }
-  
+
   String getGroupKey() {
     return FRONT_PAGE_GROUP_KEY;
   }

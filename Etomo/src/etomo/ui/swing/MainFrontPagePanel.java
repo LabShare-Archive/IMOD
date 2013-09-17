@@ -106,7 +106,7 @@ public final class MainFrontPagePanel extends MainPanel {
   }
 
   public final void setStatusBarText(File paramFile, BaseMetaData metaData,
-      LogPanel logPanel) {
+      LogWindow logWindow) {
     statusBar.setText(metaData.getName());
   }
 }

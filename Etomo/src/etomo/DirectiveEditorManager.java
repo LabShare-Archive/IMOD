@@ -23,7 +23,7 @@ import etomo.type.InterfaceType;
 import etomo.type.ParallelState;
 import etomo.ui.swing.DirectiveEditorDialog;
 import etomo.ui.swing.LogInterface;
-import etomo.ui.swing.LogPanel;
+import etomo.ui.swing.LogWindow;
 import etomo.ui.swing.MainDirectiveEditorPanel;
 import etomo.ui.swing.MainPanel;
 import etomo.util.Utilities;
@@ -64,7 +64,7 @@ public final class DirectiveEditorManager extends BaseManager {
   public DirectiveEditorManager(final DirectiveFileType type,
       final BaseManager sourceManager, final String timestamp, final StringBuffer errmsg) {
     this.sourceManager = sourceManager;
-    this.metaData = new DirectiveEditorMetaData(type);
+    this.metaData = new DirectiveEditorMetaData(type,getLogProperties());
     this.type = type;
     this.timestamp = timestamp;
     dialogErrmsg = errmsg;
@@ -133,11 +133,11 @@ public final class DirectiveEditorManager extends BaseManager {
     return InterfaceType.TOOLS;
   }
 
-  public LogInterface getLogInterface() {
+  LogWindow createLogWindow() {
     return null;
   }
 
-  public LogPanel getLogPanel() {
+  public LogInterface getLogInterface() {
     return null;
   }
 

@@ -1,7 +1,6 @@
 package etomo.type;
 
 import etomo.storage.Storable;
-import etomo.ui.swing.LogProperties;
 import etomo.util.CircularBuffer;
 
 import java.awt.Point;
@@ -117,7 +116,6 @@ public final class UserConfiguration implements Storable {
   private final EtomoNumber parallelTableSize = new EtomoNumber("ParallelTableSize");
   private final EtomoNumber joinTableSize = new EtomoNumber("JoinTableSize");
   private final EtomoNumber peetTableSize = new EtomoNumber("PeetTableSize");
-  private ConstLogProperties logProperties = new LogProperties();
   private final EtomoNumber mainLastLocationX = new EtomoNumber("Main.LastLocationX");
   private final EtomoNumber mainLastLocationY = new EtomoNumber("Main.LastLocationY");
   private final EtomoNumber subLastLocationX = new EtomoNumber("Sub.LastLocationX");
@@ -216,9 +214,6 @@ public final class UserConfiguration implements Storable {
     parallelTableSize.store(props, prepend);
     joinTableSize.store(props, prepend);
     peetTableSize.store(props, prepend);
-    if (logProperties != null) {
-      logProperties.store(props, prepend);
-    }
     mainLastLocationX.store(props, prepend);
     mainLastLocationY.store(props, prepend);
     subLastLocationX.store(props, prepend);
@@ -360,9 +355,6 @@ public final class UserConfiguration implements Storable {
     // TEMP bug# 614
     autoFit = true;
     gpuProcessing.load(props, prepend);
-    if (logProperties != null) {
-      logProperties.load(props, prepend);
-    }
     mainLastLocationX.load(props, prepend);
     if (mainLastLocationX.isNull()) {
       mainLastLocationX.loadFromOtherKey(props, prepend, "LastLocationX");
@@ -636,10 +628,6 @@ public final class UserConfiguration implements Storable {
     }
   }
 
-  public ConstLogProperties getLogProperties() {
-    return logProperties;
-  }
-
   public boolean isParallelProcessing() {
     if (parallelProcessing == null) {
       return false;
@@ -778,10 +766,6 @@ public final class UserConfiguration implements Storable {
 
   public void setPeetTableSize(String input) {
     peetTableSize.set(input);
-  }
-
-  public void setLogProperties(ConstLogProperties constLogProperties) {
-    logProperties = constLogProperties;
   }
 
   public void setNoParallelProcessing(boolean input) {

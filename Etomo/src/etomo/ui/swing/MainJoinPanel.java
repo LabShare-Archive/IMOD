@@ -146,13 +146,13 @@ public class MainJoinPanel extends MainPanel {
    * Set the status bar with the file name of the data parameter file
    */
   public final void setStatusBarText(File paramFile, BaseMetaData metaData,
-      LogPanel logPanel) {
+      LogWindow logWindow) {
     StringBuffer buffer = new StringBuffer();
     if (metaData == null || !metaData.isValid()) {
       statusBar.setText(buffer.toString());
     }
     else {
-      super.setStatusBarText(paramFile, metaData, logPanel);
+      super.setStatusBarText(paramFile, metaData, logWindow);
     }
   }
 
