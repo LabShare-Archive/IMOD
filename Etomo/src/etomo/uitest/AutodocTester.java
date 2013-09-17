@@ -1207,8 +1207,6 @@ final class AutodocTester extends Assert implements VariableList {
         Container popup = (Container) finder.find();
         // If popup hasn't popped up, keep waiting.
         if (popup == null) {
-          System.out.println("B:subjectName:" + subjectName+",wait:"+wait);
-          Thread.dumpStack();
           return;
         }
         // Make sure its the right popup
