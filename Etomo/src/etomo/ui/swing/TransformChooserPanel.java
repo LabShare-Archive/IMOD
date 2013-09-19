@@ -135,6 +135,10 @@ final class TransformChooserPanel {
   }
 
   private void setTooltips() {
+    if (cbSearch != null) {
+      cbSearch
+          .setToolTipText("Use iterative search to find best transformation for aligning images.");
+    }
     rbFullLinearTransformation
         .setToolTipText("Use rotation, translation, magnification, and stretching to align images.");
     rbRotationTranslationMagnification
