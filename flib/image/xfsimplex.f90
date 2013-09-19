@@ -13,7 +13,7 @@
 !
 ! $Id$
 !
-module xfsimpvars
+module simplexvars
   implicit none
   integer IDIMB, ISUB, LIMSPIR, ISUBP1, ISUBT2, ISUBT25
   parameter (IDIMB = 4100 * 4100)
@@ -36,20 +36,18 @@ module xfsimpvars
   real*8, allocatable :: sxa(:,:), sya(:,:), sxSqa(:,:), sySqa(:,:), sxya(:,:)
   integer*4, allocatable :: numPixA(:,:)
   integer*4 numXpatch, numYpatch, nxyPatch
-end module xfsimpvars
+end module simplexvars
 
 ! MAIN PROGRAM
 !
 Program xfsimplex
-  use xfsimpvars
+  use simplexvars
   implicit none
-  integer lenTemp
-  parameter (lenTemp = 32000 * 64)
   integer*4 mxyz(3), nxyzst(3), nxyz2(3)
   !
   character*320 inputFile1, inputFile2, outFile, xfInFile, strnTmp
   !
-  real*4 temp(lenTemp)
+  real*4, allocatable :: temp(:)
   data nxyzst/0, 0, 0/
   real*4 a(6), da(6), amat(2,2), anat(6), danat(6)
   real*4 pp(7,7), yy(7), ptmp(6), ptol(6), ctf(8193)
@@ -80,16 +78,16 @@ Program xfsimplex
   integer*4 ifFloatMean/1/, ibinning/2/, numRanges/2/, idistRedund/0/
   real*4 radius/4/, difflim/0.05/
   !
-  integer*4 mode, ierr, ivarStart, ii, jj, i, numLimit
+  integer*4 mode, ierr, ivarStart, ii, jj, i, numLimit, lenTemp
   integer*4 numPixels, ibase, mattX, mattY, ixy, ind, iran, lowHigh
   real*4 fracMatt, dmin, dmax, dmean, pctRange, dmin2, dmax2, dmean2, sd2
   real*4 histScale, val, ix, iy, ixm, iym, ixp, ic, ixcm, iycm, dmin1, dmax1, dmean1
   integer*4 ncrit, limDxy, idx, idy, j, itmp, iter, jmin, izRef, izAli, npad, nxPad
   integer*4 nyPad, nxOrig, nyOrig, ifSobel, ifFiltAfter, lineUse
-  integer*4 ifXminMax, ifYminMax
+  integer*4 ifXminMax, ifYminMax, iAntiFiltType
   real*4 scale, dAdd, window, valScale, distance, delmin, ptolFac, tmp
   real*4 sigma1, sigma2, radius1, radius2, deltac
-  integer*4 niceframe
+  integer*4 niceframe, niceFFTlimit
   !
   logical pipInput
   integer*4 numOptArg, numNonOptArg
@@ -97,27 +95,25 @@ Program xfsimplex
   integer*4 PipGetInOutFile, PipGetBoolean, PipGetFloatArray
   integer*4 PipGetTwoIntegers
   !
-  ! fallbacks from ../../manpages/autodoc2man -2 2  xfsimplex
+  ! fallbacks from ../../manpages/autodoc2man -3 2  xfsimplex
   !
   integer numOptions
-  parameter (numOptions = 32)
+  parameter (numOptions = 34)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'aimage:AImageFile:FN:@bimage:BImageFile:FN:@'// &
-      'output:OutputFile:FN:@initial:InitialTransformFile:FN:@'// &
-      'useline:UseTransformLine:I:@sections:SectionsToUse:IP:@'// &
-      'coarse:CoarseTolerances:FP:@final:FinalTolerances:FP:@'// &
-      'step:StepSizeFactor:F:@trace:TraceOutput:I:@'// &
-      'variables:VariablesToSearch:I:@limits:LimitsOnSearch:FA:@'// &
-      'edge:EdgeToIgnore:F:@xminmax:XMinAndMax:IP:@'// &
-      'yminmax:YMinAndMax:IP:@float:FloatOption:I:@'// &
-      'binning:BinningToApply:I:@distance:DistanceMeasure:B:@'// &
-      'linear:LinearInterpolation:B:@near:NearestDistance:I:@'// &
-      'radius:RadiusToSearch:F:@density:DensityDifference:F:@'// &
-      'percent:PercentileRanges:FA:@rad1:FilterRadius1:F:@'// &
-      'rad2:FilterRadius2:F:@sig1:FilterSigma1:F:@sig2:FilterSigma2:F:@'// &
-      'after:FilterAfterBinning:B:@sobel:SobelFilter:B:@'// &
-      'ccc:CorrelationCoefficient:B:@param:ParameterFile:PF:@help:usage:B:'
+      'aimage:AImageFile:FN:@bimage:BImageFile:FN:@output:OutputFile:FN:@'// &
+      'initial:InitialTransformFile:FN:@useline:UseTransformLine:I:@'// &
+      'sections:SectionsToUse:IP:@variables:VariablesToSearch:I:@'// &
+      'limits:LimitsOnSearch:FA:@edge:EdgeToIgnore:F:@xminmax:XMinAndMax:IP:@'// &
+      'yminmax:YMinAndMax:IP:@binning:BinningToApply:I:@antialias:AntialiasFilter:I:@'// &
+      'sig1:FilterSigma1:F:@rad1:FilterRadius1:F:@rad2:FilterRadius2:F:@'// &
+      'sig2:FilterSigma2:F:@after:FilterAfterBinning:B:@sobel:SobelFilter:B:@'// &
+      'float:FloatOption:I:@ccc:CorrelationCoefficient:B:@local:LocalPatchSize:I:@'// &
+      'linear:LinearInterpolation:B:@distance:DistanceMeasure:B:@'// &
+      'near:NearestDistance:I:@radius:RadiusToSearch:F:@density:DensityDifference:F:@'// &
+      'percent:PercentileRanges:FA:@coarse:CoarseTolerances:FP:@'// &
+      'final:FinalTolerances:FP:@step:StepSizeFactor:F:@trace:TraceOutput:I:@'// &
+      'param:ParameterFile:PF:@help:usage:B:'
   !
   ! default values for parameters in module and equivalenced arrays
   !
@@ -148,6 +144,8 @@ Program xfsimplex
   lineUse = 0
   ifXminMax = 0
   ifYminMax = 0
+  iAntiFiltType = 0
+  lenTemp = 32000 * 64
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -263,6 +261,14 @@ Program xfsimplex
     ifXminMax = 1 - PipGetTwoIntegers('XMinAndMax', nx1, nx2)
     ifYminMax = 1 - PipGetTwoIntegers('YMinAndMax', ny1, ny2)
     ierr = PipGetInteger('LocalPatchSize', nxyPatch)
+    ierr = PipGetInteger('AntialiasFilter', iAntiFiltType)
+    if (iAntiFiltType < 0) iAntiFiltType = 5
+    if (iAntiFiltType < 2 .or. ibinning == 1) iAntiFiltType = 0
+    if (iAntiFiltType > 0) then 
+      lenTemp = 10000000
+      ifFiltAfter = 1
+    endif
+    
     !
     ! Get search limits
     if (PipGetFloatArray('LimitsOnSearch', paramLim, numLimit, 6) == 0) then
@@ -386,18 +392,19 @@ Program xfsimplex
   nx = nx / ibinning
   ny = ny / ibinning
   if (ifFiltAfter == 0) then
-    nxPad = niceframe(nxOrig + npad, 2, 19)
-    nyPad = niceframe(nyOrig + npad, 2, 19)
+    nxPad = niceframe(nxOrig + npad, 2, niceFFTlimit())
+    nyPad = niceframe(nyOrig + npad, 2, niceFFTlimit())
   else
-    nxPad = niceframe(nx + npad, 2, 19)
-    nyPad = niceframe(ny + npad, 2, 19)
+    nxPad = niceframe(nx + npad, 2, niceFFTlimit())
+    nyPad = niceframe(ny + npad, 2, niceFFTlimit())
   endif
   call setctfwsr(sigma1, sigma2, radius1, radius2, ctf, nxPad, nyPad, deltac)
   !
-  ! Allocate big array
+  ! Allocate big array and temp array
+  lenTemp = min(lenTemp, nxOrig * nyOrig)
   idima = (nxPad + 2) * nyPad + 10
-  allocate(array(idima), stat = ierr)
-  call memoryError(ierr, 'LARGE IMAGE ARRAY')
+  allocate(array(idima), temp(lenTemp), stat = ierr)
+  call memoryError(ierr, 'LARGE IMAGE ARRAYS')
 
   if (nx * ny > IDIMB) call exitError('IMAGE TOO BIG FOR ARRAYS - USE HIGHER BINNING')
   !
@@ -415,9 +422,8 @@ Program xfsimplex
   enddo
   !
   ! just get second section to work with
-  call readFilterSection(2, array, izAli, nxOrig, nyOrig, nx, ny, &
-      nxPad, nyPad, ibinning, ctf, deltac, ifFiltAfter, ifSobel, temp, &
-      lenTemp)
+  call readFilterSection(2, array, izAli, nxOrig, nyOrig, nx, ny, nxPad, nyPad, &
+      ibinning, ctf, deltac, ifFiltAfter, iAntiFiltType, ifSobel, temp, lenTemp)
   !
   ! Just deal with points in central portion
   if (fracMatt >= 1.) then
@@ -541,9 +547,8 @@ Program xfsimplex
   endif
   !
   ! Now get first section
-  call readFilterSection(1, array, izRef, nxOrig, nyOrig, nx, ny, &
-      nxPad, nyPad, ibinning, ctf, deltac, ifFiltAfter, ifSobel, temp, &
-      lenTemp)
+  call readFilterSection(1, array, izRef, nxOrig, nyOrig, nx, ny, nxPad, nyPad, &
+      ibinning, ctf, deltac, ifFiltAfter, iAntiFiltType, ifSobel, temp, lenTemp)
   !
   call iclavgsd(array, nx, ny, nx1, nx2, ny1, ny2 , dmin1, dmax1, tsum, tsumSq, &
       dmean1, sd1)
@@ -671,7 +676,7 @@ end program
 !
 subroutine diff(delta, crray, drray, a, nxIn, nyIn)
   !
-  use xfsimpvars
+  use simplexvars
   implicit none
   real*4 crray(nxIn,nyIn), drray(nxIn,nyIn), a(6), amat(2,2)
   real*4 delta
@@ -999,7 +1004,7 @@ end function outsideMultiplier
 ! Function to be called by minimization routine
 !
 subroutine func(x, error)
-  use xfsimpvars
+  use simplexvars
   implicit none
   real*4 x(*), a(6), error
   real*4 delta, deltaOut
@@ -1040,13 +1045,12 @@ end subroutine func
 ! Read a section with optional fourier filtering before or after
 ! binning, and with optional sobel filtering
 !
-subroutine readFilterSection(iunit, array, iz, nxOrig, nyOrig, nx, ny, &
-    nxPad, nyPad, ibinning, ctf, deltac, ifFiltAfter, ifSobel, temp, &
-    lenTemp)
+subroutine readFilterSection(iunit, array, iz, nxOrig, nyOrig, nx, ny, nxPad, nyPad, &
+    ibinning, ctf, deltac, ifFiltAfter, iAntiFiltType, ifSobel, temp, lenTemp)
   implicit none
   real*4 array(*), ctf(*), deltac, temp(*)
   integer*4 iunit, iz, nxOrig, nyOrig, nx, ny, nxPad, nyPad
-  integer*4 ibinning, ifFiltAfter, ifSobel, lenTemp
+  integer*4 ibinning, ifFiltAfter, ifSobel, lenTemp, iAntiFiltType
   integer*4 ierr, nxFilt, nyFilt, ixLow, iyLow
   real*4 xOffset, yOffset
   integer*4 scaledSobel
@@ -1058,8 +1062,13 @@ subroutine readFilterSection(iunit, array, iz, nxOrig, nyOrig, nx, ny, &
     nxFilt = nxOrig
     nyFilt = nyOrig
   else
-    call irdbinned(iunit, iz, array, nx, ny, 0, 0, ibinning, nx, ny, temp, &
-        lenTemp, ierr)
+    if (iAntiFiltType > 0) then
+      call irdreduced(iunit, iz, array, nx, 0., 0., float(ibinning), nx, ny,  &
+          iAntiFiltType - 1, temp, lenTemp, ierr)
+    else
+      call irdbinned(iunit, iz, array, nx, ny, 0, 0, ibinning, nx, ny, temp, lenTemp, &
+          ierr)
+    endif
     if (ierr .ne. 0) goto 99
     nxFilt = nx
     nyFilt = ny
@@ -1067,8 +1076,7 @@ subroutine readFilterSection(iunit, array, iz, nxOrig, nyOrig, nx, ny, &
   !
   ! Apply fourier filter
   if (deltac .ne. 0.) then
-    call taperOutPad(array, nxFilt, nyFilt, array, nxPad + 2, nxPad, nyPad, &
-        0, 0)
+    call taperOutPad(array, nxFilt, nyFilt, array, nxPad + 2, nxPad, nyPad, 0, 0)
     call todfft(array, nxPad, nyPad, 0)
     call filterPart(array, array, nxPad, nyPad, ctf, deltac)
     call todfft(array, nxPad, nyPad, 1)

@@ -103,6 +103,24 @@ usage = Binning to apply to images (default 2)
 tooltip = 
 manpage = Binning to apply to the images.  The default is 2.
 
+[Field = AntialiasFilter]
+short = antialias
+type = I
+usage = Type of antialiasing filter to reduce images with instead of binning
+tooltip =
+manpage = Type of antialiasing filter to use for image reduction instead of
+binning.  Antialiasing becomes important when the images are highly reduced in size.
+Ordinary binning reduces aliasing, but not as much as these filters
+do.  This option makes any filtering be applied after the image reduction
+(thus it implies the -after option).  As in Newstack(1), the available types
+here are:
+^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    3: Triangle - fast but smooths more than Blackman
+^    4: Mitchell - good at antialiasing, smooths a bit
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
+^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
+^   -1: Use the default filter, currently Lanczos 2
+
 [Field = FilterSigma1]
 short = sig1
 type = F
@@ -149,9 +167,12 @@ usage = Apply the Fourier filter after binning data
 tooltip = 
 manpage = Apply the Fourier filter after binning data.  This will be much
 faster, but it may introduce aliased noise from the higher frequencies in the
-original data.  The radius and sigma values represent frequencies in the
-binned image, not the original image.  The default is to filter before
-binning, in which case the high frequencies can be removed before binning.
+original data unless antialiased reduction is used.  The radius and sigma
+values represent frequencies in the binned image, not the original image.
+If antialias reduction is not used, the default is to filter before binning,
+in which case the high frequencies can be removed before binning; if
+antialiasing is used, the filtering always happens after reduction and this
+option is redundant.
 
 [Field = SobelFilter]
 short = sobel
