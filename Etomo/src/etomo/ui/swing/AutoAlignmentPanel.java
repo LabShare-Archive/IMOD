@@ -128,6 +128,11 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   }
 
   private void createPanel(final boolean joinConfiguration) {
+    // init
+    ltfSigmaLowFrequency.setText("0.0");
+    ltfCutoffHighFrequency.setText("0.35");
+    ltfSigmaHighFrequency.setText("0.05");
+    ltfEdgeToIgnore.setText(".05");
     // panels
     JPanel pnlPreCrossCorrelation = new JPanel();
     SpacedPanel pnlLeftButtons = SpacedPanel.getInstance();
@@ -284,9 +289,15 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   }
 
   void setParameters(final AutoAlignmentMetaData metaData) {
-    ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString());
-    ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString());
-    ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());
+    if (!metaData.isSigmaLowFrequencyNull()) {
+      ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString());
+    }
+    if (!metaData.isCutoffHighFrequencyNull()) {
+      ltfCutoffHighFrequency.setText(metaData.getCutoffHighFrequency().toString());
+    }
+    if (!metaData.isSigmaHighFrequencyNull()) {
+      ltfSigmaHighFrequency.setText(metaData.getSigmaHighFrequency().toString());
+    }
     tcAlign.setTransform(metaData.getAlignTransform());
     if (cbFindWarping != null) {
       cbFindWarping.setSelected(metaData.isFindWarping());
@@ -298,9 +309,15 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     }
     cbPreCrossCorrelation.setSelected(metaData.isPreCrossCorrelation());
     ltfSkipSectionsFrom1.setText(metaData.getSkipSectionsFrom1());
-    ltfEdgeToIgnore.setText(metaData.getEdgeToIgnore());
-    spReduceByBinning.setValue(metaData.getReduceByBinning());
-    spMidasBinning.setValue(metaData.getMidasBinning());
+    if (!metaData.isEdgeToIgnoreNull()) {
+      ltfEdgeToIgnore.setText(metaData.getEdgeToIgnore());
+    }
+    if (!metaData.isReduceByBinningNull()) {
+      spReduceByBinning.setValue(metaData.getReduceByBinning());
+    }
+    if (!metaData.isMidasBinningNull()) {
+      spMidasBinning.setValue(metaData.getMidasBinning());
+    }
     updateDisplay();
   }
 
