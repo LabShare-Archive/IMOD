@@ -173,3 +173,11 @@ usage = One line of tooltip for the graphics window
 tooltip =
 manpage = 
 
+[Field = RemoveDataFile]
+short = remove
+type = B
+usage = Delete input file when exiting
+tooltip =
+manpage = Delete input file when exiting.  This option is meant to be used
+only when running in the background, as cleanup will not occur if the program
+is interrupted with Ctrl-C.

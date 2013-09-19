@@ -10,6 +10,13 @@ progname = 'onegenplot'
 prefix = 'ERROR: ' + progname + ' - '
 NUM_KEY_LIMIT = 10    # LIM_KEYS in flib/subrs/graphics/plotvars.f90
 
+# Exit and remove data file if option given
+def cleanupError(strn):
+   if cleanup:
+      cleanupFiles([dataName])
+   exitError(strn)
+
+   
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
@@ -60,7 +67,7 @@ options = ["input:InputDataFile:FN:", "ncol:NumberOfColumns:I:",
            "xlog:XLogOrRootAndBase:FP:", "ylog:YLogOrRootAndBase:FP:",
            "hue:HueOfGroup:CHM:", "stock:StockColorList:B:", "axis:XaxisLabel:CH:",
            "keys:KeyLabels:CHM:", "message:MessageBoxLine:CHM:",
-           "tooltip:ToolTipLine:CHM:"]
+           "tooltip:ToolTipLine:CHM:", "remove:RemoveDataFile:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 0, 0)
 
@@ -76,6 +83,7 @@ dataName = PipGetInOutFile('InputDataFile', 0)
 if not dataName:
    exitError('The data file name must be entered')
 
+cleanup = PipGetBoolean('RemoveDataFile', 0)
 skipLines = PipGetInteger('SkipLinesAtStart', -1)
 numCol = PipGetInteger('NumberOfColumns', -1)
 columnList = PipGetIntegerArray('ColumnsToPlot', 0)
@@ -101,12 +109,12 @@ for ind in range(numColors):
    colorStr = PipGetString('HueOfGroup', '')
    csplit = colorStr.split(',')
    if len(csplit) != 2 and len(csplit) != 4:
-      exitError('The color entry ' + colorStr + ' does not have 2 or 4 components')
+      cleanupError('The color entry ' + colorStr + ' does not have 2 or 4 components')
    group = convertToInteger(csplit[0], 'group number of color entry')
    if len(csplit) == 2:
       col = csplit[1]
       if col not in stockColors:
-         exitError(col + ' is not in the list of stock colors')
+         cleanupError(col + ' is not in the list of stock colors')
       colors.append(fmtstr('{},{},{},{}', group, stockColors[col][0], stockColors[col][1],
                            stockColors[col][2]))
    else:
@@ -187,18 +195,18 @@ if skipLines < 0 or numCol <= 0:
 
          # This is the column number or data line
          if not numFields:
-            exitError('First line of data file does not have expected numeric text')
+            cleanupError('First line of data file does not have expected numeric text')
          if numCol < 0:
             trueCol = numFields - ifTypes
             if not trueCol:
-               exitError('There seem to be only types in the file, not data')
+               cleanupError('There seem to be only types in the file, not data')
          elif numCol == 0:
             if firstInt == None or firstInt <= 0:
-               exitError('Entry on line just before data is not an integer > 1')
+               cleanupError('Entry on line just before data is not an integer > 1')
             trueCol = firstInt
 
    except IOError:
-      exitError(fmtstr("{} data file {}: {}", errString, dataName, \
+      cleanupError(fmtstr("{} data file {}: {}", errString, dataName, \
                           str(sys.exc_info()[1])))
       
    dataFile.close()
@@ -210,10 +218,10 @@ if columnList:
    for ind in range(len(columnList)):
       col = columnList[ind]
       if col < 1 or col > trueCol:
-         exitError(str(col) + ' is an invalid column number')
+         cleanupError(str(col) + ' is an invalid column number')
       if (ind > 0 and col in columnList[0:ind - 1]) or \
              (ind < len(columnList) - 1 and col in columnList[ind + 1:]):
-         exitError('Column ' + str(col) + ' is in the column list more than once')
+         cleanupError('Column ' + str(col) + ' is in the column list more than once')
 else:
 
    # Or take care of default column, 1 and 2 unless there is only 1 or doing ordinals
@@ -228,7 +236,7 @@ if len(columnList) == 1:
 if ifTypes:
    defKeyBase = 'Type '
    if len(columnList) > 2:
-      exitError('When plotting by types, you cannot enter more than two columns')
+      cleanupError('When plotting by types, you cannot enter more than two columns')
 
 else:
    defKeyBase = 'Column '
@@ -270,7 +278,7 @@ for ind in range(len(symbols), numCurves):
          symbols.append(sym)
          break
    else:
-      exitError('There are too many types or columns being plotted for the symbols ' + \
+      cleanupError('There are too many types or columns being plotted for the symbols ' +\
                    'available')
 
 # Ready to build the awful input list
@@ -324,9 +332,10 @@ try:
       cmd += ' -tooltip """' + tooltip + '"""'
    runcmd(cmd, inlist)
 except ImodpyError:
+   if cleanup:
+      cleanupFiles([dataName])
    exitFromImodError(progname)
 
+if cleanup:
+   cleanupFiles([dataName])
 sys.exit(0)
-
-   
-      

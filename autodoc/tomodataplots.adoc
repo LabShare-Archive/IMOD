@@ -59,3 +59,10 @@ Enter either 4 integers separated by commas
 or the group number and a stock color name separated by a comma.  An entry
 here replaces the default for that group.  Stock colors can be listed with
 "onegenplot -stock".
+
+[Field = BackgroundProcess]
+short = background
+type = B
+usage = Run onegenplot in the background and exit quickly
+tooltip =
+manpage = 
