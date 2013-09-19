@@ -61,10 +61,10 @@ typeTable = [(0, [5], 1, [7], 1, ['X shift']),
 tempNeeded = [False, True, True, True]
 axisLabels = ['View number', 'View number', 'View number', 'View number']
 
-# Fallbacks from ../manpages/autodoc2man 3 1 plottomodata
+# Fallbacks from ../manpages/autodoc2man 3 1 tomodataplots
 options = ["input:InputFile:FN:", "type:TypeOfDataToPlot:IA:",
            "connect:ConnectWithLines:I:", "symbols:SymbolsForGroups:IA:",
-           "hue:HueOfGroup:CHM:"]
+           "hue:HueOfGroup:CHM:", "background:BackgroundProcess:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 
@@ -87,6 +87,7 @@ if tempNeeded[fileType]:
    dataLines = readTextFile(dataName)
 
 # Get other options, fall back to defaults for connect
+background = PipGetBoolean('BackgroundProcess', 0)
 connect = PipGetInteger('ConnectWithLines', 0)
 connect = max(0, min(1, connect))
 if PipGetErrNo():
@@ -250,11 +251,33 @@ for col in colors:
    comlines.append('HueOfGroup ' + col)
 
 # Run onegenplot
-try:
-   prnstr('Close graph window to exit', flush = True)
-   runcmd('onegenplot -StandardInput', comlines)
-except ImodpyError:
-   exitFromImodError(progname)
+if background:
+
+   # In the background: compose a command array and add the cleanup option
+   comArray = ['onegenplot']
+   if tempFile:
+      comArray.append('-remove')
+   for line in comlines:
+      lsplit = line.split(' ', 1)
+      comArray.append('-' + lsplit[0])
+      if len(lsplit) > 1:
+         comArray.append(lsplit[1])
+
+   err =  bkgdProcess(comArray, None, 'stdout', True)
+   if err:
+      exitError('Cannot start onegenplot: ' + err)
+   sys.exit(0)
+         
+else:
+
+   # In foreground, run as usual command
+   try:
+      prnstr('Close graph window to exit', flush = True)
+      runcmd('onegenplot -StandardInput', comlines)
+   except ImodpyError:
+      if tempFile:
+         cleanupFiles([tempFile])
+      exitFromImodError(progname)
 
 if tempFile:
    cleanupFiles([tempFile])

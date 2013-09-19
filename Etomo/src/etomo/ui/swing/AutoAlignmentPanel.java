@@ -472,13 +472,13 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   private void setTooltips() {
     ltfSigmaLowFrequency
         .setToolTipText("Sigma of an inverted gaussian for filtering out low frequencies "
-            + "before searching for transformation.");
+            + "before searching for transformation.  Filter is applied to binned image.");
     ltfCutoffHighFrequency
         .setToolTipText("Starting radius of a gaussian for filtering out high frequencies "
-            + "before searching for transformation.");
+            + "before searching for transformation.  Filter is applied to binned image.");
     ltfSigmaHighFrequency
         .setToolTipText("Sigma of gaussian for filtering out high frequencies before "
-            + "searching for transformation.");
+            + "searching for transformation.  Filter is applied to binned image.");
     btnInitialAutoAlignment
         .setToolTipText("OPTIONAL:  Run xfalign.  Find preliminary translational "
             + "alignments with tiltxcorr rather then using an existing .xf file.");
@@ -497,15 +497,15 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       cbFindWarping
           .setToolTipText("Align with non-linear warping by cross-correlating overlapping "
               + "patches.");
-      String text = "Size of patches to correlate in X and Y";
+      String text = "Size of patches to correlate in X and Y, in unbinned pixels.";
       ltfWarpPatchSizeX.setToolTipText(text);
       ltfWarpPatchSizeY.setToolTipText(text);
-      text = "Use model with contours around areas where patches should be correlated.  "
-          + "Open 3dmod to draw or see contours around around areas to use for "
-          + "correlation.";
-      cbBoundaryModel.setToolTipText(text);
-      btnBoundaryModel.setToolTipText(text);
-      text = "If the field is blank there are no limits.";
+      cbBoundaryModel.setToolTipText("Use model with contours around areas where " 
+          + "patches should be correlated.");
+      btnBoundaryModel.setToolTipText("Open 3dmod to draw or see contours around areas "
+          + "to use for correlation.");
+      text = "Maximum pixels of shift for each patch.  If both fields are blank there "
+          + "are no limits; otherwise there must be a value in both fields.";
       ltfShiftLimitsForWarpX.setToolTipText(text);
       ltfShiftLimitsForWarpY.setToolTipText(text);
     }
