@@ -30,13 +30,17 @@ The images can be reduced in size by binning.  More reduction will make the
 search run faster and remove or average out more high-frequency noise.  The
 default reduction is by a factor of 2; no reduction should be needed for very
 small images and more reduction might be helpful for large images (say, 1K x
-1K or bigger).
+1K or bigger).  As of IMOD 4.6.30, reduction is done with an antialiasing
+filter, as is used for high-quality display in 3dmod, and prefiltering of the
+images is done on these reduced images.
 
 Prefiltering uses the four parameters sigma1,
 sigma2, radius1, radius2 that are used to specify filtering for several other
 programs (see Filterplot(1).  Low-pass filtering to reduce noise (e.g., sigma2 =
-0.05, radius2 = 0.25) is somewhat redundant to binning the images, and may not
-be needed with the default image reduction.  If the images contain large areas
+0.05, radius2 = 0.25) is somewhat redundant to reducing the images by a higher
+binning factor, and may not
+be needed with an image reduction that brings the size below 1K x 1K.  
+If the images contain large areas
 of light and dark that correspond between sections and so are good cues for
 alignment, then prefiltering, if any, should not include a high-pass filter
 (i.e., leave sigma1 at 0 or do not filter).  However, if there are large areas

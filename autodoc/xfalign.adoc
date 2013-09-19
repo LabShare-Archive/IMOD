@@ -46,8 +46,10 @@ the fraction is relative to the subarea size. The default is 0.05.
 short = reduce
 type = I
 usage = Binning factor to reduce by (default 2)
-tooltip =
-manpage =  
+tooltip = Binning factor to reduce by (default 2).  Image reduction is done
+with antialias filtering.
+manpage = Factor to reduce images by.  Image reduction is done with antialias
+filtering.  The default is 2.
 
 [Field = FilterParameters]
 short = filter

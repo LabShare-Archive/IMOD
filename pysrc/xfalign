@@ -342,7 +342,8 @@ try:
                     fmtstr('EdgeToIgnore {}', fracmatt),
                     fmtstr('CorrelationCoefficient {}', doCCC),
                     fmtstr('SobelFilter {}', sobel),
-                    'FloatOption 1']
+                    'FloatOption 1',
+                    'AntialiasFilter -1']
 
          if local:
             simpcom.append(fmtstr('LocalPatchSize {}', local))
