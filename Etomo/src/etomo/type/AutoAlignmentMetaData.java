@@ -49,12 +49,9 @@ public final class AutoAlignmentMetaData {
   private Transform alignTransform = Transform.DEFAULT;
 
   AutoAlignmentMetaData() {
-    sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
-    cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
-    sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
-    reduceByBinning.setDisplayValue(2);
-    midasBinning.setDisplayValue(1);
-    edgeToIgnore.setDisplayValue(.05);
+    sigmaLowFrequency.setDefault(0);
+    cutoffHighFrequency.setDefault(0);
+    sigmaHighFrequency.setDefault(0);
   }
 
   private String createPrepend(final String prepend) {
@@ -125,6 +122,10 @@ public final class AutoAlignmentMetaData {
     return this.sigmaLowFrequency.set(sigmaLowFrequency);
   }
 
+  public boolean isSigmaLowFrequencyNull() {
+    return sigmaLowFrequency.isNull();
+  }
+
   void setSigmaLowFrequency(final ConstEtomoNumber input) {
     sigmaLowFrequency.set(input);
   }
@@ -141,6 +142,10 @@ public final class AutoAlignmentMetaData {
     this.cutoffHighFrequency.set(cutoffHighFrequency);
   }
 
+  public boolean isCutoffHighFrequencyNull() {
+    return cutoffHighFrequency.isNull();
+  }
+
   void setCutoffHighFrequency(final ConstEtomoNumber input) {
     cutoffHighFrequency.set(input);
   }
@@ -151,6 +156,10 @@ public final class AutoAlignmentMetaData {
 
   public void setReduceByBinning(final Number input) {
     reduceByBinning.set(input);
+  }
+
+  public boolean isReduceByBinningNull() {
+    return reduceByBinning.isNull();
   }
 
   public void setShiftLimitsForWarpX(final String input) {
@@ -209,12 +218,20 @@ public final class AutoAlignmentMetaData {
     edgeToIgnore.set(input);
   }
 
+  public boolean isEdgeToIgnoreNull() {
+    return edgeToIgnore.isNull();
+  }
+
   public ConstEtomoNumber getMidasBinning() {
     return midasBinning;
   }
 
   public void setMidasBinning(final Number input) {
     midasBinning.set(input);
+  }
+
+  public boolean isMidasBinningNull() {
+    return midasBinning.isNull();
   }
 
   public String getSkipSectionsFrom1() {
@@ -243,6 +260,10 @@ public final class AutoAlignmentMetaData {
 
   public void setSigmaHighFrequency(String sigmaHighFrequency) {
     this.sigmaHighFrequency.set(sigmaHighFrequency);
+  }
+
+  public boolean isSigmaHighFrequencyNull() {
+    return sigmaHighFrequency.isNull();
   }
 
   void setSigmaHighFrequency(final ConstEtomoNumber input) {

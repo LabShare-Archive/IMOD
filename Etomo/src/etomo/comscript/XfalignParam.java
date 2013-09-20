@@ -344,8 +344,9 @@ public class XfalignParam implements Command {
         || sigmaHighFrequency.isNotNullAndNotDefault()) {
       options.add("-fil");
       // all three numbers must exist
-      options.add(sigmaLowFrequency.toString() + "," + sigmaHighFrequency.toString()
-          + ",0," + cutoffHighFrequency.toString());
+      options.add(sigmaLowFrequency.toDefaultedString() + ","
+          + sigmaHighFrequency.toDefaultedString() + ",0,"
+          + cutoffHighFrequency.toDefaultedString());
     }
   }
 

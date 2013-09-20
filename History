@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/18/13: Fixed a problem with the xfalign panel in Serial Sections and Join in
+eTomo where blanking the filter data caused the process to run with the
+initial values.(Bug# 1745)
+
 9/17/13: Fixed right-click menu in eTomo - Fiducial Model Dialog.(Bug# 1683)
 
 9/17/13: Resolved problems with the project log window.(Bug# 1690, Bug# 1616)

@@ -114,7 +114,7 @@ tb.initial-blend.1=
   assert.exists.file=%{dataset}_empty.xf
   #test values
   assert.tf.sigma-for-low-frequency-filter=0.0
-  assert.tf.cutoff-for-high-frequency-filter=0.25
+  assert.tf.cutoff-for-high-frequency-filter=0.35
   assert.tf.sigma-for-high-frequency-filter=0.05
   assert.cb.search-for=on
   assert.rb.full-linear-transformation=on
