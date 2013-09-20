@@ -130,7 +130,7 @@ public final class SerialSectionsManager extends BaseManager {
       }
     }
   }
-  
+
   public boolean isStartupPopupOpen() {
     return !loadedParamFile;
   }
@@ -299,10 +299,10 @@ public final class SerialSectionsManager extends BaseManager {
     ProcessSeries processSeries = new ProcessSeries(this,
         DialogType.SERIAL_SECTIONS_STARTUP);
     processSeries.setNextProcess(Task.CHANGE_DIRECTORY);
-    processSeries.addProcess(Task.EXTRACT_PIECES);
     processSeries.addProcess(Task.CREATE_COMSCRIPTS);
     processSeries.addProcess(Task.COPY_DISTORTION_FIELD_FILE, true);
-    processSeries.setLastProcess(Task.DONE_STARTUP_DIALOG);
+    processSeries.addProcess(Task.DONE_STARTUP_DIALOG);
+    processSeries.addProcess(Task.EXTRACT_PIECES);
     processSeries.setFailProcess(Task.RESET_STARTUP_STATE);
     processSeries.startNextProcess(axisID);
   }
