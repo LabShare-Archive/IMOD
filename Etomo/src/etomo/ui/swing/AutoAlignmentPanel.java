@@ -132,7 +132,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     ltfSigmaLowFrequency.setText("0.0");
     ltfCutoffHighFrequency.setText("0.35");
     ltfSigmaHighFrequency.setText("0.05");
-    ltfEdgeToIgnore.setText(".05");
+    ltfEdgeToIgnore.setText("0.05");
     // panels
     JPanel pnlPreCrossCorrelation = new JPanel();
     SpacedPanel pnlLeftButtons = SpacedPanel.getInstance();
