@@ -219,6 +219,11 @@ public final class LogWindow implements LogInterface, LogProperties {
    * @param visible
    */
   public void show() {
+    try {
+      Thread.sleep(50);
+    }
+    catch (InterruptedException e) {
+    }
     if (!displayed) {
       displayed = true;
       if (!frameLocationXProperty.isNull()) {
@@ -472,7 +477,7 @@ public final class LogWindow implements LogInterface, LogProperties {
   public void store(final Properties props, String prepend) {
     prepend = getPrepend(prepend);
     Dimension size = frame.getSize();
-    //A panel that has never been displayed will have a height and width of 0.
+    // A panel that has never been displayed will have a height and width of 0.
     if (size.width <= 0 || size.height <= 0) {
       return;
     }
