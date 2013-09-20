@@ -35,7 +35,7 @@ import etomo.util.EnvironmentVariable;
 public final class VersionControl {
   public final String rcsid = "$$Id$$";
 
-  public static final String TIME_STAMP = "9/17/2013 14:39";
+  public static final String TIME_STAMP = "9/19/2013 19:17";
 
   private static final String DEPENDANT_IMOD_VERSION = "4.4.4";
   private static final String DEPENDANT_PEET_VERSION = "1.8.0";
@@ -106,7 +106,7 @@ public final class VersionControl {
   }
 
   public static String getEtomoVersion() {
-    return ImodVersion.CURRENT_VERSION + "9/17/2013 14:39" + VersionControl.TIME_STAMP;
+    return ImodVersion.CURRENT_VERSION + "9/19/2013 19:17" + VersionControl.TIME_STAMP;
   }
 
   /**
