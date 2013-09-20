@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9l/19/13: Fixed a problem in eTomo - Serial Sections where the main frame
+locked up when the log window was displayed.(Bug# 1746)
+
 9/18/13: Fixed a problem with the xfalign panel in Serial Sections and Join in
 eTomo where blanking the filter data caused the process to run with the
 initial values.(Bug# 1745)
