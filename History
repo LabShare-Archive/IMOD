@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/19/13: Fixed a problem in eTomo - Serial Sections where etomo could not find
+the piece list file during startup.  This caused it to run extrapieces despite
+the existance of a piece list file in the dataset.(Bug# 1747)
+
 9/19/13: Fixed a problem in eTomo - Serial Sections where the main frame
 locked up when the log window was displayed.(Bug# 1746)
 
