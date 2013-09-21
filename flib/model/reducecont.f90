@@ -14,47 +14,44 @@
 !
 program reducecont
   implicit none
-  integer LIMPATH, LIMFLAGS
   include 'model.inc90'
-  parameter (LIMPATH = 50000, LIMFLAGS = 5000)
   !
-  real*4 xt(LIMPATH), yt(LIMPATH), xx(LIMPATH), yy(LIMPATH)
-  integer*4 idum(LIMPATH), jdum(LIMPATH), iobjDo(LIMFLAGS), iflags(LIMFLAGS)
+  real*4, allocatable :: xt(:), yt(:), xx(:), yy(:)
+  integer*4, allocatable :: idum(:), jdum(:), iobjDo(:), iflags(:)
   !
-  character*120 inFile, outFile
-  integer*4 numFit, iorder, ierr, numObjDo, numObjTot, iflag, indy, indz, ifflip
-  real*4 tol, xyScale, zScale, xOffset, yOffset, zOffset
+  character*320 inFile, outFile
+  integer*4 numFit, iorder, ierr, numObjDo, numObjTot, iflag, indy, indz, ifFlipped
+  real*4 tol, xyScale, zScale, xOffset, yOffset, zOffset, spacing
   integer*4 newTotal, numPtOld, numContTot, imodObj, ifOnList, icheck, i, iobj, numInObj
-  integer*4 ipnt, ibase, izCont, numContInObj, numBefore, numAfter
+  integer*4 ipnt, ibase, izCont, numContInObj, numBefore, numAfter, limFlags, limPath/0/
   logical readw_or_imod, coplanar, getModelObjectRange
-  integer getImodHead, getImodFlags, getImodObjSize
+  integer getImodHead, getImodFlags, getImodObjSize, numberInList
   !
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetTwoIntegers
   integer*4 PipGetFloat, PipGetString
   integer*4 PipGetInOutFile
   !
-  ! fallbacks from ../../manpages/autodoc2man -2 2  reducecont
-  !
+  ! fallbacks from ../../manpages/autodoc2man -3 2  reducecont
   integer numOptions
-  parameter (numOptions = 6)
+  parameter (numOptions = 7)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'input:InputFile:FN:@output:OutputFile:FN:@'// &
-      'objects:ObjectsToReduce:LI:@tolerance:Tolerance:F:@'// &
-      'smoothing:SmoothingPointsAndOrder:IP:@help:usage:B:'
+      'input:InputFile:FN:@output:OutputFile:FN:@objects:ObjectsToReduce:LI:@'// &
+      'tolerance:Tolerance:F:@smoothing:SmoothingPointsAndOrder:IP:@'// &
+      'spaced:SpacedPointsTarget:F:@help:usage:B:'
   !
   numFit = 5
   iorder = 2
   tol = 0.25
   numObjDo = 0
   numContTot = 0
+  spacing = 0.
   !
   ! Pip startup: set error, parse options, check help
   !
-  call PipReadOrParseOptions(options, numOptions, 'reducecont', &
-      'ERROR: REDUCECONT - ', .false., 2, 1, 1, numOptArg, &
-      numNonOptArg)
+  call PipReadOrParseOptions(options, numOptions, 'reducecont', 'ERROR: REDUCECONT - ', &
+      .false., 2, 1, 1, numOptArg, numNonOptArg)
   !
   if (PipGetInOutFile('InputFile', 1, ' ', inFile) .ne. 0) &
       call exitError('NO INPUT FILE SPECIFIED')
@@ -63,37 +60,38 @@ program reducecont
       call exitError('NO OUTPUT FILE SPECIFIED')
   !
   ierr = PipGetFloat('Tolerance', tol)
-  ierr = PipGetTwoIntegers('SmoothingPointsAndOrder', numFit, iorder)
+  i = PipGetTwoIntegers('SmoothingPointsAndOrder', numFit, iorder)
   if (tol <= 0) call exitError('ZERO TOLERANCE WILL HAVE NO EFFECT')
   if (numFit > 100 .or. iorder > 5) call exitError( &
       'NUMBERS OF POINTS OR ORDER FOR SMOOTHING TOO HIGH')
+  if (PipGetFloat('SpacedPointsTarget', spacing) == 0 .and. (ierr == 0 .or. i == 0)) &
+      call exitError('YOU CANNOT ENTER -spacing WITH -tolerance OR -smoothing')
   !
   call imodPartialMode(1)
   if (.not.readw_or_imod(inFile)) call exitError('READING MODEL')
   !
+  numObjTot = getImodObjSize()
+  limFlags = numObjTot + 20
+  allocate(iobjDo(limFlags), iflags(limFlags), stat = ierr)
+  call memoryError(ierr, 'ARRAYS PER OBJECT')
   if (PipGetString('ObjectsToReduce', inFile) == 0) &
-      call parselist(inFile, iobjDo, numObjDo)
-  if (numObjDo > LIMFLAGS) call exitError( &
-      'TOO MANY OBJECTS IN LIST FOR ARRAYS')
+      call parselist2(inFile, iobjDo, numObjDo, limFlags)
 
   call PipDone()
-  ierr = getImodHead(xyScale, zScale, xOffset, yOffset, zOffset, ifflip)
+  ierr = getImodHead(xyScale, zScale, xOffset, yOffset, zOffset, ifFlipped)
   !
   ! Get object flags
   !
-  do i = 1, LIMFLAGS
-    iflags(i) = 0
-  enddo
-  ierr = getImodFlags(iflags, LIMFLAGS)
+  iflags(:) = 0
+  ierr = getImodFlags(iflags, limFlags)
   if (ierr .ne. 0) print *,'Error getting object types, assuming', &
       ' all are closed contours'
-  numObjTot = getImodObjSize()
 
   ! print *,n_point, ' points,', max_mod_obj, ' contours in input file'
   !
   indy = 2
   indz = 3
-  if (ifflip .ne. 0) then
+  if (ifFlipped .ne. 0) then
     indy = 3
     indz = 2
   endif
@@ -105,31 +103,30 @@ program reducecont
   do imodObj = 1, numObjTot
     !
     ! is IMOD object on list
-    !
-    ifOnList = 0
-    if (numObjDo == 0) then
-      ifOnList = 1
-    else
-      do icheck = 1, numObjDo
-        if (imodObj == iobjDo(icheck)) ifOnList = 1
-      enddo
-    endif
+    ifOnList = numberInList(imodObj, iobjDo, numObjDo, 1)
     !
     ! require not scattered points
-    !
-    iflag = 0
-    if (imodObj <= LIMFLAGS) iflag = mod(iflags(imodObj), 4)
+    iflag = mod(iflags(imodObj), 4)
     if (ifOnList == 1 .and. iflag < 2) then
       numContInObj = 0
       numBefore = 0
       numAfter = 0
       !
       if (.not.getModelObjectRange(imodObj, imodObj)) then
-        print *
-        print *, 'ERROR: REDUCECONT - LOADING DATA FOR OBJECT #', imodObj
-        call exit(1)
+        write(outFile, '(a,i5)') 'LOADING DATA FOR OBJECT #', imodObj
+        call exitError(outFile)
       endif
       call scale_model(0)
+      !
+      ! Check allocation sizes
+      numInObj = maxval(npt_in_obj(1:max_mod_obj))
+      if (numInObj > limPath - 10) then
+        if (limPath > 0) deallocate(xt, yt, xx, yy, idum, jdum, stat = ierr)
+        limPath = numInObj + 10
+        allocate(xt(limPath), yt(limPath), xx(limPath), yy(limPath), idum(limPath), &
+            jdum(limPath), stat = ierr)
+        call memoryError(ierr, 'ARRAYS FOR CONTOURS')
+      endif
       !
       ! Loop on contours, which are in this object
       !
@@ -139,24 +136,30 @@ program reducecont
         coplanar = .true.
         i = 2
         izCont = nint(p_coord(indz, ibase + 1))
-        do while(i <= numInObj .and. coplanar)
+        do while (i <= numInObj .and. coplanar .and. spacing <= 0)
           coplanar = nint(p_coord(indz, object(i + ibase))) == izCont
           i = i + 1
         enddo
 
-        if (numInObj > 2 .and. numInObj <= LIMPATH .and. coplanar) then
+        if (numInObj > 2 .and. coplanar) then
           numBefore = numBefore + numInObj
           numContInObj = numContInObj + 1
           do i = 1, numInObj
             ipnt = object(i + ibase)
             xx(i) = p_coord(1, ipnt)
             yy(i) = p_coord(indy, ipnt)
+            xt(i) = p_coord(indz, ipnt)
           enddo
-          call reducepts(xx, yy, numInObj, iorder, numFit, tol, xt, yt, idum, jdum)
+          if (spacing <= 0) then
+            call reducepts(xx, yy, numInObj, iorder, numFit, tol, xt, yt, idum, jdum)
+          else
+            call spacePoints(xx, yy, xt, yt, idum, jdum, numInObj, spacing)
+          endif
           do i = 1, numInObj
             ipnt = object(i + ibase)
             p_coord(1, ipnt) = xx(i)
             p_coord(indy, ipnt) = yy(i)
+            if (spacing > 0) p_coord(indz, ipnt) = xt(i)
           enddo
           ! print *,imodobj, iobj, ' reduced from', npt_in_obj(iobj), ' to', &
           ! ninobj
@@ -172,16 +175,14 @@ program reducecont
       call putModelObjects()
       if (numContInObj > 0) &
           write(*,101) imodObj, numContInObj, numBefore, numAfter
-101   format('Object',i4,':',i7,' contours reduced from',i8,' to',i8, &
-          ' points')
+101   format('Object',i4,':',i7,' contours reduced from',i8,' to',i8, ' points')
     endif
   enddo
   !
   n_point = -1
   call write_wmod(outFile)
   write(*,102) numContTot, numPtOld, newTotal
-102 format('     Total:',i7,' contours reduced from',i8,' to',i8, &
-      ' points')
+102 format('     Total:',i7,' contours reduced from',i8,' to',i8, ' points')
   call exit(0)
 end program
 
@@ -202,12 +203,18 @@ end program
 ! The reduced set of points and number of points are returned in
 ! XX, YY and NPTS.
 !
-subroutine reducepts(xx, yy, numPts, inOrder, inFit, tol, xs, ys, nextPt, &
-    minSeg)
+subroutine reducepts(xx, yy, numPts, inOrder, inFit, tol, xs, ys, nextPt, minSeg)
+  implicit none
+  integer LIMFIT, LIMORD
   parameter (LIMFIT = 30, LIMORD = 10)
-  real*4 xx(*), yy(*), xs(*), ys(*)
-  integer*4 nextPt(*), minSeg(*)
+  real*4 xx(*), yy(*), xs(*), ys(*), tol
+  integer*4 nextPt(*), minSeg(*), numPts, inOrder, inFit
   real*4 xt(LIMFIT), yt(LIMFIT), slope(LIMORD)
+  real*4 errLim, dx, dy, dlen, xmid, ymid, sinTheta, cosTheta, ycen, bintcp, tolSq
+  integer*4 numFit, iorder, icen, ist, ind, in, io, i, numOutLim, left, irt, ifOut, its
+  real*4 x1, y1, x2, y2, dx0, dy0, denom, distSq, tmin
+  integer*4 numOut, npo, ipo, jcen
+
   errLim = 1.e-6
   !
   numFit = min(inFit, LIMFIT)
@@ -278,7 +285,7 @@ subroutine reducepts(xx, yy, numPts, inOrder, inFit, tol, xs, ys, nextPt, &
   nextPt(numPts - 1) = numPts
   tolSq = tol**2
   !
-  ! Stop looking at longer segments after finding NOUTLIM segments that
+  ! Stop looking at longer segments after finding numOutLim segments that
   ! are not possible
   !
   numOutLim = 3
@@ -349,3 +356,51 @@ subroutine reducepts(xx, yy, numPts, inOrder, inFit, tol, xs, ys, nextPt, &
   numPts = npo
   return
 end subroutine reducepts
+
+subroutine spacePoints(xx, yy, zz, xt, yt, zt, numInObj, targetSpace)
+  implicit none
+  real*4 xx(*), yy(*), zz(*), xt(*), yt(*), zt(*), spacing, targetSpace
+  integer*4 numInObj
+  real*8 totalDist
+  real*4 distTarget, frac, segDist
+  integer*4 i, iseg, numSeg
+  !
+  ! Compute total distance and cumulative distance to each point
+  totalDist = 0.
+  do i = 1, numInObj - 1
+    totalDist = totalDist + sqrt((xx(i) - xx(i + 1))**2 + (yy(i) - yy(i + 1))**2 +  &
+        (zz(i) - zz(i + 1))**2)
+  enddo
+  !
+  ! Determine number of segments and ideal spacing from the target, limit to existing
+  ! number of segments
+  numSeg = min(nint(totalDist / targetSpace), numInObj - 1)
+  spacing = totalDist / numSeg
+  !
+  ! Walk along contour find point past each target position, and interpolate from previous
+  i = 1
+  totalDist = 0.
+  do iseg = 2, numSeg
+    distTarget = (iseg - 1) * spacing
+    do while (totalDist < distTarget)
+      segDist = sqrt((xx(i) - xx(i + 1))**2 + (yy(i) - yy(i + 1))**2 +  &
+          (zz(i) - zz(i + 1))**2)
+      totalDist = totalDist + segDist
+      i = i + 1
+    enddo
+    frac = max(0., min(1., (totalDist - distTarget) / max(.01, segDist)))
+    xt(iseg) = frac * xx(i - 1) + (1. - frac) * xx(i)
+    yt(iseg) = frac * yy(i - 1) + (1. - frac) * yy(i)
+    zt(iseg) = frac * zz(i - 1) + (1. - frac) * zz(i)
+  enddo
+  !
+  ! Copy the last point over, then resize contour and copy all points back from temp
+  xt(numSeg + 1) = xx(numInObj)
+  yt(numSeg + 1) = yy(numInObj)
+  zt(numSeg + 1) = zz(numInObj)
+  numInObj = numSeg + 1
+  xx(2:numInObj) = xt(2:numInObj)
+  yy(2:numInObj) = yt(2:numInObj)
+  zz(2:numInObj) = zt(2:numInObj)
+  return
+end subroutine spacePoints
