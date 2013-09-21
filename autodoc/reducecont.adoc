@@ -39,6 +39,21 @@ tooltip =
 manpage = Number of points, and polynomial order, for the smoothing step.
 Enter 0,0 to omit smoothing.  Defaults are 5 points and order 2.
 
+[Field = SpacedPointsTarget]
+short = spaced
+type = F
+usage =  Replace each contours with points equally spaced along contour
+tooltip = 
+manpage = This option invokes an alternative method in which each contour is
+replaced by a set of points equally spaced along the contour, where the
+spacing is as close as possible to the given target spacing.  However, the
+spacing will be made larger, if necessary, to keep the total number of points
+from increasing.  The new points are interpolated along the line segments
+between the previous contour points and the distances between them will vary
+depending on the curvature of the contour.  The distance along the contour is
+in 3D and thus this option works for open contours that do not lie in a plane.
+This option cannot be entered together with -tolerance or -smoothing.
+
 [Field = usage]
 short = help
 type = B
