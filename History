@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/13: Added option to Reducecont to replace each contour with a set of
+points evenly spaced along the contour.
+
+9/19/13: Added ability for Xfsimplex to load data with antialiased image
+reduction and made Xfalign call it in this mode, so that filtering now
+happens after reduction instead of before.  This avoids problems with very
+large images and makes the effect of filtering somewhat more predictable, but
+has changed the effect of the filters for autoalignment in the Join and Serial
+Section interfaces.
+
 9/19/13: Fixed a problem in eTomo - Serial Sections where etomo could not find
 the piece list file during startup.  This caused it to run extrapieces despite
 the existance of a piece list file in the dataset.(Bug# 1747)
@@ -53,7 +63,7 @@ Serial Sections / Blend Montages" interface.(Bug# 1730)
 
 8/23/13: There are now two system templates that can be selected in the eTomo
 startup page; plasticSection just turns on Sobel filter centering in tracking;
-cyoSample turns that on with the correct filter and changes a few other
+cryoSample turns that on with the correct filter and changes a few other
 settings; see Using Etomo for details.
 
 8/23/13: Fixed Tiltxcorr to compute warping with a seed point model.
