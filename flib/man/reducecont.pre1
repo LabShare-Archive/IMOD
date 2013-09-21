@@ -17,6 +17,9 @@ DDEESSCCRRIIPPTTIIOONN
   segments connecting the final, reduced set of points.  Some smoothing is
   also done, and a point will be replaced by a smoothed point if the smoothed
   point is within the tolerance distance from the original point.
+
+  In a separate mode of operation, it can also be used to produce contours
+  with points approximately equally spaced apart at a given distance.
   
   Reducecont uses the PIP package for input (see the manual page for pip(1)).
   The following options can be specified either as command line arguments
