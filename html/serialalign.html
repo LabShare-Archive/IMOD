@@ -232,15 +232,31 @@ The automatic alignment should work better if images are processed to
 emphasize corresponding features.  The processing and area selection options
 available through the
 interface consist of the <B>Fraction to ignore on edges</B>, the
-image <B>Binning</B> (which is 2 by default) and low and high pass filtering
-by Gaussian functions.  The three filter parameters, the
+image <B>Binning in search</B> (which is 2 by default) and low and high pass filtering
+by Gaussian functions.  The binning selection here applies only to the search
+in <A HREF = "man/xfsimplex.html#TOP">Xfsimplex</A> and should be set to bring
+the images down to about 1K in size or less.  This binning is actually done
+with antialiased image reduction to avoid having high-frequency information
+aliased into the reduced image in ways that might degrade the signal for
+aligning the images.  Thus, there is no need to use the
+Gaussian filtering just
+to avoid the effects of aliasing when using a high binning.  You can avoid
+the filtering by blanking out each of the three parameter fields.
+<P>
+The three filter parameters, the
 sigma for a low-frequency filter and the cutoff radius and sigma for a
 high-frequency filter, have the same meaning as the parameters used in many other IMOD
-programs.  You can experiment with these filter settings in the Fourier Filtering
+programs.  This filter is applied to the reduced image.  You can experiment
+with these 
+filter settings by loading the stack into 
+<A HREF = "man/3dmod.html#TOP">3dmod</A> with a binning corresponding to
+the <B>Binning in search</B> (right click on the <B>Open Stack</B> button and
+select <B>Open with startup window</B>, and enter the appropriate binning in
+X/Y).  Then open the Fourier Filtering
 panel of the 
 <A HREF = "3dmodHelp/imageProc.html#FourierFilter">3dmod Image Processing</A>
-dialog, which you can open by selecting <B>Image-Process</B> from
-the <B>Edit</B> menu and then clicking on <B>Fourier filter</B>.
+dialog by selecting <B>Image-Process</B> from
+the <B>Edit</B> menu and clicking on <B>Fourier filter</B>.
 <A HREF = "man/xfalign.html#TOP">Xfalign</A> has several other
 options for image filtering that are not available through the interface, and
 you would have to run the program outside of eTomo to access those options.
