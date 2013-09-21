@@ -455,12 +455,13 @@ rotation and translation.  These are options to try before giving up on
 automatic alignment.
 <P>
 The filtering parameters control the degree of filtering that is applied to
-the images.  <A href="man/xfalign.html#TOP">Xfalign</A> passes the filtered images
-to <A href="man/xfsimplex.html#TOP">Xfsimplex</A>, which
+the images.  The filtering is applied after the default image reduction by a
+factor of 2 in the program
+<A href="man/xfsimplex.html#TOP">Xfsimplex</A>, which
 searches for a transformation that minimizes a pixel-to-pixel difference
 between the images, summed over all pixels.  This minimization is sensitive
 to noise, so some high-frequency filtering is appropriate.  You might want
-to reduce the <B>Cutoff for high-frequency filter</B> below 0.25 for
+to reduce the <B>Cutoff for high-frequency filter</B> below 0.35 for
 particularly noisy images.
 
 </P>
