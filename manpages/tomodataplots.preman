@@ -1,12 +1,13 @@
+
 .na
 .nh
-.TH plottomodata 1 4.6.18 BL3DEMC
+.TH tomodataplots 1 4.6.18 BL3DEMC
 .SH NAME
-plottomodata \- Make an X/Y plot of output from tilt series processing
+tomodataplots \- Make an X/Y plot of output from tilt series processing
 .SH SYNOPSIS
-plottomodata [options] data_file
+tomodataplots [options] data_file
 .SH DESCRIPTION
-Plottomodata is a Python script to plot selected output from various stages of
+Tomodataplots is a Python script to plot selected output from various stages of
 tilt series processing in a window, using Genhstplt(1) via Onegenplot(1).
 It can plot X and Y shifts from alignment transforms, min and max values from
 running "clip stat", the errors from shifting montage frames into alignment in
@@ -23,7 +24,7 @@ Note that the graph window can be saved as a PNG file or printed from a popup
 menu brought up by right-clicking in the window.  Left-clicking will pop up a
 report of the coordinates clicked.
 .SS Options
-Onegenplot uses the PIP package for input (see the manual page
+Tomodataplots uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file
 (without the -).  Options can be abbreviated to unique letters; the currently

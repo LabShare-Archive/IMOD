@@ -64,7 +64,8 @@ axisLabels = ['View number', 'View number', 'View number', 'View number']
 # Fallbacks from ../manpages/autodoc2man 3 1 tomodataplots
 options = ["input:InputFile:FN:", "type:TypeOfDataToPlot:IA:",
            "connect:ConnectWithLines:I:", "symbols:SymbolsForGroups:IA:",
-           "hue:HueOfGroup:CHM:", "background:BackgroundProcess:B:"]
+           "hue:HueOfGroup:CHM:", "axis:XaxisLabel:CH:",
+           "background:BackgroundProcess:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, 1, 0)
 
@@ -94,15 +95,17 @@ if PipGetErrNo():
    connect = typeTable[dataType][4]
 symbolsIn = PipGetIntegerArray('SymbolsForGroups', 0)
 numColors = PipNumberOfEntries('HueOfGroup')
+axisLabel = PipGetString('XaxisLabel', '')
 ifTypes = False
 
 # Handle generic option setup into onegenplot
 columns = typeTable[dataType][1]
 symbols = typeTable[dataType][3]
 keys = typeTable[dataType][5]
-axisLabel = axisLabels[fileType]
+if not axisLabel:
+   axisLabel = axisLabels[fileType]
 if fileType == 3 and dataLines and 'iece' in dataLines[0]:
-   axisLabel = 'Piece number'
+   axisLabel = axisLabel.replace('View number', 'Piece number')
    
 comlines = ['InputDataFile ' + plotFile,
             'ConnectWithLines ' + str(connect),

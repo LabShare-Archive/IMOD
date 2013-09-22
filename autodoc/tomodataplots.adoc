@@ -60,6 +60,15 @@ or the group number and a stock color name separated by a comma.  An entry
 here replaces the default for that group.  Stock colors can be listed with
 "onegenplot -stock".
 
+[Field = XaxisLabel]
+short = axis
+type = CH
+usage = Label for the X axis, overrides the default for the given data type
+tooltip =
+manpage = A label for the X axis to override the default for the given data
+type.  If the label entered contains "View number", this substring will be
+replaced with "Piece number" for "clip stats" output from a montage.
+
 [Field = BackgroundProcess]
 short = background
 type = B
