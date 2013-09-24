@@ -16,6 +16,7 @@ import javax.swing.JPopupMenu;
 import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.TaskInterface;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
@@ -204,6 +205,9 @@ public class ContextPopup {
 
   private String imodURL;
   private String anchor;
+
+  private JMenuItem[] graphItem = null;
+  private TaskInterface[] graphTask = null;
 
   /**
    * Simple context popup constructor.  Only the default menu items are
@@ -402,6 +406,108 @@ public class ContextPopup {
     };
 
     addLogFileMenuItems(logFileLabel, logFile);
+    contextMenu.add(new JPopupMenu.Separator());
+    addManPageMenuItems(manPageLabel, manPage);
+    contextMenu.add(new JPopupMenu.Separator());
+    addStandardMenuItems(false);
+    showMenu(component);
+  }
+
+  /**
+   * Constructor to show a man page list and log file items in addition to the
+   * the standard menu items.
+   * @param component The component to which the popup is attached.
+   * @param mouseEvent The mouse event that opened the menu.
+   * @param tomoAnchor The guide HTML anchor for the current popup.
+   * @param guideToAnchor The guide containing the HTML anchor.
+   * @param manPageLabel The string array of man page labels for the menu.
+   * @param manPage The name of the HTML man pages.
+   * @param logFileLabel The string arrays of log file labels for the menu.
+   * @param logFile The string arrays of names of the log files.
+   * @param graph information about the graphs
+   * @param manager
+   * @param axisID
+   */
+  public ContextPopup(final Component component, final MouseEvent mouseEvent,
+      final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
+      final String[] manPage, final String[] logFileLabel, final String[] logFile,
+      final TaskInterface[] graph, final BaseManager manager, final AxisID axisID) {
+    // TODO 1707
+    // Check to make sure that the menu label and man page arrays are the same
+    // length
+    if (manPageLabel.length != manPage.length) {
+      String message = "menu label and man page arrays must be the same length";
+      throw new IllegalArgumentException(message);
+    }
+    if (logFileLabel.length != logFile.length) {
+      StringBuffer message = new StringBuffer();
+      message
+          .append("log file label and log file arrays must be the same length\nlogFileLabel=\n");
+      for (int i = 0; i < logFileLabel.length; i++) {
+        message.append(logFileLabel[i] + "\n");
+      }
+      message.append("logFile=\n");
+      for (int i = 0; i < logFile.length; i++) {
+        message.append(logFile[i] + "\n");
+      }
+      throw new IllegalArgumentException(message.toString());
+    }
+
+    this.mouseEvent = mouseEvent;
+    anchor = tomoAnchor;
+    calcImodURL();
+
+    // Instantiate a new ActionListener to handle the menu selection
+    actionListener = new ActionListener() {
+      public void actionPerformed(ActionEvent actionEvent) {
+        setVisible(false);
+        String guideLocation = guideToAnchor;
+        String anchor = getAnchor();
+        if (anchor != null && !anchor.equals("")) {
+          guideLocation += "#" + anchor;
+        }
+        JMenuItem[] manPageItem = getManPageItem();
+        for (int i = 0; i < manPageItem.length; i++) {
+          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+            /* HTMLPageWindow manpage = new HTMLPageWindow(); manpage.openURL(getImodURL()
+             * + "man/" + getManPageName()[i]); manpage.setVisible(true); */
+            ImodqtassistProcess.INSTANCE.open(manager, "man/" + getManPageName()[i],
+                axisID);
+            return;
+          }
+        }
+
+        // Search the logfile items
+        JMenuItem[] logFileItem = getLogFileItem();
+        for (int i = 0; i < logFileItem.length; i++) {
+          if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
+            TextPageWindow logFileWindow = new TextPageWindow();
+            logFileWindow.setVisible(logFileWindow.setFile(manager.getPropertyUserDir()
+                + File.separator + getLogFileName()[i]));
+            return;
+          }
+        }
+
+        JMenuItem[] graphItem = getGraphItem();
+        TaskInterface[] graphTask = getGraphTask();
+        if (graphItem != null) {
+          for (int i = 0; i < graphItem.length; i++) {
+            if (actionEvent.getActionCommand() == graphItem[i].getText()) {
+              manager.tomodataplots(graphTask[i], axisID);
+              return;
+            }
+          }
+        }
+        // Search the standard items
+        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager, axisID);
+      }
+    };
+
+    addLogFileMenuItems(logFileLabel, logFile);
+    contextMenu.add(new JPopupMenu.Separator());
+    if (graph != null && graph.length > 0) {
+      addGraphMenuItems(graph);
+    }
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
     contextMenu.add(new JPopupMenu.Separator());
@@ -922,6 +1028,17 @@ public class ContextPopup {
     }
   }
 
+  private void addGraphMenuItems(final TaskInterface[] graph) {
+    graphItem = new MenuItem[graph.length];
+    graphTask = graph;
+    for (int i = 0; i < graphItem.length; i++) {
+      graphItem[i] = new MenuItem();
+      graphItem[i].setText(graph[i].toString());
+      graphItem[i].addActionListener(actionListener);
+      contextMenu.add(graphItem[i]);
+    }
+  }
+
   private void addTabbedLogFileMenuItems(String[] logWindowLabel) {
     logFileItem = new MenuItem[logWindowLabel.length];
     for (int i = 0; i < logFileItem.length; i++) {
@@ -962,7 +1079,7 @@ public class ContextPopup {
   }
 
   protected final void setVisible(boolean visible) {
-    contextMenu.setVisible(visible);
+     contextMenu.setVisible(visible);
   }
 
   protected final JMenuItem[] getManPageItem() {
@@ -979,6 +1096,14 @@ public class ContextPopup {
 
   protected final JMenuItem[] getLogFileItem() {
     return logFileItem;
+  }
+
+  protected final JMenuItem[] getGraphItem() {
+    return graphItem;
+  }
+
+  protected final TaskInterface[] getGraphTask() {
+    return graphTask;
   }
 
   protected final String[] getLogFileName() {
