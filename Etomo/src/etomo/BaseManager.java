@@ -17,6 +17,7 @@ import javax.swing.JFileChooser;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.process.AxisProcessData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
@@ -205,7 +206,7 @@ public abstract class BaseManager {
   }
 
   public LogProperties getLogProperties() {
-      return logWindow;
+    return logWindow;
   }
 
   private void initProgram() {
@@ -1803,6 +1804,15 @@ public abstract class BaseManager {
 
   boolean isPopupChunkWarnings() {
     return true;
+  }
+
+  public void tomodataplots(final TaskInterface task, final AxisID axisID) {
+    TomodataplotsParam param = new TomodataplotsParam();
+    param.setTask(task);
+    BaseProcessManager processManager = getProcessManager();
+    if (processManager != null) {
+      processManager.tomodataplots(param, axisID);
+    }
   }
 
   /**
