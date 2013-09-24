@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/24/13: Prevented tomodataplots from putting out an empty file and Onegenplot
+from going into an infinite loop on an empty or inadequate file.
+
 9/20/13: Added option to Reducecont to replace each contour with a set of
 points evenly spaced along the contour.
 
