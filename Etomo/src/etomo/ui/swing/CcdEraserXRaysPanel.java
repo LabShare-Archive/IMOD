@@ -27,9 +27,11 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
+import etomo.TaskInterface;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.comscript.MakecomfileParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -315,7 +317,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
       return false;
     }
   }
-  
+
   public boolean getParameters(final MakecomfileParam param, final boolean doValidation) {
     return true;
   }
@@ -398,10 +400,12 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
       applicationManager.imodErasedStack(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnClipStatsRaw.getActionCommand())) {
-      applicationManager.clipStats(axisID, FileType.RAW_STACK, null);
+      applicationManager.clipStats(axisID, FileType.RAW_STACK, null, dialogType,
+          TomodataplotsParam.Task.STATS_MIN_MAX);
     }
     else if (command.equals(btnClipStatsFixed.getActionCommand())) {
-      applicationManager.clipStats(axisID, FileType.FIXED_XRAYS_STACK, null);
+      applicationManager.clipStats(axisID, FileType.FIXED_XRAYS_STACK, null, dialogType,
+          TomodataplotsParam.Task.STATS_FIXED_MIN_MAX);
     }
   }
 
@@ -416,9 +420,11 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     String[] logFile = new String[1];
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
+    TaskInterface[] graph = { TomodataplotsParam.Task.STATS_MIN_MAX,
+        TomodataplotsParam.Task.STATS_FIXED_MIN_MAX };
     ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
         "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage, logFileLabel, logFile,
-        applicationManager, axisID);
+        graph, applicationManager, axisID);
   }
 
   private void enableXRayReplacement() {
