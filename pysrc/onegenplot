@@ -160,6 +160,9 @@ if skipLines < 0 or numCol <= 0:
 
          # Read a line, strip, and split on valid table separators
          line = dataFile.readline()
+         if not line:
+            cleanupError('Reached the end of the file before finding any data in ' +\
+                            dataName)
          lineNum += 1
          if skipLines >= lineNum:
             continue
