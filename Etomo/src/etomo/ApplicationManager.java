@@ -66,6 +66,7 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignLog;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
@@ -278,7 +279,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   ApplicationManager(final String paramFileName, AxisID axisID) {
     super();
-    metaData = new MetaData(this,getLogProperties());
+    metaData = new MetaData(this, getLogProperties());
     createState();
     processMgr = new ProcessManager(this);
     initializeUIParameters(paramFileName, axisID);
@@ -1769,7 +1770,11 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void clipStats(AxisID axisID, FileType inputFileType,
-      final ProcessSeries processSeries) {
+      ProcessSeries processSeries, final DialogType dialogType,
+      final TomodataplotsParam.Task task) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
     ClipParam clipParam = ClipParam.getStatsInstance(this, axisID,
         inputFileType.getFile(this, axisID), new File(getPropertyUserDir()));
     String threadName;
@@ -1782,6 +1787,7 @@ public final class ApplicationManager extends BaseManager implements
           "SystemProcessException", axisID);
       return;
     }
+    processSeries.setNextProcess(task);
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("clip stats ", axisID);
   }
@@ -8222,6 +8228,11 @@ public final class ApplicationManager extends BaseManager implements
     if (process.equals(ProcessName.ERASER.toString())) {
       eraser(axisID, processResultDisplay, processSeries, dialogType,
           (CcdEraserDisplay) display);
+      return true;
+    }
+    TaskInterface task = process.getTask();
+    if (task instanceof TomodataplotsParam.Task) {
+      tomodataplots(task, axisID);
       return true;
     }
     return false;
