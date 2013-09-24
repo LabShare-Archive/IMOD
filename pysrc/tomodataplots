@@ -211,6 +211,8 @@ elif fileType == 3:
       exitError('No min/max data found in ' + dataName)
 
 if tempFile:
+   if not outLines:
+      exitError('Did not find any lines find of the selected data type in ' + dataName)
    writeTextFile(tempFile, outLines)
 
 # Now that everything is set, make up columns and symbols input
