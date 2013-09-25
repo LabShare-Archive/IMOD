@@ -15,7 +15,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import etomo.ApplicationManager;
-import etomo.TaskInterface;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomodataplotsParam;
@@ -500,7 +499,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     Vector logFileLabel = new Vector(1);
     logFileLabel.add(alignLabels.toArray(new String[alignLabels.size()]));
 
-    TaskInterface[] graph = { TomodataplotsParam.Task.ROTATION,
+    TomodataplotsParam.Task[] graph = { TomodataplotsParam.Task.ROTATION,
         TomodataplotsParam.Task.TILT_SKEW, TomodataplotsParam.Task.MAG,
         TomodataplotsParam.Task.XSTRETCH, TomodataplotsParam.Task.RESID,
         TomodataplotsParam.Task.AVER_RESID };
