@@ -290,7 +290,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
-import etomo.TaskInterface;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltxcorrParam;
@@ -496,7 +495,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     String alignManpage;
     String alignLogfileLabel;
     String alignLogfile;
-    TaskInterface[] graph = null;
+    TomodataplotsParam.Task[] graph = null;
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       alignManpageLabel = "Blendmont";
       alignManpage = "blendmont";
@@ -505,7 +504,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
       if (!DatasetTool.isOneBy(applicationManager.getPropertyUserDir(),
           applicationManager.getName(), applicationManager, axisID)
           && applicationManager.getState().isXcorrBlendmontWasRun(axisID)) {
-        graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.MEAN_MAX };
+        graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.COARSE_MEAN_MAX };
       }
     }
     else {
