@@ -257,6 +257,11 @@ public class TomogramState extends BaseState {
       AxisID.FIRST.getExtension() + '.' + "SeedingDone");
   private final EtomoBoolean2 seedingDoneB = new EtomoBoolean2(
       AxisID.SECOND.getExtension() + '.' + "SeedingDone");
+  private final EtomoBoolean2 xcorrBlendmontWasRunA = new EtomoBoolean2(
+      "xcorr.blendmont.a.WasRun");
+  private final EtomoBoolean2 xcorrBlendmontWasRunB = new EtomoBoolean2(
+      "xcorr.blendmont.b.WasRun");
+
   private EtomoBoolean2 sampleFiducialessA = null;
   private EtomoBoolean2 sampleFiducialessB = null;
   private final ApplicationManager manager;
@@ -451,6 +456,8 @@ public class TomogramState extends BaseState {
     tomogramSizeRowsB.store(props, prepend);
     tomogramSizeSectionsA.store(props, prepend);
     tomogramSizeSectionsB.store(props, prepend);
+    xcorrBlendmontWasRunA.store(props, prepend);
+    xcorrBlendmontWasRunB.store(props, prepend);
     // backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
@@ -553,6 +560,9 @@ public class TomogramState extends BaseState {
     tomogramSizeRowsB.reset();
     tomogramSizeSectionsA.reset();
     tomogramSizeSectionsB.reset();
+    xcorrBlendmontWasRunA.reset();
+    xcorrBlendmontWasRunB.reset();
+
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -621,6 +631,8 @@ public class TomogramState extends BaseState {
     tomogramSizeRowsB.load(props, prepend);
     tomogramSizeSectionsA.load(props, prepend);
     tomogramSizeSectionsB.load(props, prepend);
+    xcorrBlendmontWasRunA.load(props, prepend);
+    xcorrBlendmontWasRunB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     // backwards compatibility
@@ -1127,6 +1139,22 @@ public class TomogramState extends BaseState {
       return seedingDoneB.is();
     }
     return seedingDoneA.is();
+  }
+
+  public boolean isXcorrBlendmontWasRun(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return xcorrBlendmontWasRunB.is();
+    }
+    return xcorrBlendmontWasRunA.is();
+  }
+
+  public void setXcorrBlendmontWasRun(final AxisID axisID, final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      xcorrBlendmontWasRunB.set(input);
+    }
+    else {
+      xcorrBlendmontWasRunA.set(input);
+    }
   }
 
   public ConstEtomoNumber getAlignAngleOffset(AxisID axisID) {
