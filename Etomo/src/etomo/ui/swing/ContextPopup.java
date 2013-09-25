@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JMenuItem;
@@ -17,6 +19,7 @@ import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.TaskInterface;
+import etomo.comscript.TomodataplotsParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodqtassistProcess;
 import etomo.type.AxisID;
@@ -207,7 +210,7 @@ public class ContextPopup {
   private String anchor;
 
   private JMenuItem[] graphItem = null;
-  private TaskInterface[] graphTask = null;
+  private List<TaskInterface> graphTask = null;
 
   /**
    * Simple context popup constructor.  Only the default menu items are
@@ -431,7 +434,8 @@ public class ContextPopup {
   public ContextPopup(final Component component, final MouseEvent mouseEvent,
       final String tomoAnchor, final String guideToAnchor, final String[] manPageLabel,
       final String[] manPage, final String[] logFileLabel, final String[] logFile,
-      final TaskInterface[] graph, final BaseManager manager, final AxisID axisID) {
+      final TomodataplotsParam.Task[] graph, final BaseManager manager,
+      final AxisID axisID) {
     // TODO 1707
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -489,11 +493,11 @@ public class ContextPopup {
         }
 
         JMenuItem[] graphItem = getGraphItem();
-        TaskInterface[] graphTask = getGraphTask();
+        List<TaskInterface> graphTask = getGraphTask();
         if (graphItem != null) {
           for (int i = 0; i < graphItem.length; i++) {
             if (actionEvent.getActionCommand() == graphItem[i].getText()) {
-              manager.tomodataplots(graphTask[i], axisID);
+              manager.tomodataplots(graphTask.get(i), axisID, null);
               return;
             }
           }
@@ -506,7 +510,7 @@ public class ContextPopup {
     addLogFileMenuItems(logFileLabel, logFile);
     contextMenu.add(new JPopupMenu.Separator());
     if (graph != null && graph.length > 0) {
-      addGraphMenuItems(graph);
+      addGraphMenuItems(manager, axisID, graph);
     }
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
@@ -916,9 +920,9 @@ public class ContextPopup {
    */
   public ContextPopup(Component component, MouseEvent mouseEvent, String tomoAnchor,
       String[] manPageLabel, String[] manPage, final String[] logWindowLabel,
-      final Vector logFileLabel, final Vector logFile, final TaskInterface[] graph,
-      final ApplicationManager applicationManager, final String updateLogCommandName,
-      final AxisID axisID) {
+      final Vector logFileLabel, final Vector logFile,
+      final TomodataplotsParam.Task[] graph, final ApplicationManager applicationManager,
+      final String updateLogCommandName, final AxisID axisID) {
 
     // Check to make sure that the menu label and man page arrays are the same
     // length
@@ -996,13 +1000,13 @@ public class ContextPopup {
             }
           }
         }
-        
+
         JMenuItem[] graphItem = getGraphItem();
-        TaskInterface[] graphTask = getGraphTask();
+        List<TaskInterface> graphTask = getGraphTask();
         if (graphItem != null) {
           for (int i = 0; i < graphItem.length; i++) {
             if (actionEvent.getActionCommand() == graphItem[i].getText()) {
-              applicationManager.tomodataplots(graphTask[i], axisID);
+              applicationManager.tomodataplots(graphTask.get(i), axisID, null);
               return;
             }
           }
@@ -1018,7 +1022,7 @@ public class ContextPopup {
     addTabbedLogFileMenuItems(logWindowLabel);
     contextMenu.add(new JPopupMenu.Separator());
     if (graph != null && graph.length > 0) {
-      addGraphMenuItems(graph);
+      addGraphMenuItems(applicationManager, axisID, graph);
     }
     contextMenu.add(new JPopupMenu.Separator());
     addManPageMenuItems(manPageLabel, manPage);
@@ -1158,12 +1162,18 @@ public class ContextPopup {
     }
   }
 
-  private void addGraphMenuItems(final TaskInterface[] graph) {
-    graphItem = new MenuItem[graph.length];
-    graphTask = graph;
+  private void addGraphMenuItems(final BaseManager manager, final AxisID axisID,
+      final TomodataplotsParam.Task[] graph) {
+    graphTask = new ArrayList<TaskInterface>();
+    for (int i = 0; i < graph.length; i++) {
+      if (graph[i].isAvailable(manager, axisID)) {
+        graphTask.add(graph[i]);
+      }
+    }
+    graphItem = new MenuItem[graphTask.size()];
     for (int i = 0; i < graphItem.length; i++) {
       graphItem[i] = new MenuItem();
-      graphItem[i].setText(graph[i].toString());
+      graphItem[i].setText(graphTask.get(i).toString());
       graphItem[i].addActionListener(actionListener);
       contextMenu.add(graphItem[i]);
     }
@@ -1232,7 +1242,7 @@ public class ContextPopup {
     return graphItem;
   }
 
-  protected final TaskInterface[] getGraphTask() {
+  protected final List<TaskInterface> getGraphTask() {
     return graphTask;
   }
 
