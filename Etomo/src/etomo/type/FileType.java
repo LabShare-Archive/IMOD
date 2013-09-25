@@ -209,10 +209,18 @@ public final class FileType {
       ".log");
   public static final FileType TILT_ALIGN_LOG = FileType.getInstance(false, true,
       "align", ".log");
+  public static final FileType FIXED_STATS_LOG = FileType.getInstance(true, true,
+      "_fixed.st_stats", ".log");
   public static final FileType GPU_TEST_LOG = FileType.getInstance(false, false,
       "gputest", ".log");
   public static final FileType PREBLEND_LOG = FileType.getInstance(false, true,
       "preblend", ".log");
+  public static final FileType STATS_LOG = FileType.getInstance(true, true, ".st_stats",
+      ".log");
+  public static final FileType ALIGN_SOLUTION_LOG = FileType.getInstance(false, true,
+      "taSolution", ".log");
+  public static final FileType CROSS_CORRELATION_LOG = FileType.getInstance(false, true,
+      "xcorr", ".log");
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
       true, "_3dfind", ".mod");
   public static final FileType AUTOFIDSEED_BOUNDARY_MODEL = FileType.getInstance(true,
@@ -715,6 +723,14 @@ public final class FileType {
       return new File(subdir, fileName);
     }
     return new File(manager.getPropertyUserDir(), fileName);
+  }
+
+  public boolean exists(final BaseManager manager, final AxisID axisID) {
+    File file = getFile(manager, axisID);
+    if (file != null) {
+      return file.exists();
+    }
+    return false;
   }
 
   /**

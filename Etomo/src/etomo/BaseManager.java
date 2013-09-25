@@ -17,6 +17,7 @@ import javax.swing.JFileChooser;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.process.AxisProcessData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
@@ -205,7 +206,7 @@ public abstract class BaseManager {
   }
 
   public LogProperties getLogProperties() {
-      return logWindow;
+    return logWindow;
   }
 
   private void initProgram() {
@@ -322,6 +323,11 @@ public abstract class BaseManager {
     ResumeData resumeData = axisID == AxisID.SECOND ? resumeDataB : resumeDataA;
     if (process.equals(Task.RESUME)) {
       resume(axisID);
+      return true;
+    }
+    TaskInterface task = process.getTask();
+    if (task instanceof TomodataplotsParam.Task) {
+      tomodataplots(task, axisID, processSeries);
       return true;
     }
     return false;
@@ -1802,6 +1808,25 @@ public abstract class BaseManager {
   }
 
   boolean isPopupChunkWarnings() {
+    return true;
+  }
+
+  public final void tomodataplots(final TaskInterface task, final AxisID axisID,
+      final ConstProcessSeries processSeries) {
+    if (canRunTomodataplots(task, axisID)) {
+      TomodataplotsParam param = new TomodataplotsParam();
+      param.setTask(task);
+      BaseProcessManager processManager = getProcessManager();
+      if (processManager != null) {
+        processManager.tomodataplots(param, axisID);
+      }
+    }
+    if (processSeries != null) {
+      processSeries.startNextProcess(AxisID.ONLY, null);
+    }
+  }
+
+  public boolean canRunTomodataplots(final TaskInterface task, final AxisID axisID) {
     return true;
   }
 

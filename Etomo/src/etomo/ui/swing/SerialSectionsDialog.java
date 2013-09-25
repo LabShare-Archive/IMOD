@@ -22,8 +22,10 @@ import etomo.comscript.ConstNewstParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MidasParam;
 import etomo.comscript.NewstParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.comscript.XfalignParam;
 import etomo.comscript.XftoxgParam;
+import etomo.logic.DatasetTool;
 import etomo.logic.TomogramTool;
 import etomo.logic.TransformsTool;
 import etomo.storage.LogFile;
@@ -641,12 +643,19 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
     String[] manPage;
     String[] logFileLabel;
     String[] logFile;
+    TomodataplotsParam.Task[] graph = null;
     if (viewType == ViewType.MONTAGE) {
       manPageLabel = new String[] { "Blendmont", "Midas", "Xfalign", "Xftoxg", "3dmod" };
       manPage = new String[] { "blendmont.html", "midas.html", "xfalign.html",
           "xftoxg.html", "3dmod.html" };
       logFileLabel = new String[] { "Blend", "Preblend", "Xfalign" };
       logFile = new String[] { "blend.log", "preblend.log", "xfalign.log" };
+      File stack = manager.getStack();
+      if (stack != null
+          && !DatasetTool.isOneBy(manager.getPropertyUserDir(), stack.getName(), manager,
+              axisID)) {
+        graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.SERIAL_SECTIONS_MEAN_MAX };
+      }
     }
     else {
       manPageLabel = new String[] { "Colornewst", "Midas", "Newstack", "Xfalign",
@@ -657,8 +666,8 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
       logFile = new String[] { "newst.log", "xfalign.log" };
     }
     ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, "Serial Sections",
-        ContextPopup.TOMO_GUIDE, manPageLabel, manPage, logFileLabel, logFile, manager,
-        axisID);
+        ContextPopup.TOMO_GUIDE, manPageLabel, manPage, logFileLabel, logFile, graph,
+        manager, axisID);
   }
 
   private void setTooltips() {

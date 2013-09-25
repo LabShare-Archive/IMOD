@@ -615,7 +615,17 @@ public final class ProcessSeries implements ConstProcessSeries {
     }
 
     public boolean equals(String string) {
-      return process.equals(string);
+      if (process != null && process.equals(string)) {
+        return true;
+      }
+      if (task != null && task.equals(string)) {
+        return true;
+      }
+      return false;
+    }
+
+    public TaskInterface getTask() {
+      return task;
     }
 
     public boolean equals(ProcessName processName) {

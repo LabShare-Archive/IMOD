@@ -2308,6 +2308,10 @@ public class ProcessManager extends BaseProcessManager {
       }
       else if (processName == ProcessName.XCORR) {
         setInvalidEdgeFunctions(script.getCommand(), true);
+        if (commandDetails != null
+            && commandDetails.getCommandMode() == BlendmontParam.Mode.XCORR) {
+          state.setXcorrBlendmontWasRun(axisID, true);
+        }
       }
       else if (processName == ProcessName.PREBLEND) {
         setInvalidEdgeFunctions(script.getCommand(), true);
@@ -2376,8 +2380,16 @@ public class ProcessManager extends BaseProcessManager {
   void errorProcess(ComScriptProcess script) {
     try {
       ProcessName processName = script.getProcessName();
+      CommandDetails commandDetails = script.getCommandDetails();
+      AxisID axisID = script.getAxisID();
+      TomogramState state = appManager.getState();
       if (processName == ProcessName.XCORR) {
         setInvalidEdgeFunctions(script.getCommand(), false);
+        if (commandDetails != null
+            && commandDetails.getCommandMode() == BlendmontParam.Mode.XCORR) {
+          //Do not allow tomodataplots -type 4 to unless you are sure that blendmont ran.
+          state.setXcorrBlendmontWasRun(axisID, false);
+        }
       }
       else if (processName == ProcessName.PREBLEND) {
         setInvalidEdgeFunctions(script.getCommand(), false);

@@ -14,6 +14,7 @@ import etomo.comscript.DetachedCommandDetails;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.comscript.TomosnapshotParam;
 import etomo.comscript.XfmodelParam;
 import etomo.storage.LogFile;
@@ -653,6 +654,13 @@ public abstract class BaseProcessManager {
       return false;
     }
     return true;
+  }
+
+  public final void tomodataplots(final TomodataplotsParam param, final AxisID axisID) {
+    // SystemProgram program =
+    Thread thread = new Thread(new SystemProgram(manager, manager.getPropertyUserDir(),
+        param.getCommandArray(manager, axisID), axisID));
+    thread.start();
   }
 
   /**

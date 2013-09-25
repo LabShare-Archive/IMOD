@@ -14,7 +14,7 @@ package etomo;
 * 
 * <p> $Log$ </p>
 */
-interface TaskInterface {
+public interface TaskInterface {
   public static  final String  rcsid =  "$Id:$";
   
   /**

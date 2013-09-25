@@ -293,6 +293,8 @@ import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltxcorrParam;
+import etomo.comscript.TomodataplotsParam;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
@@ -493,11 +495,17 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     String alignManpage;
     String alignLogfileLabel;
     String alignLogfile;
+    TomodataplotsParam.Task[] graph = null;
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
       alignManpageLabel = "Blendmont";
       alignManpage = "blendmont";
       alignLogfileLabel = "Preblend";
       alignLogfile = "preblend";
+      if (!DatasetTool.isOneBy(applicationManager.getPropertyUserDir(),
+          applicationManager.getName(), applicationManager, axisID)
+          && applicationManager.getState().isXcorrBlendmontWasRun(axisID)) {
+        graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.COARSE_MEAN_MAX };
+      }
     }
     else {
       alignManpageLabel = "Newstack";
@@ -512,9 +520,10 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     String[] logFile = new String[2];
     logFile[0] = "xcorr" + axisID.getExtension() + ".log";
     logFile[1] = alignLogfile + axisID.getExtension() + ".log";
+
     ContextPopup contextPopup = new ContextPopup(pnlCoarseAlign, mouseEvent,
         "COARSE ALIGNMENT", ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel,
-        logFile, applicationManager, axisID);
+        logFile, graph, applicationManager, axisID);
   }
 
   /**

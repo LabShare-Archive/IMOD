@@ -66,11 +66,13 @@ import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignLog;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
+import etomo.logic.DatasetTool;
 import etomo.logic.SeedingMethod;
 import etomo.logic.TomogramTool;
 import etomo.logic.TrackingMethod;
@@ -278,7 +280,7 @@ public final class ApplicationManager extends BaseManager implements
    */
   ApplicationManager(final String paramFileName, AxisID axisID) {
     super();
-    metaData = new MetaData(this,getLogProperties());
+    metaData = new MetaData(this, getLogProperties());
     createState();
     processMgr = new ProcessManager(this);
     initializeUIParameters(paramFileName, axisID);
@@ -1490,6 +1492,9 @@ public final class ApplicationManager extends BaseManager implements
         blendmontParam = updateBlendmontInXcorrCom(axisID);
       }
       if (blendmontParam == null) {
+        // The xcorr.com file containing a blendmont command is going to run. If blendmont
+        // runs, this value will be turned back on.
+        state.setXcorrBlendmontWasRun(axisID, false);
         threadName = processMgr.tiltxcorr(tiltxcorrParam, comscriptFileType, axisID,
             processResultDisplay, processSeries);
       }
@@ -1576,7 +1581,10 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType, display);
     }
     sendMsgProcessStarting(processResultDisplay);
-    sendMsgProcessStarting(processResultDisplay);
+    if (metaData.getViewType() == ViewType.MONTAGE
+        && !DatasetTool.isOneBy(getPropertyUserDir(), getName(), this, axisID)) {
+      processSeries.addProcess(TomodataplotsParam.Task.COARSE_MEAN_MAX);
+    }
     if (axisID == AxisID.SECOND && processBStack()) {
       processSeries.setLastProcess(ProcessName.XCORR.toString());
       extracttilts(axisID, processResultDisplay, processSeries);
@@ -1769,7 +1777,11 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public void clipStats(AxisID axisID, FileType inputFileType,
-      final ProcessSeries processSeries) {
+      ProcessSeries processSeries, final DialogType dialogType,
+      final TomodataplotsParam.Task task) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
     ClipParam clipParam = ClipParam.getStatsInstance(this, axisID,
         inputFileType.getFile(this, axisID), new File(getPropertyUserDir()));
     String threadName;
@@ -1782,6 +1794,7 @@ public final class ApplicationManager extends BaseManager implements
           "SystemProcessException", axisID);
       return;
     }
+    processSeries.setNextProcess(task);
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("clip stats ", axisID);
   }
@@ -2106,6 +2119,15 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     return param;
+  }
+
+  public boolean canRunTomodataplots(final TaskInterface task, final AxisID axisID) {
+    if (task == TomodataplotsParam.Task.COARSE_MEAN_MAX
+        && metaData.getViewType() == ViewType.MONTAGE
+        && !state.isXcorrBlendmontWasRun(axisID)) {
+      return false;
+    }
+    return true;
   }
 
   /**

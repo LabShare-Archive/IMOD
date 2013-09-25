@@ -10,9 +10,11 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MidasParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.SerialSectionsComScriptManager;
+import etomo.comscript.TomodataplotsParam;
 import etomo.comscript.MidasParam.Mode;
 import etomo.comscript.XfalignParam;
 import etomo.comscript.XftoxgParam;
+import etomo.logic.DatasetTool;
 import etomo.logic.SerialSectionsStartupData;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
@@ -332,6 +334,11 @@ public final class SerialSectionsManager extends BaseManager {
           "Process Failed", axisID);
       processSeries.startFailProcess(axisID);
       return;
+    }
+    File stack = getStack();
+    if (stack != null
+        && !DatasetTool.isOneBy(getPropertyUserDir(), stack.getName(), this, axisID)) {
+      processSeries.addProcess(TomodataplotsParam.Task.SERIAL_SECTIONS_MEAN_MAX);
     }
     setThreadName(threadName, axisID);
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
@@ -875,7 +882,7 @@ public final class SerialSectionsManager extends BaseManager {
    * @param dialogType
    * @return
    */
-  private File getStack() {
+  public File getStack() {
     if (loadedParamFile) {
       return new File(propertyUserDir, metaData.getStack());
     }

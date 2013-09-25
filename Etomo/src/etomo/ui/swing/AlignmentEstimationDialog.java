@@ -17,6 +17,7 @@ import javax.swing.JScrollPane;
 import etomo.ApplicationManager;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
+import etomo.comscript.TomodataplotsParam;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
@@ -498,9 +499,14 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     Vector logFileLabel = new Vector(1);
     logFileLabel.add(alignLabels.toArray(new String[alignLabels.size()]));
 
+    TomodataplotsParam.Task[] graph = { TomodataplotsParam.Task.ROTATION,
+        TomodataplotsParam.Task.TILT_SKEW, TomodataplotsParam.Task.MAG,
+        TomodataplotsParam.Task.XSTRETCH, TomodataplotsParam.Task.RESID,
+        TomodataplotsParam.Task.AVER_RESID };
+
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "FINAL ALIGNMENT", manPagelabel, manPage, logWindowLabel, logFileLabel, logFile,
-        applicationManager, alignCommandName, axisID);
+        graph, applicationManager, alignCommandName, axisID);
   }
 
   void done() {

@@ -291,6 +291,7 @@ import java.util.Date;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.ui.swing.UIHarness;
@@ -305,7 +306,7 @@ public class SystemProgram implements Runnable {
   private final AxisID axisID;
   private final ProcessMessages processMessages;
 
-  private boolean debug = false;
+  private boolean debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   private int exitValue = Integer.MIN_VALUE;
   private String[] stdInput = null;
   private OutputBufferManager stdout = null;

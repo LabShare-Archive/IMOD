@@ -562,6 +562,48 @@ public final class DatasetTool {
     return true;
   }
 
+  /**
+   * Returns true if the stack is a not a montage, or is a 1xn or nx1 montage.
+   * @param viewType
+   * @param absolutePath
+   * @param stackFileName
+   * @param manager
+   * @param axisID
+   * @return
+   */
+  public static boolean isOneBy(final String absolutePath, final String stackFileName,
+      final BaseManager manager, final AxisID axisID) {
+    // montagesize
+    Montagesize montagesize = Montagesize
+        .getInstance(absolutePath, stackFileName, axisID);
+    // Run montagesize without the piece list file to see what the stack looks like.
+    montagesize.setIgnorePieceListFile(true);
+    int exitValue = readMontagesize(montagesize, manager);
+    if (exitValue == 1) {
+      return true;
+    }
+    // header
+    MRCHeader header = MRCHeader.getInstance(absolutePath, stackFileName, axisID);
+    try {
+      if (!header.read(manager)) {
+        return true;
+      }
+    }
+    catch (etomo.util.InvalidParameterException except) {
+      except.printStackTrace();
+      return true;
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+      return true;
+    }
+    if (montagesize.getX().getInt() == header.getNColumns()
+        || montagesize.getY().getInt() == header.getNRows()) {
+      return true;
+    }
+    return false;
+  }
+
   public static boolean validateTiltAngle(final BaseManager manager,
       final AxisID messageAxisID, final String errorTitle, final AxisID axisID,
       final boolean manual, final String angle, final String increment) {
