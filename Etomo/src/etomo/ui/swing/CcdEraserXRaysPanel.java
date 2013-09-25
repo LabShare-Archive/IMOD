@@ -27,7 +27,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import etomo.ApplicationManager;
-import etomo.TaskInterface;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.comscript.MakecomfileParam;
@@ -420,7 +419,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     String[] logFile = new String[1];
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
-    TaskInterface[] graph = { TomodataplotsParam.Task.MIN_MAX,
+    TomodataplotsParam.Task[] graph = { TomodataplotsParam.Task.MIN_MAX,
         TomodataplotsParam.Task.FIXED_MIN_MAX };
     ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
         "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage, logFileLabel, logFile,
