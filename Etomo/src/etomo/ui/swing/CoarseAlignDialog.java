@@ -503,8 +503,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
       alignLogfileLabel = "Preblend";
       alignLogfile = "preblend";
       if (!DatasetTool.isOneBy(applicationManager.getPropertyUserDir(),
-          applicationManager.getName(), applicationManager, axisID)) {
-        graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.BLEND_MEAN_MAX };
+          applicationManager.getName(), applicationManager, axisID)
+          && applicationManager.getState().isXcorrBlendmontWasRun(axisID)) {
+        graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.MEAN_MAX };
       }
     }
     else {
