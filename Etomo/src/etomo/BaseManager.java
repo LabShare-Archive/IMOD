@@ -325,6 +325,11 @@ public abstract class BaseManager {
       resume(axisID);
       return true;
     }
+    TaskInterface task = process.getTask();
+    if (task instanceof TomodataplotsParam.Task) {
+      tomodataplots(task, axisID, processSeries);
+      return true;
+    }
     return false;
   }
 
@@ -1806,15 +1811,18 @@ public abstract class BaseManager {
     return true;
   }
 
-  public final void tomodataplots(final TaskInterface task, final AxisID axisID) {
-    if (!canRunTomodataplots(task, axisID)) {
-      return;
+  public final void tomodataplots(final TaskInterface task, final AxisID axisID,
+      final ConstProcessSeries processSeries) {
+    if (canRunTomodataplots(task, axisID)) {
+      TomodataplotsParam param = new TomodataplotsParam();
+      param.setTask(task);
+      BaseProcessManager processManager = getProcessManager();
+      if (processManager != null) {
+        processManager.tomodataplots(param, axisID);
+      }
     }
-    TomodataplotsParam param = new TomodataplotsParam();
-    param.setTask(task);
-    BaseProcessManager processManager = getProcessManager();
-    if (processManager != null) {
-      processManager.tomodataplots(param, axisID);
+    if (processSeries != null) {
+      processSeries.startNextProcess(AxisID.ONLY, null);
     }
   }
 
