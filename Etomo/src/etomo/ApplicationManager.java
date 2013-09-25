@@ -72,6 +72,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.comscript.WarpVolParam;
 import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
+import etomo.logic.DatasetTool;
 import etomo.logic.SeedingMethod;
 import etomo.logic.TomogramTool;
 import etomo.logic.TrackingMethod;
@@ -1491,6 +1492,9 @@ public final class ApplicationManager extends BaseManager implements
         blendmontParam = updateBlendmontInXcorrCom(axisID);
       }
       if (blendmontParam == null) {
+        // The xcorr.com file containing a blendmont command is going to run. If blendmont
+        // runs, this value will be turned back on.
+        state.setXcorrBlendmontWasRun(axisID, false);
         threadName = processMgr.tiltxcorr(tiltxcorrParam, comscriptFileType, axisID,
             processResultDisplay, processSeries);
       }
@@ -1577,7 +1581,10 @@ public final class ApplicationManager extends BaseManager implements
       processSeries = new ProcessSeries(this, dialogType, display);
     }
     sendMsgProcessStarting(processResultDisplay);
-    sendMsgProcessStarting(processResultDisplay);
+    if (metaData.getViewType() == ViewType.MONTAGE
+        && !DatasetTool.isOneBy(getPropertyUserDir(), getName(), this, axisID)) {
+      processSeries.addProcess(TomodataplotsParam.Task.MEAN_MAX);
+    }
     if (axisID == AxisID.SECOND && processBStack()) {
       processSeries.setLastProcess(ProcessName.XCORR.toString());
       extracttilts(axisID, processResultDisplay, processSeries);
@@ -2112,6 +2119,15 @@ public final class ApplicationManager extends BaseManager implements
       return null;
     }
     return param;
+  }
+
+  public boolean canRunTomodataplots(final TaskInterface task, final AxisID axisID) {
+    if (task == TomodataplotsParam.Task.MEAN_MAX
+        && metaData.getViewType() == ViewType.MONTAGE
+        && !state.isXcorrBlendmontWasRun(axisID)) {
+      return false;
+    }
+    return true;
   }
 
   /**
