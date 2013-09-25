@@ -401,11 +401,11 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     }
     else if (command.equals(btnClipStatsRaw.getActionCommand())) {
       applicationManager.clipStats(axisID, FileType.RAW_STACK, null, dialogType,
-          TomodataplotsParam.Task.STATS_MIN_MAX);
+          TomodataplotsParam.Task.MIN_MAX);
     }
     else if (command.equals(btnClipStatsFixed.getActionCommand())) {
       applicationManager.clipStats(axisID, FileType.FIXED_XRAYS_STACK, null, dialogType,
-          TomodataplotsParam.Task.STATS_FIXED_MIN_MAX);
+          TomodataplotsParam.Task.FIXED_MIN_MAX);
     }
   }
 
@@ -420,8 +420,8 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     String[] logFile = new String[1];
     logFile[0] = "eraser" + axisID.getExtension() + ".log";
 
-    TaskInterface[] graph = { TomodataplotsParam.Task.STATS_MIN_MAX,
-        TomodataplotsParam.Task.STATS_FIXED_MIN_MAX };
+    TaskInterface[] graph = { TomodataplotsParam.Task.MIN_MAX,
+        TomodataplotsParam.Task.FIXED_MIN_MAX };
     ContextPopup contextPopup = new ContextPopup(pnlCCDEraser, mouseEvent,
         "PRE-PROCESSING", ContextPopup.TOMO_GUIDE, label, manPage, logFileLabel, logFile,
         graph, applicationManager, axisID);
