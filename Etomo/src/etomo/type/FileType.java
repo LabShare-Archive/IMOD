@@ -217,6 +217,8 @@ public final class FileType {
       "preblend", ".log");
   public static final FileType STATS_LOG = FileType.getInstance(true, true, ".st_stats",
       ".log");
+  public static final FileType ALIGN_SOLUTIONS_LOG = FileType.getInstance(false,
+      true, "taSolutions", ".log");
   public static final FileType CROSS_CORRELATION_LOG = FileType.getInstance(false,
       true, "xcorr", ".log");
   public static final FileType FIND_BEADS_3D_OUTPUT_MODEL = FileType.getInstance(true,
