@@ -1583,7 +1583,7 @@ public final class ApplicationManager extends BaseManager implements
     sendMsgProcessStarting(processResultDisplay);
     if (metaData.getViewType() == ViewType.MONTAGE
         && !DatasetTool.isOneBy(getPropertyUserDir(), getName(), this, axisID)) {
-      processSeries.addProcess(TomodataplotsParam.Task.MEAN_MAX);
+      processSeries.addProcess(TomodataplotsParam.Task.COARSE_MEAN_MAX);
     }
     if (axisID == AxisID.SECOND && processBStack()) {
       processSeries.setLastProcess(ProcessName.XCORR.toString());
@@ -2122,7 +2122,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public boolean canRunTomodataplots(final TaskInterface task, final AxisID axisID) {
-    if (task == TomodataplotsParam.Task.MEAN_MAX
+    if (task == TomodataplotsParam.Task.COARSE_MEAN_MAX
         && metaData.getViewType() == ViewType.MONTAGE
         && !state.isXcorrBlendmontWasRun(axisID)) {
       return false;
@@ -8244,11 +8244,6 @@ public final class ApplicationManager extends BaseManager implements
     if (process.equals(ProcessName.ERASER.toString())) {
       eraser(axisID, processResultDisplay, processSeries, dialogType,
           (CcdEraserDisplay) display);
-      return true;
-    }
-    TaskInterface task = process.getTask();
-    if (task instanceof TomodataplotsParam.Task) {
-      tomodataplots(task, axisID);
       return true;
     }
     return false;
