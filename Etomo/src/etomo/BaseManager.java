@@ -1806,13 +1806,20 @@ public abstract class BaseManager {
     return true;
   }
 
-  public void tomodataplots(final TaskInterface task, final AxisID axisID) {
+  public final void tomodataplots(final TaskInterface task, final AxisID axisID) {
+    if (!canRunTomodataplots(task, axisID)) {
+      return;
+    }
     TomodataplotsParam param = new TomodataplotsParam();
     param.setTask(task);
     BaseProcessManager processManager = getProcessManager();
     if (processManager != null) {
       processManager.tomodataplots(param, axisID);
     }
+  }
+
+  public boolean canRunTomodataplots(final TaskInterface task, final AxisID axisID) {
+    return true;
   }
 
   /**
