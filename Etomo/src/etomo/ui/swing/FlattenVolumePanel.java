@@ -154,9 +154,11 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   private final DialogType dialogType;
   private final SmoothingAssessmentPanel smoothingAssessmentPanel;
   private final MultiLineButton btnFlattenWarp;
+  private final boolean lockPanel;
 
   private FlattenVolumePanel(final ApplicationManager manager, final AxisID axisID,
-      final DialogType dialogType) {
+      final DialogType dialogType, final boolean lockPanel) {
+    this.lockPanel = lockPanel;
     this.manager = manager;
     applicationManager = manager;
     toolsManager = null;
@@ -168,11 +170,12 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     btnFlattenWarp = (MultiLineButton) manager.getProcessResultDisplayFactory(axisID)
         .getFlattenWarp();
     smoothingAssessmentPanel = SmoothingAssessmentPanel.getPostInstance(manager, axisID,
-        dialogType, panelId, this);
+        dialogType, panelId, this, lockPanel);
   }
 
   private FlattenVolumePanel(final ToolsManager manager, final AxisID axisID,
       final DialogType dialogType) {
+    lockPanel = false;
     this.manager = manager;
     applicationManager = null;
     toolsManager = manager;
@@ -186,8 +189,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   }
 
   static FlattenVolumePanel getPostInstance(final ApplicationManager manager,
-      final AxisID axisID, final DialogType dialogType) {
-    FlattenVolumePanel instance = new FlattenVolumePanel(manager, axisID, dialogType);
+      final AxisID axisID, final DialogType dialogType, final boolean lockPanel) {
+    FlattenVolumePanel instance = new FlattenVolumePanel(manager, axisID, dialogType,
+        lockPanel);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -243,9 +247,11 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
     // initialize
     rbInputFileTrimVol.setSelected(true);
     btnFlattenWarp.setSize();
+    btnFlattenWarp.setEnabled(!lockPanel);
     btnFlatten.setContainer(this);
     btnFlatten.setDeferred3dmodButton(btnImodFlatten);
     btnFlatten.setSize();
+    btnFlatten.setEnabled(!lockPanel);
     btnImodFlatten.setSize();
     ftfInputFile.setFieldEditable(false);
     ftfTemporaryDirectory.addAction(manager.getPropertyUserDir(), getComponent(),
@@ -324,6 +330,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
    * @param metaData
    */
   void setParameters(final ConstMetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     rbInputFileTrimVol.setSelected(metaData.isPostFlattenWarpInputTrimVol());
     if (!rbInputFileTrimVol.isSelected()) {
       rbInputFileSqueezeVol.setSelected(true);
@@ -341,6 +350,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
    * @param metaData
    */
   void getParameters(final MetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     metaData.setPostFlattenWarpInputTrimVol(rbInputFileTrimVol.isSelected());
     metaData.setPostFlattenWarpContoursOnOneSurface(cbOneSurface.isSelected());
     metaData.setPostFlattenWarpSpacingInX(ltfWarpSpacingX.getText());
@@ -360,6 +372,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   }
 
   public boolean getParameters(final FlattenWarpParam param, final boolean doValidation) {
+    if (lockPanel) {
+      return true;
+    }
     try {
       String errorMessage = param.setLambdaForSmoothing(ltfLambdaForSmoothing
           .getText(doValidation));
@@ -389,6 +404,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
   }
 
   public boolean getParameters(final WarpVolParam param, final boolean doValidation) {
+    if (lockPanel) {
+      return true;
+    }
     try {
       param.setInterpolationOrderLinear(cbInterpolationOrderLinear.isSelected());
       String errorMessage = param.setOutputSizeZ(ltfOutputSizeZ.getText(doValidation));
@@ -420,6 +438,9 @@ final class FlattenVolumePanel implements Run3dmodButtonContainer, WarpVolDispla
    * @param param
    */
   void setParameters(final ConstWarpVolParam param) {
+    if (lockPanel) {
+      return;
+    }
     cbInterpolationOrderLinear.setSelected(param.isInterpolationOrderLinear());
     ltfOutputSizeZ.setText(param.getOutputSizeZ());
     ftfTemporaryDirectory.setText(param.getTemporaryDirectory());
