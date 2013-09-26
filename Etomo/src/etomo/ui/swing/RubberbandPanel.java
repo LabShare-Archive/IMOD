@@ -64,11 +64,14 @@ public final class RubberbandPanel {
   private final Run3dmodButton btnImod;
   private final RubberbandContainer container;// optional,
   private final boolean placeButtons;
+  private final boolean lockPanel;
 
-  private RubberbandPanel(BaseManager manager, RubberbandContainer container,
-      String imodKey, String borderLabel, String buttonLabel, String xMinTooltip,
-      String xMaxTooltip, String yMinTooltip, String yMaxTooltip, String zMinTooltip,
-      String zMaxTooltip, Run3dmodButton btnImod, boolean placeButtons) {
+  private RubberbandPanel(final BaseManager manager, final RubberbandContainer container,
+      final String imodKey, final String borderLabel, final String buttonLabel,
+      final String xMinTooltip, final String xMaxTooltip, final String yMinTooltip,
+      final String yMaxTooltip, final String zMinTooltip, final String zMaxTooltip,
+      final Run3dmodButton btnImod, final boolean placeButtons, final boolean lockPanel) {
+    this.lockPanel = lockPanel;
     this.container = container;
     this.imodKey = imodKey;
     this.xMinTooltip = xMinTooltip;
@@ -128,7 +131,7 @@ public final class RubberbandPanel {
       String xMaxTooltip, String yMinTooltip, String yMaxTooltip) {
     RubberbandPanel instance = new RubberbandPanel(manager, container, imodKey,
         borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip, yMaxTooltip, "",
-        "", null, true);
+        "", null, true, false);
     instance.addListeners();
     return instance;
   }
@@ -139,7 +142,7 @@ public final class RubberbandPanel {
       Run3dmodButton btnIdmod) {
     RubberbandPanel instance = new RubberbandPanel(manager, null, imodKey, borderLabel,
         buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip, yMaxTooltip, zMinTooltip,
-        zMaxTooltip, btnIdmod, true);
+        zMaxTooltip, btnIdmod, true, false);
     instance.addListeners();
     return instance;
   }
@@ -159,13 +162,14 @@ public final class RubberbandPanel {
    * @param yMaxTooltip
    * @return
    */
-  static RubberbandPanel getNoButtonInstance(BaseManager manager,
-      RubberbandContainer container, String imodKey, String borderLabel,
-      String buttonLabel, String xMinTooltip, String xMaxTooltip, String yMinTooltip,
-      String yMaxTooltip) {
+  static RubberbandPanel getNoButtonInstance(final BaseManager manager,
+      final RubberbandContainer container, final String imodKey,
+      final String borderLabel, final String buttonLabel, final String xMinTooltip,
+      final String xMaxTooltip, final String yMinTooltip, final String yMaxTooltip,
+      final boolean lockPanel) {
     RubberbandPanel instance = new RubberbandPanel(manager, container, imodKey,
         borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip, yMaxTooltip, "",
-        "", null, false);
+        "", null, false, lockPanel);
     instance.addListeners();
     return instance;
   }
@@ -258,6 +262,9 @@ public final class RubberbandPanel {
   }
 
   public void getParameters(MetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     metaData.setPostTrimvolScaleXMin(ltfXMin.getText());
     metaData.setPostTrimvolScaleXMax(ltfXMax.getText());
     metaData.setPostTrimvolScaleYMin(ltfYMin.getText());
@@ -269,6 +276,9 @@ public final class RubberbandPanel {
   }
 
   public boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    if (lockPanel) {
+      return true;
+    }
     try {
       trimvolParam.setXMin(ltfXMin.getText(doValidation));
       trimvolParam.setXMax(ltfXMax.getText(doValidation));
@@ -286,6 +296,9 @@ public final class RubberbandPanel {
   }
 
   public boolean getScaleParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    if (lockPanel) {
+      return true;
+    }
     try {
       XYParam xyParam = trimvolParam.getScaleXYParam();
       xyParam.setXMin(ltfXMin.getText(doValidation));
@@ -304,6 +317,9 @@ public final class RubberbandPanel {
   }
 
   public void getParameters(ParallelMetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     metaData.setXMin(ltfXMin.getText());
     metaData.setXMax(ltfXMax.getText());
     metaData.setYMin(ltfYMin.getText());
@@ -315,12 +331,18 @@ public final class RubberbandPanel {
   }
 
   void getParametersForTrimvol(final ParallelMetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     if (btnImod != null) {
       metaData.setNewStyleZ(ltfZMin.getText(), ltfZMax.getText());
     }
   }
 
   public void setParameters(TrimvolParam param) {
+    if (lockPanel) {
+      return;
+    }
     ltfXMin.setText(param.getXMin());
     ltfXMax.setText(param.getXMax());
     ltfYMin.setText(param.getYMin());
@@ -332,6 +354,9 @@ public final class RubberbandPanel {
   }
 
   public void setScaleParameters(TrimvolParam trimvolParam) {
+    if (lockPanel) {
+      return;
+    }
     XYParam xyParam = trimvolParam.getScaleXYParam();
     ltfXMin.setText(xyParam.getXMin());
     ltfXMax.setText(xyParam.getXMax());
@@ -344,6 +369,9 @@ public final class RubberbandPanel {
   }
 
   public void setParameters(ConstMetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     ltfXMin.setText(metaData.getPostTrimvolScaleXMin());
     ltfXMax.setText(metaData.getPostTrimvolScaleXMax());
     ltfYMin.setText(metaData.getPostTrimvolScaleYMin());
@@ -355,6 +383,9 @@ public final class RubberbandPanel {
   }
 
   public void setParameters(ParallelMetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     ltfXMin.setText(metaData.getXMin());
     ltfXMax.setText(metaData.getXMax());
     ltfYMin.setText(metaData.getYMin());
