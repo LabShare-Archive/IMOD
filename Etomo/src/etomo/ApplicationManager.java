@@ -7395,9 +7395,6 @@ public final class ApplicationManager extends BaseManager implements
     mainPanel.selectButton(AxisID.ONLY, DialogType.POST_PROCESSING.toString());
     boolean dialogExists = true;
     if (postProcessingDialog == null) {
-      Utilities.timestamp("new", "PostProcessingDialog", Utilities.STARTED_STATUS);
-      postProcessingDialog = PostProcessingDialog.getInstance(this);
-      Utilities.timestamp("new", "PostProcessingDialog", Utilities.FINISHED_STATUS);
       // Set the appropriate input and output files
       TrimvolParam trimvolParam = new TrimvolParam(this,
           TrimvolParam.Mode.POST_PROCESSING);
@@ -7433,12 +7430,18 @@ public final class ApplicationManager extends BaseManager implements
         mainPanel.showBlankProcess(AxisID.ONLY);
         return;
       }
+      Utilities.timestamp("new", "PostProcessingDialog", Utilities.STARTED_STATUS);
+      postProcessingDialog = PostProcessingDialog.getInstance(this,
+          trimvolInputFileState.isInputFileMissing());
+      Utilities.timestamp("new", "PostProcessingDialog", Utilities.FINISHED_STATUS);
       postProcessingDialog.setStartupWarnings(trimvolInputFileState);
       // Set the dialog from TrimvolParam defaults.
       dialogExists = metaData.isPostExists();
       trimvolParam.setDefaultRange(trimvolInputFileState, dialogExists);
       postProcessingDialog.setParameters(trimvolParam);
-      metaData.setPostExists(true);
+      if (!trimvolInputFileState.isInputFileMissing()) {
+        metaData.setPostExists(true);
+      }
       saveStorables(AxisID.ONLY);
       postProcessingDialog.setParameters(metaData.getSqueezevolParam());
     }
