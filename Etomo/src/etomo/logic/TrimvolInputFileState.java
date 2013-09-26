@@ -5,6 +5,7 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.TomogramState;
+import etomo.ui.swing.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
@@ -40,6 +41,7 @@ public final class TrimvolInputFileState {
   private boolean nSectionsChanged = false;
   private boolean changed = false;
   private MRCHeader mrcHeader = null;
+  private boolean inputFileMissing = false;
 
   private TrimvolInputFileState(final BaseManager manager, final AxisID axisID,
       final boolean volumeFlipped) {
@@ -50,7 +52,7 @@ public final class TrimvolInputFileState {
 
   /**
    * Gets an instance of this class for post-processing.  Assumes that the trimvol input
-   * file is flipped.
+   * file is flipped.  If the file exists, sets changed member variables.
    * @param manager
    * @param axisID
    * @param inputFileName
@@ -63,18 +65,32 @@ public final class TrimvolInputFileState {
       final BaseManager manager, final AxisID axisID, final String inputFileName,
       final TomogramState state) throws IOException, InvalidParameterException {
     TrimvolInputFileState instance = new TrimvolInputFileState(manager, axisID, true);
-    instance.initMrcHeader(inputFileName);
-    instance.setChanged(state);
+    if (instance.initMrcHeader(inputFileName)) {
+      instance.setChanged(state);
+    }
+    else {
+      instance.inputFileMissing = true;
+      UIHarness.INSTANCE.openMessageDialog(manager, inputFileName + " does not exist.",
+          "Missing Input File", axisID);
+    }
     return instance;
   }
 
-  private void initMrcHeader(final String inputFileName) throws IOException,
+  /**
+   * Returns false when files is not found.
+   * @param inputFileName
+   * @return
+   * @throws IOException
+   * @throws InvalidParameterException
+   */
+  private boolean initMrcHeader(final String inputFileName) throws IOException,
       InvalidParameterException {
     mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(), inputFileName,
         AxisID.ONLY);
     if (!mrcHeader.read(manager)) {
-      throw new IOException("file does not exist");
+      return false;
     }
+    return true;
   }
 
   /**
@@ -97,6 +113,10 @@ public final class TrimvolInputFileState {
       changed = true;
       nSectionsChanged = true;
     }
+  }
+
+  public boolean isInputFileMissing() {
+    return inputFileMissing;
   }
 
   public boolean isChanged() {
