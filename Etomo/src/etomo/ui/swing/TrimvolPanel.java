@@ -291,20 +291,24 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   private MultiLineButton btnGetCoordinates = new MultiLineButton(
       "Get XYZ Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
-  private final VolumeRangePanel volumeRangePanel = VolumeRangePanel.getInstance();
+  private final VolumeRangePanel volumeRangePanel;
 
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
   private final AxisID axisID;
   private final DialogType dialogType;
+  private final boolean lockPanel;
 
   /**
    * Default constructor
    */
-  public TrimvolPanel(ApplicationManager appMgr, AxisID axisID, DialogType dialogType) {
+  public TrimvolPanel(final ApplicationManager appMgr, final AxisID axisID,
+      final DialogType dialogType, final boolean lockPanel) {
     this.dialogType = dialogType;
     this.axisID = axisID;
+    this.lockPanel = lockPanel;
     applicationManager = appMgr;
+    volumeRangePanel = VolumeRangePanel.getInstance(lockPanel);
     // panels
     pnlScaleRubberband = RubberbandPanel.getNoButtonInstance(appMgr, this,
         ImodManager.COMBINED_TOMOGRAM_KEY, "Scaling from sub-area:",
@@ -312,11 +316,14 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
         "Minimum X coordinate on the left side to analyze for contrast range.",
         "Maximum X coordinate on the right side to analyze for contrast range.",
         "The lower Y coordinate to analyze for contrast range.",
-        "The upper Y coordinate to analyze for contrast range.");
+        "The upper Y coordinate to analyze for contrast range.", lockPanel);
     btnTrimvol = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(AxisID.ONLY)
         .getTrimVolume();
     btnTrimvol.setContainer(this);
     btnTrimvol.setDeferred3dmodButton(btnImodTrim);
+
+    // init
+    btnTrimvol.setEnabled(!lockPanel);
 
     // Set the button sizes
     btnImodFull.setSize();
@@ -436,6 +443,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   void setParameters(final TrimvolParam param) {
+    if (lockPanel) {
+      return;
+    }
     // volumeRangePanel.setParameters(param);
     if (param.isSwapYZ()) {
       rbSwapYZ.setSelected(true);
@@ -466,7 +476,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
    * @param trimvolParam
    */
   void setParameters(final ConstMetaData metaData, final boolean dialogExists) {
-    if (!dialogExists) {
+    if (!dialogExists || lockPanel) {
       // TrimvolParam can calculate the initial values, while metaData would have nothing
       // from this panel if the dialog hadn't been created yet.
       return;
@@ -518,6 +528,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   public void getParameters(final MetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     volumeRangePanel.getParameters(metaData);
     metaData.setPostTrimvolSwapYZ(rbSwapYZ.isSelected());
     metaData.setPostTrimvolRotateX(rbRotateX.isSelected());
@@ -532,6 +545,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   void getParametersForTrimvol(final MetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     volumeRangePanel.getParametersForTrimvol(metaData);
     metaData.setPostTrimvolScalingNewStyleZ(ltfSectionScaleMin.getText(),
         ltfSectionScaleMax.getText());
@@ -542,6 +558,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
    * @param trimvolParam
    */
   public boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    if (lockPanel) {
+      return true;
+    }
     try {
       if (!volumeRangePanel.getParameters(trimvolParam, doValidation)) {
         return false;
@@ -612,6 +631,9 @@ public final class TrimvolPanel implements Run3dmodButtonContainer, RubberbandCo
   }
 
   public void setParameters(ReconScreenState screenState) {
+    if (lockPanel) {
+      return;
+    }
     btnTrimvol.setButtonState(screenState.getButtonState(btnTrimvol.getButtonStateKey()));
   }
 

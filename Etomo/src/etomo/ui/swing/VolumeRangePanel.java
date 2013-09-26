@@ -52,11 +52,20 @@ final class VolumeRangePanel {
   private final LabeledTextField ltfZMax = new LabeledTextField(FieldType.INTEGER,
       "Z max: ");
 
-  private VolumeRangePanel() {
+  /**
+   * When lockPanel is true, do not load default, metaData, or comscript values, and do
+   * not save to metaData or comscripts.  LockPanel is set when the data to create this
+   * panel correctly is not available.  Saving data at this point may prevent the panel
+   * from being created correctly when the data is available.
+   */
+  private final boolean lockPanel;
+
+  private VolumeRangePanel(final boolean lockPanel) {
+    this.lockPanel = lockPanel;
   }
 
-  static VolumeRangePanel getInstance() {
-    VolumeRangePanel instance = new VolumeRangePanel();
+  static VolumeRangePanel getInstance(final boolean lockPanel) {
+    VolumeRangePanel instance = new VolumeRangePanel(lockPanel);
     instance.createPanel();
     instance.setTooltips();
     return instance;
@@ -83,6 +92,9 @@ final class VolumeRangePanel {
    * @param trimvolParam
    */
   void setParameters(final TrimvolParam param) {
+    if (lockPanel) {
+      return;
+    }
     ltfXMin.setText(param.getXMin());
     ltfXMax.setText(param.getXMax());
     ltfYMin.setText(param.getYMin());
@@ -96,6 +108,9 @@ final class VolumeRangePanel {
    * @param trimvolParam
    */
   void setParameters(final ConstMetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     ltfXMin.setText(metaData.getPostTrimvolXMin());
     ltfXMax.setText(metaData.getPostTrimvolXMax());
     ltfYMin.setText(metaData.getPostTrimvolYMin());
@@ -105,6 +120,9 @@ final class VolumeRangePanel {
   }
 
   void getParameters(MetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     metaData.setPostTrimvolXMin(ltfXMin.getText());
     metaData.setPostTrimvolXMax(ltfXMax.getText());
     metaData.setPostTrimvolYMin(ltfYMin.getText());
@@ -112,9 +130,12 @@ final class VolumeRangePanel {
     metaData.setPostTrimvolZMin(ltfZMin.getText());
     metaData.setPostTrimvolZMax(ltfZMax.getText());
   }
-  
+
   void getParametersForTrimvol(final MetaData metaData) {
-    metaData.setPostTrimvolNewStyleZ(ltfZMin.getText(),ltfZMax.getText());
+    if (lockPanel) {
+      return;
+    }
+    metaData.setPostTrimvolNewStyleZ(ltfZMin.getText(), ltfZMax.getText());
   }
 
   /**
@@ -122,6 +143,9 @@ final class VolumeRangePanel {
    * @param trimvolParam
    */
   boolean getParameters(TrimvolParam trimvolParam, final boolean doValidation) {
+    if (lockPanel) {
+      return true;
+    }
     try {
       trimvolParam.setXMin(ltfXMin.getText(doValidation));
       trimvolParam.setXMax(ltfXMax.getText(doValidation));

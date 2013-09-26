@@ -77,8 +77,11 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
   private final ApplicationManager manager;
   private final AxisID axisID;
   private final DialogType dialogType;
+  private final boolean lockPanel;
 
-  private SqueezeVolPanel(ApplicationManager manager, AxisID axisID, DialogType dialogType) {
+  private SqueezeVolPanel(final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType, final boolean lockPanel) {
+    this.lockPanel = lockPanel;
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
@@ -86,9 +89,9 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
         .getSqueezeVolume();
   }
 
-  static SqueezeVolPanel getInstance(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType) {
-    SqueezeVolPanel instance = new SqueezeVolPanel(manager, axisID, dialogType);
+  static SqueezeVolPanel getInstance(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType, final boolean lockPanel) {
+    SqueezeVolPanel instance = new SqueezeVolPanel(manager, axisID, dialogType, lockPanel);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -113,6 +116,9 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
   }
 
   private void createPanel() {
+    // init
+    btnSqueezeVolume.setEnabled(!lockPanel);
+    // root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRoot.setBorder(new BeveledBorder("Squeeze Volume").getBorder());
     // Choose input file
@@ -169,6 +175,9 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
    * @param squeezevolParam
    */
   public void setParameters(ConstSqueezevolParam squeezevolParam) {
+    if (lockPanel) {
+      return;
+    }
     ltfReductionFactorXY.setText(squeezevolParam.getReductionFactorX().toString());
     if (manager.isSqueezevolFlipped()) {
       ltfReductionFactorZ.setText(squeezevolParam.getReductionFactorZ().toString());
@@ -180,10 +189,16 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
   }
 
   void getParameters(MetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     metaData.setPostSqueezeVolInputTrimVol(rbInputFileTrimVol.isSelected());
   }
 
   void setParameters(ConstMetaData metaData) {
+    if (lockPanel) {
+      return;
+    }
     rbInputFileTrimVol.setSelected(metaData.isPostSqueezeVolInputTrimVol());
     if (!rbInputFileTrimVol.isSelected()) {
       rbInputFileFlattenWarp.setSelected(true);
@@ -195,6 +210,9 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
    * @param squeezevolParam
    */
   public boolean getParameters(SqueezevolParam squeezevolParam, final boolean doValidation) {
+    if (lockPanel) {
+      return true;
+    }
     try {
       squeezevolParam.setReductionFactorX(ltfReductionFactorXY.getText(doValidation));
       boolean flipped = squeezevolParam.setFlipped(manager.isTrimvolFlipped());
@@ -221,6 +239,9 @@ final class SqueezeVolPanel implements Run3dmodButtonContainer, ContextMenu {
   }
 
   public void setParameters(ReconScreenState screenState) {
+    if (lockPanel) {
+      return;
+    }
     btnSqueezeVolume.setButtonState(screenState.getButtonState(btnSqueezeVolume
         .getButtonStateKey()));
   }
