@@ -40,17 +40,17 @@ public final class TrackingMethod implements EnumeratedType {
 
   }
 
-  public static TrackingMethod getInstance(final String value) {
-    if (value == null) {
+  public static TrackingMethod getInstance(final String string) {
+    if (string == null) {
       return null;
     }
-    if (SEED.value.equals(value)) {
+    if (SEED.string.equals(string)) {
       return SEED;
     }
-    if (PATCH_TRACKING.value.equals(value)) {
+    if (PATCH_TRACKING.string.equals(string)) {
       return PATCH_TRACKING;
     }
-    if (RAPTOR.value.equals(value)) {
+    if (RAPTOR.string.equals(string)) {
       return RAPTOR;
     }
     return null;
