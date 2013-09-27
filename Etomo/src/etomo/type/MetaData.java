@@ -809,6 +809,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + "." + FIRST_AXIS_KEY + ".Twodir");
   private final EtomoNumber twodirB = new EtomoNumber(EtomoNumber.Type.DOUBLE, STACK_KEY
       + "." + SECOND_AXIS_KEY + ".Twodir");
+  private final EtomoNumber seedAndTrackTabA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + "Tab.SeedAndTrack");
+  private final EtomoNumber seedAndTrackTabB = new EtomoNumber(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + "Tab.SeedAndTrack");
+  private final EtomoNumber raptorTabA = new EtomoNumber(TRACK_KEY + "." + FIRST_AXIS_KEY
+      + "Tab.Raptor");
+  private final EtomoNumber raptorTabB = new EtomoNumber(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + "Tab.Raptor");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1467,6 +1475,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setSeedAndTrackTab(final AxisID axisID, final int input) {
+    if (axisID == AxisID.SECOND) {
+      seedAndTrackTabB.set(input);
+    }
+    else {
+      seedAndTrackTabA.set(input);
+    }
+  }
+
+  public void setRaptorTab(final AxisID axisID, final int input) {
+    if (axisID == AxisID.SECOND) {
+      raptorTabB.set(input);
+    }
+    else {
+      raptorTabA.set(input);
+    }
+  }
+
   public void setIsTwodir(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       isTwodirB.set(input);
@@ -1771,6 +1797,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     isTwodirB.reset();
     twodirA.reset();
     twodirB.reset();
+    seedAndTrackTabA.reset();
+    seedAndTrackTabB.reset();
+    raptorTabA.reset();
+    raptorTabB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2080,6 +2110,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     isTwodirB.load(props, prepend);
     twodirA.load(props, prepend);
     twodirB.load(props, prepend);
+    seedAndTrackTabA.load(props, prepend);
+    seedAndTrackTabB.load(props, prepend);
+    raptorTabA.load(props, prepend);
+    raptorTabB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2447,6 +2481,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     isTwodirB.store(props, prepend);
     twodirA.store(props, prepend);
     twodirB.store(props, prepend);
+    seedAndTrackTabA.store(props, prepend);
+    seedAndTrackTabB.store(props, prepend);
+    raptorTabB.store(props, prepend);
+    raptorTabA.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2904,6 +2942,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return twodirA.toString();
   }
 
+  public int getSeedAndTrackTab(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return seedAndTrackTabB.getInt();
+    }
+    return seedAndTrackTabA.getInt();
+  }
+
+  public int getRaptorTab(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return raptorTabB.getInt();
+    }
+    return raptorTabA.getInt();
+  }
+
   public boolean isTwodir(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return isTwodirB.is();
@@ -2931,7 +2983,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return trackMethodB.toString();
     }
     return trackMethodA.toString();
-
   }
 
   public String getName() {

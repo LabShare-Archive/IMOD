@@ -706,6 +706,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     updateEnabled();
     updateMethod();
     changeSeedAndTrackTab();
+    changeRunRaptorTab();
     updateSeedModel();
     updateDisplay();
   }
@@ -985,6 +986,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     metaData.setTrackClusteredPointsAllowedElongatedValue(
         cbsClusteredPointsAllowedElongated.getValue(), axisID);
     metaData.setTrackAdvanced(btnAdvanced.isExpanded(), axisID);
+    metaData.setSeedAndTrackTab(axisID, curSeedAndTrackTab.index);
+    metaData.setRaptorTab(axisID, curRunRaptorTab.index);
   }
 
   public void setParameters(final ConstMetaData metaData) {
@@ -1019,6 +1022,17 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     cbsClusteredPointsAllowedElongated.setValue(metaData
         .getTrackClusteredPointsAllowedElongatedValue(axisID));
     btnAdvanced.changeState(metaData.isTrackAdvanced(axisID));
+    SeedAndTrackTab seedAndTrackTab = SeedAndTrackTab.getInstance(metaData
+        .getSeedAndTrackTab(axisID));
+    if (seedAndTrackTab != null) {
+      tpSeedAndTrack.setSelectedIndex(seedAndTrackTab.index);
+      changeSeedAndTrackTab();
+    }
+    RunRaptorTab runRaptorTab = RunRaptorTab.getInstance(metaData.getRaptorTab(axisID));
+    if (runRaptorTab != null) {
+      tpRunRaptor.setSelectedIndex(runRaptorTab.index);
+      changeRunRaptorTab();
+    }
     updateMethod();
     updateSeedModel();
     updateAdvanced();

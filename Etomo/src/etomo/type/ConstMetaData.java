@@ -548,4 +548,8 @@ public interface ConstMetaData {
   public boolean isTwodir(AxisID axisID);
 
   public String getTwodir(AxisID axisID);
+
+  public int getRaptorTab(AxisID axisID);
+
+  public int getSeedAndTrackTab(AxisID axisID);
 }
