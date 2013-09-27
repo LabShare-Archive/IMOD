@@ -289,7 +289,7 @@ set.interface.Nad=
 
 
 [Test = nad-test-gui]
-set.testdir = nad
+set.testdir = nad-test-gui
 set.adoc.dialog = nad.adoc
 set.var.dataset = unicross
 set.dataset = unicross
