@@ -42,7 +42,8 @@ following Qt instructions.
 
 In all architectures, in order for the IMOD setup to work, environment
 variable QTDIR must be defined to be the directory containing at least Qt/bin,
-and $QTDIR/bin must be on the path.
+$QTDIR/bin must be on the path, and environment variable QMAKESPEC must be
+defined.
 
 The setup scripts modify some or all of the Makefiles produced by qmake.
 On Windows, this is essential to make them work with cygwin make; elsewhere it
@@ -103,8 +104,8 @@ IMOD should build readily on recent Linux versions provided that gfortran and
 a Qt 4 development package are installed.
 
 To build IMOD under RHEL5, Qt was unpacked in a local directory, an install
-directory /usr/local/Trolltech/Qt-4.5.3-RHEL5-64 was created, and it was  
-built using gcc/g++ with the commands:
+directory /usr/local/Trolltech/Qt-4.5.3-RHEL5-64 was created, QMAKESPEC was
+defined to linux-g++-64, and Qt was built using gcc/g++ with the commands:
 
 ./configure -prefix /usr/local/Trolltech/Qt-4.5.3-RHEL5-64 -fast -no-exceptions \
 -no-phonon -no-phonon-backend -no-webkit -no-svg -no-rpath \
@@ -129,7 +130,8 @@ The compilers can be either gcc and gfortran, or the Intel C++ and Fortran
 compilers (version 10 or 11 can be used; 11 required on RHEL6).  If the Intel
 compilers are on the path, they will be used by default; this can be overriden
 with the "-c gnu" or "-c gfortran" setup option.  Either way will support
-OpenMP and CUDA for "current" compilers (e.g., gcc 4.1.2 in RHEL5).
+OpenMP and CUDA for "current" compilers (e.g., gcc 4.1.2 in RHEL5).  If Intel
+compilers are used, QMAKESPEC must be set to linux-icc.
 
 To build version 4 TIFF libraries, unpack the libtiff distribution and decide
 on a directory to install to.  Build with:
