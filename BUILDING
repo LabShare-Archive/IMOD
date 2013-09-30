@@ -75,7 +75,8 @@ from Sun/Oracle.  You must place the bin of the JDK on your path.
 As of 4.2.25, IMOD is built with version 4 of libtiff to support large files,
 specifically tiff-4.0.1.  Source for this or earlier versions is obtained
 from http://www.remotesensing.org/libtiff/.  However, IMOD still builds with
-version 3 of libtiff if that is what is on your system.
+version 3 of libtiff if that is what is on your system.  In this case, you
+need to have a libtiff-devel package installed, as well as libtiff.
 
 As of 4.6.25, IMOD can be built to use floating point FFT librarries from FFTW
 instead its own FFT routines by setting the environment variable FFTW3_DIR.
