@@ -174,6 +174,7 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
   void done() {
     btnRaptor.removeActionListener(actionListener);
     btnOpenRaptorResult.removeActionListener(actionListener);
+    btnUseRaptorResult.removeActionListener(actionListener);
   }
 
   public void setBeadtrackParams(final BeadtrackParam beadtrackParams) {
