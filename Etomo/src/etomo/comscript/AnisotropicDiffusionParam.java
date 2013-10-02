@@ -228,8 +228,6 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       LogFile testFile = LogFile.getInstance(new File(subdir,
           TestNADFileFilter.FILE_NAME_BODY + addLeadingZeros(index.toString(), 3)
               + TestNADFileFilter.FILE_NAME_EXT));
-      //TEMP 1753
-      System.out.println("A:testFile:"+testFile);
       testFile.create();
       LogFile.WriterId writerId = testFile.openWriter();
       testFile.write(
@@ -319,6 +317,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     }
     int length = digits.length();
     if (length > maxZeros || length == maxZeros) {
+      //TEMP 1753
+      System.out.println("A:number:"+number);
       return number;
     }
     StringBuffer retval = new StringBuffer();
@@ -326,6 +326,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       retval.append("0");
     }
     retval.append(number);
+    //TEMP 1753
+    System.out.println("A:retval.toString()r:"+retval.toString());
     return retval.toString();
   }
 
