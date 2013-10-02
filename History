@@ -1,11 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-9/27/13: Prevent the "Use Raptor Result..." button in eTomo - Fiducial Model
+10/1/13: Prevent the "Use Raptor Result..." button in eTomo - Fiducial Model
 dialog from being triggered multiple times.(Bug# 1727)
 
-9/27/13: Saving the state of the eTomo - Fiducial Model dialog.(Bug# 1722)
+10/1/13: Saving the state of the eTomo - Fiducial Model dialog.(Bug# 1722)
 
-9/26/13: Improved the handling of opening eTomo - Post Processing at the wrong
+10/1/13: Improved the handling of opening eTomo - Post Processing at the wrong
 time.(Bug# 1712)
 
 9/27/13: Added predefined tomodataplots graphs to various places in eTomo.
