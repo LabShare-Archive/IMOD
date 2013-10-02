@@ -225,6 +225,10 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     for (int i = 0; i < kValueList.size(); i++) {
       index.set(i + 1);
       k.set(kValueList.getRawString(i));
+      //TEMP 1753
+      System.out.println("A:index.toString():" + index.toString()
+          + ",addLeadingZeros(index.toString(), 3):"
+          + addLeadingZeros(index.toString(), 3));
       LogFile testFile = LogFile.getInstance(new File(subdir,
           TestNADFileFilter.FILE_NAME_BODY + addLeadingZeros(index.toString(), 3)
               + TestNADFileFilter.FILE_NAME_EXT));
