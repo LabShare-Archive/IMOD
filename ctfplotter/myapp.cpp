@@ -578,7 +578,9 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   double *stripAvg = (double *)malloc(mDim * sizeof(double));
   double leftMean, rightMean, tmpMean, effectiveDefocus;
   double scale, offset, delFMin, delFMax;
-  int tileMax = floor((float)mNxx / (float)halfSize);
+  const int tileCols = int(floor((float)mNxx / (float)halfSize)) - 1;
+  const int tileRows = int(floor((float)mNyy / (float)halfSize)) - 1;
+  const int tileMax = tileRows * tileCols;
   double axisXAngle; //tilt axis angle with X coordinate, [0, 2*pi];
   double diagonal = sqrt((double)(mNxx * mNxx + mNyy * mNyy));
   double stripWidthPixels;
@@ -600,8 +602,6 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
 
   if (mPlotter)
     mPlotter->mTileButton->setEnabled(false);
-
-  tileMax = (tileMax - 1) * (tileMax - 1);
 
   //tilt axis angle with X coordinate, [0, 2*pi];
   axisXAngle = 90 + mTiltAxisAngle;
