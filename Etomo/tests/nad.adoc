@@ -60,8 +60,9 @@ assert.exists.file=%{subdir}/%{subprocess}-007.com
 assert.exists.file=%{subdir}/%{subprocess}-009.com
 assert.exists.file=%{subdir}/%{subprocess}-010.com
 assert.exists.file=%{subdir}/%{subprocess}-011.com
-assert.exists.file=%{subdir}/test.K0.001-010
-assert.exists.file=%{subdir}/test.K0.005-010
+# 0010 in Java 1.6; 001 in Java 1.7
+#assert.exists.file=%{subdir}/test.K0.001-010
+#assert.exists.file=%{subdir}/test.K0.005-010
 assert.exists.file=%{subdir}/test.K0.01-010
 assert.exists.file=%{subdir}/test.K0.05-010
 assert.exists.file=%{subdir}/test.K0.1-010
