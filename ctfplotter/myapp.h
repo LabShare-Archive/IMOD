@@ -126,14 +126,10 @@ class MyApp : public QObject
     int getInitTileOption(){return mInitialTileOption;}
     void scaleAndAddStrip(
       double *psSum, double *stripAvg, int *stripCounter, int counter,
-      double mean, double xScale, double xAdd, float freqInc, 
-      double delFmin, double delFmax, SliceCache *cachePtr, double *avgPtr,
-      int *freqTileCounterPtr);
+      double mean, double xScale, float freqInc, SliceCache *cachePtr, 
+      double *avgPtr, int *freqTileCounterPtr);
     void saveCurrentDefocus();
     void writeDefocusFile();
-    void getScaleAndOffset(const double dz1, const double dz2, 
-                           double &scale, double &offset, 
-			   double &delMin, double &delMax);
 
  private:
     //declare as static so member functions can use resizable

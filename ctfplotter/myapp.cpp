@@ -515,7 +515,7 @@ void MyApp::computeInitPS(bool noisePS)
   // tilt series, adjusting the expected locations of the first and
   // second zeros to match those of the primary.
   if (numTiltSeries == 2) {
-    double scale, offset, dfMin, dfMax, defocus1, defocus2;
+    double defocus1, defocus2;
     const double freqInc = 1.0 / (mDim - 1.0);
 
     mStackMean2 = localMean2 / counter2;
@@ -526,10 +526,9 @@ void MyApp::computeInitPS(bool noisePS)
     else
       defocus1 = defocusFinder.getExpDefocus();
     defocus2 = defocus1 + mDefocusOffset / 1000.0;
-    getScaleAndOffset(defocus1, defocus2, scale, offset, dfMin, dfMax);
     scaleAndAddStrip(psSum2, stripSum, stripCounter, counter2, localMean2,
-                     scale, offset, freqInc, dfMin, dfMax, mCache2, 
-                     mRAverage2, mFreqTileCounter2);
+                     defocus2 / defocus1, freqInc, mCache2, mRAverage2, 
+		     mFreqTileCounter2);
 
     // For focal pair processing, combine the power spectra from the
     // individual tilt series (in mRAverage{1|2}) and put in mRAverage.
@@ -577,7 +576,6 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
   int *stripCounter = (int *)malloc(mDim * sizeof(int));
   double *stripAvg = (double *)malloc(mDim * sizeof(double));
   double leftMean, rightMean, tmpMean, effectiveDefocus;
-  double scale, offset, delFMin, delFMax;
   const int tileCols = int(floor((float)mNxx / (float)halfSize)) - 1;
   const int tileRows = int(floor((float)mNyy / (float)halfSize)) - 1;
   const int tileMax = tileRows * tileCols;
@@ -729,23 +727,19 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
         tmpMean = effectiveDefocus + deltaZ;
         if (tiltSeries > 0)
           tmpMean = tmpMean + mDefocusOffset / 1000.0;
-        getScaleAndOffset(effectiveDefocus, tmpMean, scale,
-                          offset, delFMin, delFMax);
         // Add in right side strip
         scaleAndAddStrip(rightPsSum, stripAvg, stripCounter, rightCounter,
-                         rightMean, scale, offset, freqInc, delFMin, 
-                         delFMax, cachePtr, avgPtr, freqTileCounterPtr);
+                         rightMean, tmpMean / effectiveDefocus, freqInc, 
+                         cachePtr, avgPtr,freqTileCounterPtr);
 
         // Compute scale and offset for the strip to the left of center
         tmpMean = effectiveDefocus - deltaZ;
         if (tiltSeries > 0)
           tmpMean = tmpMean + mDefocusOffset / 1000.0;
-        getScaleAndOffset(effectiveDefocus, tmpMean, scale, 
-                          offset, delFMin, delFMax);
         // Add in left side strip
         scaleAndAddStrip(leftPsSum, stripAvg, stripCounter, leftCounter,
-                         leftMean, scale, offset, freqInc, delFMin, 
-                         delFMax, cachePtr, avgPtr, freqTileCounterPtr);
+                         leftMean, tmpMean / effectiveDefocus, freqInc, 
+                         cachePtr, avgPtr, freqTileCounterPtr);
       }  // for tiltSeries
 
       if (mFocalPairProcessing)
@@ -779,16 +773,16 @@ void MyApp::moreTile(bool hasIncludedCentralTiles)
 }
 
 /*
- * Rotationally average the summed strip FFT data with frequency offset and 
- * scaling to match locations of the first and second CTF zeros and add into
- * mRAverage. Note that *avgPtr (both input and output) is a real power
- * spectrum, not just a sum of energies; i.e. the summed energy has already
- * divided by the product of the number of pixels and tiles.
+ * Rotationally average the summed strip FFT data with nonlinear frequency  
+ * scaling to match locations of the zeros and add into mRAverage. Note
+ * that *avgPtr (both input and output) is a real power spectrum, not just
+ * a sum of energies; i.e. the summed energy has already been divided by 
+ * the product of the number of pixels and tiles.
  */
 void MyApp::scaleAndAddStrip
 (double *psSum, double *stripAvg, int *stripCounter, int counter,
- double mean, double xScale, double xAdd, float freqInc, double delFMin,
- double delFMax, SliceCache *cachePtr, double *avgPtr, int *freqTileCounter)
+ double mean, double xScale, float freqInc, SliceCache *cachePtr, 
+ double *avgPtr, int *freqTileCounter)
 {
   int ii, jj, npsIndex, stripRIndex, stripLIndex, lnum;
   double freq, delfreq, freqst, freqnd, lfrac;
@@ -818,13 +812,11 @@ void MyApp::scaleAndAddStrip
     // index of strip bin each side falls into
     freqst = ii * hyperInc;
     freqnd = freqst + hyperInc;
-    delfreq = freqst * xScale + xAdd - freqst;
-    delfreq = B3DMIN(delFMax, B3DMAX(delFMin, delfreq));
-    freqst += delfreq;
+    delfreq = sqrt(xScale * freqst * freqst) - freqst;
+     freqst += delfreq;
     stripLIndex = B3DNINT(freqst / freqInc);
-    delfreq = freqnd * xScale + xAdd - freqnd;
-    delfreq = B3DMIN(delFMax, B3DMAX(delFMin, delfreq));
-    stripRIndex = B3DNINT((freqnd + delfreq) / freqInc);
+    delfreq = sqrt(xScale * freqnd * freqnd) - freqnd;
+     stripRIndex = B3DNINT((freqnd + delfreq) / freqInc);
     if (stripRIndex >= mDim || stripLIndex < 0)
       continue;
 
@@ -1191,60 +1183,38 @@ void MyApp::showWarning(const char *title, const char *message)
 }
 
 /*
- * Determine the scale and offset required to align the first two CTF
- * zeros at underfocus dz2 to those at underfocus dz1. Also returns the
- * smaller and larger of the frequency difference between the first and
- * second zeros in delMin and delMax.
- */
-void MyApp::getScaleAndOffset(const double dz1, const double dz2, 
-                              double &scale, double &offset, 
-                              double &dfMin, double &dfMax)
-{
-  double zero1, zero2, shiftedZero1, shiftedZero2, delta1, delta2;
-
-  defocusFinder.getTwoZeros(dz1, zero1, zero2);
-  defocusFinder.getTwoZeros(dz2, shiftedZero1, shiftedZero2);
-  scale = (zero2 - zero1) / (shiftedZero2 - shiftedZero1);
-  offset = zero1 - shiftedZero1 * scale;
-  delta1 = zero1 - shiftedZero1;
-  delta2 = zero2 - shiftedZero2;
-  dfMin = B3DMIN(delta1, delta2);
-  dfMax = B3DMAX(delta1, delta2);
-  if (debugLevel >= 2) {
-    printf("Right: Z1  %f -> %f   Z2  %f -> %f  scale %f  add %f  "
-           "delmin %f  delmax %f\n", zero1, shiftedZero1, zero2, 
-           shiftedZero2, scale, offset, dfMin, dfMax);
-  }
-}
-
-/*
  * Combine primary and secondary power spectra for focal pair processing.
- * We have to combine power spectra which may have different baselines. 
- * All we really care about is locating the first 2 zeros of the CTF, so 
- * one approach is to compute their geometric mean, which is equivalent to 
- * averaging on the log plot of the spectra. If the secondary tilt series is 
- * lower underfocus this runs in trouble, however, because after shifting /
- * scaling guarantees that the secondary spectrum will have no data at 
- * higher frequencies. We handle this case using the geometric mean below 
- * this frequency; above this point, we use the primary spectrum adjusted
- * for the baseline shift seen at lower frequencies.
+ * We are combining power spectra which may have different baselines. 
+ * All we really care about is the frequency of the minima, so one 
+ * approach is to compute their geometric mean, which is equivalent to 
+ * averaging log plots of the spectra. We also have to handle cases
+ * where one or both datasets are empty (0) over part of the range.
  */
 void MyApp::combinePowerSpectra()
 {
-  double runningAvgShift, shift;
-  int i, iCutoff = mDim;
-  while (mFreqTileCounter2[iCutoff - 1] == 0)
-    iCutoff--;
+  double baseline = 0;
+  int i;
 
-  for (i = 0; i < iCutoff; i++) {
-    mRAverage[i] = sqrt(mRAverage1[i] * mRAverage2[i]);
-    shift = mRAverage1[i] - mRAverage[i];
-    if (i == 0)
-      runningAvgShift = shift;
-    else
-      runningAvgShift = 0.875 * runningAvgShift + 0.125 * shift;
+  for (i = 0; i < mDim; i++) {
+    if (mRAverage1[i] == 0 && mRAverage2[i] != 0) {
+      mRAverage[i] = mRAverage2[i];
+    }
+    else {
+      if (mRAverage1[i] != 0 && mRAverage2[i] == 0) {
+        mRAverage[i] = mRAverage1[i];
+      }
+      else {
+	mRAverage[i] = sqrt(mRAverage1[i] * mRAverage2[i]);        
+      }
+    }
+    
+    // average of 2nd half of combined power spectrum
+    if (i >= mDim / 2)
+      baseline += mRAverage[i];
   }
 
-  for (i = iCutoff; i < mDim; i++)
-    mRAverage[i] = mRAverage1[i] - runningAvgShift;
+  // Adjust baseline to approximately 0 on a log scale
+  baseline /= 0.5 * mDim;
+  for (i = 0; i < mDim; i++)
+    mRAverage[i] = mRAverage1[i] / baseline;
 }
