@@ -1737,13 +1737,15 @@ public class ProcessManager extends BaseProcessManager {
   public boolean reconnectTilt(AxisID axisID, ProcessResultDisplay processResultDisplay,
       final ProcessSeries processSeries) {
     try {
-      ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
-          TiltProcessMonitor.getReconnectInstance(appManager, axisID),
+      TiltProcessMonitor monitor = TiltProcessMonitor.getReconnectInstance(appManager,
+          axisID);
+      ReconnectProcess process = ReconnectProcess.getInstance(appManager, this, monitor,
           axisProcessData.getSavedProcessData(axisID), axisID, processSeries);
       process.setProcessResultDisplay(processResultDisplay);
       Thread thread = new Thread(process);
       thread.start();
       axisProcessData.mapAxisThread(process, axisID);
+      axisProcessData.mapAxisProcessMonitor(null, monitor, axisID);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
@@ -2387,7 +2389,7 @@ public class ProcessManager extends BaseProcessManager {
         setInvalidEdgeFunctions(script.getCommand(), false);
         if (commandDetails != null
             && commandDetails.getCommandMode() == BlendmontParam.Mode.XCORR) {
-          //Do not allow tomodataplots -type 4 to unless you are sure that blendmont ran.
+          // Do not allow tomodataplots -type 4 to unless you are sure that blendmont ran.
           state.setXcorrBlendmontWasRun(axisID, false);
         }
       }

@@ -645,6 +645,7 @@ public abstract class BaseProcessManager {
       Thread thread = new Thread(process);
       thread.start();
       axisProcessData.mapAxisThread(process, axisID);
+      axisProcessData.mapAxisProcessMonitor(null, monitor, axisID);
     }
     catch (LogFile.LockException e) {
       e.printStackTrace();
