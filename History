@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/8/13: In eTomo fixed a parallel processing problem which prevented the
+Resume button from working when the process was pausing.  This problem
+appeared in only in reconnected processes.(Bug# 1729)
+
 10/7/13: In eTomo - Nonlinear Anisotropic Diffusion, some test.K... file names
 will differ in different Java versions.  This bug will not be fixed because it
 does not appear to cause any harm.  Only the automated tests where modified.
