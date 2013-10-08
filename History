@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/7/13: Fixed a problem with running tomodataplots from eTomo under Java 1.7
+that prevented the graphs from coming up.(Bug# 1754)
+
 10/1/13: Prevent the "Use Raptor Result..." button in eTomo - Fiducial Model
 dialog from being triggered multiple times.(Bug# 1727)
 
