@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/7/13: In eTomo - Nonlinear Anisotropic Diffusion, some test.K... file names
+will differ in different Java versions.  This bug will not be fixed because it
+does not appear to cause any harm.  Only the automated tests where modified.
+(Bug# 1753)
+
+10/7/13: Fixed a problem in eTomo running under Java 1.7 where some titles
+where greyed out.(Bug# 1752)
+
 10/7/13: Fixed a problem with running tomodataplots from eTomo under Java 1.7
 that prevented the graphs from coming up.(Bug# 1754)
 
