@@ -67,9 +67,14 @@ public final class AxisProcessData {
 
   public boolean isPausing(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return monitorB.isPausing();
+      if (monitorB != null) {
+        return monitorB.isPausing();
+      }
     }
-    return monitorA.isPausing();
+    if (monitorA != null) {
+      return monitorA.isPausing();
+    }
+    return false;
   }
 
   public void setWillResume(final AxisID axisID) {
