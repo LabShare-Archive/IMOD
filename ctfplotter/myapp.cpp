@@ -785,7 +785,7 @@ void MyApp::scaleAndAddStrip
  double *avgPtr, int *freqTileCounter)
 {
   int ii, jj, npsIndex, stripRIndex, stripLIndex, lnum;
-  double freq, delfreq, freqst, freqnd, lfrac;
+  double freq, freqst, freqnd, lfrac;
   double hyperInc = freqInc / mHyperRes;
   int *freqCount = cachePtr->getFreqCount();
 
@@ -812,11 +812,10 @@ void MyApp::scaleAndAddStrip
     // index of strip bin each side falls into
     freqst = ii * hyperInc;
     freqnd = freqst + hyperInc;
-    delfreq = sqrt(xScale * freqst * freqst) - freqst;
-     freqst += delfreq;
+    freqst = sqrt(xScale * freqst * freqst);
     stripLIndex = B3DNINT(freqst / freqInc);
-    delfreq = sqrt(xScale * freqnd * freqnd) - freqnd;
-     stripRIndex = B3DNINT((freqnd + delfreq) / freqInc);
+    freqnd = sqrt(xScale * freqnd * freqnd);
+    stripRIndex = B3DNINT(freqnd / freqInc);
     if (stripRIndex >= mDim || stripLIndex < 0)
       continue;
 
