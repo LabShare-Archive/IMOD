@@ -9,8 +9,8 @@ import javax.swing.JLabel;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstCCDEraserParam;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
-import etomo.type.ReconScreenState;
 
 /**
  * <p>Description: </p>
@@ -170,7 +170,7 @@ public final class PreProcessingDialog extends ProcessDialog {
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
-    //  Build the digital micrograph panel
+    // Build the digital micrograph panel
     pnlDMConvert.setLayout(new BoxLayout(pnlDMConvert, BoxLayout.Y_AXIS));
     pnlDMConvert
         .setBorder(new BeveledBorder("Digital Micrograph Conversion").getBorder());
@@ -180,7 +180,7 @@ public final class PreProcessingDialog extends ProcessDialog {
     // applicationManager.isDigitalMicrographData();
     disableDM2MRC();
 
-    //  Build the base panel
+    // Build the base panel
     btnExecute.setText("Done");
     pnlDMConvert.setAlignmentX(Component.CENTER_ALIGNMENT);
     rootPanel.add(pnlDMConvert);
@@ -192,7 +192,7 @@ public final class PreProcessingDialog extends ProcessDialog {
     rootPanel.add(pnlEraser);
     addExitButtons();
 
-    //  Set the default advanced state for the window, this also executes
+    // Set the default advanced state for the window, this also executes
     updateAdvanced();
   }
 
@@ -207,8 +207,12 @@ public final class PreProcessingDialog extends ProcessDialog {
     ccdEraserXRaysPanel.setParameters(ccdEraserParams);
   }
 
-  public void setParameters(final ReconScreenState screenState) {
+  public void setParameters(final BaseScreenState screenState) {
     ccdEraserXRaysPanel.setParameters(screenState);
+  }
+
+  public void getParameters(final BaseScreenState screenState) {
+    ccdEraserXRaysPanel.getParameters(screenState);
   }
 
   public CcdEraserDisplay getCCDEraserDisplay() {
