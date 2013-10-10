@@ -43,7 +43,6 @@ public final class TomodataplotsParam {
     command.add("python");
     command.add("-u");
     command.add(BaseManager.getIMODBinPath() + ProcessName.TOMODATAPLOTS.toString());
-    command.add("-background");
     if (task != null) {
       if (task.typeOfDataToPlot != null) {
         command.add("-TypeOfDataToPlot");
