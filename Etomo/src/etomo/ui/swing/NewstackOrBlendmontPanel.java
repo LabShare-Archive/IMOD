@@ -87,7 +87,7 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expa
     this.axisID = axisID;
     this.dialogType = dialogType;
     header = PanelHeader.getAdvancedBasicOnlyInstance(getHeaderTitle(), this, dialogType,
-        globalAdvancedButton);
+        globalAdvancedButton, false);
     newstackAndBlendmontParamPanel = NewstackAndBlendmontParamPanel.getInstance(manager,
         axisID, dialogType);
     btnRunProcess = (Run3dmodButton) manager.getProcessResultDisplayFactory(axisID)
@@ -157,9 +157,9 @@ abstract class NewstackOrBlendmontPanel implements Run3dmodButtonContainer, Expa
   }
 
   // Copy the newstack parameters from the GUI to the NewstParam object
-  public final boolean getParameters(NewstParam newstParam,final boolean doValidation)
+  public final boolean getParameters(NewstParam newstParam, final boolean doValidation)
       throws FortranInputSyntaxException, InvalidParameterException, IOException {
-    return newstackAndBlendmontParamPanel.getParameters(newstParam,doValidation);
+    return newstackAndBlendmontParamPanel.getParameters(newstParam, doValidation);
   }
 
   public final void setParameters(BlendmontParam param) {
