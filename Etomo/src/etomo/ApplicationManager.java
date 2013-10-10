@@ -761,7 +761,7 @@ public final class ApplicationManager extends BaseManager implements
     comScriptMgr.loadEraser(axisID);
     preProcDialog.setCCDEraserParams(comScriptMgr.getCCDEraserParam(axisID,
         CCDEraserParam.Mode.X_RAYS));
-    preProcDialog.setParameters(getScreenState(axisID));
+    preProcDialog.setParameters(getBaseScreenState(axisID));
     mainPanel.showProcess(preProcDialog.getContainer(), axisID);
     if (actionMessage != null) {
       System.err.println(actionMessage);
@@ -816,6 +816,7 @@ public final class ApplicationManager extends BaseManager implements
                 + PreProcessingDialog.getUseFixedStackLabel() + "\" button.",
             "Entry Warning", axisID);
       }
+      preProcDialog.getParameters(getBaseScreenState(axisID));
       updateEraserCom(preProcDialog.getCCDEraserDisplay(), axisID, false, false);
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setPreProcessingState(ProcessState.COMPLETE, axisID);
@@ -2875,7 +2876,7 @@ public final class ApplicationManager extends BaseManager implements
       }
       fineAlignmentDialog.setPatchTracking(true);
     }
-    fineAlignmentDialog.setParameters(getScreenState(axisID));
+    fineAlignmentDialog.setParameters(getBaseScreenState(axisID));
     metaData.setFineExists(axisID, true);
     // Create a default transferfid object to populate the alignment dialog
     mainPanel.showProcess(fineAlignmentDialog.getContainer(), axisID);
@@ -3523,7 +3524,7 @@ public final class ApplicationManager extends BaseManager implements
       mainPanel.showBlankProcess(axisID);
     }
     else {
-      fineAlignmentDialog.getParameters(getScreenState(axisID));
+      fineAlignmentDialog.getParameters(getBaseScreenState(axisID));
       // Get the user input data from the dialog box
       updateAlignCom(axisID, false);
       if (exitState == DialogExitState.POSTPONE) {
