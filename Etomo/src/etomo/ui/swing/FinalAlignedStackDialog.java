@@ -238,7 +238,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   // headers should not go into garbage collection
   private final PanelHeader filterHeader = PanelHeader.getAdvancedBasicOnlyInstance(
-      "2D Filtering (optional)", this, DIALOG_TYPE, btnAdvanced);
+      "2D Filtering (optional)", this, DIALOG_TYPE, btnAdvanced, false);
   // panels that are changed in setAdvanced()
   private final SpacedPanel inverseParamsPanel;
   private final JPanel filterBodyPanel;
@@ -253,7 +253,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements Expa
 
   // ctf correction
   private final PanelHeader ctfCorrectionHeader = PanelHeader
-      .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE, btnAdvanced);
+      .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE, btnAdvanced,
+          false);
   private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel.getInstance(true);
   private final FileTextField ftfConfigFile = new FileTextField("Config file: ");
   private final LabeledTextField ltfVoltage = new LabeledTextField(FieldType.INTEGER,
