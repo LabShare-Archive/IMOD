@@ -49,7 +49,8 @@ single point at the center of the mesh.  This is referred to as the volume
 inside the mesh.  It will be slightly more accurate than the contour volume if
 the mesh completely encloses the volume, but it can be quite inaccurate if the
 mesh is not capped.  This computation is valid for any fully meshed volume,
-including tubular meshes around an open contour.
+including tubular meshes around an open contour, as well as saved isosurface
+objects.
 .br
      5) With a mesh, surface area is computed by adding the areas of all the
 triangles in the mesh.  This is referred to as mesh surface area and it is

@@ -125,7 +125,8 @@ The arrangement on RHEL6 and Fedora 15 is also handled correctly, with QTDIR
 defined as /usr/lib64/qt4 on a 64-bit system.
 
 QTDIR must be defined, $QTDIR/bin must be on the path, and $QTDIR/lib must
-be on the LD_LIBRARY_PATH.
+be on the LD_LIBRARY_PATH if it exists (if it does not exists, e.g., on RHEL6,
+there should not be a problem).
 
 The compilers can be either gcc and gfortran, or the Intel C++ and Fortran
 compilers (version 10 or 11 can be used; 11 required on RHEL6).  If the Intel

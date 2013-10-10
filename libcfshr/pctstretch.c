@@ -2,7 +2,6 @@
  * pctstretch.c : estimate percentile limits of an image from sample of pixels
  *
  * $Id$
- * Log at end
  */
 
 #include <stdlib.h>
@@ -215,13 +214,14 @@ int percentileStretch(unsigned char **image, int type, int nx, int ny, float sam
     }
   }
   
+  /* At the top end, add back most of the bin width to get the whole bin */
   for (cum = 0, i = nbins - 1; i >= 0; i--) {
     cum += hist[i];
     if (cum >= nHi) {
       if (type == FLOAT)
         *scaleHi = ((float)i / fFactor - fBase);
       else
-        *scaleHi = (float)(i * factor - base);
+        *scaleHi = (float)(i * factor - base + (1 << SHORT_SHIFT) - 1);
       break;
     }
   }
@@ -233,9 +233,3 @@ int percentileStretch(unsigned char **image, int type, int nx, int ny, float sam
   free(hist);
   return(0);
 }
-
-/*
-
-$Log$
-
-*/
