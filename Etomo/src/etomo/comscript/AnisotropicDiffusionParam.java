@@ -317,6 +317,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     }
     int length = digits.length();
     if (length > maxZeros || length == maxZeros) {
+      //TEMP 1753
+      System.out.println("A:number:"+number);
       return number;
     }
     StringBuffer retval = new StringBuffer();
@@ -324,6 +326,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       retval.append("0");
     }
     retval.append(number);
+    //TEMP 1753
+    System.out.println("A:retval.toString()r:"+retval.toString());
     return retval.toString();
   }
 

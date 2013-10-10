@@ -84,16 +84,16 @@ final class HeaderCell implements Cell {
         cell = new JButton(formatText());
       }
     }
+    if (!toggle) {
+      cell.setFocusable(false);
+      cell.setContentAreaFilled(false);
+    }
     cell.setBorder(BorderFactory.createEtchedBorder());
-    cell.setEnabled(false);
     if (width > 0) {
       Dimension size = cell.getPreferredSize();
       size.width = width;
       cell.setSize(size);
       cell.setPreferredSize(size);
-    }
-    if (controlColor) {
-      cell.setBackground(background);
     }
   }
 
@@ -131,7 +131,7 @@ final class HeaderCell implements Cell {
   }
 
   void setWarning(boolean warning) {
-    //Can't change the color if not controlling color
+    // Can't change the color if not controlling color
     if (!controlColor) {
       return;
     }
@@ -156,7 +156,7 @@ final class HeaderCell implements Cell {
         cell.setForeground(Colors.CELL_DISABLED_FOREGROUND);
       }
     }
-    else {//push button
+    else {// push button
       cell.setEnabled(enable);
     }
   }
@@ -230,7 +230,7 @@ final class HeaderCell implements Cell {
   void setName() {
     String prefix;
     if (uiTestFieldType == UITestFieldType.MINI_BUTTON) {
-      //Mini-buttons have a prefix of "mb.".
+      // Mini-buttons have a prefix of "mb.".
       prefix = uiTestFieldType.toString() + AutodocTokenizer.SEPARATOR_CHAR;
     }
     else {
@@ -241,8 +241,9 @@ final class HeaderCell implements Cell {
       name = Utilities.convertLabelToName(text);
     }
     else {
-      name = Utilities.convertLabelToName(tableHeader, rowHeader != null ? rowHeader
-          .getText() : null, columnHeader != null ? columnHeader.getText() : null);
+      name = Utilities.convertLabelToName(tableHeader,
+          rowHeader != null ? rowHeader.getText() : null,
+          columnHeader != null ? columnHeader.getText() : null);
     }
     getComponent().setName(prefix + name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {

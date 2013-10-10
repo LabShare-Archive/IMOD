@@ -546,7 +546,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           }
           // handle commandsPipeWriteIda finished chunk
           else if (strings[1].equals("finished")) {
-            parallelProgressDisplay.addSuccess(strings[3]);
+            if (parallelProgressDisplay != null) {
+              parallelProgressDisplay.addSuccess(strings[3]);
+            }
           }
           // handle a failed chunk
           else if (strings[1].equals("failed")) {

@@ -39,6 +39,10 @@ public final class ProcessingMethod {
   public boolean isLocal() {
     return this == LOCAL_CPU || this == LOCAL_GPU;
   }
+  
+  public String toString() {
+    return value;
+  }
 
   private static ProcessingMethod getInstance(String string) {
     if (LOCAL_CPU.value.equals(string)) {
