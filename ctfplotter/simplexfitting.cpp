@@ -257,6 +257,33 @@ int SimplexFitting::fitCTF(double* fitting, int nvar, double &err,
 }
 
 /*
+ * Recompute a previously fit CTF-like curve at given defocus
+ */
+void SimplexFitting::recomputeCTF(double* result, double defocus)
+{
+  int i;
+  float err;
+  double ctfval, x, x0;
+
+  mA[0] = defocus;
+  funkCTF(mA, &err);
+  err = sqrt(err);
+  x0 = (double)(mIndex1) / (mDim - 1.);
+  for (i=0; i < mDim; i++) { 
+    x = (double)i / (mDim - 1.);
+    ctfval = mFinder->CTFvalue(x, defocus);
+    result[i] = mA[1] + mA[2] * exp(-mA[3] * (x - x0)) * 
+      pow(fabs(ctfval), (double)mA[4]);
+  } 
+  if( debugLevel >= 1){
+   printf("CTF fitting parameters for range %d to %d are:\n", mIndex1, mIndex2);
+   printf("Fitting error=%f\t def=%f\t base=%f\t scale=%g\t decay=%f\t pow=%f\n",
+          err, mA[0], mA[1], mA[2], mA[3], mA[4]);
+  }
+  fflush(stdout);
+}
+
+/*
  * The callback function for the simplex search fitting to a CTF
  */
 void SimplexFitting::funkCTF(float* param, float* fValue)
