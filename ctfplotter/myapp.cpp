@@ -315,6 +315,25 @@ void MyApp::fitPsFindZero()
 }
 
 /*
+ * Replot using previously fit parameters with a different defocus
+ */
+void MyApp::replotWithDefocus(double defocus) 
+{
+  int i;
+  QVector<QPointF> data;
+  const double inc = 1.0 / (mDim - 1);
+  double *fittedData = (double *)malloc(mDim * sizeof(double));
+  if (!fittedData)
+    exitError("Allocation failed: out of memory!");
+
+  simplexEngine->recomputeCTF(fittedData, defocus);
+  for (i = 0; i < mDim; i++)
+    data.append(QPointF(i * inc, fittedData[i]));
+  if (mPlotter)
+    mPlotter->setCurveData(1, data);
+}
+
+/*
  * Initializes slice cache, opens stack, reads angle file
  * This should only be called once (per cache) with actual data stack
  */
