@@ -376,6 +376,7 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
 
   void updateManualReplacementAdvanced(final boolean advanced) {
     pnlManualReplacementBody.setVisible(advanced);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   public void expand(GlobalExpandButton button) {
@@ -387,7 +388,6 @@ final class CcdEraserXRaysPanel implements ContextMenu, Run3dmodButtonContainer,
     if (phManualReplacement != null && phManualReplacement.equalsAdvancedBasic(button)) {
       updateManualReplacementAdvanced(button.isExpanded());
     }
-    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
   }
 
   public void action(final Run3dmodButton button,
