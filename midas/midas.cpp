@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+#include <stdarg.h>
 
 #include "midas.h"
 #include "mrcc.h"
@@ -167,7 +168,8 @@ int main (int argc, char **argv)
         break;
 
       case 'b':
-        vw->boxsize = atoi(argv[++i]);
+        if (!atoi(argv[++i]))
+          vw->fastInterp = 0;
         break;
 
       case 'B':
@@ -1021,7 +1023,7 @@ void MidasWindow::createZoomBlock(QVBoxLayout *parent)
                      SLOT(slotZoom(int)));
 
   QCheckBox *check = diaCheckBox("Interpolate", NULL, parent);
-  check->setChecked(VW->fastip == 0);
+  check->setChecked(VW->fastInterp == 0);
   QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                      SLOT(slotInterpolate(bool)));
   check->setToolTip("Transform image by linear interpolation instead of block"
@@ -1117,3 +1119,17 @@ void midas_error(const char *tmsg, const char *bmsg, int retval)
 
   return;
 }
+
+/* Takes fprintf-type arguments and prints to stderr, and flushes on Windows */
+void printStderr(const char *format, ...)
+{
+  char errorMess[512];
+  va_list args;
+  va_start(args, format);
+  vsprintf(errorMess, format, args);
+  fprintf(stderr, errorMess);
+#ifdef _WIN32
+  fflush(stderr);
+#endif
+}
+

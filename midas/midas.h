@@ -220,7 +220,7 @@ typedef struct Midas_view
   /* view mode: single or overlay */
   int vmode;
 
-  int fastip;  /* flag for fast display, not interpolation */
+  int fastInterp;  /* flag for fast display, nearest neighbor interpolation */
 
   /* used for mouse translation */
   int lastmx;
@@ -343,7 +343,6 @@ typedef struct Midas_view
   QCheckBox *wSkipExcluded;
   QCheckBox *wExcludeEdge;
   QLabel   *zoomlabel;
-  int      boxsize;      /* block size for transforms */
   QCheckBox *overlaytoggle;
   QLabel   *wIncrement[3];
   int      incindex[3];    /* index from parameters to increments */
@@ -389,6 +388,7 @@ extern int Midas_debug;
 /****************************************************************************/
 /* midas.cpp function prototypes.                                           */
 void midas_error(const char *tmsg, const char *bmsg, int retval);
+void printStderr(const char *format, ...);
 
 /****************************************************************************/
 
