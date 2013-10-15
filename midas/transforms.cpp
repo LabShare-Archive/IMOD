@@ -56,7 +56,7 @@ int new_view(MidasView *vw)
   vw->xtrans = 0;
   vw->ytrans = 0;
   vw->vmode = MIDAS_VIEW_COLOR;
-  vw->fastip = TRUE;
+  vw->fastInterp = TRUE;
 
   vw->width = 0;
   vw->height= 0;
@@ -91,7 +91,6 @@ int new_view(MidasView *vw)
   vw->cachein = 0;
   vw->sminin = 0;
   vw->smaxin = 0;
-  vw->boxsize = 1;  // Temporarily - may get rid of this and just have fastip
   vw->rotMode = 0;
   vw->globalRot = 0.;
   vw->cosStretch = 0;
@@ -161,11 +160,6 @@ int load_view(MidasView *vw, char *fname)
   ix = B3DMAX(vw->xsize, vw->ysize);
   vw->corrBoxSize = B3DMAX(32, 16 * B3DNINT(ix / 80.));
   vw->corrShiftLimit = B3DMAX(2, 2 * B3DNINT(ix / 20.));
-
-  if (vw->boxsize == 0)
-    vw->fastip = 0;
-  vw->boxsize = 1;
-          
 
   /* Maximum cache size given memory allowed */
   vw->cachesize = 1000000 * MAX_CACHE_MBYTES / vw->xysize;
@@ -776,18 +770,18 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
   int ix, iy, ixgrid, iygrid, indy[2], indx[2], ixlim[2], iylim[2];
   int xsize, ysize;
   float *mat;
-  float ox, oy;
+  float xbase, ybase;
   float xdx, xdy, ydx, ydy;
-  float x, y;
+  float x, y, xline, yline;
   unsigned char umean;
-  int nxa, nya, box, timeOutput = 0;
-  int ixst, ixnd, nxGrid, nyGrid, ixgStart, ixgEnd, iygStart, iygEnd;
-  float xrt, xlft, xst, xnd, xInterval, yInterval, xstep, ystep, xStart, yStart;
+  int nxLim, nyLim, box, timeOutput = 0;
+  int ixStart, ixEnd, nxGrid, nyGrid, ixgStart, ixgEnd, iygStart, iygEnd;
+  float xRight, xLeft, xEnd, xInterval, yInterval, xstep, ystep, xStart, yStart;
   float fx, fy, gridfy, xbox, ybox, xmap[2][2], ymap[2][2], xlim[2], ylim[2];
   bool allIn;
   unsigned char *buf;
-  float xc = VW->xsize / 2.;
-  float yc = VW->ysize / 2.;
+  float xcen = VW->xsize / 2.;
+  float ycen = VW->ysize / 2.;
   double wallstart, arrStart;
   const char *messages[3] = {"Error setting up grid from control points", 
                              "Failed to get memory for warping grid",
@@ -800,8 +794,8 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
   xdy = mat[1];
   ydx = mat[3];
   ydy = mat[4];
-  ox = mat[6] + xc - xc * xdx - yc * ydx;
-  oy = mat[7] + yc - xc * xdy - yc * ydy;
+  xbase = mat[6] + xcen - xcen * xdx - ycen * ydx;
+  ybase = mat[7] + ycen - xcen * xdy - ycen * ydy;
 
   xsize = slin->xsize;
   ysize = slin->ysize;
@@ -869,11 +863,12 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
     }
     arrStart = wallTime();
     if (timeOutput)
-      printf("total grid time %.3f\n", 1000. * (wallTime()- wallstart));
+      printStderr("total grid time %.3f\n", 1000. * (wallTime()- wallstart));
 
 #pragma omp parallel for                                                \
-  shared(xdx, xdy, ydx, ydy, VW, ox, oy, umean, nxa, nya, xsize, ysize, nxGrid, nyGrid) \
+  shared(xdx, xdy, ydx, ydy, VW, xbase, ybase, umean, nxLim, nyLim, xsize, ysize) \
   shared(yStart, yInterval, xStart, xInterval, ixgStart, ixgEnd, iygStart, iygEnd) \
+  shared(nyGrid, nxGrid)                                                        \
   private(j, x, y, buf, i, ix, iy, index) \
   private(fx, fy, iygrid, ixgrid, indx, indy, xlim, ylim, ixlim, iylim, allIn) \
   private(xmap, ymap, xbox, ybox, gridfy, xstep, ystep)
@@ -921,8 +916,8 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
             x = xlim[ix] + VW->gridDx[index];
             y = ylim[iy] + VW->gridDy[index];
             //printf("  %.1f, %.1f", VW->gridDx[index], VW->gridDy[index]);
-            xmap[ix][iy] = x * xdx + y * ydx + ox;
-            ymap[ix][iy] = x * xdy + y * ydy + oy;
+            xmap[ix][iy] = x * xdx + y * ydx + xbase;
+            ymap[ix][iy] = x * xdy + y * ydy + ybase;
             if (xmap[ix][iy] < 0. || xmap[ix][iy] >= xsize - 1 || ymap[ix][iy] < 0. || 
                 ymap[ix][iy] >= ysize - 1)
               allIn = false;
@@ -946,7 +941,7 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
 
           // Loop across lines in different cases
           buf = &sout->data.b[ixlim[0] + j * xsize];
-          if (VW->fastip) {
+          if (VW->fastInterp) {
 
             /* nearest neighbor, add 0.5 for nearest int */
             x += 0.5;
@@ -1032,141 +1027,110 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
       memcpy(VW->lastGridDy, VW->gridDy, nxGrid * nyGrid * sizeof(float));
     }
     if (timeOutput)
-      printf("array fill time %.3f    limits %d %d %d %d\n",
+      printStderr("array fill time %.3f    limits %d %d %d %d\n",
              1000. * (wallTime()- arrStart), ixgStart, ixgEnd, iygStart, iygEnd);
 
   } else {
 
     // REGULAR TRANSFORMATION
-    box = VW->boxsize;
-    nxa = xsize - box;
-    nya = ysize - box;
-    if (!VW->fastip) {
-      box = 1;
-      nxa = xsize - 2;
-      nya = ysize - 2;
+    nxLim = xsize - 1;
+    nyLim = ysize - 1;
+    if (!VW->fastInterp) {
+      nxLim = xsize - 2;
+      nyLim = ysize - 2;
     }
 
 #pragma omp parallel for                                                \
-  shared(xdx, xdy, ydx, ydy, VW, ox, oy, umean, box, nxa, nya, xsize, ysize) \
-  private(j, x, y, xst, xnd, xlft, xrt, ixnd, ixst, k, buf, i, ix, iy, index) \
-  private(fx, fy, l)
-    for (j = 0; j < ysize + 1 - box; j += box) {
-      x = ox + j * ydx;
-      y = oy + j * ydy;
+  shared(xdx, xdy, ydx, ydy, VW, xbase, ybase, umean, nxLim, nyLim, xsize, ysize) \
+  private(j, x, y, xStart, xEnd, xLeft, xRight, ixEnd, ixStart, k, buf, i, ix, iy) \
+  private(fx, fy, l, xline, yline, index)
+    for (j = 0; j < ysize; j++) {
+      xline = xbase + j * ydx;
+      yline = ybase + j * ydy;
 
       /* compute constrained, safe coordinates to use */
-      xst = 0;
-      xnd = xsize - 1;
+      xStart = 0;
+      xEnd = xsize - 1;
 
       /* get intersection with left and right sides unless vertical */
       if (xdx > 1.e-10 || xdx < -1.e-10) {
-        xlft = -x / xdx;
-        xrt = (nxa - 0.5 - x) / xdx;
-        if (xlft < xrt) {
-          if (xst < xlft)
-            xst = xlft;
-          if (xnd > xrt)
-            xnd = xrt;
+        xLeft = -xline / xdx;
+        xRight = (nxLim - 0.5 - xline) / xdx;
+        if (xLeft < xRight) {
+          xStart = B3DMAX(xStart, xLeft);
+          xEnd = B3DMIN(xEnd, xRight);
         } else {
-          if (xst < xrt)
-            xst = xrt;
-          if (xnd > xlft)
-            xnd = xlft;
+          xStart = B3DMAX(xStart, xRight);
+          xEnd = B3DMIN(xEnd, xLeft);
         }
-      } else if (x < 0 || x >= nxa - 0.5) {
+      } else if (xline < 0 || xline >= nxLim - 0.5) {
         /* if vertical and outside limits, set up for fill */
-        xst = nxa;
-        xnd = 1;
+        xStart = nxLim;
+        xEnd = 1;
       }
 
       /* get intersection with bottom and top unless horizontal */
       if (xdy > 1.e-10 || xdy < -1.e-10) {
-        xlft = -y / xdy;
-        xrt = (nya - 0.5 - y) / xdy;
-        if (xlft < xrt) {
-          if (xst < xlft)
-            xst = xlft;
-          if (xnd > xrt)
-            xnd = xrt;
+        xLeft = -yline / xdy;
+        xRight = (nyLim - 0.5 - yline) / xdy;
+        if (xLeft < xRight) {
+          xStart = B3DMAX(xStart, xLeft);
+          xEnd = B3DMIN(xEnd, xRight);
         } else {
-          if (xst < xrt)
-            xst = xrt;
-          if (xnd > xlft)
-            xnd = xlft;
+          xStart = B3DMAX(xStart, xRight);
+          xEnd = B3DMIN(xEnd, xLeft);
         }
-      } else if (y < 0 || y >= nya - 0.5) {
-        xst = nxa;
-        xnd = 1;
+      } else if (yline < 0 || yline >= nyLim - 0.5) {
+        xStart = nxLim;
+        xEnd = 1;
       }
 
       /* Limit these values before truncating because they can be > 2147... */
-      if (xst > xsize + 10.)
-        xst = xsize + 10.;
-      if (xnd < -10)
-        xnd = -10.;
+      xStart = B3DMIN(xStart, xsize + 10.);
+      xEnd = B3DMAX(xEnd, -10.);
 
       /* truncate ending down, starting up */
-      ixnd = (int)xnd;
-      ixst = nxa + 1 - (int)(nxa + 1. - xst);
+      ixEnd = (int)xEnd;
+      ixStart = nxLim + 1 - (int)(nxLim + 1. - xStart);
 
       /* If they are crossed, set up so fill does whole extent */
-      if (ixst > ixnd) {
-        ixst = nxa / 2;
-        ixnd = ixst - 1;
-      } else
-        /* otherwise, make sure it's an even box multiple */
-        ixnd = ixst + box * ((ixnd - ixst) / box);
-      while (ixnd > nxa)
-        ixnd -= box;
-
-      /* Do the left and right fills */
-      for (k = j; k < j + box; k++) {
-        buf = &sout->data.b[k * xsize];
-        for (i = 0; i < ixst; i++)
-          *buf++ = umean;
-        buf = &sout->data.b[ixnd + 1 + k * xsize];
-        for (i = ixnd + 1; i < xsize; i++)
-          *buf++ = umean;
+      if (ixStart > ixEnd) {
+        ixStart = nxLim / 2;
+        ixEnd = ixStart - 1;
       }
 
-      /* displace to starting point */
-      x += ixst * xdx;
-      y += ixst * xdy;
+      if (ixEnd > nxLim)
+        ixEnd = nxLim;
 
-      if (VW->fastip && box < 2) {
+      /* Do the left and right fills */
+      buf = &sout->data.b[j * xsize];
+      for (i = 0; i < ixStart; i++)
+        *buf++ = umean;
+      buf = &sout->data.b[ixEnd + 1 + j * xsize];
+      for (i = ixEnd + 1; i < xsize; i++)
+        *buf++ = umean;
 
-        /* nearest neighbor, no box copies, add 0.5 for nearest int */
-        x += 0.5;
-        y += 0.5;
-        buf = &sout->data.b[ixst + j * xsize];
-        for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-          ix = (int)x; iy = (int)y;
+      if (VW->fastInterp) {
+
+        /* nearest neighbor, add 0.5 for nearest int */
+        xline += 0.5;
+        yline += 0.5;
+        buf = &sout->data.b[ixStart + j * xsize];
+        for (i = ixStart; i <= ixEnd; i++) {
+          ix = (int)(xline + i * xdx); 
+          iy = (int)(yline + i * xdy);
           index = ix + (iy * xsize);
           *buf++ = slin->data.b[index];
         }
-
-      } else if (VW->fastip) {
-
-        /* Box copies */
-        x += 0.5;
-        y += 0.5;
-        for(i = ixst; i <= ixnd; i += box, y += xdy * box, 
-              x += xdx * box){
-          ix = (int)x; iy = (int)y;
-          for (k = j; k < j + box; k++) {
-            index = ix + ((iy + k - j) * xsize);
-            buf = &sout->data.b[i + k * xsize];
-            for (l = 0; l < box; l++)
-              *buf++ = slin->data.b[index++];
-          }
-        }
-
       } else {
+        
         /* bilinear interpolation */
-        buf = &sout->data.b[ixst + j * xsize];
-        for(i = ixst; i <= ixnd; i++, y += xdy, x += xdx){
-          ix = (int)x; iy = (int)y;
+        buf = &sout->data.b[ixStart + j * xsize];
+        for (i = ixStart; i <= ixEnd; i++) {
+          x = xline + i * xdx; 
+          y = yline + i * xdy;
+          ix = (int)x;
+          iy = (int)y;
           fx = x - ix;
           fy = y - iy;
           index = ix + (iy * xsize);
@@ -1180,18 +1144,12 @@ int midas_transform(int zval, Islice *slin, Islice *sout, float *trmat, int izwa
     }
     // End of parallel for
 
-    /* fill any top lines left undone */
-    for (j = ysize + 1 - box; j < ysize; j++) {
-      buf = &sout->data.b[j * xsize];
-      for (i = 0; i < xsize; i++)
-        *buf++ = umean;
-    }
     VW->lastWarpedZ = -1;
   }
 
   tramat_free(mat);
   if (timeOutput)
-    printf("Total transform time %.3f\n", 1000. * (wallTime()- wallstart));
+    printStderr("Total transform time %.3f\n", 1000. * (wallTime()- wallstart));
   return(0);
 }
 
@@ -2376,15 +2334,15 @@ void crossCorrelate(MidasView *vw)
     B3DFREE(arfilt);
     return;
   }
-  ipsave = vw->fastip;
-  if (vw->fastip) {
-    vw->fastip = 0;
+  ipsave = vw->fastInterp;
+  if (vw->fastInterp) {
+    vw->fastInterp = 0;
     flush_xformed(vw);
   }
   curSlice = midasGetSlice(vw, curSliceType);
   curImageData = curSlice->data.b;
   prevImageData = midasGetPrevImage(vw);
-  vw->fastip = ipsave;
+  vw->fastInterp = ipsave;
   sliceTaperInPad(prevImageData, SLICE_MODE_BYTE, vw->xsize, ix0, ix1, iy0,
                   iy1, array, nxuse, nxuse, nyuse, 0, 0);
   sliceSmoothOutPad(array, SLICE_MODE_FLOAT, nxuse, nyuse, array, nxsmooth, 
