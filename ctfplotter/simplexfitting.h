@@ -27,6 +27,7 @@ class SimplexFitting
   static void funkCTF(float *, float *);
   int fitGaussian(double* result, double &err, int howToInitParams);
   int fitCTF(double* result, int nvar, double &err, double &focus);
+  void recomputeCTF(double *result, double defocus);
   void setRange(int n1 , int n2){ mIndex1=n1; mIndex2=n2;}
   void setRaw(double *rawData);
   int getDim() {return mDim;}
