@@ -1347,7 +1347,7 @@ void MidasSlots::slotZoom(int upDown)
 
 void MidasSlots::slotInterpolate(bool state)
 {
-  VW->fastip = state ? 0 : 1;
+  VW->fastInterp = state ? 0 : 1;
   flush_xformed(VW);
   VW->midasGL->fill_viewdata(VW);
   VW->midasGL->draw();
