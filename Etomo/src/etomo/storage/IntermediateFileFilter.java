@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import javax.swing.filechooser.FileFilter;
 
 import etomo.type.FileType;
-import etomo.util.DatasetFiles;
 
 /*
  * <p>Description: </p>
@@ -134,7 +133,10 @@ public class IntermediateFileFilter extends FileFilter {
       if (accept(name, FileType.MTF_FILTERED_STACK)) {
         return true;
       }
-      if (name.endsWith("_raptor" + DatasetFiles.FIDUCIAL_MODEL_EXT)) {
+      if (name.matches(datasetName + "[ab]?_full\\.vsr\\d\\d")) {
+        return true;
+      }
+      if (name.matches(datasetName + "[ab]?_sub\\.vsr\\d\\d")) {
         return true;
       }
     }
