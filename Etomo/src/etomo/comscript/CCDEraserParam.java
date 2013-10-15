@@ -198,6 +198,9 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
       borderPixels = scriptCommand.getValue(BORDER_SIZE_KEY);
       polynomialOrder = scriptCommand.getValue(POLYNOMIAL_ORDER_KEY);
       includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
+      giantCriterion = scriptCommand.getValue(GIANT_CRITERION_KEY);
+      bigDiffCriterion = scriptCommand.getValue(BIG_DIFF_CRITERION_KEY);
+      extraLargeRadius = scriptCommand.getValue(EXTRA_LARGE_RADIUS_KEY);
       // handle out-of-date parameters
       outerRadius = scriptCommand.getValue("OuterRadius");
       if (!outerRadius.equals("")) {
@@ -387,7 +390,24 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
     else {
       scriptCommand.deleteKey(TRIAL_MODE_KEY);
     }
-
+    if (!giantCriterion.equals("")) {
+      scriptCommand.setValue(GIANT_CRITERION_KEY, giantCriterion);
+    }
+    else {
+      scriptCommand.deleteKey(GIANT_CRITERION_KEY);
+    }
+    if (!bigDiffCriterion.equals("")) {
+      scriptCommand.setValue(BIG_DIFF_CRITERION_KEY, bigDiffCriterion);
+    }
+    else {
+      scriptCommand.deleteKey(BIG_DIFF_CRITERION_KEY);
+    }
+    if (!extraLargeRadius.equals("")) {
+      scriptCommand.setValue(EXTRA_LARGE_RADIUS_KEY, extraLargeRadius);
+    }
+    else {
+      scriptCommand.deleteKey(EXTRA_LARGE_RADIUS_KEY);
+    }
     // remove out-of-date parameters
     if (!outerRadius.equals("")) {
       scriptCommand.deleteKey("OuterRadius");
@@ -490,6 +510,18 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
    */
   public void setGrowCriterion(String string) {
     growCriterion = string;
+  }
+
+  public void setGiantCriterion(final String string) {
+    giantCriterion = string;
+  }
+
+  public void setBigDiffCriterion(final String string) {
+    bigDiffCriterion = string;
+  }
+
+  public void setExtraLargeRadius(final String string) {
+    extraLargeRadius = string;
   }
 
   /**

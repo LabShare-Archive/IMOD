@@ -26,11 +26,11 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
-import etomo.type.ReconScreenState;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 
@@ -260,7 +260,7 @@ final class TiltalignPanel implements Expandable {
     axisID = axis;
     tabPane.setBorder(new EtchedBorder("Tiltalign Parameters").getBorder());
     phBeamTilt = PanelHeader.getAdvancedBasicOnlyInstance("Beam Tilt", this,
-        DialogType.FINE_ALIGNMENT, globalAdvancedButton);
+        DialogType.FINE_ALIGNMENT, globalAdvancedButton, true);
     globalAdvancedButton.register(this);
     // Create the tabs
     createGeneralTab();
@@ -660,8 +660,8 @@ final class TiltalignPanel implements Expandable {
     updateDisplay();
   }
 
-  public void setParameters(ReconScreenState screenState) {
-    phBeamTilt.setState(screenState.getFineAlignBeamTiltHeaderState());
+  void setParameters(BaseScreenState screenState) {
+    phBeamTilt.setButtonStates(screenState);
   }
 
   public void setPatchTracking(boolean input) {
@@ -682,8 +682,8 @@ final class TiltalignPanel implements Expandable {
     }
   }
 
-  public void getParameters(ReconScreenState screenState) {
-    phBeamTilt.getState(screenState.getFineAlignBeamTiltHeaderState());
+  public void getParameters(BaseScreenState screenState) {
+    phBeamTilt.getButtonStates(screenState);
   }
 
   /**

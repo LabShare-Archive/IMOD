@@ -20,11 +20,11 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TomodataplotsParam;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
+import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.MetaData;
-import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -404,7 +404,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     setToolTipText();
   }
 
-  public void setParameters(ReconScreenState screenState) {
+  public void setParameters(BaseScreenState screenState) {
     pnlTiltalign.setParameters(screenState);
   }
 
@@ -417,7 +417,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     pnlTiltalign.setSurfacesToAnalyze(surfacesToAnalyze);
   }
 
-  public void getParameters(ReconScreenState screenState) {
+  public void getParameters(BaseScreenState screenState) {
     pnlTiltalign.getParameters(screenState);
   }
 

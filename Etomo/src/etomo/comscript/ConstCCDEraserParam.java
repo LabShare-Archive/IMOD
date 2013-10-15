@@ -71,7 +71,10 @@ public class ConstCCDEraserParam {
   public static final String TRIAL_MODE_KEY = "TrialMode";
   public static final String BOUNDARY_OBJECTS_KEY = "BoundaryObjects";
   public static final String MODEL_FILE_KEY = "ModelFile";
-
+  public static final String GIANT_CRITERION_KEY = "GiantCriterion";
+  public static final String BIG_DIFF_CRITERION_KEY = "BigDiffCriterion";
+  public static final String EXTRA_LARGE_RADIUS_KEY = "ExtraLargeRadius";
+  
   protected String inputFile = "";
   protected String outputFile = "";
   /**
@@ -99,6 +102,9 @@ public class ConstCCDEraserParam {
   protected String borderPixels = "";
   protected String polynomialOrder = "";
   protected boolean includeAdjacentPoints = true;
+  protected String giantCriterion = "";
+  protected String bigDiffCriterion = "";
+  protected String extraLargeRadius = "";
 
   // out of date parameter
   String outerRadius = ""; // replaced by annulusWidth
@@ -182,6 +188,18 @@ public class ConstCCDEraserParam {
    */
   public String getGrowCriterion() {
     return growCriterion;
+  }
+
+  public String getGiantCriterion() {
+    return giantCriterion;
+  }
+
+  public String getBigDiffCriterion() {
+    return bigDiffCriterion;
+  }
+
+  public String getExtraLargeRadius() {
+    return extraLargeRadius;
   }
 
   /**

@@ -175,6 +175,17 @@ final class ExpandButton extends MultiLineButton {
     return instance;
   }
 
+  static ExpandButton getGlobalInstance(final Expandable expandable1,
+      final Expandable expandable2, ExpandButton.Type type,
+      final GlobalExpandButton globalExpandButton) {
+    if (type == null) {
+      type = DEFAULT_TYPE;
+    }
+    ExpandButton instance = new ExpandButton(expandable1, expandable2, type,
+        globalExpandButton);
+    return instance;
+  }
+
   static ExpandButton getExpandedInstance(final Expandable expandable1,
       final Expandable expandable2, ExpandButton.Type type) {
     if (type == null) {
@@ -320,7 +331,7 @@ final class ExpandButton extends MultiLineButton {
   boolean equals(final ExpandButton that) {
     return equals((Object) that);
   }
-  
+
   /**
    * set button setting to expanded and force a call to expand(), even if the
    * value of the button isn't changed.  To allows the screen to be initialized.

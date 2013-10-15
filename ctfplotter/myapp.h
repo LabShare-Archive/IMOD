@@ -29,30 +29,31 @@ class MyApp : public QObject
     LinearFitting*  linearEngine;
     DefocusFinder   defocusFinder;
     Plotter *mPlotter;
-    int getEndingSliceNum() { return mEndingSlice;}
+    int getEndingSliceNum() {return mEndingSlice;}
     int getStartingSliceNum() {return mStartingSlice;}
-    void plotFitPS(bool flagSetInitSetting );
+    void plotFitPS(bool flagSetInitSetting);
+    void replotWithDefocus(double defocus);
     void fitPsFindZero();
-    void setPlotter( Plotter *p){ mPlotter=p;}
+    void setPlotter( Plotter *p) {mPlotter=p;}
     void setSlice(const char *stackFile, char *angleFile, 
                   sliceCacheEnum cacheSelector);
     double getLowAngle() {return mLowAngle;}
     char *getStackName() {return mFnStack;}
-    void setStackMean(double mean){ mStackMean=mean;}
-    double getStackMean(){ return mStackMean;}
-    double getHighAngle(){return mHighAngle;}
-    double getDefocusTol(){return mDefocusTol;}
-    double getLeftTol(){return mLeftDefTol;}
-    double getRightTol(){return mRightDefTol;}
-    int getTileSize(){return mTileSize;}
-    double getAxisAngle(){return mTiltAxisAngle;}
-    void setLowAngle(double lAngle){ mLowAngle=lAngle;}
-    void setHighAngle(double hAngle){ mHighAngle=hAngle;}
-    void setRangeStep(double step){ mRangeStep=step;}
-    void setAutoFromAngle(double from){ mAutoFromAngle = from;}
-    void setAutoToAngle(double to){ mAutoToAngle = to;}
-    double getRangeStep(){return mRangeStep;}
-    double getAutoFromAngle(){return mAutoFromAngle;}
+    void setStackMean(double mean) {mStackMean=mean;}
+    double getStackMean() {return mStackMean;}
+    double getHighAngle() {return mHighAngle;}
+    double getDefocusTol() {return mDefocusTol;}
+    double getLeftTol() {return mLeftDefTol;}
+    double getRightTol() {return mRightDefTol;}
+    int getTileSize() {return mTileSize;}
+    double getAxisAngle() {return mTiltAxisAngle;}
+    void setLowAngle(double lAngle) { mLowAngle=lAngle;}
+    void setHighAngle(double hAngle) {mHighAngle=hAngle;}
+    void setRangeStep(double step) {mRangeStep=step;}
+    void setAutoFromAngle(double from) {mAutoFromAngle = from;}
+    void setAutoToAngle(double to) {mAutoToAngle = to;}
+    double getRangeStep() {return mRangeStep;}
+    double getAutoFromAngle() {return mAutoFromAngle;}
     double getAutoToAngle(){return mAutoToAngle;}
     
     void setPS(double *rAvg, double *rAvg1, double *rAvg2) {

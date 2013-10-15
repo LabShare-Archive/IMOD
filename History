@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/14/13: Added GiantCriterion, BigDiffCriterion, and ExtraLargeRadius to
+eTomo - Preprocessing.(Bug# 1736)
+
 10/9/13: Fixed a problem with running tomodataplots from eTomo under Java 1.7
 that prevented the graphs from coming up.(Bug# 1754)
 

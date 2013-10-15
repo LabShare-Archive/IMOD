@@ -407,8 +407,11 @@ void Plotter::mouseDoubleClickEvent(QMouseEvent *event)
     finder->findDefocus(&defocus);
     finder->setAvgDefocus(-1.);
     manageLabels(zero, defocus, 0., 0., 0);
+    // If using ctf-like curve fit, replot with selected
+    // defocus and all other parameters unchanged
+    if (mApp->getZeroFitMethod() == 0)
+      mApp->replotWithDefocus(defocus);
   } else {
-
     // Otherwise define the second zero and the average
     defocus = finder->getDefocus();
     if (defocus <= 0)
