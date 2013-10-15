@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/13: In eTomo - Clean up, added unused, optional image files (such as the
+output from mtffilter) to the file chooser.(Bug# 1509)
+
+10/15/13: In eTomo - Clean up, added SIRT .vsr## output files.(Bug# 1533)
+
 10/14/13: Added GiantCriterion, BigDiffCriterion, and ExtraLargeRadius to
 eTomo - Preprocessing.(Bug# 1736)
 
