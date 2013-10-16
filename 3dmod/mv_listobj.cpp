@@ -444,7 +444,7 @@ void ImodvOlist::actionButtonClicked(int which)
       if (index >= 0)
         ilistRemove(group->objList, index);
       else
-        if (ilistAppend(group->objList, &ob))
+        if (objGroupAppend(group, ob))
           return;
     }
     updateGroups(Imodv);
