@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/13: Fixed numerical problems in drawing code that crashed Midas on big
+images in 64-bit Windows.
+
 10/14/13: Added GiantCriterion, BigDiffCriterion, and ExtraLargeRadius to
 eTomo - Preprocessing.(Bug# 1736)
 
