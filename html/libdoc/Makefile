@@ -9,8 +9,8 @@ IIMD = ../../libiimod
 QTD = ../../libdiaqt
 PLD = ../../3dmod
 
-HTMLS = $(LHD)/libimod.html $(LHD)/libiimod.html $(LHD)/imodel.html \
-$(LHD)/iobj.html $(LHD)/icont.html $(LHD)/ipoint.html $(LHD)/imesh.html \
+HTMLS = $(LHD)/libimod.html $(LHD)/libiimod.html $(LHD)/imodel.html $(LHD)/iobj.html \
+$(LHD)/objgroup.html $(LHD)/icont.html $(LHD)/ipoint.html $(LHD)/imesh.html \
 $(LHD)/imodel_files.html $(LHD)/ilist.html $(LHD)/istore.html \
 $(LHD)/imat.html $(LHD)/iplane.html $(LHD)/iview.html $(LHD)/ilabel.html \
 $(LHD)/mod_fwrap.html $(LHD)/b3dutil.html $(LHD)/autodoc.html \
@@ -42,6 +42,9 @@ $(LHD)/imodel.html: imodel.html $(IMD)/imodel.c
 
 $(LHD)/iobj.html: iobj.html $(IMD)/iobj.c
 	$(SDEXE) -d $(IMD) iobj.html $(LHD)/iobj.html
+
+$(LHD)/objgroup.html: objgroup.html $(IMD)/objgroup.c
+	$(SDEXE) -d $(IMD) objgroup.html $(LHD)/objgroup.html
 
 $(LHD)/icont.html: icont.html $(IMD)/icont.c
 	$(SDEXE) -d $(IMD) icont.html $(LHD)/icont.html
