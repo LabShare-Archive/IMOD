@@ -18,6 +18,7 @@
 #define setctfnoscl SETCTFNOSCL
 #define filterpart FILTERPART
 #define xcorrpeakfind XCORRPEAKFIND
+#define xcorrpeakfindwidth XCORRPEAKFINDWIDTH
 #define meanzero MEANZERO
 #define parabolicfitposition PARABOLICFITPOSITION
 #define cccoefficient CCCOEFFICIENT
@@ -26,11 +27,13 @@
 #define scaledgaussiankernel SCALEDGAUSSIANKERNEL
 #define applykernelfilter APPLYKERNELFILTER
 #define wrapfftslice WRAPFFTSLICE
+#define setpeakfindlimits SETPEAKFINDLIMITS
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
 #define filterpart filterpart_
 #define xcorrpeakfind xcorrpeakfind_
+#define xcorrpeakfindwidth xcorrpeakfindwidth_
 #define meanzero meanzero_
 #define parabolicfitposition parabolicfitposition_
 #define cccoefficient cccoefficient_
@@ -39,8 +42,11 @@
 #define scaledgaussiankernel scaledgaussiankernel_
 #define applykernelfilter applykernelfilter_
 #define wrapfftslice wrapfftslice_
+#define setpeakfindlimits setpeakfindlimits_
 #endif
 
+static float peakHalfWidth(float *array, int baseInd, int cenInd, int stride, int size, 
+                           int direction);
 
 /*!
  * Takes the filter parameters [sigma1], [sigma2], [radius1], and [radius2] and
@@ -275,28 +281,45 @@ void meanzero(float *array, int *nxdim, int *nx, int *ny)
   XCorrMeanZero(array, *nxdim, *nx, *ny);
 }
 
+static int sApplyLimits = 0;
+static int sLimitXlo, sLimitXhi, sLimitYlo, sLimitYhi;
+
 /*!
- * Finds the coordinates of the [maxpeaks] highest peaks in [array], which is
- * dimensioned to [nxdim] by [ny], and returns the positions in [xpeak],
- * [ypeak] and the peak values in [peak].  The X size of the image is assumed 
- * to be [nxdim] - 2.  The sub-pixel position is determined by fitting a
- * parabola separately in X and Y to the peak and 2 adjacent points.  Positions
+ * Finds the coordinates of the [maxpeaks] highest peaks in [array], which is dimensioned
+ * to [nxdim] by [ny], and returns the positions in [xpeak], [ypeak], and the peak values
+ * in [peak].  In addition, if [width] and [widthSD] are not NULL, the distance from the
+ * peak to position at half of the peak height is measured in 4 directions and the mean
+ * is returned in [width] and the standard deviation in [widthSD].  The X size of the 
+ * image is assumed * to be [nxdim] - 2.  The sub-pixel position is determined by fitting
+ * a parabola separately in X and Y to the peak and 2 adjacent points.  Positions
  * are numbered from zero and coordinates bigger than half the image size are
  * shifted to be negative.  The positions are thus the amount to shift a second
  * image in a correlation to align it to the first.  If fewer than [maxpeaks]
  * peaks are found, then the remaining values in [peaks] will be -1.e30.
  */
-void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
-                   float *ypeak, float *peak, int maxpeaks)
+void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *ypeak,
+                        float *peak, float *width, float *widthSD, int maxpeaks)
 {
   float cx, cy, y1, y2, y3, local, val;
+  float widthTemp[4];
   int ixpeak, iypeak, ix, iy, ixBlock, iyBlock, ixStart, ixEnd, iyStart, iyEnd;
-  int i, j, ixm, ixp, iyb, iybm, iybp;
-  int nx=nxdim-2;
+  int i, j, ixm, ixp, iyb, iybm, iybp, idx, idy;
+  int nx = nxdim - 2;
   int blockSize = 5;
   int nBlocksX = (nx + blockSize - 1) / blockSize;
   int nBlocksY = (ny + blockSize - 1) / blockSize;
-    
+  float xLimCen, yLimCen, xLimRadSq, yLimRadSq;
+
+  /* If using elliptical limits, compute center and squares of radii */
+  if (sApplyLimits < 0) {
+    xLimCen = 0.5 * (sLimitXlo + sLimitXhi);
+    cx = B3DMAX(1., (sLimitXhi - sLimitXlo) / 2.);
+    xLimRadSq = cx * cx;
+    yLimCen = 0.5 * (sLimitYlo + sLimitYhi);
+    cy = B3DMAX(1., (sLimitYhi - sLimitYlo) / 2.);
+    yLimRadSq = cy * cy;
+  }
+
   /* find peaks */
   for (i = 0; i < maxpeaks; i++) {
     peak[i] = -1.e30f;
@@ -305,36 +328,109 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
   }
 
   if (maxpeaks < 2) {
-    for (iy = 0; iy  < ny; iy++) {
-      for (ix = iy * nxdim; ix < nx + iy * nxdim; ix++) {
-        if (array[ix] > *peak) {
-          *peak = array[ix];
-          ixpeak = ix - iy * nxdim;
-          iypeak = iy;
+
+    /* Find one peak within the limits */
+    if (sApplyLimits) {
+      for (iy = 0; iy  < ny; iy++) {
+        idy = (iy > ny / 2) ? iy - ny : iy;
+        if (idy < sLimitYlo || idy > sLimitYhi)
+          continue;
+        for (ix = 0; ix < nx; ix++) {
+          idx = (ix > nx / 2) ? ix - nx : ix;
+          if (idx >= sLimitXlo && idx <= sLimitXhi && array[ix + iy * nxdim] > *peak) {
+            if (sApplyLimits < 0) {
+              cx = idx - xLimCen;
+              cy = idy - yLimCen;
+              if (cx * cx / xLimRadSq + cy * cy / yLimRadSq > 1.)
+                continue;
+            }
+            *peak = array[ix + iy * nxdim];
+            ixpeak = ix - iy * nxdim;
+            iypeak = iy;
+          }
         }
-        
       }
+      if (*peak > -0.9e30) {
+        *xpeak = (float)ixpeak;
+        *ypeak = (float)iypeak;
+      }
+
+    } else {
+
+      /* Or just find the one peak in the whole area */
+      for (iy = 0; iy  < ny; iy++) {
+        for (ix = iy * nxdim; ix < nx + iy * nxdim; ix++) {
+          if (array[ix] > *peak) {
+            *peak = array[ix];
+            ixpeak = ix - iy * nxdim;
+            iypeak = iy;
+          }
+        }
+      }
+      *xpeak = (float)ixpeak;
+      *ypeak = (float)iypeak;
     }
-    *xpeak = (float)ixpeak;
-    *ypeak = (float)iypeak;
   } else {
     
     // Check for local peaks by looking at the highest point in each local 
     // block
     for (iyBlock = 0 ; iyBlock < nBlocksY; iyBlock++) {
+
+      // Block start and end in Y
       iyStart = iyBlock * blockSize;
       iyEnd = iyStart + blockSize;
       if (iyEnd > ny)
         iyEnd = ny;
+
+      // Test if entire block is outside limits
+      if (sApplyLimits && (iyStart > ny / 2 || iyEnd <= ny / 2)) {
+        idy = (iyStart > ny / 2) ? iyStart - ny : iyStart;
+        if (idy > sLimitYhi)
+          continue;
+        idy = (iyEnd > ny / 2) ? iyEnd - ny : iyEnd;
+        if (idy < sLimitYlo)
+          continue;
+      }
+
+      // Loop on X blocks, get start and end in Y
       for (ixBlock = 0 ; ixBlock < nBlocksX; ixBlock++) {
         ixStart = ixBlock * blockSize;
         ixEnd = ixStart + blockSize;
         if (ixEnd > nx)
           ixEnd = nx;
+
+        // Test if entire block is outside limits
+        if (sApplyLimits && (ixStart > nx / 2 || ixEnd <= nx / 2)) {
+          idx = (ixStart > nx / 2) ? ixStart - nx : ixStart;
+          if (idx > sLimitXhi)
+            continue;
+          idx = (ixEnd > nx / 2) ? ixEnd - nx : ixEnd;
+          if (idx < sLimitXlo)
+            continue;
+        }
         
+        // Loop on every pixel in the block; have to test each pixel
         local = -1.e30f;
         for (iy = iyStart; iy  < iyEnd; iy++) {
+          if (sApplyLimits) {
+            idy = (iy > ny / 2) ? iy - ny : iy;
+            if (idy < sLimitYlo || idy > sLimitYhi)
+              continue;
+          }
           for (ix = ixStart; ix < ixEnd; ix++) {
+            if (sApplyLimits) {
+              idx = (ix > nx / 2) ? ix - nx : ix;
+              if (idx < sLimitXlo || idx > sLimitXhi)
+                continue;
+
+              // Apply elliptical test
+              if (sApplyLimits < 0) {
+                cx = idx - xLimCen;
+                cy = idy - yLimCen;
+                if (cx * cx / xLimRadSq + cy * cy / yLimRadSq > 1.)
+                  continue;
+              }
+            }
             val = array[ix + iy * nxdim];
             if (val > local && val > peak[maxpeaks - 1]) {
               local = val;
@@ -345,7 +441,7 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
         }
         
         // evaluate local peak for truly being local
-        if (local > -1.e30) {
+        if (local > -0.9e30) {
           ixm = (ixpeak + nx - 1) % nx;
           ixp = (ixpeak + 1) % nx;
           iyb = iypeak * nxdim;
@@ -378,7 +474,7 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
   }
       
   for (i = 0; i < maxpeaks; i++) {
-    if (peak[i] < -1.e29)
+    if (peak[i] < -0.9e30)
       continue;
 
     // Add 0.2 just in case float was less than int assigned to it
@@ -397,13 +493,59 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
     cy = (float)parabolicFitPosition(y1, y2, y3);
     
     /*    return adjusted pixel coordinate */
-    xpeak[i]=ixpeak+cx;
-    ypeak[i]=iypeak+cy;
+    xpeak[i] = ixpeak + cx;
+    ypeak[i] = iypeak + cy;
     if(xpeak[i] > nx/2)
-      xpeak[i]=xpeak[i]-nx;
+      xpeak[i] = xpeak[i] - nx;
     if(ypeak[i] > ny/2)
-      ypeak[i]=ypeak[i]-ny;
+      ypeak[i] = ypeak[i] - ny;
+
+    /* Return width if non-NULL */
+    if (width && widthSD) {
+      width[i] = (widthTemp[0] + widthTemp[0] + widthTemp[0] + widthTemp[3]) / 4.;
+      widthTemp[0] = peakHalfWidth(array, iypeak * nxdim, ixpeak, 1, nx, 1) - cx;
+      widthTemp[1] = peakHalfWidth(array, iypeak * nxdim, ixpeak, 1, nx, -1) + cx;
+      widthTemp[2] = peakHalfWidth(array, ixpeak, iypeak, nxdim, ny, 1) - cy;
+      widthTemp[3] = peakHalfWidth(array, ixpeak, iypeak, nxdim, ny, -1) + cy;
+      avgSD(widthTemp, 4, &width[i], &widthSD[i], &cy);
+    }
   }
+  sApplyLimits = 0;
+}
+
+/* Find the point in one direction away from the peak pixel where it falls by half */
+static float peakHalfWidth(float *array, int baseInd, int cenInd, int stride, int size, 
+                           int direction)
+{
+  float peak = array[baseInd + cenInd * stride];
+  int dist;
+  float lastVal = peak, val;
+  for (dist = 1; dist < size / 4; dist++) {
+    val = array[baseInd + ((cenInd + direction * dist + size) % size) * stride];
+    if (val < peak / 2.)
+      return (float)(dist + (lastVal - peak / 2.) / (lastVal - val) - 1.);
+    lastVal = val;
+  }
+  return (float)dist;
+}
+
+/*!
+ * Fortran wrapper to @@XCorrPeakFindWidth@.  If [maxpeaks] is 1, then [xpeak], 
+ * [ypeak], and [peak] can be single variables instead of arrays.
+ */
+void xcorrpeakfindwidth(float *array, int *nxdim, int *ny, float  *xpeak, float *ypeak,
+                        float *peak, float *width, float *widthSD, int *maxpeaks)
+{
+  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, width, widthSD, *maxpeaks);
+}
+
+/*!
+ * Calls @@XCorrPeakFindWidth@ with [width] and [widthSD] NULL.
+ */
+void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
+                        float *ypeak, float *peak, int maxpeaks)
+{
+  XCorrPeakFindWidth(array, nxdim, ny, xpeak, ypeak, peak, NULL, NULL, maxpeaks);
 }
 
 /*!
@@ -413,7 +555,32 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
 void xcorrpeakfind(float *array, int *nxdim, int *ny, float  *xpeak,
                    float *ypeak, float *peak, int *maxpeaks)
 {
-  XCorrPeakFind(array, *nxdim, *ny, xpeak, ypeak, peak, *maxpeaks);
+  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, NULL, NULL, *maxpeaks);
+}
+
+/*!
+ * Sets limits for shifts in X and in Y for peaks found in the next call to
+ * @@XCorrPeakFindWidth@.  The peak position must be between [limXlo] and [limXhi] in X
+ * and between [limYlo] and [limYhi] in Y.  Also, if [useEllipse] is non-zero, the 
+ * peaks are constrained to be in the ellipse bounded by these limits (i.e., a circle
+ * if the range of limts is the same in X and Y).
+ */
+void setPeakFindLimits(int limXlo, int limXhi, int limYlo, int limYhi, int useEllipse)
+{
+  sApplyLimits = useEllipse ? -1 : 1;
+  sLimitXlo = limXlo;
+  sLimitXhi = limXhi;
+  sLimitYlo = limYlo;
+  sLimitYhi = limYhi;
+}
+
+/*!
+ * Fortran wrapper to @@setPeakFindLimits@.
+ */
+void setpeakfindlimits(int *limXlo, int *limXhi, int *limYlo, int *limYhi, 
+                       int *useEllipse)
+{
+  setPeakFindLimits(*limXlo, *limXhi, *limYlo, *limYhi, *useEllipse);
 }
 
 /*!
