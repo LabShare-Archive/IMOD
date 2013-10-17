@@ -1,12 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/15/13: In eTomo - Clean up, added unused, optional image files (such as the
+10/17/13: In eTomo - Clean up, added unused, optional image files (such as the
 output from mtffilter) to the file chooser.(Bug# 1509)
+
+10/17/13: In eTomo - Clean up, added SIRT .vsr## output files.(Bug# 1533)
 
 10/15/13: Fixed numerical problems in drawing code that crashed Midas on big
 images in 64-bit Windows.
-
-10/15/13: In eTomo - Clean up, added SIRT .vsr## output files.(Bug# 1533)
 
 10/14/13: Added GiantCriterion, BigDiffCriterion, and ExtraLargeRadius to
 eTomo - Preprocessing.(Bug# 1736)
