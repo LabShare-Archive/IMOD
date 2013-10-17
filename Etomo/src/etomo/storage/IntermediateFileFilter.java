@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 
 import javax.swing.filechooser.FileFilter;
 
+import etomo.type.FileType;
+
 /*
  * <p>Description: </p>
  *
@@ -119,6 +121,42 @@ public class IntermediateFileFilter extends FileFilter {
       if (name.matches("volcombine[ab]?-\\d\\d\\d\\.com")) {
         return true;
       }
+      if (accept(name, FileType.ERASED_BEADS_STACK)) {
+        return true;
+      }
+      if (accept(name, FileType.FIXED_XRAYS_STACK)) {
+        return true;
+      }
+      if (accept(name, FileType.CTF_CORRECTED_STACK)) {
+        return true;
+      }
+      if (accept(name, FileType.MTF_FILTERED_STACK)) {
+        return true;
+      }
+      if (name.matches(datasetName + "[ab]?_full\\.vsr\\d\\d")) {
+        return true;
+      }
+      if (name.matches(datasetName + "[ab]?_sub\\.vsr\\d\\d")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if fileName matches file type.  Only works for file types that use the
+   * dataset and the axisID.
+   * dataset and axisID
+   * @param fileName
+   * @param fileType
+   * @return
+   */
+  private boolean accept(final String fileName, final FileType fileType) {
+    if (!fileType.usesDataset() || !fileType.usesAxisID()) {
+      return false;
+    }
+    if (fileName.endsWith(fileType.getTypeString() + fileType.getExtension())) {
+      return true;
     }
     return false;
   }

@@ -836,6 +836,38 @@ public final class FileType {
   }
 
   /**
+   * Returns the non-generic part of the the left side of the file name.  For
+   * example, the type string for BBa_fixed.st is "_fixed", the type string
+   * for tilta.com is "tilt", and the type string for tilt.com is "tilt".
+   * 
+   * WARNING: Does not get the child file type.  Ignores the composite setting.  Just
+   * returns the string in this instance.
+   * @return
+   */
+  public String getTypeString() {
+    return typeString;
+  }
+
+  /**
+   * Returns the extension.
+   * 
+   * WARNING: Does not get the child file type.  Ignores the composite setting.  Just
+   * returns the string in this instance.
+   * @return
+   */
+  public String getExtension() {
+    return extension;
+  }
+
+  public boolean usesDataset() {
+    return usesDataset;
+  }
+
+  public boolean usesAxisID() {
+    return usesAxisID;
+  }
+
+  /**
    * A null axisID or an ONLY axisID is sometimes used to signify a FIRST axisID
    * in a dual axis dataset.  A similar problem may exist for single axis
    * datasets.  The axisID must be corrected to get a valid file name.
