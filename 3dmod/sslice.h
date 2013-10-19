@@ -68,6 +68,9 @@ class SlicerFuncs {
   int synchronizeSlicers(bool draw = false);
   void changeCenterIfLinked();
   void getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
+  int namedSnapshot(QString &fname, int format, bool checkConvert);
+  void toggleArrow(bool drawWin = true);
+  void setCursor(int mode, bool setAnyway = false);
 
  private:
   void cubeDraw();
@@ -166,6 +169,12 @@ class SlicerFuncs {
   float mDrawnYmouse;
   float mDrawnZmouse;
   int mIgnoreCurPtChg;     /* Flag to ignore a current point change in draw */
+  bool mArrowOn;           // Arrow flag
+  bool mDrawingArrow;      // And flag for initial drawing
+  Ipoint mArrowTail;       // Image coordinates of head and tail
+  Ipoint mArrowHead;
+  float mArrowAngle[3];    // Angle at which arrow is valid
+  int mLastShape;          // Last shape for cursor
 
   short mNslice;       /* Number of slices to draw */
   Imat  *mMat;
@@ -185,7 +194,6 @@ void slicerReportAngles();
 SlicerFuncs *getTopSlicer();
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw);
 int setTopSlicerFromModelView(Ipoint *rot);
-int getTopSlicerAngles(float angles[3], Ipoint *center, int &time);
 int getTopSlicerTime(bool &continuous);
 void slicerNewTime(bool refresh);
 int getSlicerThicknessScaling();
