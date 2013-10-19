@@ -429,15 +429,7 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag)
       if (imcGetSnapMontage(true)) {
         zap->montageSnapshot(snaptype);
       } else {
-        limits = NULL;
-        if (zap->mRubberband) {
-          limits = limarr;
-          zap->bandImageToMouse(1);
-          limarr[0] = zap->mRbMouseX0 + 1;
-          limarr[1] = zap->mWiny - zap->mRbMouseY1;
-          limarr[2] = zap->mRbMouseX1 - 1 - zap->mRbMouseX0;
-          limarr[3] = zap->mRbMouseY1 - 1 - zap->mRbMouseY0;
-        }
+        zap->setSnapshotLimits(&limits, limarr);
         b3dKeySnapshot((char *)(zap->mNumXpanels ? "multiz" : "zap"), 
                        snaptype - 1, snaptype % 2, limits);
       }
@@ -538,6 +530,8 @@ ZapFuncs::ZapFuncs(ImodView *vi, int wintype)
   mBandChanged = 0;
   mLassoOn = false;
   mDrawingLasso = false;
+  mArrowOn = false;
+  mDrawingArrow = false;
   mShiftRegistered = 0;
   mCenterMarked = 0;
   mXformFixedPt.x = 0.;
@@ -1137,6 +1131,12 @@ void ZapFuncs::paint()
                        mRbMouseX1 - mRbMouseX0, 
                        mRbMouseY1 - mRbMouseY0);
     } 
+    if (mArrowOn && (fabs(xpos(mArrowXtail) - xpos(mArrowXhead)) > 2. || 
+                     fabs(ypos(mArrowYtail) - ypos(mArrowYhead)) > 2.)) {
+      b3dColorIndex(App->arrow);
+      b3dDrawArrow(xpos(mArrowXtail), ypos(mArrowYtail), 
+                   xpos(mArrowXhead), ypos(mArrowYhead));
+    }
   }
   drawTools();
   mScaleBarSize = scaleBarDraw(mWinx, mWiny, mZoom, 0);
@@ -1221,6 +1221,10 @@ void ZapFuncs::stateToggled(int index, int state)
 
   case ZAP_TOGGLE_LASSO:
     toggleLasso();
+    break;
+
+  case ZAP_TOGGLE_ARROW:
+    toggleArrow();
     break;
 
   case ZAP_TOGGLE_TIMELOCK:
@@ -1616,15 +1620,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
         break;
       }
       draw();
-      limits = NULL;
-      if (mRubberband) {
-        limits = limarr;
-        bandImageToMouse(1);
-        limarr[0] = mRbMouseX0 + 1;
-        limarr[1] = mWiny - mRbMouseY1;
-        limarr[2] = mRbMouseX1 - 1 - mRbMouseX0;
-        limarr[3] = mRbMouseY1 - 1 - mRbMouseY0;
-      }
+      setSnapshotLimits(&limits, limarr);
       b3dKeySnapshot((char *)(mNumXpanels ? "multiz" : "zap"), shifted, 
                      ctrl, limits);
     }else
@@ -1867,7 +1863,7 @@ void ZapFuncs::mousePress(QMouseEvent *event)
   setCursor(mMousemode, utilNeedToSetCursor());
 
   // Now give the plugins a crack at it
-  if (!mDrawingLasso)
+  if (!mDrawingLasso && !mDrawingArrow)
     ifdraw = checkPlugUseMouse(event, button1, button2, button3);
   if (ifdraw & 1) {
     if (ifdraw & 2)
@@ -1879,7 +1875,7 @@ void ZapFuncs::mousePress(QMouseEvent *event)
   if (ebut1 && !mDrawingLasso) {
     if (mShiftingCont)
       drew = startShiftingContour(sFirstmx, sFirstmy, 1, ctrlDown);
-    else if (mStartingBand)
+    else if (mStartingBand || mDrawingArrow)
       drew = b1Click(sFirstmx, sFirstmy, ctrlDown);
     else
       sFirstDrag = 1;
@@ -1915,8 +1911,8 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
   sMousePressed = false;
-  releaseBand = ((button2 && mRubberband) || ((button1 || button2) && mLassoOn)) && 
-    sMoveBandLasso;
+  releaseBand = (((button2 && mRubberband) || ((button1 || button2) && mLassoOn)) && 
+                 sMoveBandLasso) || (button1 && mDrawingArrow);
 
   if (imodDebug('m'))
     imodPrintStderr("release at %d %d   buttons %d %d %d\n", event->x(), 
@@ -1959,10 +1955,11 @@ void ZapFuncs::mouseRelease(QMouseEvent *event)
   // Button 2 and band moving, release the band
   if (releaseBand) {
     sMoveBandLasso = 0;
+    mDrawingArrow = false;
     setCursor(mMousemode);
 
     // Do a full draw for lasso move because isosurface may need updating
-    if (mHqgfxsave || mLassoOn) {
+    if (mHqgfxsave || mLassoOn || mArrowOn) {
       if (mLassoOn)
         imodDraw(mVi, IMOD_DRAW_MOD);
       else        
@@ -2040,7 +2037,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
   static int button1, button2, button3, ex, ey, processing = 0;
   static int ctrlDown, shiftDown;
   int cumdx, cumdy;
-  bool movingBandLasso = (mRubberband || mLassoOn) && sMoveBandLasso;
+  bool movingBandLasso = ((mRubberband || mLassoOn) && sMoveBandLasso) || mDrawingArrow;
   int ifdraw = 0, drew = 0;
   int cumthresh = 6 * 6;
   int dragthresh = 10 * 10;
@@ -2117,8 +2114,8 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
   }
 
   // DNM 8/1/08: Reject small movements soon after the button press
-  if ( (((mDrawingLasso || (mLassoOn && sMoveBandLasso)) && (button1 || button2)) || 
-        (!button1 && button2)) && !button3) {
+  if ( (((mDrawingLasso || mDrawingArrow || (mLassoOn && sMoveBandLasso)) && 
+         (button1 || button2)) || (!button1 && button2)) && !button3) {
     if ((sBut1downt.elapsed()) > 150 || cumdx * cumdx + cumdy * cumdy > 
         dragthresh)
       drew = b2Drag(ex, ey, ctrlDown);
@@ -2332,6 +2329,13 @@ int ZapFuncs::b1Click(int x, int y, int controlDown)
     setCursor(mMousemode);
     draw();
     return 1;  
+  }
+
+  // If drawing an arrow, start the coordinates
+  if (mDrawingArrow) {
+    mArrowXhead = mArrowXtail = ix;
+    mArrowYhead = mArrowYtail = iy;
+    return 0;
   }
 
   if (vi->ax && !mNumXpanels)
@@ -2842,13 +2846,20 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
     return 1;
   }
 
+  // Arrow: update the head coordinates
+  getixy(x, y, ix, iy, iz);
+  if (mDrawingArrow) {
+    mArrowXhead = ix;
+    mArrowYhead = iy;
+    draw();
+    return 1;
+  }
+
   if (vi->imod->mousemode == IMOD_MMOVIE && !mDrawingLasso)
     return 0;
 
   if (vi->imod->cindex.point < 0  && !mDrawingLasso)
     return 0;
-
-  getixy(x, y, ix, iy, iz);
 
   cpt.x = ix;
   cpt.y = iy;
@@ -3667,6 +3678,23 @@ void ZapFuncs::bandMouseToImage(int ifclip)
 }
 
 /*
+ * Sets the limits parameter to be used for snapshotting to null or to subarea limits
+ * that are placed in the supplied limarr array
+ */
+void ZapFuncs::setSnapshotLimits(int **limits, int *limarr)
+{
+  *limits = NULL;
+  if (mRubberband) {
+    *limits = limarr;
+    bandImageToMouse(1);
+    limarr[0] = mRbMouseX0 + 1;
+    limarr[1] = mWiny - mRbMouseY1;
+    limarr[2] = mRbMouseX1 - 1 - mRbMouseX0;
+    limarr[3] = mRbMouseY1 - 1 - mRbMouseY0;
+  }
+}
+
+/*
  * Return the correct low and high section values from the zap parameter.
  * Returns true if the rubberband is in use and at least of the two values have
  * been set.
@@ -3888,6 +3916,20 @@ void ZapFuncs::setAreaLimits()
 }     
 
 /*
+ * An external call for taking a snapshot of given format and given an optional name
+ * that is returned to the called
+ */
+int ZapFuncs::namedSnapshot(QString &fname, int format, bool checkConvert)
+{
+  int *limits;
+  int limarr[4];
+  mShowslice = mShowedSlice;
+  draw();
+  setSnapshotLimits(&limits, limarr);
+  return b3dNamedSnapshot(fname, "zap", format, limits, checkConvert);
+}
+
+/*
  * Returns size and limits within rubberband of the zoomed down image being displayed,
  * and corresponding limits for the unzoomed stored image
  */
@@ -3965,6 +4007,8 @@ void ZapFuncs::toggleRubberband(bool drawWin)
   } else {
     if (mLassoOn)
       toggleLasso(false);
+    if (mDrawingArrow)
+      toggleArrow(false);
     mStartingBand = 1;
     endContourShift();
     /* Eliminated old code for making initial band */
@@ -4012,6 +4056,8 @@ void ZapFuncs::toggleLasso(bool drawWin)
   } else {
     if (mRubberband || mStartingBand)
       toggleRubberband(false);
+    if (mDrawingArrow)
+      toggleArrow(false);
     endContourShift();
     mLassoObjNum = ivwGetFreeExtraObjectNumber(mVi);
   }
@@ -4021,6 +4067,29 @@ void ZapFuncs::toggleLasso(bool drawWin)
   mQtWindow->setToggleState(ZAP_TOGGLE_LASSO, mLassoOn ? 1 : 0);
 
   // Set it to a modeling cursor
+  setCursor(mMousemode, true);
+  if (drawWin)
+    draw();
+  setCursor(mMousemode, true);
+}
+
+/*
+ * Toggle the arrow: turn off lasso or rubberband if they are starting
+ */
+void ZapFuncs::toggleArrow(bool drawWin)
+{
+  if (!mArrowOn) {
+    if (mStartingBand)
+      toggleRubberband(false);
+    if (mDrawingLasso)
+      toggleLasso(false);
+    endContourShift();
+  }
+  mArrowOn = !mArrowOn;
+  mDrawingArrow = mArrowOn;
+  mQtWindow->setToggleState(ZAP_TOGGLE_ARROW, mArrowOn ? 1 : 0);
+  mArrowXhead = mArrowYhead = mArrowXtail = mArrowYtail = 0.;
+
   setCursor(mMousemode, true);
   if (drawWin)
     draw();
@@ -4790,18 +4859,22 @@ void ZapFuncs::drawContour(int co, int ob)
 
   utilDisableStipple(vi, cont);
 
-  // Draw end markers
-  if ((obj->symflags & IOBJ_SYMF_ENDS) && ob >= 0){
-    if (pointVisable(&(cont->pts[cont->psize-1]))){
-      b3dColorIndex(App->endpoint);
-      b3dDrawCross(xpos(cont->pts[cont->psize-1].x),
-                   ypos(cont->pts[cont->psize-1].y), 
-                   sScaleSizes * obj->symsize/2);
+  // Draw end markers with assigned colors or arrowhead with object color
+  if (obj->symflags & (IOBJ_SYMF_ENDS | IOBJ_SYMF_ARROW)) {
+    if (cont->psize > 1 && pointVisable(&(cont->pts[cont->psize-1]))) {
+      if (obj->symflags & IOBJ_SYMF_ARROW) {
+        b3dDrawArrow(xpos(cont->pts[cont->psize-2].x), ypos(cont->pts[cont->psize-2].y), 
+                     xpos(cont->pts[cont->psize-1].x), ypos(cont->pts[cont->psize-1].y), 
+                     sScaleSizes * obj->symsize, obj->linewidth2, false);
+      } else if (ob >= 0) {
+        b3dColorIndex(App->endpoint);
+        b3dDrawCross(xpos(cont->pts[cont->psize-1].x), ypos(cont->pts[cont->psize-1].y), 
+                     sScaleSizes * obj->symsize/2);
+      }
     }
-    if (pointVisable(cont->pts)){
+    if (ob >= 0 && (obj->symflags & IOBJ_SYMF_ENDS) && pointVisable(cont->pts)) {
       b3dColorIndex(App->bgnpoint);
-      b3dDrawCross(xpos(cont->pts->x),
-                   ypos(cont->pts->y),
+      b3dDrawCross(xpos(cont->pts->x), ypos(cont->pts->y),
                    sScaleSizes * obj->symsize/2);
     }
     imodSetObjectColor(ob);
@@ -5161,8 +5234,9 @@ void ZapFuncs::setCursor(int mode, bool setAnyway)
 
   // Set up a special cursor for the rubber band
   if (mStartingBand || ((mRubberband || mLassoOn) && (sMoveBandLasso || sDragBandLasso))
-      || mShiftingCont) {
-    if (mStartingBand || sMoveBandLasso || mShiftingCont || (mLassoOn && sDragBandLasso))
+      || mShiftingCont || mDrawingArrow) {
+    if (mStartingBand || sMoveBandLasso || mShiftingCont || (mLassoOn && sDragBandLasso)
+        || mDrawingArrow)
       shape = Qt::SizeAllCursor;
     else if ((sDragging[0] && sDragging[2]) || (sDragging[1] && sDragging[3]))
       shape = Qt::SizeFDiagCursor;
