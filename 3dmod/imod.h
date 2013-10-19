@@ -121,6 +121,17 @@ void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel,
 #define IMOD_REASON_NEWMODEL  5 /* Update the plugin for new model loaded */
 /* END_CODE */
 
+/* DOC_CODE Snapshot flags */
+/* Codes for snapshot formats.  TIF and RGB are used exclusively within 3dmod, 
+ * with RGB used for either the user's selected non-TIFF format or the second
+ * non-TIFF format.
+ */
+#define SnapShot_Default 0
+#define SnapShot_RGB     1
+#define SnapShot_TIF     2
+#define SnapShot_PNG     3
+#define SnapShot_JPG     4
+
 
 /**************************** Application Data *******************************/
 
@@ -134,8 +145,9 @@ void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel,
 #define COLOR_BEGIN      6  /* begin point color */
 #define COLOR_POINT      7  /* point color */
 #define COLOR_GHOST      8  /* ghost color, darker version of object. */
-#define COLOR_MIN        9  /* The index of the minimum image value. */
-#define COLOR_MAX       10  /* The index of the maximum image value. */
+#define COLOR_ARROW      9  /* arrow color */
+#define COLOR_MIN       10  /* The index of the minimum image value. */
+#define COLOR_MAX       11  /* The index of the maximum image value. */
 /* END_CODE */
 /* END_SECTION */
 
