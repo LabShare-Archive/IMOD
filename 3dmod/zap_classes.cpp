@@ -49,9 +49,10 @@ static const char *fileList[NUM_TOOLBUTTONS][2] =
     {":/images/insertAfter.png", ":/images/insertBefore.png"},
     {":/images/rubberband.png", ":/images/rubberband2.png"},
     {":/images/lasso.png", ":/images/lassoOn.png"},
+    {":/images/arrowBlack.png", ":/images/arrowRed.png"},
     {":/images/timeUnlock.png", ":/images/timeLock.png"}};
 
-static int skipInPanels[NUM_TOOLBUTTONS] = {0, 0, 0, 1, 1, 1, 0};
+static int skipInPanels[NUM_TOOLBUTTONS] = {0, 0, 0, 1, 1, 1, 1, 0};
 
 static QIcon *icons[NUM_TOOLBUTTONS];
 static int firstTime = 1;
@@ -63,6 +64,7 @@ static const char *toggleTips[] = {
   "Toggle between inserting points after or before current point",
   "Toggle rubberband on or off (resize with first mouse, move with second)",
   "Toggle lasso tool on or off (draw and move with first or second mouse)",
+  "Toggle arrow on or off (draw with first mouse)",
   "Lock window at current time unless time is changed in this window"};
 
 
