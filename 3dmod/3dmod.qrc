@@ -22,7 +22,7 @@
 <file>images/timeUnlock.png</file>
 <file>images/contour.png</file>
 <file>images/fft.png</file>
-<file>images/image.png</file>
+<file>images/fftRed.png</file>
 <file>images/horseshoe.png</file>
 <file>images/horseshoec.png</file>
 <file>images/shiftlockon.png</file>
@@ -33,5 +33,7 @@
 <file>images/lassoOn.png</file>
 <file>images/zscale.png</file>
 <file>images/zscaleOn.png</file>
+<file>images/arrowBlack.png</file>
+<file>images/arrowRed.png</file>
 </qresource>
 </RCC>
