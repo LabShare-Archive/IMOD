@@ -299,6 +299,7 @@ import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
@@ -310,24 +311,20 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   public static final String rcsid = "$Id$";
 
   private final EtomoPanel pnlCoarseAlign = new EtomoPanel();
-
-  private final TiltxcorrPanel tiltxcorrPanel;
-
-  private final PrenewstPanel pnlPrenewst;
-
   private final JPanel pnlFiducialess = new JPanel();
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private final LabeledTextField ltfRotation = new LabeledTextField(
       FieldType.FLOATING_POINT, "Tilt axis rotation:");
+
   private final ActionListener actionListener;
-
   private final MultiLineButton btnMidas;
-
+  private final TiltxcorrPanel tiltxcorrPanel;
+  private final PrenewstPanel pnlPrenewst;
   // Montaging
   private final MultiLineButton btnFixEdgesMidas;
   private final MultiLineButton btnDistortionCorrectedStack;
 
-  private CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
+  private CoarseAlignDialog(final ApplicationManager appMgr, final AxisID axisID) {
     super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
     ConstMetaData metaData = appMgr.getMetaData();
     ProcessResultDisplayFactory displayFactory = appMgr
@@ -383,7 +380,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     updateAdvanced();
   }
 
-  public static CoarseAlignDialog getInstance(ApplicationManager appMgr, AxisID axisID) {
+  public static CoarseAlignDialog getInstance(final ApplicationManager appMgr,
+      final AxisID axisID) {
     CoarseAlignDialog instance = new CoarseAlignDialog(appMgr, axisID);
     instance.addListeners();
     return instance;
@@ -420,7 +418,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   /**
    * Set the parameters for the cross correlation panel
    */
-  public void setCrossCorrelationParams(ConstTiltxcorrParam tiltXcorrParams) {
+  public void setCrossCorrelationParams(final ConstTiltxcorrParam tiltXcorrParams) {
     tiltxcorrPanel.setParameters(tiltXcorrParams);
   }
 
@@ -436,7 +434,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
    * Set the prenewst params of the prenewst panel
    * @param prenewstParam
    */
-  public void setPrenewstParams(ConstNewstParam prenewstParam) {
+  public void setPrenewstParams(final ConstNewstParam prenewstParam) {
     pnlPrenewst.setParameters(prenewstParam);
   }
 
@@ -444,27 +442,29 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
    * Set the blendmont params of the prenewst panel
    * @param prenewstParam
    */
-  public void setParams(BlendmontParam blendmontParam) {
+  public void setParams(final BlendmontParam blendmontParam) {
     pnlPrenewst.setParameters(blendmontParam);
   }
 
-  public void setParameters(ReconScreenState screenState) {
+  public void setParameters(final ReconScreenState screenState) {
     tiltxcorrPanel.setParameters(screenState);
     pnlPrenewst.setParameters(screenState);
-    // btnMidas.setButtonState(screenState.getButtonState(btnMidas
-    // .getButtonStateKey()));
-    // btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
-    // .getButtonStateKey()));
-    // btnDistortionCorrectedStack.setButtonState(screenState
-    // .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
+  }
+  
+  public void setParameters(final ConstMetaData metaData) {
+    pnlPrenewst.setParameters(metaData);
   }
 
-  public void getParameters(BaseScreenState screenState) {
+  public void getParameters(final BaseScreenState screenState) {
     tiltxcorrPanel.getParameters(screenState);
     pnlPrenewst.getParameters(screenState);
   }
 
-  public void setFiducialessAlignment(boolean state) {
+  public void getParameters(final MetaData metaData) {
+    pnlPrenewst.getParameters(metaData);
+  }
+
+  public void setFiducialessAlignment(final boolean state) {
     cbFiducialess.setSelected(state);
   }
 
@@ -472,7 +472,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     return cbFiducialess.isSelected();
   }
 
-  public void setImageRotation(String tiltAxisAngle) {
+  public void setImageRotation(final String tiltAxisAngle) {
     ltfRotation.setText(tiltAxisAngle);
   }
 
@@ -490,7 +490,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
     String alignManpageLabel;
     String alignManpage;
     String alignLogfileLabel;
@@ -542,7 +542,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
         .setToolTipText("Use Midas to adjust the alignment of the montage frames.");
   }
 
-  public void action(Run3dmodButton button, Run3dmodMenuOptions run3dmodMenuOptions) {
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
@@ -550,7 +551,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
    * Action function for process buttons
    * @param event
    */
-  void buttonAction(String command, Run3dmodMenuOptions menuOptions) {
+  void buttonAction(final String command, final Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID, btnMidas);
     }
@@ -573,14 +574,14 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     setDisplayed(false);
   }
 
-  class CoarseAlignActionListener implements ActionListener {
-    CoarseAlignDialog adaptee;
+  private static final class CoarseAlignActionListener implements ActionListener {
+    private final CoarseAlignDialog adaptee;
 
-    CoarseAlignActionListener(CoarseAlignDialog adaptee) {
+    private CoarseAlignActionListener(final CoarseAlignDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
