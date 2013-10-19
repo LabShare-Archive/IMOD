@@ -370,6 +370,7 @@ int DLL_EX_IM getTopSlicerAngles(float angles[3], Ipoint *center, int &time);
  * Returns the lengths of the scale bars in the top windows of each of the different 
  * types, Zap, Slicer, XYZ, multiZ, or model view.  A -1 is returned
  * if there are no scale bars being displayed or if the particular window is not open.
+ * Call imodUnits with the current model to obtain a units string.
  */
 void DLL_EX_IM scaleBarAllLengths(float &zapLen, float &slicerLen, float &xyzLen,
                                   float &multiZlen, float &modvLen);
