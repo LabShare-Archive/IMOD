@@ -17,6 +17,7 @@
 #include <qfiledialog.h>
 #include "b3dgfx.h"
 #include <qimage.h>
+#include <qpainter.h>
 #include <qlibrary.h>
 #include <qglcolormap.h>
 #include "imod.h"
@@ -420,7 +421,7 @@ void b3dDrawArrow(int xTail, int yTail, int xHead, int yHead, int tipLength,
 {
   GLfloat curWidth;
   bool smoothEnabled = glIsEnabled(GL_LINE_SMOOTH) == GL_TRUE;
-  double angle = atan2(yTail - yHead, xTail - xHead);
+  double angle = atan2((double)yTail - yHead, (double)xTail - xHead);
   int xtip = B3DNINT(tipLength * cos(angle - 45. * RADIANS_PER_DEGREE));
   int ytip = B3DNINT(tipLength * sin(angle - 45. * RADIANS_PER_DEGREE));
   glGetFloatv(GL_LINE_WIDTH, &curWidth);
