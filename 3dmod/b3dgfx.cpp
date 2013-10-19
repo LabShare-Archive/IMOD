@@ -43,6 +43,9 @@ static void b3dImageSet(B3dCIImage *image, unsigned short **ri,
 static void getCubicFactors(double cx, int xsize, int &pxi, int &xi, int &nxi,
                             int &nxi2, float &fx1, float &fx2, float &fx3,
                             float &fx4);
+static int snapshotCommon(QString fname, FILE **fout, bool openFile, int rgbmode,
+                          int *limits, int dataPassed, unsigned char **pixelsOut,
+                          int &rpWidth, int &rpHeight);
 
 // Structure to hold factors for cubic interpolation
 typedef struct cubic_factors
@@ -58,6 +61,18 @@ static float   sCurXZoom;
 static bool    sStippleNextLine = false;
 static float   sZoomDownCrit = 0.8f;
 static int     sExtFlags = 0;
+static float   sDpiScaling = 1.;
+
+// Snapshot statics
+
+// DNM 12/28/03: just define default as TIF (not really used)
+static int sSnapShotFormat = SnapShot_TIF;
+static QString sSnapDirectory = "";
+static QStringList sSnapCaptions;
+static bool sWrapLastCaption = false;
+static bool  sMovieSnapping = false;
+
+// OpenGL statics
 
 typedef void (*MYRESTARTINDEXPROC) (GLuint index);
 
@@ -227,15 +242,11 @@ void b3dLineStyle(int style)
     glLineStipple(factor, 0x3333);
     break;
   }
-
-  return;
 }
 
 void b3dLineWidth(int width)
 {
   glLineWidth(width);
-
-  return;
 }
 
 /***************************************************************/
@@ -248,8 +259,6 @@ void b3dDrawPoint(int x, int y)
   glBegin(GL_POINTS);
   glVertex2i(x,y);
   glEnd();
-
-  return;
 }
 
 void b3dDrawCross(int x, int y, int size)
@@ -262,8 +271,6 @@ void b3dDrawCross(int x, int y, int size)
   glVertex2i(x + size, y - size);
   glVertex2i(x - size, y + size);
   glEnd();
-
-  return;
 }
 
 
@@ -277,14 +284,12 @@ void b3dDrawPlus(int x, int y, int size)
   glVertex2i(x, y - size);
   glVertex2i(x, y + size);
   glEnd();
-  return;
 }
 
 void b3dDrawStar(int x, int y, int size)
 { 
   b3dDrawPlus(x,y,size);
   b3dDrawCross(x,y,size);
-  return;
 }
 
 void b3dDrawTriangle(int x, int y, int size)
@@ -294,7 +299,6 @@ void b3dDrawTriangle(int x, int y, int size)
   glVertex2i(x + size, y - (size/2));
   glVertex2i(x - size, y - (size/2));
   glEnd();
-  return;
 }
 
 void b3dDrawFilledTriangle(int x, int y, int size)
@@ -305,7 +309,6 @@ void b3dDrawFilledTriangle(int x, int y, int size)
   glVertex2i(x - size, y - (size/2));
   glVertex2i(x, y + size);
   glEnd();
-  return;
 }
 
 void b3dDrawCircle(int x, int y, int radius)
@@ -338,8 +341,6 @@ void b3dDrawCircle(int x, int y, int radius)
 #ifdef GLU_QUADRIC_HACK
   gluDeleteQuadric(qobj);
 #endif
-
-  return;
 }
 
 
@@ -364,7 +365,6 @@ void b3dDrawFilledCircle(int x, int y, int radius)
 #ifdef GLU_QUADRIC_HACK
   gluDeleteQuadric(qobj);
 #endif
-  return;
 }
 
 void b3dDrawLine(int x1, int y1, int x2, int y2)
@@ -383,7 +383,6 @@ void b3dDrawLine(int x1, int y1, int x2, int y2)
 void b3dDrawSquare(int x, int y, int size)
 {
   b3dDrawRectangle(x-(size/2), y-(size/2), size, size);
-  return;
 }
 
 void b3dDrawRectangle(int x, int y, int width, int height)
@@ -395,13 +394,13 @@ void b3dDrawRectangle(int x, int y, int width, int height)
   glVertex2i(x,y+height);
   glVertex2i(x,y);
   glEnd();
-  return;
 }
+
 void b3dDrawFilledSquare(int x, int y, int size)
 {
   b3dDrawFilledRectangle(x-(size/2), y-(size/2), size, size);
-  return;
 }
+
 void b3dDrawFilledRectangle(int x, int y, int width, int height)
 {
   glBegin(GL_POLYGON);
@@ -410,26 +409,50 @@ void b3dDrawFilledRectangle(int x, int y, int width, int height)
   glVertex2i(x+width,y+height);
   glVertex2i(x,y+height);
   glEnd();
-  return;
+}
+
+/*
+ * Draws an arrow with the length of the head lines set to
+ * tipLength (default 16) and line width thickness (default 4).  Line width is restored.
+ */
+void b3dDrawArrow(int xTail, int yTail, int xHead, int yHead, int tipLength, 
+                  int thickness, bool antiAlias)
+{
+  GLfloat curWidth;
+  bool smoothEnabled = glIsEnabled(GL_LINE_SMOOTH) == GL_TRUE;
+  double angle = atan2(yTail - yHead, xTail - xHead);
+  int xtip = B3DNINT(tipLength * cos(angle - 45. * RADIANS_PER_DEGREE));
+  int ytip = B3DNINT(tipLength * sin(angle - 45. * RADIANS_PER_DEGREE));
+  glGetFloatv(GL_LINE_WIDTH, &curWidth);
+  if (!smoothEnabled && antiAlias)
+    glEnable(GL_LINE_SMOOTH);
+  glLineWidth((GLfloat)thickness);
+  glBegin(GL_LINE_STRIP);
+  glVertex2i(xTail, yTail);
+  glVertex2i(xHead, yHead);
+  glVertex2i(xHead + xtip, yHead + ytip);
+  glVertex2i(xHead, yHead);
+  glVertex2i(xHead - ytip, yHead + xtip);
+  glEnd();
+  glLineWidth(curWidth);
+  if (!smoothEnabled && antiAlias)
+    glDisable(GL_LINE_SMOOTH);
 }
 
 void b3dBeginLine(void)
 {
   glBegin(GL_LINE_STRIP);
-  return;
 }
 
 void b3dEndLine(void)
 {
   glEnd();
-  return;
 }
 
 
 void b3dVertex2i(int x, int y)
 {
   glVertex2i(x, y);
-  return;
 }
 
 void b3dDrawBoxout(int llx, int lly, int urx, int ury)
@@ -450,8 +473,6 @@ void b3dDrawBoxout(int llx, int lly, int urx, int ury)
     b3dDrawFilledRectangle(urx, lly, sCurWidth, ury - lly);
 
   glIndexi(cur_color);
-
-  return;
 }
 
 
@@ -1643,23 +1664,16 @@ double b3dStepPixelZoom(double czoom, int step)
 /* DNM 12/15/02 : eliminated unused iput functions, identical to ones in
    mv_gfx.cpp */
 
-/* DNM 12/28/03: just define default as TIF (not really used) */
-static int SnapShotFormat = SnapShot_TIF;
-
-static QString snapDirectory = "";
-
 // So that movie snapshots can avoid checking file number from 0
-static bool  movieSnapping = false;
 void b3dSetMovieSnapping(bool snapping)
 {
-  movieSnapping = snapping;
+  sMovieSnapping = snapping;
 }
 
 // So that montage snapshots can multiply the resolution value if desired
-static float DpiScaling = 1.;
 void b3dSetDpiScaling(float factor)
 {
-  DpiScaling = ImodPrefs->scaleSnapDPI() ? factor : 1.;
+  sDpiScaling = ImodPrefs->scaleSnapDPI() ? factor : 1.;
 }
 
 /*
@@ -1668,9 +1682,9 @@ void b3dSetDpiScaling(float factor)
 void b3dSetSnapDirectory(void)
 {
   QString dir = QDir::currentPath();
-  if (!snapDirectory.isEmpty())
-    dir = snapDirectory;
-  snapDirectory = QFileDialog::getExistingDirectory
+  if (!sSnapDirectory.isEmpty())
+    dir = sSnapDirectory;
+  sSnapDirectory = QFileDialog::getExistingDirectory
     (NULL, "Directory to Save Snapshots to", dir);
 }
 
@@ -1686,7 +1700,7 @@ QString b3dGetSnapshotName(const char *name, int format_type, int digits,
 {
   char format[14];
   QString snapFormat, fext, fname;
-  QString dir = snapDirectory;
+  QString dir = sSnapDirectory;
   char sep = QDir::separator().toLatin1();
   if (!dir.isEmpty() && (dir.lastIndexOf(sep) != dir.length() - 1))
     dir += sep;
@@ -1757,7 +1771,7 @@ int b3dAutoSnapshot(const char *name, int format_type, int *limits,
   int retval;
 
   // Reset the file number to 0 unless doing movie snapshots
-  if (!movieSnapping)
+  if (!sMovieSnapping)
     fileno = 0;
 
   fname = b3dGetSnapshotName(name, format_type, 3, fileno);
@@ -1782,6 +1796,14 @@ int b3dAutoSnapshot(const char *name, int format_type, int *limits,
   return retval;
 }
 
+int b3dSnapshot(QString fname)
+{
+  if (sSnapShotFormat == SnapShot_RGB)
+    return(b3dSnapshot_NonTIF(fname, App->rgba, NULL, NULL));
+  else
+    return(b3dSnapshot_TIF(fname, App->rgba, NULL, NULL, false));
+}
+
 /* Take a snapshot of the current window with prefix in name and type selected
    by shift and ctrl key states.  Checking for RGB conversion to gray scale
    is defaulted to TRUE. */
@@ -1798,6 +1820,59 @@ int b3dKeySnapshot(const char *name, int shifted, int ctrl, int *limits,
   } else
     retval = b3dAutoSnapshot(name, SnapShot_TIF, limits, checkConvert);
   return retval;
+}
+
+/* Takes a snapshot to a file with name supplied in fname, or if fname is empty, it
+ * uses the prefix to compose a name and returns that name in fname.  Limits are applied
+ * if non-null; there is no default for checking conversion */
+int b3dNamedSnapshot(QString &fname, const char *prefix, int format, int *limits,
+                     bool checkConvert)
+{
+  QString sname;
+  static int fileno = 0;
+  int retval;
+  bool isModv = strcmp(prefix, "modv") == 0;
+
+  if (fname.isEmpty())
+    fname = b3dGetSnapshotName(prefix, format, isModv ? 4 : 3, fileno);
+  sname = b3dShortSnapName(fname);
+  
+  if (format == SnapShot_RGB)
+    retval = b3dSnapshot_NonTIF(fname, App->rgba, limits, NULL);
+  else if (format == SnapShot_TIF)
+    retval = b3dSnapshot_TIF(fname, App->rgba, limits, NULL, checkConvert);
+  else
+    return 1;
+  if (retval) {
+    if (isModv)
+      imodPrintStderr("Error saving snapshot!\n");
+    else
+      wprint("\aError saving snapshot!\n");
+  } else {
+    if (isModv)
+      imodPrintStderr("Saved image to %s\n", LATIN1(sname));
+    else
+      wprint("Saved image to %s\n", LATIN1(sname));
+  }
+  return retval;
+}
+
+/* Sets the Non-tiff format to a specified type, PNG or JPG.  Returns 0 if it is already
+ * the snap format, 1 if it is the second format and needs to be reset when done, or -1
+ * if it does not match the first or second format */
+int b3dSetNonTiffSnapFormat(int format)
+{
+  QString snap1 = ImodPrefs->snapFormat();
+  QString snap2 = ImodPrefs->snapFormat2();
+  if ((format == SnapShot_PNG && snap1 == "PNG") || 
+      (format == SnapShot_JPG && (snap1 == "JPEG" || snap1 == "JPG")))
+    return 0;
+  if ((format == SnapShot_PNG && snap2 == "PNG") || 
+      (format == SnapShot_JPG && (snap2 == "JPEG" || snap2 == "JPG"))) {
+    ImodPrefs->set2ndSnapFormat();
+    return 1;
+  }
+  return -1;
 }
 
 /* DNM 12/24/00 changed long length, long offset to types below, to prevent
@@ -1841,59 +1916,39 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
   unsigned char *pixels = NULL;
   b3dInt32 xysize;
 
-  int mapsize;
-  b3dUInt32 *fcmapr, *fcmapg, *fcmapb;
-  b3dUInt32 *cindex, ci;
   b3dUInt32 *rgbout;
   unsigned char *pixin;
-  int j;
+  int j, loop;
   bool imret = true;
   unsigned char *pixout, tmp;
   bool transBkgd = fname.startsWith("modv") && Imodv->transBkgd;
-  int rpx = 0; 
-  int rpy = 0;
-  int rpWidth = sCurWidth;
-  int rpHeight = sCurHeight;
+  int rpWidth;
+  int rpHeight;
   QString format = ImodPrefs->snapFormat();
-  int resolution = B3DNINT(DpiScaling * ImodPrefs->snapDPI() / 0.0254);
+  int resolution = B3DNINT(sDpiScaling * ImodPrefs->snapDPI() / 0.0254);
 
-  errno = 0;
+  if (snapshotCommon(fname, &fout, format == "RGB", rgbmode, limits, data ? 1 : 0,
+                     &pixels, rpWidth, rpHeight))
+    return 1;
 
-  // Open file if RGB mode
-  if (format == "RGB") {
-    fout = fopen(LATIN1(QDir::convertSeparators(fname)), "wb");
-    if (!fout) {
-      QString qerr = "Snapshot: error opening file\n";
-      if (errno)
-        qerr +=  QString("System error: ") + QString(strerror(errno));
-      imodPrintStderr(LATIN1(qerr));
-      return 1;
+  pixout = (unsigned char *)pixels;
+  xysize = rpWidth * rpHeight;
+
+  if (data) {
+
+    // For passed-in line pointers, repack RGB or RGBA
+    for (j = 0; j < rpHeight; j++) {
+      for (i = 0; i < rpWidth; i++) {
+        *pixout++ = data[j][rgbmode*i];
+        *pixout++ = data[j][rgbmode*i+1];
+        *pixout++ = data[j][rgbmode*i+2];
+        *pixout++ = 0;
+      }
     }
   }
 
-  // Apply limits if any, get pixel array
-  if (limits) {
-    rpx = limits[0];
-    rpy = limits[1];
-    rpWidth = limits[2];
-    rpHeight = limits[3];
-  }
-  pixels = (unsigned char *)malloc(rpWidth * (rpHeight + 1) * 4);
-  if (!pixels){
-    if (fout)
-      fclose(fout);
-    return 1;
-  }
-  glPixelZoom(1.0,1.0);
-  xysize = rpWidth * rpHeight;
-  pixout = (unsigned char *)pixels;
-  glFlush();
-
-  /* DNM: add rgb mode support */
-  if (rgbmode && !data) {
-    glReadPixels(rpx, rpy, rpWidth, rpHeight,
-                 GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    glFlush();
+  // Legacy RGB, call routine
+  if (fout) {
 
     /* have to swap bytes and fill in 0 for A, because RGB routine wants
        ABGR.  Or put in the alpha value for transparent background. */
@@ -1907,67 +1962,6 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
       pixout[1] = tmp;
       pixout+=3;
     }
-
-  } else if (!data) {
-
-    // Color index mode: get tables and read image as indices
-    mapsize = 1 << App->depth;
-    fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    fcmapb = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapr || !fcmapg || !fcmapb) {
-      free(pixels);
-      if (fcmapr)
-        free(fcmapr);
-      if (fcmapg)
-        free(fcmapg);
-      if (fcmapb)
-        free(fcmapb);
-      if (fout)
-        fclose(fout);
-      return 1;
-    }
-    
-    for(i = 0; i < mapsize; i++){
-      QColor qcolor = App->qColormap->entryColor(i);
-      fcmapr[i] = qcolor.red();
-      fcmapg[i] = qcolor.green();
-      fcmapb[i] = qcolor.blue();
-    }
-
-    glReadPixels(rpx, rpy, rpWidth, rpHeight,
-                 GL_COLOR_INDEX, GL_UNSIGNED_INT, pixels);
-    glFlush();
-    cindex = (b3dUInt32 *)pixels;
-    for (i = 0; i < xysize; i++, cindex++){
-      ci = *cindex;
-      if (ci > mapsize) ci = 0;
-      /* DNM: switch from using endian-dependent shifts to packing
-         the array as ABGR */
-      *pixout++ = 0;
-      *pixout++ = fcmapb[ci];
-      *pixout++ = fcmapg[ci];
-      *pixout++ = fcmapr[ci];
-    }
-    free(fcmapr);
-    free(fcmapg);
-    free(fcmapb);
-
-  } else {
-
-    // For passed-in line pointers, repack RGB or RGBA as 0BGR
-    for (j = 0; j < rpHeight; j++) {
-      for (i = 0; i < rpWidth; i++) {
-        *pixout++ = 0;
-        *pixout++ = data[j][rgbmode*i+2];
-        *pixout++ = data[j][rgbmode*i+1];
-        *pixout++ = data[j][rgbmode*i];
-      }
-    }
-  }
-
-  // Ordinary RGB, call routine
-  if (fout) {
     bdRGBWrite(fout, (int)rpWidth, (int)rpHeight, pixels);
     fclose(fout);
   } else {
@@ -1977,24 +1971,22 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
       rgbout = (b3dUInt32 *)pixels + (rpHeight - 1 - j) * rpWidth;
       pixin = pixels + 4 * j * rpWidth;
       memcpy(pixels + 4 * xysize, rgbout, 4 * rpWidth);
-      for (i = 0; i < rpWidth; i++) {
-        *rgbout++ = qRgba(pixin[3], pixin[2], pixin[1], pixin[0]);
-        pixin += 4;
-      }
-      pixin = pixels + 4 * xysize;
-      rgbout = (b3dUInt32 *)pixels + j * rpWidth;
-      if (transBkgd) {
-        for (i = 0; i < rpWidth; i++) {
-          *rgbout++ = qRgba(pixin[3], pixin[2], pixin[1], pixin[0]);
-          pixin += 4;
+      for (loop = 0; loop < 2; loop++) {
+        if (transBkgd) {
+          for (i = 0; i < rpWidth; i++) {
+            *rgbout++ = qRgba(pixin[0], pixin[1], pixin[2], pixin[3]);
+            pixin += 4;
+          }
+        } else {
+          for (i = 0; i < rpWidth; i++) {
+            *rgbout++ = qRgb(pixin[0], pixin[1], pixin[2]);
+            pixin += 4;
+          }
         }
-      } else {
-        for (i = 0; i < rpWidth; i++) {
-          *rgbout++ = qRgb(pixin[3], pixin[2], pixin[1]);
-          pixin += 4;
-        }
+        pixin = pixels + 4 * xysize;
+        rgbout = (b3dUInt32 *)pixels + j * rpWidth;
       }
-    }
+    } 
 
     // Save the image with the given format and quality (JPEG only)
     QImage *qim = new QImage(pixels, rpWidth, rpHeight, 
@@ -2029,46 +2021,25 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   int step, samples, resolution, extra;
   unsigned int pixel;
   unsigned int xysize, ifd;
-  unsigned int colortable, bitsPerSample, resOffset;
-  unsigned char bpix,rpix,gpix;
+  unsigned int bitsPerSample, resOffset;
+  unsigned char bpix;
   unsigned short tenum;
   unsigned short color[3];
 
-  /* App may not be defined if rgbmode is coming from standalone Imodv,
-     so set up a depth variable that works in later tests regardless */
-  int depth = (!data && !rgbmode) ? App->depth : 8;
+  // 10/16/13: Eliminated depth variable, it was basically wrong
   bool convertRGB = false;
 
-  int mapsize;
-  unsigned int *fcmapr, *fcmapg, *fcmapb;
-  int ci;
-  int rpx = 0; 
-  int rpy = 0;
   int rpWidth = sCurWidth;
   int rpHeight = sCurHeight;
 
-  errno = 0;
-  fout = fopen(LATIN1(QDir::convertSeparators(fname)), "wb");
-  if (!fout){
-
-    // DNM 5/31/04: output to standard error in case there are many errors
-    QString qerr = "Snapshot: error opening file\n";
-    if (errno)
-      qerr +=  QString("System error: ") + QString(strerror(errno));
-    imodPrintStderr(LATIN1(qerr));
+  if (snapshotCommon(fname, &fout, true, rgbmode, limits, data ? -1 : 0,
+                     &pixels, rpWidth, rpHeight))
     return 1;
-  }
 
-  if (checkConvert && rgbmode)
+  if (checkConvert)
     convertRGB = App->convertSnap;
-  resolution = B3DNINT(1000. * DpiScaling * ImodPrefs->snapDPI());
+  resolution = B3DNINT(1000. * sDpiScaling * ImodPrefs->snapDPI());
 
-  if (limits) {
-    rpx = limits[0];
-    rpy = limits[1];
-    rpWidth = limits[2];
-    rpHeight = limits[3];
-  }
   xysize = rpWidth * rpHeight;
   xsize = rpWidth;
   ysize = rpHeight;
@@ -2076,12 +2047,14 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   ifd = xysize;
   if (ifd < ((double)xsize * ysize) - 20.) {
     imodPrintStderr("The image is too large to save into a TIFF file");
+    B3DFREE(pixels);
     return 1;
   }
-  if ((depth > 8 || rgbmode) && !convertRGB) {
+  if (!convertRGB) {
     ifd *= 3;
     if (ifd < ((double)xsize * ysize) * 3 - 20.) {
       imodPrintStderr("The color image is too large to save into a TIFF file");
+      B3DFREE(pixels);
       return 1;
     }
   }
@@ -2090,43 +2063,6 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   i = ifd + 12;
   ifd = 4 * ((ifd + 3) / 4 + 3);
   extra = ifd - i;
-
-  if (!data) {
-    pixels = (unsigned char *)malloc(rpWidth * rpHeight * 4);
-    lpixels = (int *)pixels;
-    if (!pixels){
-      fclose(fout);
-      return 1;
-    }
-  }
-  glPixelZoom(1.0,1.0);
-  glFlush();
-
-  if (!data && rgbmode) {
-    glReadPixels(rpx, rpy, rpWidth, rpHeight,
-                 GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-    glFlush();
-
-  } else if (!data) {
-    mapsize = 1 << depth;
-    fcmapr = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapr) return 1;
-    fcmapg = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapg) return 1;
-    fcmapb = (unsigned int *)malloc((mapsize+1) * sizeof(unsigned int));
-    if (!fcmapb) return 1;
-
-    for(i = 0; i < mapsize; i++){
-      QColor qcolor = App->qColormap->entryColor(i);
-      fcmapr[i] = qcolor.red();
-      fcmapg[i] = qcolor.green();
-      fcmapb[i] = qcolor.blue();
-    }
-          
-    glReadPixels(rpx, rpy, rpWidth, rpHeight,
-                 GL_COLOR_INDEX, GL_UNSIGNED_INT, pixels);
-    glFlush();
-  }
 
   /* DNM: change __vms to LITTLE_ENDIAN to work on PC */
 #ifdef B3D_LITTLE_ENDIAN
@@ -2137,35 +2073,24 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
   if (!fwrite(&pixel, 4, 1, fout)){
     fclose(fout);
-    if (!rgbmode) {
-      free(fcmapr);
-      free(fcmapg);
-      free(fcmapb);
-    }
-    if (!data)
-      free(pixels);
+    B3DFREE(pixels);
     return 1;
   }
 
-
+      
   if (!fwrite(&ifd, 4, 1, fout)){
     fclose(fout);
-    if (!rgbmode) {
-      free(fcmapr);
-      free(fcmapg);
-      free(fcmapb);
-    }
-    if (!data) 
-      free(pixels);
+    B3DFREE(pixels);
     return 1;
   }
 
   if (data) {
-    /* Use the line pointers to write each line */
+
+    /* Use the line pointers to write each line from data array */
     step = rgbmode == 3 ? 3 : 4;
-    for(j = ysize - 1; j >= 0; j--)
+    for (j = ysize - 1; j >= 0; j--) {
       if (convertRGB) {
-        for(i = 0; i < xsize; i++) {
+        for (i = 0; i < xsize; i++) {
           bpix = (int)(0.3 * data[j][step*i] + 0.59 * data[j][step*i+1] + 
                        0.11 * data[j][step*i + 2] + 0.5);
           fwrite(&bpix, 1, 1, fout);
@@ -2173,48 +2098,29 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
       } else if (rgbmode == 3) {
         fwrite(data[j], 1, 3 * xsize, fout);
       } else {
-        for(i = 0; i < xsize; i++)
+        for (i = 0; i < xsize; i++)
           fwrite(&data[j][4*i], 1, 3, fout);
       }
+    }
+  } else {
 
-  } else if (rgbmode) {
-    for(j = ysize - 1; j >= 0; j--)
+    // Write data from the snapshot
+    lpixels = (int *)pixels;
+    for (j = ysize - 1; j >= 0; j--) {
       if (convertRGB) {
-        for(i = 0; i < xsize; i++) {
+        for (i = 0; i < xsize; i++) {
           bpix = (int)(0.3 * pixels[4*(i+(j*xsize))] + 
                        0.59 * pixels[4*(i+(j*xsize)) + 1] + 
                        0.11 * pixels[4*(i+(j*xsize)) + 2] + 0.5);
           fwrite(&bpix, 1, 1, fout);
         }
       } else {
-        for(i = 0; i < xsize; i++)
+        for (i = 0; i < xsize; i++)
           fwrite(&lpixels[i + (j * xsize)], 1, 3, fout);
       }
-
-  } else if (depth > 8){
-    for(j = ysize - 1; j >= 0; j--)
-      for(i = 0; i < xsize; i++){
-        ci = lpixels[i + (j * xsize)];
-        rpix = (unsigned char)fcmapr[ci];
-        gpix = (unsigned char)fcmapg[ci];
-        bpix = (unsigned char)fcmapb[ci];
-        if (convertRGB) {
-          bpix = (int)(0.3 * rpix + 0.59 * gpix + 0.11 * bpix);
-        } else {
-          fwrite(&rpix, 1, 1, fout);
-          fwrite(&gpix, 1, 1, fout);
-        }
-        fwrite(&bpix, 1, 1, fout);
-      }
-         
-  }else{
-    for(j = ysize - 1; j >= 0; j--)
-      for(i = 0; i < xsize; i++){
-        ci = lpixels[i + (j * xsize)];
-        bpix = ci;
-        fwrite(&bpix, 1, 1, fout);
-      }
-  }
+    }
+  } 
+  
   pixel = 0;
   fwrite(&pixel, 4, 1, fout);
 
@@ -2226,92 +2132,50 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     fwrite(&pixel, extra, 1, fout);
   //imodPrintStderr("Tell %d  ifd %u\n", ftell(fout), ifd);
   //fseek(fout, (int)ifd, SEEK_SET);
-  if (depth > 8 || rgbmode){
-    tenum = 11;
-    if (resolution > 0)
-      tenum += 3;
-    resOffset = ifd + 2 + (tenum * 12) + 4;   // Was + 7 for unknown reason
-    samples = 1;
-    bitsPerSample = 8;
-    if (!convertRGB) {
-      samples = 3;
-      bitsPerSample = resOffset;
-      resOffset += 6;
-    }
-    fwrite(&tenum, 2, 1, fout);
-    puttiffentry(256, 3, 1, xsize, fout);
-    puttiffentry(257, 3, 1, ysize, fout);
-    puttiffentry(258, 3, samples, bitsPerSample, fout);
-    puttiffentry(259, 3, 1, 1, fout);
-    puttiffentry(262, 3, 1, convertRGB ? 1 : 2, fout);
-    puttiffentry(273, 4, 1, 8, fout);
-    puttiffentry(274, 3, 1, 1, fout);
-    puttiffentry(277, 3, 1, samples, fout);
-    puttiffentry(278, 4, 1, ysize, fout);
-    puttiffentry(279, 4, 1, xysize * samples, fout);
-    if (resolution > 0) {
-      puttiffentry(282, 5, 1, resOffset, fout);
-      puttiffentry(283, 5, 1, resOffset + 8, fout);
-    }
-    puttiffentry(284, 3, 1, 1, fout);  /* plane config */
-    if (resolution > 0)
-      puttiffentry(296, 3, 1, 2, fout);   /* Resolution units inches */
-    ifd = 0;
-    fwrite(&ifd, 4, 1, fout);
 
-    if (!convertRGB) {
-      //imodPrintStderr("Tell %d  bits %u\n", ftell(fout), bitsPerSample);
-      //fseek(fout, (int)bitsPerSample, SEEK_SET);
-      color[0] = 8;
-      fwrite(color, 2, 1, fout);
-      fwrite(color, 2, 1, fout);
-      fwrite(color, 2, 1, fout);
-    }
-  }else{
-    tenum = 12;
-    if (resolution > 0)
-      tenum += 3;
-    colortable = ifd + 2 + (tenum * 12) + 4;   // Again, was 7
-    resOffset = colortable + 768;
-    fwrite(&tenum, 2, 1, fout);
-         
-    puttiffentry(256, 3, 1, xsize, fout);
-    puttiffentry(257, 3, 1, ysize, fout);
-    puttiffentry(258, 3, 1, 8, fout);  /* pixel size  1x8  */
-    puttiffentry(259, 3, 1, 1, fout);  /* compression , none*/
-         
-    puttiffentry(262, 3, 1, 3, fout);  /* cmap */
-    puttiffentry(273, 4, 1, 8, fout);  /* image data start */
-    puttiffentry(274, 3, 1, 1, fout);  
-    puttiffentry(277, 3, 1, 1, fout);  /* samples / pixel */
-    puttiffentry(278, 4, 1, ysize, fout); 
-    puttiffentry(279, 4, 1, xysize, fout);
-    if (resolution > 0) {
-      puttiffentry(282, 5, 1, resOffset, fout);
-      puttiffentry(283, 5, 1, resOffset + 8, fout);
-    }
-    puttiffentry(284, 3, 1, 1, fout);  /* plane config */
-    if (resolution > 0.)
-      puttiffentry(296, 3, 1, 2, fout);   /* Resolution units inches */
-         
-    puttiffentry(320, 3, 768, colortable, fout);
-    ifd = 0;
-    fwrite(&ifd, 4, 1, fout);
-         
-    //fseek(fout, (int)colortable, SEEK_SET);
-    for(i = 0; i < 256; i++){
-      color[0] = fcmapr[i]*256;
-      fwrite(color, 2, 1, fout);
-    }
-    for(i = 0; i < 256; i++){
-      color[0] = fcmapg[i]*256;
-      fwrite(color, 2, 1, fout);
-    }
-    for(i = 0; i < 256; i++){
-      color[0] = fcmapb[i]*256;
-      fwrite(color, 2, 1, fout);
-    }
+  tenum = 11;
+  if (resolution > 0)
+    tenum += 3;
+  resOffset = ifd + 2 + (tenum * 12) + 4;   // Was + 7 for unknown reason
+  samples = 1;
+  bitsPerSample = 8;
+  if (!convertRGB) {
+    samples = 3;
+    bitsPerSample = resOffset;
+    resOffset += 6;
   }
+  fwrite(&tenum, 2, 1, fout);
+  puttiffentry(256, 3, 1, xsize, fout);
+  puttiffentry(257, 3, 1, ysize, fout);
+  puttiffentry(258, 3, samples, bitsPerSample, fout);
+  puttiffentry(259, 3, 1, 1, fout);
+  puttiffentry(262, 3, 1, convertRGB ? 1 : 2, fout);
+  puttiffentry(273, 4, 1, 8, fout);
+  puttiffentry(274, 3, 1, 1, fout);
+  puttiffentry(277, 3, 1, samples, fout);
+  puttiffentry(278, 4, 1, ysize, fout);
+  puttiffentry(279, 4, 1, xysize * samples, fout);
+  if (resolution > 0) {
+    puttiffentry(282, 5, 1, resOffset, fout);
+    puttiffentry(283, 5, 1, resOffset + 8, fout);
+  }
+  puttiffentry(284, 3, 1, 1, fout);  /* plane config */
+  if (resolution > 0)
+    puttiffentry(296, 3, 1, 2, fout);   /* Resolution units inches */
+  ifd = 0;
+  fwrite(&ifd, 4, 1, fout);
+
+  if (!convertRGB) {
+    //imodPrintStderr("Tell %d  bits %u\n", ftell(fout), bitsPerSample);
+    //fseek(fout, (int)bitsPerSample, SEEK_SET);
+    color[0] = 8;
+    fwrite(color, 2, 1, fout);
+    fwrite(color, 2, 1, fout);
+    fwrite(color, 2, 1, fout);
+  }
+
+  /// 10/16/13: Got rid of code for writing color map and color indexed file
+      
   if (resolution > 0) {
     //imodPrintStderr("Tell %d  res %u\n", ftell(fout), resOffset);
     //fseek(fout, (int)resOffset, SEEK_SET);
@@ -2322,23 +2186,222 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     fwrite(&ifd, 4, 1, fout);
   }
   fclose(fout);
-  if (!rgbmode) {
+  B3DFREE(pixels);
+  return 0;
+}
+
+/*
+ * Common function for opening a file, allocating an array, and snapshotting the current
+ * image.  If openFile is true, provide the filename in fname and the file pointer will 
+ * be returned in fout.  If limits is non-null, it will be used to set the limits of a
+ * subarea.  If dataPassed is negative, the routine will return after setting limits and
+ * opening a file; if it is positive, it will allocate the array and then return.  The
+ * data array is returned in pixelsOut and the width and height in rpWidth and rpHeight.
+ */
+static int snapshotCommon(QString fname, FILE **fout, bool openFile, int rgbmode,
+                          int *limits, int dataPassed, unsigned char **pixelsOut,
+                          int &rpWidth, int &imHeight)
+{
+  unsigned char *pixels = NULL;
+  b3dInt32 xysize;
+  int mapsize;
+  b3dUInt32 *fcmapr, *fcmapg, *fcmapb;
+  b3dUInt32 *cindex, ci;
+  int i, filledSize, filledHeight, singleSize, numSingles, nbLine;
+  int rpx = 0; 
+  int rpy = 0;
+  unsigned char *pixout;
+  int minSingleSize = 10;
+  int minFilledSize = 14;
+  int maxFontSize = 24;
+  int optimalLines = 3;
+  int rpHeight = sCurHeight;
+  int heightSum = 0;
+  int textBorder = 5;
+
+  rpWidth = sCurWidth;
+
+  // Open file if desired
+  errno = 0;
+  if (openFile) {
+    *fout = fopen(LATIN1(QDir::convertSeparators(fname)), "wb");
+    if (!*fout) {
+      QString qerr = "Snapshot: error opening file\n";
+      if (errno)
+        qerr +=  QString("System error: ") + QString(strerror(errno));
+      imodPrintStderr(LATIN1(qerr));
+      return 1;
+    }
+  }
+
+  // Apply limits if any, get pixel array
+  if (limits) {
+    rpx = limits[0];
+    rpy = limits[1];
+    rpWidth = limits[2];
+    rpHeight = limits[3];
+  }
+
+  // If captions have been set, first analyze how much vertical space they need
+  if (!dataPassed && sSnapCaptions.length() > 0) {
+    QFont font;
+    font.setStyleHint(QFont::SansSerif);
+    font.setItalic(false);
+    numSingles = sSnapCaptions.length() - (sWrapLastCaption ? 1 : 0);
+
+    // For single lines, start at the maximum font size and go down until the length of
+    // all strings fits in the width of the image, or minimum size is reached
+    for (singleSize = maxFontSize; singleSize >= minSingleSize; singleSize--) {
+      font.setPixelSize(singleSize);
+      QFontMetrics metric(font);
+      bool allOK = true;
+      for (i = 0; i < numSingles && allOK; i++)
+        allOK = metric.width(sSnapCaptions[i]) <= rpWidth - 2 * textBorder;
+      heightSum = numSingles * metric.height();
+      if (singleSize == minSingleSize || allOK)
+        break;
+    }
+    if (sWrapLastCaption) {
+
+      // For the filled caption line, start at that size and try sizes until the number
+      // of lines does not exceed the optimal number
+      for (filledSize = B3DMAX(singleSize, minFilledSize); filledSize >= minFilledSize; 
+           filledSize--) {
+        font.setPixelSize(filledSize);
+        QFontMetrics metric(font);
+        QRect bound = metric.boundingRect(0, 0, rpWidth -2 * textBorder, 3000, 
+                                          Qt::TextWordWrap, sSnapCaptions[numSingles]);
+        filledHeight = bound.height();
+        if (filledSize == minFilledSize || 
+            filledHeight < (optimalLines + 0.5) * metric.lineSpacing())
+          break;
+      }
+      heightSum += filledHeight;
+    }
+    heightSum += 3 * textBorder;
+  }
+
+  // Now fix the height of the image array and allocate it
+  nbLine = rpWidth * 4;
+  imHeight = rpHeight + heightSum;
+  if (dataPassed < 0)
+    return 0;
+
+  pixels = (unsigned char *)malloc(rpWidth * (imHeight + 1) * 4);
+  *pixelsOut = pixels;
+  if (!pixels) {
+    if (openFile)
+      fclose(*fout);
+    return 1;
+  }
+
+  if (dataPassed)
+    return 0;
+
+  // For captions, assign this array to a QImage and get a painter for it
+  if (heightSum) {
+    QImage *qim = new QImage(pixels, rpWidth, heightSum, QImage::Format_RGB32);
+    int ypos = textBorder;
+    QPainter *painter = new QPainter(qim);
+    QFont font;
+    font.setStyleHint(QFont::SansSerif);
+    font.setItalic(false);
+
+    // Draw black on white background
+    painter->setPen(QPen(QColor(0, 0, 0)));
+    painter->fillRect(0, 0, rpWidth, heightSum, QColor(255, 255, 255));
+
+    // Draw single-line captions first; use rectangles for consistency in specifying
+    // start coordinates, which are at top of rectangle (with just a position given,
+    // it specifies the baseline of non-descending letters)
+    font.setPixelSize(singleSize);
+    painter->setFont(font);
+    int spacing = (painter->fontMetrics()).lineSpacing();
+    for (i = 0; i < numSingles; i++) {
+      painter->drawText(textBorder, ypos, rpWidth - 2 * textBorder, spacing, 0,
+                        sSnapCaptions[i]);
+      ypos += spacing;
+    }
+
+    // Draw the filled rectangle
+    if (sWrapLastCaption) {
+      font.setPixelSize(filledSize);
+      painter->setFont(font);
+      ypos += textBorder;
+      painter->drawText(textBorder, ypos,// + (painter->fontMetrics()).lineSpacing(), 
+                        rpWidth - 2 * textBorder, filledHeight,
+                       Qt::TextWordWrap, sSnapCaptions[numSingles]);
+    }
+    delete painter;
+    delete qim;
+
+    // Flip the lines
+    for (i = 0; i < (heightSum + 1) / 2; i++) {
+      memcpy(pixels + nbLine * heightSum, pixels + nbLine * i, nbLine);
+      memcpy(pixels + nbLine * i, pixels + nbLine * (heightSum - i - 1), nbLine);
+      memcpy(pixels + nbLine * (heightSum - i - 1), pixels + nbLine * heightSum, nbLine);
+    }
+    sSnapCaptions.clear();
+  }
+
+  pixels += nbLine * heightSum;
+  glPixelZoom(1.0, 1.0);
+  xysize = rpWidth * rpHeight;
+  pixout = (unsigned char *)pixels;
+  glFlush();
+
+  // RGB mode snapshot is simple
+  if (rgbmode) {
+    glReadPixels(rpx, rpy, rpWidth, rpHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    glFlush();
+
+  } else {
+
+    // Color index mode: get tables and read image as indices
+    // Qt color map is/was 256 colors
+    mapsize = 256;
+    fcmapr = B3DMALLOC(unsigned int, mapsize+1);
+    fcmapg = B3DMALLOC(unsigned int, mapsize+1);
+    fcmapb = B3DMALLOC(unsigned int, mapsize+1);
+    if (!fcmapr || !fcmapg || !fcmapb) {
+      free(pixels);
+      B3DFREE(fcmapr);
+      B3DFREE(fcmapg);
+      B3DFREE(fcmapb);
+      if (openFile)
+        fclose(*fout);
+      return 1;
+    }
+    
+    for(i = 0; i < mapsize; i++){
+      QColor qcolor = App->qColormap->entryColor(i);
+      fcmapr[i] = qcolor.red();
+      fcmapg[i] = qcolor.green();
+      fcmapb[i] = qcolor.blue();
+    }
+
+    glReadPixels(rpx, rpy, rpWidth, rpHeight, GL_COLOR_INDEX, GL_UNSIGNED_INT, pixels);
+    glFlush();
+    cindex = (b3dUInt32 *)pixels;
+    for (i = 0; i < xysize; i++, cindex++){
+      ci = *cindex;
+      if (ci > mapsize) 
+        ci = 0;
+      *pixout++ = fcmapr[ci];
+      *pixout++ = fcmapg[ci];
+      *pixout++ = fcmapb[ci];
+      *pixout++ = 0;
+    }
     free(fcmapr);
     free(fcmapg);
     free(fcmapb);
   }
-  if (!data)
-    free(pixels);
-
   return 0;
 }
 
-
-
-int b3dSnapshot(QString fname)
+// Set the captions for the next snapshot
+void b3dSetSnapshotCaption(QStringList &captionLines, bool wrapLastLine)
 {
-  if (SnapShotFormat == SnapShot_RGB)
-    return(b3dSnapshot_NonTIF(fname, App->rgba, NULL, NULL));
-  else
-    return(b3dSnapshot_TIF(fname, App->rgba, NULL, NULL, false));
+  sSnapCaptions = captionLines;
+  sWrapLastCaption = wrapLastLine;
 }
