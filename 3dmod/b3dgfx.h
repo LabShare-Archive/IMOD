@@ -42,10 +42,6 @@ void b3dPrimitiveRestartIndex(GLuint index);
 #define B3DGLEXT_PRIM_RESTART (1l << 1)
 #define B3DGLEXT_ANY_SIZE_TEX (1l << 2)
 
-#define SnapShot_Default 0
-#define SnapShot_RGB     1
-#define SnapShot_TIF     2
-
 
 typedef struct b3d_ci_image
 {
@@ -96,6 +92,8 @@ void b3dDrawSquare(int x, int y, int size);
 void b3dDrawFilledSquare(int x, int y, int size);
 void b3dDrawRectangle(int x, int y, int width, int height);
 void b3dDrawFilledRectangle(int x, int y, int width, int height);
+void b3dDrawArrow(int xTail, int yTail, int xHead, int yHead, int tipLength = 16, 
+                  int thickness = 4, bool antiAlias = true);
 
 void b3dBeginLine(void);
 void b3dEndLine(void);
@@ -174,6 +172,9 @@ QString b3dShortSnapName(QString fname);
 void b3dSetMovieSnapping(bool snapping);     
 void b3dSetDpiScaling(float factor);
 int b3dSnapshot(QString fname);
+int b3dSetNonTiffSnapFormat(int format);
+int b3dNamedSnapshot(QString &fname, const char *prefix, int format, int *limits,
+                     bool checkConvert);
 
 QString b3dGetSnapshotName(const char *name, int format_type, int digits,
                            int &fileno);
