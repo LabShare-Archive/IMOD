@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/18/13: Added a antialiasFilter field for the newstack panels in eTomo -
+Coarse Alignment and Final Aligned Stack.(Bug# 1737)
+
 10/15/13: In eTomo - Clean up, added unused, optional image files (such as the
 output from mtffilter) to the file chooser.(Bug# 1509)
 
