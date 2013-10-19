@@ -1982,7 +1982,7 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
                                       float zscale)
 {
   int pt, testz;
-  float *point;
+  float *point, *lpoint;
   int changeFlags, radius;
   int currentZ = zmouse;
   float drawsize, delz;
@@ -2064,18 +2064,27 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
 
   /* draw end markers if requested */
   b3dLineWidth(contProps->linewidth2);
-  if (obj->symflags & IOBJ_SYMF_ENDS) {
-    b3dColorIndex(App->bgnpoint);
-    point = (float *)cont->pts;
+  if (obj->symflags & (IOBJ_SYMF_ENDS | IOBJ_SYMF_ARROW)) {
+    if (!(obj->symflags & IOBJ_SYMF_ARROW))
+      b3dColorIndex(App->endpoint);
+    point = (float*)(&cont->pts[cont->psize-1]);
 
     for (pt = 0; pt < 2; pt ++) {
       testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
-      if (testz == currentZ)
-        b3dDrawCross((int)(bx + xzoom * point[indx]),
-                     (int)(by + yzoom * point[indy]), obj->symsize/2);
-      
-      b3dColorIndex(App->endpoint);
-      point = (float*)(&cont->pts[cont->psize-1]);
+      if (testz == currentZ) {
+        if (!pt && (obj->symflags & IOBJ_SYMF_ARROW) && cont->psize > 1) {
+          lpoint = (float*)(&cont->pts[cont->psize-2]);
+          b3dDrawArrow((int)(bx + xzoom * lpoint[indx]), (int)(by + yzoom *lpoint[indy]), 
+                       (int)(bx + xzoom * point[indx]), (int)(by + yzoom * point[indy]), 
+                       obj->symsize, obj->linewidth2, false);
+          
+        } else if (obj->symflags & IOBJ_SYMF_ENDS) {
+          b3dDrawCross((int)(bx + xzoom * point[indx]), (int)(by + yzoom * point[indy]),
+                       obj->symsize/2);
+        }
+      }
+      b3dColorIndex(App->bgnpoint);
+      point = (float *)cont->pts;
     }
 
     /* DNM 1/21/02: need to reset color this way, not wih b3dColorIndex*/
