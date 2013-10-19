@@ -37,6 +37,7 @@
 #include "iproc.h"
 #include "autox.h"
 #include "xzap.h"
+#include "sslice.h"
 #include "xcramp.h"
 #include "workprocs.h"
 #include "vertexbuffer.h"
@@ -49,6 +50,8 @@ static int ivwProcessImageList(ImodView *vi);
 static int initializeFlipAndModel(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
+static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert, 
+                             int winType);
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi, bool modview)
@@ -3385,6 +3388,66 @@ int ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY, int imZ,
       imodDraw(inImodView, IMOD_DRAW_XYZ);
   }
   return 0;
+}
+
+int ivwSnapshotTopZap(QString &name, int format, bool checkGrayConvert)
+{
+  return snapshotTopWindow(name, format, checkGrayConvert, ZAP_WINDOW_TYPE);
+}
+
+int ivwSnapshotTopSlicer(QString &name, int format, bool checkGrayConvert)
+{
+  return snapshotTopWindow(name, format, checkGrayConvert, SLICER_WINDOW_TYPE);
+}
+
+static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert, 
+                             int winType)
+{
+  ZapFuncs *zap;
+  SlicerFuncs *slicer;
+  int retval;
+  if (winType == ZAP_WINDOW_TYPE)
+    zap = getTopZapWindow(false);
+  else if (winType == SLICER_WINDOW_TYPE)
+    slicer = getTopSlicer();
+  else
+    return -4;
+  if ((winType == ZAP_WINDOW_TYPE && !zap) || (winType == SLICER_WINDOW_TYPE && !slicer))
+    return -1;
+  if (format != SnapShot_TIF && format != SnapShot_JPG && format != SnapShot_PNG)
+    return -2;
+  int restore = 0;
+  if (format != SnapShot_TIF) {
+    b3dSetNonTiffSnapFormat(format);
+    if (restore < 0)
+      return -3;
+    format = SnapShot_RGB;
+  }
+  if (winType == ZAP_WINDOW_TYPE)
+    retval = zap->namedSnapshot(name, format, checkGrayConvert);
+  else
+    retval = slicer->namedSnapshot(name, format, checkGrayConvert);
+  if (restore)
+    ImodPrefs->restoreSnapFormat();
+  return retval;
+}
+
+// Return the name of the current image file, without any path adjustments
+QString ivwCurrentImageFile(ImodView *inImodView)
+{
+  if (inImodView->fakeImage)
+    return QString("");
+  if (inImodView->multiFileZ <= 0)
+    return QString(inImodView->image->filename); 
+  int cz = B3DNINT(inImodView->zmouse);
+  B3DCLAMP(cz, 0, inImodView->multiFileZ - 1);
+  return QString(inImodView->imageList[cz].filename);
+}
+
+// Open 3dmod dialogs based on key letters
+void ivwOpen3dmodDialogs(const char *keys)
+{
+  ImodInfoWin->openSelectedWindows(keys, 0);
 }
 
 int prefSaveGenericSettings(char *key, int numVals, double *values)
