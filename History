@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/18/13: Added toolbar buttons to Zap and Slicer for drawing a single thick
+arrow for snapshots; also added an object property to draw arrowheads at the
+ends of contours.
+
 10/17/13: In eTomo - Clean up, added unused, optional image files (such as the
 output from mtffilter) to the file chooser.(Bug# 1509)
 
