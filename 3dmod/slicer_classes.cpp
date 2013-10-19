@@ -67,7 +67,8 @@ static const char *fileList[MAX_SLICER_TOGGLES][2] =
     {":/images/unlock.png", ":/images/lock.png"},
     {":/images/smartCenter.png", ":/images/keepCenter.png"}, 
     {":/images/shiftlockoff.png", ":/images/shiftlockon.png"},
-    {":/images/image.png", ":/images/fft.png"},
+    {":/images/fft.png", ":/images/fftRed.png"},
+    {":/images/arrowBlack.png", ":/images/arrowRed.png"},
     {":/images/timeUnlock.png", ":/images/timeLock.png"}};
 
 static QIcon *icons[MAX_SLICER_TOGGLES];
@@ -76,12 +77,13 @@ static QIcon *contIcon;
 static QIcon *fillIcon;
 static int firstTime = 1;
 static const char *toggleTips[] = {
-    "Toggle between regular and high-resolution (interpolated) image",
-    "Lock window at current position",
-    "Keep current image or model point centered (classic mode, hot key k)",
-    "Use keypad and mouse as if Shift key were down to rotate slice",
-    "Toggle between showing image and FFT",
-    "Lock window at current time" };
+  "Toggle between regular and high-resolution (interpolated) image",
+  "Lock window at current position",
+  "Keep current image or model point centered (classic mode, hot key k)",
+  "Use keypad and mouse as if Shift key were down to rotate slice",
+  "Toggle between showing image and FFT",
+  "Toggle arrow on or off (draw with first mouse)",
+  "Lock window at current time" };
 
 static const char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
 
@@ -125,7 +127,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   // Make the toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 5; j++) {
+  for (j = 0; j < MAX_SLICER_TOGGLES - 1; j++) {
     utilSetupToggleButton(mToolBar, mToolBar, NULL, toggleMapper, icons, 
                           toggleTips, mToggleButs, mToggleStates, j);
     connect(mToggleButs[j], SIGNAL(clicked()), toggleMapper, SLOT(map()));
