@@ -130,6 +130,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
   void done() {
     applicationManager.doneCleanUp();
     setDisplayed(false);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   protected void buttonAction(ActionEvent event) {
