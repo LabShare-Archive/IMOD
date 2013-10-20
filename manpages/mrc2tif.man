@@ -74,7 +74,7 @@ the sections in the input file.
 Produce JPEG files instead of TIFF files.  See above for the restrictions with
 this kind of output.
 .TP
-.B -j
+.B -p
 Produce PNG files instead of TIFF files.  See above for the restrictions.
 .TP
 .B -c <value>
@@ -120,6 +120,21 @@ file to 0, and from the maximum in the file to 255.  If you have integer data
 and you want to convert it to bytes, you will generally want to apply some
 scaling with black/white values to preserve the dynamic range of the data of
 interest.
+.TP
+.B -z <min,max>
+ Starting and ending Z slices in file to output, numbered from 0.
+.TO
+.B -i <value>
+Initial file number.  The default is the number of the first Z slice output,
+where Z is numbered from 0.
+.B -r <value>
+Set the resolution setting of the output file in dots per inch to the given
+value.
+.B -P
+Use the pixel spacing in the MRC file header to set the resolution in
+the output file.  The resolution will be set in dots per inch and will
+typically be a very large number, but this value allows the pixel spacing to
+be recovered if the file is converted back with Tif2mrc(1).
 .TP
 .B -T <xsize,ysize> or <size>
 Organize output data in tiles instead of strips, which can allow faster access
