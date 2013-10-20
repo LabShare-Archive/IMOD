@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/13: In eTomo - Combine, removed the message complaining about tomograms
+A and B not being the same size in X and Y, as this is not an error.
+(Bug# 1651)
+
 10/19/13: In eTomo resizing when the Cleanup dialog is finished.(Bug# 1636)
 
 10/18/13: Added toolbar buttons to Zap and Slicer for drawing a single thick
