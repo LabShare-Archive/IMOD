@@ -2244,11 +2244,11 @@ static int snapshotCommon(QString fname, FILE **fout, bool openFile, int rgbmode
   }
 
   // If captions have been set, first analyze how much vertical space they need
-  if (!dataPassed && sSnapCaptions.length() > 0) {
+  if (!dataPassed && sSnapCaptions.size() > 0) {
     QFont font;
     font.setStyleHint(QFont::SansSerif);
     font.setItalic(false);
-    numSingles = sSnapCaptions.length() - (sWrapLastCaption ? 1 : 0);
+    numSingles = sSnapCaptions.size() - (sWrapLastCaption ? 1 : 0);
 
     // For single lines, start at the maximum font size and go down until the length of
     // all strings fits in the width of the image, or minimum size is reached
