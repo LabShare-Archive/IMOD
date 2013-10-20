@@ -79,8 +79,9 @@ run.function.final-align-command=
 [[]]
 [[ifnot = build]]
 	# run binned
-	sp.aligned-image-stack-binning=2
-	if.not.var.montage.assert.disabled.cb.reduce-size-with-antialiasing-filter=on
+	sp.aligned-image-stack-binning=up
+	if.not.var.montage.assert.enabled.cb.reduce-size-with-antialiasing-filter=
+	if.not.var.montage.cb.reduce-size-with-antialiasing-filter=on
 	bn.create-full-aligned-stack=
 	if.not.var.montage.wait.process.creating-aligned-stack=done
 	if.var.montage.wait.process.full-alignment=done
@@ -91,8 +92,8 @@ run.function.final-align-command=
   assert.contains.file=newst%{axis}.com|AntialiasFilter*-1
 [[]]
 # run unbinned
-if.not.var.montage.assert.disabled.cb.reduce-size-with-antialiasing-filter=off
-sp.aligned-image-stack-binning=1
+sp.aligned-image-stack-binning=down
+if.not.var.montage.assert.disabled.cb.reduce-size-with-antialiasing-filter=
 bn.create-full-aligned-stack=
 if.not.var.montage.wait.process.creating-aligned-stack=done
 if.var.montage.wait.process.full-alignment=done
