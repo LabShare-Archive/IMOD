@@ -68,7 +68,7 @@ class ArrowButton;
 #define MIDAS_SLICE_OPREVIOUS 12
 #define MIDAS_SLICE_REFERENCE 4
 
-#define MAX_CACHE_MBYTES   128
+#define MAX_CACHE_MBYTES   1024
 #define MAX_ZOOMIND        13
 #define MAX_INCREMENTS      6
 #define MAX_TOP_ERR        10

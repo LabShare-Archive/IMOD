@@ -1365,7 +1365,7 @@ int imodChecksum(Imod *imod)
   sum += imod->units;
   sum += imod->pixsize;
   sum += imod->viewsize;
-  sum += imod->flags & ~IMODF_FLIPYZ & ~IMODF_NEW_TO_3DMOD;
+  sum += imod->flags & ~IMODF_FLIPYZ & ~IMODF_NEW_TO_3DMOD & ~IMODF_ROT90X;
 
   for (i = 0; i < ilistSize(imod->slicerAng); i++) {
     slanp = (SlicerAngles *)ilistItem(imod->slicerAng, i);

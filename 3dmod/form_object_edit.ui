@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>241</width>
-    <height>738</height>
+    <width>254</width>
+    <height>740</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -16,7 +16,7 @@
   <property name="windowTitle">
    <string>3dmod Object Edit</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_6">
+  <layout class="QVBoxLayout" name="verticalLayout_8">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_5">
      <property name="spacing">
@@ -266,7 +266,7 @@
      <property name="title">
       <string>Symbols</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <layout class="QVBoxLayout" name="verticalLayout_7">
       <property name="leftMargin">
        <number>8</number>
       </property>
@@ -280,62 +280,37 @@
        <number>4</number>
       </property>
       <item>
-       <layout class="QHBoxLayout">
-        <property name="spacing">
-         <number>6</number>
-        </property>
-        <property name="margin">
-         <number>0</number>
-        </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
-         <widget class="QComboBox" name="symbolComboBox">
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="toolTip">
-           <string>Select shape of symbol to draw at each point</string>
-          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <property name="text">
-            <string>None</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Circle</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Square</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Triangle</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout">
-          <property name="spacing">
-           <number>6</number>
-          </property>
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QCheckBox" name="fillCheckBox">
+           <widget class="QComboBox" name="symbolComboBox">
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
             </property>
             <property name="toolTip">
-             <string>Draw filled rather than open symbols</string>
+             <string>Select shape of symbol to draw at each point</string>
             </property>
-            <property name="text">
-             <string>Fill</string>
-            </property>
+            <item>
+             <property name="text">
+              <string>None</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Circle</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Square</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Triangle</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
@@ -348,6 +323,36 @@
             </property>
             <property name="text">
              <string>Mark ends</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QCheckBox" name="fillCheckBox">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>Draw filled rather than open symbols</string>
+            </property>
+            <property name="text">
+             <string>Filled</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="arrowCheckBox">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="toolTip">
+             <string>Draw an arrowhead at contour end</string>
+            </property>
+            <property name="text">
+             <string>Arrow at end</string>
             </property>
            </widget>
           </item>

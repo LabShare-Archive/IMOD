@@ -1,39 +1,40 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>AppearanceForm</class>
- <widget class="QWidget" name="AppearanceForm" >
-  <property name="geometry" >
+ <widget class="QWidget" name="AppearanceForm">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>359</width>
+    <width>380</width>
     <height>546</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Appearance</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" >
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <layout class="QHBoxLayout" >
+    <layout class="QHBoxLayout">
      <item>
-      <layout class="QVBoxLayout" >
+      <layout class="QVBoxLayout">
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <spacer name="Spacer2" >
-           <property name="orientation" >
+          <spacer name="Spacer2">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -42,24 +43,24 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="fontButton" >
-           <property name="toolTip" >
+          <widget class="QPushButton" name="fontButton">
+           <property name="toolTip">
             <string>Open a font selector to pick font, style and size</string>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Choose Font</string>
            </property>
           </widget>
          </item>
          <item>
-          <spacer name="Spacer1" >
-           <property name="orientation" >
+          <spacer name="Spacer1">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -70,22 +71,22 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <spacer name="Spacer4" >
-           <property name="orientation" >
+          <spacer name="Spacer4">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -94,34 +95,34 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="TextLabel1" >
-           <property name="text" >
+          <widget class="QLabel" name="TextLabel1">
+           <property name="text">
             <string>Select Style:</string>
            </property>
-           <property name="alignment" >
+           <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="styleComboBox" >
-           <property name="toolTip" >
+          <widget class="QComboBox" name="styleComboBox">
+           <property name="toolTip">
             <string>Change the style in which controls are drawn</string>
            </property>
           </widget>
          </item>
          <item>
-          <spacer name="Spacer3" >
-           <property name="orientation" >
+          <spacer name="Spacer3">
+           <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
-           <property name="sizeType" >
+           <property name="sizeType">
             <enum>QSizePolicy::Expanding</enum>
            </property>
-           <property name="sizeHint" stdset="0" >
+           <property name="sizeHint" stdset="0">
             <size>
              <width>30</width>
              <height>0</height>
@@ -132,32 +133,32 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <widget class="QLabel" name="TextLabel2" >
-           <property name="text" >
+          <widget class="QLabel" name="TextLabel2">
+           <property name="text">
             <string>Size of current image point marker:</string>
            </property>
-           <property name="alignment" >
+           <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="imagePtSpinBox" >
-           <property name="toolTip" >
+          <widget class="QSpinBox" name="imagePtSpinBox">
+           <property name="toolTip">
             <string>Minimum size for current image point marker (cross)</string>
            </property>
-           <property name="minimum" >
+           <property name="minimum">
             <number>1</number>
            </property>
           </widget>
@@ -165,35 +166,35 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
-         <property name="spacing" >
+        <layout class="QHBoxLayout">
+         <property name="spacing">
           <number>6</number>
          </property>
-         <property name="margin" >
+         <property name="margin">
           <number>0</number>
          </property>
          <item>
-          <widget class="QLabel" name="TextLabel2_2" >
-           <property name="toolTip" >
+          <widget class="QLabel" name="TextLabel2_2">
+           <property name="toolTip">
             <string>Minimum size for current point and current contour endpoint markers</string>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Size of current model point marker:</string>
            </property>
-           <property name="alignment" >
+           <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
-           <property name="wordWrap" >
+           <property name="wordWrap">
             <bool>false</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="modelPtSpinBox" >
-           <property name="toolTip" >
+          <widget class="QSpinBox" name="modelPtSpinBox">
+           <property name="toolTip">
             <string>Minimum size for current model point marker (circle)</string>
            </property>
-           <property name="minimum" >
+           <property name="minimum">
             <number>1</number>
            </property>
           </widget>
@@ -201,52 +202,57 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" >
+        <layout class="QHBoxLayout">
          <item>
-          <widget class="QPushButton" name="markerColorButton" >
-           <property name="toolTip" >
+          <widget class="QPushButton" name="markerColorButton">
+           <property name="toolTip">
             <string>Open color selector to set color of current point marker</string>
            </property>
-           <property name="text" >
+           <property name="text">
             <string>Set Color For</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="colorComboBox" >
+          <widget class="QComboBox" name="colorComboBox">
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Current point</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>First point</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Last point</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Foreground</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Background</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Surface ghost</string>
             </property>
            </item>
            <item>
-            <property name="text" >
+            <property name="text">
              <string>Cur pt shadow</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Arrow</string>
             </property>
            </item>
           </widget>
@@ -254,76 +260,76 @@
         </layout>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox7" >
-         <property name="title" >
+        <widget class="QGroupBox" name="groupBox7">
+         <property name="title">
           <string>Autocontrast targets</string>
          </property>
-         <layout class="QVBoxLayout" >
-          <property name="spacing" >
+         <layout class="QVBoxLayout">
+          <property name="spacing">
            <number>4</number>
           </property>
-          <property name="leftMargin" >
+          <property name="leftMargin">
            <number>5</number>
           </property>
-          <property name="topMargin" >
+          <property name="topMargin">
            <number>2</number>
           </property>
-          <property name="rightMargin" >
+          <property name="rightMargin">
            <number>5</number>
           </property>
-          <property name="bottomMargin" >
+          <property name="bottomMargin">
            <number>5</number>
           </property>
           <item>
-           <layout class="QHBoxLayout" >
+           <layout class="QHBoxLayout">
             <item>
-             <widget class="QLabel" name="textLabel1" >
-              <property name="text" >
+             <widget class="QLabel" name="textLabel1">
+              <property name="text">
                <string>Mean:</string>
               </property>
-              <property name="alignment" >
+              <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
-              <property name="wordWrap" >
+              <property name="wordWrap">
                <bool>false</bool>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="autoMeanSpinBox" >
-              <property name="toolTip" >
+             <widget class="QSpinBox" name="autoMeanSpinBox">
+              <property name="toolTip">
                <string>Mean intensity to display</string>
               </property>
-              <property name="minimum" >
+              <property name="minimum">
                <number>5</number>
               </property>
-              <property name="maximum" >
+              <property name="maximum">
                <number>250</number>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="textLabel2" >
-              <property name="text" >
+             <widget class="QLabel" name="textLabel2">
+              <property name="text">
                <string>  SD:</string>
               </property>
-              <property name="alignment" >
+              <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
-              <property name="wordWrap" >
+              <property name="wordWrap">
                <bool>false</bool>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="autoSDspinBox" >
-              <property name="toolTip" >
+             <widget class="QSpinBox" name="autoSDspinBox">
+              <property name="toolTip">
                <string>Contrast range occupied by one Standard Deviation</string>
               </property>
-              <property name="minimum" >
+              <property name="minimum">
                <number>5</number>
               </property>
-              <property name="maximum" >
+              <property name="maximum">
                <number>100</number>
               </property>
              </widget>
@@ -331,16 +337,16 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" >
+           <layout class="QHBoxLayout">
             <item>
-             <spacer name="spacer12" >
-              <property name="orientation" >
+             <spacer name="spacer12">
+              <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
-              <property name="sizeType" >
+              <property name="sizeType">
                <enum>QSizePolicy::Expanding</enum>
               </property>
-              <property name="sizeHint" stdset="0" >
+              <property name="sizeHint" stdset="0">
                <size>
                 <width>40</width>
                 <height>20</height>
@@ -349,24 +355,24 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="setTargetButton" >
-              <property name="toolTip" >
+             <widget class="QPushButton" name="setTargetButton">
+              <property name="toolTip">
                <string>Set the target mean and SD so that they would generate the contrast currently seen</string>
               </property>
-              <property name="text" >
+              <property name="text">
                <string>Set from Current Contrast</string>
               </property>
              </widget>
             </item>
             <item>
-             <spacer name="spacer11" >
-              <property name="orientation" >
+             <spacer name="spacer11">
+              <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
-              <property name="sizeType" >
+              <property name="sizeType">
                <enum>QSizePolicy::Expanding</enum>
               </property>
-              <property name="sizeHint" stdset="0" >
+              <property name="sizeHint" stdset="0">
                <size>
                 <width>40</width>
                 <height>20</height>
@@ -382,14 +388,14 @@
       </layout>
      </item>
      <item>
-      <spacer name="Spacer13" >
-       <property name="orientation" >
+      <spacer name="Spacer13">
+       <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <property name="sizeType" >
+       <property name="sizeType">
         <enum>QSizePolicy::Expanding</enum>
        </property>
-       <property name="sizeHint" stdset="0" >
+       <property name="sizeHint" stdset="0">
         <size>
          <width>16</width>
          <height>16</height>
@@ -400,83 +406,83 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="GroupBox4" >
-     <property name="title" >
+    <widget class="QGroupBox" name="GroupBox4">
+     <property name="title">
       <string>Zoom factors</string>
      </property>
-     <layout class="QVBoxLayout" >
-      <property name="spacing" >
+     <layout class="QVBoxLayout">
+      <property name="spacing">
        <number>6</number>
       </property>
-      <property name="leftMargin" >
+      <property name="leftMargin">
        <number>5</number>
       </property>
-      <property name="topMargin" >
+      <property name="topMargin">
        <number>2</number>
       </property>
-      <property name="rightMargin" >
+      <property name="rightMargin">
        <number>5</number>
       </property>
-      <property name="bottomMargin" >
+      <property name="bottomMargin">
        <number>5</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" >
-        <property name="spacing" >
+       <layout class="QHBoxLayout">
+        <property name="spacing">
          <number>6</number>
         </property>
-        <property name="margin" >
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
-         <widget class="QLabel" name="TextLabel4" >
-          <property name="text" >
+         <widget class="QLabel" name="TextLabel4">
+          <property name="text">
            <string>Index:</string>
           </property>
-          <property name="alignment" >
+          <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
-          <property name="wordWrap" >
+          <property name="wordWrap">
            <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="zoomIndexSpinBox" >
-          <property name="toolTip" >
+         <widget class="QSpinBox" name="zoomIndexSpinBox">
+          <property name="toolTip">
            <string>Set index of zoom value to modify</string>
           </property>
-          <property name="minimum" >
+          <property name="minimum">
            <number>1</number>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="defaultZoomLabel" >
-          <property name="text" >
+         <widget class="QLabel" name="defaultZoomLabel">
+          <property name="text">
            <string>Default 20.00</string>
           </property>
-          <property name="wordWrap" >
+          <property name="wordWrap">
            <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="TextLabel6" >
-          <property name="text" >
+         <widget class="QLabel" name="TextLabel6">
+          <property name="text">
            <string>Value:</string>
           </property>
-          <property name="alignment" >
+          <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
-          <property name="wordWrap" >
+          <property name="wordWrap">
            <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="zoomEdit" >
-          <property name="toolTip" >
+         <widget class="QLineEdit" name="zoomEdit">
+          <property name="toolTip">
            <string>Enter a new zoom value for given index</string>
           </property>
          </widget>
@@ -484,39 +490,39 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" >
-        <property name="spacing" >
+       <layout class="QHBoxLayout">
+        <property name="spacing">
          <number>6</number>
         </property>
-        <property name="margin" >
+        <property name="margin">
          <number>0</number>
         </property>
         <item>
-         <widget class="QPushButton" name="PushButton25" >
-          <property name="toolTip" >
+         <widget class="QPushButton" name="PushButton25">
+          <property name="toolTip">
            <string>Restore all default zoom values</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Restore Defaults</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="PushButton26" >
-          <property name="toolTip" >
+         <widget class="QPushButton" name="PushButton26">
+          <property name="toolTip">
            <string>Move each zoom value to the next index</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Shift Up</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="PushButton27" >
-          <property name="toolTip" >
+         <widget class="QPushButton" name="PushButton27">
+          <property name="toolTip">
            <string>Move each zoom value to the previous index</string>
           </property>
-          <property name="text" >
+          <property name="text">
            <string>Shift Down</string>
           </property>
          </widget>
@@ -527,63 +533,63 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox3" >
-     <property name="title" >
+    <widget class="QGroupBox" name="groupBox3">
+     <property name="title">
       <string>Voxel limit for speeding up slicer</string>
      </property>
-     <layout class="QVBoxLayout" >
-      <property name="spacing" >
+     <layout class="QVBoxLayout">
+      <property name="spacing">
        <number>4</number>
       </property>
-      <property name="leftMargin" >
+      <property name="leftMargin">
        <number>5</number>
       </property>
-      <property name="topMargin" >
+      <property name="topMargin">
        <number>2</number>
       </property>
-      <property name="rightMargin" >
+      <property name="rightMargin">
        <number>5</number>
       </property>
-      <property name="bottomMargin" >
+      <property name="bottomMargin">
        <number>5</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" >
+       <layout class="QHBoxLayout">
         <item>
-         <widget class="QLabel" name="textLabel1_2" >
-          <property name="text" >
+         <widget class="QLabel" name="textLabel1_2">
+          <property name="text">
            <string>Limit when moving with mouse:</string>
           </property>
-          <property name="wordWrap" >
+          <property name="wordWrap">
            <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="voxLimitSpinBox" >
-          <property name="toolTip" >
+         <widget class="QSpinBox" name="voxLimitSpinBox">
+          <property name="toolTip">
            <string>Limit governing how many fewer slices are averaged when panning or rotating slicer image with mouse</string>
           </property>
-          <property name="minimum" >
+          <property name="minimum">
            <number>500</number>
           </property>
-          <property name="maximum" >
+          <property name="maximum">
            <number>100000</number>
           </property>
-          <property name="singleStep" >
+          <property name="singleStep">
            <number>500</number>
           </property>
-          <property name="value" >
+          <property name="value">
            <number>3000</number>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="textLabel2_2" >
-          <property name="text" >
+         <widget class="QLabel" name="textLabel2_2">
+          <property name="text">
            <string>KB</string>
           </property>
-          <property name="wordWrap" >
+          <property name="wordWrap">
            <bool>false</bool>
           </property>
          </widget>
@@ -591,11 +597,11 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="limitSliderBox" >
-        <property name="toolTip" >
+       <widget class="QCheckBox" name="limitSliderBox">
+        <property name="toolTip">
          <string>Use same speedup method when dragging angle sliders</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>Apply limit when rotating with sliders</string>
         </property>
        </widget>
@@ -604,76 +610,76 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox" >
-     <property name="title" >
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
       <string>Isosurface</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout" >
-      <property name="spacing" >
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
        <number>4</number>
       </property>
-      <property name="leftMargin" >
+      <property name="leftMargin">
        <number>5</number>
       </property>
-      <property name="topMargin" >
+      <property name="topMargin">
        <number>2</number>
       </property>
-      <property name="rightMargin" >
+      <property name="rightMargin">
        <number>5</number>
       </property>
-      <property name="bottomMargin" >
+      <property name="bottomMargin">
        <number>5</number>
       </property>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout" >
+       <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QLabel" name="label" >
-          <property name="text" >
+         <widget class="QLabel" name="label">
+          <property name="text">
            <string>Equivalent cube size, initial:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="isoBoxInitSpin" >
-          <property name="toolTip" >
+         <widget class="QSpinBox" name="isoBoxInitSpin">
+          <property name="toolTip">
            <string>Set initial box size to the cube of this number of voxels</string>
           </property>
-          <property name="minimum" >
+          <property name="minimum">
            <number>32</number>
           </property>
-          <property name="maximum" >
+          <property name="maximum">
            <number>160</number>
           </property>
-          <property name="singleStep" >
+          <property name="singleStep">
            <number>4</number>
           </property>
-          <property name="value" >
+          <property name="value">
            <number>96</number>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_2" >
-          <property name="text" >
+         <widget class="QLabel" name="label_2">
+          <property name="text">
            <string>Max:</string>
           </property>
-          <property name="alignment" >
+          <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="isoBoxLimitSpin" >
-          <property name="toolTip" >
+         <widget class="QSpinBox" name="isoBoxLimitSpin">
+          <property name="toolTip">
            <string>Limit box size to the cube of this number of voxels</string>
           </property>
-          <property name="maximum" >
+          <property name="maximum">
            <number>520</number>
           </property>
-          <property name="singleStep" >
+          <property name="singleStep">
            <number>10</number>
           </property>
-          <property name="value" >
+          <property name="value">
            <number>320</number>
           </property>
          </widget>
@@ -681,11 +687,11 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="isoHighBox" >
-        <property name="toolTip" >
+       <widget class="QCheckBox" name="isoHighBox">
+        <property name="toolTip">
          <string>Set first isosurface threshold above instead of below the median intensity</string>
         </property>
-        <property name="text" >
+        <property name="text">
          <string>Set initial threshold to show lighter objects</string>
         </property>
        </widget>
@@ -695,7 +701,7 @@
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11" />
+ <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections>
   <connection>
@@ -704,11 +710,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>fontPressed()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -720,11 +726,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>imagePtChanged(int)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -736,11 +742,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>modelPtChanged(int)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -752,11 +758,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>styleSelected(QString)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -768,11 +774,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>autoMeanChanged(int)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -784,11 +790,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>autoSDChanged(int)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -800,11 +806,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>setTargetClicked()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -816,11 +822,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>markerColorClicked()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -832,11 +838,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>restoreDefaultZooms()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -848,11 +854,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>shiftZoomsUp()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -864,11 +870,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>shiftZoomsDown()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -880,11 +886,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>newZoomIndex(int)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>
@@ -896,11 +902,11 @@
    <receiver>AppearanceForm</receiver>
    <slot>newZoomValue()</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>20</x>
      <y>20</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
     </hint>

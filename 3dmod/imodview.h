@@ -326,6 +326,61 @@ int DLL_EX_IM ivwGetTopZapCenter(ImodView *inImodView, float &imX, float &imY, i
 int DLL_EX_IM ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY,
                                  int imZ, bool draw);
 
+/*!
+ * Returns the name of the current image file being displayed.  If multiple single-image 
+ * files are loaded in Z, returns the name of the file at the current Z slice.
+ */
+QString DLL_EX_IM ivwCurrentImageFile(ImodView *inImodView);
+
+/*!
+ * Set the captions for the next single-frame snapshot of an image or model view window.
+ * [captionLines] can contain a series of captions. All but the last will be drawn on a
+ * single line.  If [wrapLastLine] is true, the last string will be drawn on multiple 
+ * lines with text wrapping at word boundaries.
+ */
+void DLL_EX_IM b3dSetSnapshotCaption(QStringList &captionLines, bool wrapLastLine);
+
+/*!
+ * Takes a single-frame snapshot of the top Zap window.  If [name] is not empty, the 
+ * snapshot will be given that filename; otherwise, the name is automatically generated 
+ * as usual and returned in [name].  The snapshot format is specified by [format], which
+ * should be SnapShot_TIF, SnapShot_PNG, or SnapShot_JPG, not the ambiguous SnapShot_RGB.
+ * For a TIFF snapshot, the user's choice of whether to convert to gray-scale is honored
+ * if [checkGrayConvert] is true and ignored otherwise.  Returns -1 if there is no top
+ * zap window, -2 if the format is not one of the three listed, -3 if the format is not
+ * available as the first or second nonTiff format selected by the user, or 1 for any
+ * kind of error in the snapshotting process.
+ */
+int DLL_EX_IM ivwSnapshotTopZap(QString &name, int format, bool checkGrayConvert);
+
+/*!
+ * Takes a single-frame snapshot of the top Slicer window; arguments and return values 
+ * are the same as in @@ivwSnapshotTopZap.@
+ */
+int DLL_EX_IM ivwSnapshotTopSlicer(QString &name, int format, bool checkGrayConvert);
+
+/*!
+ * Returns the X, Y, and Z angles of the top slicer in [angles], the center position in
+ * [center], and the time of that slicer in [time].  The return value is 1 if there is
+ * no slicer open.
+ */
+int DLL_EX_IM getTopSlicerAngles(float angles[3], Ipoint *center, int &time);
+
+/*!
+ * Returns the lengths of the scale bars in the top windows of each of the different 
+ * types, Zap, Slicer, XYZ, multiZ, or model view.  A -1 is returned
+ * if there are no scale bars being displayed or if the particular window is not open.
+ * Call imodUnits with the current model to obtain a units string.
+ */
+void DLL_EX_IM scaleBarAllLengths(float &zapLen, float &slicerLen, float &xyzLen,
+                                  float &multiZlen, float &modvLen);
+
+/*!
+ * Opens or raises the 3dmod dialog windows specified by the key letters provided in 
+ * [keys], where the letters are the same as can be given with the -E option.
+ */
+void DLL_EX_IM ivwOpen3dmodDialogs(const char *keys);
+
 /*
  * Selection list functions in imod_edit.cpp
  */

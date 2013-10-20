@@ -53,12 +53,15 @@ class ZapFuncs
   void flushImage();
   void getixy(int mx, int my, float &x, float &y, int &z);
   void montageSnapshot(int snaptype);
+  int namedSnapshot(QString &fname, int format, bool checkConvert);
   void setCursor(int mode, bool setAnyway = false);
   void setMouseTracking();
   void shiftRubberband(float idx, float idy);
   void syncImage(bool toImagePt);
   void toggleRubberband(bool draw = true);
   void toggleLasso(bool draw = true);
+  void toggleArrow(bool draw = true);
+  void setSnapshotLimits(int **limits, int *limarr);
   bool getLowHighSection(int &low, int &high);
   Icont *getLassoContour();
   B3dCIImage *zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
@@ -157,6 +160,12 @@ class ZapFuncs
   bool mLassoOn;         // Lasso flag
   bool mDrawingLasso;    // And flag for initial drawing
   int mLassoObjNum;   // Extra object number for lasso
+  bool mArrowOn;       // Arrow flag
+  bool mDrawingArrow;  // And flag for initial drawing
+  float mArrowXtail;   // Image coordinates of head and tail
+  float mArrowYtail;
+  float mArrowXhead;
+  float mArrowYhead;
 
  private:
   int    mXborder,   mYborder;   /* border around image window. */

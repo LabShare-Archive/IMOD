@@ -39,6 +39,7 @@ void ioew_closing(void);
 void ioew_draw(int state);
 void ioew_fill(int state);
 void ioew_ends(int state);
+void ioew_arrow(int state);
 void ioew_linewidth(int value);
 void ioew_open(int value);
 void ioew_surface(int value);

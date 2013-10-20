@@ -220,30 +220,40 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
  */
 void scaleBarUpdate()
 {
+  Imod *imod = imodvStandalone() ? Imodv->imod : App->cvi->imod;
+  float zapLen, slicerLen, xyzLen, multiZlen, modvLen;
+  scaleBarAllLengths(zapLen, slicerLen, xyzLen, multiZlen, modvLen);
+  if (!sbDia)
+    return;
+  sbDia->updateValues(zapLen, multiZlen, slicerLen, xyzLen, modvLen, imodUnits(imod));
+}
+
+/*
+ * Get the lengths of all scale bars (exported function declared in imodview.h)
+ */
+void scaleBarAllLengths(float &zapLen, float &slicerLen, float &xyzLen, float &multiZlen,
+                        float &modvLen)
+{
   SlicerFuncs *ss;
   ZapFuncs *zap;
-  Imod *imod;
-  float slicerv = -1., zapv = -1., multiZv = -1., modvv = -1., xyzv = -1.;
+  slicerLen = zapLen = multiZlen = modvLen = xyzLen = -1.;
   if (!sbDia)
     return;
 
-  imod = imodvStandalone() ? Imodv->imod : App->cvi->imod;
-  
   if (!imodvStandalone()) {
     ss = getTopSlicer();
     if (ss)
-      slicerv = ss->mScaleBarSize;
+      slicerLen = ss->mScaleBarSize;
     zap = getTopZapWindow(false, false, ZAP_WINDOW_TYPE);
     if (zap)
-      zapv = zap->mScaleBarSize;
+      zapLen = zap->mScaleBarSize;
     zap = getTopZapWindow(false, false, MULTIZ_WINDOW_TYPE);
     if (zap)
-      multiZv = zap->mScaleBarSize;
-    xyzv = xyzScaleBarSize();
+      multiZlen = zap->mScaleBarSize;
+    xyzLen = xyzScaleBarSize();
   }
   if (!ImodvClosed)
-    modvv = Imodv->scaleBarSize;
-  sbDia->updateValues(zapv, multiZv, slicerv, xyzv, modvv, imodUnits(imod));
+    modvLen = Imodv->scaleBarSize;
 }
 
 ScaleBar *scaleBarGetParams()

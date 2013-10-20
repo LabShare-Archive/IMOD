@@ -13,7 +13,7 @@
 #ifndef ZAP_CLASSES_H
 #define ZAP_CLASSES_H
 
-#define NUM_TOOLBUTTONS 7
+#define NUM_TOOLBUTTONS 8
 #define NUM_TIMEBUTTONS 1
 
 #define ZAP_TOGGLE_RESOL 0
@@ -22,7 +22,8 @@
 #define ZAP_TOGGLE_INSERT 3
 #define ZAP_TOGGLE_RUBBER 4
 #define ZAP_TOGGLE_LASSO 5
-#define ZAP_TOGGLE_TIMELOCK 6
+#define ZAP_TOGGLE_ARROW 6
+#define ZAP_TOGGLE_TIMELOCK 7
 #define MULTIZ_MAX_PANELS 20
 
 #include <qmainwindow.h>

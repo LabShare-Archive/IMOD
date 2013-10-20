@@ -70,6 +70,11 @@ void ioew_ends(int state)
   setObjectFlag(state != 0, 1, IOBJ_SYMF_ENDS);
 }
 
+void ioew_arrow(int state)
+{
+  setObjectFlag(state != 0, 1, IOBJ_SYMF_ARROW);
+}
+
 void ioew_linewidth(int value)
 {
   Iobj *obj = getObjectOrClose();
@@ -300,6 +305,7 @@ int imod_object_edit_draw(void)
   Ioew_dialog->setSymbolProperties(symbol, 
                                    (obj->symflags & IOBJ_SYMF_FILL) != 0,
                                    (obj->symflags & IOBJ_SYMF_ENDS) != 0, 
+                                   (obj->symflags & IOBJ_SYMF_ARROW) != 0, 
                                    (int)obj->symsize);
   Ioew_dialog->setLineWidth((int)obj->linewidth2);
   Ioew_dialog->setTimeBox((obj->flags & IMOD_OBJFLAG_TIME) != 0,

@@ -167,8 +167,8 @@ void AppearanceForm::modelPtChanged( int value )
 // Marker color button has been pressed: get color dialog and set color
 void AppearanceForm::markerColorClicked()
 {
-  int indexes[] = {IMOD_CURPOINT, IMOD_BGNPOINT, IMOD_ENDPOINT, 
-                   IMOD_FOREGROUND, IMOD_BACKGROUND, IMOD_GHOST, IMOD_SHADOW};
+  int indexes[] = {IMOD_CURPOINT, IMOD_BGNPOINT, IMOD_ENDPOINT, IMOD_FOREGROUND,
+                   IMOD_BACKGROUND, IMOD_GHOST, IMOD_SHADOW, IMOD_ARROW};
   int item, which;
   item = indexes[colorComboBox->currentIndex()];
   for (int i = 0; i < MAX_NAMED_COLORS; i++)

@@ -167,6 +167,7 @@ EXPORTS
 	findHistogramDip
 	fitSphere
 	c2fString
+	SETPEAKFINDLIMITS
 	LSFIT3
 	PipGetBoolean
 	InsideContour
@@ -237,6 +238,7 @@ EXPORTS
 	AdocSetTwoFloats
 	rsFastMedianInPlace
 	ZOOMFILTINTERP
+	XCORRPEAKFINDWIDTH
 	sliceTaperOutPad
 	xfInvert
 	addValueToRow
@@ -373,6 +375,7 @@ EXPORTS
 	enableRadiusFitting
 	B3DMILLISLEEP
 	PIPEXITONERRORFW
+	setPeakFindLimits
 	sliceFree
 	lsFit
 	PIPPRINTHELP
@@ -414,6 +417,7 @@ EXPORTS
 	PIPGETSTRING
 	GAUSSJDET
 	PipGetFloatArray
+	XCorrPeakFindWidth
 	statMatrices
 	WRAPFFTSLICE
 	slicePutVal

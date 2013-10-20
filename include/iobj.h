@@ -81,6 +81,7 @@
 
 #define IOBJ_SYMF_FILL    1          /* Fill the symbol       */
 #define IOBJ_SYMF_ENDS    (1 << 1)   /* Draw bgn/end symbols. */
+#define IOBJ_SYMF_ARROW   (1 << 2)   /* Draw arrowhead at end */
 
 /* old imod V1.1, use symbols instead. */
 #define IMOD_OBJM_OFF      0

@@ -237,7 +237,7 @@ int setTopSlicerFromModelView(Ipoint *rot)
 }
 
 // Return the angles and position of the top slicer, and the time, to the 
-// slicer angle window
+// slicer angle window (exported, declaration in imodview.h)
 int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
 {
   SlicerFuncs *ss = getTopSlicer();
@@ -370,7 +370,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   mZslast = 1.0;
   mPending = 0;
   mImageFilled = 0;
-  mMousemode = vi->imod->mousemode;
+  mLastShape = -1;
   mMovieSnapCount = 0;
   mFftMode = 0;
   mToolTime = 0;
@@ -380,6 +380,8 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   mIgnoreCurPtChg = 0;
   mAlreadyDrew = false;
   mNeedDraw = false;
+  mDrawingArrow = false;
+  mArrowOn = false;
 
   transStep();
   utilGetLongestTimeString(vi, &str);
@@ -404,8 +406,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, SLICER_WINDOW_TYPE, mCtrl);
 
   // Set up cursor
-  if (mMousemode == IMOD_MMODEL)
-    mGlw->setCursor(*App->modelCursor);
+  setCursor(vi->imod->mousemode);
 
   // Initialize controls
   mQtWindow->setZoomText(mZoom);
@@ -471,13 +472,7 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
   mCz = B3DMIN(vi->zsize - 0.5, B3DMAX(0, mCz));
 
   /* Adjust the cursor if necessary */
-  if (vi->imod->mousemode != mMousemode) {
-    mMousemode = vi->imod->mousemode;
-    if (mMousemode == IMOD_MMODEL)
-      mGlw->setCursor(*App->modelCursor);
-    else
-      mGlw->unsetCursor();
-  }
+  setCursor(vi->imod->mousemode);
 
   if (imodDebug('s'))
     imodPrintStderr("flags on draw %x \n", drawflag);
@@ -753,6 +748,10 @@ void SlicerFuncs::stateToggled(int index, int state)
     draw();
     break;
 
+  case SLICER_TOGGLE_ARROW:
+    toggleArrow();
+    break;
+
   case SLICER_TOGGLE_TIMELOCK:
     mTimeLock = state ? mVi->curTime : 0;
     if (!state)
@@ -760,6 +759,25 @@ void SlicerFuncs::stateToggled(int index, int state)
     break;
   }
 }
+
+/*
+ * Toggle the arrow
+ */
+void SlicerFuncs::toggleArrow(bool drawWin)
+{
+  mArrowOn = !mArrowOn;
+  mDrawingArrow = mArrowOn;
+  mQtWindow->setToggleState(SLICER_TOGGLE_ARROW, mArrowOn ? 1 : 0);
+  mArrowHead.x = mArrowHead.y = mArrowHead.z = 0.;
+  mArrowTail = mArrowHead;
+
+  setCursor(mMousemode, true);
+  if (drawWin)
+    draw();
+  setCursor(mMousemode, true);
+}
+
+
 
 // Toggle classic mode, set center if going to classic and not locked
 void SlicerFuncs::setClassicMode(int state)
@@ -935,6 +953,12 @@ void SlicerFuncs::getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &n
   nyUse = yend - iyStart;
 }
 
+// Take snapshot with the given name or automatically generated name and given format
+int SlicerFuncs::namedSnapshot(QString &fname, int format, bool checkConvert)
+{
+  mGlw->updateGL();
+  return b3dNamedSnapshot(fname, "slicer", format, NULL, checkConvert);
+}
 
 // Tell the slicer angle dialog to set current angles into current row, or
 // into new row if necessary or if flag is set
@@ -1372,13 +1396,12 @@ void SlicerFuncs::mousePress(QMouseEvent *event)
   ivwControlPriority(mVi, mCtrl);
 
   utilRaiseIfNeeded(mQtWindow, event);
-  if (mMousemode == IMOD_MMODEL && utilNeedToSetCursor())
-    mGlw->setCursor(*App->modelCursor);
+  setCursor(mMousemode, utilNeedToSetCursor());
 
   lastmx = firstmx = event->x();
   lastmy = firstmy = event->y();
   if (event->buttons() & ImodPrefs->actualButton(1)) {
-    if (mClassic) {
+    if (mClassic || mDrawingArrow) {
       attachPoint(event->x(), event->y(), ctrl);
     } else {
       but1downt.start();
@@ -1399,8 +1422,11 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
   ivwControlPriority(mVi, mCtrl);
 
   // For button 1 up, if not classic mode, either end panning or call attach
-  if (event->button() == ImodPrefs->actualButton(1) && !mClassic) {
-    if (mousePanning) {
+  if (event->button() == ImodPrefs->actualButton(1) && (!mClassic || mDrawingArrow)) {
+    if (mDrawingArrow) {
+      mDrawingArrow = false;
+      setCursor(mMousemode);
+    } else if (mousePanning) {
       mousePanning = 0;
       drawSelfAndLinked();
     } else
@@ -1463,8 +1489,13 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
       button1 = button2 = button3 = 0;
   }
 
-  // Pan with button 1 if not classic mode
-  if (button1 && !mClassic) {
+  // Button 1 when drawing arrow: update the arrowhead position
+  if (button1 && mDrawingArrow) {
+    getxyz(ex, ey, mArrowHead.x, mArrowHead.y, mArrowHead.z);
+    draw();
+
+    // Pan with button 1 if not classic mode
+  } else if (button1 && !mClassic) {
     cumdx = ex - firstmx;
     cumdy = ey - firstmy;
     if (mousePanning || but1downt.elapsed() > 250 || 
@@ -1540,7 +1571,15 @@ void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
   int drawflag = IMOD_DRAW_XYZ;
 
   vi->zmouse = setxyz(x, y);
-  if (imod->mousemode == IMOD_MMODEL) {
+
+  // Start the arrow; record tail position and angles
+  if (mDrawingArrow) {
+    getxyz(x, y, mArrowTail.x, mArrowTail.y, mArrowTail.z);
+    mArrowHead = mArrowTail;
+    for (int ind = 0; ind < 3; ind++)
+      mArrowAngle[ind] = mTang[ind];
+
+  } else if (imod->mousemode == IMOD_MMODEL) {
     pnt.x = vi->xmouse;
     pnt.y = vi->ymouse;
     pnt.z = vi->zmouse;
@@ -2637,6 +2676,13 @@ void SlicerFuncs::draw()
 {
   if (imodDebug('c'))
     imodPrintStderr("Slicer ID %d in sslice_draw\n", mCtrl);
+
+  // Turn off arrow now if angles don't match
+  if (mArrowOn && (mArrowHead.x || mArrowHead.y || mArrowHead.z) &&
+      (fabs(mArrowAngle[0] - mTang[0]) > 1.e-3 ||
+       fabs(mArrowAngle[1] - mTang[1]) > 1.e-3 ||
+       fabs(mArrowAngle[2] - mTang[2]) > 1.e-3))
+    toggleArrow(false);
   mGlw->updateGL();
   cubeDraw();
   mNeedDraw = false;
@@ -2667,7 +2713,7 @@ void SlicerFuncs::updateImage()
 void SlicerFuncs::paint()
 {
   int i, ival, sliceScaleThresh = 4;
-  int ixStart, iyStart, nxUse, nyUse;
+  int ixStart, iyStart, nxUse, nyUse, xim1, xim2, yim1, yim2;
   int mousing = mousePanning + mouseRotating +
     (ImodPrefs->speedupSlider() ? sliderDragging : 0);
   if (!mImage)
@@ -2759,6 +2805,15 @@ void SlicerFuncs::paint()
   drawCurrentPoint();
 
   mScaleBarSize = scaleBarDraw(mWinx, mWiny, mZoom, 0);
+
+  if (mArrowOn) {
+    getWindowCoords(mArrowTail.x, mArrowTail.y, mArrowTail.z, xim1, yim1, i);
+    getWindowCoords(mArrowHead.x, mArrowHead.y, mArrowHead.z, xim2, yim2, i);
+    if (fabs((double)xim1 - xim2) > 2. || fabs((double)yim1 - yim2) > 2.) {
+      b3dColorIndex(App->arrow);
+      b3dDrawArrow(xim1, yim1, xim2, yim2);
+    }
+  }
 
   // Update toolbar for time
   if (mVi->numTimes) {
@@ -3037,4 +3092,35 @@ void SlicerFuncs::cubePaint()
 
   glFlush();
 
+}
+
+// Sets the cursor for the given mode if necessary, or regardless if setAnyway is true
+void SlicerFuncs::setCursor(int mode, bool setAnyway)
+{
+  Qt::CursorShape shape;
+
+  // Set up a special cursor for the arrow
+  if (mDrawingArrow) {
+    shape = Qt::SizeAllCursor;
+    if (shape != mLastShape || setAnyway) {
+
+      // This one makes the cursor show up a little better on starting/MAC
+      imod_info_input();
+      mGlw->setCursor(QCursor(shape));
+    }
+    mLastShape = shape;
+    return;
+  }
+
+  // Or restore cursor from rubber band or change cursor due to mode change
+  if (mMousemode != mode || mLastShape >= 0 || setAnyway) {
+    if (mode == IMOD_MMODEL) {
+      mGlw->setCursor(*App->modelCursor);
+    } else {
+      mGlw->unsetCursor();
+    }
+    mMousemode = mode;
+    mLastShape = -1;
+    imod_info_input();
+  }
 }

@@ -57,6 +57,7 @@ objectEditForm::objectEditForm(QWidget* parent, Qt::WindowFlags fl)
 
   connect(transSlider, SIGNAL(valueChanged(int)), this, SLOT(transChanged(int)));
   connect(outlineCheckBox, SIGNAL(toggled(bool)), this, SLOT(toggledOutline(bool)));
+  connect(arrowCheckBox, SIGNAL(toggled(bool)), this, SLOT(toggledArrowAtEnd(bool)));
 }
 
 /*
@@ -140,6 +141,11 @@ void objectEditForm::toggledMarkEnds( bool state )
   ioew_ends(state ? 1 : 0);
 }
 
+void objectEditForm::toggledArrowAtEnd( bool state )
+{
+  ioew_arrow(state ? 1 : 0);
+}
+
 void objectEditForm::toggledTime( bool state )
 {
   ioew_time(state ? 1 : 0);
@@ -186,11 +192,13 @@ void objectEditForm::restoreClicked()
 }
 
 // Set the state of the widgets initially or when a new object is selected
-void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, int size )
+void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, 
+                                          bool arrowAtEnd, int size )
 {
   symbolComboBox->setCurrentIndex(which);
   diaSetChecked(fillCheckBox, fill);
   diaSetChecked(markCheckBox, markEnds);
+  diaSetChecked(arrowCheckBox, arrowAtEnd);
   diaSetSlider(sizeSlider, size);
   QString str;
   str.sprintf("%d", size);

@@ -349,10 +349,11 @@ Set the cache
 .I size
 to the given number of sections.  Sections are read from
 the file as needed, intensity-scaled to be stored as bytes, and kept in a
-cache.  By default, the cache is limited to about 128 megabytes.  If your file
+cache.  By default, the cache is limited to about 1 gigabyte, or at least big
+enough for 4 sections.  If your file
 has more than this number of pixels, and you have more memory available, you 
-can use this option to provide enough cache for all sections.  More
-importantly, if you have less than this amount of memory available and your
+can use this option to provide enough cache for all sections. 
+If you have less than this amount of memory available and your
 file has more pixels than there is memory, you should enter an appropriate
 .I size
 to avoid disk swapping.

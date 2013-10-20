@@ -32,6 +32,7 @@ class objectEditForm : public QWidget, public Ui::objectEditForm
   virtual void toggledDraw( bool state );
   virtual void toggledFill( bool state );
   virtual void toggledMarkEnds( bool state );
+  virtual void toggledArrowAtEnd( bool state );
   virtual void toggledTime( bool state );
   virtual void toggledOnSection( bool state );
   virtual void widthChanged( int value );
@@ -45,7 +46,8 @@ class objectEditForm : public QWidget, public Ui::objectEditForm
   virtual void keyReleaseEvent( QKeyEvent * e );
 
  public:
-  virtual void setSymbolProperties( int which, bool fill, bool markEnds, int size );
+  virtual void setSymbolProperties( int which, bool fill, bool markEnds, bool arrowAtEnd,
+                                    int size );
   virtual void setDrawBox( bool state );
   virtual void setObjectName( char * name );
   virtual void setObjectNum( int num );
