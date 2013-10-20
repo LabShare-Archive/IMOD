@@ -21,13 +21,14 @@ assert.exists.file=xcorr%{axis}.log~
 #newstack or blendmont
 [[ifnot = montage]]
 	mb.newstack=+
-	mb.newstack=A
+	mb.newstack.1=A
 	sp.coarse-aligned-image-stack-binning=up
 	cb.reduce-size-with-antialiasing-filter=on
 	run.function.newstack=
 	assert.contains.file=prenewst%{axis}.com|AntialiasFilter*-1
 	cb.reduce-size-with-antialiasing-filter=off
 	sp.coarse-aligned-image-stack-binning=down
+	run.function.newstack=
 	if.var.test-gui.set.var.single-frame-test-gui=
 [[]]
 [[if = montage]]
@@ -150,7 +151,7 @@ mb.tiltxcorr.1=B
 	mb.blendmont.1=A
 [[]]
 assert.sp.coarse-aligned-image-stack-binning=1
-aasert.cb.reduce-size-with-antialiasing-filter=off
+assert.cb.reduce-size-with-antialiasing-filter=off
 [[ifnot = montage]]
 	assert.cb.convert-to-bytes=1
 	assert.cb.float-intensities-to-mean=1
