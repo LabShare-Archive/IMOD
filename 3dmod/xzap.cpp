@@ -1131,8 +1131,8 @@ void ZapFuncs::paint()
                        mRbMouseX1 - mRbMouseX0, 
                        mRbMouseY1 - mRbMouseY0);
     } 
-    if (mArrowOn && (fabs(xpos(mArrowXtail) - xpos(mArrowXhead)) > 2. || 
-                     fabs(ypos(mArrowYtail) - ypos(mArrowYhead)) > 2.)) {
+    if (mArrowOn && (fabs((double)xpos(mArrowXtail) - xpos(mArrowXhead)) > 2. || 
+                     fabs((double)ypos(mArrowYtail) - ypos(mArrowYhead)) > 2.)) {
       b3dColorIndex(App->arrow);
       b3dDrawArrow(xpos(mArrowXtail), ypos(mArrowYtail), 
                    xpos(mArrowXhead), ypos(mArrowYhead));
