@@ -208,66 +208,41 @@ public final class ApplicationManager extends BaseManager implements
 
   // Process dialog references
   private SetupDialogExpert setupDialogExpert = null;
-
   private PreProcessingDialog preProcDialogA = null;
-
   private PreProcessingDialog preProcDialogB = null;
-
   private CoarseAlignDialog coarseAlignDialogA = null;
-
   private CoarseAlignDialog coarseAlignDialogB = null;
-
   private FiducialModelDialog fiducialModelDialogA = null;
-
   private FiducialModelDialog fiducialModelDialogB = null;
-
   private AlignmentEstimationDialog fineAlignmentDialogA = null;
-
   private AlignmentEstimationDialog fineAlignmentDialogB = null;
-
   private TomogramPositioningExpert tomogramPositioningExpertA = null;
-
   private TomogramPositioningExpert tomogramPositioningExpertB = null;
-
   private FinalAlignedStackExpert finalAlignedStackExpertA = null;
-
   private FinalAlignedStackExpert finalAlignedStackExpertB = null;
-
   private TomogramGenerationExpert tomogramGenerationExpertA = null;
-
   private TomogramGenerationExpert tomogramGenerationExpertB = null;
-
   private TomogramCombinationDialog tomogramCombinationDialog = null;
-
   private PostProcessingDialog postProcessingDialog = null;
-
   private CleanUpDialog cleanUpDialog = null;
-
   private MetaData metaData = null;
 
   private MainTomogramPanel mainPanel;
-
   private ProcessTrack processTrack;
-
   private ProcessManager processMgr;
 
   private TomogramState state = null;
 
   private boolean[] advancedA = new boolean[DialogType.TOTAL_RECON];
-
   private boolean[] advancedB = new boolean[DialogType.TOTAL_RECON];
 
   private ReconScreenState screenStateA = null;
-
   private ReconScreenState screenStateB = null;
-
   private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
-
   private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
 
   // True if reconnect() has been run for the specified axis.
   private boolean reconnectRunA = false;
-
   private boolean reconnectRunB = false;
 
   ComScriptManager comScriptMgr = new ComScriptManager(this);
@@ -1366,6 +1341,7 @@ public final class ApplicationManager extends BaseManager implements
     else {
       coarseAlignDialogA = coarseAlignDialog;
     }
+    coarseAlignDialog.setParameters(metaData);
     // Create the dialog box
     comScriptMgr.loadXcorr(axisID);
     comScriptMgr.loadUndistort(axisID);
@@ -1428,6 +1404,7 @@ public final class ApplicationManager extends BaseManager implements
       updateBlendmontInXcorrCom(axisID);
       try {
         if (metaData.getViewType() != ViewType.MONTAGE) {
+          coarseAlignDialog.getParameters(metaData);
           updatePrenewstCom(coarseAlignDialog.getNewstackDisplay(), axisID, false, false);
         }
       }

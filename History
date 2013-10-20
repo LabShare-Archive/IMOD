@@ -6,6 +6,9 @@ A and B not being the same size in X and Y, as this is not an error.
 
 10/19/13: In eTomo resizing when the Cleanup dialog is finished.(Bug# 1636)
 
+10/18/13: Added a antialiasFilter field for the newstack panels in eTomo -
+Coarse Alignment and Final Aligned Stack.(Bug# 1737)
+
 10/18/13: Added toolbar buttons to Zap and Slicer for drawing a single thick
 arrow for snapshots; also added an object property to draw arrowheads at the
 ends of contours.

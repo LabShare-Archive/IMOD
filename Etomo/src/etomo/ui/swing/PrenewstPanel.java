@@ -157,6 +157,8 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
@@ -165,7 +167,10 @@ import etomo.comscript.NewstParam;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.EtomoNumber;
+import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
@@ -177,31 +182,45 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
   private final EtomoPanel pnlPrenewst = new EtomoPanel();
   private final JPanel pnlBody = new JPanel();
   private final JPanel pnlCheckBoxes = new JPanel();
-  private final ApplicationManager applicationManager;
-
-  private final LabeledSpinner spinBinning;
   private final CheckBox cbByteModeToOutput = new CheckBox("Convert to bytes");
   private final CheckBox cbMeanFloatDensities = new CheckBox("Float intensities to mean");
   private final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
       "View Aligned Stack In 3dmod", this);
 
+  private final ApplicationManager applicationManager;
+  private final LabeledSpinner spinBinning;
   private final AxisID axisID;
   private final Run3dmodButton btnCoarseAlign;
   private final ActionListener actionListener;
   private final PanelHeader header;
   private final CoarseAlignDialog parent;
   private final DialogType dialogType;
+  private final CheckBox cbAntialiasFilter;
+  private final EtomoNumber antialiasFilterValue;
 
-  PrenewstPanel(ApplicationManager applicationManager, AxisID id, DialogType dialogType,
-      CoarseAlignDialog parent, GlobalExpandButton globalAdvancedButton) {
+  PrenewstPanel(final ApplicationManager applicationManager, final AxisID id,
+      final DialogType dialogType, final CoarseAlignDialog parent,
+      final GlobalExpandButton globalAdvancedButton) {
     this.parent = parent;
     axisID = id;
     this.applicationManager = applicationManager;
     this.dialogType = dialogType;
     btnCoarseAlign = (Run3dmodButton) applicationManager.getProcessResultDisplayFactory(
         axisID).getCoarseAlign();
-    btnCoarseAlign.setContainer(this);
+    boolean montage = applicationManager.getMetaData().getViewType() == ViewType.MONTAGE;
+    JPanel pnlAntialiasFilter;
+    if (!montage) {
+      pnlAntialiasFilter = new JPanel();
+      cbAntialiasFilter = new CheckBox("Reduce size with antialiasing filter");
+      antialiasFilterValue = new EtomoNumber();
+    }
+    else {
+      pnlAntialiasFilter = null;
+      cbAntialiasFilter = null;
+      antialiasFilterValue = null;
+    }
 
+    btnCoarseAlign.setContainer(this);
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes, BoxLayout.Y_AXIS));
@@ -210,16 +229,19 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     spinBinning = LabeledSpinner.getInstance("Coarse aligned image stack binning ", 1, 1,
         8, 1);
     spinBinning.setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
-    // if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-    // spinBinning.setEnabled(false);
-    // }
     JPanel pnlBinning = new JPanel();
     pnlBinning.setLayout(new BoxLayout(pnlBinning, BoxLayout.X_AXIS));
     pnlBinning.setAlignmentX(Box.CENTER_ALIGNMENT);
     pnlBinning.add(spinBinning.getContainer());
     pnlBinning.add(Box.createHorizontalGlue());
     UIUtilities.addWithYSpace(pnlBody, pnlBinning);
-    if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
+    if (cbAntialiasFilter != null) {
+      pnlAntialiasFilter.setLayout(new BoxLayout(pnlAntialiasFilter, BoxLayout.X_AXIS));
+      pnlAntialiasFilter.add(cbAntialiasFilter);
+      pnlAntialiasFilter.add(Box.createHorizontalGlue());
+      UIUtilities.addWithYSpace(pnlBody, pnlAntialiasFilter);
+    }
+    if (montage) {
       header = PanelHeader.getAdvancedBasicInstance("Blendmont", this, dialogType,
           globalAdvancedButton);
     }
@@ -258,15 +280,16 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     actionListener = new PrenewstPanelActionListener(this);
     btnCoarseAlign.addActionListener(actionListener);
     btnImod.addActionListener(actionListener);
+    spinBinning.addChangeListener(new PrenewstBinningChangeListener(this));
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlPrenewst.addMouseListener(mouseAdapter);
     setToolTipText();
   }
 
-  public void expand(GlobalExpandButton button) {
+  public void expand(final GlobalExpandButton button) {
   }
 
-  public void expand(ExpandButton button) {
+  public void expand(final ExpandButton button) {
     if (header.equalsOpenClose(button)) {
       pnlBody.setVisible(button.isExpanded());
     }
@@ -276,10 +299,20 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  void updateAdvanced(boolean state) {
+  void updateAdvanced(final boolean state) {
     spinBinning.setVisible(state);
+    if (cbAntialiasFilter != null) {
+      cbAntialiasFilter.setVisible(state);
+    }
     cbByteModeToOutput.setVisible(state);
     cbMeanFloatDensities.setVisible(state);
+  }
+
+  private void updateEnabled() {
+    if (cbAntialiasFilter != null) {
+      Number value = spinBinning.getValue();
+      cbAntialiasFilter.setEnabled(value != null && value.intValue() > 1);
+    }
   }
 
   public void done() {
@@ -290,39 +323,55 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     return pnlPrenewst;
   }
 
-  void setAlignmentX(float align) {
+  void setAlignmentX(final float align) {
     pnlPrenewst.setAlignmentX(align);
   }
 
-  public void setParameters(ConstNewstParam prenewstParams) {
+  void setParameters(final ConstMetaData metaData) {
+    if (!metaData.isAntialiasFilterNull(dialogType, axisID)) {
+      antialiasFilterValue.set(metaData.getAntialiasFilter(dialogType, axisID));
+    }
+  }
+
+  public void setParameters(final ConstNewstParam prenewstParams) {
     int binning = prenewstParams.getBinByFactor();
     if (binning > 1) {
       spinBinning.setValue(binning);
+    }
+    boolean antialiasFilter = !prenewstParams.isAntialiasFilterNull();
+    cbAntialiasFilter.setSelected(antialiasFilter);
+    if (antialiasFilter) {
+      antialiasFilterValue.set(prenewstParams.getAntialiasFilter());
     }
     cbByteModeToOutput
         .setSelected(prenewstParams.getModeToOutput() == NewstParam.DATA_MODE_BYTE);
     cbMeanFloatDensities
         .setSelected(prenewstParams.getFloatDensities() == NewstParam.FLOAT_DENSITIES_MEAN);
+    updateEnabled();
   }
 
-  public void setParameters(BaseScreenState screenState) {
+  public void setParameters(final BaseScreenState screenState) {
     // btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
     // .getButtonStateKey()));
     header.setButtonStates(screenState);
   }
 
-  public void getParameters(BaseScreenState screenState) {
+  public void getParameters(final BaseScreenState screenState) {
     header.getButtonStates(screenState);
   }
 
-  public void setParameters(BlendmontParam blendmontParams) {
+  public void getParameters(final MetaData metaData) {
+    metaData.setAntialiasFilter(dialogType, axisID, antialiasFilterValue);
+  }
+
+  public void setParameters(final BlendmontParam blendmontParams) {
     ConstEtomoNumber binning = blendmontParams.getBinByFactor();
     if (!binning.isNull()) {
       spinBinning.setValue(binning);
     }
   }
 
-  public boolean getParameters(NewstParam prenewstParams, final boolean doValidation) {
+  public boolean getParameters(final NewstParam prenewstParams, final boolean doValidation) {
     int binning = ((Integer) spinBinning.getValue()).intValue();
 
     // Only explcitly write out the binning if its value is something other than
@@ -332,6 +381,12 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     }
     else {
       prenewstParams.setBinByFactor(Integer.MIN_VALUE);
+    }
+    // Save when field is disabled
+    boolean antialiasFilter = cbAntialiasFilter.isSelected();
+    prenewstParams.setAntialiasFilter(antialiasFilter);
+    if (antialiasFilter) {
+      prenewstParams.setAntialiasFilterValue(antialiasFilterValue);
     }
     if (cbByteModeToOutput.isSelected()) {
       prenewstParams.setModeToOutput(NewstParam.DATA_MODE_BYTE);
@@ -355,7 +410,8 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     return ProcessName.PRENEWST;
   }
 
-  public boolean getParameters(BlendmontParam blendmontParam, final boolean doValidation) {
+  public boolean getParameters(final BlendmontParam blendmontParam,
+      final boolean doValidation) {
     blendmontParam.setBinByFactor(((Integer) spinBinning.getValue()).intValue());
     return true;
   }
@@ -363,7 +419,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
   /**
    * Right mouse button context menu
    */
-  public void popUpContextMenu(MouseEvent mouseEvent) {
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
     String[] manPagelabel = { "Newstack" };
     String[] manPage = { "newstack.html" };
     String[] logFileLabel = { "Prenewst" };
@@ -389,9 +445,15 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     btnCoarseAlign
         .setToolTipText("Use transformations to produce stack of aligned images.");
     btnImod.setToolTipText("Use 3dmod to view the coarsely aligned images.");
+    if (cbAntialiasFilter != null) {
+      cbAntialiasFilter
+          .setToolTipText("Use antialiased image reduction instead binning with the "
+              + "default filter in Newstack; useful for data from direct detection "
+              + "cameras.");
+    }
   }
 
-  public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+  public void action(final Run3dmodButton button, final Run3dmodMenuOptions menuOptions) {
     buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(), menuOptions);
   }
 
@@ -408,7 +470,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  void buttonAction(String command, Deferred3dmodButton deferred3dmodButton,
+  void buttonAction(final String command, final Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID, btnCoarseAlign, null, deferred3dmodButton,
@@ -419,15 +481,27 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
     }
   }
 
-  class PrenewstPanelActionListener implements ActionListener {
-    PrenewstPanel adaptee;
+  private static final class PrenewstPanelActionListener implements ActionListener {
+    private final PrenewstPanel adaptee;
 
-    PrenewstPanelActionListener(PrenewstPanel adaptee) {
+    private PrenewstPanelActionListener(final PrenewstPanel adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       adaptee.buttonAction(event.getActionCommand(), null, null);
+    }
+  }
+
+  private static final class PrenewstBinningChangeListener implements ChangeListener {
+    private final PrenewstPanel panel;
+
+    private PrenewstBinningChangeListener(final PrenewstPanel panel) {
+      this.panel = panel;
+    }
+
+    public void stateChanged(final ChangeEvent event) {
+      panel.updateEnabled();
     }
   }
 }

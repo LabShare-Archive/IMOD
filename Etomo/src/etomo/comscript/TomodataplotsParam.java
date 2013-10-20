@@ -97,7 +97,7 @@ public final class TomodataplotsParam {
     public static final Task RESID = new Task("Plot global mean residual",
         TomodataplotsParam.TypeOfDataToPlot.RESID, FileType.ALIGN_SOLUTION_LOG);
     public static final Task AVER_RESID = new Task(
-        "Plot the average of the mean residual",
+        "Plot average of local mean residual",
         TomodataplotsParam.TypeOfDataToPlot.AVER_RESID, FileType.ALIGN_SOLUTION_LOG);
     public static final Task SERIAL_SECTIONS_MEAN_MAX = new Task("Plot edge errors",
         TomodataplotsParam.TypeOfDataToPlot.MEAN_MAX, FileType.PREBLEND_LOG);
