@@ -94,7 +94,7 @@ centered on the current model point unless locked (classic mode).
 <LI>The <B>Shift lock</B> button (<B>Sh</B>) toggles a mode in which the second
 and third mouse buttons and numeric keypad keys operate as if the Shift key
 were held down.
-<LI>The <B>IM/FT</B> button toggles between displaying the image slice or
+<LI>The <B>FT</B> button toggles between displaying the image slice or
 its Fourier transform.  The entire image in the whole window, including any
 gray borders, is padded into a square array, then the boundaries of the
 actual image are tapered down to match any gray borders.  This image is
@@ -110,6 +110,16 @@ transform is based on.  To see the transform at a higher zoom,
 increase the zoom and increase the window size by the same amount.
 High-resolution mode will sample pixels with accurate interpolation
 without changing the number of pixels that the transform is based on.
+<LI>The <B>Arrow</B> button allows you to draw an arrow quickly for pointing
+  out a feature in the image.  Press the button, then move the mouse to the
+  desired position for the tail of the arrow, press the first mouse button,
+  and hold it down while positioning the head of the arrow.  The arrow can be drawn
+  only at the current rotation angles, so it is turned off if you change the
+  angles.  The arrow will stay at the same image position if you pan the
+  image.  It will also stay in the same position in the window if you step
+  through planes parallel to the slice with <B>PageUp</B> and <B>PageDown</B> 
+  in this slicer window, but not if you step through Z elsewhere.
+  Turn off the button to remove the arrow.
 <LI>The <B>show slice</b> button will cause lines to be drawn in the 
 XYZ and ZaP windows to show the intersection of the current 
 slice.

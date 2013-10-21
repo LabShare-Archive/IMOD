@@ -26,11 +26,14 @@
 <BR><A HREF = "#Fiducialless Quick">5.1. Making a Quick Tomogram with Correlation Alignment</A>
 <BR><A HREF = "#Fixing Montage Edges">5.2. Fixing Montage Edges</A>
 <BR><A HREF = "#GETTING FIDUCIAL">6. FIDUCIAL MODEL GENERATION</A>
-<BR><A HREF = "#TrackingSeed">6.1. Tracking Gold from a Seed Model</A>
-<BR><A HREF = "#Reseeding Model">6.2. Using Beadtrack to Extend a Model</A>
-<BR><A HREF = "#Transferring Fiducial">6.3. Getting Fiducials for a Second Axis</A>
-<BR><A HREF = "#PatchTracking">6.4. Local Patch Tracking</A>
-<BR><A HREF = "#UsingRaptor">6.5. Using RAPTOR to Make a Fiducial Model</A>
+<BR><A HREF = "#AutomaticSeed">6.1. Generating a Seed Model Automatically</A>
+<BR><A HREF = "#ProblemsAutoSeed">6.2. Solving Problems with Automatic Seed Generation</A>
+<BR><A HREF = "#ManualSeed">6.3. Making a Seed Model Manually in 3dmod</A>
+<BR><A HREF = "#TrackingSeed">6.4. Tracking Gold from a Seed Model</A>
+<BR><A HREF = "#Reseeding Model">6.5. Using Beadtrack to Extend a Model</A>
+<BR><A HREF = "#Transferring Fiducial">6.6. Getting Fiducials for a Second Axis</A>
+<BR><A HREF = "#PatchTracking">6.7. Local Patch Tracking</A>
+<BR><A HREF = "#UsingRaptor">6.8. Using RAPTOR to Make a Fiducial Model</A>
 <BR><A HREF = "#FINAL ALIGNMENT">7. FINE ALIGNMENT</A>
 <BR><A HREF = "#Running Tiltalign">7.1. Running Tiltalign</A>
 <BR><A HREF = "#Background Grouping">7.2. Background on Grouping Variables and Solving for Distortion</A>
@@ -203,7 +206,7 @@ separators but must not contain spaces or other characters that could
 confuse a Unix shell or the IMOD processing tools.  Specifically, the
 following characters are known to give problems:
 <pre>
-   ` ' " ! # $ % & * ( ) { } [ ; < > / ? \ |
+   ` ' " ! # $ % & * ( ) { } [ ; < > / ? \ | "
 </pre>
 It appears that all of these characters can be used safely in filenames
 (although colon is not allowed in Windows):
@@ -815,17 +818,61 @@ partly on the displacements that you just modified.
 6. FIDUCIAL MODEL GENERATION
 </H3>
 <P>
-There are two or three ways to get a model that can be used to align the tilt
-series.  The first is the classical method of marking gold beads on the
-zero-degree view and using <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> to
-find their locations in the rest of the tilt series.  The second involves
+There are several ways to get a model that can be used to align the tilt
+series.  The first involves starting with a collection of gold beads on the
+zero-degree view, referred to a seed model, and using 
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> to
+find their locations in the rest of the tilt series.  The seed points can be
+marked manually or selected automatically.  The second method involves
 tracking small patches of the image through the series by cross-correlating
 each patch from one view to the next with 
 <A HREF = "man/tiltxcorr.html#TOP">Tiltxcorr</A>.  The third method involves using
 <A HREF = "man/raptor.html#TOP">RAPTOR</A>  to find beads automatically.
 </P>
-<H4><A NAME = "TrackingSeed"></A>
-6.1. Tracking Gold from a Seed Model
+<H4><A NAME = "AutomaticSeed"></A>
+6.1. Generating a Seed Model Automatically
+</H4>
+<P>
+A seed model can be generated automatically by 
+<AH autofidseed>, which aims to select a well-distributed set of fiducials of a
+  desired number through a series of operations:
+<OL>
+<LI> All gold beads are found on a set of 3 views around zero tilt, separated
+  by about 2 degrees, using <AH imodfindbeads>.  
+  
+<LI> The beads are tracked with 3 separate runs of
+<AH beadtrack> through the 11 views nearest to zero tilt, starting each time
+    with a seed containing all points on one of the 3 views.
+<ILI> If you specify that gold is on two surfaces, information from the
+  tracking runs on the 3D location
+  of the beads is used by <AH sortbeadsurfs> to sort the beads onto two
+  surfaces separately for each of the 3 tracking runs.
+<LI> <AH pickbestseed> selects the final seed model by combining all of the
+    information from the 3 tracking runs.  It assigns a score to each bead
+    based on how well it tracked and fit an alignment model in
+    each <AH beadtrack> run.  It selects beads in a series of phases, first
+    adding the best-scoring beads, then filling in areas of low density with
+    the best nearby beads.  If gold is to be selected on two surfaces, these
+    operations are run separately for the two surfaces, then beads are added
+    on the majority surface to make up for a deficiency on the minority
+    surface.
+</OL>
+If there are not enough beads
+  on 3 views, <AH autofidseed> will rerun the first step with 5 or 7 views,
+  and the other steps will work with correspondingly more data.
+<P>
+Two kinds of beads are identified in <AH pickbestseed> and excluded from
+    selection by default: clustered beads, which are within 2 bead diameters
+    or each other or would become so at the highest tilt; and elongated
+    beads, which appear not to be round and could be two overlapping beads.
+</P>
+<H4><A NAME = "ProblemsAutoSeed"></A>
+6.2. Solving Problems with Automatic Seed Generation
+</H4>
+<P>
+</P>
+<H4><A NAME = "ManualSeed"></A>
+6.3. Making a Seed Model Manually in 3dmod
 </H4>
 <P>
      The first step is to set up a seed model.  Press
@@ -875,6 +922,10 @@ acquired with a CCD camera, or
 6-8 fiducials per 500 by 500 pixel area digitized from film.  (See
 <A HREF = "#Using Local Alignments">Using Local Alignments</A>.)
 Save the seed model when you are done.
+</P>
+<H4><A NAME = "TrackingSeed"></A>
+6.4. Tracking Gold from a Seed Model
+</H4>
 <P>
 <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>
 proceeds from one view to the next, tracking as many beads as
@@ -962,7 +1013,7 @@ and allow Beadtrack to track those beads as far as possible.
 
 </P>
 <H4><A NAME = "Reseeding Model"></A>
-6.2. Using Beadtrack to Extend a Model
+6.5. Using Beadtrack to Extend a Model
 </H4>
 <P>
 Sometimes you will want to have <A HREF =
@@ -986,7 +1037,7 @@ because of ambiguities, you should uncheck <B>Fill seed model gaps</B>.
 
 </P>
 <H4><A NAME = "Transferring Fiducial"></A>
-6.3. Getting Fiducials for a Second Axis
+6.6. Getting Fiducials for a Second Axis
 </H4>
 <P>
 If you are doing a double-tilt series, at least some (8-10) of the beads
@@ -1062,7 +1113,7 @@ you do this, then when you prepare to combine the two tomograms, you would
 specify that only the first 5 beads correspond.
 </P>
 <H4><A NAME = "PatchTracking"></A>
-6.4. Local Patch Tracking
+6.7. Local Patch Tracking
 </H4>
 <P>
 When there are insufficient fiducials, local patch tracking can provide a
@@ -1182,7 +1233,7 @@ corresponding points for the initial alignment between the two tomograms,
 since there are no corresponding fiducials.
 </P>
 <H4><A NAME = "UsingRaptor"></A>
-6.5. Using RAPTOR to Make a Fiducial Model 
+6.8. Using RAPTOR to Make a Fiducial Model 
 </H4>
 <P>
 The <A HREF = "man/raptor.html#TOP">RAPTOR</A> program from Stanford is now part
