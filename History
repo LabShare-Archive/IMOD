@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/21/13: In eTomo, preventing embedded spaces in dataset names.(Bug# 1667)
+
 10/19/13: In eTomo - Combine, removed the message complaining about tomograms
 A and B not being the same size in X and Y, as this is not an error.
 (Bug# 1651)
