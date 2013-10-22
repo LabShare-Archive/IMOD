@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/22/13: Fixed another warping-related crash in Midas.
+
 10/22/13: Made it possible to start Zap rubber band from ANY corner.
 
 10/21/13: Fixed a problem that crashed 3dmod when a slicer angle is very
