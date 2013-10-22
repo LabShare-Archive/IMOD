@@ -1240,8 +1240,8 @@ static void findIndexLimits(int isize, int xsize, float xo, float xsx,
  
     /* Otherwise evaluate place where line cuts volume for this coordinate */
   } else if (xsx > 1.e-6 || xsx < -1.e-6) {
-    flower = -(startCoord + 1.) / xsx;
-    fupper = (xsize - startCoord) / xsx;
+    flower = (0.1 - startCoord) / xsx;
+    fupper = (xsize - 0.1 - startCoord) / xsx;
     if (xsx < 0) {
       ftmp = flower;
       flower = fupper;
@@ -1366,6 +1366,8 @@ static void fillArraySegment(int jstart, int jlimit)
 
       if (sshq) {
         /* For HQ, do tests all the time since they are minor component */
+        // Also use the increments to step between points, because computing from 
+        // i * xsx etc is > 20% slower for some reason here
         for (i = outerStart; i < outerEnd; i++) {
 
           /* DNM & RJG 2/12/03: remove floor calls - they are dog-slow only
@@ -1447,7 +1449,12 @@ static void fillArraySegment(int jstart, int jlimit)
       } else {
 
         /* Non HQ data */
+        // Here we should compute coordinates with multiplication since there is no
+        // testing, but it costs < 10% for some reason.
         for (i = outerStart; i < innerStart; i++) {
+          x = xo + i * xsx;
+          y = yo + i * ysx;
+          z = zo + i * zsx;
           xi = (int)x;
           yi = (int)y;
           zi = (int)(z + 0.5);
@@ -1463,50 +1470,54 @@ static void fillArraySegment(int jstart, int jlimit)
           else
             cidata[i + cindex] = val;
                     
-          x += xsx;
-          y += ysx;
-          z += zsx;
         }
 
         if (k) {
           for (i = innerStart; i < innerEnd; i++) {
+            x = xo + i * xsx;
+            y = yo + i * ysx;
+            z = zo + i * zsx;
             xi = (int)x;
             yi = (int)y;
             zi = (int)(z + 0.5);
             val = (*ivwFastGetValue)(xi, yi, zi);
             cidata[i + cindex] += val;
-            x += xsx;
-            y += ysx;
-            z += zsx;
           }
         } else {
           for (i = innerStart; i < innerEnd; i++) {
+            x = xo + i * xsx;
+            y = yo + i * ysx;
+            z = zo + i * zsx;
             xi = (int)x;
             yi = (int)y;
             zi = (int)(z + 0.5);
             /*if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
               zi >= 0 && zi < zsize) */
             val = (*ivwFastGetValue)(xi, yi, zi);
-            /*else {
+            /* else {
               imodPrintStderr("BAD %d %d %d %d %d %f %f %d %d\n", i, j, xi, yi,
                               zi, fstart, fend, innerStart, innerEnd);
               fstart = 0;
               fend = isize;
               findIndexLimits(isize, xsize, xo, xsx, 0., &fstart, &fend);
-              imodPrintStderr("X %f %f\n", fstart, fend); 
+              imodPrintStderr("X %f %f %f\n", xsx, fstart, fend); 
+              fstart = 0;
+              fend = isize;
               findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend);
-              imodPrintStderr("Y %f %f\n", fstart, fend); 
+              imodPrintStderr("Y %f %f %f %f\n", yo, ysx, fstart, fend); 
+              fstart = 0;
+              fend = isize;
               findIndexLimits(isize, zsize, zo, zsx, 0.5, &fstart, &fend);
-              imodPrintStderr("Z %f %f\n", fstart, fend); 
+              imodPrintStderr("Z %f %f %f\n", zsx, fstart, fend); 
               } */
             cidata[i + cindex] = val;
-            x += xsx;
-            y += ysx;
-            z += zsx;
           }
         }
 
         for (i = innerEnd; i < outerEnd; i++) {
+          x = xo + i * xsx;
+          y = yo + i * ysx;
+          z = zo + i * zsx;
           xi = (int)x;
           yi = (int)y;
           zi = (int)(z + 0.5);
@@ -1522,9 +1533,6 @@ static void fillArraySegment(int jstart, int jlimit)
           else
             cidata[i + cindex] = val;
                     
-          x += xsx;
-          y += ysx;
-          z += zsx;
         }
 
       }
