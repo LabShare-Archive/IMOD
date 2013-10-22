@@ -397,6 +397,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String STACK_KEY = "Stack";
   private static final String GEN_KEY = "Gen";
   private static final String POST_KEY = "Post";
+  private static final String COARSE_KEY = "Coarse";
 
   // Panel keys
   private static final String NEWSTACK_OR_BLENDMONT_KEY = "NewstackOrBlendmont";
@@ -817,6 +818,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + "Tab.Raptor");
   private final EtomoNumber raptorTabB = new EtomoNumber(TRACK_KEY + "."
       + SECOND_AXIS_KEY + "Tab.Raptor");
+  private final EtomoNumber coarseAntialiasFilterA = new EtomoNumber(COARSE_KEY + "."
+      + FIRST_AXIS_KEY + ".AntialiasFilter");
+  private final EtomoNumber coarseAntialiasFilterB = new EtomoNumber(COARSE_KEY + "."
+      + SECOND_AXIS_KEY + ".AntialiasFilter");
+  private final EtomoNumber stackAntialiasFilterA = new EtomoNumber(STACK_KEY + "."
+      + FIRST_AXIS_KEY + ".AntialiasFilter");
+  private final EtomoNumber stackAntialiasFilterB = new EtomoNumber(STACK_KEY + "."
+      + SECOND_AXIS_KEY + ".AntialiasFilter");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1123,6 +1132,26 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.adjustedFocusB.set(adjustedFocus);
   }
 
+  public void setAntialiasFilter(final DialogType dialogType, final AxisID axisID,
+      final ConstEtomoNumber input) {
+    if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      if (axisID == AxisID.SECOND) {
+        coarseAntialiasFilterB.set(input);
+      }
+      else {
+        coarseAntialiasFilterA.set(input);
+      }
+    }
+    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+      if (axisID == AxisID.SECOND) {
+        stackAntialiasFilterB.set(input);
+      }
+      else {
+        stackAntialiasFilterA.set(input);
+      }
+    }
+  }
+
   public void setAxisType(final AxisType at) {
     axisType = at;
     setAxisPrepends();
@@ -1154,14 +1183,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public final void setBStackProcessed(final boolean bStackProcessed) {
+  public void setBStackProcessed(final boolean bStackProcessed) {
     if (this.bStackProcessed == null) {
       this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
     }
     this.bStackProcessed.set(bStackProcessed);
   }
 
-  public final void setBStackProcessed(final String bStackProcessed) {
+  public void setBStackProcessed(final String bStackProcessed) {
     if (this.bStackProcessed == null) {
       this.bStackProcessed = new EtomoBoolean2(B_STACK_PROCESSED_GROUP);
     }
@@ -1801,6 +1830,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     seedAndTrackTabB.reset();
     raptorTabA.reset();
     raptorTabB.reset();
+    coarseAntialiasFilterA.reset();
+    coarseAntialiasFilterB.reset();
+    stackAntialiasFilterA.reset();
+    stackAntialiasFilterB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2114,6 +2147,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     seedAndTrackTabB.load(props, prepend);
     raptorTabA.load(props, prepend);
     raptorTabB.load(props, prepend);
+    coarseAntialiasFilterA.load(props, prepend);
+    coarseAntialiasFilterB.load(props, prepend);
+    stackAntialiasFilterA.load(props, prepend);
+    stackAntialiasFilterB.load(props, prepend);
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2485,6 +2522,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     seedAndTrackTabB.store(props, prepend);
     raptorTabB.store(props, prepend);
     raptorTabA.store(props, prepend);
+    coarseAntialiasFilterA.store(props, prepend);
+    coarseAntialiasFilterB.store(props, prepend);
+    stackAntialiasFilterA.store(props, prepend);
+    stackAntialiasFilterB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -2518,7 +2559,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return stackEraseGoldModelUseFidA.is();
   }
 
-  public void setEraseGoldModelUseFid(final AxisID axisID, boolean input) {
+  public void setEraseGoldModelUseFid(final AxisID axisID, final boolean input) {
     if (axisID == AxisID.SECOND) {
       stackEraseGoldModelUseFidB.set(input);
     }
@@ -2535,7 +2576,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postTrimvolRotateX.is();
   }
 
-  public void setPostFlattenWarpInputTrimVol(boolean input) {
+  public void setPostFlattenWarpInputTrimVol(final boolean input) {
     postFlattenInputTrimVol.set(input);
   }
 
@@ -2543,7 +2584,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postFlattenWarpContoursOnOneSurface.is();
   }
 
-  public void setPostFlattenWarpContoursOnOneSurface(boolean input) {
+  public void setPostFlattenWarpContoursOnOneSurface(final boolean input) {
     postFlattenWarpContoursOnOneSurface.set(input);
   }
 
@@ -2551,7 +2592,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postFlattenWarpSpacingInX.toString();
   }
 
-  public void setPostFlattenWarpSpacingInX(String input) {
+  public void setPostFlattenWarpSpacingInX(final String input) {
     postFlattenWarpSpacingInX.set(input);
   }
 
@@ -2615,7 +2656,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postTrimvolZMax.toString();
   }
 
-  public void setPostFlattenWarpSpacingInY(String input) {
+  public void setPostFlattenWarpSpacingInY(final String input) {
     postFlattenWarpSpacingInY.set(input);
   }
 
@@ -2635,21 +2676,21 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return postTrimvolSwapYZ.is();
   }
 
-  public boolean isTrackLengthAndOverlapSet(AxisID axisID) {
+  public boolean isTrackLengthAndOverlapSet(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return !trackLengthAndOverlapB.isEmpty();
     }
     return !trackLengthAndOverlapA.isEmpty();
   }
 
-  public boolean isTrackOverlapOfPatchesXandYSet(AxisID axisID) {
+  public boolean isTrackOverlapOfPatchesXandYSet(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return !trackOverlapOfPatchesXandYB.isEmpty();
     }
     return !trackOverlapOfPatchesXandYA.isEmpty();
   }
 
-  public void setPostSqueezeVolInputTrimVol(boolean input) {
+  public void setPostSqueezeVolInputTrimVol(final boolean input) {
     postSqueezeVolInputTrimVol.set(input);
   }
 
@@ -2677,21 +2718,21 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolRotateX.set(input);
   }
 
-  public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
+  public ConstEtomoNumber getNoBeamTiltSelected(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return noBeamTiltSelectedB;
     }
     return noBeamTiltSelectedA;
   }
 
-  public ConstEtomoNumber getFixedBeamTiltSelected(AxisID axisID) {
+  public ConstEtomoNumber getFixedBeamTiltSelected(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return fixedBeamTiltSelectedB;
     }
     return fixedBeamTiltSelectedA;
   }
 
-  public ConstEtomoNumber getFixedBeamTilt(AxisID axisID) {
+  public ConstEtomoNumber getFixedBeamTilt(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return fixedBeamTiltB;
     }
@@ -2743,7 +2784,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return finalStackPolynomialOrderA.getInt();
   }
 
-  public IntKeyList getTomoGenTrialTomogramNameList(AxisID axisID) {
+  public IntKeyList getTomoGenTrialTomogramNameList(final AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return tomoGenTrialTomogramNameListB;
     }
@@ -2771,14 +2812,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return trackOverlapOfPatchesXandYA.toString();
   }
 
-  public void setTomoGenTrialTomogramNameList(final AxisID axisID, IntKeyList input) {
+  public void setTomoGenTrialTomogramNameList(final AxisID axisID, final IntKeyList input) {
     if (axisID == AxisID.SECOND) {
       tomoGenTrialTomogramNameListB = input;
     }
     tomoGenTrialTomogramNameListA = input;
   }
 
-  public void setTrackLengthAndOverlap(final AxisID axisID, String input) {
+  public void setTrackLengthAndOverlap(final AxisID axisID, final String input) {
     if (axisID == AxisID.SECOND) {
       trackLengthAndOverlapB.set(input);
     }
@@ -3053,6 +3094,23 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public ConstEtomoNumber getAdjustedFocusB() {
     return adjustedFocusB;
+  }
+
+  public ConstEtomoNumber getAntialiasFilter(final DialogType dialogType,
+      final AxisID axisID) {
+    if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      if (axisID == AxisID.SECOND) {
+        return coarseAntialiasFilterB;
+      }
+      return coarseAntialiasFilterA;
+    }
+    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+      if (axisID == AxisID.SECOND) {
+        return stackAntialiasFilterB;
+      }
+      return stackAntialiasFilterA;
+    }
+    return null;
   }
 
   public DataSource getDataSource() {
@@ -3428,6 +3486,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return isDatasetNameValid(null);
   }
 
+  public boolean isAntialiasFilterNull(final DialogType dialogType, final AxisID axisID) {
+    if (dialogType == DialogType.COARSE_ALIGNMENT) {
+      if (axisID == AxisID.SECOND) {
+        return coarseAntialiasFilterB.isNull();
+      }
+      return coarseAntialiasFilterA.isNull();
+    }
+    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+      if (axisID == AxisID.SECOND) {
+        return stackAntialiasFilterB.isNull();
+      }
+      return stackAntialiasFilterA.isNull();
+    }
+    return true;
+  }
+
   public boolean isDatasetNameValid(final File paramFile) {
     invalidReason = "";
     if (datasetName.equals("")) {
@@ -3525,7 +3599,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return file.canRead() && (!writeable || file.canWrite());
   }
 
-  private void appendMessage(String string) {
+  private void appendMessage(final String string) {
     message.append(string);
   }
 

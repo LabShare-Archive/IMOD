@@ -455,9 +455,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     FinalCombineFields, Run3dmodButtonContainer, Expandable {
   public static final String rcsid = "$Id$";
 
-  private static final String TOMOGRAM_SIZE_CHECK_STRING = " - check min and max values";
-  private static final String TOMOGRAM_SIZE_CHANGED_STRING = "THE TOMOGRAM HAS CHANGED";
-  private static final String TOMOGRAM_SIZE_UNEQUAL_STRING = "A AND B AREN'T THE SAME SIZE IN X AND Y";
+  private static final String TOMOGRAM_SIZE_CHANGED_STRING = "THE TOMOGRAM HAS CHANGED - check min and max values";
 
   private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
@@ -750,49 +748,10 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
   private void updateTomogramSizeWarning(boolean enableCombine) {
     boolean changed = TomogramTool.isTomogramSizeChanged(applicationManager, matchBtoA,
         AxisID.ONLY);
-    boolean different = false;
-    if (!enableCombine) {
-      AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
-      MRCHeader toMrcHeader = MRCHeader.getInstance(
-          applicationManager.getPropertyUserDir(),
-          DatasetFiles.getTomogramName(applicationManager, toAxisID), AxisID.ONLY);
-      AxisID fromAxisID = matchBtoA ? AxisID.SECOND : AxisID.FIRST;
-      MRCHeader fromMrcHeader = MRCHeader.getInstance(
-          applicationManager.getPropertyUserDir(),
-          DatasetFiles.getTomogramName(applicationManager, fromAxisID), AxisID.ONLY);
-      try {
-        if (toMrcHeader.read(applicationManager)) {
-          fromMrcHeader.read(applicationManager);
-          if (toMrcHeader.getNColumns() != fromMrcHeader.getNSections()
-              || toMrcHeader.getNSections() != fromMrcHeader.getNColumns()) {
-            different = true;
-          }
-        }
-      }
-      catch (InvalidParameterException e) {
-        e.printStackTrace();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-    if (!changed && !different) {
-      lTomogramSizeWarning.setVisible(false);
-      return;
-    }
-    StringBuffer buffer = new StringBuffer();
+    lTomogramSizeWarning.setVisible(changed);
     if (changed) {
-      buffer.append(TOMOGRAM_SIZE_CHANGED_STRING);
-      if (different) {
-        buffer.append(" & ");
-      }
+      lTomogramSizeWarning.setText(TOMOGRAM_SIZE_CHANGED_STRING);
     }
-    if (different) {
-      buffer.append(TOMOGRAM_SIZE_UNEQUAL_STRING);
-    }
-    buffer.append(TOMOGRAM_SIZE_CHECK_STRING);
-    lTomogramSizeWarning.setText(buffer.toString());
-    lTomogramSizeWarning.setVisible(true);
   }
 
   ProcessResultDisplay getCombineResultDisplay() {

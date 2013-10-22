@@ -210,25 +210,23 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private static final String INPUT_FILE_KEY = "InputFile";
   private static final String SECTIONS_TO_READ_KEY = "SectionsToRead";
   private static final String NUMBER_TO_OUTPUT_KEY = "NumberToOutput";
-
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
   public static final String IMAGES_ARE_BINNED_KEY = "ImagesAreBinned";
   public static final String DISTORTION_FIELD_KEY = "DistortionField";
   public static final String OFFSETS_IN_X_AND_Y_KEY = "OffsetsInXandY";
   public static final String BIN_BY_FACTOR_KEY = "BinByFactor";
   public static final String FILL_VALUE_KEY = "FillValue";
-  public static final String MODE_TO_OUTPUT_KEY="ModeToOutput";
+  public static final String MODE_TO_OUTPUT_KEY = "ModeToOutput";
   // data mode
   public static final String DATA_MODE_OPTION = "-mo";
   public static final int DATA_MODE_DEFAULT = Integer.MIN_VALUE;
   public static final int DATA_MODE_BYTE = 0;
-
   // float densities
   public static final String FLOAT_DENSITIES_OPTION = "-fl";
   public static final int FLOAT_DENSITIES_DEFAULT = Integer.MIN_VALUE;
   public static final int FLOAT_DENSITIES_MEAN = 2;
-
   private static final String COMMAND_FILE_EXTENSION = ".com";
+  private static final int DEFAULT_ANTIALIAS_FILTER = -1;
 
   private final List<String> inputFile = new Vector<String>();
   private final StringParameter outputFile = new StringParameter("OutputFile");
@@ -271,8 +269,12 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final FortranInputString taperAtFill = new FortranInputString("TaperAtFill", 2);
   private final ScriptParameter fillValue = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       "FillValue");
-
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final ScriptParameter antialiasFilter = new ScriptParameter("AntialiasFilter");
+
+  private final AxisID axisID;
+  private final BaseManager manager;
+  private final boolean useColorNewst;
 
   /**
    * Set when outputFile is set from the dialog, otherwise set to null when
@@ -280,14 +282,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   private FileType outputFileType = null;
   private ProcessName processName = ProcessName.NEWST;
+  private boolean validate = false;
 
   private boolean fiducialessAlignment;
   private Mode mode;
-  private final AxisID axisID;
-  private final BaseManager manager;
-  private final boolean useColorNewst;
-
-  private boolean validate = false;
 
   private NewstParam(final BaseManager manager, final AxisID axisID,
       final boolean useColorNewst) {
@@ -348,6 +346,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     taperAtFill.reset();
     imageRotation.reset();
     fillValue.reset();
+    antialiasFilter.reset();
   }
 
   /**
@@ -414,6 +413,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       adjustOrigin.parse(scriptCommand);
       taperAtFill.validateAndSet(scriptCommand);
       fillValue.parse(scriptCommand);
+      antialiasFilter.parse(scriptCommand);
     }
     else {
       // Backwards compatibility
@@ -599,6 +599,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       adjustOrigin.updateComScript(scriptCommand);
       taperAtFill.updateScriptParameter(scriptCommand);
       fillValue.updateComScript(scriptCommand);
+      antialiasFilter.updateComScript(scriptCommand);
     }
     else {
       // Create a new command line argument array
@@ -835,6 +836,21 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     adjustOrigin.set(input);
   }
 
+  public void setAntialiasFilter(final boolean input) {
+    if (input) {
+      antialiasFilter.set(DEFAULT_ANTIALIAS_FILTER);
+    }
+    else {
+      antialiasFilter.reset();
+    }
+  }
+
+  public void setAntialiasFilterValue(final ConstEtomoNumber input) {
+    if (!input.isNull()) {
+      antialiasFilter.set(input);
+    }
+  }
+
   public void resetSizeToOutputInXandY() throws FortranInputSyntaxException {
     sizeToOutputInXandY.reset();
     userSizeToOutputInXandY.reset();
@@ -972,6 +988,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     return inputFile.get(0);
   }
 
+  public boolean isAntialiasFilterNull() {
+    return antialiasFilter.isNull();
+  }
+
   /**
    * @return Returns the linearInterpolation.
    */
@@ -984,6 +1004,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
    */
   public int getModeToOutput() {
     return modeToOutput.getInt();
+  }
+
+  public String getAntialiasFilter() {
+    return antialiasFilter.toString();
   }
 
   /**
@@ -1161,7 +1185,7 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
 
     private final String string;
 
-    private Mode(String string) {
+    private Mode(final String string) {
       this.string = string;
     }
 

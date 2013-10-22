@@ -552,4 +552,8 @@ public interface ConstMetaData {
   public int getRaptorTab(AxisID axisID);
 
   public int getSeedAndTrackTab(AxisID axisID);
+
+  public ConstEtomoNumber getAntialiasFilter(DialogType dialogType, AxisID axisID);
+
+  public boolean isAntialiasFilterNull(DialogType dialogType, AxisID axisID);
 }

@@ -184,4 +184,8 @@ public interface ConstNewstParam extends CommandDetails {
   public String getOffsetInX();
 
   public String getOffsetInY();
+
+  public boolean isAntialiasFilterNull();
+
+  public String getAntialiasFilter();
 }
