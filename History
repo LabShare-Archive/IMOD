@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/20/13: Fixed a problem that crashed 3dmod when a slicer angle is very
+small, such as when doing mouse-rotating.
+
 10/18/13: Added toolbar buttons to Zap and Slicer for drawing a single thick
 arrow for snapshots; also added an object property to draw arrowheads at the
 ends of contours.
