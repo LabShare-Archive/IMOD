@@ -76,6 +76,15 @@ public final class DatasetTool {
     if (extIndex != -1) {
       inputFileRoot = inputFileName.substring(0, extIndex);
     }
+    // Check for embedded spaces
+    if (inputFileName.matches("\\s*\\S+\\s+\\S+(\\s+\\S+)*\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog(
+          manager,
+          uiComponent,
+          "The dataset name cannot contain embedded spaces: "
+              + inputFile.getAbsolutePath(), MESSAGE_TITLE, axisID);
+      return false;
+    }
     if (inputFile.getParent().endsWith(" ")) {
       UIHarness.INSTANCE.openMessageDialog(manager, uiComponent,
           "The dataset directory cannot end in a space: " + inputFile.getAbsolutePath(),
@@ -154,6 +163,10 @@ public final class DatasetTool {
     }
     else if (dataFileType == null) {
       errorMessage = "No data file type specified";
+    }
+    // Check for embedded spaces
+    else if (inputFileRoot.matches("\\s*\\S+\\s+\\S+(\\s+\\S+)*\\s*")) {
+      errorMessage = "The dataset name cannot contain embedded spaces: " + inputFileRoot;
     }
     else {
       File[] fileList = directory.listFiles(new DataFileFilter(true));
