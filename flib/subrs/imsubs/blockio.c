@@ -395,10 +395,17 @@ void qinquire(int *iunit, char *filename, int *flen, int filename_l)
   int unit = *iunit - 1;
   Unit *u = check_unit(unit, "qinquire", 0);
   if (u) {
+
+    /* generic stat is not good enough on Windows */
+#ifdef _WIN32
+    struct _stat64 buf;
+    _stat64(u->fname, &buf);
+#else
     struct stat buf;
     stat(u->fname, &buf);
+#endif
     set_fstr(filename, filename_l, u->fname);
-    *flen = buf.st_size / 1024;
+    *flen = (int)((double)buf.st_size / 1024.);
   } else {
 
       /* DNM: HUH? */
