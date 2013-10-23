@@ -116,8 +116,8 @@ void MidasSlots::update_parameters()
       VW->wLinearTrans->setText(str);
       param[3] = 0.;
       param[4] = 0.;
-      if (VW->curControl >= 0 && !getWarpPointArrays(i, &xControl, &yControl, &xVector,
-                                                     &yVector)) {
+      if (VW->curControl >= 0 &&
+          !getWarpPointArrays(i, &xControl, &yControl, &xVector, &yVector)) {
         param[3] = -xVector[VW->curControl] / VW->warpScale;
         param[4] = -yVector[VW->curControl] / VW->warpScale;
       }
@@ -1562,6 +1562,7 @@ void MidasSlots::slotEditWarp(bool state)
   VW->wIncrement[1]->setEnabled(!state);
   VW->anglescale->setEnabled(!state);
   diaShowWidget(VW->wLinearTrans, state);
+  VW->curControl = -1;
   VW->midasGL->manageMouseLabel(" ");
   VW->midasGL->draw();
 }

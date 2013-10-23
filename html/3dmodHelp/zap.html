@@ -44,8 +44,16 @@ the current point comes near an edge (the default).  When the button is first
 <LI>The <B>modeling direction</B> button toggles between inserting new 
 points after the current point (when pointing up) or before 
 the current point (when pointing down).
-<LI>The <B>rubber band</B> button turns the rubber band on or off (see
-<B>B</B> hot key below).
+<LI>The <B>rubber band</B> button turns the rubber band on or off.  The rubber
+  band can be used to select an area, then snapshot the area, resize the
+  window to that area, find its coordinates, or do some operations on all
+  contours within the area.  After pressing this button or the <B>B</B> hot
+  key to turn on the rubber band, position the mouse at any desired corner,
+  click the first mouse button and hold it down while you move to the opposite
+  corner. After initially defining the band, you can adjust its size by
+  placing the pointer near an edge or corner and dragging with the first mouse
+  button.  The band can be moved as a unit by placing the pointer near an edge
+  and dragging with the second mouse button.
 <LI>The <B>lasso</B> button turns the lasso contour on or off.  The lasso can
   be used to select multiple contours, to mask the volume displayed by the
 <A href="modvIsosurface.html">Isosurface</A> dialog, and to select an area
@@ -58,6 +66,12 @@ contour (the cursor will change to indicate that moving is enabled), then
 pressing and holding either the first or second mouse button while shifting
 the contour.  The contour can also be shifted, rotated, or transformed if
 contour shifting is turned on with the <B>P</B> hot key (see below).
+<LI>The <B>Arrow</B> button allows you to draw an arrow quickly for pointing
+  out a feature in the image.  Press the button, then move the mouse to the
+  desired position for the tail of the arrow, press the first mouse button,
+  and hold it down while positioning the head of the arrow.  The arrow
+  endpoints stay at the same X/Y positions in the image if the image is panned or
+  zoomed or stepped to a different Z.  Turn off the button to remove the arrow.
 <LI>The <B>Z slider</B> allows one to riffle through images or select a 
 particular section to display.
 <LI>The <B>section</B> edit box shows the current section and allows one 
@@ -90,16 +104,8 @@ point.
 <LI><B>b</B> builds a contour when AutoContour window is open.
 <LI><B>a</B> advances to and fills next section when auto contouring.
 <LI><B>u</B> smooths a filled area when auto contouring.
-<LI><B>B</B> toggles the rubber band on and off.  The rubber band can be 
-used to select an area, then snapshot the area, resize the window 
-to that area, or find its coordinates.  After pressing B to turn on the 
-rubber band, position the mouse at the desired upper left corner, click 
-the first mouse button and hold it down while you move to the lower 
-right corner.  After initially defining the band, you can adjust its 
-size by placing the pointer near an edge or corner and 
-dragging with the first mouse button.  The band can be moved as a 
-unit by placing the pointer near an edge and dragging with the 
-second mouse button.
+<LI><B>B</B> toggles the rubber band on and off.  See the description of the
+ rubber band toolbar button above.
 <LI><B>I</B> prints information about the window and image size and 
 the coordinates of the image in the window.  If the rubber band 
 is on, the sizes and coordinates are relative to the rubber band 

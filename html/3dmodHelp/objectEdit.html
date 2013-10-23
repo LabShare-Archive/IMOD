@@ -6,22 +6,27 @@ The Object Type dialog edits the current object.
 One can leave this dialog open and change the current 
 object.  Its settings will be changed to reflect the new object.  The object
 number is shown in the upper right.
-<P>
-<B>Object Name:</B> Enter a name for the object.
-<P>
-<B>Draw:</B> Turns drawing on/off in image windows.
-<P>
+<UL>
+<LI><B>Object Name:</B> Enter a name for the object.
+<LI><B>Draw:</B> Turns drawing on/off in image windows.
+<LI>
 <B>Copy from Object:</B> Press this button to copy all of the properties shown
 in this dialog from another object.  Select the object number to copy from in
 the spin box.
-<P>
+<LI><B>Object type:</B> 
 <B>Open/Closed/Scattered radio buttons:</B> 
-Set how points in object are connected.  Open and closed 
-contour objects are drawn with lines between the points; 
-closed contours have a line connecting the last point back 
-to the first one; scattered point objects have no 
-connecting lines.
-<P>
+Set how points in an object are connected, as well as several other features.  
+<B>Closed contour</B>
+ objects are drawn with lines between the points and have a line
+connecting the last point back
+to the first one, although this can be omitted for individual contours; they
+are designed for modeling contours that lie in planes.  
+<B>Open contour</B> also have lines drawn between the points, but no line
+connecting the endpoints; they can be used to model lines within planes or
+between planes.
+<B>Scattered point</B> objects have no 
+connecting lines and are usually used to draw a sphere at each point.
+<LI>
 <B>Start new contour at new Z:</B> When this option is selected, a new
 contour will be started whenever you switch to a
 different section from the one with the current contour and start
@@ -31,42 +36,48 @@ consist of contours that should be confined to planes.  This option is
 thus enabled only for open contour objects.  Select it whenever you
 want to use an open contour object to model structures within planes rather
 than between planes.
-<P>
+<LI>
 <B>Points per contour:</B> When this spin box is set to a number rather than
 to <I>No limit</I>, then a new contour will be started automatically whenever
 the current contour reaches this limit.  Specifically, the new contour is
 started when you add a point that would push the current contour over the
 limit.
-<P>
-<B>Front Face:</B> Outside/Inside toggles select which side of the contours 
-will be brightly lit after the object is meshed.  This 
+<LI>
+<B>Front Face:</B> <B>Outside</B> and <B>Inside</B> buttons select which side
+of the contours will be brightly lit after the object is meshed.  This 
 feature can also be used to select an area of interest as 
 inside or outside the contours, for some programs.
-<P>
+<LI>
 <B>Symbols:</B> Chooses how symbols are drawn.  Open or filled symbols of 
 three shapes may be drawn at each model point.  Symbol size 
-is governed by the Size slider.  Independent of whether 
-symbols are drawn at each point, if Mark Ends is selected, 
+is governed by the <B>Size</B> slider.  Independent of whether 
+symbols are drawn at each point, if <B>Mark Ends</B> is selected, 
 green and red crosses are drawn over the first and last 
-points of a contour.
-<P>
-<B>Sphere radius for points:</B> If this sphere size is nonzero, then spheres
+points of a contour.  If <B>Arrow at end</B> is turned on, an arrowhead is
+drawn at the last point, with the same color as the contour, as if the last
+segment of the contour was an arrow.  (This arrow is drawn only in the Zap and
+Xyz windows, not in the Slicer.)  With this feature, together with limiting
+the <B>Points per contour</B> to 2, you can draw multiple arrows.  The
+arrowhead replaces the red cross if <B>Mark ends</B> is also selected.
+<LI> <B>Sphere drawing:</B> If the
+<B>Sphere radius for points</B> is nonzero, then spheres
 will be drawn in 3-D at every point of the object.  These spheres appear in
 the model view window and appear in cross-section on 
 one or more slices of the image display.  The units are pixels in the 
 image file, i.e., unbinned pixels if images are loaded in binned.
-<P>
-<B>Show spheres on-section only:</B> By default, spherical points are drawn 
+By default, spherical points are drawn 
 in the Zap and XYZ windows on all sections that the spheres intersect.  Turn
-this button on to inhibit this behavior and have them drawn only on the
-central section where the point is located.  This could be useful if you want
+<B>Show spheres on-section only</B> on to inhibit this behavior and have them
+drawn only on the central section where the point is located.  This could be
+useful if you want
 to have a circle around the point that is a fixed size in image pixels
 regardless of zoom, but do not want the point to show up off-section.
-<P>
+<LI>
 <B>Line Width:</B> Sets the width for lines drawn on images, but not for 
 lines in 3D.
-<P>
-<B>Time data:</B> If multiple image files are loaded, this toggle button 
+<LI>
+<B>Time data:</B> If multiple image files are loaded, the <B>Contours have
+  time values</B> button 
 controls whether time information is encoded 
 in contours as they are drawn.  If the button is on, then 
 each new contour that is created will be assigned to the 
@@ -77,8 +88,8 @@ time value of a contour.  If the button is off, then new
 contours will not be assigned to the current time but 
 rather will have a time value of 0 and will appear over 
 images at all times.
-<P>
-<B>Filled contours in Zap:</B> If you set the transparency slider to a value
+<LI>>
+<B>Filled contours in Zap:</B> If you set the <B>Transparency</B> slider to a value
 above 0, the area enclosed by contours will be drawn with a transparent color
 in the Zap Window.  Specifically, this will happen with closed contours and
 open contours that lie entirely in the plane.  Low transparencies are fairly
@@ -86,12 +97,11 @@ opaque, so you will generally need values above 50.  Select
 <B>Draw contour outline also</B> to have the contour lines drawn around the
 filled area; if this option is off, lines will be only for the current contour
 and other selected contours.
-<P>
-<B>Set as Defaults</B> Press this button to save all of the properties
+<P><B>Default properties:</B>
+Press <B>Set as Defaults</B> to save all of the properties
 controlled in this dialog as defaults for creating new objects.  These
 defaults are stored in your 3dmod settings.
-<P>
-<B>Restore</B> Press this button to return to the built-in default properties
+Press the <B>Restore</B> button to return to the built-in default properties
 for new objects, which specify closed contours with no symbol display or other
 special features.
 <P>

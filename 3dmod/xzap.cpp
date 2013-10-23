@@ -2270,65 +2270,20 @@ int ZapFuncs::b1Click(int x, int y, int controlDown)
   Imod     *imod = vi->imod;
   Ipoint pnt;
   Iindex index, indSave;
-  int bandmin = bandMinimum();
   int iz;
   float distance;
-  float ix, iy, dx, dy;
+  float ix, iy;
   float selsize = IMOD_SELSIZE / mZoom;
 
   getixy(x, y, ix, iy, iz);
   if (iz < 0)
     return 0;
      
-  // If starting rubber band, set upper left corner, set for moving lower left
+  // If starting rubber band, just record these coordinates
   if (mStartingBand) {
-    
-    // Set up mouse coords then convert to image
-    mRbMouseX1 = x + bandmin;
-    if (mRbMouseX1 > mWinx - 1)
-      mRbMouseX1 = mWinx - 1;
-    mRbMouseX0 = mRbMouseX1 - bandmin;
-
-    mRbMouseY0 = y - bandmin;
-    if (y < bandmin)
-      mRbMouseY0 = 0;
-    mRbMouseY1 = mRbMouseY0 + bandmin;
-    bandMouseToImage(0);
-
-    // Does image coord need to be moved?  Do so and move mouse
-    dx = dy = 0;
-    if (mRbImageX0 < 0.)
-      dx = -mRbImageX0;
-    if (mRbImageX1 > mVi->xsize)
-      dx = mVi->xsize - mRbImageX1; 
-    if (mRbImageY0 < 0.)
-      dy = -mRbImageY0;
-    if (mRbImageY1 > mVi->ysize)
-      dy = mVi->ysize - mRbImageY1; 
-    if (dx || dy) {
-      mRbImageX0 += dx;
-      mRbImageX1 += dx;
-      mRbImageY0 += dy;
-      mRbImageY1 += dy;
-      bandImageToMouse(1);
-      QCursor::setPos(mGfx->mapToGlobal(QPoint(mRbMouseX0, 
-                                                   mRbMouseY0)));
-      sFirstmx = mRbMouseX0;
-      sFirstmy = mRbMouseY0;
-    }
-
-    mStartingBand = 0;
-    mRubberband = 1;
-    mGfx->setMouseTracking(true);
-    sDragBandLasso = 1;
-    sDragging[0] = 0;
-    sDragging[1] = 1;
-    sDragging[2] = 0;
-    sDragging[3] = 1;
-    mBandChanged = 1;
-    setCursor(mMousemode);
-    draw();
-    return 1;  
+    mRbMouseX0 = x;
+    mRbMouseY0 = y;
+    return 0;
   }
 
   // If drawing an arrow, start the coordinates
@@ -2639,10 +2594,104 @@ int ZapFuncs::b1Drag(int x, int y)
   // Translate 1 image pixel per mouse pixel (accelerated)
   double transFac = mZoom < 1. ? 1. / mZoom : 1.;
   bool cancelHQ = mLastHqDrawTime > sHqDrawTimeCrit;
+  int bandmin = bandMinimum();
+  int bandCrit1 = 3 * bandmin;
+  int bandCrit2 = 6 * bandmin;
+  float dx, dy;
+  int diffX, diffY, absDiffX, absDiffY, i;
 
   if (mShiftingCont) {
     shiftContour(x, y, 1, 0);
     return 1;
+  }
+
+  // If we are still starting band, first find out if the mouse has moved far enough
+  // to commit to a direction
+  if (mStartingBand) {
+
+    // get differences and absolute differences
+    diffX = x - mRbMouseX0;
+    diffY = y - mRbMouseY0;
+    absDiffX = diffX < 0 ? -diffX : diffX;
+    absDiffY = diffY < 0 ? -diffY : diffY;
+
+    // If one axis change is still zero but the other is big enough, commit to the 
+    // direction toward middle of window; revise differences
+    if (!diffY && absDiffX >= bandCrit2) {
+      if (y < mWiny / 2)
+        y = mRbMouseY0 + bandmin;
+      else 
+        y = mRbMouseY0 - bandmin;
+      absDiffY = bandmin;
+    } else if (!diffX && absDiffY >= bandCrit2) {
+      if (x < mWinx / 2)
+        x = mRbMouseX0 + bandmin;
+      else 
+        x = mRbMouseX0 - bandmin;
+      absDiffX = bandmin;
+    }
+
+    // Ready to start if both directions are bigger than the minimum, or one is
+    // bigger than a criterion and the other is nonzero
+    if (!((absDiffX >= bandmin && absDiffY >= bandmin) || 
+          (absDiffX >= bandCrit1 && absDiffY) || (absDiffY >= bandCrit1 && absDiffX)))
+      return 0;
+
+    for (i = 0; i < 4; i++)
+      sDragging[i] = 0;
+
+    // Put the two coords in order on each axis and set the dragging flags
+    if (x > mRbMouseX0) {
+      sDragging[1] = 1;
+      mRbMouseX1 = x;
+    } else {
+      sDragging[0] = 1;
+      mRbMouseX1 = mRbMouseX0;
+      mRbMouseX0 = x;
+    }
+    if (y > mRbMouseY0) {
+      sDragging[3] = 1;
+      mRbMouseY1 = y;
+    } else {
+      sDragging[2] = 1;
+      mRbMouseY1 = mRbMouseY0;
+      mRbMouseY0 = y;
+    }
+    bandMouseToImage(0);
+
+    // Does image coord need to be moved?  Do so and move mouse coords and mouse
+    dx = dy = 0;
+    if (mRbImageX0 < 0.)
+      dx = -mRbImageX0;
+    if (mRbImageX1 > mVi->xsize)
+      dx = mVi->xsize - mRbImageX1; 
+    if (mRbImageY0 < 0.)
+      dy = -mRbImageY0;
+    if (mRbImageY1 > mVi->ysize)
+      dy = mVi->ysize - mRbImageY1; 
+    if (dx || dy) {
+      mRbImageX0 += dx;
+      mRbImageX1 += dx;
+      mRbImageY0 += dy;
+      mRbImageY1 += dy;
+      bandImageToMouse(1);
+      x = sDragging[0] ? mRbMouseX0 : mRbMouseX1;
+      y = sDragging[2] ? mRbMouseY0 : mRbMouseY1;
+      QCursor::setPos(mGfx->mapToGlobal(QPoint(x, y)));
+      mLmx = x;
+      mLmy = y;
+    }
+
+    // Set flags for the band being on and being dragged
+    mStartingBand = 0;
+    mRubberband = 1;
+    mGfx->setMouseTracking(true);
+    sDragBandLasso = 1;
+    mBandChanged = 1;
+    setCursor(mMousemode);
+    draw();
+    return 1;  
+      
   }
 
   // First time mouse moves, lock in the band drag position

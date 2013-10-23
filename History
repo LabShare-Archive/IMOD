@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/22/13: Fixed another warping-related crash in Midas.
+
+10/22/13: Made it possible to start Zap rubber band from ANY corner.
+
+10/21/13: Fixed a problem that crashed 3dmod when a slicer angle is very
+small, such as when doing mouse-rotating.
+
 10/19/13: In eTomo resizing when the Cleanup dialog is finished.(Bug# 1636)
 
 10/18/13: Added toolbar buttons to Zap and Slicer for drawing a single thick
