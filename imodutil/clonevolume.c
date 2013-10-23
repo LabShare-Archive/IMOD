@@ -75,8 +75,8 @@ int main( int argc, char *argv[])
   int iSlice, numOptArgs, numNonOptArgs, inMode, intoMode;
   int *contourList = NULL, numContours = 0, withinMask = 1;
   int nClones = 0, maxClones = 100, iClone, ix, iy, rMin, rMax;
-  float alpha, xMin, xMax, yMin, yMax, zMin, zMax, r = 0;
-  Imat **xform = NULL;
+  float alpha, xMin, xMax, yMin, yMax, zMin, zMax, r = 0, inVal;
+  Imat **xform = NULL, *tmpXform;
   bndBox3D inBBox, intoBBox, *outBBox = NULL;
   MrcHeader inHeader, intoHeader, maskHeader, outHeader;
   corners3D inCorners;
@@ -115,7 +115,7 @@ int main( int argc, char *argv[])
     yMax = FLT_MAX;
   }
   if (PipGetTwoFloats("ZRange", &zMin, &zMax)) {
-    zMin = 0.0F;
+    zMin = -0.5F;
     zMax = FLT_MAX;
   }
   if (!PipGetString("ContourNumbers", &listString)) {
@@ -242,17 +242,20 @@ int main( int argc, char *argv[])
       }
 
       /* Construct the transformation for this point */
-      /* First just the rotation                     */
+      /* First translate to the center of the input  */
       imodMatId(xform[nClones]);
+      offset.x = -inCenter.x;
+      offset.y = -inCenter.y;
+      offset.z = -inCenter.z;
+      imodMatTrans(xform[nClones], &offset);
+      /* Add the rotations                           */
       imodMatRot(xform[nClones], zAngle, b3dZ);
       imodMatRot(xform[nClones], yAngle, b3dY);
       imodMatRot(xform[nClones], xAngle, b3dX);
-      /* Add the translation, adjusting for the fact that we're using */
-      /* corner rather than center relative reference coordinates.    */
-      imodMatTransform(xform[nClones], &inCenter, &offset);
-      offset.x = -offset.x + x;
-      offset.y = -offset.y + y;
-      offset.z = -offset.z + z;
+      /* Now translate to the desired location.      */
+      offset.x =  x;
+      offset.y =  y;
+      offset.z =  z;
       imodMatTrans(xform[nClones], &offset);
 
       /* Find the bounding box of the "input" transformed to "into" */
@@ -260,7 +263,9 @@ int main( int argc, char *argv[])
       intersect(&tmpBBox, &intoBBox, outBBox + nClones);
 
       /* Invert the transformation matrix for later use */
+      tmpXform = xform[nClones];
       xform[nClones] = imodMatInverse(xform[nClones]);
+      imodMatDelete(tmpXform);
       nClones += 1;
     }
   }
@@ -312,18 +317,14 @@ int main( int argc, char *argv[])
           for (iy = (int)ceil(outBBox[iClone].yMin); 
 	       iy < (int)floor(outBBox[iClone].yMax); iy++) {
             Ipoint inPt, outPt;
-            outPt.x = (float)ix;
-            outPt.y = (float)iy;
+            outPt.x = (float)ix + 0.5;
+            outPt.y = (float)iy + 0.5;
             outPt.z = (float)iSlice;
             /* Tranform output/into coords back to the input */
             imodMatTransform3D(xform[iClone], &outPt, &inPt);
-
-            /* If in range, combine current value with interpolated input. */
-            /* Tolerance of a little more than 1 is used for the in range  */
-            /* test to ensure that both previous and next points in each   */
-            /* dimension are within input vol for trilinear interpolation. */
-            if (isInside(&inPt, &inBBox, 1.0001)) {
-              float inVal;
+            /* If in range, combine current value with input.              */
+            /* Use trilinear interpolation whenever possible.              */
+            if (isInside(&inPt, &inBBox, 1e-4)) {
               if (rMin != 0 || rMax != 32767)
                 r = distance3D(&inPt, &inCenter); 
               if (maskVol) {
@@ -553,40 +554,67 @@ Imat **freeMat3DArray(Imat **array, int nMats)
 float trilinearInterpolation(float **inVol, MrcHeader *inHeader, 
                              float x, float y, float z)
 {
-  float temp, newVal;
+  float d11, d12, d21, d22, dx, dy, dz, temp, newVal;
+  int ibase, ix, ixh, iy, iyh, iz, izh;
 
-  const int ix = (int)x;
-  const int iy = (int)y;
-  int iz = (int)z;
+  x -= 0.5;
+  y -= 0.5;
+
+  ix = (int)x;
+  iy = (int)y;
+  iz = (int)z;
   
-  /* dx, dy, and dz will each be >= 0 and strictly less than 1 */
-  const float dx = x - ix;
-  const float dy = y - iy;
-  const float dz = z - iz;
+  dx = x - ix;
+  dy = y - iy;
+  dz = z - iz;
+
+  ixh = ix + 1;
+  iyh = iy + 1;
+  izh = iz + 1;
+
+  /* 
+   * Typically do trilinear interpolation, but allow for cases in which
+   * interpolation in one or more dimensions must be dropped due to a
+   * point out of range.
+   */
+  if (ix < 0)
+    ix = ixh;
+  else if (ixh > inHeader->nx - 1)
+    ixh = ix;
+
+  if (iy < 0)
+    iy = iyh;
+  else if (iyh > inHeader->ny - 1)
+    iyh = iy;
+
+  if (iz < 0)
+    iz = izh;
+  else if (izh > inHeader->nz - 1)
+    izh = iz;
 
   /* Set up terms for up to tri-linear interpolation */
-  const float d11 = (1.0 - dx) * (1.0 - dy);
-  const float d12 = (1.0 - dx) * dy;
-  const float d21 = dx * (1.0 - dy);
-  const float d22 = dx * dy;
+  d11 = (1.0 - dx) * (1.0 - dy);
+  d12 = (1.0 - dx) * dy;
+  d21 = dx * (1.0 - dy);
+  d22 = dx * dy;
 
-  const int ibase = ix + iy * inHeader->nx;
-  newVal = d11 * inVol[iz][ibase];   /* d11 is always non-zero */
+  ibase = ix + iy * inHeader->nx;
+  newVal = d11 * inVol[iz][ibase];
   if (d12 != 0)
-    newVal += d12 * inVol[iz][ibase + inHeader->nx];
+    newVal += d12 * inVol[iz][ibase + (iyh - iy) * inHeader->nx];
   if (d21 != 0)
-    newVal += d21 * inVol[iz][ibase + 1];
+    newVal += d21 * inVol[iz][ibase + (ixh - ix)];
   if (d22 != 0)
-    newVal += d22 * inVol[iz++][ibase + inHeader->nx + 1];
-  newVal *= (1.0 - dz);              /* 1 - dz is always non-zero */
+    newVal += d22 * inVol[iz][ibase + (iyh - iy)* inHeader->nx + ixh - ix];
+  newVal *= (1.0 - dz);              
   if (dz != 0) {
-    temp = d11 * inVol[iz][ibase];   /* d11 is always non-zero */
+    temp = d11 * inVol[izh][ibase];
     if (d12 != 0)
-      temp += d12 * inVol[iz][ibase + inHeader->nx];
+      temp += d12 * inVol[izh][ibase + (iyh - iy) * inHeader->nx];
     if (d21 != 0)
-      temp += d21 * inVol[iz][ibase + 1];
+      temp += d21 * inVol[izh][ibase + (ixh - ix)];
     if (d22 != 0)
-      temp += d22 * inVol[iz][ibase + inHeader->nx + 1];
+      temp += d22 * inVol[izh][ibase + (iyh - iy) * inHeader->nx + ixh - ix];
     newVal += dz * temp;
   }
 
