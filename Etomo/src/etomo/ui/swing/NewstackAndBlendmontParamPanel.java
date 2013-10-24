@@ -9,6 +9,8 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.comscript.BlendmontParam;
@@ -23,8 +25,10 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
+import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.ViewType;
 import etomo.ui.FieldType;
 import etomo.ui.FieldValidationFailedException;
 import etomo.util.InvalidParameterException;
@@ -101,7 +105,6 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   private final SpacedPanel pnlRoot = SpacedPanel.getInstance(true);
   private final LabeledSpinner spinBinning = LabeledSpinner.getInstance(BINNING_LABEL
       + ": ", 1, 1, 8, 1);
-
   private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
       FieldType.INTEGER_PAIR, SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
   private final LabeledTextField ltfRotation = new LabeledTextField(
@@ -109,19 +112,30 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private final CheckBox cbUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
+
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final DialogType dialogType;
+  private final CheckBox cbAntialiasFilter;
+  private final EtomoNumber antialiasFilterValue;
 
-  private NewstackAndBlendmontParamPanel(ApplicationManager manager, AxisID axisID,
-      DialogType dialogType) {
+  private NewstackAndBlendmontParamPanel(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType) {
     this.manager = manager;
     this.axisID = axisID;
     this.dialogType = dialogType;
+    if (manager.getMetaData().getViewType() != ViewType.MONTAGE) {
+      cbAntialiasFilter = new CheckBox("Reduce size with antialiasing filter");
+      antialiasFilterValue = new EtomoNumber();
+    }
+    else {
+      cbAntialiasFilter = null;
+      antialiasFilterValue = null;
+    }
   }
 
-  static NewstackAndBlendmontParamPanel getInstance(ApplicationManager manager,
-      AxisID axisID, DialogType dialogType) {
+  static NewstackAndBlendmontParamPanel getInstance(final ApplicationManager manager,
+      final AxisID axisID, final DialogType dialogType) {
     NewstackAndBlendmontParamPanel instance = new NewstackAndBlendmontParamPanel(manager,
         axisID, dialogType);
     instance.createPanel();
@@ -131,9 +145,9 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   }
 
   private void addListeners() {
-    NewstackAndBlendmontParamPanelActionListener actionListener = new NewstackAndBlendmontParamPanelActionListener(
-        this);
-    cbFiducialess.addActionListener(actionListener);
+    cbFiducialess
+        .addActionListener(new NewstackAndBlendmontParamPanelActionListener(this));
+    spinBinning.addChangeListener(new NewstackAndBlendmontBinningChangeListener(this));
   }
 
   Component getComponent() {
@@ -151,6 +165,9 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     pnlBinning.add(spinBinning.getContainer());
     pnlBinning.add(Box.createHorizontalGlue());
     pnlRoot.add(pnlBinning);
+    if (cbAntialiasFilter != null) {
+      pnlRoot.add(cbAntialiasFilter);
+    }
     pnlRoot.add(cbFiducialess);
     pnlRoot.add(ltfRotation);
     pnlRoot.add(ltfSizeToOutputInXandY);
@@ -158,16 +175,23 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     updateFiducialess();
   }
 
-  void setVisible(boolean visible) {
+  void setVisible(final boolean visible) {
     pnlRoot.setVisible(visible);
   }
 
-  public void setParameters(BlendmontParam blendmontParam) {
+  public void setParameters(final BlendmontParam blendmontParam) {
     cbUseLinearInterpolation.setSelected(blendmontParam.isLinearInterpolation());
   }
 
-  public void setParameters(ConstNewstParam newstParam) {
+  public void setParameters(final ConstNewstParam newstParam) {
     cbUseLinearInterpolation.setSelected(newstParam.isLinearInterpolation());
+    if (cbAntialiasFilter != null) {
+      boolean antialiasFilter = !newstParam.isAntialiasFilterNull();
+      cbAntialiasFilter.setSelected(antialiasFilter);
+      if (antialiasFilter) {
+        antialiasFilterValue.set(newstParam.getAntialiasFilter());
+      }
+    }
   }
 
   /**
@@ -177,13 +201,15 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
    * @param metaData
    * @throws FortranInputSyntaxException
    */
-  void getParameters(MetaData metaData) throws FortranInputSyntaxException {
+  void getParameters(final MetaData metaData) throws FortranInputSyntaxException {
     metaData.setSizeToOutputInXandY(axisID, ltfSizeToOutputInXandY.getText());
     metaData.setStackBinning(axisID, getBinning());
+    metaData.setAntialiasFilter(dialogType, axisID, antialiasFilterValue);
   }
 
-  public boolean getParameters(BlendmontParam blendmontParam, final boolean doValidation)
-      throws FortranInputSyntaxException, InvalidParameterException, IOException {
+  public boolean getParameters(final BlendmontParam blendmontParam,
+      final boolean doValidation) throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     try {
       blendmontParam.setBinByFactor(getBinning());
       blendmontParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
@@ -209,7 +235,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
   }
 
   // Copy the newstack parameters from the GUI to the NewstParam object
-  public boolean getParameters(NewstParam newstParam, final boolean doValidation)
+  public boolean getParameters(final NewstParam newstParam, final boolean doValidation)
       throws FortranInputSyntaxException, InvalidParameterException, IOException {
     try {
       int binning = getBinning();
@@ -220,6 +246,12 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
       }
       else {
         newstParam.setBinByFactor(Integer.MIN_VALUE);
+      }
+      // Save when field is disabled
+      boolean antialiasFilter = cbAntialiasFilter.isSelected();
+      newstParam.setAntialiasFilter(antialiasFilter);
+      if (antialiasFilter) {
+        newstParam.setAntialiasFilterValue(antialiasFilterValue);
       }
       newstParam.setLinearInterpolation(cbUseLinearInterpolation.isSelected());
       return newstParam.setSizeToOutputInXandY(
@@ -232,28 +264,40 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     }
   }
 
-  void setParameters(ConstMetaData metaData) {
+  void setParameters(final ConstMetaData metaData) {
     spinBinning.setValue(metaData.getStackBinning(axisID));
+    if (!metaData.isAntialiasFilterNull(dialogType, axisID)) {
+      antialiasFilterValue.set(metaData.getAntialiasFilter(dialogType, axisID));
+    }
     ltfSizeToOutputInXandY
         .setText(metaData.getSizeToOutputInXandY(axisID).toString(true));
     updateFiducialess();
+    updateEnabled();
   }
 
-  void setFiducialessAlignment(boolean input) {
+  void setFiducialessAlignment(final boolean input) {
     cbFiducialess.setSelected(input);
     updateFiducialess();
   }
 
-  void setImageRotation(String input) {
+  void setImageRotation(final String input) {
     ltfRotation.setText(input);
   }
 
-  void setBinning(ConstEtomoNumber binning) {
+  void setBinning(final ConstEtomoNumber binning) {
     spinBinning.setValue(binning);
+    updateEnabled();
   }
 
   private int getBinning() {
     return ((Integer) spinBinning.getValue()).intValue();
+  }
+
+  private void updateEnabled() {
+    if (cbAntialiasFilter != null) {
+      Number value = spinBinning.getValue();
+      cbAntialiasFilter.setEnabled(value != null && value.intValue() > 1);
+    }
   }
 
   public boolean isFiducialess() {
@@ -269,7 +313,7 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
     return ltfRotation.getText(doValidation);
   }
 
-  void updateAdvanced(boolean advanced) {
+  void updateAdvanced(final boolean advanced) {
     ltfSizeToOutputInXandY.setVisible(advanced);
   }
 
@@ -325,6 +369,12 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
       ltfRotation.setToolTipText("Rotation angle of tilt axis for generating aligned "
           + "stack from " + "cross-correlation alignment only.");
     }
+    if (cbAntialiasFilter != null) {
+      cbAntialiasFilter
+          .setToolTipText("Use antialiased image reduction instead binning with the "
+              + "default filter in Newstack; useful for data from direct detection "
+              + "cameras.");
+    }
   }
 
   private static final class NewstackAndBlendmontParamPanelActionListener implements
@@ -338,6 +388,20 @@ final class NewstackAndBlendmontParamPanel implements FiducialessParams {
 
     public void actionPerformed(final ActionEvent event) {
       adaptee.action(event.getActionCommand(), null, null);
+    }
+  }
+
+  private static final class NewstackAndBlendmontBinningChangeListener implements
+      ChangeListener {
+    private final NewstackAndBlendmontParamPanel panel;
+
+    private NewstackAndBlendmontBinningChangeListener(
+        final NewstackAndBlendmontParamPanel panel) {
+      this.panel = panel;
+    }
+
+    public void stateChanged(final ChangeEvent event) {
+      panel.updateEnabled();
     }
   }
 }
