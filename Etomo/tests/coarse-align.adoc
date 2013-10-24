@@ -162,18 +162,17 @@ assert.sp.coarse-aligned-image-stack-binning=1
 	assert.enabled.mb.blendmont.1= 
 [[]]
 assert.enabled.sp.coarse-aligned-image-stack-binning= 
-assert.disabled.cb.reduce-size-with-antialiasing-filter=
 [[ifnot = montage]]
+  assert.disabled.cb.reduce-size-with-antialiasing-filter=
 	assert.enabled.cb.convert-to-bytes= 
 	assert.enabled.cb.float-intensities-to-mean= 
+	# test behavior
+  sp.coarse-aligned-image-stack-binning=2
+  assert.enabled.cb.reduce-size-with-antialiasing-filter=
+  sp.coarse-aligned-image-stack-binning=1
+  assert.disabled.cb.reduce-size-with-antialiasing-filter=
 [[]]
 assert.enabled.bn.generate-coarse-aligned-stack= 
-# test behavior
-sp.coarse-aligned-image-stack-binning=2
-assert.enabled.cb.reduce-size-with-antialiasing-filter=
-sp.coarse-aligned-image-stack-binning=1
-assert.disabled.cb.reduce-size-with-antialiasing-filter=
-#
 if.not.var.montage.mb.newstack.1=B
 if.var.montage.mb.blendmont.1=B
 #
