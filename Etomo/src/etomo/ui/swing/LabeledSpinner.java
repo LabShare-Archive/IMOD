@@ -138,6 +138,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -152,8 +153,8 @@ final class LabeledSpinner {
   private final JPanel panel = new JPanel();
   private final JLabel label = new JLabel();
   private final JSpinner spinner = new JSpinner();
-  private final Integer defaultValue;
 
+  private final Integer defaultValue;
   private SpinnerNumberModel model;
   private int minimum;
   private int maximum;
@@ -305,7 +306,7 @@ final class LabeledSpinner {
     }
   }
 
-  private final JFormattedTextField getTextField() {
+  private JFormattedTextField getTextField() {
     return ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
   }
 
@@ -360,5 +361,9 @@ final class LabeledSpinner {
     panel.addMouseListener(listener);
     label.addMouseListener(listener);
     spinner.addMouseListener(listener);
+  }
+
+  void addChangeListener(final ChangeListener listener) {
+    spinner.addChangeListener(listener);
   }
 }
