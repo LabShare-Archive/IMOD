@@ -89,7 +89,7 @@ run.function.final-align-command=
 	assert.exists.file=%{final-align-comscript}%{axis}.com
 	assert.exists.file=%{final-align-comscript}%{axis}.log
 	assert.exists.file=%{dataset}%{axis}.ali
-  assert.contains.file=newst%{axis}.com|AntialiasFilter*-1
+  if.not.var.montage.assert.contains.file=newst%{axis}.com|AntialiasFilter*-1
 [[]]
 # run unbinned
 sp.aligned-image-stack-binning=down
