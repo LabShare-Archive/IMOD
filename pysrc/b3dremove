@@ -14,13 +14,21 @@ maxTrials = 10
 import sys, os, os.path, time
 
 if len(sys.argv) < 2:
+   sys.stdout.write("""Usage: b3dremove [-g] filenames OR -r directories
+    Removes files with optional -g to glob on wild cards in the filenames, or
+    removes directory trees with the -r option\n""")
    sys.exit(0)
 
 numStart = 1
 doglob = False
+dotree = False
 if sys.argv[1] == '-g':
    import glob
    doglob = True
+   numStart = 2
+if sys.argv[1] == '-r':
+   import shutil
+   dotree = True
    numStart = 2
 
 if len(sys.argv) <= numStart:
@@ -42,12 +50,15 @@ while numToDel and trial < maxTrials:
       onef = files[ind]
       if onef:
          try:
-            os.remove(onef)
+            if dotree:
+               shutil.rmtree(onef)
+            else:
+               os.remove(onef)
             numToDel -= 1
             files[ind] = None
             if trial > 1:
                sys.stdout.write('It took ' + str(trial) + ' tries to remove ' + onef+'\n')
-         except:
+         except Exception:
             if trial == maxTrials:
                if failMess:
                   failMess += ', '
