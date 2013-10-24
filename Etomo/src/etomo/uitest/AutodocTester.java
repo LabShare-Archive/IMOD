@@ -1374,9 +1374,7 @@ final class AutodocTester extends Assert implements VariableList {
       touch(dir);
     }
     else {
-      SystemProgram mkdir = new SystemProgram(null, System.getProperty("user.dir"),
-          new String[] { "mkdir", dir.getAbsolutePath() }, AxisID.ONLY);
-      mkdir.run();
+      dir.mkdirs();
     }
   }
 
