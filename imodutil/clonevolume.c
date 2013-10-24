@@ -320,7 +320,7 @@ int main( int argc, char *argv[])
             outPt.x = (float)ix + 0.5;
             outPt.y = (float)iy + 0.5;
             outPt.z = (float)iSlice;
-            /* Tranform output/into coords back to the input */
+            /* Transform output/into coords back to the input */
             imodMatTransform3D(xform[iClone], &outPt, &inPt);
             /* If in range, combine current value with input.              */
             /* Use trilinear interpolation whenever possible.              */
@@ -335,8 +335,13 @@ int main( int argc, char *argv[])
               if (r >= rMin && r <= rMax && withinMask != 0) {
                 if (sliceGetVal(slice, ix, iy, oldVal))
                   exitError("Error retrieving value from slice");
+                /* 
+                 * Convert from model coordinates to image index coordinates
+                 * and interpolate.
+                 */
                 inVal = trilinearInterpolation(
-                  inVol, &inHeader, inPt.x, inPt.y, inPt.z);
+	          inVol, &inHeader, inPt.x - 0.5, inPt.y - 0.5, inPt.z);
+
                 newVal[0] = alpha * oldVal[0] + (1.0 - alpha) * inVal;
                 if (slicePutVal(slice, ix, iy, newVal))
                   exitError("Error setting value in slice");
@@ -556,9 +561,6 @@ float trilinearInterpolation(float **inVol, MrcHeader *inHeader,
 {
   float d11, d12, d21, d22, dx, dy, dz, temp, newVal;
   int ibase, ix, ixh, iy, iyh, iz, izh;
-
-  x -= 0.5;
-  y -= 0.5;
 
   ix = (int)x;
   iy = (int)y;
