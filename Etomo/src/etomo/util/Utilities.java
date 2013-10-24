@@ -968,7 +968,7 @@ public class Utilities {
     }
     else if (file.isDirectory()) {
       SystemProgram remove = new SystemProgram(manager, manager.getPropertyUserDir(),
-          new String[] {"python", "b3dremove", "-r", file.getAbsolutePath() }, axisID);
+          new String[] {"b3dremove", "-r", file.getAbsolutePath() }, axisID);
       remove.run();
       if (file.exists()) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Cannot delete the directory",
