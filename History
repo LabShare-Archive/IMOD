@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/23/13: In eTomo resizing when the Cleanup dialog is finished.(Bug# 1636)
+
 10/22/13: Fixed another warping-related crash in Midas.
 
 10/22/13: Made it possible to start Zap rubber band from ANY corner.
