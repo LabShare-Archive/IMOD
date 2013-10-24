@@ -782,8 +782,10 @@ void sliceScaleAndFree(Islice *sout, Islice *sin)
 /*!
  * Returns [num] if it is even and has no prime factor greater than [limit],
  * or makes the number even and adds [idnum] until it reaches a value with this
- * property.  Values of 2 for [idnum] and 19 for [limit] will give a value
- * suitable for taking the FFT with the routines in IMOD.
+ * property.  Usse a values of 2 for [idnum] and call @@libifft.html#niceFFTlimit@ to
+ * obtain an optimal value of [limit] for taking the FFT with the current IMOD package.
+ * This value is 15 when linked with FFTW (because higher values use slower algorithms)
+ * and 19 with the old IMOD FFT routines (an absolute limit in that case).
  */
 int niceFrame(int num, int idnum, int limit)
 {
