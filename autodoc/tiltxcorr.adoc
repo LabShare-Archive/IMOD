@@ -130,26 +130,67 @@ frequencies specified by FilterRadius1 and FilterRadius2
 short = exclude
 type = B
 usage = Exclude central correlation peak due to fixed pattern noise
-tooltip = Ignore correlation peaks near (0, 0); do not use unless necessary
-because nearly aligned images will become misaligned.
-manpage = Exclude central correlation peak due to fixed pattern noise in the
-images.  This option will misalign images that are already nearly aligned.
+tooltip = Ignore correlation peaks at (0, 0) due to fixed pattern noise if
+various conditions on peak strength and width are satisfied
+manpage = Exclude a central correlation peak at (0, 0) caused by fixed pattern
+noise in the images.  As of IMOD 4.6.31, this option has become much more
+effective, since a peak will be excluded only if certain conditions are met.
+First, the program tests whether the peak center is within 0.1 pixels of (0,
+0), whether this peak is narrower than the second-highest peak, and
+whether the second-highest peak is sufficiently stronger than the
+third-highest one.  If these tests are passed, the program computes a
+correlation between unbinned, unstretched images with no high-frequency
+filtering and measures the width of first and second peaks.  If the first peak
+is narrow enough, and sufficiently narrower than the second peak, then the
+second peak position (in the original correlation) is used.
+
+[Field = CentralPeakExclusionCriteria]
+short = central
+type = FT
+usage = Three criterion values controlling exclusion of a peak at (0, 0)
+tooltip = 
+manpage = This option specifies three of the criteria applied when deciding
+whether to exclude a peak at (0, 0): the minimum ratio of the second to the
+third peak strength (default 3); the absolute half-width of the central peak
+in the unbinned, unstretched correlation (default 1.5); and the minimum ratio
+of the second to the first peak width (default 1.6).
 
 [Field = ShiftLimitsXandY]
 short = shift
 type = IP
-usage = Limit on distance in X and Y to search for correlation peak
-tooltip = Limit on distance in X and Y to search for correlation peak, in
+usage = Limits on distance in X and Y to search for correlation peak
+tooltip = Limits on distance in X and Y to search for correlation peak, in
 pixels.  Images or patch centers will not shift by more than this amount
 between views.
-manpage = Limit on distance in X and Y to search for correlation peak, in
+manpage = Limits on distance in X and Y to search for correlation peak, in
 pixels before binning is applied internally.  This option can be used to
 prevent a spurious correlation peak outside these limits from giving a bad
-alignment.  If the program does not find an actual peak, i.e. a pixel higher
-than all its neighbors, within these limits, then it will give a zero shift.
-If cumulative correlations are being used, the program will seek a peak within
-this distance of the peak for the previous view and assign that view's shift
-instead of zero if no peak is found.
+alignment.  As of IMOD 4.6.31, the peak must be located within an ellipse
+whose axes are defined by the limits in X and Y.  If the program does not find
+an actual peak, i.e. a pixel higher than all its neighbors, within these
+limits, then it will give a zero shift. If cumulative correlations are being
+used, the program will seek a peak within this distance of the peak for the
+previous view and assign that view's shift instead of zero if no peak is
+found.
+
+[Field = RectangularLimits]
+short = rect
+type = B
+usage = Limit peaks to within a rectangular rather than elliptical area
+tooltip = 
+manpage = With this option, the -shift option works as it did before IMOD
+4.6.31, requiring a peak to be within the rectangle defined by the limits in X
+and Y.
+
+[Field = CorrelationCoefficient]
+short = ccc
+type = B
+usage = Find peak with best normalized cross-correlation coefficient
+tooltip = 
+manpage = Compute a normalized cross-correlation coefficient at the 10 highest
+correlation peaks and pick the peak with the highest coefficient.  This
+computation requires 5 Fourier transforms instead of 3, because filtered
+images must be used for computing the correlation coefficient.
 
 [Field = BordersInXandY]
 short = border
