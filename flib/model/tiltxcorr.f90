@@ -21,20 +21,19 @@
 !
 program tiltxcorr
   implicit none
-  integer IDIM, IDIM2, LIMBOUND
-  parameter (IDIM = 4300, IDIM2 = IDIM * IDIM)
-  parameter (LIMBOUND = 1000)
+  integer LIMBOUND, LIMPEAKS
+  parameter (LIMBOUND = 1000, LIMPEAKS = 50)
   include 'smallmodel.inc90'
   integer*4 nx, ny, nz
   !
   integer*4 nxyz(3), mxyz(3), nxyzs(3)
   real*4 title(20), delta(3), origin(3)
-  real*4 ctfp(8193), sumArray(IDIM2), crray(IDIM2)
-  real*4 array(IDIM2), brray(IDIM2)
-  real*4, allocatable :: tmpArray(:)
+  real*4 xpeakList(LIMPEAKS), ypeakList(LIMPEAKS), peakList(LIMPEAKS), widths(LIMPEAKS)
+  real*4 ctfp(8193), widthSDs(LIMPEAKS), ctfUB(8193)
+  real*4, allocatable :: sumArray(:), crray(:), array(:), brray(:), filtArray(:)
+  real*4, allocatable :: tmpArray(:), ubArray(:), ubBrray(:)
   !
   equivalence (nx, nxyz(1)), (ny, nxyz(2)), (nz, nxyz(3))
-  common /bigarr/ array, sumArray, brray, crray
   !
   character*320 inFile, plFile, imFileOut, xfFileOut
   character*1000 listString
@@ -58,12 +57,12 @@ program tiltxcorr
   integer*4 numInBound(LIMBOUND)
   real*4 xtfsBmin(LIMBOUND), xtfsBmax(LIMBOUND), ytfsBmin(LIMBOUND)
   real*4 ytfsBmax(LIMBOUND)
-  real*4 dmin2, dmax2, dmean2, dmean3, rotAngle, deltaCTF, radExclude, cosStrMaxTilt
+  real*4 dmin2, dmax2, dmean2, dmean3, rotAngle, deltaCTF, cosStrMaxTilt
   integer*4 i, numPcList, numViews, minXpiece, numXpieces, nxOverlap, minYpiece, numBest
   integer*4 numYpieces, nyOverlap, ifImOut, nxPad, nyPad, ifExclude, mode, indBest
   integer*4 nxTrim, nyTrim, nxUse, nyUse, nxBorder, nyBorder, nxTaper, nyTaper
   integer*4 izStart, izEnd, kk, nzOut, izLast, izCur, idir, izTmp, imagesBinned
-  real*4 dmeanSum, dmax, dmin, stretch, streak, xpeak, ypeak, unstretchDx, unstretchDy
+  real*4 dmeanSum, dmax, dmin, stretch, xpeak, ypeak, unstretchDx, unstretchDy
   real*4 dmean, radius1, radius2, sigma1, sigma2, tiltAtMin, cosView
   integer*4 iv, iview, kti, isOut, ierr, ivStart, ivEnd, loopDir, ifReadXfs
   integer*4 iloop, numLoops, minTilt, ifAbsStretch, ivRef, ifLeaveAxis, ivRefBase
@@ -81,18 +80,23 @@ program tiltxcorr
   integer*4 ixBoxForAdj, iyBoxForAdj, ipatch, numPoints, numBound, iobj, lenTemp
   integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
-  integer*4 limitXlo, limitXhi, limitYlo, limitYhi, numControl, numBoundAll
-  integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset, ifFindWarp
+  integer*4 limitXlo, limitXhi, limitYlo, limitYhi, numControl, numBoundAll, idim2
+  integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset, ifFindWarp, limitedBinSize
+  integer*4 indPeak, nsum, nxCCTrim, nyCCTrim, numXcorrPeaks, nxUBpad, nyUBpad, nxUBtaper
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
   real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
-  real*4 fracOverMax, critNonBlank, fillTaperFrac
-  real*8 wallMask, wallTime, wallStart, wallInterp, wallfft
+  real*4 fracOverMax, critNonBlank, fillTaperFrac, deltaUBctf
+  integer*4 nyUBtaper, limitUBshiftX, limitUBshiftY, niceLimit, ifEllipse
+  real*4 binWidthRatioCrit, peak2ToPeak3Crit, centralPeakMaxWidth, ubWidthRatioCrit
+  real*4 ubXpeaks(2), ubYpeaks(2), ubPeakList(2)
+  real *8 cccMax, ccc, CCCoefficient
+  real*8 wallMask, wallTime, wallStart, wallInterp, wallfft, wallPeak
 
-  logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder
-  logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut
+  logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, evalCCC
+  logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut, limitingShift
   integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList, taperAtFill
   integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform, readWarpFile
-  integer*4 separateLinearTransform
+  integer*4 separateLinearTransform, niceFFTlimit
   logical inside
   real*4 cosd, sind
 
@@ -100,12 +104,12 @@ program tiltxcorr
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetInteger, PipGetBoolean, PipGetLogical, PipNumberOfEntries
   integer*4 PipGetString, PipGetFloat, PipGetTwoIntegers, PipGetTwoFloats
-  integer*4 PipGetInOutFile, ifPip
+  integer*4 PipGetInOutFile, ifPip, PipGetThreeFloats
   !
   ! fallbacks from ../../manpages/autodoc2man -3 2  tiltxcorr
   !
   integer numOptions
-  parameter (numOptions = 47)
+  parameter (numOptions = 52)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@piece:PieceListFile:FN:@output:OutputFile:FN:@'// &
@@ -113,8 +117,10 @@ program tiltxcorr
       'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@offset:AngleOffset:F:@'// &
       'reverse:ReverseOrder:B:@radius1:FilterRadius1:F:@radius2:FilterRadius2:F:@'// &
       'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@exclude:ExcludeCentralPeak:B:@'// &
-      'shift:ShiftLimitsXandY:IP:@border:BordersInXandY:IP:@xminmax:XMinAndMax:IP:@'// &
-      'yminmax:YMinAndMax:IP:@boundary:BoundaryModel:FN:@objbound:BoundaryObject:I:@'// &
+      'central:CentralPeakExclusionCriteria:FT:@shift:ShiftLimitsXandY:IP:@'// &
+      'rect:RectangularLimits:B:@ccc:CorrelationCoefficient:B:@'// &
+      'border:BordersInXandY:IP:@xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'// &
+      'boundary:BoundaryModel:FN:@objbound:BoundaryObject:I:@'// &
       'binning:BinningToApply:I:@antialias:AntialiasFilter:I:@'// &
       'leaveaxis:LeaveTiltAxisShifted:B:@pad:PadsInXandY:IP:@taper:TapersInXandY:IP:@'// &
       'views:StartingEndingViews:IP:@skip:SkipViews:LI:@break:BreakAtViews:LI:@'// &
@@ -124,7 +130,8 @@ program tiltxcorr
       'overlap:OverlapOfPatchesXandY:IP:@seed:SeedModel:FN:@objseed:SeedObject:I:@'// &
       'length:LengthAndOverlap:IP:@prexf:PrealignmentTransformFile:FN:@'// &
       'imagebinned:ImagesAreBinned:I:@unali:UnalignedSizeXandY:IP:@'// &
-      'warp:FindWarpTransforms:I:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
+      'warp:FindWarpTransforms:I:@pair:RawAndAlignedPair:IP:@'// &
+      'append:AppendToWarpFile:B:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
       'param:ParameterFile:PF:@help:usage:B:'
   !
   ! set defaults here where not dependent on image size
@@ -159,12 +166,14 @@ program tiltxcorr
   critInside = 0.75
   limitShiftX = 1000000
   limitShiftY = 1000000
+  limitingShift = .false.
   fracXover = 0.33
   fracYover = 0.33
   fracOverMax = 0.8
   wallMask = 0.
   wallInterp = 0.
   wallfft = 0.
+  wallPeak = 0.
   numSkip = 0
   breaking = .false.
   imagesBinned = 1
@@ -179,6 +188,14 @@ program tiltxcorr
   rawAlignedPair = .false.
   addToWarps = .false.
   ivPairOffset = 0
+  evalCCC = .false.
+  numXcorrPeaks = 10
+  binWidthRatioCrit = 1.05
+  peak2ToPeak3Crit = 3.
+  centralPeakMaxWidth = 1.5
+  ubWidthRatioCrit = 1.6
+  ifEllipse = 1
+  limitedBinSize = 4300**2
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -295,7 +312,7 @@ program tiltxcorr
     ierr = PipGetFloat('FilterSigma2', sigma2)
     ierr = PipGetBoolean('ExcludeCentralPeak', ifExclude)
     ierr = PipGetTwoIntegers('BordersInXandY', nxTrim, nyTrim)
-    ierr = PipGetTwoIntegers('ShiftLimitsXandY', limitShiftX, limitShiftY)
+    limitingShift = PipGetTwoIntegers('ShiftLimitsXandY', limitShiftX, limitShiftY) == 0
     ierr = PipGetInteger('IterateCorrelations', numIter)
     numIter = max(1, min(6, numIter))
     ierr = PipGetTwoIntegers('LengthAndOverlap', lenContour, minContOverlap)
@@ -321,11 +338,16 @@ program tiltxcorr
     allocate(tmpArray(lenTemp), stat = ierr)
     call memoryError(ierr, "TEMPORARY ARRAY FOR READING DATA")
 
+    ierr = PipGetLogical('CorrelationCoefficient', evalCCC)
     ierr = PipGetLogical('ReverseOrder', reverseOrder)
     ierr = PipGetBoolean('CumulativeCorrelation', ifCumulate)
     ierr = PipGetBoolean('NoCosineStretch', ifNoStretch)
     ierr = PipGetBoolean('AbsoluteCosineStretch', ifAbsStretch)
     ierr = PipGetBoolean('LeaveTiltAxisShifted', ifLeaveAxis)
+    ierr = PipGetThreeFloats('CentralPeakExclusionCriteria', peak2ToPeak3Crit, &
+        centralPeakMaxWidth, ubWidthRatioCrit)
+    ierr = PipGetBoolean('RectangularLimits', iv)
+    ifEllipse = 1 - iv
     ierr = PipGetFloat('AngleOffset', angleOffset)
     do iv = 1, numViews
       tilt(iv) = tilt(iv) + angleOffset
@@ -359,9 +381,6 @@ program tiltxcorr
     iyStart = nyTrim
     iyEnd = ny - 1 - nyTrim
   endif
-
-  radExclude = 0.
-  if (ifExclude == 1) radExclude = 1.1
 
   if (ixStart < 0 .or. iyStart < 0 .or. ixEnd >= nx .or. iyEnd >= ny .or. &
       ixEnd - ixStart < 24 .or. iyEnd - iyStart < 24) call exitError( &
@@ -686,45 +705,49 @@ program tiltxcorr
   ! get a binning based on the padded size so that large padding is
   ! possible
   !
+  niceLimit = niceFFTlimit()
   if (nbinning == 0) then
     nbinning = (max(nxUse + 2 * nxBorder, nyUse + 2 * nyBorder) + maxBinSize-1) /  &
         maxBinSize
     !
-    ! If the binning is bigger than 4, find the minimum binning needed
-    ! to keep the used image within bounds
+    ! If the binning is bigger than 4, find the minimum binning needed to keep the used
+    ! image within advisable bounds, up to a maximum binning, then stick with that
     if (nbinning > 4) then
       nbinning = 0
       i = 4
       do while (i <= maxBinning .and. nbinning == 0)
-        if ((niceFrame((nxUse + 2 * nxBorder) / i, 2, 19) + 2) * &
-            niceFrame((nyUse + 2 * nyBorder) / i, 2, 19) < IDIM2) nbinning = i
+        if ((niceFrame((nxUse + 2 * nxBorder) / i, 2, niceLimit) + 2) * &
+            niceFrame((nyUse + 2 * nyBorder) / i, 2, niceLimit) < limitedBinSize)  &
+            nbinning = i
         i = i + 1
       enddo
-      if (nbinning == 0) call exitError('IMAGE AREA TOO'// &
-          ' LARGE FOR ARRAYS; INCREASE THE BORDER TO TRIM OFF')
+      if (nbinning == 0) nbinning = maxBinning
     endif
-  else if ((niceFrame((nxUse + 40) / nbinning, 2, 19) + 2) * &
-      niceFrame((nyUse + 40) / nbinning, 2, 19) > IDIM2) then
-    call exitError('IMAGE AREA TOO'// &
-        ' LARGE; INCREASE THE BINNING OR THE BORDER TO TRIM OFF')
   endif
 
   nxUseBin = nxUse / nbinning
   nyUseBin = nyUse / nbinning
 
-  nxPad = niceFrame((nxUse + 2 * nxBorder) / nbinning, 2, 19)
-  nyPad = niceFrame((nyUse + 2 * nyBorder) / nbinning, 2, 19)
-  if ((nxPad + 2) * nyPad > IDIM2) call exitError( &
-      'PADDED IMAGE TOO BIG, TRY LESS PADDING')
+  nxPad = niceFrame((nxUse + 2 * nxBorder) / nbinning, 2, niceLimit)
+  nyPad = niceFrame((nyUse + 2 * nyBorder) / nbinning, 2, niceLimit)
+  idim2 = (nxPad + 2) * nyPad + 16
+  allocate(sumarray(idim2), crray(idim2), array(idim2), brray(idim2), stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR IMAGES')
 
   write(*,'(/,a,i3,a,i5,a,i5)') binRedText, nbinning, &
       ';  padded, reduced size is', nxPad, ' by', nyPad
   !
-  ! Now that padded size exists, get the filter ctf
+  ! Now that padded size exists, get the filter ctf.  If doing CCC's, get the array for
+  ! that and take square root of filter to apply it to both images
   !
   call setCtfwSR(sigma1, sigma2, radius1, radius2, ctfp, nxPad, nyPad, deltaCTF)
+  if (evalCCC) then
+    allocate(filtArray(IDIM2), stat = ierr)
+    call memoryError(ierr, 'ARRAY FOR FILTERED IMAGE')
+    ctfp(:) = sqrt(ctfp(:))
+  endif
   !
-  ! Set up tapering
+  ! Set up tapering, save unbinned values for taper and shift limit
   !
   nxTaper = max(5, min(100, nint(0.1 * nxUse)))
   nyTaper = max(5, min(100, nint(0.1 * nyUse)))
@@ -735,12 +758,29 @@ program tiltxcorr
         //' in X and Y (/ for', nxTaper, nyTaper, '): '
     read(*,*) nxTaper, nyTaper
   endif
+  nxUBtaper = nxTaper
+  nyUBtaper = nyTaper
+  limitUBshiftX = limitShiftX
+  limitUBshiftY = limitShiftY
   nxTaper = nxTaper / nbinning
   nyTaper = nyTaper / nbinning
   limitShiftX = (limitShiftX  + nbinning / 2) / nbinning
   limitShiftY = (limitShiftY  + nbinning / 2) / nbinning
   if (limitShiftX <= 0 .or. limitShiftY <= 0) call exitError( &
       'SHIFT LIMITS MUST BE POSITIVE AND AT LEAST 1 PIXEL WHEN DIVIDED BY BINNING')
+  !
+  ! If excluding central peak, set up parameters for that
+  if (ifExclude > 0) then
+    nxUBpad = niceFrame(nxUse + 2 * nxBorder, 2, niceLimit)
+    nyUBpad = niceFrame(nyUse + 2 * nyBorder, 2, niceLimit)
+    call setCtfwSR(sigma1 / nbinning, sigma2 / nbinning, radius1 / nbinning, 0.75, &
+        ctfUB, nxUBpad, nyUBpad, deltaUBctf)
+    if (nbinning > 1) then
+      kk = nyUBpad * (nxUBpad + 2) + 16
+      allocate(ubArray(kk), ubBrray(kk), stat = ierr)
+      call memoryError(ierr, 'ARRAYS FOR UNBINNED CORRELATIONS')
+    endif
+  endif
   !
   ! Get view range in old sequential input (needed earlier when pip)
   if (.not. pipinput) then
@@ -1143,11 +1183,9 @@ program tiltxcorr
           if (ifImOut .ne. 0) then
             do isOut = 1, 2
               if (isOut == 1) then
-                call irepak(crray, array, nxPad + 2, nyPad, &
-                    0, nxPad-1, 0, nyPad-1)
+                call irepak(crray, array, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
               else
-                call irepak(crray, brray, nxPad + 2, nyPad, &
-                    0, nxPad-1, 0, nyPad-1)
+                call irepak(crray, brray, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
               endif
               if (mode .ne. 2) then
                 call isetdn(crray, nxPad, nyPad, mode, 1, nxPad, 1, nyPad, dmin2, &
@@ -1169,29 +1207,120 @@ program tiltxcorr
           !
           ! print *,'taking fft'
           wallStart = wallTime()
+          if (evalCCC .and. deltaCTF == 0)  &
+              filtArray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
           call todfft(array, nxPad, nyPad, 0)
           call todfft(brray, nxPad, nyPad, 0)
+          !
+          if (deltaCTF .ne. 0.) then
+            if (evalCCC) then
+              call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
+              call filterPart(brray, brray, nxPad, nyPad, ctfp, deltaCTF)
+              filtArray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
+            else
+              call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
+            endif
+          endif
           !
           ! multiply array by complex conjugate of brray, put back in array
           !
           ! print *,'multiplying arrays'
           call conjugateProduct(array, brray, nxPad, nyPad)
-          !
-          if (deltaCTF .ne. 0.) call filterPart(array, array, nxPad, nyPad, ctfp, &
-              deltaCTF)
           ! print *,'taking back fft'
           call todfft(array, nxPad, nyPad, 1)
           wallfft = wallfft + wallTime() - wallStart
+
+          if (evalCCC) then
+            if (deltaCTF .ne. 0.) call todfft(filtArray, nxPad, nyPad, 1)
+            call todfft(brray, nxPad, nyPad, 1)
+          endif
+          wallStart = wallTime()
+          if (limitingShift)  &
+              call setPeakFindLimits(limitXlo, limitXhi, limitYlo, limitYhi, ifEllipse)
+          call xcorrPeakFindWidth(array, nxPad + 2, nyPad, xpeakList, ypeakList, &
+              peakList, widths, widthSDs, numXcorrPeaks)
+          wallPeak = wallPeak + wallTime() - wallStart
+          cccMax = -10.
+          indPeak = 1
+          if (evalCCC) then
+            nxCCTrim = (nxPad - nxUse / nbinning) / 2 + nxTaper / 2
+            nyCCTrim = (nyPad - nyUse / nbinning) / 2 + nyTaper / 2
+            do i = 1, numXcorrPeaks
+              if (peakList(i) > -0.9e30) then
+                ccc = CCCoefficient(filtArray, brray, nxPad + 2, nxPad, nyPad, &
+                    xpeakList(i), ypeakList(i), nxCCTrim, nyCCTrim, nsum)
+                
+                if (verbose) write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5,a,2f8.2)') &
+                    i,' at ', xpeakList(i), ypeakList(i), ' peak =',peakList(i), &
+                    ' nsum = ', nsum, ' cc =',ccc,' width&SD =',widths(i),widthSDs(i)
+                if (ccc > cccMax .and. (i == 1 .or.  &
+                    nsum > (nxPad - 2 * nxCCTrim) * (nyPad - 2 * nyCCTrim) / 8)) then
+                  cccMax = ccc
+                  indPeak = i
+                  if (i > 1 .and. verbose) print *,'Highest raw peak superceded!'
+                endif
+                peakList(i) = ccc
+              endif
+            enddo
+          endif
+          xpeakTmp = xpeakList(indPeak)
+          ypeakTmp = ypeakList(indPeak)
+          peakVal = peakList(indPeak)
           !
-          ! the factor here determines the balance between accepting a
-          ! spurious peak and rejecting a real peak because it falls in
-          ! the streak. The spurious peak could be as far as 0.5 out but
-          ! is much more likely to be within 0.25 of the maximum
-          ! displacement
-          !
-          streak = 0.25 * (stretch - 1.0) * nxUse
-          call peakFind(array, nxPad + 2, nyPad, xpeakTmp, ypeakTmp, peakVal, &
-              radExclude, rotAngle, streak, limitXlo, limitXhi, limitYlo, limitYhi)
+          ! If excluding central peaks and the peak is at 0,0 adjusted for difference in
+          ! box locations and the first peak width is at least less than the second and
+          ! the third peak is sufficiently weaker than the second, need to get the 
+          ! unbinned, unstretched correlation
+          if (ifExclude > 0 .and. peakList(2) > 0 .and. indpeak == 1 .and. &
+              abs(xpeakTmp - float(ixBoxCur - ixBoxRef) / nbinning) < 0.1 .and.  &
+              abs(ypeakTmp - float(iyBoxCur - iyBoxRef) / nbinning) < 0.1 .and. &
+              widths(2) / widths(1) > binWidthRatioCrit .and.  &
+              (peakList(3) < 1.e-5 .or. peakList(2) / peakList(3) > peak2ToPeak3Crit))  &
+              then
+            print *,'Evaluating first and second peak with unbinned correlation'
+
+            ! Load both images unbinned from reference limits, taper, and take the
+            ! correlation with high-pass filter only
+            call irdbinned(1, izLast, ubArray, nxUse, nyUse, &
+                float(ixCenStart + ixBoxRef), float(iyCenStart + iyBoxRef), 1, nxUse, &
+                nyUse, tmpArray, lenTemp, ierr)
+            if (ierr .ne. 0) call exitError('READING IMAGE FILE')
+            call taperInPad(ubArray, nxUse, nyUse, ubArray, nxUBpad + 2, nxUBpad, &
+                nyUBpad, nxUBtaper, nyUBtaper)
+            call meanZero(ubArray, nxUBpad + 2, nxUBpad, nyUBpad)
+            call irdbinned(1, izCur, ubBrray, nxUse, nyUse, &
+                float(ixCenStart + ixBoxRef), float(iyCenStart + iyBoxRef), 1, nxUse, &
+                nyUse, tmpArray, lenTemp, ierr)
+            if (ierr .ne. 0) call exitError('READING IMAGE FILE')
+            call taperInPad(ubBrray, nxUse, nyUse, ubBrray, nxUBpad + 2, nxUBpad, &
+                nyUBpad, nxUBtaper, nyUBtaper)
+            call meanZero(ubBrray, nxUBpad + 2, nxUBpad, nyUBpad)
+            call todfft(ubArray, nxUBpad, nyUBpad, 0)
+            call todfft(ubBrray, nxUBpad, nyUBpad, 0)
+            call conjugateProduct(ubArray, ubBrray, nxUBpad, nyUBpad)
+            if (deltaUBctf .ne. 0.) &
+                call filterpart(ubArray, ubArray, nxUBpad, nyUBpad, ctfUB, deltaUBctf)
+            call todfft(ubArray, nxUBpad, nyUBpad, 1)
+
+            ! It's not clear if these limits should be applied...
+            call setPeakFindLimits(-limitUBshiftX, limitUBshiftX, -limitUBshiftY, &
+                limitUBshiftY, ifEllipse)
+            call xcorrPeakFindWidth(ubArray, nxUBpad + 2, nyUBpad, ubXpeaks, ubYpeaks, &
+                ubPeakList, widths, widthSDs, 2)
+            if (verbose) print *,ubXpeaks(1), ubYpeaks(1),ubPeakList(1), widths(1)
+            if (verbose) print *,ubXpeaks(2), ubYpeaks(2),ubPeakList(2), widths(2)
+            ! Accept the second peak if the first is still at origin and is narrow enough
+            ! and if the width ratio is big enough
+            if (ubPeakList(2) > 0 .and. abs(ubXpeaks(1)) < 0.1 .and.  &
+                abs(ubYpeaks(1)) < 0.1 .and. widths(1) <= centralPeakMaxWidth .and.  &
+                widths(2) / widths(1) > ubWidthRatioCrit) then
+              if (verbose) print *,'Rejecting peak at 0,0!'
+              peakVal = peakList(2)
+              xpeakTmp = xpeakList(2)
+              ypeakTmp = ypeakList(2)
+            endif
+          endif
+              
           xpeakCum = xpeakTmp + xpeakFrac
           xpeakFrac = xpeakCum - nint(xpeakCum)
           ypeakCum = ypeakTmp + ypeakFrac
@@ -1552,8 +1681,8 @@ program tiltxcorr
   endif
   call imclose(1)
   !
-  ! write(*,'(3(a,f9.3))') 'interpolation', wallinterp, '  fft', wallfft, &
-  ! '  masking', wallmask
+  ! write(*,'(4(a,f9.3))') 'interpolation', wallinterp, '  fft', wallfft, &
+  !    '  peak', wallPeak, '  masking', wallmask
   write(6, 500)
 500 format(' PROGRAM EXECUTED TO END.')
   call exit(0)
@@ -1776,97 +1905,6 @@ CONTAINS
     return
   end subroutine readBinnedOrReduced
 end program tiltxcorr
-
-
-! PEAKFIND finds the coordinates of the absolute peak, XPEAK, YPEAK
-! in the array ARRAY, which is dimensioned to nx+2 by ny.  It fits
-! a parabola in to the three points around the peak in X or Y and gets
-! a much better estimate of peak location.
-!
-subroutine peakFind(array, nxPlus, nyCorr, xpeak, ypeak, peak, radExclude, &
-    rotAngle, streak, limitXlo, limitXhi, limitYlo, limitYhi)
-  implicit none
-  integer*4 nxPlus, nyCorr, limitXlo, limitXhi, limitYlo, limitYhi
-  real*4 xpeak, ypeak, radExclude, rotAngle, streak
-  real*4 array(nxPlus,nyCorr)
-  integer*4 nxCorr, ix, iy, idx, idy, lower, ixPeak, iyPeak
-  real*4 peak, xrot, yrot, cx, y1, y2, y3, cy, cosTheta, sinTheta
-  real*4 cosd, sind
-  integer*4 indmap
-  real*8 parabolicFitPosition
-  !
-  nxCorr = nxPlus - 2
-  !
-  ! find peak
-  !
-  cosTheta = cosd(-rotAngle)
-  sinTheta = sind(-rotAngle)
-  peak = -1.e30
-  xpeak = 0.
-  ypeak = 0.
-  ixPeak = -1
-  do iy = 1, nyCorr
-    do ix = 1, nxCorr
-      if (array(ix, iy) > peak) then
-        !
-        ! first check if within limits
-        idx = ix - 1
-        idy = iy - 1
-        if (idx > nxCorr / 2) idx = idx - nxCorr
-        if (idy > nyCorr / 2) idy = idy - nyCorr
-        if (idx >= limitXlo .and. idx <= limitXhi .and. idy >= limitYlo .and.  &
-            idy <= limitYhi) then
-          !
-          ! Then check if it outside the exclusion region
-          xrot = idx * cosTheta - idy * sinTheta
-          yrot = idx * sinTheta + idy * cosTheta
-          if (abs(yrot) >= radExclude .or. abs(xrot) >= streak + radExclude) then
-            !
-            ! next check that point is actually a local peak
-            !
-            lower = 0
-            do idx = -1, 1
-              do idy = -1, 1
-                if (array(ix, iy) < array(indmap(ix + idx, nxCorr), &
-                    indmap(iy + idy, nyCorr))) lower = 1
-              enddo
-            enddo
-            if (lower == 0) then
-              peak = array(ix, iy)
-              ixPeak = ix
-              iyPeak = iy
-            endif
-          endif
-        endif
-      endif
-    enddo
-  enddo
-  ! print *,ixpeak, iypeak
-  !
-  if (ixPeak > 0) then
-    !
-    ! simply fit a parabola to the two adjacent points in X or Y
-    !
-    y1 = array(indmap(ixPeak - 1, nxCorr), iyPeak)
-    y2 = peak
-    y3 = array(indmap(ixPeak + 1, nxCorr), iyPeak)
-    cx = parabolicFitPosition(y1, y2, y3)
-    ! print *,'X', y1, y2, y3, cx
-    y1 = array(ixPeak, indmap(iyPeak - 1, nyCorr))
-    y3 = array(ixPeak, indmap(iyPeak + 1, nyCorr))
-    cy = parabolicFitPosition(y1, y2, y3)
-    ! print *,'Y', y1, y2, y3, cy
-    !
-    ! return adjusted pixel coordinate minus 1
-    !
-    xpeak = ixPeak + cx - 1.
-    ypeak = iyPeak + cy - 1.
-  endif
-  ! print *,xpeak, ypeak
-  if (xpeak > nxCorr / 2) xpeak = xpeak - nxCorr
-  if (ypeak > nyCorr / 2) ypeak = ypeak - nyCorr
-  return
-end subroutine peakFind
 
 
 
