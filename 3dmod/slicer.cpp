@@ -20,6 +20,7 @@
 #include <qdatetime.h>
 #include <qcheckbox.h>
 #include <qpushbutton.h>
+#include <GL/glu.h>
 //Added by qt3to4:
 #include <QMouseEvent>
 #include <QKeyEvent>

@@ -22,6 +22,7 @@
 #ifndef _WIN32
 #include <sys/select.h>
 #include <sys/time.h>
+#include <sys/unistd.h>
 #endif
 
 //Using a shorter sleep time then the processchunks script and not adjusting

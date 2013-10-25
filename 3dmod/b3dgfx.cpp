@@ -20,6 +20,7 @@
 #include <qpainter.h>
 #include <qlibrary.h>
 #include <qglcolormap.h>
+#include <GL/glu.h>
 #include "imod.h"
 #include "imodv.h"
 #include "b3dfile.h"
