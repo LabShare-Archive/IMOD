@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/25/13: Changed Beadtrack's elongation file output so that automatic seed
+picking would not fail with only 3 beads.
+
 10/24/13: In eTomo - Combine, removed the message complaining about tomograms
 A and B not being the same size in X and Y, as this is not an error.
 (Bug# 1651)
