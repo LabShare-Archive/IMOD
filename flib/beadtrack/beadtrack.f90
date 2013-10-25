@@ -103,7 +103,7 @@ program beadtrack
   integer*4 numVert, minInArea, minBeadOverlap, ifLocalArea, localTarget
   integer*4 nvLocalIn, localViewPass, nSnapList, iobjSave, limOuter
   logical*4 keepGoing, saveAllPoints, ignoreObjs, done, needTaper, splitFirstRound
-  logical*4 inSplitRound
+  logical*4 inSplitRound, anyResids
   integer*4 numNew, nOverlap, iseqPass, ipassSave, iAreaSave, maxObjOrig
   real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltMax, minPeakRatio
   real*4 sigma1, sigma2, radius2, radius1, deltaCtf, ranFrac, diameter, sobelSigma
@@ -1456,11 +1456,19 @@ program beadtrack
     !
     ! For each real point, get the top/bottom number, mean residual, and mean, sd, min
     ! and max of the edge sd
+    ! If there are no residuals because of too few points, set them all to 0.1
+    xpos = 0.1
+    anyResids = .false.
+    do iobj = 1, maxObjOrig
+      if (npt_in_obj(iobj) > 0 .and. numResSaved(iobj) > 0) anyResids = .true.
+    enddo
     do iobj = 1, maxObjOrig
       if (npt_in_obj(iobj) == 0) cycle
       call objToCont(iobj, obj_color, imodObj, imodCont)
-      xpos = -1.
-      if (numResSaved(iobj) > 0) xpos = resMean(iobj, 1) / numResSaved(iobj)
+      if (anyResids) then
+        xpos = -1.
+        if (numResSaved(iobj) > 0) xpos = resMean(iobj, 1) / numResSaved(iobj)
+      endif
       sdsum = 0. ; sdsumsq = 0.; sdmin = 1.e20; sdmax = -1.; iy = 0 ; ix = 0 ; izv = 0
       omadMean = 0.; obackMean = 0. ; wsum = 0. ; itry = 0
       do iview = minViewDo, maxViewDo
