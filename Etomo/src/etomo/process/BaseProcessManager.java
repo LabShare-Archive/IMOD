@@ -751,18 +751,6 @@ public abstract class BaseProcessManager {
           "Cannot write to " + dir.getAbsolutePath(), "File Error");
       return;
     }
-    String[] commandArray = { "mkdir", absolutePath };
-    startSystemProgramThread(commandArray, AxisID.ONLY, manager);
-    final int timeout = 5;
-    int t = 0;
-    while (!file.exists() && t < timeout) {
-      try {
-        Thread.sleep(1020);
-      }
-      catch (InterruptedException e) {
-      }
-      t++;
-    }
   }
 
   /**
@@ -1424,71 +1412,6 @@ public abstract class BaseProcessManager {
     // Connvert the ArrayList into a String[]
     String[] children = (String[]) childrenPID.toArray(new String[childrenPID.size()]);
     return children;
-  }
-
-  /**
-   * Return a PID of a child process for the specified parent process.  A new
-   * ps command is run each time this function is called so that the most
-   * up-to-date list of child processes is used. Only processes the have not
-   * already received a "kill -9" signal are returned.
-   * 
-   * @param processID
-   * @return A PID of a child process or null
-   */
-  private String getChildProcess(final String processID, final AxisID axisID) {
-    Utilities.debugPrint("in getChildProcess: processID=" + processID);
-    // ps -l: get user processes on this terminal
-    SystemProgram ps = new SystemProgram(manager, manager.getPropertyUserDir(),
-        new String[] { "ps", "axl" }, axisID);
-    ps.run();
-
-    // Find the index of the Parent ID and ProcessID
-    String[] stdout = ps.getStdOutput();
-    if (stdout == null) {
-      return null;
-    }
-    String header = stdout[0].trim();
-    String[] labels = header.split("\\s+");
-    int idxPID = -1;
-    int idxPPID = -1;
-    int idxCMD = -1;
-    int found = 0;
-    for (int i = 0; i < labels.length; i++) {
-      if (labels[i].equals("PID")) {
-        idxPID = i;
-        found++;
-      }
-      if (labels[i].equals("PPID")) {
-        idxPPID = i;
-        found++;
-      }
-      if (labels[i].equals("CMD") || labels[i].equals("COMMAND")) {
-        idxCMD = i;
-        found++;
-      }
-      if (found >= 3) {
-        break;
-      }
-    }
-    // Return null if the PID or PPID fields are not found
-    if (idxPPID == -1 || idxPID == -1) {
-      return null;
-    }
-
-    // Walk through the process list finding the PID of the children
-    String[] fields;
-    for (int i = 1; i < stdout.length; i++) {
-      fields = stdout[i].trim().split("\\s+");
-      if (fields[idxPPID].equals(processID)
-          && !axisProcessData.containsKeyKilledList(fields[idxPID])) {
-        if (idxCMD != -1) {
-          Utilities.debugPrint("child found:PID=" + fields[idxPID] + ",PPID="
-              + fields[idxPPID] + ",name=" + fields[idxCMD]);
-        }
-        return fields[idxPID];
-      }
-    }
-    return null;
   }
 
   /**

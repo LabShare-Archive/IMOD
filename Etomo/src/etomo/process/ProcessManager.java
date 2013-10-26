@@ -2143,21 +2143,6 @@ public class ProcessManager extends BaseProcessManager {
     logFileWindow.setVisible(logFileWindow.setFile(logFile));
   }
 
-  private void printPsOutput(AxisID axisID) {
-    SystemProgram ps = new SystemProgram(appManager, appManager.getPropertyUserDir(),
-        new String[] { "ps", "axl" }, axisID);
-    ps.run();
-    System.out.println("ps axl date=" + ps.getRunTimestamp());
-    // Find the index of the Parent ID and ProcessID
-    String[] stdout = ps.getStdOutput();
-    if (stdout != null) {
-      System.out.println(stdout[0]);
-    }
-    for (int i = 1; i < stdout.length; i++) {
-      System.out.println(stdout[i]);
-    }
-  }
-
   /**
    * Execute the command and arguments in commandAarray immediately.
    * Add save meta data if meta data is changed for this function is called
