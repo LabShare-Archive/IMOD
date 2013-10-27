@@ -16,7 +16,6 @@
 #include <limits.h>
 #include "imod.h"
 #include "vertexbuffer.h"
-#include <GL/glu.h>
 #include "imodv.h"
 #include "mv_image.h"
 #include "imod_edit.h"

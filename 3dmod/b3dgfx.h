@@ -34,6 +34,13 @@ void b3dBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
 #define b3dBufferSubData glBufferSubData
 #endif
 
+// Compilation in Fedora 19 apparently needs glu.h - add it for every platform here
+#ifdef Q_OS_MACX
+#include <glu.h>
+#else
+#include <GL/glu.h>
+#endif
+
 // And wrapper function for primitive restart, needed more widely
 void b3dPrimitiveRestartIndex(GLuint index);
 

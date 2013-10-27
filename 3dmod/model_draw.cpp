@@ -11,7 +11,6 @@
  *  $Id$
  */
 
-#include <GL/glu.h>
 #include "imod.h"
 #include "display.h"
 #include "b3dgfx.h"

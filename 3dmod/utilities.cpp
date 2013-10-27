@@ -23,7 +23,6 @@
 #include <qbitmap.h>
 #include <QBoxLayout>
 #include <qsignalmapper.h>
-#include <GL/glu.h>
 
 //Added by qt3to4:
 #include <QKeyEvent>
