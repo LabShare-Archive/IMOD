@@ -1805,7 +1805,7 @@ SUBROUTINE DUMP(LSLICE, DMIN, DMAX, DTOT8)
   !
   use tiltvars
   implicit none
-  integer*4 lslice, nparextra, iend, index, i, j, imapOut
+  integer*4 lslice, nparextra, iend, index, i, j, imapOut, indDel
   real*4 DMIN, DMAX, fill
   real*8 dtot8, dtmp8
   !
@@ -1895,9 +1895,13 @@ SUBROUTINE DUMP(LSLICE, DMIN, DMAX, DTOT8)
     CALL parWrtSEC(2, array(IMAPOUT))
   ELSE
     ! ....slices must be properly stored
-    ! Take each line of array and place it in the correct section
-    ! of the map.
-    INDEX = IMAPOUT
+    ! Take each line of array and place it in the correct section of the map.
+    index = imapOut
+    indDel = 1
+    if (rotateBy90) then
+      index = imapOut + (ithickOut - 1) * iwidth
+      indDel = -1
+    endif
     DO J = 1, ithickOut
       CALL IMPOSN(2, J - 1, (LSLICE - isliceStart) / idelSlice)
       CALL IWRLIN(2, array(INDEX))
@@ -1910,7 +1914,7 @@ SUBROUTINE DUMP(LSLICE, DMIN, DMAX, DTOT8)
           CALL IWRLIN(2, array(INDEX))
         enddo
       endif
-      INDEX = INDEX + iwidth
+      INDEX = INDEX + indDel * iwidth
     END DO
   END IF
   !
@@ -2257,6 +2261,7 @@ SUBROUTINE INPUT()
   interpOrdStretch = 1
   interpOrdXtilt = 1
   perpendicular = .true.
+  rotateBy90 = .false.
   reprojBP = .false.
   numReproj = 0
   adjustorigin = .false.
@@ -2325,15 +2330,20 @@ SUBROUTINE INPUT()
   if (PipGetTwoFloats('SCALE', outAdd, outScale) == 0) &
       WRITE(6, 701) outAdd, outScale
   !
-  if (PipGetLogical('PERPENDICULAR', perpendicular) == 0) &
-      WRITE(6, 801)
-  !
+  iv = PipGetLogical('PERPENDICULAR', perpendicular)
+  j = PipGetLogical('RotateBy90', rotateBy90)
   i = 0
-  if (PipGetBoolean('PARALLEL', i) == 0) then
-    if (i .ne. 0) then
-      perpendicular = .FALSE.
-      WRITE(6, 901)
-    endif
+  k = PipGetBoolean('PARALLEL', i)
+  if ((iv == 0 .and. perpendicular .and. (i > 0 .or. rotateBy90)) .or.  &
+      (i > 0 .and. rotateBy90)) &
+      call exitError('YOU CAN SELECT ONLY ONE OF PERPENDICULAR, PARALLEL, AND RotateBy90')
+  if (i > 0 .or. rotateBy90) perpendicular = .false.
+  if (perpendicular) then
+    WRITE(6, 801)
+  elseif (rotateBy90) then
+    WRITE(6, 902)
+  else
+    WRITE(6, 901)
   endif
   !
   if (PipGetInteger('MODE', newMode) == 0) then
@@ -2346,8 +2356,7 @@ SUBROUTINE INPUT()
   do j = 1, nument
     ierr = PipGetString('INCLUDE', card)
     call parselist(card, mapUsedView(nvuse + 1), nexclist)
-    if (nvuse + nexclist > limView) call exitError( &
-        'TOO MANY INCLUDED VIEWS FOR ARRAYS')
+    if (nvuse + nexclist > limView) call exitError('TOO MANY INCLUDED VIEWS FOR ARRAYS')
     do i = nvuse + 1, nvuse + nexclist
       if (mapUsedView(i) < 1 .or. mapUsedView(i) > numViews) call exitError( &
           'Illegal view number in INCLUDE list')
@@ -3668,7 +3677,9 @@ SUBROUTINE INPUT()
 801 FORMAT(/' Output map is sectioned perpendicular to the ' &
       ,'tilt axis')
 901 FORMAT(/' Output map is sectioned parallel to the' &
-      ,' zero tilt projection')
+      ,' zero tilt projection, inverting handedness')
+902 FORMAT(/' Output map is sectioned parallel to the' &
+      ,' zero tilt projection, retaining handedness')
 1001 format(/' Data mode of output file is',i3)
 1301 format(/' Taking logarithm of input data plus',f10.3)
 1701 format(/' Compression was confined to',f6.3, &

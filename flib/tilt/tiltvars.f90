@@ -168,6 +168,7 @@ module tiltvars
   !
   LOGICAL*4 maskEdges, perpendicular, reprojBP, recReproj, debug, readBaseRec, useGPU
   logical*4 recSubtraction, projSubtraction, vertSirtInput, saveVertSlices, sirtFromZero
+  logical*4 rotateBy90
   !
   real*4 axisXoffset, xcenIn, centerSlice, xcenOut, ycenOut, baseForLog, yOffset
   real*4, allocatable ::  xzfac(:), yzfac(:), compress(:), exposeWeight(:), angles(:)
