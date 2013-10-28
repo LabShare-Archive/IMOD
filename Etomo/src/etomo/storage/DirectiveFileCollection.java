@@ -68,6 +68,12 @@ public class DirectiveFileCollection implements SetupReconInterface {
         return true;
       }
     }
+    for (int i = 0; i < directiveFileArray.length; i++) {
+      if (directiveFileArray[i] != null
+          && directiveFileArray[i].containsExtraValue(parentName, name)) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -77,6 +83,14 @@ public class DirectiveFileCollection implements SetupReconInterface {
       if (directiveFileArray[i] != null
           && directiveFileArray[i].containsAttribute(parentName, name)) {
         value = directiveFileArray[i].getValue(parentName, name);
+      }
+    }
+    if (value == null) {
+      for (int i = 0; i < directiveFileArray.length; i++) {
+        if (directiveFileArray[i] != null
+            && directiveFileArray[i].containsExtraValue(parentName, name)) {
+          value = directiveFileArray[i].getExtraValue(parentName, name);
+        }
       }
     }
     return value;

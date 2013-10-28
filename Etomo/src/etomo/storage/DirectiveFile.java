@@ -288,6 +288,18 @@ public final class DirectiveFile {
     }
   }
 
+  boolean containsExtraValue(final AttributeName parentName, final String name) {
+    return parentName == AttributeName.COPY_ARG && copyArgExtraValues != null
+        && copyArgExtraValues.containsKey(name);
+  }
+
+  String getExtraValue(final AttributeName parentName, final String name) {
+    if (parentName == AttributeName.COPY_ARG && copyArgExtraValues != null) {
+      return copyArgExtraValues.get(name);
+    }
+    return null;
+  }
+
   /**
    * Returns null if the attribute called name is not there.
    * @param parentName
@@ -511,11 +523,13 @@ public final class DirectiveFile {
   }
 
   public String getGoldErasingBinning(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID, BINNING_NAME);
+    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID,
+        BINNING_NAME);
   }
 
   public String getGoldErasingThickness(final AxisID axisID) {
-    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID, THICKNESS_NAME);
+    return getValue(AttributeName.RUN_TIME, GOLD_ERASING_MODULE_NAME, axisID,
+        THICKNESS_NAME);
   }
 
   public String getPositioningBinByFactor(final AxisID axisID) {
@@ -601,7 +615,8 @@ public final class DirectiveFile {
   }
 
   public boolean isReconstructionUseSirt(final AxisID axisID) {
-    return isValue(AttributeName.RUN_TIME, RECONSTRUCTION_MODULE_NAME, axisID, USE_SIRT_NAME);
+    return isValue(AttributeName.RUN_TIME, RECONSTRUCTION_MODULE_NAME, axisID,
+        USE_SIRT_NAME);
   }
 
   boolean isScanHeader() {
