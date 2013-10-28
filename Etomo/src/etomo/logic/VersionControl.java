@@ -104,8 +104,8 @@ public final class VersionControl {
   }
 
   public static String getEtomoVersion() {
-    //updated by a script
-    return ImodVersion.CURRENT_VERSION + "10/25/2013 21:08";
+    // updated by a script
+    return ImodVersion.CURRENT_VERSION + " " + "10/25/2013 21:08";
   }
 
   /**
