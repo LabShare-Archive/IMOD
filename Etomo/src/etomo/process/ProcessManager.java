@@ -1173,15 +1173,15 @@ public class ProcessManager extends BaseProcessManager {
         errorMessage.append("\n" + messages.getError(i));
       }
       UIHarness.INSTANCE.openMessageDialog(appManager, errorMessage.toString(),
-          "Batchruntomo Error", axisID);
+          "Makecomfile Error", axisID);
     }
     for (int i = 0; i < messages.warningListSize(); i++) {
       UIHarness.INSTANCE.openMessageDialog(appManager, messages.getWarning(i),
-          "Batchruntomo Warning", axisID);
+          "Makecomfile Warning", axisID);
     }
     if (exitValue != 0) {
       UIHarness.INSTANCE.openMessageDialog(appManager, param.getStdErrorString(),
-          "Batchruntomo Error", axisID);
+          "Makecomfile Error", axisID);
       return false;
     }
     return err;
