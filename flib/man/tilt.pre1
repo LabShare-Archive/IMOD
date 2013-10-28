@@ -44,7 +44,8 @@ DDEESSCCRRIIPPTTIIOONN
   With output of perpendicular slices, the header of the output file will set
   up a coordinate system congruent with that of the original views. This
   represents a 90 degree rotation about X but no change in handedness.  With
-  parallel slice output, the handedness is inverted.
+  parallel slice output using "PARALLEL", the handedness is inverted; whereas 
+  parallel slice output with the "RotateBy90" option retains the handedness.
 
   The program can do two different kinds of reprojections.  First, it can
   compute each tomogram slice as usual then, instead of writing the slice to

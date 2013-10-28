@@ -300,11 +300,11 @@ together with SUBSETSTART and FULLIMAGE should produce a correct result.
 
 [Field = PARALLEL]
 type = B
-usage = Output slices parallel to the plane of the specimen
+usage = Output slices parallel to the plane of the specimen, inverting handedness
 tooltip = 
 manpage = Output slices parallel to the plane of the zero tilt projection.
 This option cannot be used with direct writing of data to a single output file
-from parallel Tilt runs.  It inverts the handedness of the reconstruction.
+from parallelized Tilt runs.  It inverts the handedness of the reconstruction.
 
 [Field = PERPENDICULAR]
 type = B
@@ -312,7 +312,7 @@ usage = Output slices perpendicular to the plane of the specimen (default)
 tooltip = 
 manpage = Output slices perpendicular to the plane of the specimen.  This
 output is the default since it corresponds to the way in which slices are
-computed.
+computed and allows efficient computation of chunks in parallel.
 
 [Field = RADIAL]
 type = FP
@@ -341,6 +341,16 @@ of the reconstructed slices at the given angles.  If RecFileToReproject is
 entered, then the reprojections should match the input projections; otherwise
 the reprojections will be of the computed slices and should match what
 Xyzproj(1) would produce.
+
+[Field = RotateBy90]
+type = B
+usage = Output slices parallel to the plane of the specimen without inverting
+handedness
+tooltip = 
+manpage = Output slices parallel to the plane of the zero tilt projection, but
+in the proper order to avoid inverting handedness.
+This option cannot be used with direct writing of data to a single output file
+from parallelized Tilt runs.
 
 [Field = SCALE]
 type = FP
