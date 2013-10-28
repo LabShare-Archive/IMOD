@@ -317,6 +317,7 @@ int main( int argc, char *argv[])
           for (iy = (int)ceil(outBBox[iClone].yMin); 
 	       iy < (int)floor(outBBox[iClone].yMax); iy++) {
             Ipoint inPt, outPt;
+            /* Convert from image index to model coordinates */
             outPt.x = (float)ix + 0.5;
             outPt.y = (float)iy + 0.5;
             outPt.z = (float)iSlice;
