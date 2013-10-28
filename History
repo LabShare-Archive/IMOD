@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/13: In eTomo fixed a bug where stack header data was not getting into
+the dataset file when eTomo was run from batchruntomo.(Bug# 1758)
+
 10/25/13: In eTomo removed dependencies on Cygwin.(Bug# 1713)
 
 10/25/13: Changes in Tiltxcorr: shift limits are now applied in an elliptical
