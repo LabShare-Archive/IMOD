@@ -130,19 +130,13 @@ frequencies specified by FilterRadius1 and FilterRadius2
 short = exclude
 type = B
 usage = Exclude central correlation peak due to fixed pattern noise
-tooltip = Ignore correlation peaks at (0, 0) due to fixed pattern noise if
+tooltip = Ignore correlation peaks due to fixed pattern noise if
 various conditions on peak strength and width are satisfied
-manpage = Exclude a central correlation peak at (0, 0) caused by fixed pattern
-noise in the images.  As of IMOD 4.6.31, this option has become much more
-effective, since a peak will be excluded only if certain conditions are met.
-First, the program tests whether the peak center is within 0.1 pixels of (0,
-0), whether this peak is narrower than the second-highest peak, and
-whether the second-highest peak is sufficiently stronger than the
-third-highest one.  If these tests are passed, the program computes a
-correlation between unbinned, unstretched images with no high-frequency
-filtering and measures the width of first and second peaks.  If the first peak
-is narrow enough, and sufficiently narrower than the second peak, then the
-second peak position (in the original correlation) is used.
+manpage = Exclude a central correlation peak caused by fixed pattern
+noise in the images.  In tilted images, these peaks can occur anywhere within
+an extended, narrow strip perpendicular to the tilt axis.  A peak in this
+region will now be excluded only if conditions are met both by this peak and
+by the highest peak outside this region, as described above.
 
 [Field = CentralPeakExclusionCriteria]
 short = central
@@ -151,7 +145,7 @@ usage = Three criterion values controlling exclusion of a peak at (0, 0)
 tooltip = 
 manpage = This option specifies three of the criteria applied when deciding
 whether to exclude a peak at (0, 0): the minimum ratio of the second to the
-third peak strength (default 3); the absolute half-width of the central peak
+third peak strength (default 3); the absolute width of the central peak
 in the unbinned, unstretched correlation (default 1.5); and the minimum ratio
 of the second to the first peak width (default 1.6).
 

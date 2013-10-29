@@ -45,8 +45,8 @@
 #define setpeakfindlimits setpeakfindlimits_
 #endif
 
-static float peakHalfWidth(float *array, int baseInd, int cenInd, int stride, int size, 
-                           int direction);
+static float peakHalfWidth(float *array, int ixPeak, int iyPeak, int nx, int ny, int delx,
+                           int dely);
 
 /*!
  * Takes the filter parameters [sigma1], [sigma2], [radius1], and [radius2] and
@@ -287,10 +287,11 @@ static int sLimitXlo, sLimitXhi, sLimitYlo, sLimitYhi;
 /*!
  * Finds the coordinates of the [maxpeaks] highest peaks in [array], which is dimensioned
  * to [nxdim] by [ny], and returns the positions in [xpeak], [ypeak], and the peak values
- * in [peak].  In addition, if [width] and [widthSD] are not NULL, the distance from the
- * peak to position at half of the peak height is measured in 4 directions and the mean
- * is returned in [width] and the standard deviation in [widthSD].  The X size of the 
- * image is assumed * to be [nxdim] - 2.  The sub-pixel position is determined by fitting
+ * in [peak].  In addition, if [width] and [widthMin] are not NULL, the distance from the
+ * peak to the position at half of the peak height is measured in 8 directions, the 
+ * overall mean width of the peak is returned in [width], and the minimum width along one
+ * of the four axes is returned in [widthMin].  The X size of the 
+ * image is assumed to be [nxdim] - 2.  The sub-pixel position is determined by fitting
  * a parabola separately in X and Y to the peak and 2 adjacent points.  Positions
  * are numbered from zero and coordinates bigger than half the image size are
  * shifted to be negative.  The positions are thus the amount to shift a second
@@ -298,7 +299,7 @@ static int sLimitXlo, sLimitXhi, sLimitYlo, sLimitYhi;
  * peaks are found, then the remaining values in [peaks] will be -1.e30.
  */
 void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *ypeak,
-                        float *peak, float *width, float *widthSD, int maxpeaks)
+                        float *peak, float *width, float *widthMin, int maxpeaks)
 {
   float cx, cy, y1, y2, y3, local, val;
   float widthTemp[4];
@@ -501,32 +502,43 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
       ypeak[i] = ypeak[i] - ny;
 
     /* Return width if non-NULL */
-    if (width && widthSD) {
-      width[i] = (widthTemp[0] + widthTemp[0] + widthTemp[0] + widthTemp[3]) / 4.;
-      widthTemp[0] = peakHalfWidth(array, iypeak * nxdim, ixpeak, 1, nx, 1) - cx;
-      widthTemp[1] = peakHalfWidth(array, iypeak * nxdim, ixpeak, 1, nx, -1) + cx;
-      widthTemp[2] = peakHalfWidth(array, ixpeak, iypeak, nxdim, ny, 1) - cy;
-      widthTemp[3] = peakHalfWidth(array, ixpeak, iypeak, nxdim, ny, -1) + cy;
-      avgSD(widthTemp, 4, &width[i], &widthSD[i], &cy);
+    if (width && widthMin) {
+      widthTemp[0] = peakHalfWidth(array, ixpeak, iypeak, nx, ny, 1, 0) +
+        peakHalfWidth(array, ixpeak, iypeak, nx, ny, -1, 0);
+      widthTemp[1] = peakHalfWidth(array, ixpeak, iypeak, nx, ny, 0, 1) +
+        peakHalfWidth(array, ixpeak, iypeak, nx, ny, 0, -1);
+      widthTemp[2] = peakHalfWidth(array, ixpeak, iypeak, nx, ny, 1, 1) +
+        peakHalfWidth(array, ixpeak, iypeak, nx, ny, -1, -1);
+      widthTemp[3] = peakHalfWidth(array, ixpeak, iypeak, nx, ny, 1, -1) +
+        peakHalfWidth(array, ixpeak, iypeak, nx, ny, -1, 1);
+      avgSD(widthTemp, 4, &width[i], &cx, &cy);
+      widthMin[i] = B3DMIN(widthTemp[0], widthTemp[1]);
+      widthMin[i] = B3DMIN(widthMin[i], widthTemp[2]);
+      widthMin[i] = B3DMIN(widthMin[i], widthTemp[3]);
     }
   }
   sApplyLimits = 0;
 }
 
 /* Find the point in one direction away from the peak pixel where it falls by half */
-static float peakHalfWidth(float *array, int baseInd, int cenInd, int stride, int size, 
-                           int direction)
+static float peakHalfWidth(float *array, int ixPeak, int iyPeak, int nx, int ny, int delx,
+                           int dely)
 {
-  float peak = array[baseInd + cenInd * stride];
-  int dist;
+  int nxdim = nx + 2;
+  float peak = array[ixPeak + iyPeak * nxdim];
+  int dist, ix, iy;
+  float scale = (float)sqrt((double)delx * delx + dely * dely);
   float lastVal = peak, val;
-  for (dist = 1; dist < size / 4; dist++) {
-    val = array[baseInd + ((cenInd + direction * dist + size) % size) * stride];
+  for (dist = 1; dist < B3DMIN(nx, ny) / 4; dist++) {
+    ix = (ixPeak + dist * delx + nx) % nx;
+    iy = (iyPeak + dist * dely + ny) % ny;
+    val = array[ix + iy * nxdim];
     if (val < peak / 2.)
-      return (float)(dist + (lastVal - peak / 2.) / (lastVal - val) - 1.);
+      return scale * (float)(dist + (lastVal - peak / 2.) / (lastVal - val) - 1.);
     lastVal = val;
   }
-  return (float)dist;
+  return scale * (float)dist;
+    
 }
 
 /*!
@@ -534,13 +546,13 @@ static float peakHalfWidth(float *array, int baseInd, int cenInd, int stride, in
  * [ypeak], and [peak] can be single variables instead of arrays.
  */
 void xcorrpeakfindwidth(float *array, int *nxdim, int *ny, float  *xpeak, float *ypeak,
-                        float *peak, float *width, float *widthSD, int *maxpeaks)
+                        float *peak, float *width, float *widthMin, int *maxpeaks)
 {
-  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, width, widthSD, *maxpeaks);
+  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, width, widthMin, *maxpeaks);
 }
 
 /*!
- * Calls @@XCorrPeakFindWidth@ with [width] and [widthSD] NULL.
+ * Calls @@XCorrPeakFindWidth@ with [width] and [widthMin] NULL.
  */
 void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
                         float *ypeak, float *peak, int maxpeaks)

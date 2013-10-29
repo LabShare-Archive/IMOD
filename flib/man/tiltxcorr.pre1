@@ -72,14 +72,20 @@ DDEESSCCRRIIPPTTIIOONN
   
   CENTRAL PEAK EXCLUSION: The exclusion of a central peak may be helpful when
   there is fixed noise in the images due to inadequate gain normalization of
-  CCD camera images, but only if data were acquired manually.  Because one
-  image is stretched, this spurious peak can actually occur anywhere in an
-  elongated region perpendicular to the tilt axis. If the real alignment
-  happens to fall in that streak, then it will be ignored as well, and an
-  incorrect alignment will be found.  For this reason, this option should be
-  used only when necessary, as it will misalign images that are already nearly
-  aligned.
-  
+  CCD camera images.  Because one image is stretched, this spurious peak can
+  actually occur anywhere in an elongated region perpendicular to the tilt
+  axis.  As of IMOD 4.6.31, this option has become much more reliable and
+  effective, since a peak will be excluded only if certain conditions are met.
+  First, the program tests whether the peak center is within 0.3 pixels of the
+  center line of the elongated region, whether this peak is narrower than the
+  highest peak outside the exclusion region in at least one direction, and
+  whether that highest eligible peak is sufficiently stronger than the
+  next-highest one.  If these tests are passed, the program computes a
+  correlation between unbinned, unstretched images with no high-frequency
+  filtering and measures the width of first and second peaks.  If the first
+  peak is narrow enough, and sufficiently narrower than the second peak, then
+  the highest eligible peak position (in the original correlation) is used.
+
   CUMULATIVE CORRELATION: Tiltxcorr has an option to use a cumulative
   correlation method developed by Christian Renken at the National Center for
   the Visualization of Biological Complexity in Albany, N.Y.  With this
