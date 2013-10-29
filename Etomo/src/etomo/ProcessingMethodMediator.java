@@ -319,10 +319,9 @@ public final class ProcessingMethodMediator {
       }
       return processInterfaceMethod;
     }
-    // Parallel panel should not be displayed if there is no dialog (process
-    // interface), unless its locked by reconnect process - in which case and it
-    // should not be able to resume or enable its queue box.
-    return ProcessingMethod.DEFAULT;
+    // OK to return the correct method during a reconnect because the resume button has no
+    // effect and the parallel panel method is locked.
+    return parallelPanelMethod;
   }
 
   /**
