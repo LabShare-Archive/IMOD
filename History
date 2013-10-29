@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/28/13: Fixed the eTomo version string.(Bug# 1744)
+
 10/28/13: In eTomo fixed a bug where stack header data was not getting into
 the dataset file when eTomo was run from batchruntomo.(Bug# 1758)
 
