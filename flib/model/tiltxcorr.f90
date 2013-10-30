@@ -26,10 +26,9 @@ program tiltxcorr
   include 'smallmodel.inc90'
   integer*4 nx, ny, nz
   !
-  integer*4 nxyz(3), mxyz(3), nxyzs(3), indPeakSort(LIMPEAKS)
+  integer*4 nxyz(3), mxyz(3), nxyzs(3)
   real*4 title(20), delta(3), origin(3)
-  real*4 xpeakList(LIMPEAKS), ypeakList(LIMPEAKS), peakList(LIMPEAKS), widths(LIMPEAKS)
-  real*4 ctfp(8193), widthMins(LIMPEAKS), ctfUB(8193)
+  real*4 ctfp(8193), ctfUB(8193)
   real*4, allocatable :: sumArray(:), crray(:), array(:), brray(:)
   real*4, allocatable :: tmpArray(:), ubArray(:), ubBrray(:)
   logical*4 inStreak(LIMPEAKS)
@@ -81,19 +80,17 @@ program tiltxcorr
   integer*4 ixBoxForAdj, iyBoxForAdj, ipatch, numPoints, numBound, iobj, lenTemp
   integer*4 ipnt, ipt, numInside, iobjSeed, imodObj, imodCont, ix, iy, iAntiFiltType
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
-  integer*4 limitXlo, limitXhi, limitYlo, limitYhi, numControl, numBoundAll, idim2
+  integer*4 numControl, numBoundAll, idim2
   integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset, ifFindWarp, limitedBinSize
-  integer*4 indPeak, nsum, nxCCTrim, nyCCTrim, numXcorrPeaks, nxUBpad, nyUBpad, nxUBtaper
+  integer*4 nxUBpad, nyUBpad, nxUBtaper
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
-  real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover, overlap
-  real*4 fracOverMax, critNonBlank, fillTaperFrac, deltaUBctf, radExclude, streak
+  real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
+  real*4 fracOverMax, critNonBlank, fillTaperFrac, deltaUBctf, radExclude
   integer*4 nyUBtaper, limitUBshiftX, limitUBshiftY, niceLimit, ifEllipse, maxXcorrPeaks
   real*4 binWidthRatioCrit, peak2ToPeak3Crit, centralPeakMaxWidth, ubWidthRatioCrit
-  integer*4 indFirstOut, indSecondOut
-  real*4 cosRotAngle, sinRotAngle, wgtCCC, overlapCrit, overlapPower, xrot, yrot
-  real*4 ubXpeaks(2), ubYpeaks(2), ubPeakList(2)
-  real *8 cccMax, ccc, CCCoefficient
-  real*8 wallMask, wallTime, wallStart, wallInterp, wallfft, wallPeak
+  integer*4 ifUBpeakIsSharp
+  real*4 cosRotAngle, sinRotAngle, overlapCrit, overlapPower
+  real*8 wallMask, wallStart, wallInterp, wallfft, wallPeak
 
   logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, evalCCC
   logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut, limitingShift
@@ -777,12 +774,11 @@ program tiltxcorr
     nyUBpad = niceFrame(nyUse + 2 * nyBorder, 2, niceLimit)
     call setCtfwSR(sigma1 / nbinning, sigma2 / nbinning, radius1 / nbinning, 0.75, &
         ctfUB, nxUBpad, nyUBpad, deltaUBctf)
-    ! Need to allocate unconditionally, until the cross-corr is moved to a subroutine
-    !if (nbinning > 1) then
+    if (nbinning > 1) then
       kk = nyUBpad * (nxUBpad + 2) + 16
       allocate(ubArray(kk), ubBrray(kk), stat = ierr)
       call memoryError(ierr, 'ARRAYS FOR UNBINNED CORRELATIONS')
-    !endif
+    endif
     cosRotAngle = cosd(-rotAngle)
     sinRotAngle = sind(-rotAngle)
   endif
@@ -1117,264 +1113,13 @@ program tiltxcorr
           enddo
         endif
         !
+        ifUBpeakIsSharp = -1
         do iter = 1, numIter
-    !
-    ! get "current" into array, stretch into brray, pad it
-    !
-          call readBinnedOrReduced(1, izCur, array, ixCenStart + ixBoxCur, &
-              iyCenStart + iyBoxCur, taperCur)
-          !
-          ! 7/11/03: We have to feed the interpolation the right mean or
-          ! it will create a bad edge mean for padding
-          !
-          call iclden(array, nxUseBin, nyUseBin, 1, nxUseBin, 1, nyUseBin, &
-              useMin, useMax, useMean)
-          if (.not. tracking .and. numBound > 0) then
-            wallStart = wallTime()
-            call maskOutsideBoundaries(array, nxUseBin, nyUseBin)
-            wallMask = wallMask + wallTime() - wallStart
-          endif
-          wallStart = wallTime()
-          call cubInterp(array, brray, nxUseBin, nyUseBin, nxUseBin, nyUseBin, fs, &
-              nxUseBin / 2., nyUseBin / 2., xpeakFrac, ypeakFrac , 1., useMean, 0)
-          wallInterp = wallInterp + wallTime() - wallStart
-          call taperInPad(brray, nxUseBin, nyUseBin, brray, nxPad + 2, nxPad, &
-              nyPad, nxTaper, nyTaper)
-          !
-          call meanZero(brray, nxPad + 2, nxPad, nyPad)
-          !
-          ! get "last" into array, just pad it there
-          !
-          call readBinnedOrReduced(1, izLast, array, ixCenStart + ixBoxRef, &
-              iyCenStart + iyBoxRef, taperRef)
-          
-          limitXlo = -limitShiftX
-          limitXhi = limitShiftX
-          limitYlo = -limitShiftY
-          limitYhi = limitShiftY
-          if (ifCumulate .ne. 0) then
-            limitXlo = xpeak - limitShiftX
-            limitXhi = xpeak + limitShiftX
-            limitYlo = ypeak - limitShiftY
-            limitYhi = ypeak + limitShiftY
-            if (iter == 1) then
-              !
-              ! if accumulating, transform image by last shift, add it to
-              ! sum array, then taper and pad into array
-              !
-              if (ifAbsStretch == 0) then
-                call xfunit(fUnit, 1.0)
-              else
-                unstretchDx = xpeak
-                unstretchDy = ypeak
-              endif
-              if (verbose) print *,'cumulating usdx,usdy,xpeak,ypeak',  &
-                  unstretchDx, unstretchDy, xpeak, ypeak
-              call iclden(array, nxUseBin, nyUseBin, 1, nxUseBin, 1, nyUseBin, &
-                  useMin, useMax, useMean)
-              call cubInterp(array, crray, nxUseBin, nyUseBin, nxUseBin, nyUseBin, &
-                  fUnit, nxUseBin / 2., nyUseBin / 2., unstretchDx, unstretchDy , 1., &
-                  useMean, 0)
-              do i = 1, nxUseBin * nyUseBin
-                sumArray(i) = sumArray(i) + crray(i)
-              enddo
-            endif
-            call taperInPad(sumArray, nxUseBin, nyUseBin, array, nxPad + 2, &
-                nxPad, nyPad, nxTaper, nyTaper)
+          if (nbinning > 1) then
+            call correlateAndFindPeaks(evalCCC, ubArray, ubBrray)
           else
-            call taperInPad(array, nxUseBin, nyUseBin, array, nxPad + 2, &
-                nxPad, nyPad, nxTaper, nyTaper)
+            call correlateAndFindPeaks(evalCCC, array, brray)
           endif
-          if (ifImOut .ne. 0) then
-            do isOut = 1, 2
-              if (isOut == 1) then
-                call irepak(crray, array, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
-              else
-                call irepak(crray, brray, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
-              endif
-              if (mode .ne. 2) then
-                call isetdn(crray, nxPad, nyPad, mode, 1, nxPad, 1, nyPad, dmin2, &
-                    dmax2, dmean3)
-              else
-                call iclden(crray, nxPad, nyPad, 1, nxPad, 1, nyPad, dmin2, dmax2, &
-                    dmean3)
-              endif
-              call iwrsec(3, crray)
-              nzOut = nzOut + 1
-              !
-              dmax = max(dmax, dmax2)
-              dmin = min(dmin, dmin2)
-              dmeanSum = dmeanSum + dmean3
-            enddo
-          endif
-          call meanZero(array, nxPad + 2, nxPad, nyPad)
-
-          !
-          ! print *,'taking fft'
-          wallStart = wallTime()
-          if (evalCCC .and. deltaCTF == 0)  &
-              crray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
-          call todfft(array, nxPad, nyPad, 0)
-          call todfft(brray, nxPad, nyPad, 0)
-          !
-          if (deltaCTF .ne. 0.) then
-            if (evalCCC) then
-              call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
-              call filterPart(brray, brray, nxPad, nyPad, ctfp, deltaCTF)
-              crray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
-            else
-              call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
-            endif
-          endif
-          !
-          ! multiply array by complex conjugate of brray, put back in array
-          !
-          ! print *,'multiplying arrays'
-          call conjugateProduct(array, brray, nxPad, nyPad)
-          ! print *,'taking back fft'
-          call todfft(array, nxPad, nyPad, 1)
-          wallfft = wallfft + wallTime() - wallStart
-
-          if (evalCCC) then
-            if (deltaCTF .ne. 0.) call todfft(crray, nxPad, nyPad, 1)
-            call todfft(brray, nxPad, nyPad, 1)
-          endif
-          wallStart = wallTime()
-          if (limitingShift)  &
-              call setPeakFindLimits(limitXlo, limitXhi, limitYlo, limitYhi, ifEllipse)
-          call xcorrPeakFindWidth(array, nxPad + 2, nyPad, xpeakList, ypeakList, &
-              peakList, widths, widthMins, maxXcorrPeaks)
-          !
-          ! Get the true number of peaks and start an index to them
-          do i = 1, maxXcorrPeaks
-            if (peakList(i) > -0.9e30) numXcorrPeaks = maxXcorrPeaks
-            indPeakSort(i) = i
-          enddo
-          wallPeak = wallPeak + wallTime() - wallStart
-          cccMax = -10.
-          indPeak = 1
-          if (evalCCC) then
-            !
-            ! Evaluate real-space correlation coefficient.
-            nxCCTrim = (nxPad - nxUse / nbinning) / 2 + nxTaper / 2
-            nyCCTrim = (nyPad - nyUse / nbinning) / 2 + nyTaper / 2
-            do i = 1, numXcorrPeaks
-              ccc = CCCoefficient(crray, brray, nxPad + 2, nxPad, nyPad, &
-                  xpeakList(i), ypeakList(i), nxCCTrim, nyCCTrim, nsum)
-              !
-              ! Peaks with less than 1/8 overlap were ignored; this is a steep function
-              ! to downweight them instead
-              overlap = float(nsum) / ((nxPad - 2 * nxCCTrim) * (nyPad - 2 * nyCCTrim))
-              wgtCCC = ccc * 1. / (1. +  &
-                  max(0.1, min(10., overlapCrit / overlap)) ** overlapPower)
-              if (verbose) write(*,'(i3,a,2f7.1,a,e14.7,a,f6.3,a,2f8.5,a,2f8.2)') &
-                  i,' at ', xpeakList(i), ypeakList(i), ' peak =',peakList(i), ' ov = ', &
-                  overlap, ' cc =',ccc,wgtCCC,' width&Min =',widths(i),widthMins(i)
-              if (wgtCCC > cccMax) then
-                cccMax = wgtCCC
-                indPeak = i
-                if (i > 1 .and. verbose) print *,'Highest raw peak superceded!'
-              endif
-              peakList(i) = wgtCCC
-            enddo
-            !
-            ! Sort the CCC's and reverse the index fo clarity below
-            call rsSortIndexedFloats(peakList, indPeakSort, numXcorrPeaks)
-            do i = 1, numXcorrPeaks / 2
-              j = indPeakSort(i)
-              indPeakSort(i) = indPeakSort(numXcorrPeaks + 1 - i)
-              indPeakSort(numXcorrPeaks + 1 - i) = j
-            enddo
-          endif
-          !
-          ! If excluding central peaks, first determine if each peak is in the streak
-          if (ifExclude > 0 .and. numXcorrPeaks > 1) then
-
-            ! The bad peaks could really be anywhere in this extent although it is quite
-            ! implausible for it to be all the way out at the end
-            streak = 0.5 * (stretch - 1.0) * min(nxUse / max(0.01, abs(cosRotAngle)),  &
-                nyUse / max(0.01, abs(sinRotAngle)))
-
-            ! Determine if each peak is in or out of the streak, adjusting for the center
-            ! if the box extraction is different, and keep track of the
-            ! first and second one outside the streak
-            indFirstOut = -1
-            indSecondOut = -1
-            do i = 1, numXcorrPeaks
-              ind = indPeakSort(i)
-              xpeakTmp = xpeakList(ind) - float(ixBoxCur - ixBoxRef) / nbinning
-              ypeakTmp = ypeakList(ind) - float(iyBoxCur - iyBoxRef) / nbinning
-              xrot = xpeakTmp * cosRotAngle - ypeakTmp * sinRotAngle
-              yrot = xpeakTmp * sinRotAngle + ypeakTmp * cosRotAngle
-              inStreak(ind) = abs(yrot) < radExclude .and. abs(xrot) < streak + radExclude
-              if (.not. inStreak(ind)) then
-                if (indFirstOut < 0) then
-                  indFirstOut = ind
-                else if (indSecondOut < 0) then
-                  indSecondOut = ind
-                endif
-              endif
-            enddo
-
-            ! If the first peak is in the streak, and its minimum peak width is at least
-            ! less than the mean width of the first non-streak peak, and 
-            ! the third peak is sufficiently weaker than the second, need to get the 
-            ! unbinned, unstretched correlation
-            ind = indPeakSort(1)
-            if (indFirstOut > 0 .and. inStreak(ind) .and. &
-              widths(max(1, indFirstOut)) / widthMins(ind) > binWidthRatioCrit .and.  &
-              (indSecondOut < 0 .or.  &
-              peakList(max(1, indFirstOut)) / peakList(max(1, indSecondOut)) >  &
-              peak2ToPeak3Crit)) then
-              if (verbose) &
-                  print *,'Evaluating first and second peak with unbinned correlation'
-
-              ! Load both images unbinned from reference limits, taper, and take the
-              ! correlation with high-pass filter only
-              call irdbinned(1, izLast, ubArray, nxUse, nyUse, ixCenStart + ixBoxRef, &
-                  iyCenStart + iyBoxRef, 1, nxUse, nyUse, tmpArray, lenTemp, ierr)
-              if (ierr .ne. 0) call exitError('READING IMAGE FILE')
-              call taperInPad(ubArray, nxUse, nyUse, ubArray, nxUBpad + 2, nxUBpad, &
-                  nyUBpad, nxUBtaper, nyUBtaper)
-              call meanZero(ubArray, nxUBpad + 2, nxUBpad, nyUBpad)
-              call irdbinned(1, izCur, ubBrray, nxUse, nyUse, ixCenStart + ixBoxRef, &
-                  iyCenStart + iyBoxRef, 1, nxUse, nyUse, tmpArray, lenTemp, ierr)
-              if (ierr .ne. 0) call exitError('READING IMAGE FILE')
-              call taperInPad(ubBrray, nxUse, nyUse, ubBrray, nxUBpad + 2, nxUBpad, &
-                nyUBpad, nxUBtaper, nyUBtaper)
-              call meanZero(ubBrray, nxUBpad + 2, nxUBpad, nyUBpad)
-              call todfft(ubArray, nxUBpad, nyUBpad, 0)
-              call todfft(ubBrray, nxUBpad, nyUBpad, 0)
-              call conjugateProduct(ubArray, ubBrray, nxUBpad, nyUBpad)
-              if (deltaUBctf .ne. 0.) &
-                  call filterpart(ubArray, ubArray, nxUBpad, nyUBpad, ctfUB, deltaUBctf)
-              call todfft(ubArray, nxUBpad, nyUBpad, 1)
-              
-              ! It's not clear if these limits should be applied...
-              if (limitingShift)  &
-                  call setPeakFindLimits(-limitUBshiftX, limitUBshiftX, -limitUBshiftY, &
-                  limitUBshiftY, ifEllipse)
-              call xcorrPeakFindWidth(ubArray, nxUBpad + 2, nyUBpad, ubXpeaks, ubYpeaks, &
-                  ubPeakList, widths, widthMins, 2)
-              if (verbose) write(*,'(i2,2f9.2,e15.7,f8.2)') &
-                  (i,ubXpeaks(i), ubYpeaks(i),ubPeakList(i), widths(i),i=1,2)
-
-              ! Accept the second peak if the first is still at origin and is narrow
-              ! enough and if the width ratio is big enough
-              if (ubPeakList(2) > 0 .and. abs(ubXpeaks(1)) < 0.1 .and.  &
-                  abs(ubYpeaks(1)) < 0.1 .and. widths(1) <= centralPeakMaxWidth .and.  &
-                  widths(2) / widths(1) > ubWidthRatioCrit) then
-                if (verbose) print *,'Rejecting peak at 0,0!'
-                indPeak = indFirstOut
-              endif
-            endif
-          endif
-          !
-          ! Done with all picking of substitute peaks, now proceed with final values 
-          xpeakTmp = xpeakList(indPeak)
-          ypeakTmp = ypeakList(indPeak)
-          peakVal = peakList(indPeak)
-              
           xpeakCum = xpeakTmp + xpeakFrac
           xpeakFrac = xpeakCum - nint(xpeakCum)
           ypeakCum = ypeakTmp + ypeakFrac
@@ -1743,6 +1488,279 @@ program tiltxcorr
 96 call exitError('ERROR WRITING TRANSFORMS TO FILE')
 
 CONTAINS
+
+  subroutine correlateAndFindPeaks(useCCC, ubArray, ubBrray)
+    logical*4 useCCC
+    real*4 ubArray(*), ubBrray(*)
+    real*4 xpeakList(LIMPEAKS), ypeakList(LIMPEAKS), peakList(LIMPEAKS), widths(LIMPEAKS)
+    real*4 widthMins(LIMPEAKS)
+    integer*4 indPeakSort(LIMPEAKS)
+    real*4 ubXpeaks(2), ubYpeaks(2), ubPeakList(2), overlap, streak, wgtCCC, xrot, yrot
+    integer*4 limitXlo, limitXhi, limitYlo, limitYhi, indPeak, nsum, nxCCTrim, nyCCTrim
+    integer*4 numXcorrPeaks, indFirstOut, indSecondOut
+
+    real *8 cccMax, ccc
+    real*8 wallTime, CCCoefficient
+    !
+    ! get "current" into array, stretch into brray, pad it
+    !
+    call readBinnedOrReduced(1, izCur, array, ixCenStart + ixBoxCur, &
+        iyCenStart + iyBoxCur, taperCur)
+    !
+    ! 7/11/03: We have to feed the interpolation the right mean or
+    ! it will create a bad edge mean for padding
+    !
+    call iclden(array, nxUseBin, nyUseBin, 1, nxUseBin, 1, nyUseBin, &
+        useMin, useMax, useMean)
+    if (.not. tracking .and. numBound > 0) then
+      wallStart = wallTime()
+      call maskOutsideBoundaries(array, nxUseBin, nyUseBin)
+      wallMask = wallMask + wallTime() - wallStart
+    endif
+    wallStart = wallTime()
+    call cubInterp(array, brray, nxUseBin, nyUseBin, nxUseBin, nyUseBin, fs, &
+        nxUseBin / 2., nyUseBin / 2., xpeakFrac, ypeakFrac , 1., useMean, 0)
+    wallInterp = wallInterp + wallTime() - wallStart
+    call taperInPad(brray, nxUseBin, nyUseBin, brray, nxPad + 2, nxPad, &
+        nyPad, nxTaper, nyTaper)
+    !
+    call meanZero(brray, nxPad + 2, nxPad, nyPad)
+    !
+    ! get "last" into array, just pad it there
+    !
+    call readBinnedOrReduced(1, izLast, array, ixCenStart + ixBoxRef, &
+        iyCenStart + iyBoxRef, taperRef)
+
+    limitXlo = -limitShiftX
+    limitXhi = limitShiftX
+    limitYlo = -limitShiftY
+    limitYhi = limitShiftY
+    if (ifCumulate .ne. 0) then
+      limitXlo = xpeak - limitShiftX
+      limitXhi = xpeak + limitShiftX
+      limitYlo = ypeak - limitShiftY
+      limitYhi = ypeak + limitShiftY
+      if (iter == 1) then
+        !
+        ! if accumulating, transform image by last shift, add it to
+        ! sum array, then taper and pad into array
+        !
+        if (ifAbsStretch == 0) then
+          call xfunit(fUnit, 1.0)
+        else
+          unstretchDx = xpeak
+          unstretchDy = ypeak
+        endif
+        if (verbose) print *,'cumulating usdx,usdy,xpeak,ypeak',  &
+            unstretchDx, unstretchDy, xpeak, ypeak
+        call iclden(array, nxUseBin, nyUseBin, 1, nxUseBin, 1, nyUseBin, &
+            useMin, useMax, useMean)
+        call cubInterp(array, crray, nxUseBin, nyUseBin, nxUseBin, nyUseBin, fUnit, &
+            nxUseBin / 2., nyUseBin / 2., unstretchDx, unstretchDy , 1., useMean, 0)
+        do i = 1, nxUseBin * nyUseBin
+          sumArray(i) = sumArray(i) + crray(i)
+        enddo
+      endif
+      call taperInPad(sumArray, nxUseBin, nyUseBin, array, nxPad + 2, nxPad, nyPad, &
+          nxTaper, nyTaper)
+    else
+      call taperInPad(array, nxUseBin, nyUseBin, array, nxPad + 2, nxPad, nyPad, &
+          nxTaper, nyTaper)
+    endif
+    if (ifImOut .ne. 0) then
+      do isOut = 1, 2
+        if (isOut == 1) then
+          call irepak(crray, array, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
+        else
+          call irepak(crray, brray, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
+        endif
+        if (mode .ne. 2) then
+          call isetdn(crray, nxPad, nyPad, mode, 1, nxPad, 1, nyPad, dmin2, dmax2, dmean3)
+        else
+          call iclden(crray, nxPad, nyPad, 1, nxPad, 1, nyPad, dmin2, dmax2, dmean3)
+        endif
+        call iwrsec(3, crray)
+        nzOut = nzOut + 1
+        !
+        dmax = max(dmax, dmax2)
+        dmin = min(dmin, dmin2)
+        dmeanSum = dmeanSum + dmean3
+      enddo
+    endif
+    call meanZero(array, nxPad + 2, nxPad, nyPad)
+
+    !
+    ! print *,'taking fft'
+    wallStart = wallTime()
+    if (useCCC .and. deltaCTF == 0)  &
+        crray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
+    call todfft(array, nxPad, nyPad, 0)
+    call todfft(brray, nxPad, nyPad, 0)
+    !
+    if (deltaCTF .ne. 0.) then
+      if (useCCC) then
+        call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
+        call filterPart(brray, brray, nxPad, nyPad, ctfp, deltaCTF)
+        crray(1:(nxPad + 2) * nyPad) = array(1:(nxPad + 2) * nyPad)
+      else
+        call filterPart(array, array, nxPad, nyPad, ctfp, deltaCTF)
+      endif
+    endif
+    !
+    ! multiply array by complex conjugate of brray, put back in array
+    !
+    ! print *,'multiplying arrays'
+    call conjugateProduct(array, brray, nxPad, nyPad)
+    ! print *,'taking back fft'
+    call todfft(array, nxPad, nyPad, 1)
+    wallfft = wallfft + wallTime() - wallStart
+
+    if (useCCC) then
+      if (deltaCTF .ne. 0.) call todfft(crray, nxPad, nyPad, 1)
+      call todfft(brray, nxPad, nyPad, 1)
+    endif
+    wallStart = wallTime()
+    if (limitingShift)  &
+        call setPeakFindLimits(limitXlo, limitXhi, limitYlo, limitYhi, ifEllipse)
+    call xcorrPeakFindWidth(array, nxPad + 2, nyPad, xpeakList, ypeakList, &
+        peakList, widths, widthMins, maxXcorrPeaks)
+    !
+    ! Get the true number of peaks and start an index to them
+    do i = 1, maxXcorrPeaks
+      if (peakList(i) > -0.9e30) numXcorrPeaks = maxXcorrPeaks
+      indPeakSort(i) = i
+    enddo
+    wallPeak = wallPeak + wallTime() - wallStart
+    cccMax = -10.
+    indPeak = 1
+    if (useCCC) then
+      !
+      ! Evaluate real-space correlation coefficient.
+      nxCCTrim = (nxPad - nxUse / nbinning) / 2 + nxTaper / 2
+      nyCCTrim = (nyPad - nyUse / nbinning) / 2 + nyTaper / 2
+      do i = 1, numXcorrPeaks
+        ccc = CCCoefficient(crray, brray, nxPad + 2, nxPad, nyPad, &
+            xpeakList(i), ypeakList(i), nxCCTrim, nyCCTrim, nsum)
+        !
+        ! Peaks with less than 1/8 overlap were ignored; this is a steep function
+        ! to downweight them instead
+        overlap = float(nsum) / ((nxPad - 2 * nxCCTrim) * (nyPad - 2 * nyCCTrim))
+        wgtCCC = ccc * 1. / (1. +  &
+            max(0.1, min(10., overlapCrit / overlap)) ** overlapPower)
+        if (verbose) write(*,'(i3,a,2f7.1,a,e14.7,a,f6.3,a,2f8.5,a,2f8.2)') &
+            i,' at ', xpeakList(i), ypeakList(i), ' peak =',peakList(i), ' ov = ', &
+            overlap, ' cc =',ccc,wgtCCC,' width&Min =',widths(i),widthMins(i)
+        if (wgtCCC > cccMax) then
+          cccMax = wgtCCC
+          indPeak = i
+          if (i > 1 .and. verbose) print *,'Highest raw peak superceded!'
+        endif
+        peakList(i) = wgtCCC
+      enddo
+      !
+      ! Sort the CCC's and reverse the index fo clarity below
+      call rsSortIndexedFloats(peakList, indPeakSort, numXcorrPeaks)
+      do i = 1, numXcorrPeaks / 2
+        j = indPeakSort(i)
+        indPeakSort(i) = indPeakSort(numXcorrPeaks + 1 - i)
+        indPeakSort(numXcorrPeaks + 1 - i) = j
+      enddo
+    endif
+    !
+    ! If excluding central peaks, first determine if each peak is in the streak
+    if (ifExclude > 0 .and. numXcorrPeaks > 1) then
+
+      ! The bad peaks could really be anywhere in this extent although it is quite
+      ! implausible for it to be all the way out at the end
+      streak = 0.5 * (stretch - 1.0) * min(nxUse / max(0.01, abs(cosRotAngle)),  &
+          nyUse / max(0.01, abs(sinRotAngle)))
+
+      ! Determine if each peak is in or out of the streak, adjusting for the center
+      ! if the box extraction is different, and keep track of the
+      ! first and second one outside the streak
+      indFirstOut = -1
+      indSecondOut = -1
+      do i = 1, numXcorrPeaks
+        ind = indPeakSort(i)
+        xpeakTmp = xpeakList(ind) - float(ixBoxCur - ixBoxRef) / nbinning
+        ypeakTmp = ypeakList(ind) - float(iyBoxCur - iyBoxRef) / nbinning
+        xrot = xpeakTmp * cosRotAngle - ypeakTmp * sinRotAngle
+        yrot = xpeakTmp * sinRotAngle + ypeakTmp * cosRotAngle
+        inStreak(ind) = abs(yrot) < radExclude .and. abs(xrot) < streak + radExclude
+        if (.not. inStreak(ind)) then
+          if (indFirstOut < 0) then
+            indFirstOut = ind
+          else if (indSecondOut < 0) then
+            indSecondOut = ind
+          endif
+        endif
+      enddo
+
+      ! If the first peak is in the streak, and its minimum peak width is at least
+      ! less than the mean width of the first non-streak peak, and 
+      ! the third peak is sufficiently weaker than the second, need to get the 
+      ! unbinned, unstretched correlation
+      ind = indPeakSort(1)
+      if (indFirstOut > 0 .and. inStreak(ind) .and. &
+          widths(max(1, indFirstOut)) / widthMins(ind) > binWidthRatioCrit .and.  &
+          (indSecondOut < 0 .or.  &
+          peakList(max(1, indFirstOut)) / peakList(max(1, indSecondOut)) >  &
+          peak2ToPeak3Crit)) then
+        if (ifUBpeakIsSharp < 0) then
+          if (verbose) &
+              print *,'Evaluating first and second peak with unbinned correlation'
+
+          ! Load both images unbinned from reference limits, taper, and take the
+          ! correlation with high-pass filter only
+          call irdbinned(1, izLast, ubArray, nxUse, nyUse, ixCenStart + ixBoxRef, &
+              iyCenStart + iyBoxRef, 1, nxUse, nyUse, tmpArray, lenTemp, ierr)
+          if (ierr .ne. 0) call exitError('READING IMAGE FILE')
+          call taperInPad(ubArray, nxUse, nyUse, ubArray, nxUBpad + 2, nxUBpad, &
+              nyUBpad, nxUBtaper, nyUBtaper)
+          call meanZero(ubArray, nxUBpad + 2, nxUBpad, nyUBpad)
+          call irdbinned(1, izCur, ubBrray, nxUse, nyUse, ixCenStart + ixBoxRef, &
+              iyCenStart + iyBoxRef, 1, nxUse, nyUse, tmpArray, lenTemp, ierr)
+          if (ierr .ne. 0) call exitError('READING IMAGE FILE')
+          call taperInPad(ubBrray, nxUse, nyUse, ubBrray, nxUBpad + 2, nxUBpad, &
+              nyUBpad, nxUBtaper, nyUBtaper)
+          call meanZero(ubBrray, nxUBpad + 2, nxUBpad, nyUBpad)
+          call todfft(ubArray, nxUBpad, nyUBpad, 0)
+          call todfft(ubBrray, nxUBpad, nyUBpad, 0)
+          call conjugateProduct(ubArray, ubBrray, nxUBpad, nyUBpad)
+          if (deltaUBctf .ne. 0.) &
+              call filterpart(ubArray, ubArray, nxUBpad, nyUBpad, ctfUB, deltaUBctf)
+          call todfft(ubArray, nxUBpad, nyUBpad, 1)
+
+          ! It's not clear if these limits should be applied...
+          if (limitingShift)  &
+              call setPeakFindLimits(-limitUBshiftX, limitUBshiftX, -limitUBshiftY, &
+              limitUBshiftY, ifEllipse)
+          call xcorrPeakFindWidth(ubArray, nxUBpad + 2, nyUBpad, ubXpeaks, ubYpeaks, &
+              ubPeakList, widths, widthMins, 2)
+          if (verbose) write(*,'(i2,2f9.2,e15.7,f8.2)') &
+              (i,ubXpeaks(i), ubYpeaks(i),ubPeakList(i), widths(i),i=1,2)
+
+          ! Accept the second peak if the first is still at origin and is narrow
+          ! enough and if the width ratio is big enough
+          ifUBpeakIsSharp = 0
+          if (ubPeakList(2) > 0 .and. abs(ubXpeaks(1)) < 0.1 .and.  &
+              abs(ubYpeaks(1)) < 0.1 .and. widths(1) <= centralPeakMaxWidth .and.  &
+              widths(2) / widths(1) > ubWidthRatioCrit) then
+            if (verbose) print *,'Rejecting peak at 0,0!'
+            ifUBpeakIsSharp = 1
+          endif
+        endif
+        if (ifUBpeakIsSharp > 0) indPeak = indFirstOut
+      endif
+    endif
+    !
+    ! Done with all picking of substitute peaks, now proceed with final values 
+    xpeakTmp = xpeakList(indPeak)
+    ypeakTmp = ypeakList(indPeak)
+    peakVal = peakList(indPeak)
+    return
+  end subroutine correlateAndFindPeaks
+
 
   ! Adjusts centered coordinates XFROM, YFROM from an image at TILTFROM
   ! to an image at TILTTO by rotating to the tilt axis vertical,
