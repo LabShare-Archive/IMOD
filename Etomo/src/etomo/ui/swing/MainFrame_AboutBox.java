@@ -102,6 +102,7 @@ import javax.swing.JPanel;
 
 import etomo.logic.VersionControl;
 import etomo.type.AxisID;
+import etomo.type.ImodVersion;
 
 public class MainFrame_AboutBox extends JDialog {
   public static final String rcsid = "$Id$";
@@ -122,7 +123,7 @@ public class MainFrame_AboutBox extends JDialog {
     pnlAbout.setLayout(new BoxLayout(pnlAbout, BoxLayout.Y_AXIS));
 
     JLabel lblEtomo = new JLabel("eTomo: The IMOD Tomography GUI");
-    JLabel lblVersion = new JLabel("Version " + VersionControl.getEtomoVersion());
+    JLabel lblVersion = new JLabel("Version " + ImodVersion.CURRENT_VERSION + " " + VersionControl.TIME_STAMP);
     JLabel lblAuthors = new JLabel("Written by: Rick Gaudette & Sue Held");
 
     btnOK.addActionListener(new AboutActionListener(this));
