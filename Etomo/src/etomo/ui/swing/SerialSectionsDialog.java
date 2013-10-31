@@ -638,18 +638,19 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
    * Right mouse button context menu
    */
   public void popUpContextMenu(final MouseEvent mouseEvent) {
-    ViewType viewType = metaData.getViewType();
-    String[] manPageLabel;
-    String[] manPage;
-    String[] logFileLabel;
-    String[] logFile;
+    String[] logFileLabel = null;
+    String[] logFile = null;
+    String[] manPageLabel = null;
+    String[] manPage = null;
+    String anchor = null;
     TomodataplotsParam.Task[] graph = null;
-    if (viewType == ViewType.MONTAGE) {
-      manPageLabel = new String[] { "Blendmont", "Midas", "Xfalign", "Xftoxg", "3dmod" };
-      manPage = new String[] { "blendmont.html", "midas.html", "xfalign.html",
-          "xftoxg.html", "3dmod.html" };
-      logFileLabel = new String[] { "Blend", "Preblend", "Xfalign" };
-      logFile = new String[] { "blend.log", "preblend.log", "xfalign.log" };
+    if (curTab == Tab.INITIAL_BLEND) {
+      anchor = "Blending";
+      logFileLabel = new String[] { "Preblend" };
+      logFile = new String[] { "preblend.log" };
+      manPageLabel = new String[] { "Blendmont", "Midas", "3dmod" };
+      manPage = new String[] { "blendmont.html", "midas.html", "3dmod.html" };
+      // setup graph
       File stack = manager.getStack();
       if (stack != null
           && !DatasetTool.isOneBy(manager.getPropertyUserDir(), stack.getName(), manager,
@@ -657,17 +658,31 @@ public final class SerialSectionsDialog implements ContextMenu, Run3dmodButtonCo
         graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.SERIAL_SECTIONS_MEAN_MAX };
       }
     }
-    else {
-      manPageLabel = new String[] { "Colornewst", "Midas", "Newstack", "Xfalign",
-          "Xftoxg", "3dmod" };
-      manPage = new String[] { "colornewst.html", "midas.html", "newstack.html",
-          "xfalign.html", "xftoxg.html", "3dmod.html" };
-      logFileLabel = new String[] { "Newst", "Xfalign" };
-      logFile = new String[] { "newst.log", "xfalign.log" };
+    else if (curTab == Tab.ALIGN) {
+      anchor = "Aligning";
+      logFileLabel = new String[] { "Xfalign" };
+      logFile = new String[] { "xfalign.log" };
+      manPageLabel = new String[] { "Xfalign", "Midas", "3dmod" };
+      manPage = new String[] { "xfalign.html", "midas.html", "3dmod.html" };
     }
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, "Serial Sections",
-        ContextPopup.TOMO_GUIDE, manPageLabel, manPage, logFileLabel, logFile, graph,
-        manager, axisID);
+    else if (curTab == Tab.MAKE_ALIGNED_STACK) {
+      anchor = "Images";
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        logFileLabel = new String[] { "Blend" };
+        logFile = new String[] { "blend.log" };
+        manPageLabel = new String[] { "Blendmont", "Xftoxg", "3dmod" };
+        manPage = new String[] { "blendmont.html", "xftoxg.html", "3dmod.html" };
+      }
+      else {
+        logFileLabel = new String[] { "Newst" };
+        logFile = new String[] { "newst.log" };
+        manPageLabel = new String[] { "Colornewst", "Xftoxg", "3dmod" };
+        manPage = new String[] { "colornewst.html", "xftoxg.html", "3dmod.html" };
+      }
+    }
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, anchor,
+        ContextPopup.SERIAL_GUIDE, manPageLabel, manPage, logFileLabel, logFile, graph,
+        manager, axisID, true);
   }
 
   private void setTooltips() {
