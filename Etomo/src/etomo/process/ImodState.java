@@ -10,6 +10,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoBoolean2;
+import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -432,7 +433,8 @@ public final class ImodState {
 
   // current state information
   // reset to initial state
-  private String modelName;
+  private String modelName=null;
+  private FileType model = null;
   private int mode;
   private boolean swapYZ;
   // reset to default state
@@ -489,7 +491,9 @@ public final class ImodState {
   private EtomoBoolean2 deleteAllSections = null;
   private String fileName = null;
   private EtomoBoolean2 interpolation = null;
-  private List<String> modelNameList=null;
+  private List<String> modelNameList = null;
+
+  private boolean openSurfContPoint = false;
 
   // constructors
   // they can set final state variables
@@ -788,6 +792,10 @@ public final class ImodState {
         process.setSkipList(skipList);
       }
     }
+    if (openSurfContPoint) {
+      process.openSurfContPoint();
+      openSurfContPoint = false;
+    }
     // set mode
     if (usingMode) {
       if (mode == MODEL_MODE) {
@@ -804,6 +812,16 @@ public final class ImodState {
     }
     process.sendMessages();
     reset();
+  }
+
+  void setOpenSurfContPoint(final boolean input) {
+    openSurfContPoint = input;
+  }
+
+  void open(FileType modelName, Run3dmodMenuOptions menuOptions)
+      throws SystemProcessException, IOException {
+    setModel(modelName);
+    open(menuOptions);
   }
 
   /**
@@ -976,11 +994,16 @@ public final class ImodState {
     return modelName;
   }
 
+  private void setModel(FileType model) {
+    this.model = model;
+    process.setModel(model);
+  }
+
   private void setModelName(String modelName) {
     this.modelName = modelName;
     process.setModelName(modelName);
   }
-  
+
   private void setModelNameList(List<String> modelNameList) {
     this.modelNameList = modelNameList;
     process.setModelNameList(modelNameList);
