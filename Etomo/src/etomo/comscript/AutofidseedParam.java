@@ -5,6 +5,7 @@ import java.io.File;
 import etomo.BaseManager;
 import etomo.logic.ClusteredPointsAllowed;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
@@ -44,15 +45,19 @@ public class AutofidseedParam implements CommandParam, Command {
   public static final String DROP_TRACKS_KEY = "DropTracks";
   public static final String MAX_MAJOR_TO_MINOR_RATIO_KEY = "MaxMajorToMinorRatio";
   public static final String CLUSTERED_POINTS_ALLOWED_KEY = "ClusteredPointsAllowed";
-  
+  public static final String ADJUST_SIZES_KEY = "AdjustSizes";
+  public static final String ELONGATED_POINTS_ALLOWED_KEY = "ElongatedPointsAllowed";
+
   private final StringParameter trackCommandFile = new StringParameter("TrackCommandFile");
-  private final ScriptParameter minGuessNumBeads = new ScriptParameter(MIN_GUESS_NUM_BEADS_KEY);
+  private final ScriptParameter minGuessNumBeads = new ScriptParameter(
+      MIN_GUESS_NUM_BEADS_KEY);
   private final ScriptParameter minSpacing = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       MIN_SPACING_KEY);
   private final ScriptParameter peakStorageFraction = new ScriptParameter(
       EtomoNumber.Type.DOUBLE, PEAK_STORAGE_FRACTION_KEY);
   private final StringParameter boundaryModel = new StringParameter(BOUNDARY_MODEL_KEY);
-  private final EtomoBoolean2 excludeInsideAreas = new EtomoBoolean2(EXCLUDE_INSIDE_AREAS_KEY);
+  private final EtomoBoolean2 excludeInsideAreas = new EtomoBoolean2(
+      EXCLUDE_INSIDE_AREAS_KEY);
   private final FortranInputString bordersInXandY = new FortranInputString(
       BORDERS_IN_X_AND_Y_KEY, 2);
   private final EtomoBoolean2 twoSurfaces = new EtomoBoolean2(TWO_SURFACES_KEY);
@@ -66,6 +71,9 @@ public class AutofidseedParam implements CommandParam, Command {
       CLUSTERED_POINTS_ALLOWED_KEY);
   private final StringList ignoreSurfaceData = new StringList(IGNORE_SURFACE_DATA_KEY);
   private final StringList dropTracks = new StringList(DROP_TRACKS_KEY);
+  private final ScriptParameter elongatedPointsAllowed = new ScriptParameter(
+      ELONGATED_POINTS_ALLOWED_KEY);
+  private final EtomoBoolean2 adjustSizes = new EtomoBoolean2(ADJUST_SIZES_KEY);
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -92,6 +100,8 @@ public class AutofidseedParam implements CommandParam, Command {
     clusteredPointsAllowed.reset();
     ignoreSurfaceData.reset();
     dropTracks.reset();
+    elongatedPointsAllowed.reset();
+    adjustSizes.reset();
   }
 
   /**
@@ -117,6 +127,8 @@ public class AutofidseedParam implements CommandParam, Command {
     clusteredPointsAllowed.parse(scriptCommand);
     ignoreSurfaceData.parse(scriptCommand);
     dropTracks.parse(scriptCommand);
+    elongatedPointsAllowed.parse(scriptCommand);
+    adjustSizes.parse(scriptCommand);
   }
 
   /**
@@ -142,6 +154,32 @@ public class AutofidseedParam implements CommandParam, Command {
     clusteredPointsAllowed.updateComScript(scriptCommand);
     ignoreSurfaceData.updateComScript(scriptCommand);
     dropTracks.updateComScript(scriptCommand);
+    elongatedPointsAllowed.updateComScript(scriptCommand);
+    adjustSizes.updateComScript(scriptCommand);
+  }
+
+  public boolean isAdjustSizes() {
+    return adjustSizes.is();
+  }
+
+  public boolean isElongatedPointsAllowedSet() {
+    return !elongatedPointsAllowed.isNull() && !elongatedPointsAllowed.equals(0);
+  }
+
+  public void setAdjustSizes(final boolean input) {
+    adjustSizes.set(input);
+  }
+
+  public void setElongatedPointsAllowed(final Number input) {
+    elongatedPointsAllowed.set(input);
+  }
+
+  public void resetElongatedPointsAllowed() {
+    elongatedPointsAllowed.reset();
+  }
+
+  public ConstEtomoNumber getElongatedPointsAllowed() {
+    return elongatedPointsAllowed;
   }
 
   public String getMinGuessNumBeads() {
@@ -261,12 +299,12 @@ public class AutofidseedParam implements CommandParam, Command {
     maxMajorToMinorRatio.set(input);
   }
 
-  public void setClusteredPointsAllowed(final ClusteredPointsAllowed input) {
-    if (input == null) {
-      clusteredPointsAllowed.reset();
+  public void setClusteredPointsAllowed(final boolean input) {
+    if (input) {
+      clusteredPointsAllowed.set(ClusteredPointsAllowed.CLUSTERED.getValue());
     }
     else {
-      clusteredPointsAllowed.set(input.getValue());
+      clusteredPointsAllowed.reset();
     }
   }
 
