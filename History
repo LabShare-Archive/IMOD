@@ -1,8 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/30/13: IMOD_4-6-31
 10/29/13: Fixed a problem in eTomo where the parallel panel did not appear
 when eTomo reconnected to a parallel process.  This problem appeared when
-Pause and Resume had been previously used.(Bug# 1757).
+Pause and Resume had been previously used.(Bug# 1757)
 
 10/29/13: Fixed the eTomo version string.(Bug# 1744)
 
