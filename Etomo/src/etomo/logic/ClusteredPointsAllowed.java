@@ -1,7 +1,8 @@
 package etomo.logic;
 
 /**
-* <p>Description: </p>
+* <p>Description: For backwards compatibility with previous version which encorporated
+* elongated.</p>
 * 
 * <p>Copyright: Copyright 2012</p>
 *
@@ -18,10 +19,19 @@ package etomo.logic;
 public final class ClusteredPointsAllowed {
   public static final String rcsid = "$Id:$";
   public static final ClusteredPointsAllowed CLUSTERED = new ClusteredPointsAllowed(1);
+  /**
+   * @deprecated - no longer valid values
+   */
   private static final ClusteredPointsAllowed ELONGATED_ONE_THIRD = new ClusteredPointsAllowed(
       2);
+  /**
+   * @deprecated - no longer valid values
+   */
   private static final ClusteredPointsAllowed ELONGATED_TWO_THIRDS = new ClusteredPointsAllowed(
       3);
+  /**
+   * @deprecated - no longer valid values
+   */
   private static final ClusteredPointsAllowed ELONGATED_ALL = new ClusteredPointsAllowed(
       4);
 
@@ -47,6 +57,11 @@ public final class ClusteredPointsAllowed {
     return null;
   }
 
+  /**
+   * @deprecated
+   * @param displayValue
+   * @return
+   */
   public static ClusteredPointsAllowed getInstanceFromDisplayValue(
       final Number displayValue) {
     if (displayValue == null) {
@@ -63,6 +78,9 @@ public final class ClusteredPointsAllowed {
     return value;
   }
 
+  /**
+   * for backwards compatibility
+   */
   public int convertToDisplayValue() {
     return value - 1;
   }

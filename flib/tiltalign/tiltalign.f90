@@ -45,8 +45,10 @@ program tiltalign
   integer*4, allocatable :: indAllReal(:), mapAllToLocal(:)
   integer*4, allocatable :: mapLocalToAll(:)
   integer*4, allocatable :: mallFileToView(:), mallViewToFile(:)
+  real*4, allocatable :: ssAfac(:), ssBfac(:), ssCfac(:), ssDfac(:), ssEfac(:), ssFfac(:)
   !
-  logical tooFewFid, useTarget, dirDone(-1:1), warnOnRobFail
+  logical tooFewFid, useTarget, dirDone(-1:1), subSampleTracks
+  logical*4 warnOnRobFail
   integer*4 ncycle/500/
   real*4 DTOR/0.0174532/
   !
@@ -82,7 +84,8 @@ program tiltalign
   integer*4 maxRobustOneCycle, numOneCycle, numTotCycles, maxTotCycles, numBelowCrit
   real*4 robustTotCycleFac, delWgtMeanCrit, delWgtMaxCrit, rmsScale, robustMaxDelErr
   real*4 wgtErrMean, wgtErrSumLocal, wgtErrLocalMin, wgtErrLocalMax, undoWgtRelaxCrit
-  integer*4 numRobFailed
+  integer*4 numRobFailed, minSampledInView, numSampleTarget, minLocalTrackResRob
+  integer*4 minTrackResRob, minLocalPointResRob, minPointResRob
   character*20 message
   character*320 concat
   !
@@ -141,8 +144,12 @@ program tiltalign
   xyzFixed = .false.
   tooFewFid = .false.
   kfacRobust = 4.685
-  minResRobust = 100
-  minLocalResRobust = 65
+  minPointResRob = 100
+  minLocalPointResRob = 65
+  minTrackResRob = 30
+  minLocalTrackResRob = 20
+  minResRobust = minPointResRob
+  minLocalResRobust = minLocalPointResRob
   smallWgtThreshold = 0.5
   delWgtMeanCrit = 0.001
   delWgtMaxCrit = 0.01
@@ -172,6 +179,8 @@ program tiltalign
   undoWgtRelaxCrit = 2.
   robustMaxDelErr = 4.
   warnOnRobFail = .false.
+  minSampledInView = 20
+  numSampleTarget = 100
   !
   ! set this to 1 to get inputs for X - axis tilting from sequential input
   !
@@ -219,6 +228,19 @@ program tiltalign
   maxvar = 7 * maxView + 3 * maxReal
   allocate(var(maxvar), varErr(maxvar), grad(maxvar), varName(7 * maxView), stat = ierr)
   call memoryError(ierr, 'VARIABLE ARRAYS')
+  ! 
+  ! If it is a patch tracking model, convert to a subsample if too many tracks
+  do i = 1, nrealPt
+    indAllReal(i) = i
+  enddo
+  subSampleTracks = patchTrackModel .and. numFullPatchTracks > 1.1 * numSampleTarget
+  if (subSampleTracks) then
+    call loadPatchSubset(allxx, allyy, nAllProjPt, nprojPt, indAllReal, nAllRealPt,  &
+        iallRealStr, iallSecv, ninView, numSampleTarget, minSampledInView)
+    allocate(ssAfac(maxView), ssBfac(maxView), ssCfac(maxView), ssDfac(maxView), &
+        ssEfac(maxView), ssFfac(maxView), stat = ierr)
+    call memoryError(ierr, 'SUBSAMPLE FACTOR ARRAYS')
+  endif
 
   do i = 1, nrealPt
     listReal(i) = i
@@ -241,7 +263,16 @@ program tiltalign
     ierr = PipGetFloat('MetroFactor', facm)
     ierr = PipGetInteger('MaximumCycles', ncycle)
     ierr = PipGetBoolean('RobustFitting', ifDoRobust)
-    ierr = PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust)
+    ierr = PipGetLogical('WeightWholeTracks', robustByTrack)
+    if (PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust) .ne. &
+        0) then
+      ! They were loaded with the point residual values, so change if track residuals
+      if (patchTrackModel .and. robustByTrack) then
+        minResRobust = minTrackResRob
+        minLocalResRobust = minLocalTrackResRob
+      endif
+    endif
+        
     if (PipGetFloat('KFactorScaling', cosTmp) .eq. 0)  &
         kfacRobust = kfacRobust * cosTmp
     ierr = PipGetLogical('WarnOnRobustFailure', warnOnRobFail)
@@ -302,9 +333,6 @@ program tiltalign
   ifLocal = 0
   metroError = 0
   numRobFailed = 0
-  do i = 1, nrealPt
-    indAllReal(i) = i
-  enddo
   !
   scaleXY = 0.
   do i = 1, nprojpt
@@ -380,6 +408,12 @@ program tiltalign
   call memoryError(ierr, 'ARRAY FOR H MATRIX')
   !
   call alignAndOutputResults()
+  !
+  ! restore the data if a subsample of patches was tracked
+  if (subSampleTracks) then
+    call restoreFromPatchSample(allxx, allyy, nAllProjPt, nprojPt, allXYZ, indAllReal,  &
+        nAllRealPt, iallRealStr, iallSecv, ssAfac, ssBfac, ssCfac, ssDfac, ssEfac, ssFfac)
+  endif
   !
   ! shift the fiducials to real positions in X and Y for xyz output file
   ! and for possible use with local alignments
@@ -557,7 +591,11 @@ CONTAINS
         numWgt5 = 0
       endif
       call findMedianResidual()
-      call setupWeightGroups(index, jpt, minTiltView, ierr)
+      if (patchTrackModel .and. robustByTrack) then
+        call setupTrackWeightGroups(min(index, 5), jpt, indAllReal, ierr)
+      else
+        call setupWeightGroups(index, jpt, minTiltView, ierr)
+      endif
       robTooFew = ierr .ne. 0
       if (robTooFew) print *,'WARNING: TOO FEW DATA POINTS TO DO ROBUST FITTING'
       robustWeights = .true.
@@ -574,7 +612,7 @@ CONTAINS
         fLast = fFinal
         wgtPrev(1:nprojpt) = errSave(1:nprojpt)
         errSave(1:nprojpt) = weight(1:nprojpt)
-        call computeWeights(indSave, jptSave, xyzerr)
+        call computeWeights(indAllReal, indSave, jptSave, xyzerr)
         call runMetro(nvarSearch, var, varErr, grad, h, 1, facm, -abs(ncycle), 1, &
             rmsScale, fFinal, i, metroRobust)
         numTotCycles = numTotCycles + i
@@ -995,7 +1033,7 @@ CONTAINS
     ! of tilt axis
     ! shift axis in z by making proper shifts in x
     !
-    if (iwhichOut >= 0) then
+    if (iwhichOut >= 0 .or. (subSampleTracks .and. ifLocal == 0)) then
       do iv = 1, nview
         !
         ! To compute transform, first get the coefficients of the full
@@ -1013,6 +1051,14 @@ CONTAINS
         call fill_rot_matrix(rot(iv) * dtor, rmat, cosTmp, sinTmp)
         call matrix_to_coef(dmat, xtmat, beamInv, ytmat, beamMat, prmat, &
             rmat, afac, bfac, cfac, dfac, efac, ffac)
+        if (subSampleTracks .and. ifLocal == 0) then
+          ssAfac(iv) = afac
+          ssBfac(iv) = bfac
+          ssCfac(iv) = cfac
+          ssDfac(iv) = dfac
+          ssEfac(iv) = efac
+          ssFfac(iv) = ffac
+        endif
         !
         ! Solve for transformation that maps 1, 0, 0 to cos beta, 0
         ! and 0, 1, 0 to sin alf * sin beta, cos alf
@@ -1388,6 +1434,7 @@ CONTAINS
 
   subroutine setupAndDoLocalAlignments()
     integer*4 PipGetTwoIntegers, PipGetTwoFloats, PipGetThreeIntegers
+    integer*4 nrealBefore, numFullUsed
     ifDoLocal = ifLocal
     if (iwhichOut < 0) call errorexit( &
         'SOLUTION TRANSFORMS MUST BE OUTPUT TO DO LOCAL ALIGNMENTS', 0)
@@ -1571,10 +1618,10 @@ CONTAINS
         !
         nxp = nxpMin - 40
         nyp = nypMin - 40
-        nrealPt = 0
+        numFullUsed = 0
         minSurf = 0
         do while (nxp < 4 * xcen .and. nyp < 4 * ycen .and. &
-            (nrealPt < minfidtot .or. &
+            (numFullUsed < minfidtot .or. &
             (numSurface >= 2 .and. minSurf < minfidsurf)))
           nxp = nxp + 40
           nyp = nyp + 40
@@ -1585,17 +1632,22 @@ CONTAINS
           ixmax = ixmin + nxp
           iymin = iyPatch - nyp / 2
           iymax = iymin + nyp
-          do i = 1, nAllRealPt
-            if (allxyz(1, i) >= ixmin .and. allxyz(1, i) <= ixmax .and. &
-                allxyz(2, i) >= iymin .and. allxyz(2, i) <= iymax) then
-              nrealPt = nrealPt + 1
-              indAllReal(nrealPt) = i
-              if (numSurface >= 2) then
-                if (igroup(i) == 1) nbot = nbot + 1
-                if (igroup(i) == 2) ntop = ntop + 1
-              endif
-            endif
-          enddo
+          if (patchTrackModel) then
+            numFullUsed = 0
+            do j = 1, numFullPatchTracks
+              nrealBefore = nrealPt
+              do kk = indFullTrack(j), indFullTrack(j + 1) - 1
+                i = mapTrackToReal(kk)
+                call addToLocalIfInRange(i)
+              enddo
+              if (nrealPt > nrealBefore) numFullUsed = numFullUsed + 1
+            enddo
+          else
+            do i = 1, nAllRealPt
+              call addToLocalIfInRange(i)
+            enddo
+            numFullUsed = nrealPt
+          endif
           minSurf = min(nbot, ntop)
         enddo
         if (nxp >= 4 * xcen .and. nyp >= 4 * ycen) then
@@ -1631,9 +1683,8 @@ CONTAINS
           listReal(ll) = ll
           i = indAllReal(ll)
           irealStr(ll) = nprojpt + 1
-          do j = 1, ninReal(i)
+          do kk = iallRealStr(i), iallRealStr(i + 1) - 1
             nprojpt = nprojpt + 1
-            kk = J + iallRealStr(i) - 1
             xx(nprojpt) = allxx(kk)
             yy(nprojpt) = allyy(kk)
             isecView(nprojpt) = mapAllToLocal(iallSecv(kk))
@@ -1741,24 +1792,69 @@ CONTAINS
     !
   end subroutine setupAndDoLocalAlignments
 
+  subroutine addToLocalIfInRange(ireal)
+    integer*4 ireal
+    if (allxyz(1, ireal) >= ixmin .and. allxyz(1, ireal) <= ixmax .and. &
+        allxyz(2, ireal) >= iymin .and. allxyz(2, ireal) <= iymax) then
+      nrealPt = nrealPt + 1
+      indAllReal(nrealPt) = ireal
+      if (numSurface >= 2) then
+        if (igroup(ireal) == 1) nbot = nbot + 1
+        if (igroup(ireal) == 2) ntop = ntop + 1
+      endif
+    endif
+    return
+  end subroutine addToLocalIfInRange
 
+
+  ! Find the median residual of a view, or of a patch track group when doing robust
+  ! fitting by whole track
+  !
   subroutine findMedianResidual()
     real*4 tmpRes(maxReal), tmpMedian(maxView), xvfit(25), slope(5)
-    integer*4 iorder/2/, nFullFit/15/, numIter/3/, iter, nfit
+    integer*4 iorder/2/, nFullFit/15/, numIter/3/, iter, nfit, numMedian
     logical allZero/.true./
     integer*4 iterCount/0/
     save iterCount
+
+    ! Set up number of medians to find and smoothing iterations
+    if (patchTrackModel .and. robustByTrack) then
+      viewMedianRes(1) = 1.
+      if (numTrackGroups == 1) return
+      numMedian = numTrackGroups
+      numIter = 0
+    else       
+      numMedian = nview
+    endif
     
-    do iv = 1, nview
+    ! Find medians of either track groups or views
+    do iv = 1, numMedian
       ninViewSum = 0
-      do i = 1, nprojpt
-        if (isecView(i) == iv) then
-          ninViewSum = ninViewSum + 1
-          tmpRes(ninViewSum) = sqrt(xresid(i)**2 + yresid(i)**2)
-        endif
-      enddo
-      call rsSortFloats(tmpRes, ninViewSum)
-      call rsMedianOfSorted(tmpRes, ninViewSum, viewMedianRes(iv))
+      if (patchTrackModel .and. robustByTrack) then
+        !
+        ! Track group: compute mean residual of each track and save it
+        do i = 1, nrealPt
+          if (itrackGroup(indAllReal(i)) == iv) then
+            ninViewSum = ninViewSum + 1
+            trackResid(i) = 0
+            do j = irealStr(i), irealStr(i + 1) - 1
+              trackResid(i) = trackResid(i) + sqrt(xresid(i)**2 + yresid(i)**2)
+            enddo
+            trackResid(i) = trackResid(i) / (irealStr(i + 1) - irealStr(i))
+            tmpRes(ninViewSum) = trackResid(i)
+          endif
+        enddo
+      else
+        !
+        ! View: get residual of each point
+        do i = 1, nprojpt
+          if (isecView(i) == iv) then
+            ninViewSum = ninViewSum + 1
+            tmpRes(ninViewSum) = sqrt(xresid(i)**2 + yresid(i)**2)
+          endif
+        enddo
+      endif
+      call rsFastMedianInPlace(tmpRes, ninViewSum, viewMedianRes(iv))
       ! write(*,'(2i4,f9.3,a)') iterCount,iv, viewMedianRes(iv) * scaleXY,'  FMR'
       if (viewMedianRes(iv) .ne. 0) allZero = .false.
     enddo

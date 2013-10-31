@@ -126,6 +126,7 @@ rb.generate-seed-model-automatically=
   #advanced
   bn.advanced=
   #test values
+  assert.cb.find-and-adjust-bead-size=off
   assert.tf.borders-in-x-&-y=
   assert.tf.estimated-number-of-beads-in-sample=
   assert.tf.minimum-spacing=0.85
@@ -136,6 +137,7 @@ rb.generate-seed-model-automatically=
   assert.cb.allow-elongated-beads-of-severity=off
   assert.sp.allow-elongated-beads-of-severity=1
   #test enabled/disabled
+  assert.enabled.cb.find-and-adjust-bead-size=
   assert.enabled.tf.borders-in-x-&-y=
   assert.enabled.tf.estimated-number-of-beads-in-sample=
   assert.enabled.tf.minimum-spacing=
@@ -143,15 +145,12 @@ rb.generate-seed-model-automatically=
   assert.enabled.tf.drop-tracked-models=
   assert.enabled.tf.maximum-ratio-between-surfaces=
   assert.enabled.cb.allow-clustered-beads=
-  assert.disabled.cb.allow-elongated-beads-of-severity=
-  assert.disabled.sp.allow-elongated-beads-of-severity=
-  #behavior
-  cb.allow-clustered-beads=on
   assert.enabled.cb.allow-elongated-beads-of-severity=
   assert.disabled.sp.allow-elongated-beads-of-severity=
+  assert.disabled.bn.open-clustered-/-elongated-model=
+  #behavior
   cb.allow-elongated-beads-of-severity=on
   assert.enabled.sp.allow-elongated-beads-of-severity=
-  cb.allow-elongated-beads-of-severity=off
   cb.allow-elongated-beads-of-severity=off
   bn.basic=
 [[]]
@@ -189,6 +188,9 @@ wait.process.autofidseed=done
   bn.open-seed-model=
   bn.open-initial-bead-model=
   bn.open-sorted-3d-models=
+  bn.advanced=
+  bn.open-clustered-/-elongated-model=
+  bn.basic=
 [[]]
 # clean up
 bn.clean-up-temporary-files=

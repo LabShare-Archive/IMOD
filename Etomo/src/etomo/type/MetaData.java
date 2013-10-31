@@ -770,12 +770,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private final EtomoNumber trackTargetDensityOfBeadsB = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, TRACK_KEY + "." + SECOND_AXIS_KEY
           + ".TargetDensityOfBeads");
+  /**
+   * @deprecated only used for backward compatibility
+   */
   private final EtomoBoolean2 trackClusteredPointsAllowedElongatedA = new EtomoBoolean2(
       TRACK_KEY + "." + FIRST_AXIS_KEY + ".ClusteredPointsAllowed.Elongated");
+  /**
+   * @deprecated only used for backward compatibility
+   */
   private final EtomoBoolean2 trackClusteredPointsAllowedElongatedB = new EtomoBoolean2(
       TRACK_KEY + "." + SECOND_AXIS_KEY + ".ClusteredPointsAllowed.Elongated");
+  /**
+   * @deprecated only used for backward compatibility
+   */
   private final EtomoNumber trackClusteredPointsAllowedElongatedValueA = new EtomoNumber(
       TRACK_KEY + "." + FIRST_AXIS_KEY + ".ClusteredPointsAllowed.Elongated.Value");
+  /**
+   * @deprecated only used for backward compatibility
+   */
   private final EtomoNumber trackClusteredPointsAllowedElongatedValueB = new EtomoNumber(
       TRACK_KEY + "." + SECOND_AXIS_KEY + ".ClusteredPointsAllowed.Elongated.Value");
   private final EtomoBoolean2 trackAdvancedA = new EtomoBoolean2(TRACK_KEY + "."
@@ -826,6 +838,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + ".AntialiasFilter");
   private final EtomoNumber stackAntialiasFilterB = new EtomoNumber(STACK_KEY + "."
       + SECOND_AXIS_KEY + ".AntialiasFilter");
+  private final EtomoNumber trackElongatedPointsAllowedA = new EtomoNumber(TRACK_KEY
+      + "." + FIRST_AXIS_KEY + ".ElongatedPointsAllowed");
+  private final EtomoNumber trackElongatedPointsAllowedB = new EtomoNumber(TRACK_KEY
+      + "." + SECOND_AXIS_KEY + ".ElongatedPointsAllowed");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1061,26 +1077,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     else {
       trackTargetDensityOfBeadsA.set(input);
-    }
-  }
-
-  public void setTrackClusteredPointsAllowedElongated(final boolean input,
-      final AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      trackClusteredPointsAllowedElongatedB.set(input);
-    }
-    else {
-      trackClusteredPointsAllowedElongatedA.set(input);
-    }
-  }
-
-  public void setTrackClusteredPointsAllowedElongatedValue(final Number input,
-      final AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      trackClusteredPointsAllowedElongatedValueB.set(input);
-    }
-    else {
-      trackClusteredPointsAllowedElongatedValueA.set(input);
     }
   }
 
@@ -1834,6 +1830,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     coarseAntialiasFilterB.reset();
     stackAntialiasFilterA.reset();
     stackAntialiasFilterB.reset();
+    trackElongatedPointsAllowedA.reset();
+    trackElongatedPointsAllowedB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2151,6 +2149,31 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     coarseAntialiasFilterB.load(props, prepend);
     stackAntialiasFilterA.load(props, prepend);
     stackAntialiasFilterB.load(props, prepend);
+    trackElongatedPointsAllowedA.load(props, prepend);
+    trackElongatedPointsAllowedB.load(props, prepend);
+  }
+
+  public boolean isTrackElongatedPointsAllowedNull(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackElongatedPointsAllowedB.isNull();
+    }
+    return trackElongatedPointsAllowedA.isNull();
+  }
+
+  public ConstEtomoNumber getTrackElongatedPointsAllowed(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return trackElongatedPointsAllowedB;
+    }
+    return trackElongatedPointsAllowedA;
+  }
+
+  public void setTrackElongatedPointsAllowed(final AxisID axisID, final Number input) {
+    if (axisID == AxisID.SECOND) {
+      trackElongatedPointsAllowedB.set(input);
+    }
+    else {
+      trackElongatedPointsAllowedA.set(input);
+    }
   }
 
   public void setNoBeamTiltSelected(final AxisID axisID, final boolean selected) {
@@ -2498,10 +2521,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackTargetNumberOfBeadsB.store(props, prepend);
     trackTargetDensityOfBeadsA.store(props, prepend);
     trackTargetDensityOfBeadsB.store(props, prepend);
-    trackClusteredPointsAllowedElongatedA.store(props, prepend);
-    trackClusteredPointsAllowedElongatedB.store(props, prepend);
-    trackClusteredPointsAllowedElongatedValueA.store(props, prepend);
-    trackClusteredPointsAllowedElongatedValueB.store(props, prepend);
     trackAdvancedA.store(props, prepend);
     trackAdvancedB.store(props, prepend);
     stack3dFindThicknessA.store(props, prepend);
@@ -2526,6 +2545,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     coarseAntialiasFilterB.store(props, prepend);
     stackAntialiasFilterA.store(props, prepend);
     stackAntialiasFilterB.store(props, prepend);
+    trackElongatedPointsAllowedA.store(props, prepend);
+    trackElongatedPointsAllowedB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
