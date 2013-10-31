@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/31/13: In eTomo - Serial Sections, improved the context sensitive pop-up
+menus.(Bug# 1748)
+
 10/31/13: In eTomo - Fiducial Model, added fields for AdjustSizes and
 ClusteredPointsAllowed to the Autofidseed panel.(Bug# 1743)
 
