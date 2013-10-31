@@ -6360,6 +6360,33 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
+   * Open clustered elongated model
+   */
+  public void imodClusteredElongatedModel(final AxisID axisID,
+      final Run3dmodMenuOptions menuOptions) {
+    FileType fileType = FileType.PREALIGNED_STACK;
+    FileType modelFileType = FileType.CLUSTERED_ELONGATED_MODEL;
+    try {
+      imodManager.open(fileType.getImodManagerKey(this), axisID, modelFileType,
+          menuOptions);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(),
+          "Can't open 3dmod on " + fileType.getFileName(this, axisID) + " for "
+              + modelFileType.getFile(this, axisID).getAbsolutePath(), axisID);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(this, except.getMessage(), "AxisType problem", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(this, e.getMessage(), "IO Exception", axisID);
+    }
+  }
+
+  /**
    * Open the patch vector models in 3dmod
    */
   public void imodPatchVectorModel(String key) {
