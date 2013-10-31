@@ -556,4 +556,8 @@ public interface ConstMetaData {
   public ConstEtomoNumber getAntialiasFilter(DialogType dialogType, AxisID axisID);
 
   public boolean isAntialiasFilterNull(DialogType dialogType, AxisID axisID);
+
+  public boolean isTrackElongatedPointsAllowedNull(AxisID axisID);
+
+  public ConstEtomoNumber getTrackElongatedPointsAllowed(AxisID axisID);
 }

@@ -198,7 +198,7 @@ public final class FileType {
   public static final FileType FLATTEN_TOOL_OUTPUT = FileType.getImodInstance(true,
       false, "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
   public static final FileType NAD_TEST_INPUT = FileType.getImodInstanceInSubdirectory(
-      false, false, "test", ".input", ImodManager.TEST_VOLUME_KEY);
+      false, false, "test", ".input", ImodManager.TEST_VOLUME_KEY, null);
   public static final FileType JOIN = FileType.getImodInstance(true, false, "", ".join",
       ImodManager.JOIN_KEY);
   public static final FileType MODELED_JOIN = FileType.getImodInstance(true, false,
@@ -230,6 +230,9 @@ public final class FileType {
   public static final FileType SMOOTHING_ASSESSMENT_OUTPUT_MODEL = FileType
       .getImodInstance(true, true, "_checkflat", ".mod",
           ImodManager.SMOOTHING_ASSESSMENT_KEY);
+  public static final FileType CLUSTERED_ELONGATED_MODEL = FileType
+      .getImodInstanceInSubdirectory(false, false, "clusterElong", ".mod", null,
+          FileType.AUTOFIDSEED_DIR);
   public static final FileType FLATTEN_WARP_INPUT_MODEL = FileType.getInstance(true,
       false, "_flat", ".mod");
   public static final FileType PATCH_VECTOR_MODEL = FileType.getImodInstance(false,
@@ -333,6 +336,7 @@ public final class FileType {
   private final boolean unnamed;
   private final boolean template;
   private final String inImodSubdirectory;
+  private final FileType subdir;
 
   private FileType parentFileType = null;
 
@@ -341,7 +345,7 @@ public final class FileType {
       final String imodManagerKey2, final String description, final boolean composite,
       final boolean inSubdirectory, final FileType subFileType,
       final FileType singleFileType, final FileType dualFileType, final boolean unnamed,
-      final boolean template, final String inImodSubdirectory) {
+      final boolean template, final String inImodSubdirectory, final FileType subdir) {
     this.usesDataset = usesDataset;
     this.usesAxisID = usesAxisID;
     this.typeString = typeString;
@@ -357,6 +361,7 @@ public final class FileType {
     this.unnamed = unnamed;
     this.template = template;
     this.inImodSubdirectory = inImodSubdirectory;
+    this.subdir = subdir;
     if (!unnamed) {
       namedFileTypeList.add(this);
     }
@@ -365,7 +370,7 @@ public final class FileType {
   private static FileType getTemplateInstance(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
-        false, false, null, null, null, false, true, null);
+        false, false, null, null, null, false, true, null, null);
   }
 
   /**
@@ -378,7 +383,8 @@ public final class FileType {
   private static FileType getDifferentDualSingleInstance(final FileType singleFileType,
       final FileType dualFileType, final String imodManagerKey, final String description) {
     FileType instance = new FileType(false, false, null, null, imodManagerKey, null,
-        description, true, false, null, singleFileType, dualFileType, false, false, null);
+        description, true, false, null, singleFileType, dualFileType, false, false, null,
+        null);
     // Child file types are not valid by themselves
     singleFileType.parentFileType = instance;
     dualFileType.parentFileType = instance;
@@ -388,7 +394,7 @@ public final class FileType {
   private static FileType getInstance(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
-        false, false, null, null, null, false, false, null);
+        false, false, null, null, null, false, false, null, null);
   }
 
   /**
@@ -403,52 +409,52 @@ public final class FileType {
   private static FileType getDerivedTemplateInstance(final FileType subFileType,
       final String extension, final String imodManagerKey) {
     return new FileType(false, false, null, extension, imodManagerKey, null, null, true,
-        false, subFileType, null, null, false, true, null);
+        false, subFileType, null, null, false, true, null, null);
   }
 
   private static FileType getImodInstance(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension,
       final String imodManagerKey) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        null, null, false, false, null, null, null, false, false, null);
+        null, null, false, false, null, null, null, false, false, null, null);
   }
 
   private static FileType getImodInstanceInSubdirectory(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension,
-      final String imodManagerKey) {
+      final String imodManagerKey, final FileType subdir) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        null, null, false, true, null, null, null, false, false, null);
+        null, null, false, true, null, null, null, false, false, null, subdir);
   }
 
   private static FileType getTwoImodInstance(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension,
       final String imodManagerKey, final String imodManagerKey2) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        imodManagerKey2, null, false, false, null, null, null, false, false, null);
+        imodManagerKey2, null, false, false, null, null, null, false, false, null, null);
   }
 
   private static FileType getDescribedImodInstance(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension,
       final String imodManagerKey, final String description) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, imodManagerKey,
-        null, description, false, false, null, null, null, false, false, null);
+        null, description, false, false, null, null, null, false, false, null, null);
   }
 
   private static FileType getUnamedInstance(final String imodManagerKey) {
     return new FileType(false, false, "", "", imodManagerKey, null, null, false, false,
-        null, null, null, true, false, null);
+        null, null, null, true, false, null, null);
   }
 
   private static FileType getUnamedInstanceInSubdirectory(final String imodManagerKey) {
     return new FileType(false, false, "", "", imodManagerKey, null, null, false, true,
-        null, null, null, true, false, null);
+        null, null, null, true, false, null, null);
   }
 
   private static FileType getIMODDirInstance(final boolean usesDataset,
       final boolean usesAxisID, final String typeString, final String extension,
       final String imodSubdirectory) {
     return new FileType(usesDataset, usesAxisID, typeString, extension, null, null, null,
-        false, false, null, null, null, false, false, imodSubdirectory);
+        false, false, null, null, null, false, false, imodSubdirectory, null);
   }
 
   /**
@@ -718,9 +724,13 @@ public final class FileType {
       return new File(new File(EtomoDirector.INSTANCE.getIMODDirectory(),
           inImodSubdirectory), fileName);
     }
-    if (inSubdirectory && (subdirName = manager.getFileSubdirectoryName()) != null) {
-      File subdir = new File(manager.getPropertyUserDir(), subdirName);
-      return new File(subdir, fileName);
+    if (inSubdirectory) {
+      if (subdir != null) {
+        return new File(subdir.getFileName(manager, axisID), fileName);
+      }
+      if ((subdirName = manager.getFileSubdirectoryName()) != null) {
+        return new File(new File(manager.getPropertyUserDir(), subdirName), fileName);
+      }
     }
     return new File(manager.getPropertyUserDir(), fileName);
   }

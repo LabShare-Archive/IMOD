@@ -1052,6 +1052,23 @@ public class ImodManager {
     // rawStack.model(modelName, modelMode);
   }
 
+  public void open(String key, AxisID axisID, FileType model,
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException, SystemProcessException,
+      IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+      imodState = get(key, axisID);
+    }
+    // TEMP
+    System.err.println("key=" + key + ",axis=" + imodState.getAxisID());
+    if (imodState != null) {
+      imodState.open(model, menuOptions);
+    }
+    // rawStack.model(modelName, modelMode);
+  }
+
   public void open(String key, final AxisID axisID, final File file, String model,
       boolean modelMode, final Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
@@ -1363,6 +1380,16 @@ public class ImodManager {
       throw new UnsupportedOperationException("The Bead Fixer cannot be opened in 3dmodv");
     }
     imodState.setOpenBeadFixer(openBeadFixer);
+  }
+
+  public void setOpenSurfContPoint(String key, AxisID axisID, boolean open)
+      throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setOpenSurfContPoint(open);
   }
 
   public void setAutoCenter(String key, AxisID axisID, boolean autoCenter)
