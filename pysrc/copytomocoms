@@ -334,6 +334,7 @@ for iaxis in range(naxis):
    gradspec = " "
    subgradient = 'gibberish'
    sepGroupText = ''
+   magViewText = ''
    if naxis > 1:
       setlet = "a"
       if iaxis:
@@ -527,6 +528,7 @@ for iaxis in range(naxis):
                   break
 
          sepGroupText = fmtstr('/^RotationAngle/a/SeparateGroup	1-{}/', indMin + 1)
+         magViewText = fmtstr('/^RotationAngle/a/ViewsWithMagChanges	{}/', indMin + 2)
      
    
    # IF MONTAGED CCD, JUST EXTRACT THE PIECE LIST IF NEEDED
@@ -745,6 +747,8 @@ for iaxis in range(naxis):
              fmtstr("/^#*SkipViews.*/s//SkipViews	{}/", excludelist),
              fmtstr("/^#*{}/d", wipeskip),
              fmtstr("s/{}.st/{}/", setname, xcsrc)]
+   if magViewText:
+      sedcom.append(magViewText)
    sedlines = pysed(sedcom, srcfile, None)
    dstlines.extend(sedlines)
    dstlines.append(backupline)
