@@ -1030,7 +1030,9 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
 
     TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, bits);
     TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, sampleformat);
-    if (bits > 8 && inFile->amax > inFile->amin) {
+
+    /* 11/1/13: save min/max for bytes also, needed for displaying very low count data */
+    if (inFile->amax > inFile->amin) {
       dmin = inFile->amin;
       dmax = inFile->amax;
       TIFFSetField(tif, TIFFTAG_SMINSAMPLEVALUE, dmin);
