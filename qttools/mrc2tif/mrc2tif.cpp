@@ -376,11 +376,11 @@ int main(int argc, char *argv[])
       }
     }
 
-    /* Prepare to get min/max for a slice if not doing in chunks or converting to bytes */
-    if (!stack && slmode > 0 && !convert && !doChunks) {
+    /* Prepare to get min/max for a slice if not doing in chunks */
+    if (!stack && !doChunks) {
       iifile->amin = 1.e30;
       iifile->amax = -1.e30;
-    } else if (slmode > 0 && !convert) {
+    } else {
 
       /* Otherwise take file min/max, that is better than nothing */
       iifile->amin = dmin;
@@ -448,9 +448,8 @@ int main(int argc, char *argv[])
         }
       }
     
-      /* Get min/max for int/float images, those are the only ones the write
-         routine will put out min/max for */
-      if (!stack && slmode > 0 && !convert && !doChunks && !makeQimage) {
+      // Get min/max for all image types, even bytes
+      if (!stack && !doChunks && !makeQimage) {
         sliceMMM(&slice);
         iifile->amin = B3DMIN(iifile->amin, slice.min);
         iifile->amax = B3DMAX(iifile->amax, slice.max);
