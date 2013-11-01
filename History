@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/1/13: Made Tiltxcorr able to find mag changes at selected views; for a 
+bidirectional series, Copytomocoms puts the option with the view number in
+xcorr.com.
+
+11/1/13: Fixed bug in imodtrans -3 option introduced 12/8/12.
+
 10/30/13: IMOD_4-6-31
 10/29/13: Fixed a problem in eTomo where the parallel panel did not appear
 when eTomo reconnected to a parallel process.  This problem appeared when
