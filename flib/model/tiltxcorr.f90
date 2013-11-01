@@ -47,7 +47,7 @@ program tiltxcorr
 
   real*4, allocatable :: f(:,:,:), tilt(:), dxPreali(:), dyPreali(:), fPreali(:,:,:)
   integer*4, allocatable :: ixPcList(:), iyPcList(:), izPcList(:)
-  integer*4, allocatable :: listz(:), listSkip(:)
+  integer*4, allocatable :: listz(:), listSkip(:), listMagViews(:)
   real*4, allocatable :: patchCenX(:), patchCenY(:), patchCenXall(:), patchCenYall(:)
   real*4, allocatable :: xControl(:), yControl(:), xVector(:), yVector(:)
   real*4, allocatable :: xmodel(:,:), ymodel(:,:), xbound(:), ybound(:)
@@ -82,21 +82,23 @@ program tiltxcorr
   integer*4 limitShiftX, limitShiftY, numSkip, lastNotSkipped, lenConts, nFillTaper
   integer*4 numControl, numBoundAll, idim2
   integer*4 nxUnali, nyUnali, numAllViews, ivPairOffset, ifFindWarp, limitedBinSize
-  integer*4 nxUBpad, nyUBpad, nxUBtaper
+  integer*4 nxUBpad, nyUBpad, nxUBtaper, magView
   real*4 critInside, cosRatio, peakVal, peakLast, xpeakLast, yPeakLast
   real*4 boundXmin, boundXmax, boundYmin, boundYmax, fracXover, fracYover
   real*4 fracOverMax, critNonBlank, fillTaperFrac, deltaUBctf, radExclude
   integer*4 nyUBtaper, limitUBshiftX, limitUBshiftY, niceLimit, ifEllipse, maxXcorrPeaks
   real*4 binWidthRatioCrit, peak2ToPeak3Crit, centralPeakMaxWidth, ubWidthRatioCrit
-  integer*4 ifUBpeakIsSharp
-  real*4 cosRotAngle, sinRotAngle, overlapCrit, overlapPower
+  integer*4 ifUBpeakIsSharp, numCuts, numMagViews
+  real*4 cosRotAngle, sinRotAngle, overlapCrit, overlapPower, foundMag, stepMag, searchMin
+  real*4 searchMax, brackets(14)
   real*8 wallMask, wallStart, wallInterp, wallfft, wallPeak
 
   logical*4 tracking, verbose, breaking, taperCur, taperRef, reverseOrder, evalCCC
   logical*4 refViewOut, rawAlignedPair, addToWarps, curViewOut, limitingShift
+  logical*4 searchedForMag, searchMag
   integer*4 niceFrame, newImod, putImodMaxes, putModelName, numberInList, taperAtFill
   integer*4 newWarpFile, setWarpPoints, writeWarpFile, setLinearTransform, readWarpFile
-  integer*4 separateLinearTransform, niceFFTlimit
+  integer*4 separateLinearTransform, niceFFTlimit, minimize1D
   logical inside
   real*4 cosd, sind
 
@@ -109,7 +111,7 @@ program tiltxcorr
   ! fallbacks from ../../manpages/autodoc2man -3 2  tiltxcorr
   !
   integer numOptions
-  parameter (numOptions = 52)
+  parameter (numOptions = 55)
   character*(40 * numOptions) options(1)
   options(1) = &
       'input:InputFile:FN:@piece:PieceListFile:FN:@output:OutputFile:FN:@'// &
@@ -126,13 +128,14 @@ program tiltxcorr
       'views:StartingEndingViews:IP:@skip:SkipViews:LI:@break:BreakAtViews:LI:@'// &
       'cumulative:CumulativeCorrelation:B:@absstretch:AbsoluteCosineStretch:B:@'// &
       'nostretch:NoCosineStretch:B:@iterate:IterateCorrelations:I:@'// &
-      'size:SizeOfPatchesXandY:IP:@number:NumberOfPatchesXandY:IP:@'// &
-      'overlap:OverlapOfPatchesXandY:IP:@seed:SeedModel:FN:@objseed:SeedObject:I:@'// &
-      'length:LengthAndOverlap:IP:@prexf:PrealignmentTransformFile:FN:@'// &
-      'imagebinned:ImagesAreBinned:I:@unali:UnalignedSizeXandY:IP:@'// &
-      'warp:FindWarpTransforms:I:@pair:RawAndAlignedPair:IP:@'// &
-      'append:AppendToWarpFile:B:@test:TestOutput:FN:@verbose:VerboseOutput:B:@'// &
-      'param:ParameterFile:PF:@help:usage:B:'
+      'search:SearchMagChanges:B:@changes:ViewsWithMagChanges:LI:@'// &
+      'mag:MagnificationLimits:FP:@size:SizeOfPatchesXandY:IP:@'// &
+      'number:NumberOfPatchesXandY:IP:@overlap:OverlapOfPatchesXandY:IP:@'// &
+      'seed:SeedModel:FN:@objseed:SeedObject:I:@length:LengthAndOverlap:IP:@'// &
+      'prexf:PrealignmentTransformFile:FN:@imagebinned:ImagesAreBinned:I:@'// &
+      'unali:UnalignedSizeXandY:IP:@warp:FindWarpTransforms:I:@'// &
+      'pair:RawAndAlignedPair:IP:@append:AppendToWarpFile:B:@test:TestOutput:FN:@'// &
+      'verbose:VerboseOutput:B:@param:ParameterFile:PF:@help:usage:B:'
   !
   ! set defaults here where not dependent on image size
   !
@@ -198,6 +201,9 @@ program tiltxcorr
   overlapCrit = 0.125
   overlapPower = 6
   ifEllipse = 1
+  searchMag = .false.
+  searchMin = 0.9
+  searchMax = 1.1
   limitedBinSize = 4300**2
   !
   ! Pip startup: set error, parse options, check help, set flag if used
@@ -215,8 +221,10 @@ program tiltxcorr
   izEnd = nz
 
   allocate(f(2, 3, nz), tilt(nz), ixPcList(nz), iyPcList(nz), izPcList(nz), listz(nz), &
-      listSkip(nz), stat = ierr)
+      listSkip(nz), listMagViews(nz), stat = ierr)
   call memoryError(ierr, 'ARRAYS FOR VIEWS')
+  listMagViews = (/(i, i = 1, nz)/)
+  numMagViews = nz
   !
   if (pipinput) then
     ifPip = 1
@@ -351,6 +359,14 @@ program tiltxcorr
         centralPeakMaxWidth, ubWidthRatioCrit)
     ierr = PipGetBoolean('RectangularLimits', iv)
     ifEllipse = 1 - iv
+    ierr = PipGetLogical('SearchMagChanges', searchMag) 
+    if (searchMag .and. PipGetString('ViewsWithMagChanges', listString) == 0) &
+        call parselist2(listString, listMagViews, numMagViews, nz)
+    ierr = PipGetTwoFloats('MagnificationLimits', searchMin, searchMax)
+    if (searchMin >= searchMax - 0.01) call exitError( &
+        'LIMITS FOR MAGNIFICATION SEARCH ARE OUT OF ORDER OR TOO CLOSE TO EACH OTHER') 
+    if (searchMag .and. (ifCumulate > 0 .or. ifLeaveAxis > 0)) call exitError( &
+        'MAG CHANGE CANNOT BE SEARCHED WITH -cumulative OR -leave OPTIONS')
     ierr = PipGetFloat('AngleOffset', angleOffset)
     do iv = 1, numViews
       tilt(iv) = tilt(iv) + angleOffset
@@ -464,6 +480,8 @@ program tiltxcorr
         then
       if (ifCumulate .ne. 0) call exitError( &
           'YOU CANNOT USE CUMULATIVE CORRELATION WITH PATCH TRACKING')
+      if (searchMag) call exitError( &
+          'YOU CANNOT SEARCH FOR A MAG CHANGE WITH PATCH TRACKING')
       if (breaking .and. ifFindWarp == 0)  &
           call exitError('YOU CANNOT BREAK AT VIEWS WITH PATCH TRACKING')
       tracking = .true.
@@ -890,7 +908,7 @@ program tiltxcorr
       !
       ! If view is on skip/break list, copy the previous cumulative transform
       if (numberInList(ivSkip, listSkip, numSkip, 0) .ne. 0) then
-        call xfcopy(f(1, 1, ivRef), f(1, 1, ivCur))
+        f(1:2, 3, ivCur) = f(1:2, 3, ivRef)
         cycle
       endif
       !
@@ -1114,11 +1132,66 @@ program tiltxcorr
         endif
         !
         ifUBpeakIsSharp = -1
+        ! 
+        ! Is it time to search for the mag change?
+        magView = max(ivCur, ivRef)
+        searchedForMag = searchMag .and.  &
+            numberInList(magView, listMagViews, numMagViews, 0)
+        if (searchedForMag) then
+
+          ! Swap the search limits if the reference is the mag view; we are finding the
+          ! inverse of its mag change
+          if (ivRef == magView) then
+            peakval = 1. / searchMin
+            searchMin = 1. / searchMax
+            searchMax = peakval
+          endif
+
+          ! Set up the step size and initial mag
+          stepMag = min(0.03, (searchMax - searchMin) / 3.)
+          foundMag = searchMin - stepMag
+          numCuts = -1
+          if (verbose) print *,'Searching for best magnification change'
+          do while (.true.)
+
+            ! Get the transformation incorporating the mag change, and correlate with CCCs
+            call rotmagstr_to_amat(0., foundMag, stretch, rotAngle, fs)
+            if (nbinning > 1) then
+              call correlateAndFindPeaks(.true., ubArray, ubBrray, 0)
+            else
+              call correlateAndFindPeaks(.true., array, brray, 0)
+            endif
+            if (verbose) print *,'Mag = ',foundMag, '  CCC = ', peakval
+
+            ! Find out the next step; check if out of range or if step size is small
+            ierr = minimize1D(foundMag, -peakVal, stepMag,  &
+                nint((searchMax - searchMin) / stepMag) + 2, numCuts, brackets, foundMag)
+            if (ierr > 0) then
+              write(*,'(a,i4,a,/,a)')'Search for magnification change at view', magView, &
+                  ' reached allowed limits',  &
+                  '  without finding a minimum - no mag change will be introduced'
+              foundMag = 1.
+              searchedForMag = .false.
+              exit
+            endif
+            if (stepMag / 2**numCuts < 0.00025) then
+
+              ! Done: get the minimum
+              foundMag = brackets(2)
+              exit
+            endif
+          enddo
+
+          ! Revise the transform again and go on
+          call rotmagstr_to_amat(0., foundMag, stretch, rotAngle, fs)
+        endif
+
+        ! Now start iterations of regular correlation alignment
         do iter = 1, numIter
           if (nbinning > 1) then
-            call correlateAndFindPeaks(evalCCC, ubArray, ubBrray)
+            call correlateAndFindPeaks(evalCCC, ubArray, ubBrray, ifImOut)
           else
-            call correlateAndFindPeaks(evalCCC, array, brray)
+            call correlateAndFindPeaks(evalCCC, array, brray, ifImOut)
           endif
           xpeakCum = xpeakTmp + xpeakFrac
           xpeakFrac = xpeakCum - nint(xpeakCum)
@@ -1163,6 +1236,20 @@ program tiltxcorr
         else
           unstretchDx = xpeak
           unstretchDy = ypeak
+        endif
+        !
+        ! After this possible destretch, unconditionally adjust for a mag change
+        ! and invert the mag change and scale shift if it applies to reference
+        if (searchedForMag) then
+          unstretchDx = unstretchDx - ((foundMag - 1.) * ixBoxRef) / nbinning
+          unstretchDy = unstretchDy - ((foundMag - 1.) * iyBoxRef) / nbinning
+          if (magView == ivRef) then
+            foundMag = 1. / foundMag
+            unstretchDx = unstretchDx * foundMag
+            unstretchDy = unstretchDy * foundMag
+          endif
+          f(1, 1, magView) = foundMag
+          f(2, 2, magView) = foundMag
         endif
         if (verbose) print *,'peak usdx,usdy,xpeak,ypeak',  &
             unstretchDx, unstretchDy, xpeak, ypeak
@@ -1338,7 +1425,7 @@ program tiltxcorr
       if (numberInList(iv, listSkip, numSkip, 0) == 0) then
         lastNotSkipped = iv
       else if (lastNotSkipped > 0) then
-        call xfcopy(f(1, 1, lastNotSkipped), f(1, 1, iv))
+        f(1:2, 3, iv) = f(1:2, 3, lastNotSkipped)
       endif
     enddo
   endif
@@ -1489,18 +1576,19 @@ program tiltxcorr
 
 CONTAINS
 
-  subroutine correlateAndFindPeaks(useCCC, ubArray, ubBrray)
+  subroutine correlateAndFindPeaks(useCCC, ubArray, ubBrray, ifDoImOut)
     logical*4 useCCC
     real*4 ubArray(*), ubBrray(*)
     real*4 xpeakList(LIMPEAKS), ypeakList(LIMPEAKS), peakList(LIMPEAKS), widths(LIMPEAKS)
-    real*4 widthMins(LIMPEAKS)
-    integer*4 indPeakSort(LIMPEAKS)
+    real*4 widthMins(LIMPEAKS), xtemp, ytemp
+    integer*4 indPeakSort(LIMPEAKS), ifDoImOut
     real*4 ubXpeaks(2), ubYpeaks(2), ubPeakList(2), overlap, streak, wgtCCC, xrot, yrot
-    integer*4 limitXlo, limitXhi, limitYlo, limitYhi, indPeak, nsum, nxCCTrim, nyCCTrim
-    integer*4 numXcorrPeaks, indFirstOut, indSecondOut
+    integer*4 limitXlo, limitXhi, limitYlo, limitYhi, indPeak, nsum, nxCCTrimA, nyCCTrimA
+    integer*4 numXcorrPeaks, indFirstOut, indSecondOut, nxInterp, nyInterp
+    integer*4 nxCCTrimB, nyCCTrimB
 
     real *8 cccMax, ccc
-    real*8 wallTime, CCCoefficient
+    real*8 wallTime, CCCoefficientTwoPads
     !
     ! get "current" into array, stretch into brray, pad it
     !
@@ -1518,11 +1606,25 @@ CONTAINS
       wallMask = wallMask + wallTime() - wallStart
     endif
     wallStart = wallTime()
+    nxInterp = nxUseBin
+    nyInterp = nyUseBin
+    if (searchedForMag) then
+      !
+      ! Get new limits for interpolated output when there is a mag down, so that
+      ! tapering happens inside true interpolated image area and correlations take account
+      ! of this area too.  Use the OUTER of two limits to accommodate stretched area
+      call xfApply(fs, nxUseBin / 2., nyUseBin / 2., float(nxUseBin), 0., xrot, yrot)
+      call xfApply(fs, nxUseBin / 2., nyUseBin / 2., float(nxUseBin), float(nyUseBin),  &
+          xtemp, ytemp)
+      nxInterp = min(nxUseBin, 2 * int(max(xrot, xtemp) - nxUseBin / 2.))
+      nyInterp = min(nyUseBin, 2 * int(max(nyUseBin / 2. - yrot, ytemp - nyUseBin / 2.)))
+    endif
     call cubInterp(array, brray, nxUseBin, nyUseBin, nxUseBin, nyUseBin, fs, &
         nxUseBin / 2., nyUseBin / 2., xpeakFrac, ypeakFrac , 1., useMean, 0)
     wallInterp = wallInterp + wallTime() - wallStart
-    call taperInPad(brray, nxUseBin, nyUseBin, brray, nxPad + 2, nxPad, &
-        nyPad, nxTaper, nyTaper)
+    call taperInPadEx(brray, nxUseBin, (nxUseBin - nxInterp) / 2,  &
+        (nxUseBin + nxInterp) / 2 - 1, (nyUseBin - nyInterp) / 2,  &
+        (nyUseBin + nyInterp) / 2 - 1, brray, nxPad + 2, nxPad, nyPad, nxTaper, nyTaper)
     !
     call meanZero(brray, nxPad + 2, nxPad, nyPad)
     !
@@ -1567,7 +1669,7 @@ CONTAINS
       call taperInPad(array, nxUseBin, nyUseBin, array, nxPad + 2, nxPad, nyPad, &
           nxTaper, nyTaper)
     endif
-    if (ifImOut .ne. 0) then
+    if (ifDoImOut .ne. 0) then
       do isOut = 1, 2
         if (isOut == 1) then
           call irepak(crray, array, nxPad + 2, nyPad, 0, nxPad-1, 0, nyPad-1)
@@ -1635,16 +1737,18 @@ CONTAINS
     indPeak = 1
     if (useCCC) then
       !
-      ! Evaluate real-space correlation coefficient.
-      nxCCTrim = (nxPad - nxUse / nbinning) / 2 + nxTaper / 2
-      nyCCTrim = (nyPad - nyUse / nbinning) / 2 + nyTaper / 2
+      ! Evaluate real-space correlation coefficient, using half of tapered region
+      nxCCTrimA = (nxPad - nxInterp) / 2 + nxTaper / 2
+      nyCCTrimA = (nyPad - nyInterp) / 2 + nyTaper / 2
+      nxCCTrimB = (nxPad - nxUseBin) / 2 + nxTaper / 2
+      nyCCTrimB = (nyPad - nyUseBin) / 2 + nyTaper / 2
       do i = 1, numXcorrPeaks
-        ccc = CCCoefficient(crray, brray, nxPad + 2, nxPad, nyPad, &
-            xpeakList(i), ypeakList(i), nxCCTrim, nyCCTrim, nsum)
+        ccc = CCCoefficientTwoPads(crray, brray, nxPad + 2, nxPad, nyPad, xpeakList(i), &
+            ypeakList(i), nxCCTrimA, nyCCTrimA, nxCCTrimB, nyCCTrimB, 25, nsum)
         !
         ! Peaks with less than 1/8 overlap were ignored; this is a steep function
         ! to downweight them instead
-        overlap = float(nsum) / ((nxPad - 2 * nxCCTrim) * (nyPad - 2 * nyCCTrim))
+        overlap = float(nsum) / ((nxPad - 2 * nxCCTrimA) * (nyPad - 2 * nyCCTrimA))
         wgtCCC = ccc * 1. / (1. +  &
             max(0.1, min(10., overlapCrit / overlap)) ** overlapPower)
         if (verbose) write(*,'(i3,a,2f7.1,a,e14.7,a,f6.3,a,2f8.5,a,2f8.2)') &
