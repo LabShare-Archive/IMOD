@@ -458,7 +458,7 @@ static int filetrans(char *filename, Imod *model, int mode, int oneLine,
       }
       sscanf(line, "%f %f %f %f", &mat3d->data[k], &mat3d->data[k + 4],
              &mat3d->data[k + 8], &mat3d->data[k + 12]);
-      mat3d->data[k + 12] = transScale;
+      mat3d->data[k + 12] *= transScale;
     }
     mat3d->data[12] += transx;
     mat3d->data[13] += transy;
