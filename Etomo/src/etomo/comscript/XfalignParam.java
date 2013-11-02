@@ -179,6 +179,7 @@ public class XfalignParam implements Command {
   private String skipSections = null;
   private boolean sectionsNumberedFromOne = false;
   private boolean boundaryModel = false;
+  private boolean sobelFilter = false;
 
   public XfalignParam(final BaseManager manager,
       final AutoAlignmentMetaData autoAlignmentMetaData, final Mode mode,
@@ -294,6 +295,9 @@ public class XfalignParam implements Command {
     if (transform == null) {
       transform = Transform.DEFAULT;
     }
+    if (sobelFilter) {
+      options.add("-sobel");
+    }
     options.add("-par");
     options.add(transform.getValue());
     if (!edgeToIgnore.isNull()) {
@@ -339,15 +343,26 @@ public class XfalignParam implements Command {
     ScriptParameter sigmaHighFrequency = autoAlignmentMetaData
         .getSigmaHighFrequencyParameter();
     // optional
-    if (sigmaLowFrequency.isNotNullAndNotDefault()
-        || cutoffHighFrequency.isNotNullAndNotDefault()
-        || sigmaHighFrequency.isNotNullAndNotDefault()) {
+    if ((autoAlignmentMetaData.isSigmaLowFrequencyEnabled() && sigmaLowFrequency
+        .isNotNullAndNotDefault())
+        || (autoAlignmentMetaData.isCutoffHighFrequencyEnabled() && cutoffHighFrequency
+            .isNotNullAndNotDefault())
+        || (autoAlignmentMetaData.isSigmaHighFrequencyEnabled() && sigmaHighFrequency
+            .isNotNullAndNotDefault())) {
       options.add("-fil");
       // all three numbers must exist
       options.add(sigmaLowFrequency.toDefaultedString() + ","
           + sigmaHighFrequency.toDefaultedString() + ",0,"
           + cutoffHighFrequency.toDefaultedString());
     }
+  }
+
+  public void resetSobelFilter() {
+    sobelFilter = false;
+  }
+
+  public void setSobelFilter(final boolean input) {
+    sobelFilter = input;
   }
 
   public void setReduceByBinning(final Number input) {
