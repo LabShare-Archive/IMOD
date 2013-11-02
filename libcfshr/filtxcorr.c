@@ -22,6 +22,7 @@
 #define meanzero MEANZERO
 #define parabolicfitposition PARABOLICFITPOSITION
 #define cccoefficient CCCOEFFICIENT
+#define cccoefficienttwopads CCCOEFFICIENTTWOPADS
 #define conjugateproduct CONJUGATEPRODUCT
 #define slicegaussiankernel SLICEGAUSSIANKERNEL
 #define scaledgaussiankernel SCALEDGAUSSIANKERNEL
@@ -37,6 +38,7 @@
 #define meanzero meanzero_
 #define parabolicfitposition parabolicfitposition_
 #define cccoefficient cccoefficient_
+#define cccoefficienttwopads cccoefficienttwopads_
 #define conjugateproduct conjugateproduct_
 #define slicegaussiankernel slicegaussiankernel_
 #define scaledgaussiankernel scaledgaussiankernel_
@@ -677,7 +679,7 @@ double CCCoefficientTwoPads(float *array, float *brray, int nxdim, int nx, int n
   ystrt = B3DMAX(nypadA, nypadB + dely);
   yend = B3DMIN(ny - nypadA, ny - nypadB + dely);
   asum = bsum = csum = asumsq = bsumsq = 0.;
-  *nsum = B3DMAX(0, xend + 1 - xstrt) * B3DMAX(0, yend + 1 - ystrt);
+  *nsum = B3DMAX(0, xend - xstrt) * B3DMAX(0, yend - ystrt);
   if (xend < xstrt || yend < ystrt || *nsum < minPixels)
     return 0.;
   for (iy = ystrt; iy < yend; iy++) {
@@ -696,6 +698,17 @@ double CCCoefficientTwoPads(float *array, float *brray, int nxdim, int nx, int n
     return 0.;
   ccc = (*nsum * csum - asum * bsum) / sqrt(ccc);
   return ccc;
+}
+
+/*!
+ * Fortran wrapper to @CCCoefficientTwoPads
+ */
+double cccoefficienttwopads(float *array, float *brray, int *nxdim, int *nx, int *ny,
+                            float *xpeak, float *ypeak, int *nxpadA, int *nypadA,
+                            int *nxpadB, int *nypadB, int *minPixels, int *nsum)
+{
+  return CCCoefficientTwoPads(array, brray, *nxdim, *nx, *ny, *xpeak, *ypeak,
+                              *nxpadA, *nypadA, *nxpadB, *nypadB, *minPixels, nsum);
 }
 
 /*!

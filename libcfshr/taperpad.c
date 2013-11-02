@@ -16,12 +16,14 @@
 #define taperoutpad TAPEROUTPAD
 #define smoothoutpad SMOOTHOUTPAD
 #define taperinpad TAPERINPAD
+#define taperinpadex TAPERINPADEX
 #define sliceedgemean SLICEEDGEMEAN
 #define splitfill SPLITFILL
 #else
 #define taperoutpad taperoutpad_
 #define smoothoutpad smoothoutpad_
 #define taperinpad taperinpad_
+#define taperinpadex taperinpadex_
 #define sliceedgemean sliceedgemean_
 #define splitfill splitfill_
 #endif
@@ -189,7 +191,6 @@ void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
   ixhi=ixlo+nxbox;
   iylo=ny/2-nybox/2 - 1;
   iyhi=iylo+nybox;
-  
   for (iy = iy1; iy >= iy0; iy--) {
     out = brray + ixhi + (iylo + 1 + iy - iy0) * nxdim;
     switch (type) {
@@ -299,6 +300,17 @@ void taperinpad(void *array, int *nxbox, int *nybox, float *brray, int *nxdim,
 {
   sliceTaperInPad(array, SLICE_MODE_FLOAT, *nxbox, 0, *nxbox - 1, 0, 
                   *nybox - 1, brray, *nxdim, *nx, *ny, *nxtap, *nytap);
+}
+
+/*!
+ * Fortran wrapper to @sliceTaperInPad for padding a subarea from a float image array
+ */
+void taperinpadex(void *array, int *nxdimin, int *ix0, int *ix1,
+                     int *iy0, int *iy1, float *brray, int *nxdim, int *nx, int *ny,
+                     int *nxtap, int *nytap)
+{
+  sliceTaperInPad(array, SLICE_MODE_FLOAT, *nxdimin, *ix0, *ix1, *iy0, 
+                  *iy1, brray, *nxdim, *nx, *ny, *nxtap, *nytap);
 }
 
 /*!

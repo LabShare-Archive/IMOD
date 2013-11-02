@@ -380,6 +380,33 @@ three iterations are generally sufficient.  Iteration is not programmed
 efficiently, so computation time will be proportional to the number of
 iterations.
 
+[Field = SearchMagChanges]
+short = search
+type = B
+usage = Search for magnification (size) changes
+tooltip = Search for magnification (size) changes at selected views
+manpage = Search for the magnification factor that gives the highest
+correlation coefficient at one or more views.  This factor will be
+incorporated into the transformation for the respective view.  If a maximum
+value of the correlation coefficient is not found within the allowed range
+(specified with the -mag option), a magnification of 1 is used.
+
+[Field = ViewsWithMagChanges]
+short = changes
+type = LI
+usage = List of views at which to search for size changes (default is all)
+tooltip =
+manpage = List of views at which to search for magnification changes.  Ranges
+are allowed.  The default is to do all views.
+
+[Field = MagnificationLimits]
+short = mag
+type = FP
+usage = Lower and upper limits for size change (default 0.9,1.1)
+tooltip =
+manpage = Lower and upper limits for size change when searching for
+magnification factors.  The default is 0.9,1.1.
+
 [Field = SizeOfPatchesXandY]
 short = size
 type = IP
