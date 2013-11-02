@@ -1,10 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/31/13: In eTomo - Serial Sections, improved the context sensitive pop-up
+11/1/13: In eTomo - Serial Sections, improved the context sensitive pop-up
 menus.(Bug# 1748)
 
-10/31/13: In eTomo - Fiducial Model, added fields for AdjustSizes and
+11/1/13: In eTomo - Fiducial Model, added fields for AdjustSizes and
 ClusteredPointsAllowed to the Autofidseed panel.(Bug# 1743)
+
+11/1/13: Made Tiltxcorr able to find mag changes at selected views; for a 
+bidirectional series, Copytomocoms puts the option with the view number in
+xcorr.com.
+
+11/1/13: Fixed bug in imodtrans -3 option introduced 12/8/12.
 
 10/30/13: IMOD_4-6-31
 10/29/13: Fixed a problem in eTomo where the parallel panel did not appear

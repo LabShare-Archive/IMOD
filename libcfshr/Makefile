@@ -10,7 +10,7 @@ LIBI   = libcfshr.$(DLLEXT)
 O     = $(OBJEXT)
 CFLAGS = $(LIBCFLAGS)
 
-UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
+UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) minimize1D.$(O) \
 	samplemeansd.$(O) colormap.$(O) cubinterp.$(O) reduce_by_binning.$(O) \
 	scaledsobel.$(O) filtxcorr.$(O) taperpad.$(O) circlefit.$(O) \
 	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \

@@ -266,6 +266,10 @@ extern "C" {
   int polynomialFit(float *x, float *y, int ndata, int order, float *slopes, 
                     float *intcpt, float *work);    
 
+  /* minimize1D.c */
+  int minimize1D(float curPosition, float curValue, float initialStep, int numScanSteps,
+                 int *numCutsDone, float *brackets, float *nextPosition);
+
 #ifdef __cplusplus
 }
 #endif
