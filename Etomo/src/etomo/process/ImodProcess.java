@@ -16,6 +16,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.FileType;
 import etomo.type.OSType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.UIHarness;
@@ -647,6 +648,8 @@ public class ImodProcess {
   public static final String IMOD_SEND_EVENT_STRING = "imodsendevent returned:";
   // static final String CONTINUOUS_TAG = "ETOMO INFO:";
   static final String CONTINUOUS_TAG = "ETOMO INFO:";
+  private static final String MESSAGE_OPEN_DIALOG = "19";
+  private static final String SURF_CONT_POINT_DIALOG = "s";
 
   // Get stderr messages only through this member variable.
   private final Stderr stderr = new Stderr();
@@ -812,6 +815,10 @@ public class ImodProcess {
    */
   public void setModelName(String modelName) {
     this.modelName = modelName;
+  }
+
+  public void setModel(FileType model) {
+    modelName = model.getFile(manager, axisID).getAbsolutePath();
   }
 
   public void setModelNameList(List<String> modelNameList) {
@@ -1181,6 +1188,11 @@ public class ImodProcess {
   public void setInterpolation(final boolean input) {
     sendArguments.add(MESSAGE_INTERPOLATION);
     sendArguments.add(input ? TRUE : FALSE);
+  }
+
+  public void openSurfContPoint() {
+    sendArguments.add(MESSAGE_OPEN_DIALOG);
+    sendArguments.add(SURF_CONT_POINT_DIALOG);
   }
 
   /**

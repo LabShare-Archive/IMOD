@@ -70,7 +70,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       "Find initial shifts with cross-correlation");
   private final LabeledTextField ltfEdgeToIgnore = new LabeledTextField(
       FieldType.FLOATING_POINT, "Fraction to ignore on edges: ");
-  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Binning in midas: ",
+  private final Spinner spMidasBinning = Spinner.getLabeledInstance("Binning in Midas: ",
       1, 1, 8);
 
   private final BaseManager manager;

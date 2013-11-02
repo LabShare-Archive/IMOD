@@ -316,6 +316,7 @@ EXPORTS
 	AdocDeleteSection
 	lnGamma
 	XFAPPLY
+	MINIMIZE1D
 	xfUnit
 	RSMEDIAN
 	ADOCGETTHREEINTEGERS
@@ -379,6 +380,7 @@ EXPORTS
 	sliceFree
 	lsFit
 	PIPPRINTHELP
+	TAPERINPADEX
 	TAPERINPAD
 	rsSortFloats
 	scaledSobel
@@ -390,6 +392,7 @@ EXPORTS
 	cblas_dscal
 	PipEnableEntryOutput
 	WALLTIME
+	minimize1D
 	PIPINITIALIZE
 	ROBUSTREGRESS
 	B3DHEADERITEMBYTES
@@ -401,6 +404,7 @@ EXPORTS
 	SURFACESORT
 	AdocRead
 	PipReadStdinIfSet
+	CCCOEFFICIENTTWOPADS
 	kernelHistogram
 	AdocDone
 	imodVersion

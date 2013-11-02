@@ -173,7 +173,8 @@ public class SerialSectionsStartupDialog implements ContextMenu, UIComponent,
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, manager, axisID);
+    ContextPopup contextPopup = new ContextPopup(pnlRoot, mouseEvent, manager, axisID,
+        true);
   }
 
   public void display() {
