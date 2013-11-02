@@ -1136,7 +1136,7 @@ program tiltxcorr
         ! Is it time to search for the mag change?
         magView = max(ivCur, ivRef)
         searchedForMag = searchMag .and.  &
-            numberInList(magView, listMagViews, numMagViews, 0)
+            numberInList(magView, listMagViews, numMagViews, 0) > 0
         if (searchedForMag) then
 
           ! Swap the search limits if the reference is the mag view; we are finding the
