@@ -1,9 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/31/13: In eTomo - Serial Sections, improved the context sensitive pop-up
+11/1/13: In eTomo - Serial Sections, improved the context sensitive pop-up
 menus.(Bug# 1748)
 
-10/31/13: In eTomo - Fiducial Model, added fields for AdjustSizes and
+11/1/13: In eTomo - Fiducial Model, added fields for AdjustSizes and
 ClusteredPointsAllowed to the Autofidseed panel.(Bug# 1743)
 
 11/1/13: Made Tiltxcorr able to find mag changes at selected views; for a 
