@@ -18,137 +18,53 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
   real*4 beamTilt, binStepIni, binStepFinal, scanStep, rmsScale
   real*4 var(*), varerr(*), grad(*), h(*), facm, fFinal
   integer*4 numVarSearch, ncycle, metroError, ifLocal, kountInit
-  real*4 btOrig, btMax, fScan(LIMSCAN), xx(LIMSCAN/2), xxsq(LIMSCAN/2)
+  real*4 btOrig, btMax, fScan(LIMSCAN), xx(LIMSCAN/2), xxsq(LIMSCAN/2), brackets(14)
   real*4 btMin, aa, bb, cc, xmin, scanInt
-  integer*4 idir, iter, numScan, nfit, i, iMin, istr, iend, j, kount
+  integer*4 numScan, nfit, i, iMin, istr, iend, j, kount, numCuts
   real*4 fnew, fmin, fAbove, btAbove, fBelow, btBelow
   real*4 dtor/0.0174532/
-  logical*4 scanning
+  integer*4 minimize1D
 
 
   btMax = 5.
   btOrig = beamTilt
-  idir = 1
-  call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, 1,  &
-      rmsScale, fmin, kount, metroError)
-  print *
-  write(*,101) beamTilt / dtor, kount, sqrt(fmin * rmsScale)
+  numCuts = -1
+  do while (.true.)
+    !
+    ! restart every run at output of first one
+    if (numCuts >= 0) var(1:numVarSearch) = varerr(1:numVarSearch)
+    call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, 1,  &
+        rmsScale, fnew, kount, metroError)
+    write(*,101) beamTilt / dtor, kount, sqrt(fnew * rmsScale)
 101 format(' For beam tilt =',f6.2, ', ',i4,' cycles,',T48,'final   F : ', &
         T61,F14.6)
-  kountInit = kount
-  !
-  ! Restart every run at the output of this one
-  do i = 1, numVarSearch
-    varerr(i) = var(i)
-  enddo
-  btMin = beamTilt
-  scanning = .true.
-  iter = 1
-  do while (scanning)
     !
-    ! Take a step from current minimum
-    beamTilt = btMin + idir * binStepIni * dtor
-
+    ! save count and output state of first run
+    if (numCuts < 0) then
+      kountInit = kount
+      varerr(1:numVarSearch) = var(1:numVarSearch)
+    endif
+    !
+    ! Find the next step from current minimum and test if out of range
+    iMin = minimize1D(beamTilt, fnew, binStepIni * dtor, 0, numCuts, brackets, beamTilt)
     if (abs(beamTilt - btOrig) > btMax) then
       write(*,102) btMax / dtor, btOrig / dtor
 102   format(/,'WARNING: NO MINIMUM ERROR FOUND FOR BEAM TILT CHANGE UP TO' &
           ,f5.1, /, 'WARNING: RETURNING TO ORIGINAL BEAM TILT =',f6.2, /)
       beamTilt = btOrig
-
-      do i = 1, numVarSearch
-        var(i) = varerr(i)
-      enddo
+      var(1:numVarSearch) = varerr(1:numVarSearch)
       call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
           rmsScale, fFinal, kount, metroError)
       return
     endif
-
-    do i = 1, numVarSearch
-      var(i) = varerr(i)
-    enddo
-    call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1,  &
-        rmsScale,  fnew, kount, metroError)
-    write(*,101) beamTilt / dtor, kount, sqrt(fnew * rmsScale)
-    iter = iter + 1
-    if (fnew > fmin) then
-      !
-      ! If higher than min, then record above or below point depending
-      ! on direction
-      if (idir > 0) then
-        btAbove = beamTilt
-        fAbove = fnew
-      else
-        btBelow = beamTilt
-        fBelow = fnew
-      endif
-      !
-      ! If this is first iteration, reverse direction; otherwise terminate
-      if (iter == 2) then
-        idir = -1
-      else
-        scanning = .false.
-      endif
-    else
-      !
-      ! If lower than min, record a new min and make old min be new above
-      ! or below point
-      if (idir < 0) then
-        btAbove = btMin
-        fAbove = fmin
-      else
-        btBelow = btMin
-        fBelow = fmin
-      endif
-      btMin = beamTilt
-      fmin = fnew
-    endif
-  enddo
-  !
-  ! Now search until the interval becomes small enough.  Start in most
-  ! promising direction
-  idir = 1
-  if (fBelow < fAbove) idir = -1
-  do while (btAbove - btBelow > 2.05 * binStepFinal * dtor)
     !
-    ! Go in the given direction halfway between min and endpoint
-    if (idir > 0) then
-      beamTilt = (btMin + btAbove) / 2.
-    else
-      beamTilt = (btMin + btBelow) / 2.
-    endif
-    !
-    do i = 1, numVarSearch
-      var(i) = varerr(i)
-    enddo
-    call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
-        rmsScale, fnew, kount, metroError)
-    write(*,101) beamTilt / dtor, kount, sqrt(fnew * rmsScale)
-    if (fnew < fmin) then
-      !
-      ! If new minimum, replace the old, go in most promising direction
-      ! again
-      if (idir < 0) then
-        btAbove = btMin
-        fAbove = fmin
-      else
-        btBelow = btMin
-        fBelow = fmin
-      endif
-      btMin = beamTilt
-      fmin = fnew
-      idir = 1
-      if (fBelow < fAbove) idir = -1
-    else
-      !
-      ! Or replace the endpoint, go in opposite direction
-      if (idir > 0) then
-        btAbove = beamTilt
-        fAbove = fnew
-      else
-        btBelow = beamTilt
-        fBelow = fnew
-      endif
-      idir = -idir
+    ! Then test if step size is now small enough
+    if (binStepIni / 2**numCuts < 0.98 * binStepFinal) then
+      btBelow = brackets(1)
+      btAbove = brackets(3)
+      fBelow = brackets(8)
+      fAbove = brackets(10)
+      exit
     endif
   enddo
   !
@@ -160,9 +76,7 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
   fScan(numScan) = fAbove
   do j = 2, numScan - 1
     beamTilt = btBelow + (j - 1) * scanInt
-    do i = 1, numVarSearch
-      var(i) = varerr(i)
-    enddo
+    var(1:numVarSearch) = varerr(1:numVarSearch)
     call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
         rmsScale, fScan(j), kount, metroError)
     write(*,101) beamTilt / dtor, kount, sqrt(fScan(j) * rmsScale)
@@ -215,9 +129,7 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
   endif
   !
   ! Run finally at the solved beam tilt
-  do i = 1, numVarSearch
-    var(i) = varerr(i)
-  enddo
+  var(1:numVarSearch) = varerr(1:numVarSearch)
   call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, rmsScale, &
       fFinal, kount, metroError)
   print *
