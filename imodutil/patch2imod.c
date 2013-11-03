@@ -13,6 +13,7 @@
 #include <string.h>
 #include "parse_params.h"
 #include "imodel.h"
+#include "warpfiles.h"
 
 #define P2I_NO_FLIP          1
 #define P2I_IGNORE_ZERO      2
@@ -24,7 +25,8 @@
 
 #define DEFAULT_SCALE 10.0
 
-Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name, int flags);
+static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name, 
+                               int flags);
 
 static void usage(char *prog)
 {
@@ -54,7 +56,7 @@ int main( int argc, char *argv[])
   int clipSize = 0;
   int flags = 0;
   int nxWarp, nyWarp, nzWarp, warpFlags, version, indWarp, ibin;
-  float *warpPixel;
+  float warpPixel;
   char *name = NULL;
 
   /* This name is hard-coded because of the script wrapper needed in Vista */
@@ -148,8 +150,8 @@ int main( int argc, char *argv[])
 
 #define MAXLINE 128
 
-Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name, int flags)
-                        
+static Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
+                               int flags)
 {
   int noflip = flags & P2I_NO_FLIP;
   int ignoreZero = flags & P2I_IGNORE_ZERO;
@@ -355,9 +357,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name, int fl
   }
      
   if (residuals) {
-    obj->symflags = IOBJ_SYMF_ENDS;
+    obj->symflags = IOBJ_SYMF_ARROW;
     obj->symbol = IOBJ_SYM_NONE;
-    obj->symsize = 10;
+    obj->symsize = 7;
   } else if (clipSize) {
     imodViewModelNew(mod);
     for (i = 0; i <  mod->viewsize; i++)
