@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/13: Switched display of residual model to show arrows.
+
 11/1/13: In eTomo - Serial Sections, improved the context sensitive pop-up
 menus.(Bug# 1748)
 
