@@ -115,6 +115,17 @@ final class TransformChooserPanel {
     }
   }
 
+  String getSearchActionCommand() {
+    if (cbSearch != null) {
+      return cbSearch.getActionCommand();
+    }
+    return null;
+  }
+
+  void addSearchListener(final ActionListener listener) {
+    cbSearch.addActionListener(listener);
+  }
+
   public Component getComponent() {
     return pnlRoot;
   }
@@ -147,6 +158,14 @@ final class TransformChooserPanel {
     if (rbTranslation != null) {
       rbTranslation.setToolTipText("Use translation to align images.");
     }
+  }
+
+  boolean isSearch() {
+    if (cbSearch == null) {
+      // Search is always on
+      return true;
+    }
+    return cbSearch.isSelected();
   }
 
   Transform getTransform() {

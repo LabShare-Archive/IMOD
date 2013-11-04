@@ -45,6 +45,13 @@ public final class AutoAlignmentMetaData {
   private final EtomoNumber warpPatchSizeY = new EtomoNumber("WarpPatchSize.Y");
   private final EtomoBoolean2 boundaryModel = new EtomoBoolean2("BoundaryModel");
   private final EtomoBoolean2 findWarping = new EtomoBoolean2("FindWarping");
+  private final EtomoBoolean2 sobelFilter = new EtomoBoolean2("SobelFilter");
+  private final EtomoBoolean2 sigmaLowFrequencyEnabled = new EtomoBoolean2(
+      "SigmaLowFrequency.Enabled");
+  private final EtomoBoolean2 cutoffHighFrequencyEnabled = new EtomoBoolean2(
+      "CutoffHighFrequency.Enabled");
+  private final EtomoBoolean2 sigmaHighFrequencyEnabled = new EtomoBoolean2(
+      "SigmaHighFrequency.Enabled");
 
   private Transform alignTransform = Transform.DEFAULT;
 
@@ -79,6 +86,10 @@ public final class AutoAlignmentMetaData {
     warpPatchSizeY.reset();
     boundaryModel.reset();
     findWarping.reset();
+    sobelFilter.reset();
+    sigmaLowFrequencyEnabled.reset();
+    cutoffHighFrequencyEnabled.reset();
+    sigmaHighFrequencyEnabled.reset();
     // load
     sigmaLowFrequency.load(props, prepend);
     cutoffHighFrequency.load(props, prepend);
@@ -96,6 +107,10 @@ public final class AutoAlignmentMetaData {
     warpPatchSizeY.load(props, prepend);
     boundaryModel.load(props, prepend);
     findWarping.load(props, prepend);
+    sobelFilter.load(props, prepend);
+    sigmaLowFrequencyEnabled.load(props, prepend);
+    cutoffHighFrequencyEnabled.load(props, prepend);
+    sigmaHighFrequencyEnabled.load(props, prepend);
   }
 
   void store(final Properties props, String prepend) {
@@ -116,10 +131,30 @@ public final class AutoAlignmentMetaData {
     warpPatchSizeY.store(props, prepend);
     boundaryModel.store(props, prepend);
     findWarping.store(props, prepend);
+    sobelFilter.store(props, prepend);
+    sigmaLowFrequencyEnabled.store(props, prepend);
+    cutoffHighFrequencyEnabled.store(props, prepend);
+    sigmaHighFrequencyEnabled.store(props, prepend);
   }
 
-  public ConstEtomoNumber setSigmaLowFrequency(String sigmaLowFrequency) {
+  public boolean isSobelFilter() {
+    return sobelFilter.is();
+  }
+
+  public void setSobelFilter(final boolean input) {
+    sobelFilter.set(input);
+  }
+
+  public ConstEtomoNumber setSigmaLowFrequency(final String sigmaLowFrequency) {
     return this.sigmaLowFrequency.set(sigmaLowFrequency);
+  }
+
+  public void setSigmaLowFrequencyEnabled(final boolean input) {
+    sigmaLowFrequencyEnabled.set(input);
+  }
+
+  public boolean isSigmaLowFrequencyEnabled() {
+    return sigmaLowFrequencyEnabled.is();
   }
 
   public boolean isSigmaLowFrequencyNull() {
@@ -140,6 +175,14 @@ public final class AutoAlignmentMetaData {
 
   public void setCutoffHighFrequency(String cutoffHighFrequency) {
     this.cutoffHighFrequency.set(cutoffHighFrequency);
+  }
+
+  public void setCutoffHighFrequencyEnabled(final boolean input) {
+    cutoffHighFrequencyEnabled.set(input);
+  }
+
+  public boolean isCutoffHighFrequencyEnabled() {
+    return cutoffHighFrequencyEnabled.is();
   }
 
   public boolean isCutoffHighFrequencyNull() {
@@ -260,6 +303,14 @@ public final class AutoAlignmentMetaData {
 
   public void setSigmaHighFrequency(String sigmaHighFrequency) {
     this.sigmaHighFrequency.set(sigmaHighFrequency);
+  }
+
+  public void setSigmaHighFrequencyEnabled(final boolean input) {
+    sigmaHighFrequencyEnabled.set(input);
+  }
+
+  public boolean isSigmaHighFrequencyEnabled() {
+    return sigmaHighFrequencyEnabled.is();
   }
 
   public boolean isSigmaHighFrequencyNull() {

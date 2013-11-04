@@ -83,6 +83,8 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   private final Run3dmodButton btnBoundaryModel;
   private final LabeledTextField ltfShiftLimitsForWarpX;
   private final LabeledTextField ltfShiftLimitsForWarpY;
+  private final CheckBox cbSobelFilter;
+
   private AutoAlignmentController controller = null;
 
   private AutoAlignmentPanel(final BaseManager manager, final boolean joinInterface) {
@@ -97,6 +99,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       btnBoundaryModel = null;
       ltfShiftLimitsForWarpX = null;
       ltfShiftLimitsForWarpY = null;
+      cbSobelFilter = null;
     }
     else {
       tcAlign = TransformChooserPanel.getSerialSectionsInstance();
@@ -110,6 +113,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       ltfShiftLimitsForWarpX = new LabeledTextField(FieldType.INTEGER,
           "Limits to shifts in X: ");
       ltfShiftLimitsForWarpY = new LabeledTextField(FieldType.INTEGER, " Y: ");
+      cbSobelFilter = new CheckBox("Apply Sobel filter");
     }
   }
 
@@ -142,6 +146,10 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     JPanel pnlWarpPatchSize = null;
     JPanel pnlBoundaryModel = null;
     JPanel pnlShiftLimitsForWarp = null;
+    JPanel pnlSobelFilter = null;
+    if (cbSobelFilter != null) {
+      pnlSobelFilter = new JPanel();
+    }
     if (cbFindWarping != null) {
       pnlWarping = new JPanel();
       pnlFindWarping = new JPanel();
@@ -176,6 +184,9 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     pnlParameters.add(ltfSigmaLowFrequency);
     pnlParameters.add(ltfCutoffHighFrequency);
     pnlParameters.add(ltfSigmaHighFrequency);
+    if (pnlSobelFilter != null) {
+      pnlParameters.add(pnlSobelFilter);
+    }
     pnlParameters.add(pnlPreCrossCorrelation);
     pnlParameters.add(tcAlign.getComponent());
     if (pnlWarping != null) {
@@ -184,6 +195,12 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     pnlParameters.add(ltfSkipSectionsFrom1.getContainer());
     pnlParameters.add(ltfEdgeToIgnore);
     pnlParameters.add(spReduceByBinning.getContainer());
+    // SobelFilter panel
+    if (pnlSobelFilter != null) {
+      pnlSobelFilter.setLayout(new BoxLayout(pnlSobelFilter, BoxLayout.X_AXIS));
+      pnlSobelFilter.add(cbSobelFilter);
+      pnlSobelFilter.add(Box.createHorizontalGlue());
+    }
     // warping panel
     if (pnlWarping != null) {
       pnlWarping.setLayout(new BoxLayout(pnlWarping, BoxLayout.Y_AXIS));
@@ -256,6 +273,9 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     btnRefineAutoAlignment.addActionListener(listener);
     btnRevertToMidas.addActionListener(listener);
     btnRevertToEmpty.addActionListener(listener);
+    if (!joinInterface) {
+      tcAlign.addSearchListener(listener);
+    }
   }
 
   Component getRootComponent() {
@@ -265,8 +285,11 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   boolean getParameters(final AutoAlignmentMetaData metaData, final boolean doValidation) {
     try {
       metaData.setSigmaLowFrequency(ltfSigmaLowFrequency.getText(doValidation));
+      metaData.setSigmaLowFrequencyEnabled(ltfSigmaLowFrequency.isEnabled());
       metaData.setCutoffHighFrequency(ltfCutoffHighFrequency.getText(doValidation));
+      metaData.setCutoffHighFrequencyEnabled(ltfCutoffHighFrequency.isEnabled());
       metaData.setSigmaHighFrequency(ltfSigmaHighFrequency.getText(doValidation));
+      metaData.setSigmaHighFrequencyEnabled(ltfSigmaHighFrequency.isEnabled());
       metaData.setAlignTransform(tcAlign.getTransform());
       if (cbFindWarping != null) {
         metaData.setFindWarping(cbFindWarping.isSelected());
@@ -281,6 +304,9 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       metaData.setEdgeToIgnore(ltfEdgeToIgnore.getText(doValidation));
       metaData.setReduceByBinning(spReduceByBinning.getValue());
       metaData.setMidasBinning(spMidasBinning.getValue());
+      if (cbSobelFilter != null) {
+        metaData.setSobelFilter(cbSobelFilter.isSelected());
+      }
       return true;
     }
     catch (FieldValidationFailedException e) {
@@ -318,6 +344,9 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     if (!metaData.isMidasBinningNull()) {
       spMidasBinning.setValue(metaData.getMidasBinning());
     }
+    if (cbSobelFilter != null) {
+      cbSobelFilter.setSelected(metaData.isSobelFilter());
+    }
     updateDisplay();
   }
 
@@ -335,13 +364,13 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       else {
         param.resetSkipSectionsFrom1();
       }
-      if (ltfEdgeToIgnore.isVisible()) {
+      if (ltfEdgeToIgnore.isVisible() && ltfEdgeToIgnore.isEnabled()) {
         param.setEdgeToIgnore(ltfEdgeToIgnore.getText(doValidation));
       }
       else {
         param.resetEdgeToIgnore();
       }
-      if (spReduceByBinning.isVisible()) {
+      if (spReduceByBinning.isVisible() && spReduceByBinning.isEnabled()) {
         param.setReduceByBinning(spReduceByBinning.getValue());
       }
       else {
@@ -360,6 +389,12 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
           param.resetBoundaryModel();
           param.resetShiftLimitsForWarp();
         }
+      }
+      if (cbSobelFilter != null && cbSobelFilter.isEnabled()) {
+        param.setSobelFilter(cbSobelFilter.isSelected());
+      }
+      else {
+        param.resetSobelFilter();
       }
       return true;
     }
@@ -410,6 +445,9 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       if (!metaData.getShiftLimitsForWarpY().equals(ltfShiftLimitsForWarpY.getText())) {
         return false;
       }
+      if (cbSobelFilter != null && cbSobelFilter.isSelected() != metaData.isSobelFilter()) {
+        return false;
+      }
     }
     return true;
   }
@@ -444,6 +482,9 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
     else if (command.equals(btnRevertToEmpty.getActionCommand())) {
       controller.revertXfFileToEmpty();
     }
+    else if (command.equals(tcAlign.getSearchActionCommand())) {
+      updateDisplay();
+    }
     else if (cbFindWarping != null) {
       if (command.equals(cbFindWarping.getActionCommand())) {
         updateDisplay();
@@ -458,15 +499,24 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
   }
 
   private void updateDisplay() {
-    if (cbFindWarping != null) {
-      boolean enable = cbFindWarping.isSelected();
-      ltfWarpPatchSizeX.setEnabled(enable);
-      ltfWarpPatchSizeY.setEnabled(enable);
-      cbBoundaryModel.setEnabled(enable);
-      btnBoundaryModel.setEnabled(enable && cbBoundaryModel.isSelected());
-      ltfShiftLimitsForWarpX.setEnabled(enable);
-      ltfShiftLimitsForWarpY.setEnabled(enable);
+    boolean search = tcAlign.isSearch();
+    ltfSigmaLowFrequency.setEnabled(search);
+    ltfCutoffHighFrequency.setEnabled(search);
+    ltfSigmaHighFrequency.setEnabled(search);
+    if (cbSobelFilter != null) {
+      cbSobelFilter.setEnabled(search);
     }
+    if (cbFindWarping != null) {
+      boolean findWarping = cbFindWarping.isSelected();
+      ltfWarpPatchSizeX.setEnabled(findWarping);
+      ltfWarpPatchSizeY.setEnabled(findWarping);
+      cbBoundaryModel.setEnabled(findWarping);
+      btnBoundaryModel.setEnabled(findWarping && cbBoundaryModel.isSelected());
+      ltfShiftLimitsForWarpX.setEnabled(findWarping);
+      ltfShiftLimitsForWarpY.setEnabled(findWarping);
+    }
+    ltfEdgeToIgnore.setEnabled(search);
+    spReduceByBinning.setEnabled(search);
   }
 
   private void setTooltips() {
@@ -493,6 +543,11 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
             + "state created by the most recent save done in Midas.");
     btnRevertToEmpty.setToolTipText("Use to remove all transformations.");
     spMidasBinning.setToolTipText(SharedConstants.MIDAS_BINNING_TOOLTIP);
+    if (cbSobelFilter != null) {
+      cbSobelFilter
+          .setToolTipText("Apply edge-detecting Sobel filter after image reduction and "
+              + "filtering, if any.");
+    }
     if (cbFindWarping != null) {
       cbFindWarping
           .setToolTipText("Align with non-linear warping by cross-correlating overlapping "
@@ -500,7 +555,7 @@ public final class AutoAlignmentPanel implements Run3dmodButtonContainer {
       String text = "Size of patches to correlate in X and Y, in unbinned pixels.";
       ltfWarpPatchSizeX.setToolTipText(text);
       ltfWarpPatchSizeY.setToolTipText(text);
-      cbBoundaryModel.setToolTipText("Use model with contours around areas where " 
+      cbBoundaryModel.setToolTipText("Use model with contours around areas where "
           + "patches should be correlated.");
       btnBoundaryModel.setToolTipText("Open 3dmod to draw or see contours around areas "
           + "to use for correlation.");
