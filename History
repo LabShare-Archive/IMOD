@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/4/13: Made mrc2tif use 4 or 5 digits for all output file numbers if needed.
+
 11/2/13: Switched display of residual model to show arrows.
 
 11/1/13: In eTomo - Serial Sections, improved the context sensitive pop-up
