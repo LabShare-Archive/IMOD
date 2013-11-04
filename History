@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/4/13: In eTomo - Fiduacial Model dialog, fixed a problem with deleting
+autofidseed temporary files in Windows.(Bug# 1759)
+
 11/2/13: Switched display of residual model to show arrows.
 
 11/1/13: In eTomo - Serial Sections, added a Sobel filter checkbox and
