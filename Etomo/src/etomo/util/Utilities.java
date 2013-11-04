@@ -337,6 +337,7 @@ import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.util.Date;
 
+import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProgram;
@@ -870,7 +871,7 @@ public class Utilities {
       final BaseManager manager, final AxisID axisID) throws IOException {
     copyFile(source.getFile(manager, axisID), destination.getFile(manager, axisID));
   }
-  
+
   public static void copyFile(final File source, final FileType destination,
       final BaseManager manager, final AxisID axisID) throws IOException {
     copyFile(source, destination.getFile(manager, axisID));
@@ -881,7 +882,8 @@ public class Utilities {
    */
   public static void copyFile(File source, File destination) throws IOException {
     if (source != null && source.equals(destination)) {
-      System.err.println("Warning:Can't copy a file to itself:source:"+source+",destination:"+destination);
+      System.err.println("Warning:Can't copy a file to itself:source:" + source
+          + ",destination:" + destination);
       return;
     }
     // Try using the nio method but if it fails fall back to BufferedFileReader/
@@ -968,7 +970,9 @@ public class Utilities {
     }
     else if (file.isDirectory()) {
       SystemProgram remove = new SystemProgram(manager, manager.getPropertyUserDir(),
-          new String[] {"b3dremove", "-r", file.getAbsolutePath() }, axisID);
+          new String[] { "python", "-u",
+              ApplicationManager.getIMODBinPath() + "b3dremove", "-r",
+              file.getAbsolutePath() }, axisID);
       remove.run();
       if (file.exists()) {
         UIHarness.INSTANCE.openMessageDialog(manager, "Cannot delete the directory",
