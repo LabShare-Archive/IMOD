@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   int quality = -1;
   int makeJPG = 0;
   int makePNG = 0;
-  int typeInd;
+  int typeInd, digits = 3;
   bool makeQimage;
   b3dUInt32 ifdOffset = 0, dataOffset = 0;
   float chunkCriterion = 100.;
@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
   float val[3];
   float scale, offset, xscale, yscale, zscale;
   char prefix[100];
+  char format[14];
   IloadInfo li;
   ImodImageFile *iifile = iiNew();
   char *iname;
@@ -356,6 +357,13 @@ int main(int argc, char *argv[])
     fpTiff = openEitherWay(iifile, iname, progname, oldcode);
   }    
 
+  // Set up format for numbered filenames
+  if (zmax + 1 - zmin >= 10000)
+    digits = 5;
+  else if (zmax + 1 - zmin >= 1000)
+    digits = 4;
+  sprintf(format, "%%s.%%0%dd.%%s", digits);
+
   printf("Writing %s images. ", typeNames[typeInd]);
   for (z = zmin; z <= zmax; z++){
     int tiferr;
@@ -364,7 +372,7 @@ int main(int argc, char *argv[])
 
     /* Get filename and open new file for non-stack */
     if (!stack) {
-      sprintf(iname, "%s.%3.3d.%s", argv[iarg], filenum++, extensions[typeInd]);
+      sprintf(iname, format, argv[iarg], filenum++, extensions[typeInd]);
       if (zsize == 1)
         sprintf(iname, "%s", argv[iarg]);
       if (!makeQimage) {
