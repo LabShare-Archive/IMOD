@@ -778,7 +778,7 @@ static void imodinfo_surface(Imod *imod, int scaninside, Ipoint min,
         }
       }               
       fprintf(fout, "#Surface : Contours,  Cyl. Volume,  "
-              "Mesh Volume,  Mesh Surface,  Max Extent\n");
+              "Cont. Volume,  Mesh Surface,  Max Extent\n");
       for(i = 0; i <= obj->surfsize; i++)
         fprintf(fout, "%7d   %8d   %12.6g  %12.6g  %12.6g  %12.6g\n"
                 , i, nofc[i], vol[i], mvol[i], msa[i], extent[i]);
