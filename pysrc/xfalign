@@ -51,6 +51,9 @@ def makeTiltxcorrCom(outputFile, warping):
          tiltcom.append(fmtstr('ShiftLimitsXandY {},{}', warpLimitsX, warpLimitsY))
    else:
       tiltcom += ['RotationAngle 0', 'FirstTiltAngle 0.', 'TiltIncrement 0.']
+      if limits[0] > 0. and limits[1] > 0.:
+         tiltcom.append(fmtstr('ShiftLimitsXandY {},{}', int(round(limits[0])),
+                               int(round(limits[1]))))
       
    if ifsize:
       tiltcom += [fmtstr('XMinAndMax {},{}', xmin, xmax),
@@ -287,12 +290,13 @@ if prexcorr:
       writeTextFile(prexffile, prexflist)
 
    prnstr('X, Y SHIFTS FOUND:')
-   for l in prexflist:
-      try:
-         lsplit = l.split()
-         prnstr(fmtstr('{:9.2f}  {:9.2f}', float(lsplit[4]),  float(lsplit[5])))
-      except:
-         exitError('Getting shifts from ' + prexffile)
+   for ind in range(len(prexflist)):
+      if not ifpair or ind % 2:
+         try:
+            lsplit = prexflist[ind].split()
+            prnstr(fmtstr('{:9.2f}  {:9.2f}', float(lsplit[4]),  float(lsplit[5])))
+         except:
+            exitError('Getting shifts from ' + prexffile)
    sys.stdout.flush()
 
    if nparam < 0:
