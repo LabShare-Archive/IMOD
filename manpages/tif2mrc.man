@@ -22,7 +22,9 @@ color MRC file that IMOD defines.  If a grayscale image file has multiple
 sample values per pixel, then each sample will be converted to a separate
 section in the output file, and the input file will be treated like a
 multi-page TIFF file.  The multiple
-samples can be stored either contiguously or in separate planes.
+samples can be stored either contiguously or in separate planes.  Files with
+data stored in LZW, ZIP, or JPEG compression can be read when running with the
+TIFF libraries distributed with IMOD.
 .P
 Images from different files need not all be the same size.
 The x and y dimensions of the stack
