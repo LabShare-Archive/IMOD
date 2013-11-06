@@ -86,7 +86,7 @@ void FindBeads::main(int argc, char *argv[])
   char *filename;
   char *outModel;
   //char *progname = imodProgName(argv[0]);
-  char *progname = "imodfindbeads";
+  const char *progname = "imodfindbeads";
   int numOptArgs, numNonOptArgs;
   Imod *refmod = NULL;
   Imod *imod;
@@ -1104,7 +1104,7 @@ void FindBeads::analyzeBackgroundGroups()
                " Fit of dip vs background has slope %f, intcp %f\n",
                modeSlope, modeIntcp, selSlope, selIntcp);
 
-      if (!mLightBeads && selSlope > 0. || mLightBeads && selSlope < 0.) {
+      if ((!mLightBeads && selSlope > 0.) || (mLightBeads && selSlope < 0.)) {
         if (mLightBeads) {
           val = ((annUseMin * selSlope + selIntcp) / maxBalRange - 
                  selIntcp) / selSlope;
@@ -1242,8 +1242,8 @@ void FindBeads::averageBeads(int izStart, int izEnd)
         setupSizeDependentVars();
         if (oldBox >= mBoxSize) {
           offset = (oldBox - mBoxSize) / 2;
-          for (j = offset; j < mBoxSize + offset; j++)
-            for (i = offset; i < mBoxSize + offset; i++)
+          for (j = 0; j < mBoxSize; j++)
+            for (i = 0; i < mBoxSize; i++)
               mFullBead[i + j * mBoxSize] = saveBead[i + offset + (j + offset) *oldBox];
         } else {
           sliceTaperOutPad(saveBead, SLICE_MODE_FLOAT, oldBox, oldBox, mFullBead,
