@@ -722,6 +722,7 @@ static void makeMontage(int frames, int overlap)
        Y in the display, using same code as imodv_translated */
     mat = imodMatNew(3);
     imodvRotScaleMatrix(a, mat, a->mod[m]);
+    scrnscale = 0.5 * B3DMIN(a->winx, a->winy) / vw->rad;
     
     ipt.x = a->winx - overlap;
     ipt.y = 0.;

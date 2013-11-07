@@ -1,7 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/5/13: Fixed bug that crashed Imodfindbeads when adjusting size downward.
+
 11/4/13: In eTomo - Fiduacial Model dialog, fixed a problem with deleting
 autofidseed temporary files in Windows.(Bug# 1759)
+
+11/4/13: Make xfalign apply shift limits in initial cross-correlation.
+
+11/4/13: Fixed scale bar drawing from montage snapshot of model view window.
+
+11/4/13: Made mrc2tif use 4 or 5 digits for all output file numbers if needed.
 
 11/2/13: Switched display of residual model to show arrows.
 

@@ -523,7 +523,7 @@ QObject *DialogManager::getTopWindow(int dlgType, int dlgType2, int &typeFound)
   bool match = false;
   ImodvDialog *dia;
 
-  if (!ilistSize(mDialogList))
+  if (!ilistSize(mDialogList) || !App->cvi->ctrlist)
     return NULL;
 
   // Look through the current control list, find first dialog with matching ID and type
