@@ -70,7 +70,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private SystemProcessInterface process = null;
   final BaseManager manager;
   final AxisID axisID;
-  final Map computerMap;
+  final Map<String,String> computerMap;
   private final boolean multiLineMessages;
   private int tcshErrorCountDown = NO_TCSH_ERROR;
   private ParallelProgressDisplay parallelProgressDisplay = null;
@@ -88,7 +88,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   ProcesschunksProcessMonitor(final BaseManager manager, final AxisID axisID,
-      final String rootName, final Map computerMap, final boolean multiLineMessages) {
+      final String rootName, final Map<String,String> computerMap, final boolean multiLineMessages) {
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = rootName;
