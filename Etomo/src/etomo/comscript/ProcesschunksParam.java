@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,8 +51,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
-  private final List machineNames = new ArrayList();
-  private final Map computerMap = new HashMap();
+  private final Map<String, Integer> machineMap = new LinkedHashMap<String, Integer>();
+  private final Map<String, String> computerMonitorMap = new HashMap<String, String>();
   private final EtomoNumber cpuNumber = new EtomoNumber();
 
   private final BaseManager manager;
@@ -60,7 +62,6 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 
   private CommandDetails subcommandDetails = null;
   private String[] commandArray = null;
-  private StringBuffer machineList = null;
   private boolean valid = true;
   private boolean debug = true;
   private String queueCommand = null;
@@ -223,8 +224,8 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     return subdirName;
   }
 
-  public Map getComputerMap() {
-    return computerMap;
+  public Map<String, String> getComputerMap() {
+    return computerMonitorMap;
   }
 
   public AxisID getAxisID() {
@@ -238,11 +239,11 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
    * Causes commandArray to be set to null.
    */
   public void resetMachineName() {
-    if (machineNames.size() == 0) {
+    if (machineMap.size() == 0) {
       return;
     }
     commandArray = null;
-    machineNames.clear();
+    machineMap.clear();
   }
 
   /**
@@ -255,11 +256,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
       throw new IllegalStateException(
           "can't change parameter values after command is built");
     }
-    for (int i = 0; i < cpus; i++) {
-      machineNames.add(machineName);
-    }
     if (cpus > 0) {
-      computerMap.put(machineName, String.valueOf(cpus));
+      machineMap.put(machineName, new Integer(cpus));
+      computerMonitorMap.put(machineName, String.valueOf(cpus));
     }
   }
 
@@ -358,7 +357,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   }
 
   public String validate() {
-    if ((queueCommand == null && (machineNames == null || machineNames.size() == 0))
+    if ((queueCommand == null && machineMap.size() == 0)
         || (queueCommand != null && cpuNumber.lt(0))) {
       return "No CPUs where selected.";
     }
@@ -439,14 +438,12 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     }
     commandsFileName.append(new StringBuffer(DatasetFiles.getCommandsFileName(subdirName,
         rootName)));
-    /*if (!isSubdirNameEmpty()) {
-      commandsFileName.append("\"");
-    }*/
+    /* if (!isSubdirNameEmpty()) { commandsFileName.append("\""); } */
     command.add(commandsFileName.toString());
     command.add("-P");
     if (queueCommand == null) {
       // add machine names
-      buildMachineList();
+      StringBuffer machineList = buildMachineList();
       if (machineList != null) {
         command.add(machineList.toString());
       }
@@ -456,7 +453,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
       command.add(queue);
       command.add("-q");
       command.add(cpuNumber.toString());
-     // command.add("\"" + queueCommand + "\"");
+      // command.add("\"" + queueCommand + "\"");
       command.add(queueCommand);
     }
     command.add(rootName);
@@ -476,15 +473,31 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     }
   }
 
-  private void buildMachineList() {
-    int size = machineNames.size();
-    if (size > 0) {
-      machineList = new StringBuffer((String) machineNames.get(0));
-      for (int i = 1; i < size; i++) {
+  /**
+   * Builds and returns a string version of machineMap where each entry key (the machine
+   * name) is repeated a number of times equals to the entry value (# CPUs).
+   * @return
+   */
+  private StringBuffer buildMachineList() {
+    if (machineMap.isEmpty()) {
+      return null;
+    }
+    Iterator<Map.Entry<String, Integer>> iterator = machineMap.entrySet().iterator();
+    StringBuffer machineList = new StringBuffer();
+    while (iterator.hasNext()) {
+      Map.Entry<String, Integer> entry = iterator.next();
+      int numCpus = entry.getValue().intValue();
+      for (int i = 0; i < numCpus; i++) {
+        machineList.append(entry.getKey());
+        if (i < numCpus - 1) {
+          machineList.append(',');
+        }
+      }
+      if (iterator.hasNext()) {
         machineList.append(',');
-        machineList.append(machineNames.get(i));
       }
     }
+    return machineList;
   }
 
   /**
@@ -596,7 +609,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
  * <p> bug# 1222
  * <p>
  * <p> Revision 1.37  2009/04/20 19:19:36  sueh
- * <p> bug# 1192 Added computerMap to hold selected computers and the number of CPUs selected.  Using computerMap instead of machinesNames to add the computer names to the command.
+ * <p> bug# 1192 Added computerMap to hold selected computers and the number of CPUs 
+ * <p> selected.  Using computerMap instead of machinesNames to add the computer names to 
+ * <p> the command.
  * <p>
  * <p> Revision 1.36  2009/03/17 00:32:39  sueh
  * <p> bug# 1186 Pass managerKey to everything that pops up a dialog.
