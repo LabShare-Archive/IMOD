@@ -588,7 +588,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     manager.closeStaleFile(command.getOutputImageFileType2(), axisID);
   }
 
-  public final void setComputerMap(Map computerMap) {
+  public final void setComputerMap(Map<String,String> computerMap) {
     if (processData != null) {
       processData.setComputerMap(computerMap);
     }
