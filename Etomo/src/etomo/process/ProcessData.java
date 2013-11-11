@@ -81,7 +81,7 @@ public final class ProcessData implements Storable {
   // Contains the computers and CPUs selected for parallel processing. This is
   // set by the process in a managed instance, but only if the process is
   // parallel.
-  private Map computerMap = null;
+  private Map<String,String> computerMap = null;
   // Only needed when more then one processing method is possible in a
   // reconnectable process.
   private ProcessingMethod processingMethod = null;
@@ -215,7 +215,7 @@ public final class ProcessData implements Storable {
     return sshFailed;
   }
 
-  void setComputerMap(Map computerMap) {
+  void setComputerMap(Map<String,String> computerMap) {
     this.computerMap = computerMap;
   }
 
@@ -300,7 +300,7 @@ public final class ProcessData implements Storable {
     return hostName.toString();
   }
 
-  public Map getComputerMap() {
+  public Map<String,String> getComputerMap() {
     return computerMap;
   }
 
@@ -385,7 +385,7 @@ public final class ProcessData implements Storable {
       lastProcess.store(props, prepend);
       // Store everything in computerMap in props.
       if (computerMap != null && !computerMap.isEmpty()) {
-        Set computerSet = computerMap.entrySet();
+        Set<Map.Entry<String,String>> computerSet = computerMap.entrySet();
         Iterator entryIterator = computerSet.iterator();
         while (entryIterator.hasNext()) {
           Entry entry = (Entry) entryIterator.next();
@@ -456,7 +456,7 @@ public final class ProcessData implements Storable {
       String key = (String) keyEnumeration.nextElement();
       if (key.trim().startsWith(computerKey)) {
         if (computerMap == null) {
-          computerMap = new HashMap();
+          computerMap = new HashMap<String,String>();
         }
         // Strip the generic part of the key from props to get the key for
         // computerMap.
