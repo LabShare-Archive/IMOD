@@ -150,7 +150,7 @@ public final class ReconnectProcess implements SystemProcessInterface, Runnable 
    * here would override it.  Should never happen because the process monitor
    * should not set the computer map in the process during a reconnect.
    */
-  public final void setComputerMap(Map computerMap) {
+  public final void setComputerMap(Map<String,String> computerMap) {
   }
 
   public ProcessSeries getProcessSeries() {
