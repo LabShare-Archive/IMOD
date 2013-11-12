@@ -2210,7 +2210,7 @@ void ivwTransModel(ImodView *vi)
     // handedness and mark it as rotated if image is, to avoid further operations
     if (!ImodTrans) {
       utilExchangeFlipRotation(vi->imod, FLIP_TO_ROTATION);
-      setOrClearFlags(&vi->imod->flags, IMODF_ROT90X, vi->li->axis != 2 ? 1 : 0);
+      setOrClearFlags(&vi->imod->flags, IMODF_ROT90X, vi->li->axis == 2 ? 1 : 0);
     } else {
 
       // Otherwise is needs to be in the right flip state before setting the trans data
