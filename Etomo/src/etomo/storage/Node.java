@@ -64,7 +64,8 @@ public final class Node {
   private String os = "";
   private String speed = "";
   private String type = "";
-  private String command = "";//cluster only
+  private String command = "";// cluster only
+  private String[] gpuDeviceArray = null;
 
   private Node() {
     number.setDisplayValue(1);
@@ -95,7 +96,7 @@ public final class Node {
     }
     LOCAL_HOST_INSTANCE = new Node();
     LOCAL_HOST_INSTANCE.name = LOCAL_HOST_NAME;
-    //See if LOCAL_INSTANCE.number should be greater then 1 and set it if necessary.
+    // See if LOCAL_INSTANCE.number should be greater then 1 and set it if necessary.
     EtomoNumber imodProcessors = new EtomoNumber();
     imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager, propertyUserDir,
         "IMOD_PROCESSORS", axisID));
@@ -108,7 +109,7 @@ public final class Node {
         LOCAL_HOST_INSTANCE.number.set(userConfiguration.getCpus());
       }
     }
-    //Set GPU processing.
+    // Set GPU processing.
     if (userConfiguration.isGpuProcessing()) {
       LOCAL_HOST_INSTANCE.gpu = true;
     }
@@ -147,32 +148,59 @@ public final class Node {
     if (attribute != null) {
       type = attribute.getValue();
     }
-    //gpu = 1
-    //gpu.local = 1
-    attribute = section.getAttribute(CpuAdoc.GPU_KEY);
-    if (attribute != null) {
-      //see if .local is used
-      ReadOnlyAttribute parentAttribute = attribute;
-      boolean local = false;
-      attribute = parentAttribute.getAttribute("local");
-      if (attribute != null) {
-        local = true;
-      }
-      else {
-        attribute = parentAttribute;
-      }
-      //value is the child of the last attribute
-      EtomoNumber value = new EtomoNumber();
-      value.set(attribute.getValue());
-      if (!value.isNull() && value.gt(0)) {
-        gpu = true;
-        gpuLocal = local;
-      }
-    }
+    loadGpu(section.getAttribute(CpuAdoc.GPU_KEY));
     if (queue) {
       attribute = section.getAttribute("command");
       if (attribute != null) {
         command = attribute.getValue();
+      }
+    }
+  }
+
+  /**
+   * Handle:
+   * gpu=
+   * gpu.load=
+   * gpu.device=
+   * @param gpuAttribute
+   */
+  private void loadGpu(final ReadOnlyAttribute gpuAttribute) {
+    gpu = false;
+    gpuLocal = false;
+    gpuDeviceArray = null;
+    boolean error = false;
+    if (gpuAttribute != null) {
+      // gpu.device
+      ReadOnlyAttribute attribute = gpuAttribute.getAttribute("device");
+      if (attribute != null) {
+        String value = attribute.getValue();
+        if (value != null) {
+          String[] array = value.split("\\s*,\\s*");
+          if (array != null && array.length > 0) {
+            gpuDeviceArray = array;
+          }
+          else {
+            error = true;
+          }
+        }
+        else {
+          error = true;
+        }
+      }
+      // gpu.local
+      attribute = gpuAttribute.getAttribute("local");
+      EtomoNumber value = new EtomoNumber();
+      if (attribute != null) {
+        value.set(attribute.getValue());
+        if (!value.isNull() && value.gt(0)) {
+          gpuLocal = true;
+        }
+        else {
+          error = true;
+        }
+      }
+      if (!error) {
+        gpu = true;
       }
     }
   }
@@ -192,8 +220,8 @@ public final class Node {
     if (name.equals(localHostName)) {
       return true;
     }
-    //Local host does not match.  Try removing everything from the local host name
-    //starting with the first ".".
+    // Local host does not match. Try removing everything from the local host name
+    // starting with the first ".".
     int index = localHostName.indexOf('.');
     if (index != -1) {
       localHostName = localHostName.substring(0, index);
@@ -241,6 +269,13 @@ public final class Node {
 
   public int getNumber() {
     return number.getInt();
+  }
+
+  public int getGpuNumber() {
+    if (!gpu || gpuDeviceArray == null) {
+      return 1;
+    }
+    return gpuDeviceArray.length;
   }
 
   public boolean isOsEmpty() {

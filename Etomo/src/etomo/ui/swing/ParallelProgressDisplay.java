@@ -89,7 +89,7 @@ public interface ParallelProgressDisplay {
    * parallel process was last being tracked by Etomo.
    * @param computerMap
    */
-  public void setComputerMap(Map computerMap);
+  public void setComputerMap(Map<String,String> computerMap);
 
   public void msgProcessStarted();
 }

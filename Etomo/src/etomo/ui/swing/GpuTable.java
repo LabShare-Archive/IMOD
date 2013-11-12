@@ -4,7 +4,6 @@ import etomo.BaseManager;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
-import etomo.type.EtomoNumber;
 
 /**
 * <p>Description: </p>
@@ -67,9 +66,16 @@ final class GpuTable extends CpuTable {
     return false;
   }
 
+  boolean enableNumberColumn(final Node node) {
+    // numberColumn is true if an number attribute is not defaulted to 1
+    // 1436 unnecessary column (was !isDefault and was always true)
+    return node.getGpuNumber() > 1;
+  }
+
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
-      final Node node, final EtomoNumber number, final int numRowsInTable) {
-    return ProcessorTableRow.getComputerInstance(processorTable, node, 1, numRowsInTable);
+      final Node node, final int numRowsInTable) {
+    return ProcessorTableRow.getComputerInstance(processorTable, node,
+        node.getGpuNumber(), numRowsInTable);
   }
 
   void initRow(ProcessorTableRow row) {

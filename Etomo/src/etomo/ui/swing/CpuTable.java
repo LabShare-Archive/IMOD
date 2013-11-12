@@ -9,13 +9,11 @@ import javax.swing.JPanel;
 import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.LoadAverageParam;
-import etomo.comscript.ProcesschunksParam;
 import etomo.storage.CpuAdoc;
 import etomo.storage.Network;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
-import etomo.type.EtomoNumber;
 import etomo.util.Utilities;
 
 /**
@@ -88,8 +86,8 @@ class CpuTable extends ProcessorTable {
   }
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
-      final Node node, final EtomoNumber number, final int numRowsInTable) {
-    return ProcessorTableRow.getComputerInstance(processorTable, node, number.getInt(),
+      final Node node, final int numRowsInTable) {
+    return ProcessorTableRow.getComputerInstance(processorTable, node, node.getNumber(),
         numRowsInTable);
   }
 
@@ -147,9 +145,6 @@ class CpuTable extends ProcessorTable {
 
   final boolean useUsersColumn() {
     return usersColumn;
-  }
-
-  final void getParameters(final ProcesschunksParam param, final String computer) {
   }
 
   final IntermittentCommand getIntermittentCommand(final String computer) {

@@ -55,7 +55,7 @@ public interface SystemProcessInterface {
 
   public ConstProcessSeries getProcessSeries();
 
-  public void setComputerMap(Map computerMap);
+  public void setComputerMap(Map<String,String> computerMap);
 
   public void setProcessingMethod(ProcessingMethod processingMethod);
 }

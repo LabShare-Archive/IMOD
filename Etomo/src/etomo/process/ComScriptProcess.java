@@ -821,7 +821,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   /**
    * Gets a computerMap and immediately sends it to processData.
    */
-  public final void setComputerMap(Map computerMap) {
+  public final void setComputerMap(Map<String,String> computerMap) {
     if (processData != null) {
       processData.setComputerMap(computerMap);
     }

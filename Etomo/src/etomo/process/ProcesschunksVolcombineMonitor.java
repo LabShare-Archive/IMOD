@@ -68,7 +68,7 @@ final class ProcesschunksVolcombineMonitor extends ProcesschunksProcessMonitor {
   private LogFile.ReaderId readerIdFinish = null;
 
   public ProcesschunksVolcombineMonitor(BaseManager manager, AxisID axisID,
-      String rootName, Map computerMap) {
+      String rootName, Map<String,String> computerMap) {
     super(manager, axisID, rootName, computerMap, false);
   }
 
