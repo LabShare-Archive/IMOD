@@ -15,7 +15,6 @@ import etomo.storage.Network;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
-import etomo.type.EtomoNumber;
 
 /**
 * <p>Description: </p>
@@ -104,12 +103,12 @@ final class QueueTable extends ProcessorTable {
   }
 
   ProcessorTableRow createProcessorTableRow(final ProcessorTable processorTable,
-      final Node node, final EtomoNumber number, final int numRowsInTable) {
+      final Node node, final int numRowsInTable) {
     return ProcessorTableRow
         .getQueueInstance(
             processorTable,
             node,
-            number.getInt(),
+            node.getNumber(),
             buttonGroup,
             Math.max(
                 1,
@@ -156,13 +155,14 @@ final class QueueTable extends ProcessorTable {
     return false;
   }
 
-  void getParameters(final ProcesschunksParam param, final String computer) {
-    String queue = computer;
+  void getParameters(final ProcesschunksParam param) {
+    String queue = getFirstSelectedComputer();
     Node node = Network.getQueue(manager, queue, axisID, manager.getPropertyUserDir());
     if (node != null) {
       param.setQueueCommand(node.getCommand());
     }
     param.setQueue(queue);
+    super.getParameters(param);
   }
 
   IntermittentCommand getIntermittentCommand(final String computer) {
