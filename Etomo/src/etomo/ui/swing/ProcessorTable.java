@@ -26,7 +26,6 @@ import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstEtomoVersion;
-import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -94,7 +93,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   abstract Node getNode(int index);
 
   abstract ProcessorTableRow createProcessorTableRow(ProcessorTable processorTable,
-      Node node, EtomoNumber number, int numRowsInTable);
+      Node node, int numRowsInTable);
 
   abstract String getHeader1ComputerText();
 
@@ -111,8 +110,6 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       GridBagConstraints constraints);
 
   abstract boolean useUsersColumn();
-
-  abstract void getParameters(ProcesschunksParam param, String computer);
 
   abstract IntermittentCommand getIntermittentCommand(String computer);
 
@@ -186,7 +183,6 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     memoryUnits = CpuAdoc.INSTANCE.getMemoryUnits(manager, axisID,
         manager.getPropertyUserDir());
     // loop through the nodes
-    EtomoNumber number = new EtomoNumber();
     // loop on nodes
     int size = getSize();
     for (int i = 0; i < size; i++) {
@@ -197,10 +193,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
       if (node != null && !node.isExcludedInterface(manager.getInterfaceType())
           && (!node.isExcludedUser(System.getProperty("user.name")))
           && !isExcludeNode(node)) {
-        // get the number attribute
-        // set numberColumn to true if an number attribute is returned
-        number.set(node.getNumber());
-        if (!number.isDefault()) {
+        if (enableNumberColumn(node)) {
           numberColumn = true;
         }
         // get the type attribute
@@ -216,7 +209,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
         // set osColumn to true if an os attribute is returned
         osColumn = !node.isOsEmpty();
         // create the row
-        ProcessorTableRow row = createProcessorTableRow(this, node, number, size);
+        ProcessorTableRow row = createProcessorTableRow(this, node, size);
         initRow(row);
         // add the row to the rows HashedArray
         rowList.add(row);
@@ -233,13 +226,15 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     // try {
     ParameterStore parameterStore = EtomoDirector.INSTANCE.getParameterStore();
     parameterStore.load(this);
-    /* } catch (LogFile.LockException e) { UIHarness.INSTANCE.openMessageDialog(manager,
-     * "Unable to load parameters.\n" + e.getMessage(), "Etomo Error", axisID); } */
     setToolTipText();
     if (rowList.size() == 1) {
       rowList.setSelected(0, true);
       rowList.enableSelectionField(0, false);
     }
+  }
+
+  boolean enableNumberColumn(final Node node) {
+    return node.getNumber() > 1;
   }
 
   public void msgViewportPaged() {
@@ -400,8 +395,11 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
   }
 
   void getParameters(final ProcesschunksParam param) {
-    getParameters(param, rowList.getComputer(rowList.getFirstSelectedIndex()));
     rowList.getParameters(param);
+  }
+
+  String getFirstSelectedComputer() {
+    return rowList.getComputer(rowList.getFirstSelectedIndex());
   }
 
   public int size() {
@@ -428,7 +426,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
     row.addSuccess();
   }
 
-  public void setComputerMap(final Map computerMap) {
+  public void setComputerMap(final Map<String, String> computerMap) {
     rowList.setComputerMap(computerMap);
     parent.msgComputerMapSet();
   }
@@ -625,7 +623,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
      * Changes the selected computers and CPUs to match computerMap.
      * @param computerMap
      */
-    private void setComputerMap(final Map computerMap) {
+    private void setComputerMap(final Map<String, String> computerMap) {
       if (computerMap == null || computerMap.isEmpty()) {
         return;
       }
@@ -637,7 +635,7 @@ abstract class ProcessorTable implements Storable, ParallelProgressDisplay, Load
         String key = row.getComputer();
         if (computerMap.containsKey(key)) {
           row.setSelected(true);
-          row.setCPUsSelected((String) computerMap.get(key));
+          row.setCPUsSelected(computerMap.get(key));
         }
       }
     }
