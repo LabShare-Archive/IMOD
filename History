@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/11/13: IMOD_4-6-32
 11/5/13: Fixed bug that crashed Imodfindbeads when adjusting size downward.
 
 11/4/13: Make xfalign apply shift limits in initial cross-correlation.
