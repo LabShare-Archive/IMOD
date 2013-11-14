@@ -568,7 +568,6 @@ public final class CopyTomoComs {
     checkTiltAngleFiles();
 
     // Execute the script
-    copytomocoms.setDebug(debug);
     copytomocoms.run();
     exitValue = copytomocoms.getExitValue();
     return exitValue;
