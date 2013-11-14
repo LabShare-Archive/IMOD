@@ -880,7 +880,7 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
 
-    if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+    if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
       commandOptions.add("-D");
       if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
         commandOptions.add("-L");
@@ -1034,7 +1034,7 @@ public class ImodProcess {
 
       // Check the stderr of the 3dmod process for the windowID and the
       String line;
-      if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+      if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
         System.err.println("ImodProcess:open " + Utilities.getDateTimeStamp(true));
       }
       Integer stderrRegId = stderr.register();
@@ -2080,7 +2080,7 @@ public class ImodProcess {
      */
     public synchronized void run() {
       try {
-        if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+        if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
           System.err
               .println("ContinuousListener:run " + Utilities.getDateTimeStamp(true));
         }
@@ -2147,7 +2147,7 @@ public class ImodProcess {
             }
             return;
           }
-          if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+          if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
             System.err.println("ImodProcess:MessageSender:run:Setting stdin "
                 + Utilities.getDateTimeStamp(true));
           }
@@ -2185,7 +2185,7 @@ public class ImodProcess {
       String response = null;
       StringBuffer userMessage = new StringBuffer();
       // wait for the response for at most 5 seconds
-      if (EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+      if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
         System.err.println("ImodProcess:MessageSender:readResponse "
             + Utilities.getDateTimeStamp(true));
       }
