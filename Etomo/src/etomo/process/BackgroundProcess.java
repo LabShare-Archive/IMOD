@@ -808,7 +808,6 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
       return;
     }
     program.setWorkingDirectory(workingDirectory);
-    program.setDebug(debug);
 
     // Execute the command
     waitForPid();
