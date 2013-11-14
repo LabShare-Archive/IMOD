@@ -202,7 +202,6 @@ public final class TestUtilites {
       BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
       SystemProgram copy = new SystemProgram(manager, manager == null ? null
           : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY);
-      copy.setDebug(true);
       copy.run();
       return testDirFile;
     }
