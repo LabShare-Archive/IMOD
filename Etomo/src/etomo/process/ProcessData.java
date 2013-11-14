@@ -8,6 +8,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import etomo.Arguments.DebugLevel;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.PsParam;
@@ -81,12 +82,12 @@ public final class ProcessData implements Storable {
   // Contains the computers and CPUs selected for parallel processing. This is
   // set by the process in a managed instance, but only if the process is
   // parallel.
-  private Map<String,String> computerMap = null;
+  private Map<String, String> computerMap = null;
   // Only needed when more then one processing method is possible in a
   // reconnectable process.
   private ProcessingMethod processingMethod = null;
   private DialogType dialogType = null;
-  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   public void dumpState() {
     System.err.println("[processDataPrepend:" + processDataPrepend + ",pid:" + pid
@@ -215,7 +216,7 @@ public final class ProcessData implements Storable {
     return sshFailed;
   }
 
-  void setComputerMap(Map<String,String> computerMap) {
+  void setComputerMap(Map<String, String> computerMap) {
     this.computerMap = computerMap;
   }
 
@@ -249,7 +250,7 @@ public final class ProcessData implements Storable {
    * @return
    */
   private PsParam runPs(String pid) {
-    if (debug >= 4) {
+    if (debug.isExtraVerbose()) {
       System.err.println("ProcessData.runPs");
     }
     PsParam param = new PsParam(manager, axisID, pid, osType, hostName.toString(), false);
@@ -300,7 +301,7 @@ public final class ProcessData implements Storable {
     return hostName.toString();
   }
 
-  public Map<String,String> getComputerMap() {
+  public Map<String, String> getComputerMap() {
     return computerMap;
   }
 
@@ -385,7 +386,7 @@ public final class ProcessData implements Storable {
       lastProcess.store(props, prepend);
       // Store everything in computerMap in props.
       if (computerMap != null && !computerMap.isEmpty()) {
-        Set<Map.Entry<String,String>> computerSet = computerMap.entrySet();
+        Set<Map.Entry<String, String>> computerSet = computerMap.entrySet();
         Iterator entryIterator = computerSet.iterator();
         while (entryIterator.hasNext()) {
           Entry entry = (Entry) entryIterator.next();
@@ -456,7 +457,7 @@ public final class ProcessData implements Storable {
       String key = (String) keyEnumeration.nextElement();
       if (key.trim().startsWith(computerKey)) {
         if (computerMap == null) {
-          computerMap = new HashMap<String,String>();
+          computerMap = new HashMap<String, String>();
         }
         // Strip the generic part of the key from props to get the key for
         // computerMap.
