@@ -1801,7 +1801,6 @@ public abstract class BaseProcessManager {
     if (manager != null) {
       sysProgram.setWorkingDirectory(new File(manager.getPropertyUserDir()));
     }
-    sysProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
 
     // Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
