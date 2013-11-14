@@ -1,5 +1,6 @@
 package etomo.storage;
 
+import etomo.Arguments.DebugLevel;
 import etomo.EtomoDirector;
 import etomo.comscript.FortranInputString;
 import etomo.storage.Directive.BooleanValue;
@@ -32,7 +33,7 @@ public final class DirectiveValues {
 
   private Value defaultValue = null;
   private Value value = null;
-  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   DirectiveValues(final DirectiveValueType valueType) {
     this.valueType = valueType;
@@ -67,7 +68,7 @@ public final class DirectiveValues {
    * @return
    */
   public boolean equals(Value value1, Value value2) {
-    if (debug >= 2) {
+    if (debug.isExtra()) {
       System.err.println("equals:value1:" + value1 + ",value2:" + value2);
       value1.setDebug(debug);
     }
@@ -104,19 +105,19 @@ public final class DirectiveValues {
    * @return
    */
   private boolean isChanged(Value value, Value defaultValue) {
-    if (debug >= 2) {
+    if (debug.isExtra()) {
       System.err.println("isChanged:value:" + value + ",defaultValue:" + defaultValue);
     }
     if (value == null) {
       return false;
     }
-    if (debug >= 2) {
-      value.setDebug(2);
+    if (debug.isExtra()) {
+      value.setDebug(debug);
     }
     return !equals(value, defaultValue);
   }
 
-  public void setDebug(final int input) {
+  public void setDebug(final DebugLevel input) {
     debug = input;
   }
 
