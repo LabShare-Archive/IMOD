@@ -6,7 +6,6 @@ import java.util.Hashtable;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -236,7 +235,6 @@ public class Montagesize {
     buildCommand();
     SystemProgram montagesize = new SystemProgram(manager, propertyUserDir, commandArray,
         axisID);
-    montagesize.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     modifiedFlag.setReadingNow();
     montagesize.run();
 
