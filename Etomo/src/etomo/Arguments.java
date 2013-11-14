@@ -204,9 +204,13 @@ public final class Arguments {
       + "\n\n  " + DEBUG_TAG + " [level]"
       + "\n\t\tSend extra information to standard error.  The " + DEBUG_TAG + " option"
       + "\n\t\tincludes the following options:  " + MEMORY_TAG + " and " + TIMESTAMP_TAG
-      + ".\n\t\tLevel can be 0 (debug is off), 1 (default), 2 (more"
-      + "\n\t\tinformation), 3 (output that may degrade eTomo's performance),"
-      + "\n\t\tor 4 (as for 3 plus the log will be very large)."
+      + "." + "\n\t\tLevel can be " + DebugLevel.OFF.value + " (debug is off), "
+      + DebugLevel.DEFAULT.value + " (default), " + DebugLevel.LIMITED.value
+      + " (limited output), " + "\n\t\t" + DebugLevel.EXTRA.value
+      + " (more information), " + DebugLevel.VERBOSE.value
+      + " (output that may degrade eTomo's" + "\n\t\tperformance), or "
+      + DebugLevel.EXTRA_VERBOSE.value + " (as for " + DebugLevel.VERBOSE.value
+      + " plus the log will be very large)."
 
       + "\n\n  " + IGNORE_SETTINGS_TAG
       + "\n\t\tPrevents the .etomo from loading from and saving to the .etomo"
@@ -253,7 +257,7 @@ public final class Arguments {
   private final List<String> paramFileNameList = new ArrayList<String>();
 
   private boolean debug = false;
-  private int debugLevel = 0;
+  private DebugLevel debugLevel = DebugLevel.OFF;
   /**
    * If arguments hasn't been initialized yet, then
    * assume that this is a test because UITest does alot of work before it can
@@ -388,7 +392,7 @@ public final class Arguments {
     return sDataset;
   }
 
-  public int getDebugLevel() {
+  public DebugLevel getDebugLevel() {
     return debugLevel;
   }
 
@@ -480,13 +484,14 @@ public final class Arguments {
         }
         else if (args[i].equals(DEBUG_TAG)) {
           debug = true;
-          debugLevel = 1;
+          debugLevel = DebugLevel.DEFAULT;
           // Optional value: --debug can be used alone, or followed by an integer
           // (debugLevel).
           if (i < args.length - 1 && !args[i + 1].startsWith("--")) {
             try {
-              debugLevel = Math.abs(Integer.parseInt(args[i + 1]));
-              if (debugLevel == 0) {
+              debugLevel = DebugLevel
+                  .getInstance(Math.abs(Integer.parseInt(args[i + 1])));
+              if (debugLevel == DebugLevel.OFF) {
                 debug = false;
               }
               i++;
@@ -769,11 +774,71 @@ public final class Arguments {
     return iDisplayMemory;
   }
 
-  public boolean isDebugLevel(final int level) {
-    return debugLevel >= level;
-  }
-
   boolean isDisplayMemory() {
     return displayMemory;
+  }
+
+  public static final class DebugLevel {
+    public static final DebugLevel OFF = new DebugLevel(0);
+    private static final DebugLevel LIMITED = new DebugLevel(-1);
+    private static final DebugLevel STANDARD = new DebugLevel(1);
+    private static final DebugLevel EXTRA = new DebugLevel(2);
+    private static final DebugLevel VERBOSE = new DebugLevel(3);
+    private static final DebugLevel EXTRA_VERBOSE = new DebugLevel(4);
+
+    private static final DebugLevel DEFAULT = STANDARD;
+
+    private final int value;
+
+    private DebugLevel(final int value) {
+      this.value = value;
+    }
+
+    private static DebugLevel getInstance(final int value) {
+      if (value == OFF.value) {
+        return OFF;
+      }
+      if (value == LIMITED.value) {
+        return LIMITED;
+      }
+      if (value == STANDARD.value) {
+        return STANDARD;
+      }
+      if (value == EXTRA.value) {
+        return EXTRA;
+      }
+      if (value == VERBOSE.value) {
+        return VERBOSE;
+      }
+      if (value == EXTRA_VERBOSE.value) {
+        return EXTRA_VERBOSE;
+      }
+      return DEFAULT;
+    }
+
+    public boolean isOn() {
+      return this != OFF;
+    }
+
+    /**
+     * Same as isOn, except that it excludes LIMITED.
+     * @return
+     */
+    public boolean isStandard() {
+      return this == STANDARD || this == EXTRA || this == VERBOSE
+          || this == EXTRA_VERBOSE;
+    }
+
+    public boolean isExtra() {
+      return this == EXTRA || this == VERBOSE || this == EXTRA_VERBOSE;
+    }
+
+    public boolean isVerbose() {
+      return this == VERBOSE || this == EXTRA_VERBOSE;
+    }
+
+    public boolean isExtraVerbose() {
+      return this == EXTRA_VERBOSE;
+    }
   }
 }
