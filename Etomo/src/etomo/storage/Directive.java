@@ -3,6 +3,7 @@ package etomo.storage;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.Arguments.DebugLevel;
 import etomo.EtomoDirector;
 import etomo.comscript.FortranInputString;
 import etomo.comscript.FortranInputSyntaxException;
@@ -88,7 +89,7 @@ public class Directive {
     logFile.newLine(id);
   }
 
-  public void setDebug(final int input) {
+  public void setDebug(final DebugLevel input) {
     values.setDebug(input);
   }
 
@@ -309,7 +310,7 @@ public class Directive {
   }
 
   public static abstract class Value {
-    int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+    DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
     abstract void set(boolean input);
 
@@ -333,7 +334,7 @@ public class Directive {
 
     public abstract boolean isEmpty();
 
-    void setDebug(final int input) {
+    void setDebug(final DebugLevel input) {
       debug = input;
     }
 
@@ -367,7 +368,7 @@ public class Directive {
     }
 
     boolean equals(final BooleanValue input) {
-      if (debug >= 2) {
+      if (debug.isExtra() ) {
         System.err.println("equals:value:" + value + ",input:" + input);
       }
       if (input == null) {
