@@ -1120,7 +1120,6 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
         new String[] { "python", "-u" }, axisID);
     systemProgram.setWorkingDirectory(workingDirectory);
     systemProgram.setStdInput(commands);
-    systemProgram.setDebug(debug);
     ParsePID parsePID = new ParsePID(systemProgram, cshProcessID, processData);
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
@@ -1150,7 +1149,6 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     // parseBaseName(comScriptName, ".com") + ".log" };
     vmstopy = new SystemProgram(manager, manager.getPropertyUserDir(), command, axisID);
     vmstopy.setWorkingDirectory(workingDirectory);
-    vmstopy.setDebug(debug);
     vmstopy.run();
 
     if (vmstopy.getExitValue() != 0) {
