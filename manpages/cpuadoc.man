@@ -70,6 +70,12 @@ modifier is used, then the GPU is only available to an eTomo that is being run o
 computer.  Only video cards with CUDA can be used in this way.
 
 .TP
+.B gpu.device = \fIGPU#\fR[\fB,\fIGPU#\fR...]
+Use this attribute instead of \fBgpu = 1\fR when multiple GPUs are available.
+GPUs will be added to the processchunks call in the same order as they are
+listed in this attribute.
+
+.TP
 .B type = \fICPU_type
 This attribute goes into the table under the heading \fBCPU Type\fR and can
 contain a description of the computer's processor.
