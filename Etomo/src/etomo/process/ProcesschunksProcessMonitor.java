@@ -435,7 +435,6 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     String line;
     while ((line = processOutput.readLine(processOutputReaderId)) != null) {
       line = line.trim();
-      System.err.println(line);
       // get the first pid
       if (pid == null && line.startsWith("Shell PID:")) {
         String[] array = line.split("\\s+");
