@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/13/13: In eTomo - Serial Sections, added a Sobel filter checkbox and
+improved the behavior of the alignment panel.(Bug# 1755)
+
 11/11/13: IMOD_4-6-32
 11/5/13: Fixed bug that crashed Imodfindbeads when adjusting size downward.
 
@@ -13,9 +16,6 @@ autofidseed temporary files in Windows.(Bug# 1759)
 11/4/13: Made mrc2tif use 4 or 5 digits for all output file numbers if needed.
 
 11/2/13: Switched display of residual model to show arrows.
-
-11/1/13: In eTomo - Serial Sections, added a Sobel filter checkbox and
-improved the behavior of the alignment panel.(Bug# 1755)
 
 11/1/13: In eTomo - Serial Sections, improved the context sensitive pop-up
 menus.(Bug# 1748)
