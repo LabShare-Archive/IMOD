@@ -473,7 +473,6 @@ public class SetupCombine {
   public int run() throws IOException {
     int exitValue;
     //  Execute the script
-    setupcombine.setDebug(debug);
     setupcombine.run();
     exitValue = setupcombine.getExitValue();
     return exitValue;
