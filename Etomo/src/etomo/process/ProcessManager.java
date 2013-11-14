@@ -2154,7 +2154,6 @@ public class ProcessManager extends BaseProcessManager {
     SystemProgram systemProgram = new SystemProgram(appManager,
         appManager.getPropertyUserDir(), commandArray, axisID);
     systemProgram.setWorkingDirectory(new File(appManager.getPropertyUserDir()));
-    systemProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     LogFile.WritingId logWritingId = null;
     if (logFile != null) {
       logWritingId = logFile.openForWriting();
