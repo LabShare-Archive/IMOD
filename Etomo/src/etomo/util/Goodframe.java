@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
@@ -59,7 +58,6 @@ public class Goodframe {
     }
     SystemProgram groupframe = new SystemProgram(manager, propertyUserDir, commandArray,
         axisID);
-    groupframe.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     groupframe.run();
 
     if (groupframe.getExitValue() != 0) {
