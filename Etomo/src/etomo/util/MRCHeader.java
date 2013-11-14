@@ -360,7 +360,6 @@ public class MRCHeader {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "header";
     commandArray[1] = filename;
     SystemProgram header = new SystemProgram(manager, fileLocation, commandArray, axisID);
-    header.setDebug(Utilities.isDebug());
     modifiedFlag.setReadingNow();
     header.run();
 
