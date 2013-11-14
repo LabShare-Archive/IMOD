@@ -51,7 +51,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
-  private final Map<String, Integer> machineMap = new LinkedHashMap<String, Integer>();
+  private final Map<String, Element> machineMap = new LinkedHashMap<String, Element>();
   private final Map<String, String> computerMonitorMap = new HashMap<String, String>();
   private final EtomoNumber cpuNumber = new EtomoNumber();
 
@@ -70,6 +70,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   private boolean test = false;
   private CommandMode subcommandMode = null;
   private String subcommandProcessName = null;
+  private boolean gpuProcessing = false;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
       final String rootName, final FileType outputImageFileType) {
@@ -194,6 +195,10 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     cpuNumber.set(input);
   }
 
+  public void setGpuProcessing(final boolean input) {
+    gpuProcessing = input;
+  }
+
   public void setCPUNumber(final ConstEtomoNumber input) {
     cpuNumber.set(input);
   }
@@ -251,14 +256,15 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
    * @param machineName
    * @param cpus
    */
-  public void addMachineName(final String machineName, final int cpus) {
+  public void addMachineName(final String machineName, final int number,
+      final String[] deviceArray) {
     if (commandArray != null) {
       throw new IllegalStateException(
           "can't change parameter values after command is built");
     }
-    if (cpus > 0) {
-      machineMap.put(machineName, new Integer(cpus));
-      computerMonitorMap.put(machineName, String.valueOf(cpus));
+    if (number > 0) {
+      machineMap.put(machineName, new Element(number, deviceArray));
+      computerMonitorMap.put(machineName, String.valueOf(number));
     }
   }
 
@@ -402,6 +408,9 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
     valid = true;
     ArrayList command = new ArrayList();
     command.add(getProcessName().toString());
+    if (gpuProcessing) {
+      command.add("-G");
+    }
     if (resume.is()) {
       command.add("-r");
     }
@@ -476,21 +485,39 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
   /**
    * Builds and returns a string version of machineMap where each entry key (the machine
    * name) is repeated a number of times equals to the entry value (# CPUs).
+   * CPU: comp,comp,comp
+   * GPU:
+   *   comp or
+   *   comp:4:1:2
    * @return
    */
   private StringBuffer buildMachineList() {
     if (machineMap.isEmpty()) {
       return null;
     }
-    Iterator<Map.Entry<String, Integer>> iterator = machineMap.entrySet().iterator();
+    Iterator<Map.Entry<String, Element>> iterator = machineMap.entrySet().iterator();
     StringBuffer machineList = new StringBuffer();
     while (iterator.hasNext()) {
-      Map.Entry<String, Integer> entry = iterator.next();
-      int numCpus = entry.getValue().intValue();
-      for (int i = 0; i < numCpus; i++) {
-        machineList.append(entry.getKey());
-        if (i < numCpus - 1) {
-          machineList.append(',');
+      Map.Entry<String, Element> entry = iterator.next();
+      Element element = entry.getValue();
+      int number = element.getNumber();
+      if (number <= 0) {
+        continue;
+      }
+      String machine = entry.getKey();
+      machineList.append(machine);
+      String[] deviceArray = element.getDeviceArray();
+      if (!gpuProcessing || deviceArray == null) {
+        for (int i = 1; i < number; i++) {
+          machineList.append(',' + machine);
+        }
+      }
+      else {
+        for (int i = 0; i < number; i++) {
+          if (deviceArray.length <= i) {
+            break;
+          }
+          machineList.append(':' + deviceArray[i]);
         }
       }
       if (iterator.hasNext()) {
@@ -559,6 +586,24 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
 
   public ConstIntKeyList getIntKeyList(etomo.comscript.FieldInterface fieldInterface) {
     throw new IllegalArgumentException("field=" + fieldInterface);
+  }
+
+  private static final class Element {
+    private final int number;
+    private final String[] deviceArray;
+
+    private Element(final int number, final String[] deviceArray) {
+      this.number = number;
+      this.deviceArray = deviceArray;
+    }
+
+    public int getNumber() {
+      return number;
+    }
+
+    public String[] getDeviceArray() {
+      return deviceArray;
+    }
   }
 }
 /**
