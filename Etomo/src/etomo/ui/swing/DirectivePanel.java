@@ -11,6 +11,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
+import etomo.Arguments.DebugLevel;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.logic.DirectiveTool;
@@ -58,7 +59,7 @@ final class DirectivePanel  {
   private final String[] valueList;
   private final boolean booleanValueType;
 
-  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
   private File lastFileChooserLocation = null;
 
   private DirectivePanel(final BaseManager manager, final Directive directive,
@@ -456,7 +457,7 @@ final class DirectivePanel  {
       defaultValueString = value.toString();
     }
     String debugString = "";
-    if (debug > 0) {
+    if (debug.isOn()) {
       debugString = "  Type:" + directive.getValueType()
           + ", Batch:" + directive.isBatch() + ", Tmplt:" + directive.isTemplate()
           + ", eTomo:" + directive.getEtomoColumn() + ", AxisLevelData:"
