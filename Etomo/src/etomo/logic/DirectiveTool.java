@@ -1,5 +1,6 @@
 package etomo.logic;
 
+import etomo.Arguments.DebugLevel;
 import etomo.EtomoDirector;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescrEtomoColumn;
@@ -29,7 +30,7 @@ public final class DirectiveTool {
   private final boolean fileTypeExists;
   private final DirectiveDisplaySettings displaySettings;
 
-  private int debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   public DirectiveTool(final DirectiveFileType type, final boolean fileTypeExists,
       final DirectiveDisplaySettings displaySettings) {
@@ -38,7 +39,7 @@ public final class DirectiveTool {
     this.fileTypeExists = fileTypeExists;
   }
 
-  public void setDebug(final int input) {
+  public void setDebug(final DebugLevel input) {
     debug = input;
   }
 
@@ -79,8 +80,6 @@ public final class DirectiveTool {
       if (i != matchingIndex && directive.isInDirectiveFile(i)) {
         // Include and exclude cannot be set at the same time (but they can both be off).
         if (displaySettings.isInclude(i)) {
-          if (debug > 1) {
-          }
           include = true;
           exclude = false;
         }
