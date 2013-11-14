@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.ProcessSeries;
 import etomo.comscript.ComscriptState;
 import etomo.storage.FileLocation;
@@ -374,7 +373,6 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
         getDetachedMonitor(), getAxisID());
     setSystemProgram(program);
     program.setWorkingDirectory(workingDirectory);
-    program.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
 
     ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID, outFile,
         getProcessData());
