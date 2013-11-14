@@ -277,6 +277,10 @@ public final class Node {
     }
     return gpuDeviceArray.length;
   }
+  
+  public String[] getGpuDeviceArray() {
+    return gpuDeviceArray;
+  }
 
   public boolean isOsEmpty() {
     return os == null || os.matches("\\s*");
