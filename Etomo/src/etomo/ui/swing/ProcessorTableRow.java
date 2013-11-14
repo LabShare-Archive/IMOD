@@ -58,6 +58,7 @@ final class ProcessorTableRow implements Storable {
    */
   private final ToggleCell cellComputer;
   private final FieldCell[] cellLoadArray;
+  private final String[] deviceArray;
 
   private ProcessorTable table = null;
   private InputCell cellCPUsSelected = null;
@@ -87,6 +88,7 @@ final class ProcessorTableRow implements Storable {
     this.numCpus = numCpus;
     speed = node.getSpeed();
     memory = node.getMemory();
+    deviceArray= node.getGpuDeviceArray();
     os = node.getOs();
     this.displayQueues = displayQueues;
     if (displayQueues) {
@@ -378,7 +380,7 @@ final class ProcessorTableRow implements Storable {
   final void getParameters(ProcesschunksParam param) {
     int numCpus = getCPUsSelected();
     if (!displayQueues && numCpus > 0) {
-      param.addMachineName(cellComputer.getLabel(), numCpus);
+      param.addMachineName(cellComputer.getLabel(), numCpus, deviceArray);
     }
   }
 
