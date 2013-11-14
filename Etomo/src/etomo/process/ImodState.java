@@ -806,7 +806,7 @@ public final class ImodState {
       }
     }
     if ((modelView || useModv) && interpolation == null && usingMode
-        && mode != MODEL_MODE && EtomoDirector.INSTANCE.getArguments().isDebugLevel(3)) {
+        && mode != MODEL_MODE && EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
       System.err.println("ImodState:open: sendMessages");
       Thread.dumpStack();
     }
