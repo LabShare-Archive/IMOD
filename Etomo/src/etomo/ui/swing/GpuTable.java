@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import etomo.BaseManager;
+import etomo.comscript.ProcesschunksParam;
 import etomo.storage.Node;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoVersion;
@@ -64,6 +65,11 @@ final class GpuTable extends CpuTable {
       return true;
     }
     return false;
+  }
+
+  void getParameters(final ProcesschunksParam param) {
+    param.setGpuProcessing(true);
+    super.getParameters(param);
   }
 
   boolean enableNumberColumn(final Node node) {
