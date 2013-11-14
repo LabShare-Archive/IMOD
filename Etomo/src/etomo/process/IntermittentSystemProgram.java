@@ -118,10 +118,6 @@ public class IntermittentSystemProgram {
     new Thread(program).start();
   }
 
-  public void setDebug(boolean state) {
-    program.setDebug(state);
-  }
-
   /**
    * Get the standard output from the execution of the program.
    * @return String[] An array of strings containing the standard output from
