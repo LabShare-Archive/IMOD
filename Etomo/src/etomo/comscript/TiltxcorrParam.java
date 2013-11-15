@@ -6,6 +6,7 @@ import java.util.StringTokenizer;
 
 import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
@@ -160,6 +161,9 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   public static final String SKIP_VIEWS_KEY = "SkipViews";
   public static final String FILTER_RADIUS_2_KEY = "FilterRadius2";
   public static final String FILTER_SIGMA_2_KEY = "FilterSigma2";
+  public static final String SEARCH_MAG_CHANGES_KEY = "SearchMagChanges";
+  public static final String VIEWS_WITH_MAG_CHANGES_KEY = "ViewsWithMagChanges";
+  public static final String FILTER_SIGMA1_KEY = "FilterSigma1";
 
   // PIP and sequential input
   private String inputFile;
@@ -194,7 +198,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private ScriptParameter filterRadius2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       FILTER_RADIUS_2_KEY);
   private ScriptParameter filterSigma1 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-      "FilterSigma1");
+      FILTER_SIGMA1_KEY);
   private ScriptParameter filterSigma2 = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       FILTER_SIGMA_2_KEY);
   private final ScriptParameter angleOffset = new ScriptParameter(
@@ -218,6 +222,9 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private final StringParameter prealignmentTransformFile = new StringParameter(
       "PrealignmentTransformFile");
   private ScriptParameter imagesAreBinned = new ScriptParameter("ImagesAreBinned");
+  private EtomoBoolean2 searchMagChanges = new EtomoBoolean2(SEARCH_MAG_CHANGES_KEY);
+  private final StringParameter viewsWithMagChanges = new StringParameter(
+      "ViewsWithMagChanges");
 
   private boolean partialSave = false;
   private boolean validate = false;
@@ -230,7 +237,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   }
 
   public TiltxcorrParam(final BaseManager manager, final AxisID axisID,
-      ProcessName processName) {
+      final ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.processName = processName;
@@ -279,6 +286,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     this.validate = validate;
   }
 
+  public void setViewsWithMagChanges(final String input) {
+    viewsWithMagChanges.set(input);
+  }
+
   /**
    * For patch tracking of the prealigned stack.  Returns the default values of
    * LengthAndOverlap.
@@ -286,8 +297,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
    * @param axisID
    * @return
    */
-  public static String getLengthAndOverlapDefault(BaseManager manager, AxisID axisID,
-      FileType fileType) {
+  public static String getLengthAndOverlapDefault(final BaseManager manager,
+      final AxisID axisID, final FileType fileType) {
     EtomoNumber lengthAndOverlap = new EtomoNumber();
     int lengthAndOverlapFloor = 16;
     lengthAndOverlap.setFloor(lengthAndOverlapFloor);
@@ -310,8 +321,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     return lengthAndOverlap.toString() + ",4";
   }
 
-  public static String getBordersInXandYDefault(BaseManager manager, AxisID axisID,
-      FileType fileType) {
+  public static String getBordersInXandYDefault(final BaseManager manager,
+      final AxisID axisID, final FileType fileType) {
     EtomoNumber bordersInX = new EtomoNumber();
     EtomoNumber bordersInY = new EtomoNumber();
     MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
@@ -377,6 +388,7 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     skipViews.reset();
     prealignmentTransformFile.reset();
     imagesAreBinned.reset();
+    searchMagChanges.reset();
   }
 
   public void resetBoundaryModel() {
@@ -397,6 +409,14 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public boolean isParseComments() {
     return true;
+  }
+
+  public boolean isSearchMagChanges() {
+    return searchMagChanges.is();
+  }
+
+  public boolean isViewsWithMagChangesNull() {
+    return viewsWithMagChanges.isEmpty();
   }
 
   public boolean isFilterRadius2Set() {
@@ -500,6 +520,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       skipViews.parse(scriptCommand);
       prealignmentTransformFile.parse(scriptCommand);
       imagesAreBinned.parse(scriptCommand);
+      searchMagChanges.parse(scriptCommand);
+      viewsWithMagChanges.parse(scriptCommand);
       return;
     }
 
@@ -617,6 +639,8 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     skipViews.updateComScript(scriptCommand);
     prealignmentTransformFile.updateComScript(scriptCommand);
     imagesAreBinned.updateComScript(scriptCommand);
+    searchMagChanges.updateComScript(scriptCommand);
+    viewsWithMagChanges.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
@@ -872,6 +896,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     return ParamUtilities.valueOf(tiltIncrement);
   }
 
+  public String getViewsWithMagChanges() {
+    return viewsWithMagChanges.toString();
+  }
+
   public String getTiltFile() {
     return tiltFile;
   }
@@ -886,6 +914,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public void setRotationAngle(final double input) {
     rotationAngle = input;
+  }
+
+  public void setSearchMagChanges(final boolean input) {
+    searchMagChanges.set(input);
   }
 
   public String getShiftLimitsXandY() {
