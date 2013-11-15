@@ -324,34 +324,45 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   private final PanelHeader header;
   private final ApplicationManager applicationManager;
   private final PanelId panelId;
-  final ContextMenu contextMenu;
   private String skipViews = null;
+  private final CheckTextField ctfMagChanges;
+  private final boolean magChangesMode;
+
+  final ContextMenu contextMenu;
 
   private TiltxcorrPanel(final ApplicationManager applicationManager, final AxisID id,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
-      final PanelId panelId, final ContextMenu contextMenu) {
+      final PanelId panelId, final ContextMenu contextMenu, final boolean magChangesMode) {
     this.dialogType = dialogType;
     axisID = id;
     this.applicationManager = applicationManager;
     this.panelId = panelId;
     this.contextMenu = contextMenu;
+    this.magChangesMode = magChangesMode;
     header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this, dialogType,
         globalAdvancedButton);
 
     btnTiltxcorr = (MultiLineButton) applicationManager.getProcessResultDisplayFactory(
         axisID).getTiltxcorr(dialogType);
-    if (panelId == PanelId.PATCH_TRACKING && btnTiltxcorr != null) {
-      ((Run3dmodButton) btnTiltxcorr).setDeferred3dmodButton(btn3dmodPatchTracking);
-      ((Run3dmodButton) btnTiltxcorr).setContainer(this);
+    if (panelId == PanelId.PATCH_TRACKING) {
+      ctfMagChanges = null;
+      if (btnTiltxcorr != null) {
+        ((Run3dmodButton) btnTiltxcorr).setDeferred3dmodButton(btn3dmodPatchTracking);
+        ((Run3dmodButton) btnTiltxcorr).setContainer(this);
+      }
+    }
+    else {
+      ctfMagChanges = CheckTextField.getInstance(FieldType.INTEGER_LIST,
+          "Find mag change at view(s):");
     }
   }
 
   static TiltxcorrPanel getCrossCorrelationInstance(
       final ApplicationManager applicationManager, final AxisID id,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton,
-      final ContextMenu contextMenu) {
+      final ContextMenu contextMenu, final boolean magChangesMode) {
     TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id, dialogType,
-        globalAdvancedButton, PanelId.CROSS_CORRELATION, contextMenu);
+        globalAdvancedButton, PanelId.CROSS_CORRELATION, contextMenu, magChangesMode);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -362,7 +373,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       final ApplicationManager applicationManager, final AxisID id,
       final DialogType dialogType, final GlobalExpandButton globalAdvancedButton) {
     TiltxcorrPanel instance = new TiltxcorrPanel(applicationManager, id, dialogType,
-        globalAdvancedButton, PanelId.PATCH_TRACKING, null);
+        globalAdvancedButton, PanelId.PATCH_TRACKING, null, false);
     instance.createPanel();
     instance.setToolTipText();
     instance.addListeners();
@@ -386,6 +397,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     UIUtilities.addWithXSpace(pnlYMinAndMax, ltfYMax.getContainer());
     // advanced panel
     pnlAdvanced.setLayout(new BoxLayout(pnlAdvanced, BoxLayout.Y_AXIS));
+    pnlAdvanced2.setLayout(new BoxLayout(pnlAdvanced2, BoxLayout.Y_AXIS));
     if (panelId == PanelId.CROSS_CORRELATION) {
       // Construct the advanced panel
       UIUtilities.addWithYSpace(pnlAdvanced, ltfAngleOffset.getContainer());
@@ -397,17 +409,22 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       UIUtilities.addWithYSpace(pnlAdvanced, pnlYMinAndMax);
       UIUtilities.addWithYSpace(pnlAdvanced, ltfPadPercent.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced, ltfTaperPercent.getContainer());
-      UIUtilities.addWithYSpace(pnlAdvanced, cbCumulativeCorrelation);
-      UIUtilities.addWithYSpace(pnlAdvanced, cbAbsoluteCosineStretch);
-      UIUtilities.addWithYSpace(pnlAdvanced, cbNoCosineStretch);
-      UIUtilities.addWithYSpace(pnlAdvanced, cbExcludeCentralPeak);
-      UIUtilities.addWithYSpace(pnlAdvanced, ltfTestOutput.getContainer());
-      UIUtilities.addWithYSpace(pnlAdvanced, ltfViewRange.getContainer());
-      UIUtilities.addWithYSpace(pnlAdvanced, ltfSkipViews.getContainer());
+
+      UIUtilities.addWithYSpace(pnlAdvanced2, cbCumulativeCorrelation);
+      UIUtilities.addWithYSpace(pnlAdvanced2, cbAbsoluteCosineStretch);
+      UIUtilities.addWithYSpace(pnlAdvanced2, cbNoCosineStretch);
+      UIUtilities.addWithYSpace(pnlAdvanced2, cbExcludeCentralPeak);
+      UIUtilities.addWithYSpace(pnlAdvanced2, ltfTestOutput.getContainer());
+      UIUtilities.addWithYSpace(pnlAdvanced2, ltfViewRange.getContainer());
+      UIUtilities.addWithYSpace(pnlAdvanced2, ltfSkipViews.getContainer());
 
       pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
       pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
       pnlBody.add(pnlAdvanced);
+      if (ctfMagChanges != null) {
+        pnlBody.add(ctfMagChanges.getComponent());
+      }
+      pnlBody.add(pnlAdvanced2);
       pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
       if (btnTiltxcorr != null) {
         pnlBody.add(btnTiltxcorr.getComponent());
@@ -415,6 +432,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlBody.add(Box.createRigidArea(FixedDim.x0_y5));
       UIUtilities.alignComponentsX(pnlBody, Component.CENTER_ALIGNMENT);
       UIUtilities.alignComponentsX(pnlAdvanced, Component.LEFT_ALIGNMENT);
+      UIUtilities.alignComponentsX(pnlAdvanced2, Component.LEFT_ALIGNMENT);
 
       pnlRoot.setBorder(BorderFactory.createEtchedBorder());
       pnlRoot.add(header);
@@ -471,7 +489,6 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlBoundaryModel.add(btn3dmodBoundaryModel.getComponent());
       pnlBoundaryModel.add(Box.createHorizontalGlue());
       // advanced 2 panel
-      pnlAdvanced2.setLayout(new BoxLayout(pnlAdvanced2, BoxLayout.Y_AXIS));
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterSigma1.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterRadius2.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterSigma2.getContainer());
@@ -504,6 +521,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     btn3dmodPatchTracking.addActionListener(actionListener);
     cbBoundaryModel.addActionListener(actionListener);
     btn3dmodBoundaryModel.addActionListener(actionListener);
+    if (ctfMagChanges != null) {
+      ctfMagChanges.addActionListener(actionListener);
+    }
   }
 
   /**
@@ -539,10 +559,14 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
 
   void updateAdvanced(final boolean state) {
     pnlAdvanced.setVisible(state);
+    pnlAdvanced2.setVisible(state);
     if (panelId == PanelId.PATCH_TRACKING) {
-      pnlAdvanced2.setVisible(state);
       ltfAngleOffset.setVisible(state);
       ltfShiftLimitsXandY.setVisible(state);
+    }
+    // If magChangesMode is true, then the mag changes fields are not advanced fields.
+    if (!magChangesMode && ctfMagChanges != null) {
+      ctfMagChanges.setVisible(state);
     }
   }
 
@@ -619,6 +643,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         ctfLengthAndOverlap.setSelected(false);
       }
       cbBoundaryModel.setSelected(tiltXcorrParams.isBoundaryModelSet());
+    }
+    if (ctfMagChanges != null) {
+      ctfMagChanges.setSelected(tiltXcorrParams.isSearchMagChanges());
+      ctfMagChanges.setText(tiltXcorrParams.getViewsWithMagChanges());
     }
     updatePanel();
   }
@@ -771,6 +799,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
           tiltXcorrParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
               applicationManager, axisID, ".preali"));
         }
+        if (ctfMagChanges != null) {
+          tiltXcorrParams.setSearchMagChanges(ctfMagChanges.isSelected());
+          tiltXcorrParams.setViewsWithMagChanges(ctfMagChanges.getText(doValidation));
+        }
       }
       catch (FortranInputSyntaxException except) {
         String message = currentParam + except.getMessage();
@@ -796,6 +828,12 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       cbAbsoluteCosineStretch.setEnabled(false);
     }
     btn3dmodBoundaryModel.setEnabled(cbBoundaryModel.isSelected());
+    if (ctfMagChanges != null) {
+      cbCumulativeCorrelation.setEnabled(!ctfMagChanges.isSelected()
+          || !ctfMagChanges.isEnabled());
+      ctfMagChanges.setEnabled(!cbCumulativeCorrelation.isSelected()
+          || !cbCumulativeCorrelation.isEnabled());
+    }
   }
 
   private boolean validate() {
@@ -839,10 +877,12 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       applicationManager.imodModel(FileType.PREALIGNED_STACK,
           FileType.PATCH_TRACKING_BOUNDARY_MODEL, axisID, run3dmodMenuOptions, false);
     }
+    else if (actionCommand.equals(ctfMagChanges.getActionCommand())) {
+      updatePanel();
+    }
     else {
       updatePanel();
     }
-
   }
 
   private static class CrossCorrelationActionListener implements ActionListener {
@@ -879,10 +919,17 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       except.printStackTrace();
     }
     ltfTestOutput.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "TestOutput"));
-    ltfFilterSigma1.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "FilterSigma1"));
+    ltfFilterSigma1.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        TiltxcorrParam.FILTER_SIGMA1_KEY));
     ltfFilterRadius2.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "FilterRadius2"));
     ltfFilterSigma2.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "FilterSigma2"));
     ltfTrim.setToolTipText(EtomoAutodoc.getTooltip(autodoc, "BordersInXandY"));
+    if (ctfMagChanges != null) {
+      ctfMagChanges.setCheckBoxToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          TiltxcorrParam.SEARCH_MAG_CHANGES_KEY));
+      ctfMagChanges.setCheckBoxToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          TiltxcorrParam.VIEWS_WITH_MAG_CHANGES_KEY));
+    }
     text = EtomoAutodoc.getTooltip(autodoc, "XMinAndMax");
     if (text != null) {
       pnlXMinAndMax.setToolTipText(text);

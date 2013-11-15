@@ -324,7 +324,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   private final MultiLineButton btnFixEdgesMidas;
   private final MultiLineButton btnDistortionCorrectedStack;
 
-  private CoarseAlignDialog(final ApplicationManager appMgr, final AxisID axisID) {
+  private CoarseAlignDialog(final ApplicationManager appMgr, final AxisID axisID,
+      final boolean magChangesMode) {
     super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
     ConstMetaData metaData = appMgr.getMetaData();
     ProcessResultDisplayFactory displayFactory = appMgr
@@ -335,7 +336,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
     tiltxcorrPanel = TiltxcorrPanel.getCrossCorrelationInstance(applicationManager,
-        axisID, dialogType, btnAdvanced, this);
+        axisID, dialogType, btnAdvanced, this, magChangesMode);
     pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType, this,
         btnAdvanced);
     btnExecute.setText("Done");
@@ -381,8 +382,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
   }
 
   public static CoarseAlignDialog getInstance(final ApplicationManager appMgr,
-      final AxisID axisID) {
-    CoarseAlignDialog instance = new CoarseAlignDialog(appMgr, axisID);
+      final AxisID axisID, final boolean magChangesMode) {
+    CoarseAlignDialog instance = new CoarseAlignDialog(appMgr, axisID, magChangesMode);
     instance.addListeners();
     return instance;
   }
@@ -450,7 +451,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
     tiltxcorrPanel.setParameters(screenState);
     pnlPrenewst.setParameters(screenState);
   }
-  
+
   public void setParameters(final ConstMetaData metaData) {
     pnlPrenewst.setParameters(metaData);
   }

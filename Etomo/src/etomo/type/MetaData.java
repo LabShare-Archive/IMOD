@@ -842,6 +842,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + "." + FIRST_AXIS_KEY + ".ElongatedPointsAllowed");
   private final EtomoNumber trackElongatedPointsAllowedB = new EtomoNumber(TRACK_KEY
       + "." + SECOND_AXIS_KEY + ".ElongatedPointsAllowed");
+  // TODO
+  private final EtomoBoolean2 origViewsWithMagChangesA = new EtomoBoolean2(COARSE_KEY
+      + ".Tiltxcorr." + FIRST_AXIS_KEY + ".Orig.ViewsWithMagChanges");
+  private final EtomoBoolean2 origViewsWithMagChangesB = new EtomoBoolean2(COARSE_KEY
+      + ".Tiltxcorr." + SECOND_AXIS_KEY + ".Orig.ViewsWithMagChanges");
+  private final EtomoBoolean2 origViewsWithMagChangesSetA = new EtomoBoolean2(COARSE_KEY
+      + ".Tiltxcorr." + FIRST_AXIS_KEY + ".Orig.ViewsWithMagChanges.Set");
+  private final EtomoBoolean2 origViewsWithMagChangesSetB = new EtomoBoolean2(COARSE_KEY
+      + ".Tiltxcorr." + SECOND_AXIS_KEY + ".Orig.ViewsWithMagChanges.Set");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1151,6 +1160,23 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setAxisType(final AxisType at) {
     axisType = at;
     setAxisPrepends();
+  }
+
+  public void setOrigViewsWithMagChanges(final AxisID axisID, final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      if (origViewsWithMagChangesSetB.is()) {
+        return;
+      }
+      origViewsWithMagChangesB.set(input);
+      origViewsWithMagChangesSetB.set(true);
+    }
+    else {
+      if (origViewsWithMagChangesSetA.is()) {
+        return;
+      }
+      origViewsWithMagChangesA.set(input);
+      origViewsWithMagChangesSetA.set(true);
+    }
   }
 
   public void setViewType(final ViewType vt) {
@@ -1832,6 +1858,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackAntialiasFilterB.reset();
     trackElongatedPointsAllowedA.reset();
     trackElongatedPointsAllowedB.reset();
+    origViewsWithMagChangesA.reset();
+    origViewsWithMagChangesB.reset();
+    origViewsWithMagChangesSetA.reset();
+    origViewsWithMagChangesSetB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2151,6 +2181,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackAntialiasFilterB.load(props, prepend);
     trackElongatedPointsAllowedA.load(props, prepend);
     trackElongatedPointsAllowedB.load(props, prepend);
+    origViewsWithMagChangesA.load(props, prepend);
+    origViewsWithMagChangesB.load(props, prepend);
+    origViewsWithMagChangesSetA.load(props, prepend);
+    origViewsWithMagChangesSetB.load(props, prepend);
   }
 
   public boolean isTrackElongatedPointsAllowedNull(final AxisID axisID) {
@@ -2547,6 +2581,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     stackAntialiasFilterB.store(props, prepend);
     trackElongatedPointsAllowedA.store(props, prepend);
     trackElongatedPointsAllowedB.store(props, prepend);
+    origViewsWithMagChangesA.store(props, prepend);
+    origViewsWithMagChangesB.store(props, prepend);
+    origViewsWithMagChangesSetA.store(props, prepend);
+    origViewsWithMagChangesSetB.store(props, prepend);
   }
 
   public boolean getTrackRaptorUseRawStack() {
@@ -3465,6 +3503,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
   public boolean isValid(final File paramFile) {
     return isValid(false, paramFile);
+  }
+
+  public boolean isOrigViewsWithMagChanges(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return origViewsWithMagChangesB.is();
+    }
+    return origViewsWithMagChangesA.is();
   }
 
   public boolean isValid(final boolean fromScreen, final File paramFile) {

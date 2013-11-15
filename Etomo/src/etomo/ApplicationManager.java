@@ -1333,7 +1333,12 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     Utilities.timestamp("new", "CoarseAlignDialog", Utilities.STARTED_STATUS);
-    CoarseAlignDialog coarseAlignDialog = CoarseAlignDialog.getInstance(this, axisID);
+    comScriptMgr.loadXcorr(axisID);
+    TiltxcorrParam tiltxcorrParam = comScriptMgr.getTiltxcorrParam(axisID);
+    metaData.setOrigViewsWithMagChanges(axisID,
+        !tiltxcorrParam.isViewsWithMagChangesNull());
+    CoarseAlignDialog coarseAlignDialog = CoarseAlignDialog.getInstance(this, axisID,
+        metaData.isOrigViewsWithMagChanges(axisID));
     Utilities.timestamp("new", "CoarseAlignDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       coarseAlignDialogB = coarseAlignDialog;
@@ -1343,9 +1348,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     coarseAlignDialog.setParameters(metaData);
     // Create the dialog box
-    comScriptMgr.loadXcorr(axisID);
     comScriptMgr.loadUndistort(axisID);
-    coarseAlignDialog.setCrossCorrelationParams(comScriptMgr.getTiltxcorrParam(axisID));
+    coarseAlignDialog.setCrossCorrelationParams(tiltxcorrParam);
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadPreblend(axisID);
     }
