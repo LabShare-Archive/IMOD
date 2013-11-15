@@ -154,6 +154,8 @@ public interface ConstTiltxcorrParam extends Command {
 
   public boolean isOverlapOfPatchesXandYSet();
 
+  public boolean isSearchMagChanges();
+
   public boolean isNumberOfPatchesXandYSet();
 
   public String getNumberOfPatchesXandY();
@@ -177,4 +179,6 @@ public interface ConstTiltxcorrParam extends Command {
   public boolean isFilterSigma2Set();
 
   public String getSkipViews();
+
+  public String getViewsWithMagChanges();
 }
