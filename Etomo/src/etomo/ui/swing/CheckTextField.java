@@ -197,9 +197,13 @@ final class CheckTextField implements UIComponent, SwingComponent {
     return !nCheckpointValue.equals(textField.getText());
   }
 
+  boolean isEnabled() {
+    return checkBox.isEnabled();
+  }
+
   void setEnabled(final boolean enable) {
     checkBox.setEnabled(enable);
-    textField.setEnabled(enable);
+    textField.setEnabled(enable && checkBox.isSelected());
   }
 
   void setCheckBoxEnabled(final boolean enable) {
@@ -219,6 +223,10 @@ final class CheckTextField implements UIComponent, SwingComponent {
     pnlRoot.setToolTipText(tooltip);
     textField.setToolTipText(tooltip);
     checkBox.setToolTipText(text);
+  }
+
+  void setVisible(final boolean visible) {
+    pnlRoot.setVisible(visible);
   }
 
   void setCheckBoxToolTipText(final String text) {
