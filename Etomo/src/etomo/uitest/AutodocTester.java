@@ -366,6 +366,7 @@ final class AutodocTester extends Assert implements VariableList {
   private static final int REDRAW_WAIT = 40;
   private static final int MAX_FORMAT = 5;
   private static final int FORMAT_WAIT = 700;
+  private static final int MAX_FRAME_WAIT = 1;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -394,6 +395,8 @@ final class AutodocTester extends Assert implements VariableList {
   private boolean debug = false;
   private Set completedDialogSections = null;
   private boolean interfaceOpen = false;
+  private int frameWait = 0;
+  private boolean tryAgain = false;
 
   /**
    * Tests all the sections of sectionType in order.  This is assumed to be a
@@ -646,7 +649,7 @@ final class AutodocTester extends Assert implements VariableList {
         }
         // Before getting a new command, wait for the current command if it is a
         // wait command.
-        if (!wait) {
+        if (!wait && !tryAgain) {
           command = reader.nextCommand(command);
         }
         if (command != null && command.isKnown()) {
@@ -2018,126 +2021,25 @@ final class AutodocTester extends Assert implements VariableList {
     int index = field.getIndex();
     String value = command.getValue();
     assertNotNull("missing field (" + command + ")", field);
-    // BUTTON
-    if (fieldType == UITestFieldType.BUTTON) {
-      AbstractButton button = findButton(UITestFieldType.BUTTON, name, index);
-      if (button == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
-      }
-      // bn.button_name =
-      assertNull("value not valid in a button command (" + command + ")", value);
-      MouseEventData mouseEventData = new MouseEventData(testRunner, button, 1);
-      if (!mouseEventData.prepareComponent()) {
-        formatApplication();
-      }
-      helper.enterClickAndLeave(mouseEventData);
-      try {
-        if (Utilities.isWindowsOS()) {
-          Thread.sleep(1000);
-        }
-        else {
-          Thread.sleep(REDRAW_WAIT);
-        }
-      }
-      catch (InterruptedException e) {
-      }
-    }
-    // CHECK BOX
-    else if (fieldType == UITestFieldType.CHECK_BOX) {
-      JCheckBox checkBox = findCheckBox(name, index);
-      if (checkBox == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
-      }
-      // cb.check_box_name
-      // if value is present,only click on check box to get it to match value
-      if (value == null || checkBox.isSelected() != convertToBoolean(value)) {
-        helper.enterClickAndLeave(new MouseEventData(testRunner, checkBox, 1));
-        try {
-          Thread.sleep(REDRAW_WAIT);
-        }
-        catch (InterruptedException e) {
-        }
-      }
-    }
-    // COMBO BOX
-    else if (fieldType == UITestFieldType.COMBO_BOX) {
-      JComboBox comboBox = findComboBox(name, index);
-      if (comboBox == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
-      }
-      if (command.getActionType() == UITestActionType.SET
-          && command.getSubjectType() == UITestSubjectType.INDEX) {
-        // set.index.cbb.combo_box_label
-        EtomoNumber nValue = new EtomoNumber();
-        nValue.set(value);
-        assertTrue("value isn't a valid index - " + command.getField().getName() + " ("
-            + command + ")", nValue.isValid());
-        comboBox.setSelectedIndex(nValue.getInt());
-      }
-      else {
-        // cbb.combo_box_label
-        comboBox.addItem(value);
-        comboBox.setSelectedItem(value);
-      }
-    }
-    // MENU_ITEM
-    else if (fieldType == UITestFieldType.MENU_ITEM) {
-      JMenuItem menuItem = findMenuItem(name, index);
-      if (menuItem == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
-      }
-      // mn.menu_item_label
-      // if value is present, only click on menu item when it matches value
-      helper.enterClickAndLeave(new MouseEventData(testRunner, menuItem));
-      // wait for menu to open
-      try {
-        Thread.sleep(1000);
-      }
-      catch (InterruptedException e) {
-      }
-    }
-    // MINI BUTTON
-    else if (fieldType == UITestFieldType.MINI_BUTTON) {
-      AbstractButton miniButton = findButton(UITestFieldType.MINI_BUTTON, name, index);
-      if (miniButton == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
-      }
-      // mb.title_with_mini_button
-      // if value is present,only click on mini-button when it matches value
-      // mb.title_with_mini_button =
-      // mb.title_with_mini_button = current_label
-      if (value == null
-          || miniButton.getText().equals("<html><b><center>" + value + "</center></b>")) {
-        helper.enterClickAndLeave(new MouseEventData(testRunner, miniButton));
-        try {
-          Thread.sleep(REDRAW_WAIT);
-        }
-        catch (InterruptedException e) {
-        }
-      }
-    }
     // PANEL
     // pnl.panel_title
-    else if (fieldType == UITestFieldType.PANEL) {
+    if (fieldType == UITestFieldType.PANEL) {
       assertNull("value not valid in a panel command (" + command + ")", value);
-      try {
-        if (Utilities.isMacOS()) {
-          Thread.sleep(3000);
-        }
-        else {
-          Thread.sleep(1000);
-        }
-      }
-      catch (InterruptedException e) {
-      }
       findContainer(name);
       if (currentPanel == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
+        if (frameWait > MAX_FRAME_WAIT) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+        }
+        else {
+          tryAgain = true;
+          frameWait++;
+          System.err.println("Wait "+ frameWait+" for "+name);
+        }
+      }
+      else {
+        tryAgain = false;
+        frameWait = 0;
       }
       try {
         Thread.sleep(1000);
@@ -2145,74 +2047,190 @@ final class AutodocTester extends Assert implements VariableList {
       catch (InterruptedException e) {
       }
     }
-    // RADIO BUTTON
-    else if (fieldType == UITestFieldType.RADIO_BUTTON) {
-      JRadioButton radioButton = findRadioButton(name, index);
-      if (radioButton == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
+    else {
+      tryAgain = false;
+      frameWait = 0;
+      // BUTTON
+      if (fieldType == UITestFieldType.BUTTON) {
+        AbstractButton button = findButton(UITestFieldType.BUTTON, name, index);
+        if (button == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        // bn.button_name =
+        assertNull("value not valid in a button command (" + command + ")", value);
+        MouseEventData mouseEventData = new MouseEventData(testRunner, button, 1);
+        if (!mouseEventData.prepareComponent()) {
+          formatApplication();
+        }
+        helper.enterClickAndLeave(mouseEventData);
+        try {
+          if (Utilities.isWindowsOS()) {
+            Thread.sleep(1000);
+          }
+          else {
+            Thread.sleep(REDRAW_WAIT);
+          }
+        }
+        catch (InterruptedException e) {
+        }
       }
-      // rb.radio_button_label
-      assertNull("value not valid in a radio command (" + command + ")", value);
-      helper.enterClickAndLeave(new MouseEventData(testRunner, radioButton));
-      try {
-        Thread.sleep(REDRAW_WAIT);
+      // CHECK BOX
+      else if (fieldType == UITestFieldType.CHECK_BOX) {
+        JCheckBox checkBox = findCheckBox(name, index);
+        if (checkBox == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        // cb.check_box_name
+        // if value is present,only click on check box to get it to match value
+        if (value == null || checkBox.isSelected() != convertToBoolean(value)) {
+          helper.enterClickAndLeave(new MouseEventData(testRunner, checkBox, 1));
+          try {
+            Thread.sleep(REDRAW_WAIT);
+          }
+          catch (InterruptedException e) {
+          }
+        }
       }
-      catch (InterruptedException e) {
+      // COMBO BOX
+      else if (fieldType == UITestFieldType.COMBO_BOX) {
+        JComboBox comboBox = findComboBox(name, index);
+        if (comboBox == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        if (command.getActionType() == UITestActionType.SET
+            && command.getSubjectType() == UITestSubjectType.INDEX) {
+          // set.index.cbb.combo_box_label
+          EtomoNumber nValue = new EtomoNumber();
+          nValue.set(value);
+          assertTrue("value isn't a valid index - " + command.getField().getName() + " ("
+              + command + ")", nValue.isValid());
+          comboBox.setSelectedIndex(nValue.getInt());
+        }
+        else {
+          // cbb.combo_box_label
+          comboBox.addItem(value);
+          comboBox.setSelectedItem(value);
+        }
       }
-    }
-    // SPINNER
-    else if (fieldType == UITestFieldType.SPINNER) {
-      JSpinner spinner = findSpinner(name, index);
-      if (spinner == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
+      // MENU_ITEM
+      else if (fieldType == UITestFieldType.MENU_ITEM) {
+        JMenuItem menuItem = findMenuItem(name, index);
+        if (menuItem == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        // mn.menu_item_label
+        // if value is present, only click on menu item when it matches value
+        helper.enterClickAndLeave(new MouseEventData(testRunner, menuItem));
+        // wait for menu to open
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+        }
       }
-      EtomoNumber nValue = new EtomoNumber();
-      nValue.set(value);
-      // sp.spinner_label = integer_value|up|down
-      if (nValue.isValid()) {
-        spinner.setValue(nValue.getNumber());
+      // MINI BUTTON
+      else if (fieldType == UITestFieldType.MINI_BUTTON) {
+        AbstractButton miniButton = findButton(UITestFieldType.MINI_BUTTON, name, index);
+        if (miniButton == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        // mb.title_with_mini_button
+        // if value is present,only click on mini-button when it matches value
+        // mb.title_with_mini_button =
+        // mb.title_with_mini_button = current_label
+        if (value == null
+            || miniButton.getText().equals("<html><b><center>" + value + "</center></b>")) {
+          helper.enterClickAndLeave(new MouseEventData(testRunner, miniButton));
+          try {
+            Thread.sleep(REDRAW_WAIT);
+          }
+          catch (InterruptedException e) {
+          }
+        }
+      }
+      // RADIO BUTTON
+      else if (fieldType == UITestFieldType.RADIO_BUTTON) {
+        JRadioButton radioButton = findRadioButton(name, index);
+        if (radioButton == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        // rb.radio_button_label
+        assertNull("value not valid in a radio command (" + command + ")", value);
+        helper.enterClickAndLeave(new MouseEventData(testRunner, radioButton));
+        try {
+          Thread.sleep(REDRAW_WAIT);
+        }
+        catch (InterruptedException e) {
+        }
+      }
+      // SPINNER
+      else if (fieldType == UITestFieldType.SPINNER) {
+        JSpinner spinner = findSpinner(name, index);
+        if (spinner == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        EtomoNumber nValue = new EtomoNumber();
+        nValue.set(value);
+        // sp.spinner_label = integer_value|up|down
+        if (nValue.isValid()) {
+          spinner.setValue(nValue.getNumber());
+        }
+        else {
+          boolean spinnerControl = convertToSpinnerControl(value);
+          helper.enterClickAndLeave(new JSpinnerMouseEventData(testRunner, spinner,
+              spinnerControl ? JSpinnerMouseEventData.UP_ARROW_SUBCOMPONENT
+                  : JSpinnerMouseEventData.DOWN_ARROW_SUBCOMPONENT, 1));
+        }
+      }
+      // TAB
+      // tb.tabbed_panel_title.index_of_tab
+      else if (fieldType == UITestFieldType.TAB) {
+        // find the tabbed panel and click on the tab
+        assertNull("value not valid in a tab command (" + command + ")", value);
+        JTabbedPane tabbedPane = findTabbedPane(name);
+        if (tabbedPane == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner, tabbedPane,
+            index, 1));
+        try {
+          Thread.sleep(REDRAW_WAIT);
+        }
+        catch (InterruptedException e) {
+        }
+      }
+      // TEXT FIELD
+      else if (fieldType == UITestFieldType.TEXT_FIELD) {
+        JTextComponent textField = findTextField(name, index);
+        if (textField == null) {
+          fail("can't find field - " + command.getField().getName() + " (" + command
+              + ")");
+          return;
+        }
+        // tf.text_field_label
+        textField.setText(value);
       }
       else {
-        boolean spinnerControl = convertToSpinnerControl(value);
-        helper.enterClickAndLeave(new JSpinnerMouseEventData(testRunner, spinner,
-            spinnerControl ? JSpinnerMouseEventData.UP_ARROW_SUBCOMPONENT
-                : JSpinnerMouseEventData.DOWN_ARROW_SUBCOMPONENT, 1));
+        fail("unexpected command (" + command + ")");
       }
+      return;
     }
-    // TAB
-    // tb.tabbed_panel_title.index_of_tab
-    else if (fieldType == UITestFieldType.TAB) {
-      // find the tabbed panel and click on the tab
-      assertNull("value not valid in a tab command (" + command + ")", value);
-      JTabbedPane tabbedPane = findTabbedPane(name);
-      if (tabbedPane == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
-      }
-      helper.enterClickAndLeave(new JTabbedPaneMouseEventData(testRunner, tabbedPane,
-          index, 1));
-      try {
-        Thread.sleep(REDRAW_WAIT);
-      }
-      catch (InterruptedException e) {
-      }
-    }
-    // TEXT FIELD
-    else if (fieldType == UITestFieldType.TEXT_FIELD) {
-      JTextComponent textField = findTextField(name, index);
-      if (textField == null) {
-        fail("can't find field - " + command.getField().getName() + " (" + command + ")");
-        return;
-      }
-      // tf.text_field_label
-      textField.setText(value);
-    }
-    else {
-      fail("unexpected command (" + command + ")");
-    }
-    return;
   }
 
   /**
