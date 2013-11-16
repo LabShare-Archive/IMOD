@@ -877,7 +877,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       applicationManager.imodModel(FileType.PREALIGNED_STACK,
           FileType.PATCH_TRACKING_BOUNDARY_MODEL, axisID, run3dmodMenuOptions, false);
     }
-    else if (actionCommand.equals(ctfMagChanges.getActionCommand())) {
+    else if (ctfMagChanges != null
+        && actionCommand.equals(ctfMagChanges.getActionCommand())) {
       updatePanel();
     }
     else {
