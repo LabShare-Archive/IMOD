@@ -3,13 +3,20 @@
 # placed in the IMOD calibration directory (defined by $IMOD_CALIB_DIR, default
 # location /usr/local/ImodCalib).  Run "man cpuadoc" for complete details on
 # the entries to a cpu.adoc file.  This file shows a number of examples.
+
 #
-# An example of cpu.adoc for a standalone two-processor system:
+# An example of cpu.adoc for a standalone computer:
 #
 
 Version = 1.0
 [Computer = localhost]
+# In this example the computer has two cores or CPUs.
 number = 2
+# The computer also has three graphics cards that may be used for processing.
+# This entry allows from one to three GPUs to be selected in the Parallel
+# Processing panel.  The GPUs are represented here by their device number.  The
+# priority of each GPU is represented by the order of this list.
+gpu.device = 2,1,3
 
 #
 # An example of cpu.adoc for 4 computers with the same operating system and 
@@ -21,17 +28,27 @@ units.speed = GHz
 units.memory = GB
 
 [Computer = frodo]
+# This computer has two cores or CPUs.
 number = 2
 speed = 2.3
-memory = 5.0
+memory = 4.0
+# This computer has one graphics card that may be used for processing.
+gpu = 1
 
 [Computer = sam]
+# This computer has only 1 core.
 speed = 2.5
 memory = 2.0
+# This computer has one graphics card that may be used for processing, but it
+# should not be used from another computer.
+gpu.local = 1
 
 [Computer = pippin]
 speed = 2.4
 memory = 2.0
+# This computer has two graphics cards that may be used for processing.  GPU# 2
+# will be used when only one GPU is requested.
+gpu.device = 2,1
 
 [Computer = merry]
 speed = 2.3
@@ -45,10 +62,13 @@ Version = 1.0
 
 [Computer = frodo]
 number = 2
+gpu = 1
 
 [Computer = sam]
+gpu.local = 1
 
 [Computer = pippin]
+gpu.device = 2,1
 
 [Computer = merry]
 number = 2
