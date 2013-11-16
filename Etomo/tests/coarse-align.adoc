@@ -141,12 +141,13 @@ cb.no-cosine-stretch=on
 assert.cb.absolute-cosine-stretch=off
 cb.cumulative-correlation=off
 cb.no-cosine-stretch=off
-mb.tiltxcorr.1=B
 #
 cb.find-mag-change-at-view=on
 assert.enabled.tf.find-mag-change-at-view=
-assert.disabled.cumulative-correlation=
+assert.disabled.cb.cumulative-correlation=
 cb.find-mag-change-at-view=off
+#
+mb.tiltxcorr.1=B
 #
 # newstack/blendmont
 #
