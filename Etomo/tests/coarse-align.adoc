@@ -96,8 +96,8 @@ assert.tf.y-axis-min=
 assert.tf.max.1=
 assert.tf.pixels-to-pad=
 assert.tf.pixels-to-taper=
-assert.cb.find-mag-change-at-view(s)=off
-assert.tf.find-mag-change-at-view(s)=
+assert.cb.find-mag-change-at-view=off
+assert.tf.find-mag-change-at-view=
 assert.cb.cumulative-correlation=off
 assert.cb.absolute-cosine-stretch=off
 assert.cb.no-cosine-stretch=off
@@ -116,8 +116,8 @@ assert.enabled.tf.y-axis-min=
 assert.enabled.tf.max.1= 
 assert.enabled.tf.pixels-to-pad= 
 assert.enabled.tf.pixels-to-taper=
-assert.enabled.cb.find-mag-change-at-view(s)=
-assert.disabled.tf.find-mag-change-at-view(s)=
+assert.enabled.cb.find-mag-change-at-view=
+assert.disabled.tf.find-mag-change-at-view=
 assert.enabled.cb.cumulative-correlation= 
 assert.disabled.cb.absolute-cosine-stretch=
 assert.enabled.cb.no-cosine-stretch= 
@@ -129,7 +129,7 @@ assert.enabled.bn.calculate-cross-correlation=
 # enable/disable
 #   enabling/disabling Absolute cosine stretch
 cb.cumulative-correlation=on
-assert.disabled.cb.find-mag-change-at-view(s)=
+assert.disabled.cb.find-mag-change-at-view=
 assert.enabled.cb.absolute-cosine-stretch= 
 cb.no-cosine-stretch=1
 assert.cb.absolute-cosine-stretch=off
@@ -143,10 +143,10 @@ cb.cumulative-correlation=off
 cb.no-cosine-stretch=off
 mb.tiltxcorr.1=B
 #
-cb.find-mag-change-at-view(s)=on
-assert.enabled.tf.find-mag-change-at-view(s)=
+cb.find-mag-change-at-view=on
+assert.enabled.tf.find-mag-change-at-view=
 assert.disabled.cumulative-correlation=
-cb.find-mag-change-at-view(s)=off
+cb.find-mag-change-at-view=off
 #
 # newstack/blendmont
 #
