@@ -3,9 +3,11 @@
 <A NAME = "TOP"></A>
 <H2  align="center">IMOD Library libifft</H2>
 The IMOD library libifft contains functions for performing 1-D, 2-D, and 3-D
-Fourier transforms, callable from C or Fortran.  The FFT routines were written
-by Lynn Ten Eyck, wrapper routines were written by David Agard, and it was
-translated from Fortran to C by David Mastronarde.
+Fourier transforms, callable from C or Fortran.  If IMOD is built with FFTW
+libraries, then the routines here are mostly wrappers to calls to FFTW, with
+some logic to handle thread number.  Otherwise, the librayr contains 
+FFT routines written by Lynn Ten Eyck, and wrapper routines written by David
+Agard, which were translated from Fortran to C by David Mastronarde.
 <P>
 In these routines, all dimensions being transformed must be even and their
 largest prime factors must be no larger than 19.  All transforms are done in
