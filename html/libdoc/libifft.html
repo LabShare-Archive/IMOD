@@ -27,7 +27,7 @@ There are no separate Fortran wrappers for these routines; their names are
 defined so that they can be called directly from Fortran.
 From C, include "cfft.h" to have the function name defined with an underscore
 on Unix-type systems and with capital letters on Windows.  Pass all arguments
-by reference (as pointers).
+by reference (as pointers), or use the odfftc, todfftc, and thrdfftc functions calls.
 <P>
 All functions exit with an error message to standard out if the image size
 is not allowed or the direction parameter is incorrect.
