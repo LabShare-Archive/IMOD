@@ -222,6 +222,8 @@ void scaleBarUpdate()
 {
   Imod *imod = imodvStandalone() ? Imodv->imod : App->cvi->imod;
   float zapLen, slicerLen, xyzLen, multiZlen, modvLen;
+  if (App->cvi->loadingImage || !imod)
+    return;
   scaleBarAllLengths(zapLen, slicerLen, xyzLen, multiZlen, modvLen);
   if (!sbDia)
     return;
@@ -264,6 +266,8 @@ ScaleBar *scaleBarGetParams()
 // Dialog change calls this to redraw
 void scaleBarRedraw()
 {
+  if (App->cvi->loadingImage)
+    return;
   if (!imodvStandalone())
     imodDraw(App->cvi, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
   imodv_draw();
