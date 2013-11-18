@@ -366,7 +366,7 @@ final class AutodocTester extends Assert implements VariableList {
   private static final int REDRAW_WAIT = 40;
   private static final int MAX_FORMAT = 5;
   private static final int FORMAT_WAIT = 700;
-  private static final int MAX_FRAME_WAIT = 1;
+  private static final int MAX_FRAME_WAIT = 2;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
