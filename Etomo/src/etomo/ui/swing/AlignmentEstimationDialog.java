@@ -489,7 +489,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     addLogFileTab("taAngles", "Surface Angles", logFileList, alignLabels);
     addLogFileTab("taLocals", "Locals", logFileList, alignLabels);
     addLogFileTab("taResiduals", "Large Residual", logFileList, alignLabels);
-    addLogFileTab("taMappings", "Large Mappings", logFileList, alignLabels);
+    addLogFileTab("taMappings", "Mappings", logFileList, alignLabels);
     addLogFileTab("taCoordinates", "Coordinates", logFileList, alignLabels);
     addLogFileTab("taBeamtilt", "Beam Tilt", logFileList, alignLabels);
     addLogFileTab("align", "Complete Log", logFileList, alignLabels);
