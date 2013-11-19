@@ -5,6 +5,9 @@ the Combine dialog is opened too early.(Bug# 1652)
 
 11/19/13: In uitest, fixed a problem with finding the main panel.(Bug# 1761)
 
+11/18/13: In eTomo made multi-line error messages parsable by adding an empty
+line after each one.(Bug# 1694)
+
 11/18/13: In eTomo - Coarse Alignment, added support for tiltxcorr parameters
 SearchMagChanges and ViewsWithMagChanges.(Bug# 1760)
 

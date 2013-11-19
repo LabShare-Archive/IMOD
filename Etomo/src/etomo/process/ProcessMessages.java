@@ -807,6 +807,7 @@ public final class ProcessMessages {
     while (moreLines) {
       if (line.length() == 0 || count > MAX_MESSAGE_SIZE) {
         // end of message or message is too big - add message in a list
+        messageBuffer.append("\n");
         String message = messageBuffer.toString();
         if (error) {
           getErrorList().add(message);
@@ -827,6 +828,7 @@ public final class ProcessMessages {
       }
     }
     // no more lines - add message to list
+    messageBuffer.append("\n");
     String message = messageBuffer.toString();
     if (error) {
       getErrorList().add(message);
@@ -879,6 +881,7 @@ public final class ProcessMessages {
     while (moreLines) {
       if (line.length() == 0 || count > MAX_MESSAGE_SIZE) {
         // end of message or message is too long - add message in a list
+        messageBuffer.append("\n");
         String message = messageBuffer.toString();
         if (chunkError) {
           getChunkErrorList().add(message);
@@ -893,6 +896,7 @@ public final class ProcessMessages {
       }
     }
     // no more lines - add message to list
+    messageBuffer.append("\n");
     String message = messageBuffer.toString();
     if (chunkError) {
       getChunkErrorList().add(message);
