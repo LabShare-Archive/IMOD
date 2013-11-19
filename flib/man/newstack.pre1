@@ -27,7 +27,9 @@ DDEESSCCRRIIPPTTIIOONN
   options can be specified either as command line arguments (with the -) or
   one per line in a command file or parameter file (without the -).  Options
   can be abbreviated to unique letters; the currently valid abbreviations for
-  short names are shown in parentheses.
+  short names are shown in parentheses.  However, if you are using short names
+  in a script or command file, always use a least 3 letters, because new
+  options might use the same one or two initial letters.
 
 INSERT OPTION TEXT HERE
 
