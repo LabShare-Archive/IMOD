@@ -281,6 +281,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   private final LabeledTextField ltfOutputSizeY = new LabeledTextField(FieldType.INTEGER,
       "Initial match size: ");
   private final JLabel lOutputSizeYInfo = new JLabel();
+ private final ButtonActionListener buttonAction = new ButtonActionListener(this);
 
   private MatchMode matchMode = null;
   private final DialogType dialogType;
@@ -325,7 +326,6 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlRoot.add(pnlMatchvol1);
 
     // Bind the UI objects to their ActionListeners
-    ButtonActionListener buttonAction = new ButtonActionListener(this);
     btnMatchvolRestart.addActionListener(buttonAction);
     // btnMatchcheck.addActionListener(buttonAction);
 
@@ -333,6 +333,10 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
     setToolTipText();
+  }
+  
+  void removeListeners() {
+    btnMatchvolRestart.removeActionListener(buttonAction);
   }
 
   void setDeferred3dmodButtons() {
