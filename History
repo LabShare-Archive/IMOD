@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/18/13: In eTomo made multi-line error messages parsable by adding an empty
+line after each one.(Bug# 1694)
+
 11/18/13: In eTomo - Combine, prevented the dataset from being damaged when
 the Combine dialog is opened too early.(Bug# 1652)
 
