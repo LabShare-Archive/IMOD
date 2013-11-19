@@ -107,7 +107,7 @@ import etomo.util.MRCHeader;
  * <p> </p>
  */
 
-public class ConstCombineParams {
+public abstract class ConstCombineParams {
   public static final String rcsid = "$Id$";
 
   public static final String PATCH_Z_MIN_LABEL = "Z axis min";
@@ -115,7 +115,7 @@ public class ConstCombineParams {
 
   protected String revisionNumber = "1.2";
 
-  //protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
+  // protected MatchMode dialogMatchMode = MatchMode.B_TO_A;
   protected MatchMode matchMode = null;
   protected FiducialMatch fiducialMatch = FiducialMatch.BOTH_SIDES;
   protected StringList useList = new StringList(0);
@@ -140,22 +140,24 @@ public class ConstCombineParams {
 
   protected ArrayList invalidReasons = new ArrayList();
 
+  public abstract boolean isValid();
+
   public ConstCombineParams(BaseManager manager) {
     this.manager = manager;
     patchZMin.set(0);
     patchZMax.set(0);
   }
 
-  public ConstCombineParams(ConstCombineParams src) {
+  public ConstCombineParams(final ConstCombineParams src) {
     manager = src.manager;
     patchZMin.set(0);
     patchZMax.set(0);
   }
 
   public boolean equals(ConstCombineParams cmp) {
-    //if (dialogMatchMode != cmp.dialogMatchMode) {
-    //  return false;
-    //}
+    // if (dialogMatchMode != cmp.dialogMatchMode) {
+    // return false;
+    // }
     if (matchMode != cmp.matchMode) {
       return false;
     }
@@ -226,7 +228,7 @@ public class ConstCombineParams {
    */
   public boolean isValid(boolean YAndZflipped) {
     boolean valid = true;
-    //  Clear any previous reasons from the list
+    // Clear any previous reasons from the list
     invalidReasons.clear();
     if (patchXMin < 1) {
       valid = false;
@@ -271,14 +273,14 @@ public class ConstCombineParams {
       valid = false;
       invalidReasons.add("Z min value is greater than the Z max value");
     }
-    //get the tomogram header to check x, y, and z
+    // get the tomogram header to check x, y, and z
     AxisID axisID;
-    //if (dialogMatchMode == null || dialogMatchMode == MatchMode.B_TO_A) {
-    //  axisID = AxisID.FIRST;
-    //}
-    //else {
-    //  axisID = AxisID.SECOND;
-    //}
+    // if (dialogMatchMode == null || dialogMatchMode == MatchMode.B_TO_A) {
+    // axisID = AxisID.FIRST;
+    // }
+    // else {
+    // axisID = AxisID.SECOND;
+    // }
     if (matchMode == null || matchMode == MatchMode.B_TO_A) {
       axisID = AxisID.FIRST;
     }
@@ -337,9 +339,9 @@ public class ConstCombineParams {
     return revisionNumber;
   }
 
-  //public MatchMode getDialogMatchMode() {
-  //  return dialogMatchMode;
-  //}
+  // public MatchMode getDialogMatchMode() {
+  // return dialogMatchMode;
+  // }
 
   public MatchMode getMatchMode() {
     return matchMode;
