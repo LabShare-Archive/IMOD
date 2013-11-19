@@ -458,13 +458,14 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private TextField tfKernelSigma = new TextField(FieldType.FLOATING_POINT,
       KERNEL_SIGMA_LABEL, null);
 
-  private JPanel pnlBoundary = new JPanel();
+  private final JPanel pnlBoundary = new JPanel();
   private LabeledTextField ltfXLow = new LabeledTextField(FieldType.INTEGER, "X Low :");
   private LabeledTextField ltfXHigh = new LabeledTextField(FieldType.INTEGER, "X high :");
   private LabeledTextField ltfYLow = new LabeledTextField(FieldType.INTEGER, "Z Low :");
   private LabeledTextField ltfYHigh = new LabeledTextField(FieldType.INTEGER, "Z high :");
   private LabeledTextField ltfZLow = new LabeledTextField(FieldType.INTEGER, "Y Low :");
   private LabeledTextField ltfZHigh = new LabeledTextField(FieldType.INTEGER, "Y high :");
+  private final ButtonActionListener actionListener = new ButtonActionListener(this);
 
   private final Run3dmodButton btnPatchcorrRestart;
 
@@ -753,7 +754,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     pnlRoot.add(pnlButton);
 
     // Bind the buttons to action listener
-    ButtonActionListener actionListener = new ButtonActionListener(this);
     btnPatchcorrRestart.addActionListener(actionListener);
     btnPatchsizeIncrease.addActionListener(actionListener);
     btnPatchsizeDecrease.addActionListener(actionListener);
@@ -773,6 +773,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
     setToolTipText();
+  }
+
+  void removeListeners() {
+    btnPatchcorrRestart.removeActionListener(actionListener);
+    btnMatchorwarpRestart.removeActionListener(actionListener);
+    btnVolcombineRestart.removeActionListener(actionListener);
   }
 
   void updateAdvanced(boolean state) {
