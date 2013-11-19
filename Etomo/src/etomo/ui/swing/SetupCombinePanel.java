@@ -531,6 +531,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   private boolean validAutodoc = false;
   private boolean processingMethodLocked = false;
+  private boolean valid = false;
 
   /**
    * Default constructor
@@ -730,6 +731,11 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     // updateStartCombine();
     setToolTipText();
   }
+  
+  void removeListeners() {
+    btnCreate.removeActionListener(actionListener);
+    btnCombine.removeActionListener(actionListener);
+  }
 
   public Container getContainer() {
     return pnlRoot;
@@ -753,6 +759,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
       lTomogramSizeWarning.setText(TOMOGRAM_SIZE_CHANGED_STRING);
     }
   }
+
+
 
   ProcessResultDisplay getCombineResultDisplay() {
     return btnCombine;
@@ -823,6 +831,10 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
 
   public boolean isParallelEnabled() {
     return cbParallelProcess.isEnabled();
+  }
+
+  public boolean isValid() {
+    return valid;
   }
 
   public boolean isUseCorrespondingPoints() {
@@ -943,6 +955,7 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
     pnlSolvematch.updateUseFiducialModel();
     updatePatchRegionModel();
     // updateStartCombine();
+    valid = combineParams.isValid();
   }
 
   /**
@@ -950,8 +963,8 @@ public final class SetupCombinePanel implements ContextMenu, InitialCombineField
    * @param combineParams
    * @throws NumberFormatException
    */
-  public boolean getParameters(CombineParams combineParams, final boolean doValidation)
-      throws NumberFormatException {
+  public boolean getParameters(final CombineParams combineParams,
+      final boolean doValidation) throws NumberFormatException {
     try {
       String badParameter = "unknown";
       try {
