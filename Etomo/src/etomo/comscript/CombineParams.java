@@ -149,6 +149,8 @@ public class CombineParams extends ConstCombineParams implements Storable {
   private static final String MATCH_MODE_KEY = "MatchMode";
   private static final String DIALOG_MATCH_MODE_KEY = "DialogMatchMode";
 
+  private boolean valid = false;
+
   /**
    * Default constructor
    */
@@ -159,7 +161,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
   /**
    * Copy constructor
    */
-  public CombineParams(ConstCombineParams src) {
+  public CombineParams(final ConstCombineParams src) {
     super(src);
     // dialogMatchMode = src.dialogMatchMode;
     matchMode = src.matchMode;
@@ -179,18 +181,22 @@ public class CombineParams extends ConstCombineParams implements Storable {
     manualCleanup = src.manualCleanup;
     transfer = src.transfer;
   }
+  
+  public boolean isValid() {
+    return valid;
+  }
 
   public void setRevisionNumber(String revNumber) {
     revisionNumber = revNumber;
   }
 
-  //  public void setDialogMatchMode(boolean isBtoA) {
-  //   if (isBtoA) {
-  //     dialogMatchMode = MatchMode.B_TO_A;
-  //   }
-  //   else {
-  //     dialogMatchMode = MatchMode.A_TO_B;
-  //   }
+  // public void setDialogMatchMode(boolean isBtoA) {
+  // if (isBtoA) {
+  // dialogMatchMode = MatchMode.B_TO_A;
+  // }
+  // else {
+  // dialogMatchMode = MatchMode.A_TO_B;
+  // }
   // }
 
   public void setMatchMode(boolean isBtoA) {
@@ -358,19 +364,19 @@ public class CombineParams extends ConstCombineParams implements Storable {
     group = prepend + ".";
     props.setProperty(group + "RevisionNumber", revisionNumber);
 
-    //Start backwards compatibility with RevisionNumber = 1.0
+    // Start backwards compatibility with RevisionNumber = 1.0
     props.remove(group + MATCH_B_TO_A_KEY);
-    //backwards compatibility with 1.1
+    // backwards compatibility with 1.1
     props.remove(group + DIALOG_MATCH_MODE_KEY);
-    //End backwards compatibility with RevisionNumber = 1.0
+    // End backwards compatibility with RevisionNumber = 1.0
 
-    //    if (dialogMatchMode == null) {
-    //     props.remove(group + DIALOG_MATCH_MODE_KEY);
-    //   }
-    //   else {
-    //     props.setProperty(group + DIALOG_MATCH_MODE_KEY, dialogMatchMode
-    //         .toString());
-    //  }
+    // if (dialogMatchMode == null) {
+    // props.remove(group + DIALOG_MATCH_MODE_KEY);
+    // }
+    // else {
+    // props.setProperty(group + DIALOG_MATCH_MODE_KEY, dialogMatchMode
+    // .toString());
+    // }
     if (matchMode == null) {
       props.remove(group + MATCH_MODE_KEY);
     }
@@ -397,6 +403,14 @@ public class CombineParams extends ConstCombineParams implements Storable {
   }
 
   /**
+   * Checks readiness of the dataset for combining.  If the X min values is 0, then there
+   * is no tomogram to combine.
+   */
+  public void validate() {
+    valid = patchXMin != 0;
+  }
+
+  /**
    *  Get the objects attributes from the properties object.
    */
   public void load(Properties props) {
@@ -418,11 +432,11 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.2");
 
-    //Start backwards compatibility with RevisionNumber = 1.0
-    //load dialogMatchMode
-    //old property was MatchBtoA.  MatchBtoA should be deleted in store()
+    // Start backwards compatibility with RevisionNumber = 1.0
+    // load dialogMatchMode
+    // old property was MatchBtoA. MatchBtoA should be deleted in store()
     String dialogMatchModeString = props.getProperty(group + DIALOG_MATCH_MODE_KEY);
-    //backwards compatibility with 1.1
+    // backwards compatibility with 1.1
     MatchMode dialogMatchMode = null;
     if (dialogMatchModeString == null) {
       String matchBtoA = props.getProperty(group + MATCH_B_TO_A_KEY);
@@ -442,12 +456,12 @@ public class CombineParams extends ConstCombineParams implements Storable {
         dialogMatchMode = loadDialogMatchMode;
       }
     }
-    //End backwards compatibility with RevisionNumber = 1.0
+    // End backwards compatibility with RevisionNumber = 1.0
 
     if (matchMode == null) {
       matchMode = MatchMode.getInstance(props.getProperty(group + MATCH_MODE_KEY));
       if (matchMode == null) {
-        //backwards compatibility with 1.1
+        // backwards compatibility with 1.1
         matchMode = dialogMatchMode;
       }
     }
@@ -472,17 +486,17 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
     patchRegionModel = props.getProperty(group + "PatchRegionModel", patchRegionModel);
 
-    patchXMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin", String
-        .valueOf(patchXMin)));
+    patchXMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMin",
+        String.valueOf(patchXMin)));
 
-    patchXMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax", String
-        .valueOf(patchXMax)));
+    patchXMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryXMax",
+        String.valueOf(patchXMax)));
 
-    patchYMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin", String
-        .valueOf(patchYMin)));
+    patchYMin = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMin",
+        String.valueOf(patchYMin)));
 
-    patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax", String
-        .valueOf(patchYMax)));
+    patchYMax = Integer.parseInt(props.getProperty(group + "PatchBoundaryYMax",
+        String.valueOf(patchYMax)));
 
     patchZMin.load(props, prepend);
     patchZMax.load(props, prepend);
@@ -545,7 +559,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     int[] xyborders = { 24, 36, 54, 68, 80 };
     int borderinc = 1000;
 
-    //  Assume that Y and Z domains are swapped
+    // Assume that Y and Z domains are swapped
     int minsize = Math.min(mrcHeader.getNColumns(), mrcHeader.getNSections());
     int borderindex = (int) (minsize / borderinc);
     if (borderindex > 4)
