@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/19/13: Made multi-line INFO and WARNING messages more parsable in
+etomo_err.log.(Bug# 1694)
+
 11/19/13: In eTomo - Combine, prevented the dataset from being damaged when
 the Combine dialog is opened too early.(Bug# 1652)
 
