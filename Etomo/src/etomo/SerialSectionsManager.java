@@ -599,6 +599,7 @@ public final class SerialSectionsManager extends BaseManager {
     NewstParam param = null;
     try {
       param = comScriptMgr.getNewstackParam(axisID, getName());
+      param.setCnverbose(true);
       param.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
       param.setTransformFile(FileType.GLOBAL_TRANSFORMATION_LIST
           .getFileName(this, axisID));
