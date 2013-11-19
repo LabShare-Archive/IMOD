@@ -272,6 +272,13 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
   private final EtomoNumber imageRotation = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final ScriptParameter antialiasFilter = new ScriptParameter("AntialiasFilter");
 
+  // colornewst only parameters
+  private EtomoBoolean2 cntiff = new EtomoBoolean2("-cntiff");
+  private final ScriptParameter cntempdir = new ScriptParameter("-cntempdir");
+  private final EtomoNumber cnmaxtemp = new EtomoNumber(EtomoNumber.Type.DOUBLE,
+      "-cnmaxtemp");
+  private EtomoBoolean2 cnverbose = new EtomoBoolean2("-cnverbose");
+
   private final AxisID axisID;
   private final BaseManager manager;
   private final boolean useColorNewst;
@@ -422,11 +429,33 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
       for (int i = 0; i < cmdLineArgs.length; i++) {
         // Is it an argument or filename
         if (cmdLineArgs[i].startsWith("-")) {
-          if (cmdLineArgs[i].toLowerCase().startsWith("-in")) {
+          // Handle all the colornewst parameters
+          if (useColorNewst
+              && (cmdLineArgs[i].startsWith("-cn") || cmdLineArgs[i].startsWith("--cn"))) {
+            if (cmdLineArgs[i].toLowerCase().endsWith(cntiff.getName())) {
+              cntiff.set(true);
+            }
+            else if (cmdLineArgs[i].endsWith(cntempdir.getName())) {
+              i++;
+              cntempdir.set(cmdLineArgs[i]);
+            }
+            else if (cmdLineArgs[i].endsWith(cnmaxtemp.getName())) {
+              i++;
+              cnmaxtemp.set(cmdLineArgs[i]);
+            }
+            else if (cmdLineArgs[i].toLowerCase().endsWith(cnverbose.getName())) {
+              cnverbose.set(true);
+            }
+            else {
+              String message = "Unknown argument: " + cmdLineArgs[i];
+              throw new InvalidParameterException(message);
+            }
+          }
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-inp")) {
             i++;
             inputFile.add(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-ou")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-out")) {
             i++;
             outputFile.set(cmdLineArgs[i]);
             outputFileType = null;
@@ -441,23 +470,23 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
             i++;
             fileOfOutputs.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-se")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-sec")) {
             i++;
             sectionsToRead.add(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-nu")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-num")) {
             i++;
             numberToOutput.add(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-si")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-siz")) {
             i++;
             sizeToOutputInXandY.validateAndSet(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-mo")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-mod")) {
             i++;
             modeToOutput.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-of")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-off")) {
             i++;
             // The first entry goes into the single variable, the next entries go into the
             // vector.
@@ -470,10 +499,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
               offsetsInXandYExtraEntries.add(input);
             }
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-a")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-appl")) {
             applyOffsetsFirst.set(true);
           }
-          else if (cmdLineArgs[i].startsWith("-x") || cmdLineArgs[i].startsWith("-Tr")) {
+          else if (cmdLineArgs[i].startsWith("-xfo") || cmdLineArgs[i].startsWith("-Tra")) {
             i++;
             transformFile.set(cmdLineArgs[i]);
           }
@@ -481,42 +510,42 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
             i++;
             useTransformLines.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-r")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-rot")) {
             i++;
             rotateByAngle.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-e")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-exp")) {
             i++;
             expandByFactor.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-b")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-bin")) {
             i++;
             binByFactor.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-l")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-lin")) {
             linearInterpolation.set(true);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-fl")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-flo")) {
             i++;
             floatDensities.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-c")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-con")) {
             i++;
             contrastBlackWhite.validateAndSet(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-sc")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-sca")) {
             i++;
             scaleMinAndMax.validateAndSet(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-d")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-dis")) {
             i++;
             distortionField.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-im")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-ima")) {
             i++;
             imagesAreBinned.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-te")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-tes")) {
             i++;
             testLimits.validateAndSet(cmdLineArgs[i]);
           }
@@ -524,7 +553,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
             i++;
             gradientFile.set(cmdLineArgs[i]);
           }
-          else if (cmdLineArgs[i].toLowerCase().startsWith("-or")) {
+          else if (cmdLineArgs[i].toLowerCase().startsWith("-ori")
+              || cmdLineArgs[i].startsWith("-Adj")) {
             adjustOrigin.set(true);
           }
           else if (cmdLineArgs[i].toLowerCase().startsWith("-taper")) {
@@ -604,6 +634,21 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     else {
       // Create a new command line argument array
       List<String> cmdLineArgs = new ArrayList<String>();
+      // colornewst
+      if (cntiff.is()) {
+        cmdLineArgs.add(cntiff.getName());
+      }
+      if (!cntempdir.isNull()) {
+        cmdLineArgs.add(cntempdir.getName());
+        cmdLineArgs.add(cntempdir.toString());
+      }
+      if (!cnmaxtemp.isNull()) {
+        cmdLineArgs.add(cnmaxtemp.getName());
+        cmdLineArgs.add(cnmaxtemp.toString());
+      }
+      if (cnverbose.is()) {
+        cmdLineArgs.add(cnverbose.getName());
+      }
       if (!fileOfInputs.isEmpty()) {
         cmdLineArgs.add("-fileinlist");
         cmdLineArgs.add(fileOfInputs.toString());
@@ -740,6 +785,10 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     else {
       binByFactor.set(input);
     }
+  }
+
+  public void setCnverbose(final boolean input) {
+    cnverbose.set(input);
   }
 
   public void resetDistortionField() {
