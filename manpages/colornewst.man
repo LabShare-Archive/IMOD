@@ -22,8 +22,9 @@ Newstack(1) can be included, but not
 .B -input,
 or
 .B -output.
- There must be only one input file and one output file, specified
-as the last arguments on the command line.
+ There must be only one input file and one output file, specified as the last
+ two arguments on the command line.  If placing options in a command file or
+ script, always use at least three letters for the Newstack(1) options.
 .P
 The input file can be either an MRC file or a TIFF file.  If the input file is
 a TIFF file, it will be converted to an MRC file with Tif2mrc(1) using no
@@ -42,7 +43,8 @@ files as TIFF.
 If the input file is gray-scale instead of color, Newstack(1) will be run
 directly on it with the given options.
 .P
-Colornewst itself takes the following options, which can be intermixed with
+Colornewst itself takes the following options, which cannot be abbreviated.
+These options can be intermixed with
 the Newstack(1) options.  Two leading dashes are accepted, just as for
 the Newstack options.
 .TP
