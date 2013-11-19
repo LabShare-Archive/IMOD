@@ -489,13 +489,19 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlInitial.setDeferred3dmodButtons();
     updateDisplay();
   }
+  
+  public void removeListeners() {
+    pnlSetup.removeListeners();
+    pnlInitial.removeListeners();
+    pnlFinal.removeListeners();
+  }
 
   /**
    * Set the setupcombine parameters of the UI from the the ConstCombineParams
    * object
    * @param combineParams
    */
-  public void setCombineParams(ConstCombineParams combineParams) {
+  public void setCombineParams(final ConstCombineParams combineParams) {
     pnlSetup.setParameters(combineParams);
   }
 
@@ -856,6 +862,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       return tabbedPane.isEnabledAt(FINAL_INDEX);
     }
     throw new IllegalArgumentException("tabLabel=" + tabLabel);
+  }
+
+  public boolean isValid() {
+    return pnlSetup.isValid();
   }
 
   /**
