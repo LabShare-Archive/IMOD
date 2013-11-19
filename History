@@ -1,12 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/18/13: In eTomo - Combine, prevented the dataset from being damaged when
+11/19/13: In eTomo - Combine, prevented the dataset from being damaged when
 the Combine dialog is opened too early.(Bug# 1652)
+
+11/19/13: In uitest, fixed a problem with finding the main panel.(Bug# 1761)
 
 11/18/13: In eTomo - Coarse Alignment, added support for tiltxcorr parameters
 SearchMagChanges and ViewsWithMagChanges.(Bug# 1760)
-
-11/16/13: In uitest, fixed a problem with finding the main panel.(Bug# 1761)
 
 11/15/13: In eTomo added support for parallel processing using multiple GPUs
 per computer.(Bug# 1436)
