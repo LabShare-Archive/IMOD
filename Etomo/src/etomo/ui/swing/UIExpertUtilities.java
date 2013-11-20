@@ -182,9 +182,15 @@ public final class UIExpertUtilities {
    */
   public boolean updateFiducialessParams(ApplicationManager manager,
       String imageRotation, boolean fiducialess, AxisID axisID) {
-    String tiltAxisAngle;
+    if (imageRotation.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Missing tilt axis rotation value.  Make sure that the aligned stack has "
+              + "been created.", "Missing File", axisID);
+      return false;
+    }
+    Double tiltAxisAngle;
     try {
-      tiltAxisAngle = imageRotation;
+      tiltAxisAngle = new Double(imageRotation);
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[2];
@@ -195,8 +201,9 @@ public final class UIExpertUtilities {
       return false;
     }
     manager.getMetaData().setFiducialessAlignment(axisID, fiducialess);
-    manager.getMetaData().setImageRotation(tiltAxisAngle, axisID);
-    updateRotationXF(manager, manager.getPropertyUserDir(), tiltAxisAngle, axisID);
+    manager.getMetaData().setImageRotation(tiltAxisAngle.toString(), axisID);
+    updateRotationXF(manager, manager.getPropertyUserDir(), tiltAxisAngle.toString(),
+        axisID);
     return true;
   }
 
