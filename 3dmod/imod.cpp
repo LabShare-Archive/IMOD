@@ -172,7 +172,7 @@ int main( int argc, char *argv[])
   bool anyHavePieceList = false;
   bool anyImageFail = false;
   bool useChooserPlug = false;
-  int argScan;
+  int argScan, argcHere;
   QRect infoGeom;
   StartupForm *startup = NULL;
 
@@ -246,8 +246,10 @@ int main( int argc, char *argv[])
 #endif
 
   /* Open the Qt application */
-  
+  // Once we have told Qt about the original arguments, we must not modify argc here
+  // Somehow later it accesses the old argument vector with the new number of args
   QApplication qapp(argc, argv);
+  argcHere = argc;
   
   /* Set title for error dialogs, and set up to store error strings */
   diaSetTitle("3dmod");
@@ -267,7 +269,7 @@ int main( int argc, char *argv[])
   i = strlen(argv[0]);
   if (argv[0][i-1] == 'v')
     doImodv = 1;
-  if (argc < 2 || (doStartup && doImodv)) {
+  if (argcHere < 2 || (doStartup && doImodv)) {
     useChooserPlug = true;
     startup = new StartupForm(NULL, true, Qt::Window);
     startup->setWindowIcon(*(App->iconPixmap));
@@ -275,7 +277,7 @@ int main( int argc, char *argv[])
       mrc_init_li(&li, NULL);
       ivwInit(&vi, false);
       vi.li = &li;
-      startup->setValues(&vi, argv, firstfile, argc, doImodv, plFileNames, 
+      startup->setValues(&vi, argv, firstfile, argcHere, doImodv, plFileNames, 
                          anglefname, useMdoc, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, 0, frames,
                          nframex, nframey, overx, overy, overEntered);
@@ -285,11 +287,11 @@ int main( int argc, char *argv[])
       exit(1);
     }
     
-    argv = startup->getArguments(argc);
+    argv = startup->getArguments(argcHere);
     doImodv = 0;
-    /*for (i = 0; i < argc; i++)
+    /*for (i = 0; i < argcHere; i++)
       imodPrintStderr("%s ", argv[i]);
-      imodPrintStderr("\n"); */
+      imodPrintStderr("\n");*/
     doStartup = 0;
   }
 
@@ -298,7 +300,7 @@ int main( int argc, char *argv[])
   if (doImodv || argv[0][i-1] == 'v'){
     if (!useChooserPlug)
       App->chooserPlugin = 0;
-    imodv_main(argc, argv);
+    imodv_main(argcHere, argv);
     exit(0);
   }
 
@@ -331,7 +333,7 @@ int main( int argc, char *argv[])
     overEntered = 0;
 
     /* handle input options. */
-    for (i = 1; i < argc; i++){
+    for (i = 1; i < argcHere; i++){
       if (argv[i][0] == '-'){
         if (firstfile) {
           imodError(NULL, "3dmod: invalid to have argument %s after"
@@ -556,7 +558,7 @@ int main( int argc, char *argv[])
       useChooserPlug = true;
       startup = new StartupForm(NULL, true, Qt::Window);
       startup->setWindowIcon(*(App->iconPixmap));
-      startup->setValues(&vi, argv, firstfile, argc, doImodv, plFileNames,
+      startup->setValues(&vi, argv, firstfile, argcHere, doImodv, plFileNames,
                          anglefname, useMdoc, xyzwinopen, sliceropen, zapOpen,
                          modelViewOpen, fillCache, ImodTrans, vi.li->mirrorFFT,
                          frames, nframex, nframey, overx, overy, overEntered);
@@ -565,16 +567,16 @@ int main( int argc, char *argv[])
         exit(1);
       }
     
-      argv = startup->getArguments(argc);
+      argv = startup->getArguments(argcHere);
       if (Imod_debug) {
-        for (i = 0; i < argc; i++)
+        for (i = 0; i < argcHere; i++)
           imodPrintStderr("%s ", argv[i]);
         imodPrintStderr("\n"); 
       }
 
       // Run 3dmodv if they asked for it!
       if (argv[0][strlen(argv[0]) - 1] == 'v') {
-        imodv_main(argc, argv);
+        imodv_main(argcHere, argv);
         exit(0);
       }
     }
@@ -606,27 +608,27 @@ int main( int argc, char *argv[])
 
   /* Try to open the last file if there is one */
   if (firstfile) {
-    qname = QDir::convertSeparators(QString(argv[argc - 1]));
+    qname = QDir::convertSeparators(QString(argv[argcHere - 1]));
 
     // first check if it is directory, if so say it is last image
     QFileInfo info(qname);
     if (info.isDir()) {
-      lastimage = argc - 1;
+      lastimage = argcHere - 1;
     } else {
       mfin = fopen(LATIN1(qname), "rb");
       if (mfin == NULL) {
 
         /* Fail to open, and it is the only filename, then exit */
-        if (firstfile == argc - 1) {
-          imodError(NULL, "Couldn't open input file %s.\n", argv[argc - 1]);
+        if (firstfile == argcHere - 1) {
+          imodError(NULL, "Couldn't open input file %s.\n", argv[argcHere - 1]);
           exit(10);
         }
         
         /* But if there are other files, set up to open new model with that name*/
         imodPrintStderr("Model file (%s) not found: opening "
-                        "new model by that name.\n", argv[argc - 1]);
+                        "new model by that name.\n", argv[argcHere - 1]);
         
-        lastimage = argc - 2;
+        lastimage = argcHere - 2;
         newModelCreated = true;
         
       } else {
@@ -637,15 +639,15 @@ int main( int argc, char *argv[])
         Model = LoadModel(mfin);
         if (Model) {
           if (Imod_debug)
-            imodPrintStderr("Loaded model %s\n", argv[argc -1]);
-          lastimage = argc - 2;
+            imodPrintStderr("Loaded model %s\n", argv[argcHere -1]);
+          lastimage = argcHere - 2;
           Model->drawmode = 1;
           
           // Set this now in case image load is interrupted
           Model->csum = imodChecksum(Model);
         } else {
           /* If fail, last file is an image */
-          lastimage = argc - 1;
+          lastimage = argcHere - 1;
         }
         fclose(mfin);
       }
@@ -868,7 +870,7 @@ int main( int argc, char *argv[])
 
   /* set the model filename, or set to get a new model with empty name */
   if (Model || newModelCreated) {
-    setImod_filename(LATIN1(curdir->cleanPath(QString(argv[argc - 1]))));
+    setImod_filename(LATIN1(curdir->cleanPath(QString(argv[argcHere - 1]))));
   } else {
     Imod_filename[0] = 0x00;
     newModelCreated = true;
