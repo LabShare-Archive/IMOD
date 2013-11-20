@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/20/13: In eTomo - Final Aligned Stack, prevented the creation of a bad
+rotation.xf file when the final aligned image stack is not present.(Bug# 1762)
+
 11/20/13: In eTomo - Serial Sections, fixed the Newstack progress bar.
 (Bug# 1749)
 
