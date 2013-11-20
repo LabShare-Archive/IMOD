@@ -527,7 +527,8 @@ void StartupForm::addImageFiles()
       path = ((*it).left(sepInd + 1)).trimmed();
       file = ((*it).mid(sepInd + 1)).trimmed();
     }
-    //imodPrintStderr("sepInd %d  path =<%s>   file =<%s>\n", sepInd, path.latin1(), file.latin1());
+    /*imodPrintStderr("sepInd %d  path =<%s>   file =<%s>\n", sepInd, LATIN1(path),
+      LATIN1(file));*/
     // If there are no wildcards, just add the whole filename
     if (file.indexOf(QRegExp("[\\*\\?]")) < 0) {
       addArg(LATIN1((*it)));
