@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/20/13: Fixed 3dmod crash from loading many files through startup window.
+
 11/19/13: Made multi-line INFO and WARNING messages more parsable in
 etomo_err.log.(Bug# 1694)
 
