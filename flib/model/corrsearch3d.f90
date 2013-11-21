@@ -18,9 +18,8 @@
 !
 program corrsearch3d
   implicit none
-  integer IDIM, LIMVERT, LIMCONT, LIMPATCH, LIMWORK
-  parameter (IDIM = 140000000)
-  parameter (LIMVERT = 100000, LIMCONT = 1000, LIMPATCH = 100000, LIMWORK = 1000 * 1000)
+  integer LIMVERT, LIMCONT
+  parameter (LIMVERT = 100000, LIMCONT = 1000)
   integer*4 nx, ny, nz, nx2, ny2, nz2
   real*4 dxInitial, dyInitial, dzInitial, dxyzInit(3)
   real*4 dxVolume, dyVolume, dzVolume, dxyzVol(3)
@@ -30,24 +29,25 @@ program corrsearch3d
   equivalence (dxyzVol, dxVolume)
   !
   integer*4 nxyz(3), mxyz(3), nxyzBsource(3), nxyz2(3)
-  real*4 buffer(IDIM), work(LIMWORK), ctf(8193)
-  common /bigarr/ buffer
+  real*4 ctf(8193)
   !
-  logical inside, exist, readSmallMod, found, flipMessages
+  logical inside, exist, readSmallMod, found, flipMessages, loadFullWidth
   integer getImodHead, getImodScales
   real*4 xVertex(LIMVERT), yVertex(LIMVERT), zcont(LIMCONT)
   integer*4 indVert(LIMCONT), numVertex(LIMCONT)
   real*4 xVertexB(LIMVERT), yVertexB(LIMVERT), zcontB(LIMCONT)
   integer*4 indVertB(LIMCONT), numVertB(LIMCONT)
   character*160 fileA, fileB, outputFile, modelFile, tempFile, xfFile, bModel
-  real*4 dxPatch(LIMPATCH), dyPatch(LIMPATCH), dzPatch(LIMPATCH), directErr(LIMPATCH)
-  integer*4 ifDone(LIMPATCH), ixSequence(LIMPATCH), iySequence(LIMPATCH)
-  integer*4 izSequence(LIMPATCH), idirSequence(LIMPATCH)
-  real*4 dxDirect(LIMPATCH), dyDirect(LIMPATCH), dzDirect(LIMPATCH)
-  real*4 ccDirect(LIMPATCH), corrCoef(LIMPATCH)
+  !
+  ! limPatch
+  real*4, allocatable :: dxPatch(:), dyPatch(:), dzPatch(:), directErr(:)
+  integer*4, allocatable :: ifDone(:), ixSequence(:), iySequence(:)
+  integer*4, allocatable :: izSequence(:), idirSequence(:)
+  real*4, allocatable :: dxDirect(:), dyDirect(:), dzDirect(:), ccDirect(:), corrCoef(:)
+  real*4, allocatable :: work(:), buffer(:)
   real*4 xvertBsource(4), yvertBsource(4), xvertSort(4), yvertSort(4)
   !
-  integer*4 indPatch, ix, iy, iz, nxPatch, nyPatch, nzPatch, maxShift
+  integer*4 indPatch, ix, iy, iz, nxPatch, nyPatch, nzPatch, maxShift, limPatch, limWork
   integer*4 ifDebug, numFourierPatch, numCorrs, mode, numXpatch, numYpatch, numZpatch
   integer*4 nBordXlow, nbordXhigh, nbordYlow, nbordYhigh, nbordZlow, nbordZhigh, nxTaper
   integer*4 ixStart, iyStart, izStart, ixDelta, iyDelta, izDelta, nyTaper, nzTaper
@@ -55,25 +55,27 @@ program corrsearch3d
   real*4 dmin, dmax, dmean, dum, a11, a12, a21, a22, dxSource, dzSource, xx, zz
   real*4 tmp, radius2, sigma1, sigma2, sigmaKernel, delta, aScale, bScale
   integer*4 i, j, indYb, numSequence, nxCTF, nyCTF, nzCTF, nxPatchTmp, nyPatchTmp
-  integer*4 nxPad, nyPad, nzPad, numPatchPixels, indPatchA, nzPatchTmp
-  integer*4 indPatchB, indLoadA, indLoadB, maxXload, numCont
+  integer*4 nxPad, nyPad, nzPad, numPatchPixels, indPatchA, nzPatchTmp, idim
+  integer*4 indPatchB, indLoadA, indLoadB, maxXload, numCont, idimOptimal, idimHigher
   integer*4 ierr, ifFlip, numPosTotal, numBcont, ifFlipB
   real*4 xcen, ycen, zcen, xpatchLow, xpatchHigh, zpatchLow, zpatchHigh, dz, dzMin
   integer*4 indP, ifUse, icont, icontMin, ixSpan, izSpan, kernelSize, ixPatchEnd
   integer*4 izPatchStart, izPatchEnd, izDir, izPatch, iz0, iz1, izCen, izAdjacent, indA
   integer*4 iyPatchStart, iyPatchEnd, iyDir, iyPatch, iy0, iy1, iyCen, ixPatchStart
   integer*4 ixDir, ixPatch, ix0, ix1, ixCen, numAdjacent, ixAdjacent, iyAdjacent
-  integer*4 loadY0, loadY1, loadZ0, loadZ1, loadX0, loadX1, numMore
+  integer*4 loadY0, loadY1, loadZ0, loadZ1, loadX0, loadX1, numMore, nyLoadEx, nzLoadEx
   integer*4 nxLoad, nyLoad, nzLoad, indSequence, numNear, loadExtra, numSkip
-  integer*4 loadYb0, loadYb1, loadZb0, loadZb1, loadXb0, loadXb1
+  integer*4 loadYb0, loadYb1, loadZb0, loadZb1, loadXb0, loadXb1, indScratch
   integer*4 nxLoadB, nyLoadb, nzLoadB, ixB0, ixB1, iyB0, iyB1, izB0, izB1
   integer*4 ixMin, ixMax, iyMin, iyMax, izMin, izMax, ifShiftIn, numAdjacentLook
-  integer*4 nxXCpad, nyXCpad, nzXCpad, nxXCbord, nyXCbord, nzXCbord
+  integer*4 nxXCpad, nyXCpad, nzXCpad, nxXCbord, nyXCbord, nzXCbord, niceLim
+  integer*4 num3CorrThreads, numSmoothThreads, numCCCthreads
   real*4 aSource(3,3), dxyzSource(3), dxNew, dyNew, dzNew, peak, wsumAdjacent, wsumNear
   real*4 dxSum, dySum, dzSum, err, perPos, dxAdjacent, dyAdjacent, dzAdjacent, zmodCen
   real*4 dxSumNear, dySumNear, dzSumNear, dxNear, dyNear, dzNear, distSq, distNear
   real*4 ccRatio, wcc, sizeSwitch, ymodCen, distAdjacent
-  integer*4 niceFrame
+  integer*4 niceFrame, usingFFTW, niceFFTlimit, numOMPthreads
+  real*8 wallTime, wallStart, wallbest, wallCCC, wallCum(5)
 
   logical pipInput
   integer*4 numOptArg, numNonOptArg
@@ -133,6 +135,11 @@ program corrsearch3d
   distNear = 4.
   ccRatio = 0.33
   flipMessages = .false.
+  wallBest = 0.
+  wallCum(:) = 0.
+  wallCCC = 0.
+  idimOptimal = 250000000
+  idimHigher = 490000000
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   !
@@ -194,8 +201,12 @@ program corrsearch3d
     nxTaper = (nxPatch + 9) / 10
     nyTaper = (nyPatch + 9) / 10
     nzTaper = (nzPatch + 9) / 10
+    !
+    ! If maximum shift is not entered, scale it by square root of largest size over 1000.
+    ! so it gets bigger for bigger sets
     ierr = PipGetThreeIntegers('TapersInXYZ', nxTaper, nyTaper, nzTaper)
-    ierr = PipGetInteger('MaximumShift', maxShift)
+    if (PipGetInteger('MaximumShift', maxShift) .ne. 0)  &
+        maxShift = maxShift * max(1., sqrt(max(nx2, ny2, nz2) / 1000.))
     call get_nxyz(.true., 'BSourceOrSizeXYZ', ' ', 5, nxyzBsource)
     ierr = PipGetTwoIntegers('BSourceBorderXLoHi', nbordSourceXlow, nbordSourceXhigh)
     ierr = PipGetTwoIntegers('BSourceBorderYZLoHi', nbordSourceZlow, nbordSourceZhigh)
@@ -256,11 +267,12 @@ program corrsearch3d
   nzXCbord = (nzPatch + 4) / 5
   if (pipInput) &
       ierr = PipGetThreeIntegers('PadsInXYZ', nxXCbord, nyXCbord, nzXCbord)
-  nxXCpad = niceFrame(nxPatch + 2 * nxXCbord, 2, 19)
-  nyXCpad = niceFrame(nyPatch + 2 * nyXCbord, 2, 19)
-  nzXCpad = niceFrame(nzPatch + 2 * nzXCbord, 2, 19)
-  if ((nxXCpad + 2) * nzXCpad > LIMWORK) call exitError( &
-      'PATCHES TOO LARGE FOR WORKING ARRAY FOR 3D FFT')
+  niceLim = niceFFTlimit()
+  nxXCpad = niceFrame(nxPatch + 2 * nxXCbord, 2, niceLim)
+  nyXCpad = niceFrame(nyPatch + 2 * nyXCbord, 2, niceLim)
+  nzXCpad = niceFrame(nzPatch + 2 * nzXCbord, 2, niceLim)
+  limWork = 10
+  if (usingFFTW() == 0) limWork = (nxXCpad + 2) * nzXCpad + 10
   nxCTF = nxXCpad
   !
   ! Initialize transform: since this is a center-based transform,
@@ -404,8 +416,13 @@ program corrsearch3d
           nyPatch, numYpatch, iyStart, iyDelta)
     endif
   endif
-  if (numXpatch * numYpatch * numZpatch > LIMPATCH) call exitError( &
-      'TOO MANY PATCHES FOR ARRAYS')
+  limPatch = numXpatch * numYpatch * numZpatch + 10
+  allocate(dxPatch(limPatch), dyPatch(limPatch), dzPatch(limPatch), directErr(limPatch), &
+      ifDone(limPatch), ixSequence(limPatch), iySequence(limPatch), work(limWork), &
+      izSequence(limPatch), idirSequence(limPatch), dxDirect(limPatch), &
+      dyDirect(limPatch), dzDirect(limPatch), ccDirect(limPatch), corrCoef(limPatch), &
+      stat = ierr)
+  call memoryError(ierr, 'ARRAYS FOR PATCH VARIABLES')
   !
   if (ifDebug .ne. 0) then
     print *,'Scan limits in X:', ixStart, ixStart + (numXpatch - 1) * ixDelta &
@@ -509,8 +526,7 @@ program corrsearch3d
     enddo
   enddo
   !
-  if (numPosTotal < 1) call exitError( &
-      'NO PATCHES FIT WITHIN ALL OF THE CONSTRAINTS')
+  if (numPosTotal < 1) call exitError('NO PATCHES FIT WITHIN ALL OF THE CONSTRAINTS')
   !
   ! set indexes at which to load data and compose patches
   ! Here is the padding for the B patch direct correlation
@@ -525,22 +541,54 @@ program corrsearch3d
   !
   indPatchA = 1
   indPatchB = indPatchA + (nxXCpad + 2) * nyXCpad * nzXCpad
-  indLoadA = indPatchB + max(nxPad * nyPad * nzPad, &
-      (nxXCpad + 2) * nyXCpad * nzXCpad)
+  indScratch = indPatchB
+  idim = max(nxPad * nyPad * nzPad, (nxXCpad + 2) * nyXCpad * nzXCpad)
+  
+  ! Separate scratch for filtering only needed if filtering B also
+  ! if (sigmaKernel > 0.) indScratch = indPatchB + idim
+  indLoadA = indScratch + idim
   !
   ! get maximum load size: exload could be a separate parameter
-  !
+  ! First get it for the optimal memory usage; if that is not big enough,
+  ! then get it for a higher usage; but in any case make it big enough
   loadExtra = 2 * (maxShift + 1)
-  maxXload = (IDIM - indLoadA - loadExtra * &
-      (nyPatch + loadExtra) * (nzPatch + loadExtra)) / &
-      (nyPatch * nzPatch + (nyPatch + loadExtra) * (nzPatch + loadExtra))
-  if (maxXload < nxPatch) call exitError('PATCHES TOO LARGE FOR ARRAYS')
+  nyLoadEx = min(ny2, nyPatch + loadExtra)
+  nzLoadEx = min(nz2, nzPatch + loadExtra)
+  maxXload = (idimOptimal - indLoadA - loadExtra * nyLoadEx * nzLoadEx) / &
+      (nyPatch * nzPatch + nyLoadEx * nzLoadEx)
+  if (maxXload < nxPatch) then
+    maxXload = (idimHigher - indLoadA - loadExtra * nyLoadEx * nzLoadEx) / &
+        (nyPatch * nzPatch + nyLoadEx * nzLoadEx)
+    maxXload = max(nxPatch + 4, maxXload)
+  endif
+  maxXload = min(nx + 2, maxXload)
+  idim = indLoadA + maxXload * nyPatch * nzPatch +  &
+      min(nx2 + 2, maxXload + loadExtra) * nyLoadEx * nzLoadEx + 10
   indLoadB = indLoadA + maxXload * nyPatch * nzPatch
-  ! print *,npixpatch, indpatcha, indpatchb, indloada, indloadb, &
-  ! maxxload
+  if (ifDebug > 0)  &
+      print *,numPatchPixels, indpatcha, indpatchb, indloada, indloadb, maxxload
+  allocate(buffer(idim), stat=ierr)
+  call memoryError(ierr, 'IMAGE BUFFER')
   !
   call dopen(1, outputFile, 'new', 'f')
   write(1, '(i7,a)') numPosTotal, ' positions'
+
+  ! Set up number of threads based on analysis relative to 40x20x40 patches
+  if (kernelSize == 3) then
+    numSmoothThreads = max(1, min(6, nint(2 * (numPatchPixels / 32000.)**0.4)))
+  else
+    numSmoothThreads =  max(1, min(8, nint(4 * (numPatchPixels / 32000.)**0.6)))
+  endif
+  if (ifDebug > 0) print *,'smooth threads',numSmoothThreads
+  numSmoothThreads = numOMPthreads(numSmoothThreads)
+  num3CorrThreads = max(1, min(8, nint(2 * (numPatchPixels / 32000.)**0.45)))
+  if (ifDebug > 0) print *,'search threads',num3CorrThreads
+  num3CorrThreads = numOMPthreads(num3CorrThreads)
+  numCCCThreads = max(1, min(8, nint(4 * (numPatchPixels / 32000.)**0.6)))
+  if (ifDebug > 0) print *,'CCC threads',numCCCThreads
+  numCCCThreads = numOMPthreads(numCCCThreads)
+  if (ifDebug > 0) print *,'Actual threads:', numSmoothThreads, num3CorrThreads, &
+      numCCCThreads
   !
   ! loop from center out in all directions, X inner, then short dimension,
   ! then long dimension of Y and Z
@@ -561,6 +609,7 @@ program corrsearch3d
     iyPatch = iySequence(indSequence)
     izPatch = izSequence(indSequence)
     ixDir = idirSequence(indSequence)
+    loadFullWidth = ixPatch == ixSequence(1)
     iz0 = izStart + (izPatch - 1) * izDelta
     iz1 = iz0 + nzPatch - 1
     izCen = iz0 + nzPatch / 2
@@ -663,19 +712,21 @@ program corrsearch3d
           ! get the a patch from the loaded data into an exact fit,
           ! taper, pad, kernel filter optionally and set to zero mean
           !
-          call loadExtractProcess(1, buffer, aScale, indLoadA, indPatchA, indPatchB, &
-              ix0, ix1, iy0, iy1, iz0, iz1, 0, ixDir, ixDelta, maxXload, nxyz, loadX0, &
-              loadX1, nxLoad, loadY0, loadY1, nyLoad, loadZ0, loadZ1, nzLoad, &
-              nxPatchTmp, nyPatchTmp, nzPatchTmp, nxPatchTmp, nxPatchTmp, nyPatchTmp, &
-              nzPatchTmp, nxTaper, nyTaper, nzTaper, kernelSize, sigmaKernel)
+          call loadExtractProcess(1, aScale, indLoadA, indPatchA, ix0, ix1, iy0, iy1, &
+              iz0, iz1, 0, nxyz, loadX0, loadX1, nxLoad, loadY0, loadY1, nyLoad, &
+              loadZ0, loadZ1, nzLoad, nxPatchTmp, nxPatchTmp, nyPatchTmp, nzPatchTmp,  &
+              sigmaKernel)
           !
           ! get the b patch from the loaded data padded to maximum shift
-          !
-          call loadExtractProcess(2, buffer, bScale, indLoadB, indPatchB, indPatchB, &
-              ixB0, ixB1, iyB0, iyB1, izB0, izB1, loadExtra, ixDir, ixDelta, maxXload, &
-              nxyz2, loadXb0, loadXb1, nxLoadB, loadYb0, loadYb1, nyLoadb, loadZb0, &
-              loadZb1, nzLoadB, nxPatchTmp, nyPatchTmp, nzPatchTmp, nxPad, nxPad, nyPad, &
-              nzPad, nxTaper, nyTaper, nzTaper, 3, 0.)
+          ! We only filter one patch because that is all that is needed to smooth the
+          ! CCF in which we are extracting a peak; there, this smoothing is equivalent
+          ! to smoothing both by half as much.  The CCC would be better if both were
+          ! smoothed equivalently, but this is not worth it because the B patch takes
+          ! much longer to smooth
+          call loadExtractProcess(2, bScale, indLoadB, indPatchB, ixB0, ixB1, iyB0, &
+              iyB1, izB0, izB1, loadExtra, nxyz2, loadXb0, loadXb1, nxLoadB, loadYb0, &
+              loadYb1, nyLoadb, loadZb0, loadZb1, nzLoadB, nxPad, nxPad, nyPad, nzPad, &
+              0.)
           !
           dxNew = 0.
           dyNew = 0.
@@ -684,10 +735,12 @@ program corrsearch3d
           ! 'dumpa.')
           ! call dumpVolume(buf(indpatchb), nxpad, nxpad, nypad, nzpad, &
           ! 'dumpb.')
+          wallStart = wallTime()
           call findBestCorr(buffer(indPatchA), nxPatchTmp, nyPatchTmp, nzPatchTmp, ix0, &
               iy0, iz0, buffer(indPatchB), nxPad, nyPad, nzPad, ix0 - maxShift - 1, &
               iy0 - maxShift - 1, iz0 - maxShift - 1, ix0, ix1, iy0, iy1, &
-              iz0, iz1, dxNew, dyNew, dzNew, maxShift, found, numCorrs)
+              iz0, iz1, dxNew, dyNew, dzNew, maxShift, found, numCorrs, num3CorrThreads)
+          wallBest = wallBest + wallTime() - wallStart
           if (found) then
             ifDone(indP) = 1
             dxPatch(indP) = dxNew + nint(dxAdjacent)
@@ -699,10 +752,12 @@ program corrsearch3d
             !
             ! compute correlation coefficient
             !
+            wallStart = wallTime()
             call oneCorrCoeff(buffer(indPatchA), nxPatchTmp, nyPatchTmp, nzPatchTmp, &
                 buffer(indPatchB), nxPad, nyPad, nzPad, nxPatchTmp, nyPatchTmp, &
-                nzPatchTmp, dxNew, dyNew, dzNew, corrCoef(indP))
+                nzPatchTmp, dxNew, dyNew, dzNew, corrCoef(indP), numCCCThreads)
             ccDirect(indP) = corrCoef(indP)
+            wallCCC = wallCCC + wallTime() - wallStart
           endif
         else
           ifDone(indP) = -1
@@ -732,9 +787,9 @@ program corrsearch3d
           nxPatchTmp = ix1 + 1 - ix0
           nyPatchTmp = iy1 + 1 - iy0
           nzPatchTmp = iz1 + 1 - iz0
-          nxXCpad = niceFrame(nxPatchTmp + 2 * nxXCbord, 2, 19)
-          nyXCpad = niceFrame(nyPatchTmp + 2 * nyXCbord, 2, 19)
-          nzXCpad = niceFrame(nzPatchTmp + 2 * nzXCbord, 2, 19)
+          nxXCpad = niceFrame(nxPatchTmp + 2 * nxXCbord, 2, niceLim)
+          nyXCpad = niceFrame(nyPatchTmp + 2 * nyXCbord, 2, niceLim)
+          nzXCpad = niceFrame(nzPatchTmp + 2 * nzXCbord, 2, niceLim)
           ! print *,'XC', nxptmp, nyptmp, nzptmp, nxXCpad, nyXCpad, nzXCpad, &
           ! ix0, ix1, iy0, iy1, iz0, iz1, ixb0, ixb1, iyb0, iyb1, izb0, izb1
           call flush(6)
@@ -751,20 +806,16 @@ program corrsearch3d
           !
           ! get the both patches from the loaded data padded for XCorr
           !
-          call loadExtractProcess(1, buffer, aScale, indLoadA, indPatchA, indPatchB, &
-              ix0, ix1, iy0, iy1, iz0, iz1, 0, ixDir, ixDelta, &
-              maxXload, nxyz, loadX0, loadX1, nxLoad, loadY0, &
-              loadY1, nyLoad, loadZ0, loadZ1, nzLoad, nxPatchTmp, &
-              nyPatchTmp, nzPatchTmp, nxXCpad + 2, nxXCpad, nyXCpad, nzXCpad, &
-              nxTaper, nyTaper, nzTaper, kernelSize, sigmaKernel)
+          call loadExtractProcess(1, aScale, indLoadA, indPatchA, ix0, ix1, iy0, iy1, &
+              iz0, iz1, 0, nxyz, loadX0, loadX1, nxLoad, loadY0, loadY1, nyLoad,  &
+              loadZ0, loadZ1, nzLoad, nxXCpad + 2, nxXCpad, nyXCpad, nzXCpad, &
+              sigmaKernel)
           ! call dumpVolume(buf(indpatcha), nxXCpad + 2, nxXCpad, &
           ! nyXCpad, nzXCpad, 'dumpa.')
-          call loadExtractProcess(2, buffer, bScale, indLoadB, indPatchB, indPatchB, &
-              ixB0, ixB1, iyB0, iyB1, izB0, izB1, loadExtra, ixDir, ixDelta, &
-              maxXload, nxyz2, loadXb0, loadXb1, nxLoadB, loadYb0, &
-              loadYb1, nyLoadb, loadZb0, loadZb1, nzLoadB, nxPatchTmp, &
-              nyPatchTmp, nzPatchTmp, nxXCpad + 2, nxXCpad, nyXCpad, nzXCpad, &
-              nxTaper, nyTaper, nzTaper, 3, 0.)
+          call loadExtractProcess(2, bScale, indLoadB, indPatchB, ixB0, ixB1, iyB0, &
+              iyB1, izB0, izB1, loadExtra, nxyz2, loadXb0, loadXb1, nxLoadB, loadYb0, &
+              loadYb1, nyLoadb, loadZb0, loadZb1, nzLoadB, nxXCpad + 2, nxXCpad, &
+              nyXCpad, nzXCpad, 0.)
 
           ! call dumpVolume(buf(indpatchb), nxXCpad + 2, nxXCpad, &
           ! nyXCpad, nzXCpad, 'dumpb.')
@@ -781,21 +832,16 @@ program corrsearch3d
           !
           ! For coef, reload the patches without the 2-pixel X padding
           !
-          call loadExtractProcess(1, buffer, aScale, indLoadA, indPatchA, indPatchB, &
-              ix0, ix1, iy0, iy1, iz0, iz1, 0, ixDir, ixDelta, &
-              maxXload, nxyz, loadX0, loadX1, nxLoad, loadY0, &
-              loadY1, nyLoad, loadZ0, loadZ1, nzLoad, nxPatchTmp, &
-              nyPatchTmp, nzPatchTmp, nxXCpad, nxXCpad, nyXCpad, nzXCpad, &
-              nxTaper, nyTaper, nzTaper, kernelSize, sigmaKernel)
-          call loadExtractProcess(2, buffer, bScale, indLoadB, indPatchB, indPatchB, &
-              ixB0, ixB1, iyB0, iyB1, izB0, izB1, loadExtra, ixDir, ixDelta, &
-              maxXload, nxyz2, loadXb0, loadXb1, nxLoadB, loadYb0, &
-              loadYb1, nyLoadb, loadZb0, loadZb1, nzLoadB, nxPatchTmp, &
-              nyPatchTmp, nzPatchTmp, nxXCpad, nxXCpad, nyXCpad, nzXCpad, &
-              nxTaper, nyTaper, nzTaper, 3, 0.)
+          call loadExtractProcess(1, aScale, indLoadA, indPatchA, ix0, ix1, iy0, iy1, &
+              iz0, iz1, 0, nxyz, loadX0, loadX1, nxLoad, loadY0, loadY1, nyLoad, &
+              loadZ0, loadZ1, nzLoad, nxXCpad, nxXCpad, nyXCpad, nzXCpad, sigmaKernel)
+          call loadExtractProcess(2, bScale, indLoadB, indPatchB, ixB0, ixB1, iyB0, &
+              iyB1, izB0, izB1, loadExtra, nxyz2, loadXb0, loadXb1, nxLoadB, loadYb0, &
+              loadYb1, nyLoadb, loadZb0, loadZb1, nzLoadB, nxXCpad, nxXCpad, nyXCpad, &
+              nzXCpad, 0.)
           call oneCorrCoeff(buffer(indPatchA), nxXCpad, nyXCpad, nzXCpad, &
               buffer(indPatchB), nxXCpad, nyXCpad, nzXCpad, nxPatchTmp, &
-              nyPatchTmp, nzPatchTmp, dxNew, dyNew, dzNew, corrCoef(indP))
+              nyPatchTmp, nzPatchTmp, dxNew, dyNew, dzNew, corrCoef(indP), numCCCThreads)
 
           if (ifDone(indP) == 0) numFourierPatch = numFourierPatch + 1
           if (ifDebug == 3 .and. ifDone(indP) > 0) &
@@ -851,9 +897,79 @@ program corrsearch3d
   perPos = (3. *numCorrs) / (numPosTotal - numFourierPatch)
   write(*,'(f8.2,a,i5,a)') perPos, ' correlations per position,'// &
       ' Fourier correlations computed', numFourierPatch, ' times'
+  write(*,'(a,8f8.4)')'LETKZ, search, oneCCC:', (wallCum(i),i=1,5), wallBest, wallCCC
   call exit(0)
 95 call exitError('READING TRANSFORM FILE')
-end program
+
+CONTAINS
+
+  ! loadExtractProcess takes care of loading data as needed from the
+  ! given unit IUNIT into the right area of BUFFER, extracting the desired
+  ! patch from there, tapering it, and smoothing via a scratch patch
+  ! area if specified
+  !
+  subroutine loadExtractProcess(iunit, scale, indLoadA, indPatchA, ix0, ix1, iy0, iy1, &
+      iz0, iz1, loadExtra, nxyz, loadX0, loadX1, nxLoad, loadY0, loadY1, nyLoad, &
+      loadZ0, loadZ1, nzLoad, nxPadDim, nxPad, nyPad, nzPad, sigmaKernel)
+    implicit none
+    real*4 sigmaKernel, scale
+    integer*4 indLoadA, indPatchA, ix0, ix1, iy0, iy1, iz0, iz1
+    integer*4 loadExtra, nxyz(3), loadX0, loadX1, nxLoad
+    integer*4 loadY0, loadY1, nyLoad, loadZ0, loadZ1, nzLoad
+    integer*4 nxPadDim, nxPad, nyPad, nzPad
+    integer*4 indTaper, iunit
+    real*8 wallTime, wallNow
+
+    if (ifDebug > 0) wallStart = wallTime()
+    call manageLoad(iunit, buffer(indLoadA), ix0, ix1, iy0, iy1, iz0, iz1, &
+        loadExtra / 2, ixDir, ixDelta, maxXload, loadFullWidth, nxyz, loadX0, loadX1, &
+        nxLoad, loadY0, loadY1, nyLoad, loadZ0, loadZ1, nzLoad)
+    if (ifDebug > 0) then
+      wallNow = wallTime()
+      wallCum(1) = wallCum(1) + wallNow - wallStart
+      wallStart = wallNow
+    endif
+    !
+    ! get the patch from the loaded data and scale it at the same time; taper inside
+    ! and shift mean to zero
+    !
+    call extractPatch(buffer(indLoadA), nxLoad, nyLoad, nzLoad, loadX0, loadY0, loadZ0, &
+        ix0, iy0, iz0, buffer(indPatchA), nxPatchTmp, nyPatchTmp, nzPatchTmp, scale)
+    if (ifDebug > 0) then
+      wallNow = wallTime()
+      wallCum(2) = wallCum(2) + wallNow - wallStart
+      wallStart = wallNow
+    endif
+    indTaper = indPatchA
+    if (sigmaKernel > 0.) indTaper = indScratch
+    call taperInVol(buffer(indPatchA), nxPatchTmp, nyPatchTmp, nzPatchTmp, &
+        buffer(indTaper), nxPadDim, nxPad, nyPad, nzPad, nxTaper, nyTaper, nzTaper)
+    if (ifDebug > 0) then
+      wallNow = wallTime()
+      wallCum(3) = wallCum(3) + wallNow - wallStart
+      wallStart = wallNow
+    endif
+
+    if (sigmaKernel > 0.) then
+      !call dumpVolume(buffer(indtaper), nxpadDim, nxpad, nypad, nzpad, 'taper.')
+      call kernelSmooth(buffer(indTaper), buffer(indPatchA), nxPadDim, nxPad, nyPad, &
+          nzPad, kernelSize, sigmaKernel, numSmoothThreads)
+      !call dumpVolume(buffer(indpatcha), nxpadDim, nxpad, nypad, nzpad, 'smooth.')
+      if (ifDebug > 0) then
+        wallNow = wallTime()
+        wallCum(4) = wallCum(4) + wallNow - wallStart
+        wallStart = wallNow
+      endif
+    endif
+    call volMeanZero(buffer(indPatchA), nxPadDim, nxPad, nyPad, nzPad)
+    if (ifDebug > 0) then
+      wallNow = wallTime()
+      wallCum(5) = wallCum(5) + wallNow - wallStart
+    endif
+    return
+end subroutine loadExtractProcess
+
+end program corrsearch3d
 
 
 ! FIND_BEST_CORR will search for the best 3-D displacement between
@@ -874,13 +990,12 @@ end program
 ! loaded volumes, with the two volumes potentially loaded separately,
 ! hence the unnecessary complexity for the program at hand.
 !
-subroutine findBestCorr(array, nxA, nyA, nza, &
-    loadAx0, loadAy0, loadAz0, brray, nxB, nyB, nzb, &
-    loadBx0, loadBy0, loadBz0, ix0, ix1, iy0, iy1, iz0, iz1, dxAdjacent, &
-    dyAdjacent, dzAdjacent, maxShift, found, numCorrs)
+subroutine findBestCorr(array, nxA, nyA, nza, loadAx0, loadAy0, loadAz0, brray, nxB, &
+    nyB, nzb, loadBx0, loadBy0, loadBz0, ix0, ix1, iy0, iy1, iz0, iz1, dxAdjacent, &
+    dyAdjacent, dzAdjacent, maxShift, found, numCorrs, numThreads)
   implicit none
 
-  integer*4 nxA, nxB, nyA, nyB, nza, nzb
+  integer*4 nxA, nxB, nyA, nyB, nza, nzb, numThreads
   real*4 array(nxA,nyA,nza), brray(nxB,nyB,nzb)
   real*8 corrs(-1:1,-1:1,-1:1), corrTmp(-2:2,-2:2,-2:2)
   real*8 corrMax
@@ -941,7 +1056,7 @@ subroutine findBestCorr(array, nxA, nyA, nza, &
       numCorrs = numCorrs + 1
       call threeCorrs(array, nxA, nyA, brray, nxB, nyB, ix0corr, ix1corr, &
           iy0corr, iy1Corr, iz0corr, iz1cor, idxGlobal, idyCorr, idzCorr, &
-          corrs(-1, idy, idz), corrs(0, idy, idz), corrs(1, idy, idz))
+          corrs(-1, idy, idz), corrs(0, idy, idz), corrs(1, idy, idz), numThreads)
       done(-1, idy, idz) = .true.
       done(0, idy, idz) = .true.
       done(1, idy, idz) = .true.
@@ -1036,16 +1151,20 @@ end subroutine findBestCorr
 ! once almost as fast as one can.  This technique thus speeds up the
 ! overall search by almost a factor of 3.
 !
-subroutine threeCorrs(array, nxA, nyA, brray, nxB, nyB, ix0, ix1, &
-    iy0, iy1, iz0, iz1, idx, idy, idz, corr1, corr2, corr3)
+subroutine threeCorrs(array, nxA, nyA, brray, nxB, nyB, ix0, ix1, iy0, iy1, iz0, iz1, &
+    idx, idy, idz, corr1, corr2, corr3, numThreads)
   implicit none
   real*4 array(*), brray(*)
   real*8 sum1, sum2, sum3, corr1, corr2, corr3
-  integer*4 ix0, ix1, iy0, iy1, iz0, iz1, idx, idy, idz, nxA, nxB, nyA, nyB
+  integer*4 ix0, ix1, iy0, iy1, iz0, iz1, idx, idy, idz, nxA, nxB, nyA, nyB, numThreads
   integer*4 iz, izB, iy, iyb, indBaseA, indDelB, ix, ixB, nsum
   sum1 = 0.
   sum2 = 0.
   sum3 = 0.
+
+  !$OMP PARALLEL DO NUM_THREADS(numThreads) REDUCTION (+ : sum1, sum2, sum3) &
+  !$OMP& SHARED(iz0, iz1, idz, iy0, iy1, idy, nxA, nyA, nxB, nyB, ix0, ix1, array, brray)&
+  !$OMP& PRIVATE(iz, izB, iy, iyb, indBaseA, indDelB, ix, ixB)
   do iz = iz0, iz1
     izB = iz + idz
     do iy = iy0, iy1
@@ -1061,6 +1180,7 @@ subroutine threeCorrs(array, nxA, nyA, brray, nxB, nyB, ix0, ix1, &
       enddo
     enddo
   enddo
+  !$OMP END PARALLEL DO
   nsum = (iz1 + 1 - iz0) * (iy1 + 1 - iy0) * (ix1 + 1 - ix0)
   corr1 = sum1 / nsum
   corr2 = sum2 / nsum
@@ -1111,14 +1231,14 @@ end subroutine threeCorrs
 ! in ARRAY and coordinates in B is given by DX, DY, DZ.  The correlation
 ! coefficient is returned in CORR2.
 !
-subroutine oneCorrCoeff(array, nxA, nyA, nza, brray, nxB, nyB, nzb, &
-    nxPatch, nyPatch, nzPatch, dx, dy, dz, corr2)
+subroutine oneCorrCoeff(array, nxA, nyA, nza, brray, nxB, nyB, nzb, nxPatch, nyPatch, &
+    nzPatch, dx, dy, dz, corr2, numThreads)
   implicit none
   real*4 array(*), brray(*), corr2, dx, dy, dz, denom
   real*8 aSum, sum2, bsum2, asumSq, bsumSq2
   integer*4 ix0, ix1, iy0, iy1, iz0, iz1, idx, idy, idz, nxA, nxB, nyA, nyB, nza, nzb
   integer*4 iz, izB, iy, iyb, indBaseA, indDelB, ix, ixB, nsum
-  integer*4 nxPatch, nyPatch, nzPatch
+  integer*4 nxPatch, nyPatch, nzPatch, numThreads
   sum2 = 0.
   aSum = 0.
   bsum2 = 0.
@@ -1136,6 +1256,12 @@ subroutine oneCorrCoeff(array, nxA, nyA, nza, brray, nxB, nyB, nzb, &
   iz0 = (nza - nzPatch) / 2
   iz1 = min(nzPatch + iz0 - 1, nzb - 1 - idz)
   iz0 = max(iz0, -idz)
+
+  !$OMP PARALLEL DO NUM_THREADS(numThreads) &
+  !$OMP& REDUCTION(+ : sum2, aSum, asumSq, bsum2, bsumSq2) &
+  !$OMP& SHARED(ix0, ix1, iy0, iy1, iz0, iz1, idx, idy, idz, nxA, nxB, nyA, nyB) &
+  !$OMP& SHARED(array, brray) &
+  !$OMP& PRIVATE(iz, izB, iy, iyb, indBaseA, indDelB, ix, ixB)
   do iz = iz0, iz1
     izB = iz + idz
     do iy = iy0, iy1
@@ -1153,6 +1279,7 @@ subroutine oneCorrCoeff(array, nxA, nyA, nza, brray, nxB, nyB, nzb, &
       enddo
     enddo
   enddo
+  !$OMP END PARALLEL DO
   nsum = (iz1 + 1 - iz0) * (iy1 + 1 - iy0) * (ix1 + 1 - ix0)
   denom = (nsum * asumSq - aSum**2) * (nsum * bsumSq2 - bsum2**2)
   !
@@ -1180,11 +1307,11 @@ end subroutine oneCorrCoeff
 ! kernel size (3 or 5) and sigma is the standard deviation of the
 ! Gaussian
 !
-subroutine kernelSmooth(array, brray, nxDim, nx, ny, nz, isize, sigma)
+subroutine kernelSmooth(array, brray, nxDim, nx, ny, nz, isize, sigma, numThreads)
   implicit none
-  integer*4 nx, nxDim, ny, nz, ix, iy, iz, i, j, k, isize, mid, less
+  integer*4 nx, nxDim, ny, nz, ix, iy, iz, i, j, k, isize, mid, less, numThreads
   real*4 array(nxDim, ny, nz), brray(nxDim, ny, nz), sigma
-  real*4 w(5,5,5), wsum
+  real*4 w(5,5,5), wsum, sizeRatio
   !
   ! Make up the gaussian kernel
   !
@@ -1207,79 +1334,75 @@ subroutine kernelSmooth(array, brray, nxDim, nx, ny, nz, isize, sigma)
     enddo
   enddo
   !
-  ! Form the weighted sums: this formulation is 3 times faster
-  ! than adding everything into one output pixel at a time
+  ! Form the weighted sums: moving this to a subroutine was needed to keep the
+  ! single-thread performance from being 2x slower than non-OMP
   !
+  !$OMP PARALLEL DO NUM_THREADS(numThreads) &
+  !$OMP& SHARED(nz, isize, ny, nx, nxDim, mid, array, brray, w)
   do iz = 0, nz - isize
-    do iy = 0, ny - isize
-      do ix = 0, nx - isize
-        brray(ix + mid, iy + mid, iz + mid) = 0.
-      enddo
-      do k = 1, isize
-        do j = 1, isize
-          if (isize == 3) then
-            do ix = 0, nx - 3
-              brray(ix + 2, iy + 2, iz + 2) =  brray(ix + 2, iy + 2, iz + 2) + &
-                  array(ix + 1, iy + j, iz + k) * w(1, j, k) + &
-                  array(ix + 2, iy + j, iz + k) * w(2, j, k) + &
-                  array(ix + 3, iy + j, iz + k) * w(3, j, k)
-            enddo
-          else
-            do ix = 0, nx - 5
-              brray(ix + 3, iy + 3, iz + 3) =  brray(ix + 3, iy + 3, iz + 3) + &
-                  array(ix + 1, iy + j, iz + k) * w(1, j, k) + &
-                  array(ix + 2, iy + j, iz + k) * w(2, j, k) + &
-                  array(ix + 3, iy + j, iz + k) * w(3, j, k) + &
-                  array(ix + 4, iy + j, iz + k) * w(4, j, k) + &
-                  array(ix + 5, iy + j, iz + k) * w(5, j, k)
-            enddo
-          endif
-        enddo
-      enddo
-    enddo
+    call smoothOnePlane(array, brray, nxDim, nx, ny, iz, isize, w)
   enddo
+  !$OMP END PARALLEL DO
   !
   ! Copy the walls of the volume
   !
   less = (mid - 1) / 2
   do iz = 1, nz - less, nz - less - 1
     do iy = 1, ny
-      do ix = 1, nx
-        brray(ix, iy, iz) = array(ix, iy, iz)
-      enddo
+      brray(1:nx, iy, iz) = array(1:nx, iy, iz)
       if (isize > 3) then
-        do ix = 1, nx
-          brray(ix, iy, iz + 1) = array(ix, iy, iz + 1)
-        enddo
+        brray(1:nx, iy, iz + 1) = array(1:nx, iy, iz + 1)
       endif
     enddo
   enddo
   do iy = 1, ny - less, ny - less - 1
     do iz = 1, nz
-      do ix = 1, nx
-        brray(ix, iy, iz) = array(ix, iy, iz)
-      enddo
+      brray(1:nx, iy, iz) = array(1:nx, iy, iz)
       if (isize > 3) then
-        do ix = 1, nx
-          brray(ix, iy + 1, iz) = array(ix, iy + 1, iz)
-        enddo
+        brray(1:nx, iy + 1, iz) = array(1:nx, iy + 1, iz)
       endif
     enddo
   enddo
   do ix = 1, nx - less, nx - less - 1
     do iz = 1, nz
-      do iy = 1, ny
-        brray(ix, iy, iz) = array(ix, iy, iz)
-      enddo
+      brray(ix, 1:ny, iz) = array(ix, 1:ny, iz)
       if (isize > 3) then
-        do iy = 1, ny
-          brray(ix + 1, iy, iz) = array(ix + 1, iy, iz)
-        enddo
+        brray(ix + 1, 1:ny, iz) = array(ix + 1, 1:ny, iz)
       endif
     enddo
   enddo
   return
 end subroutine kernelSmooth
+
+! Form the weighted sums for one Z plane: this formulation is 3 times faster
+! than adding everything into one output pixel at a time
+subroutine smoothOnePlane(array, brray, nxDim, nx, ny, iz, isize, w)
+  implicit none
+  integer*4 nx, nxDim, ny, ix, iy, iz, i, j, k, isize, mid
+  real*4 array(nxDim, ny, *), brray(nxDim, ny, *)
+  real*4 w(5,5,5)
+  mid = (isize + 1) / 2
+  do iy = 0, ny - isize
+    brray(mid:mid+nx-isize, iy + mid, iz + mid) = 0.
+    do k = 1, isize
+      do j = 1, isize
+        if (isize == 3) then
+          brray(2:nx-1, iy + 2, iz + 2) =  brray(2:nx-1, iy + 2, iz + 2) + &
+              array(1:nx-2, iy + j, iz + k) * w(1, j, k) + &
+              array(2:nx-1, iy + j, iz + k) * w(2, j, k) + &
+              array(3:nx, iy + j, iz + k) * w(3, j, k)
+        else
+          brray(3:nx-2, iy + 3, iz + 3) =  brray(3:nx-2, iy + 3, iz + 3) + &
+              array(1:nx-4, iy + j, iz + k) * w(1, j, k) + &
+              array(2:nx-3, iy + j, iz + k) * w(2, j, k) + &
+              array(3:nx-2, iy + j, iz + k) * w(3, j, k) + &
+              array(4:nx-1, iy + j, iz + k) * w(4, j, k) + &
+              array(5:nx, iy + j, iz + k) * w(5, j, k)
+        endif
+      enddo
+    enddo
+  enddo
+end subroutine smoothOnePlane
 
 
 ! Computes a cross-correlation between volumes in ARRAY and BRRAY
@@ -1414,63 +1537,20 @@ subroutine setBload(ix0, ix1, nx2, dxAdjacent, dxVolume, ixB0, ixB1)
   return
 end subroutine setBload
 
-! loadExtractProcess takes care of loading data as needed from the
-! given unit IUNIT into the right area of BUF, extracting the desired
-! patch from there, tapering it, and smoothing via a scratch patch
-! area if sepecified
-!
-subroutine loadExtractProcess(iunit, buffer, scale, indLoadA, indPatchA, &
-    indScratch, ix0, ix1, iy0, iy1, iz0, iz1, loadExtra, ixDir, ixDelta, &
-    maxXload, nxyz, loadX0, loadX1, nxLoad, loadY0, loadY1, nyLoad, &
-    loadZ0, loadZ1, nzLoad, nxPatch, nyPatch, nzPatch, nxPadDim, nxPad, &
-    nyPad, nzPad, nxTaper, nyTaper, nzTaper, kernelSize, sigmaKernel)
-  implicit none
-  real*4 buffer(*), sigmaKernel, scale
-  integer*4 indLoadA, indPatchA, indScratch, ix0, ix1, iy0, iy1, iz0, iz1
-  integer*4 loadExtra, ixDir, ixDelta, maxXload, nxyz, loadX0, loadX1, nxLoad
-  integer*4 loadY0, loadY1, nyLoad, loadZ0, loadZ1, nzLoad, nxPatch, nyPatch
-  integer*4 nzPatch, nxPadDim, nxPad, nyPad, nzPad, nxTaper, nyTaper, nzTaper
-  integer*4 indTaper, iunit, kernelSize
-
-  call manageLoad(iunit, buffer(indLoadA), scale, ix0, ix1, iy0, iy1, iz0, iz1, &
-      loadExtra / 2, ixDir, ixDelta, maxXload, nxyz, loadX0, loadX1, nxLoad, &
-      loadY0, loadY1, nyLoad, loadZ0, loadZ1, nzLoad)
-  !
-  ! get the patch from the loaded data; taper inside
-  ! and shift mean to zero
-  !
-  call extractPatch(buffer(indLoadA), nxLoad, nyLoad, nzLoad, loadX0, loadY0, &
-      loadZ0, ix0, iy0, iz0, buffer(indPatchA), nxPatch, nyPatch, nzPatch)
-  indTaper = indPatchA
-  if (sigmaKernel > 0.) indTaper = indScratch
-  call taperInVol(buffer(indPatchA), nxPatch, nyPatch, nzPatch, buffer(indTaper), &
-      nxPadDim, nxPad, nyPad, nzPad, nxTaper, nyTaper, nzTaper)
-
-  if (sigmaKernel > 0.) then
-    ! call dumpVolume(buf(indtaper), nxpadDim, nxpad, nypad, nzpad, &
-    ! 'taper.')
-    call kernelSmooth(buffer(indTaper), buffer(indPatchA), &
-        nxPadDim, nxPad, nyPad, nzPad, kernelSize, sigmaKernel)
-    ! call dumpVolume(buf(indpatcha), nxpadDim, nxpad, nypad, nzpad, &
-    ! 'smooth.')
-  endif
-  call volMeanZero(buffer(indPatchA), nxPadDim, nxPad, nyPad, nzPad)
-  return
-end subroutine loadExtractProcess
-
 ! MANAGELOAD tests whether the desired volume specified by IX0, IX1,
 ! IY0, IY1, IZ0, IZ1 is already loaded, given the loaded limits in
 ! LOADX0, etc.  If not, it loads the data, with extra amounts specified
 ! by LOADEXH and a maximum load in X specified by MAXXLOAD
 !
-subroutine manageLoad(iunit, buffer, scale, ix0, ix1, iy0, iy1, iz0, iz1, loadExtraHalf, &
-    ixDir, ixDelta, maxXload, nxyz, loadX0, loadX1, nxLoad, loadY0, &
+subroutine manageLoad(iunit, buffer, ix0, ix1, iy0, iy1, iz0, iz1, loadExtraHalf, &
+    ixDir, ixDelta, maxXload, loadFullWidth, nxyz, loadX0, loadX1, nxLoad, loadY0, &
     loadY1, nyLoad, loadZ0, loadZ1, nzLoad)
   implicit none
-  real*4 buffer(*), scale
+  real*4 buffer(*)
   integer*4 ix0, ix1, iy0, iy1, iz0, iz1, loadExtraHalf, ixDir, ixDelta, maxXload
   integer*4 loadX0, loadX1, nxLoad, loadY0, loadY1, nyLoad, loadZ0, loadZ1
   integer*4 nzLoad, numMore, nxyz(3), iunit
+  logical loadFullWidth
   !
   if (ix0 >= loadX0 .and. ix1 <= loadX1 .and. &
       iy0 >= loadY0 .and. iy1 <= loadY1 .and. &
@@ -1487,7 +1567,10 @@ subroutine manageLoad(iunit, buffer, scale, ix0, ix1, iy0, iy1, iz0, iz1, loadEx
   ! but limiting to edge of data and then truncating
   ! to the end of a patch
   !
-  if (ixDir > 0) then
+  if (maxXload >= nxyz(1) .and. loadFullWidth) then
+    loadX0 = 0
+    loadX1 = nxyz(1) - 1
+  else if (ixDir > 0) then
     loadX0 = max(0, ix0 - loadExtraHalf)
     loadX1 = min(nxyz(1) - 1, ix0 + maxXload-1 + loadExtraHalf)
     numMore = (loadX1 - loadExtraHalf - ix1) / ixDelta
@@ -1498,13 +1581,13 @@ subroutine manageLoad(iunit, buffer, scale, ix0, ix1, iy0, iy1, iz0, iz1, loadEx
     numMore = (ix0 - loadX0 + loadExtraHalf) / ixDelta
     loadX0 = max(0, ix0 - ixDelta * numMore - loadExtraHalf)
   endif
-  ! print *,'loading data', iunit, ix0, ix1, iy0, iy1, iz0, iz1, loadx0, &
-  ! loadx1,  loady0, loady1, loadz0, loadz1
+  ! write(*,'(a,i2,12i5)')'loading data', iunit, ix0, ix1, iy0, iy1, iz0, iz1, loadx0, &
+  !  loadx1,  loady0, loady1, loadz0, loadz1
   nxLoad = loadX1 + 1 - loadX0
   nyLoad = loadY1 + 1 - loadY0
   nzLoad = loadZ1 + 1 - loadZ0
   call loadVol(iunit, buffer, nxLoad, nyLoad, loadX0, loadX1, loadY0, loadY1, &
-      loadZ0, loadZ1, scale)
+      loadZ0, loadZ1)
   return
 end subroutine manageLoad
 
@@ -1513,19 +1596,22 @@ end subroutine manageLoad
 ! assuming dimensions of NXDIM by NYDIM, from index coordinates
 ! IX0, IX1, IY0, IY1, IZ0, IZ1.
 !
-subroutine loadVol(iunit, array, nxDim, nyDim, ix0, ix1, iy0, iy1, iz0, iz1, scale)
+subroutine loadVol(iunit, array, nxDim, nyDim, ix0, ix1, iy0, iy1, iz0, iz1)
   implicit none
   integer*4 nxDim, nyDim, ix0, ix1, iy0, iy1, iz0, iz1, iunit, indZ, iz
-  real*4 array(nxDim,nyDim,*), scale
+  real*4 array(nxDim,nyDim,*)
+  real*8 wallTime, wallStart, wallAll, wallNow, wallCum, wallAllSt, wallSeek
   !
   ! print *,iunit, nxdim, nydim, ix0, ix1, iy0, iy1, iz0, iz1
   indZ = 0
+  wallStart = wallTime()
+  wallAllSt = wallStart
+  wallCum = 0.
+  wallSeek =0.
   do iz = iz0, iz1
     indZ = indZ + 1
     call imposn(iunit, iz, 0)
     call irdpas(iunit, array(1, 1, indZ), nxDim, nyDim, ix0, ix1, iy0, iy1,*99)
-    array(1:ix1 + 1 - ix0, 1: iy1 + 1 - iy0, indZ) = scale * &
-        array(1:ix1 + 1 - ix0, 1: iy1 + 1 - iy0, indZ)
   enddo
   return
 99 call exitError('ERROR READING FILE')
@@ -1536,26 +1622,21 @@ end subroutine loadVol
 ! NZPATCH into ARRAY from the loaded volume in BUF, whose dimensions
 ! are NXLOAD by NYLOAD by NZLOAD.  BUF is loaded from starting index
 ! coordinates LOADX0, LOADY0, LOADZ0, and the starting index
-! coordinates of the patch are IX0, IY0, IZ0.
+! coordinates of the patch are IX0, IY0, IZ0.  Values are multipled by SCALE.
 !
-subroutine extractPatch(buffer, nxLoad, nyLoad, nzLoad, &
-    loadX0, loadY0, loadZ0, ix0, iy0, &
-    iz0, array, nxPatch, nyPatch, nzPatch)
+subroutine extractPatch(buffer, nxLoad, nyLoad, nzLoad, loadX0, loadY0, loadZ0, ix0, &
+    iy0, iz0, array, nxPatch, nyPatch, nzPatch, scale)
   implicit none
   integer*4 nxLoad, nyLoad, nzLoad, loadX0, loadY0, loadZ0, ix0, iy0
   integer*4 iz0, nxPatch, nyPatch, nzPatch
-  real*4 buffer(nxLoad,nyLoad,nzLoad), array(nxPatch,nyPatch,nzPatch)
-  integer*4 iz, izFrom, iy, iyFrom, ix
+  real*4 buffer(nxLoad,nyLoad,nzLoad), array(nxPatch,nyPatch,nzPatch), scale
+  integer*4 iz, iy, ix, indz
   !
-  do iz = 1, nzPatch
-    izFrom = iz + iz0 - loadZ0
-    do iy = 1, nyPatch
-      iyFrom = iy + iy0 - loadY0
-      do ix = 1, nxPatch
-        array(ix, iy, iz) = buffer(ix + ix0 - loadX0, iyFrom, izFrom)
-      enddo
-    enddo
-  enddo
+  ix = ix0 - loadX0
+  iy = iy0 - loadY0
+  iz = iz0 - loadZ0
+  array(1:nxPatch, 1:nyPatch, 1:nzPatch) =  &
+      buffer(1+ix:nxPatch+ix, 1+iy:nyPatch+iy, 1+iz:nzPatch+iz) * scale
   return
 end subroutine extractPatch
 
@@ -1567,25 +1648,12 @@ subroutine volMeanZero(array, nxDim, nx, ny, nz)
   implicit none
   integer*4 nxDim, nx, ny, nz
   real*4 array(nxDim,ny,nz)
-  real*8 sum
+  real*8 arsum
   integer*4 i, j, k
   real*4 dmean
-  sum = 0.
-  do k = 1, nz
-    do j = 1, ny
-      do i = 1, nx
-        sum = sum + array(i, j, k)
-      enddo
-    enddo
-  enddo
-  dmean = sum / (nx * ny * nz)
-  do k = 1, nz
-    do j = 1, ny
-      do i = 1, nx
-        array(i, j, k) = array(i, j, k) - dmean
-      enddo
-    enddo
-  enddo
+  arsum = sum(array(1:nx, 1:ny, 1:nz))
+  dmean = arsum / (nx * ny * nz)
+  array(1:nx, 1:ny, 1:nz) = array(1:nx, 1:ny, 1:nz) - dmean
   return
 end subroutine volMeanZero
 
