@@ -36,8 +36,8 @@ C
       NCB = NCRS(1,J)*JB
 c       
 c       6/20/09: Zero array only if it is under 2 Gpixel limit
+c       11/20/13: Don't zero array, it is gratituous and wastes time
       nread = int(MX, kind=8) * MY*NBW
-      if (nread .lt. 2147000000) CALL ZERO(ARRAY, int(nread, kind = 4))
 c      
       if(spider(j))then
         lrecspi(j)=lrecspi(j)-ny1               !advance properly for SPIDER
