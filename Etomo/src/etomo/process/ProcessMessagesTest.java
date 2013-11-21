@@ -59,6 +59,6 @@ public class ProcessMessagesTest extends TestCase {
         "Errno: message should not contain extra lines when MultiLineMessages is off",
         messages.getError(1).endsWith("C. error line"));
     assertTrue("Traceback message should always contain extra lines", messages
-        .getError(2).endsWith("F. second error line"));
+        .getError(2).indexOf("F. second error line") != -1);
   }
 }
