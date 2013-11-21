@@ -183,10 +183,8 @@ C         DNM: straight no-conversion is silly for bit modes, will return intege
           IF (IER .NE. 0) GOTO 99
           if(mrcflip(j))call convert_shorts(line,n)
           if (jmode .ne. 6) then                ! SIGNED
-            DO  K = 1,N
-              ARRAY(INDEX) = LINE(K)
-              INDEX = INDEX + 1
-            enddo
+            array(index:index + n - 1) = line(1:n)
+            index = index + n
           else                                  ! UNSIGNED
             lcompos = 0
             DO K = 1,N
