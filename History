@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/21/13: Changed Corrsearch3d to use dynamic allocation, load from file more 
+efficiently, and use multiple threads for some steps.
+
 11/20/13: In eTomo - Final Aligned Stack, prevented the creation of a bad
 rotation.xf file when the final aligned image stack is not present.(Bug# 1762)
 
