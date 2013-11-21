@@ -21,7 +21,7 @@ extern "C" {
 #define odfft odfft_
 #define todfft todfft_
 #define thrdfft thrdfft_
-#define usingFFTW usingFFTW_
+#define usingFFTW usingfftw_
 #define niceFFTlimit nicefftlimit_
 #endif
 
