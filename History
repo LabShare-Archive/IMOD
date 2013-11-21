@@ -8,7 +8,7 @@ rotation.xf file when the final aligned image stack is not present.(Bug# 1762)
 
 11/20/13: Fixed 3dmod crash from loading many files through startup window.
 
-11/19/13: Made multi-line INFO and WARNING messages more parsable in
+11/20/13: Made multi-line INFO and WARNING messages more parsable in
 etomo_err.log.(Bug# 1694)
 
 11/19/13: In eTomo - Combine, prevented the dataset from being damaged when
