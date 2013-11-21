@@ -10,32 +10,16 @@ subroutine taperInVol(array, nxBox, nyBox, nzBox, brray, nxDim, nx, ny, nz, nxTa
   implicit none 
   real*4 array(nxBox,nyBox,nzBox), brray(nxDim,ny,nz)
   integer*4 nxBox, nyBox, nzBox, nxDim, nx, ny, nz, nxTaper, nyTaper, nzTaper
-  real*4 sum, tsum, dmean, fracX, fracY, fracZ, fmin
+  real*4 arsum, tsum, dmean, fracX, fracY, fracZ, fmin
   integer*4 ix, iy, iz, ixLow, ixHigh, iyLow, iyHigh, izLow, izHigh, nxTop, nyTop, nzTop
   integer*4 ix1, ix2, iy1, iy2, iz1, iz2, nsum, iyTopLine,  izTopLine, nxLimit
   !
   ! Get the edge mean
-  sum = 0.
-  do iy = 1, nyBox
-    tsum = 0.
-    do ix = 1, nxBox
-      tsum = tsum + array(ix, iy, 1) + array(ix, iy, nzBox)
-    enddo
-    sum = sum + tsum
-  enddo
-  nsum = 2 * nxBox * nyBox
-  do iz = 2, nzBox - 1
-    tsum = 0.
-    do ix = 1, nxBox
-      tsum = tsum + array(ix, 1, iz) + array(ix, nyBox, iz)
-    enddo
-    do iy = 2, nyBox - 1
-      tsum = tsum + array(1, iy, iz) + array(nxBox, iy, iz)
-    enddo
-    sum = sum + tsum
-    nsum = nsum + (2 * (nxBox + nyBox - 2))
-  enddo
-  dmean = sum / nsum
+  arsum = sum(array(1:nxBox, 1:nyBox, 1)) + sum(array(1:nxBox, 1:nyBox, nzBox)) + &
+      sum(array(1:nxBox, 1, 2:nzBox-1)) + sum(array(1:nxBox, nyBox, 2:nzBox-1)) + &
+      sum(array(1, 2:nyBox-1, 2:nzBox-1)) + sum(array(nxBox, 2:nyBox-1, 2:nzBox-1))
+  nsum = 2 * nxBox * nyBox + (nzBox - 2) * (2 * (nxBox + nyBox - 2))
+  dmean = arsum / nsum
   !
   ixLow = (nx - nxBox) / 2
   ixHigh = ixLow + nxBox
@@ -63,15 +47,11 @@ subroutine taperInVol(array, nxBox, nyBox, nzBox, brray, nxDim, nx, ny, nz, nxTa
       !
       if (nx - ixHigh > ixLow) then
         nxTop = nx
-        do iy = 1, ny
-          brray(nx, iy, iz) = dmean
-        enddo
+        brray(nx, 1:ny, iz) = dmean
       endif
       if (ny - iyHigh > iyLow) then
         nyTop = ny
-        do ix = 1, nx
-          brray(ix, ny, iz) = dmean
-        enddo
+        brray(1:nx, ny, iz) = dmean
       endif
       !
       do iy = iyLow + 1, iyHigh
@@ -82,29 +62,19 @@ subroutine taperInVol(array, nxBox, nyBox, nzBox, brray, nxDim, nx, ny, nz, nxTa
       enddo
       do iy = 1, iyLow
         iyTopLine = nyTop - iy
-        do ix = 1, nx
-          brray(ix, iy, iz) = dmean
-          brray(ix, iyTopLine, iz) = dmean
-        enddo
+        brray(1:nx, iy, iz) = dmean
+        brray(1:nx, iyTopLine, iz) = dmean
       enddo
     enddo
     !
     if (nz - izHigh > izLow) then
       nzTop = nz
-      do iy = 1, ny
-        do ix = 1, nx
-          brray(ix, iy, nz) = dmean
-        enddo
-      enddo
+      brray(1:nx, 1:ny, nz) = dmean
     endif
     do iz = 1, izLow
       izTopLine = nzTop - iz
-      do iy = 1, ny
-        do ix = 1, nx
-          brray(ix, iy, iz) = dmean
-          brray(ix, iy, izTopLine) = dmean
-        enddo
-      enddo
+      brray(1:nx, 1:ny, iz) = dmean
+      brray(1:nx, 1:ny, izTopLine) = dmean
     enddo
   endif
   !
