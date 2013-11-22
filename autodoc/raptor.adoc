@@ -130,8 +130,7 @@ tooltip =
 manpage = Specify how much output RAPTOR should write and keep:
 ^  0 for minimal output. Only reconstructed volume and a minimal log file
 are kept
-^  1 for stan
-dard output (the default).  Aligned stack is kept as well as
+^  1 for standard output (the default).  Aligned stack is kept as well as
 fiducial model for IMOD and log with RAPTOR's progress.
 ^  2 for debug mode. RAPTOR writes an extended output log as well as status in
 intermediate steps of the process. Useful to report and detect errors.
