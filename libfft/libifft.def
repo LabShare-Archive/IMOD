@@ -9,6 +9,7 @@ EXPORTS
 	r8cftk
 	r2cftk
 	hermft
+	USINGFFTW
 	rpcftk
 	mdftkd
 	srfp
@@ -16,7 +17,6 @@ EXPORTS
 	cmplft
 	NICEFFTLIMIT
 	r5cftk
-	USINGFFTW
 	r3cftk
 	realft
 	ODFFT
