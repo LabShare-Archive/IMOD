@@ -282,13 +282,13 @@ if direct:
        thiscom = fmtstr(rootname + '-{:03d}-sync.com', startnum)
        startnum += 1
 
-    sedcom = [r"/^\s*" + slicedel + "/d",
-              '/savework/d',
-              '/^ *THICKNESS/a/' + slicedel + ' -1 -1/',
-              fmtstr("/^ *THICKNESS/a/TOTALSLICES {} {}/", mintotslice,
+    sedcom = [r"|^\s*" + slicedel + "|d",
+              '|savework|d',
+              '|^ *THICKNESS|a|' + slicedel + ' -1 -1|',
+              fmtstr("|^ *THICKNESS|a|TOTALSLICES {} {}|", mintotslice,
                      maxtotslice),
-              sedModify('ActionIfGPUFails', '2,2')]
-    sedlines = pysed(sedcom, comlines, None, True)
+              sedModify('ActionIfGPUFails', '2,2', delim = '|')]
+    sedlines = pysed(sedcom, comlines, None, True, delim = '|')
     sedlines.append('$sync')
     writeTextFile(thiscom, sedlines)
 
@@ -314,17 +314,17 @@ for num in range(1, numslabs+1):
 
    # Modify the command file: delete existing slice, get rid of savework,
    # Set the new slice command and the xtiltinterp control
-   sedcom = ["/" + recsed + "/s//" + tempname + "/",
-             r"/^\s*" + slicedel + "/d",
-             '/savework/d',
-             fmtstr("/^ *THICKNESS/a/{} {} {}/", slicedel, ubfirst, ublast),
-             "/^ *THICKNESS/a/" + oldstyle + "/",
-             fmtstr("/{}/a/TOTALSLICES {} {}/", totsed, mintotslice, maxtotslice),
-             "/" + boundsed + "/a/BoundaryInfoFile " + boundfile + "/",
-             sedModify('ActionIfGPUFails', '2,2')]
+   sedcom = ["|" + recsed + "|s||" + tempname + "|",
+             r"|^\s*" + slicedel + "|d",
+             '|savework|d',
+             fmtstr("|^ *THICKNESS|a|{} {} {}|", slicedel, ubfirst, ublast),
+             "|^ *THICKNESS|a|" + oldstyle + "|",
+             fmtstr("|{}|a|TOTALSLICES {} {}|", totsed, mintotslice, maxtotslice),
+             "|" + boundsed + "|a|BoundaryInfoFile " + boundfile + "|",
+             sedModify('ActionIfGPUFails', '2,2', delim = '|')]
    if vsOutFile:
-      sedcom.append("/" + boundsed + "/a/VertBoundaryFile " + vsBoundFile + "/")
-   sedlines = pysed(sedcom, comlines, None, True)
+      sedcom.append("|" + boundsed + "|a|VertBoundaryFile " + vsBoundFile + "|")
+   sedlines = pysed(sedcom, comlines, None, True, delim = '|')
    sedlines.insert(0, '$sync')
    writeTextFile(thiscom, sedlines)
    if direct:
@@ -398,14 +398,3 @@ prnstr(fmtstr("Command files for {} chunks created and ready to run with:",
               numslabs))
 prnstr("  processchunks machine_list " + rootname)
 
-#  $Log$
-#  Revision 1.3  2011/07/09 17:17:04  mast
-#  Added boundary files for vertical slice output files
-#
-#  Revision 1.2  2010/12/09 04:38:12  mast
-#  reproj needs to be 0 and 1 since it is printed to file!
-#
-#  Revision 1.1  2010/12/07 21:38:38  mast
-#  Converted to python
-#
-    
