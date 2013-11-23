@@ -300,14 +300,15 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout', returnOnErr = False)
    with optional redirection of standard output to a file, and of standard error
    to a separate file or to standard out by default.
    """
-   # If subprocess is allowed, open the files if any
-   if useSubprocess:
-      outf = None
-      errf = None
-      errToFile = False
-      if errfile == 'stdout':
-         errf = STDOUT
-      try:
+   try:
+
+      # If subprocess is allowed, open the files if any
+      if useSubprocess:
+         outf = None
+         errf = None
+         errToFile = False
+         if errfile == 'stdout':
+            errf = STDOUT
          if outfile:
             action = 'Opening ' + outfile + ' for output'
             outf = open(outfile, 'w')
@@ -316,36 +317,41 @@ def bkgdProcess(commandArr, outfile=None, errfile='stdout', returnOnErr = False)
             action = 'Opening ' + errfile + ' for output'
             errf = open(errfile, 'w')
             errToFile = True
-      except IOError:
-         errString = action + "  - " + str(sys.exc_info()[1])
-         if returnOnErr:
-            return errString
-         exitError(errString)
 
-      # Use detached flag on Windows, although it may not be needed
-      # In fact, unless stderr is going to a file it keeps it from running there
-      if sys.platform.find('win32') >= 0 and errToFile:
-         DETACHED_PROCESS = 0x00000008
-         Popen(commandArr, shell=False, stdout=outf, stderr=errf,
-               creationflags=DETACHED_PROCESS)
-      else:
-         Popen(commandArr, shell=False, stdout=outf, stderr=errf)
+         # Use detached flag on Windows, although it may not be needed
+         # In fact, unless stderr is going to a file it keeps it from running there
+         action = 'Starting background process ' + commandArr[0]
+         if sys.platform.find('win32') >= 0 and errToFile:
+            DETACHED_PROCESS = 0x00000008
+            Popen(commandArr, shell=False, stdout=outf, stderr=errf,
+                  creationflags=DETACHED_PROCESS)
+         else:
+            Popen(commandArr, shell=False, stdout=outf, stderr=errf)
+         return None
+
+      # Otherwise use system call: wrap all args in quotes and add the redirects
+      comstr = commandArr[0]
+      action = 'Starting background process ' + commandArr[0]
+      for i in range(1, len(commandArr)):
+         comstr += ' "' + commandArr[i] + '"'
+      if outfile:
+         comstr += ' > "' + outfile + '"'
+      if errfile == 'stdout':
+         comstr += ' 2>&1'
+      elif errfile:
+         comstr += ' 2> "' + errfile + '"'
+      comstr += ' &'
+
+      # The return value is not useful when it fails to run
+      os.system(comstr)
       return None
-
-   # Otherwise use system call: wrap all args in quotes and add the redirects
-   comstr = commandArr[0]
-   for i in range(1, len(commandArr)):
-      comstr += ' "' + commandArr[i] + '"'
-   if outfile:
-      comstr += ' > "' + outfile + '"'
-   if errfile == 'stdout':
-      comstr += ' 2>&1'
-   elif errfile:
-      comstr += ' 2> "' + errfile + '"'
-   comstr += ' &'
-   os.system(comstr)
-   return None
          
+   except Exception:
+      errString = action + "  - " + str(sys.exc_info()[1])
+      if returnOnErr:
+         return errString
+      exitError(errString)
+
 
 # Get essential data from the header of an MRC file
 def getmrc(file, doAll = False):
