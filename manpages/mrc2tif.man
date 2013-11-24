@@ -4,9 +4,9 @@
 .SH NAME
 mrc2tif \- Create TIFF, JPEG, or PNG files from an MRC image file.
 .SH SYNOPSIS
-mrc2tif [-s] <mrc file> <tiff file root name>
+mrc2tif [options]  mrc_input_file  tiff_file_root_name
 .SH DESCRIPTION
-mrc2tif usually creates a series of TIFF files with the prefix <tiff root name>
+mrc2tif usually creates a series of TIFF files with the prefix "tiff_file_root_name"
 and with the suffix .nnn.tif, where nnn is the z number.  Byte, signed and
 unsigned 16-bit integer, float, 
 and RGB color files (modes 0, 1, 6, 2, 16) can be converted.  There are
@@ -15,7 +15,7 @@ written to a TIFF file in the same mode as in the input file by default, but
 there are options that allow the integer and float modes to be scaled to
 bytes; the same options allow scaling of byte and RGB values.  If the input
 file has only one section, then the output file will simply be the 
-<tiff root name> with no suffix added.  
+"tiff_file_root_name" with no suffix added.  
 .P
 When the output mode is integer or float, the TIFF file will contain the
 minimum and maximum value for the data in the file.  When a TIFF stack is
