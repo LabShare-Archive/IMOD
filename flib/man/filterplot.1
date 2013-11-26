@@ -1,6 +1,6 @@
      BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
 
-FILTERPLOT(1)						 	  FILTERPLOT(1)
+FILTERPLOT(1)                                                     FILTERPLOT(1)
 
 NNAAMMEE
   filterplot - plot filter created by 4 IMOD filter parameters
@@ -20,7 +20,7 @@ DDEESSCCRRIIPPTTIIOONN
   The filter is the product of two gaussian functions, the first one typically
   controlled by Sigma1 and the second one by Sigma2, Radius1, and Radius2.  If
   all values are positive or zero, then the first filter is in the form of a
-  gaussian highpass filter given by:	
+  gaussian highpass filter given by:    
        (1. - exp(-r**2/(2*Sigma1**2)))
   The second filter is a gaussian-edged band-pass filter. This filter is
   flat between Radius1 --> Radius2 and decays symmetrically as a gaussian
@@ -51,16 +51,16 @@ DDEESSCCRRIIPPTTIIOONN
   Several modes of operation are possible:
 
   Gaussian low-pass filter (temperature factor)
-  	:  Sigma1 & Radii = 0, use Sigma2
+        :  Sigma1 & Radii = 0, use Sigma2
 
   Gaussian bandpass centered at Radius
-  	:  Sigma1=0, 		use Radius1=Radius2 & Sigma2
+        :  Sigma1=0,            use Radius1=Radius2 & Sigma2
 
   Gaussian-edged badpass between Radius1 & Radius2
-  	:  Sigma1=0, 		use Radius1,Radius2 & Sigma2
+        :  Sigma1=0,            use Radius1,Radius2 & Sigma2
 
   Gaussian bandpass (low-pass + high-pass)
-  	: Radii = 0,		use Sigma1 & Sigma2
+        : Radii = 0,            use Sigma1 & Sigma2
 
 HHIISSTTOORRYY
   Added to package, 6/19/08
