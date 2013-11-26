@@ -1,12 +1,12 @@
      BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
 
-CORRSEARCH3D(1)						        CORRSEARCH3D(1)
+CORRSEARCH3D(1)                                                 CORRSEARCH3D(1)
 
 NNAAMMEE
-	corrsearch3d - search for array of 3D displacements between two volumes
+        corrsearch3d - search for array of 3D displacements between two volumes
 
 SSYYNNOOPPSSIISS
-	corrsearch3d
+        corrsearch3d
 
 DDEESSCCRRIIPPTTIIOONN
   Corrsearch3d will determine the 3D displacement between two image
@@ -110,7 +110,7 @@ INSERT OPTION TEXT HERE
 HHIISSTTOORRYY
   Written by David Mastronarde  7/16/01
   7/20/02: Added analysis of areas to exclude based on positions in the
-	source for the second volume
+        source for the second volume
   8/16/06: Converted to PIP, incorporated FFT correlations internally,
         added filtering, made it extract the B patches based on the local
         shift instead of using the same coordinates in both volumes,
