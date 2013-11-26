@@ -1,12 +1,12 @@
      BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
 
-BLENDMONT(1)							   BLENDMONT(1)
+BLENDMONT(1)                                                       BLENDMONT(1)
 
 NNAAMMEE
-	blendmont - aligns and blends overlapping edges of montaged images
+        blendmont - aligns and blends overlapping edges of montaged images
 
 SSYYNNOOPPSSIISS
-	blendmont  [options]
+        blendmont  [options]
 
 DDEESSCCRRIIPPTTIIOONN
 
@@ -189,7 +189,7 @@ INSERT OPTION TEXT HERE
   1 to float each section to maximum range for the data mode, 0 not to
 
   Name of file of g transforms to apply to align the sections, or a
-   	blank line for no transforms
+        blank line for no transforms
 
   Name of input file with list of piece coordinates
 
@@ -203,7 +203,7 @@ INSERT OPTION TEXT HERE
   Use the negative of an option to do initial cross-correlations to
   correct for sloppy montages:
 
-   	Enter 1 or -1 to specify how the sections should be divided
+        Enter 1 or -1 to specify how the sections should be divided
            into negatives
         OR 2 or -2 to use edge functions to find a shift for each frame
            that aligns the frames as well as possible
@@ -217,19 +217,19 @@ INSERT OPTION TEXT HERE
            (whichever is better) to find the best shifts
         OR 6 or -6 to use both cross-correlations read from a file and
            edge functions to find the best shifts
-  	OR 0 for none of these options
+        OR 0 for none of these options
 
      IF you enter 1 or 2 to specify division into negatives, enter 2 
            lines:
 
-   	# of frames (pieces) per negative in the X direction, and the
-   	    # of frames missing from the left-most negative.  E.g., if
-   	    there are 2 frames from the left-most negative, 4 from the
-   	    middle one, and 1 from the right-most one, there are 4
-   	    frames per negative, with 2 missing from the left-most one
+        # of frames (pieces) per negative in the X direction, and the
+            # of frames missing from the left-most negative.  E.g., if
+            there are 2 frames from the left-most negative, 4 from the
+            middle one, and 1 from the right-most one, there are 4
+            frames per negative, with 2 missing from the left-most one
 
-   	# of frames (pieces) per negative in the Y direction, and the
-   	    # of frames missing from the bottom-most negative.
+        # of frames (pieces) per negative in the Y direction, and the
+            # of frames missing from the bottom-most negative.
 
   Name of new file for list of coordinates of pieces in the output file, or
   Return to skip making this file, which is not needed when the output image
@@ -244,24 +244,24 @@ INSERT OPTION TEXT HERE
      entered (e.g. 0-5,8-14,17-23)
 
   Minimum and maximum X, and minimum and maximum Y coordinates that
-   	should be included in the output image.  Enter "/" to obtain
-   	the entire input image.
+        should be included in the output image.  Enter "/" to obtain
+        the entire input image.
 
   Maximum limit on the X and Y frame size for output pieces, and
-   	minimum limit on overlap between output pieces.  The program
-   	will then choose new frame sizes and overlaps based on these
-   	limits
+        minimum limit on overlap between output pieces.  The program
+        will then choose new frame sizes and overlaps based on these
+        limits
 
   0 to accept the program's choices of frame size and overlap.  When
-   	running interactively, entering 1 will allow you to loop back
-   	and enter new minimum and maximum X and Y coordinates and a
-   	new maximum frame and minimum overlap.  Note that on the first
+        running interactively, entering 1 will allow you to loop back
+        and enter new minimum and maximum X and Y coordinates and a
+        new maximum frame and minimum overlap.  Note that on the first
         two entries, the program will enforce a minimum overlap of 2;
         if for some reason you want an overlap of 0, you need to loop
         back so that you enter the frame size and overlap 3 times.
 
   0 to build new files of edge functions, 1 to use old files that were
-   	generated on a previous run of the program
+        generated on a previous run of the program
 
   Root filename for edge function files. 
 
