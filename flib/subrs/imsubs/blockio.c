@@ -125,12 +125,7 @@ typedef struct
 Private Function Prototypes
 ******************************************************************************/
 
-/* CER July 2000: renamed these functions to avoid overlap with standard
-   functions */
-/* static void bcopy(); */
 static void mybcopy(register char *a,register char *b,int n);
-/* static void bzero(); */
-static void mybzero(register char *a, int n); 
 static int fcmp();
 static int find_unit();
 static void get_fstr();
@@ -430,7 +425,7 @@ void move(char *a, char *b, int *n)
  
 void zero(char *a, int *n)
 {
-  mybzero(a, *n);
+  memset(a, 0, *n);
 }
  
 void fill(a, b, np, lb)
@@ -548,17 +543,6 @@ static  void mybcopy(a, b, n)
       *a++ = *b++;
     }
 }
-
-static  void mybzero(a, n)
-     register char *a;
-     register int n;
-{
-  while(n--)
-    {
-      *a++ = 0;
-    }
-} 
-
 
 /* Checks for legal unit number and whether unit is open, gives error
    message with function name and unit number, exits if doExit set */

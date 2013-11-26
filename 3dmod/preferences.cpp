@@ -111,6 +111,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   QSettings *settings = getSettingsObject();
   mTabDlg = NULL;
   mCurrentTab = 0;
+  mTimerID = 0;
   mRecordedZapGeom = QRect(0, 0, 0, 0);
   mGenericList = ilistNew(sizeof(GenericSettings), 4);
   mMultiZgeom =  QRect(0, 0, 0, 0);
@@ -797,10 +798,12 @@ void ImodPreferences::cancelPressed()
 
 // Whenever there is a cancel by Cancel, close, or escape, 
 // need to check for font or style change and restore
+// set the timerID non-zero before starting timer to reject re-entrant calls
 void ImodPreferences::userCanceled()
 {
-  if (!mTabDlg)
+  if (!mTabDlg || mTimerID)
     return;
+  mTimerID = 1;
   mTabDlg->close();
   mTabDlg = NULL;
 
@@ -811,6 +814,7 @@ void ImodPreferences::userCanceled()
 void ImodPreferences::timerEvent(QTimerEvent *e)
 {
   killTimer(mTimerID);
+  mTimerID = 0;
 
   if (mDialogPrefs.styleKey != mCurrentPrefs.styleKey)
     changeStyle(mCurrentPrefs.styleKey);

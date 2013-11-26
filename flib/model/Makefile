@@ -128,6 +128,9 @@ corrsearch3d$(E): corrsearch3d.$(O) get_region_contours.$(O)
 	$(FC) -o corrsearch3d corrsearch3d.$(O) $(LDFLG) \
 	get_region_contours.$(O) $(SMALLLIBS)
 
+corrsearch3d.$(O): corrsearch3d.f90
+	$(FC) $(FFLAGS) $(OPENMPF) -c corrsearch3d.f90
+
 tomopitch$(E): tomopitch.$(O)
 	$(FC) -o tomopitch tomopitch.$(O) $(LDFLG) $(SMALLLIBS)
 

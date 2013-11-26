@@ -239,10 +239,11 @@ except at the end, and + anywhere in the string, for compatibility with sed.
 # of a line and result in more readable code than direct conversion of sed commands
 
 # Make two sed commands for removing an existing line and adding one with new value
-def sedDelAndAdd(option, value, afterLine):
-   return ['/^' + option + '/d', fmtstr('/^{}/a/{}	{}/', afterLine, option, value)]
+def sedDelAndAdd(option, value, afterLine, delim = '/'):
+   return [fmtstr('{0}^{1}{0}d', delim, option),
+           fmtstr('{0}^{1}{0}a{0}{2}	{3}{0}', delim, afterLine, option, value)]
 
 # Return a sed command (a string) for modifying the value for an option
-def sedModify(option, value):
-   return fmtstr('/^{}/s/[ 	].*/	{}/', option, value)
+def sedModify(option, value, delim = '/'):
+   return fmtstr('{0}^{1}{0}s{0}[ 	].*{0}	{2}{0}', delim, option, value)
    

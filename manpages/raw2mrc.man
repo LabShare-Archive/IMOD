@@ -4,9 +4,9 @@
 .SH NAME
 raw2mrc \- Create an MRC image stack from raw image data.
 .SH SYNOPSIS
-raw2mrc [options] <raw image files...> <mrc image file>
+raw2mrc [options]  raw_image_files...  MRC_output_file
 .SH DESCRIPTION
-raw2mrc can be used to create mrc image files from many types
+raw2mrc can be used to create MRC image files from many types
 of raw binary image data.  
 Command line options are used to adjust the image size and
 to skip the input image header.

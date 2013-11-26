@@ -32,18 +32,19 @@ import etomo.util.PrimativeTokenizer;
  * SEPARATOR:  .
  * OPEN:  [
  * CLOSE:  ]
+ * QUOTE: " or ' or `
  * Default DELIMITER:  =
  * Keywords:  Version, Pip, KeyValueDelimiter
  * 
  * Tokenizing Rules:
  * 
- * Currently the COMMENT, SEPARATOR, OPEN, CLOSE, and symbols must be single
+ * Currently the COMMENT, SEPARATOR, OPEN, CLOSE, QUOTE, and symbols must be single
  * character.
  * 
  * The delimiter may contain multiple characters.  It may not contain symbols
  * used by other tokens.
  * 
- * COMMENT, SEPARATOR, OPEN, CLOSE, DELIMITER, and BREAK should not contain
+ * COMMENT, SEPARATOR, OPEN, CLOSE, DELIMITER, QUOTE, and BREAK should not contain
  * alphanumeric or whitespace characters.
  * 
  * WHITESPACE, EOL, and EOF are defined in PrimativeTokenizer.
@@ -140,17 +141,18 @@ import etomo.util.PrimativeTokenizer;
 public final class AutodocTokenizer {
   public static final String rcsid = "$$Id$$";
 
-  //special characters
+  // special characters
   public static final char COMMENT_CHAR = '#';
   public static final char ALT_COMMENT_CHAR = '%';
   public static final char SEPARATOR_CHAR = '.';
   public static final Character OPEN_CHAR = new Character('[');
   public static final Character CLOSE_CHAR = new Character(']');
   public static final String DEFAULT_DELIMITER = "=";
-  //keywords - keywords may not contain special characters
+  // keywords - keywords may not contain special characters
   static final String VERSION_KEYWORD = "Version";
   static final String PIP_KEYWORD = "Pip";
   static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
+  private static final char[] QUOTE_LIST = new char[] { '"', '\'', '`' };
 
   private final boolean allowAltComment;
   private final StringBuffer restrictedSymbols = new StringBuffer(COMMENT_CHAR
@@ -173,6 +175,9 @@ public final class AutodocTokenizer {
     primativeTokenizer = new PrimativeTokenizer(file, debug);
     if (allowAltComment) {
       restrictedSymbols.append(ALT_COMMENT_CHAR);
+    }
+    for (int i = 0; i < QUOTE_LIST.length; i++) {
+      restrictedSymbols.append(QUOTE_LIST[i]);
     }
   }
 
@@ -276,8 +281,8 @@ public final class AutodocTokenizer {
           }
           return token;
         }
-        //Don't have to call buildWord() here, because findDelimiter handles
-        //building a word when it fails.
+        // Don't have to call buildWord() here, because findDelimiter handles
+        // building a word when it fails.
         buildingWord = true;
       }
     } while (buildingWord);
@@ -305,8 +310,11 @@ public final class AutodocTokenizer {
       token.set(Token.Type.SEPARATOR, SEPARATOR_CHAR);
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, delimiterString)) {
-      //Found a one character DELIMITER.
+      // Found a one character DELIMITER.
       token.set(Token.Type.DELIMITER, delimiterString);
+    }
+    else if (primativeToken.equals(Token.Type.SYMBOL, QUOTE_LIST)) {
+      token.set(Token.Type.QUOTE, primativeToken.getChar());
     }
     else {
       return false;
@@ -369,7 +377,7 @@ public final class AutodocTokenizer {
     StringBuffer delimiterBuffer = null;
     boolean success = false;
     char symbol = primativeToken.getChar();
-    //attempt to build a delimiter that matches delimiterString
+    // attempt to build a delimiter that matches delimiterString
     while (!success && primativeToken.is(Token.Type.SYMBOL) && index < length
         && delimiterString.charAt(index) == symbol) {
       if (delimiterBuffer == null) {
@@ -377,11 +385,11 @@ public final class AutodocTokenizer {
       }
       delimiterBuffer.append(symbol);
       if (index == length - 1) {
-        //found the whole delimiterString - succeed
+        // found the whole delimiterString - succeed
         success = true;
       }
       else {
-        //haven't matched the entire delimiter string - get next primative token
+        // haven't matched the entire delimiter string - get next primative token
         index++;
         primativeToken = primativeTokenizer.next();
       }
@@ -391,10 +399,10 @@ public final class AutodocTokenizer {
       token.set(Token.Type.DELIMITER, delimiterBuffer);
       return true;
     }
-    //delimiter match failed - build a word
+    // delimiter match failed - build a word
     if (delimiterBuffer == null) {
-      //never went into delimiter string recongnition loop - build a word from
-      //the current primativeToken
+      // never went into delimiter string recongnition loop - build a word from
+      // the current primativeToken
       buildWord();
       primativeToken = primativeTokenizer.next();
     }
@@ -433,14 +441,14 @@ public final class AutodocTokenizer {
    * Calls findKeyword().
    */
   private void makeWord() {
-    //The entire word was found - the current token will have to wait until
-    //the next time next() is called.
+    // The entire word was found - the current token will have to wait until
+    // the next time next() is called.
     nextToken.copy(token);
     useNextToken = true;
-    //Make the WORD token
+    // Make the WORD token
     token.set(Token.Type.WORD, wordBuffer);
     wordBuffer = null;
-    //Convert the token to a KEYWORD token if necessary
+    // Convert the token to a KEYWORD token if necessary
     findKeyword();
   }
 

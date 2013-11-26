@@ -837,9 +837,9 @@ int numOMPthreads(int optimalThreads)
   return numThreads;
 }
 
-int numompthreads(int optimalThreads)
+int numompthreads(int *optimalThreads)
 {
-  return numOMPthreads(optimalThreads);
+  return numOMPthreads(*optimalThreads);
 }
 
 /*!

@@ -2034,7 +2034,7 @@ SUBROUTINE inputParameters()
   integer*4 ifGpuByEnviron, indDelta, ifexit
   logical*4 adjustOrigin, projModel, readw_or_imod
   integer*4 niceframe, parWrtInitialize, gpuAvailable, imodGetEnv, parWrtSetCurrent
-  integer*4 gpuAllocArrays, allocateArray, gpuLoadLocals, gpuLoadFilter
+  integer*4 gpuAllocArrays, allocateArray, gpuLoadLocals, gpuLoadFilter, niceFFTlimit
   real*8 wallTime, wallstart
   !
   integer*4 numOptArg, numNonOptArg
@@ -3465,7 +3465,7 @@ SUBROUTINE inputParameters()
   ! Set up padding: 10% of X size or minimum of 16, max of 50
   npadtmp = min(50, 2 * max(8, nprojXyz(1) / 20))
   ! npadtmp = 2 * nprojXyz(1)
-  nprpad = niceframe(2 * ((nprojXyz(1) + npadtmp) / 2), 2, 19)
+  nprpad = niceframe(2 * ((nprojXyz(1) + npadtmp) / 2), 2, niceFFTlimit())
   numPad = nprpad - nprojXyz(1)
   !
   ! Set up defaults for plane size and start of planes of input data

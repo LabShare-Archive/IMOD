@@ -488,7 +488,7 @@ public final class Token {
    * @return true if the type and key of this token are the same as the type and
    * getKey(value).
    */
-  public boolean equals(Type type, String value) {
+  public boolean equals(final Type type, String value) {
     return this.type == type && equals(value);
   }
 
@@ -508,6 +508,31 @@ public final class Token {
       return false;
     }
     return key.length() == 1 && key.charAt(0) == value;
+  }
+
+  /**
+   * @return true if the type and key of this token are the same as the type and
+   * getKey(an element of valueList).
+   */
+  public boolean equals(Type type, char[] valueList) {
+    if (this.type != type) {
+      return false;
+    }
+    if (this.value == null && valueList == null) {
+      return true;
+    }
+    if (this.value == null || valueList == null) {
+      return false;
+    }
+    if (key.length() == 1) {
+      char cKey = key.charAt(0);
+      for (int i = 0; i < valueList.length; i++) {
+        if (cKey == valueList[i]) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public boolean equals(Type type, Character value) {
@@ -566,7 +591,7 @@ public final class Token {
    */
   public void removeListFromHead() {
     if (previous != null) {
-      //error - not the head of the list
+      // error - not the head of the list
       throw new IllegalStateException("Must be the head of the list:  this=" + this
           + ",previos=" + previous + ",next=" + next);
     }
@@ -616,6 +641,7 @@ public final class Token {
     public static final Type SUBCLOSE = new Type();
     public static final Type NUMERIC = new Type();
     public static final Type ALPHABETIC = new Type();
+    public static final Type QUOTE = new Type();
 
     public String toString() {
       if (this == NULL) {
@@ -671,6 +697,9 @@ public final class Token {
       }
       else if (this == ALPHABETIC) {
         return "ALPHABETICAL";
+      }
+      else if (this == QUOTE) {
+        return "QUOTE";
       }
       return "UNKNOWN";
     }

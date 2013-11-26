@@ -67,6 +67,7 @@ static void report(const char *mess)
     return;
   now = wallTime();
   printf("%s:  %.3f\n", mess, (now - sWallStart) * 1000.);
+  fflush(stdout);
   sWallStart = now;
 }
 
@@ -96,7 +97,11 @@ void odfft(float *array, int *nxp, int *nyp, int *idirp)
   int idir = *idirp;
   int nxpad = 2 * (nx / 2 + 1);
   float scale = (float)(1. / sqrt((double)nx));
-  double geomSize = sqrt((double)nx * ny);
+
+  /* For 1D FFT, planning is proportional to thread number and depends only on NX,
+     so averaging with ny itself penalizes for long X/short Y cases where planning
+     could predominate */
+  double geomSize = (sqrt((double)nx * ny) + ny) / 2.;
   int goodPrimes = goodSize(nx);
   int index = indexAndThreadsForPlan(geomSize, goodPrimes);
   if (idir == 0) {

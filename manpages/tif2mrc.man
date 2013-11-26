@@ -4,7 +4,7 @@
 .SH NAME
 tif2mrc \- Make a MRC file from TIFF image files.
 .SH SYNOPSIS
-tif2mrc [-g | -G | -u | -d] [-b file] <TIFF files...> <MRC file>
+tif2mrc [options]  TIFF_input_files...  MRC_output_file
 .SH DESCRIPTION
 tif2mrc takes a series of TIFF files and converts them
 into an MRC stack.  
