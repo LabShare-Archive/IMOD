@@ -4,10 +4,10 @@
 NEWSTACK(1)                                                         NEWSTACK(1)
 
 NNAAMMEE
-	newstack - Make a new mrc image stack.
+        newstack - Make a new mrc image stack.
 
 SSYYNNOOPPSSIISS
-	newstack [options] <input file(s)>  <output file>
+        newstack [options] <input file(s)>  <output file>
 
 DDEESSCCRRIIPPTTIIOONN
 
@@ -43,12 +43,12 @@ INSERT OPTION TEXT HERE
   Number of input files, or -1 to enter list of files from a file
 
   IF you enter a number >0, then for each input file, enter two lines:
-   	File name
-   	list of section numbers to take from that file.  The first section is
-   		numbered 0 and ranges may be entered (e.g. 0-4,5,7-9)
+        File name
+        list of section numbers to take from that file.  The first section is
+                numbered 0 and ranges may be entered (e.g. 0-4,5,7-9)
 
   OTHERWISE, IF you enter -1, then enter the name of the file with list of
-   		files and sections.  The format of this file should be
+                files and sections.  The format of this file should be
      Number of input files
      File name
      list of section numbers (first is 0!!!), ranges allowed (e.g. 0-3,5,7-9)
@@ -59,18 +59,18 @@ INSERT OPTION TEXT HERE
   IF you enter 1, next enter the name of the single output file.
 
   OR IF you enter a number >1, then for each output file, enter two lines:
-   	File name
-   	Number of sections to put in that file
+        File name
+        Number of sections to put in that file
 
   OR IF you enter -1, then enter the name of the file with the list of files
-   	and numbers of of sections.  The format of this file is:
+        and numbers of of sections.  The format of this file is:
      Number of output files
      File name
      number of sections to place in that file
      next file and number of sections, etc.
 
   The X and Y dimensions of the output file, or / to take the same
-   	dimensions as the first input file
+        dimensions as the first input file
 
   The data mode of the output file, or / to take the same mode as the first
       input file.  Mode can be 0 for bytes, 1 for 16-bit integers, 2 for 
@@ -95,7 +95,7 @@ INSERT OPTION TEXT HERE
 
   0 for no floating of densities, 1 to float densities so that each section
        occupies the same RANGE of densities (the optimum range for the
-	particular data mode), 2 to float so that all sections have the same
+        particular data mode), 2 to float so that all sections have the same
        MEAN and STANDARD DEVIATION of density (which requires the input
        sections to be read twice), -1 to specify a single scaling that will
        be applied equally to all sections, -2 to scale all sections by the
@@ -209,23 +209,23 @@ AADDDDIITTIIOONNAALL NNOOTTEESS
   output images, respectively.
 
 HHIISSTTOORRYY
-	
-	DNM (mast) for VAX    8/88
-	5/4/89 changed to float to same mean and sd rather than mean and min.
-	12/19/89 added full control of density scaling; fixed bug in
-	interpolation that was generating half-pixel error half the time.
-	4/19/90 added line-by-line prompts for file and section entry and
-	added time/date stamp
-	1/23/91: fixed so that it can correctly pad images and extract
-	subsets of images with either center-shifting or transforms
-	6/11/91: fixed bug if trying to output scaled real values les than 0
-	Feb 94 : Ported to SGI by Paul Furcinitti.
-	Jul 94 : PSF (Furcinitti) Fixed bug when writing byte files.
-	11/16/94: DNM added shifting to mean, rationalized scaling somewhat
+        
+        DNM (mast) for VAX    8/88
+        5/4/89 changed to float to same mean and sd rather than mean and min.
+        12/19/89 added full control of density scaling; fixed bug in
+        interpolation that was generating half-pixel error half the time.
+        4/19/90 added line-by-line prompts for file and section entry and
+        added time/date stamp
+        1/23/91: fixed so that it can correctly pad images and extract
+        subsets of images with either center-shifting or transforms
+        6/11/91: fixed bug if trying to output scaled real values les than 0
+        Feb 94 : Ported to SGI by Paul Furcinitti.
+        Jul 94 : PSF (Furcinitti) Fixed bug when writing byte files.
+        11/16/94: DNM added shifting to mean, rationalized scaling somewhat
         9/24/01: changed to read and write in chunks if images are big
         12/24/03: converted to PIP input, added undistorting and binning
         June 2011: Added support for warping
 
 SEE ALSO
-	mrcbyte(1), tif2mrc(1), clip(1)
+        mrcbyte(1), tif2mrc(1), clip(1)
 
