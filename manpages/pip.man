@@ -189,6 +189,7 @@ ignored:
 \fBshort\fR    Short option name
 \fBlong\fR     Long option name
 \fBtype\fR     Type of option; see table above
+\fBformat\fR   String shown after the option in usage or manpage output
 \fBusage\fR    Help string for usage output
 \fBtooltip\fR  Help string for tooltip
 \fBmanpage\fR  Help string for manual page
@@ -201,6 +202,12 @@ which case \fBlong\fR can be omitted.  Alternatively, a \fBlong\fR entry
 can be used to override the value of the field, and a blank \fBlong\fR entry
 can be used to eliminate the default long option name provided by a
 \fBField\fR value.
+
+If a \fBformat\fR entry is destined for a .man-type manpage, it will be
+italicized by default by wrapping it in \\fI and \\fR.  It can contain these
+kind of font specifiers, and the default wrapping will be omitted if it starts
+with one of the specifiers.  Thus, enclose the entry in \\fB and \\fR or start
+it with \\fR to have it be in bold or regular font.
 
 The help strings are
 allowed to contain spaces, and to continue on multiple lines.  A
@@ -225,6 +232,10 @@ In a \fBSectionHeader\fR section, keywords besides \fBusage\fR and
 \fBmanpage\fR are ignored.  Help strings will be output without indentation;
 for a man page that is input to \fBnroff\fR, start the string with .SS or .SH
 to avoid the regular indentation of option text.
+
+Other meaningful metadata entries are \fBNoHelpAbbrevations\fR to avoid
+showing unique abbreviations in help output, and 
+\fBDoubleDashOptions\fR to show options with two dashes in help output.
 
 .SS Errors and Return Values
 .nh
