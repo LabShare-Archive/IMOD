@@ -1,12 +1,12 @@
      BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
 
-BEADTRACK(1)							   BEADTRACK(1)
+BEADTRACK(1)                                                       BEADTRACK(1)
 
 NNAAMMEE
-	beadtrack - Tracks fiducial gold particles through a tilt series
+        beadtrack - Tracks fiducial gold particles through a tilt series
 
 SSYYNNOOPPSSIISS
-	beadtrack
+        beadtrack
 
 DDEESSCCRRIIPPTTIIOONN
   BEADTRACK will track selected fiducial gold beads through a series of tilted
@@ -256,4 +256,4 @@ SEQUENTIAL INPUTS
 
 
 HHIISSTTOORRYY
-	  Written by David Mastronarde, 1995.  Tilt alignment added 10/6/97.
+          Written by David Mastronarde, 1995.  Tilt alignment added 10/6/97.
