@@ -1,12 +1,12 @@
      BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
 
-XFTOXG(1)							 XFTOXG(1)
+XFTOXG(1)                                                        XFTOXG(1)
 
 NNAAMMEE
-	xftoxg - Converts transforms between sections into alignment transforms
+        xftoxg - Converts transforms between sections into alignment transforms
 
 SSYYNNOOPPSSIISS
-	xftoxg [options] input_file [ouput_file]
+        xftoxg [options] input_file [ouput_file]
 
 DDEESSCCRRIIPPTTIIOONN
 
@@ -15,9 +15,9 @@ DDEESSCCRRIIPPTTIIOONN
   section to obtain a single consistent set of alignments.  Transforms can be
   simple 6-component linear transforms or warping transformations.
 
-  Three different modes of operation can be selected.	 In the first, all
+  Three different modes of operation can be selected.    In the first, all
   sections will be transformed to a single position in the "center" of
-  the series.	 Here "position" refers to the entire set of parameters
+  the series.    Here "position" refers to the entire set of parameters
   describing the transformation, i.e. not just the x,y coordinates but
   the rotation and stretch as well.  This mode, sometimes referred as giving a
   global alignment, can be invoked with the option "-n 0".  This mode will
@@ -108,7 +108,7 @@ DDEESSCCRRIIPPTTIIOONN
   The ability to use both the local fits and fits of order higher than 1 is
   somewhat redundant.  If local fitting is used, start with order 1 and go
   to higher orders only if necessary.
-	  
+          
   Xftoxg uses the PIP package for input (see the manual page for pip(1))
   and can take also input interactively to maintain compatibility with old
   command files.  The following options can be specified either as command
