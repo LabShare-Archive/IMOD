@@ -48,7 +48,7 @@ import etomo.ui.swing.Token;
  * SEPARATOR => .
  * BREAK => ^ (formatting character - ignored except in valueline at startline)
  * COMMENT => # (and % when defined)
- * QUOTE " or ' or `
+ * QUOTE " | ' | `
  * 
  * 
  * Other Tokens:
@@ -107,9 +107,9 @@ import etomo.ui.swing.Token;
  *         
  * name => base-attribute { SEPARATOR attribute }
  *         
- * base-attribute => ( WORD | KEYWORD )
+ * base-attribute => ( WORD | KEYWORD | QUOTE ) -attribute-
  * 
- * attribute => [ WORD | KEYWORD | COMMENT ]
+ * attribute => [ WORD | KEYWORD | COMMENT | QUOTE ]
  * 
  * value => { \EOL & EOF\ } ( EOL | EOF ) { (!quoted & valueline ) | ( quoted & ( quotedValueLine | #QUOTE ) ) }
  *  
@@ -698,8 +698,10 @@ final class AutodocParser {
    * @throws IOException
    */
   private boolean pair(WriteOnlyStatementList list) throws IOException {
-    if (emptyLine(list) || !delimiterInLine
-        || (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD))) {
+    if (emptyLine(list)
+        || !delimiterInLine
+        || (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD) && !token
+            .is(Token.Type.QUOTE))) {
       // not a pair
       return false;
     }
@@ -753,48 +755,66 @@ final class AutodocParser {
   }
 
   /**
-   * base-attribute => ( WORD | KEYWORD )
+   * base-attribute => ( WORD | KEYWORD | QUOTE ) -attribute-
    * 
    * Adds the base attribute to an attribute list and a name/value pair.
    * @return Attribute or null
    */
   private Attribute baseAttribute(WriteOnlyAttributeList attributeList, NameValuePair pair)
       throws IOException {
-    testStartFunction("base-attribute");
-    if (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)) {
-      // add the base-attribute to the map
-      testEndFunction("base-attribute", true);
-      // add and return the new base-attribute
-      Attribute attribute = (Attribute) attributeList.addAttribute(token);
-      pair.addAttribute(attribute);
-      nextToken();
-      return attribute;
-    }
-    // did not find base-attribute
-    testEndFunction("base-attribute", false);
-    return null;
+    return buildAttribute(attributeList, pair, true);
   }
 
   /**
-   * attribute => [ WORD | KEYWORD | COMMENT ]
+   * attribute => [ WORD | KEYWORD | COMMENT | QUOTE ]
    * 
    * Adds attributes to an attribute list and a name/value pair.
    * @return Attribute or null
    */
   private Attribute attribute(WriteOnlyAttributeList attributeList, NameValuePair pair)
       throws IOException {
+    return buildAttribute(attributeList, pair, false);
+  }
+
+  /**
+   * Builds base-attribute and attribute
+   * @param attributeList
+   * @param pair
+   * @param base
+   * @return
+   * @throws IOException
+   */
+  private Attribute buildAttribute(final WriteOnlyAttributeList attributeList,
+      final NameValuePair pair, final boolean base) throws IOException {
+    String function;
+    if (base) {
+      function = "base-attribute";
+    }
+    else {
+      function = "attribute";
+    }
+    if (base) {
+      testStartFunction(function);
+    }
     if (!token.is(Token.Type.WORD) && !token.is(Token.Type.KEYWORD)
-        && !token.is(Token.Type.COMMENT)) {
+        && !token.is(Token.Type.QUOTE) && (base || !token.is(Token.Type.COMMENT))) {
+      if (base) {
+        testEndFunction("base-attribute", false);
+      }
       return null;
     }
-    testStartFunction("attribute");
+    if (!base) {
+      testStartFunction(function);
+    }
     LinkList valueLinkList = new LinkList(token);
+    valueLinkList.append(token);
+    nextToken();
     while (token.is(Token.Type.WORD) || token.is(Token.Type.KEYWORD)
-        || token.is(Token.Type.COMMENT)) {
+        || token.is(Token.Type.QUOTE) || token.is(Token.Type.COMMENT)) {
       valueLinkList.append(token);
       nextToken();
     }
-    testEndFunction("attribute", true);
+    testEndFunction(function, true);
     // add and return the new attribute
     Attribute attribute = (Attribute) attributeList.addAttribute(valueLinkList.getHead());
     pair.addAttribute(attribute);
