@@ -1,0 +1,136 @@
+.na
+.nh
+.TH mtteach 1 4.6.34 BL3DEMC
+.SH NAME
+mtteach - develop criteria for feature recognition
+.SH SYNOPSIS
+mtteach
+.SH DESCRIPTION
+This program is used to develop criteria for distinguishing
+microtubules (or other small features) from other image features.
+First one prepares a file of teaching points.  This file is built on
+a series of areas and contains a point for each real feature in each
+area.  The first two points in each area are two diagonal corner
+points of the area, NOT features; the rest of the points for that
+area should all be inside these points.  The program has modest
+ability to check for errors in the teaching file.  It is permissible
+to add a point to the teaching point list that falls in ANY of the
+zones defined earlier in the list, not necessarily in the last
+defined zone.
+.P
+Given the zones described by the areas with teaching points,
+the program reads in the images contained in these zones (these
+images would typically already be filtered, or correlated with the
+average feature).  The program then allows one to set up a two-step
+procedure for identifying features.  In the first step, the program
+finds all of the points where the pixel value is more extreme than a
+threshold value.  One can adjust this threshold so as to find as
+many of the true features as is feasible, at the expense of finding
+many false features as well.  In the second step, the program uses
+discriminant analysis on the pixels surrounding the extreme peaks to
+find a discriminant function (a function of those surropunding
+pixels) that best distinguishes the peaks that are true features from
+peaks that are not.
+.P
+It is possible either to examine single pixels to look for peaks, or
+to form a simple sum of pixels within a circular window around each
+pixel position, and look for peaks in those "window sums". In
+practice this seems to be useless, so the instructions below will
+refer to examining pixels rather than "window sums".
+.P
+When a prompt prints a number in [ ], that is a default value which
+can be selected by entering "/"
+.P
+ENTRIES to the program:
+.P
+Image file name
+Name of file of piece coordinates if image is a montage, otherwise
+.  Return
+Name of teaching point file
+.P
+0 use individual pixel values to look for peaks,
+   or 1 to use sums of pixels within a circular window.
+.P
+IF you select sums of pixels, then enter two lines:
+   Radius of the window in pixels (which need not be an integer)
+   0 to center window on a pixel, 1 to offset it by (0.5,0.5)
+.P
+Distance to search from a peak to eliminate nearby extreme points.
+   When the program finds a pixel more extreme than the threshold
+   (specified below), it will search up to this distance away for
+   other points above threshold, and record only a single peak at the
+   most extreme pixel.
+.P
+Number of pixels at edges of zones to leave out of search for peaks.
+   Typically one would enter the feature radius here.
+.P
+At this point, one may repeatedly enter threshold values. The
+threshold can be either an absolute value (if>1) or a relative
+value (between 0 and 1).  The program will search for pixels greater
+or less than the threshold depending on whether an absolute
+threshold is greater or less than the mean, or a relative one is
+greater or less than 0.5.  If one enters a relative threshold, then
+within each separate zone, the program will look for a fixed
+fraction of extreme pixels; i.e. a threshold of 0.99 or 0.01 will
+select the brightest or dimmest 1% of pixels for further
+consideration.  For each threshold value, the program outputs the
+number of teaching points that have been found and the number of
+extreme points (after contiguity elimination) that do not correspond
+to teaching points.
+.P
+Instead of selecting a threshold, one may enter:
+   -3 to output points above threshold to a file - useful only for
+      diagnostic purposes (one needs to specify a threshold again)
+   -2 to loop back and respecify whether to do window sums, the
+      search radius for eliminating contiguous peaks, and the edges
+   -1 to do discriminant analysis, if there are fewer than 1000 peaks
+.P
+When discriminant analysis is selected, if there are any true
+features that are not peaks above threshold, then the program will ask
+whether to include those points as true features in the analysis.
+Enter 0 to exclude them or 1 to include them.
+.P
+Next specify a division of a circular region into a series of
+sectored rings, by entering:
+.P
+Radius of the entire circular region
+Radius of central circle, which is not divided into sectors
+Annular thickness (outer minus inner radius) of the innermost
+   ring, the one outside the central, undivided circle
+Number of concentric rings (excluding central circle)
+Number of sectors to divide rings into
+0 to center the rings on a pixel, 1 to offset by (0.5,0.5)
+.P
+The thickness of the rings will change (typically increase)
+progressively from the specified thickness of the innermost ring so
+as to fit the given number of rings into the desired total circular
+area.
+.P
+The program makes a variable out of the sum of pixels in each sector,
+then finds a discriminat function, a linear combination of these
+variables, that best distinguishes the true peaks from the false
+ones. It then finds a criterion discriminant score that minimizes
+the total number of extreme points that would be misclassified.
+.P
+The choices after a discriminant analysis are:
+.P
+.nf
+1 to scan a range of discriminant scores, finding the criterion in
+   that range that minimizes misclassified peaks.  Enter a lower and
+   upper criterion score and the number of scores to try in the range
+2 to redo discriminant analysis after respecifying sectored rings
+3 to store analysis parameters and solutions in a file for use by
+   Mtdetect (the last "best criterion score" found by scanning is the
+   value that will be stored in the file)
+4 to loop back to setting thresholds for peak selection
+5 to store the discriminant function in an image file as a
+   coefficient for each pixel
+6 to exit
+.fi
+.SH HISTORY
+.nf
+Written by David Mastronarde,  May 1989
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

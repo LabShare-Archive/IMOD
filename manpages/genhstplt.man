@@ -1,0 +1,256 @@
+.na
+.nh
+.TH genhstplt 1 4.6.34 BL3DEMC
+.SH NAME
+genhstplt - to plot histograms and 2-D plots on screen or paper
+.SH SYNOPSIS
+genhstplt
+.SH DESCRIPTION
+Genhstplt is a general-purpose interface to the BSHST and BSPLT histogram
+and 2-dimensional data plotting routines.  See the documentation of those
+routines (bshst(1) and bsplt(1)) for instructions on operating them.
+.P
+The data file may have 1 or more columns of data values for each individual.
+Before the first column of data, one may place a "type" value for each
+individual.  One can then form "groups" of values by combining individuals
+of one or more types.  If there are no type values, then there is only one
+group, consisting of all individuals in the file.  The actual type values
+are completely arbitrary and need not be 1, 2, 3, etc.  Once groups are
+formed, they are referred to in order as 1, 2, etc.
+.P
+The file may have lines at the beginning which can be skipped by the
+program.  The number of columns of data values can be detected by the
+program as long as all the columns for an individual are on the same line in
+the file.  Otherwise, the number of columns (exclusive of the optional type
+value) may be put in the file, in the line just before the data begin, or it
+may be entered into the program interactively.  Non-numeric text can be
+present after the last column of data.
+.P
+Sometimes it is desirable to have one graph show two or more columns in Y
+plotted versus the same column in X.  If the data does not already have type
+values, they may be rearranged so that each column becomes a separate type.
+One column is chosen as the X column and is copied into column 1 of the
+rearranged data, and all columns are copied sequentially into column 2 of
+the rearranged data and given type numbers equal to their original column
+numbers.  This rearrangement can be done when first reading in the data, or
+later by using option 15.  The same option can be used to restore the data
+to the original columnar organization.
+.P
+Symbol types are selected by numbers from 1 to 19 and can be open and filled
+square (1 & 2), open and filled diamond (3 & 4), open and filled triangle (5
+& 6), X and + (7 & 8), open and filled circle (9 & 10), open and filled
+inverted triangle (11 & 12), U (13), S (14), circle with vertical line (15),
+thick open circle (16), circle with central dot (17), small dot (18), and
+horizontal line (19).  As of IMOD 4.6.8, the same symbols appear on the
+screen as in the Postscript plots, except that 16 and 17 give open and
+filled circles.  0 will give no symbol; a negative value will produce the
+characters corresponding to the point number for each data value instead of
+a symbol; except that -2 will produce completely filled areas in
+histograms.
+.P
+This is an interactive program that allows entries of one option after
+another for plotting data in different ways.  In many cases, you may find it
+much more convenient to use Onegenplot(1), which displays a single X/Y plot
+of one or more data types or columns specified with command line arguments,
+then exits when the window is closed.  Note also that the graph window can
+be saved as a PNG file or printed from a popup menu brought up by
+right-clicking in the window.
+.P
+Entries to Genhstplt are:
+.P
+0 for plots in the graphics window, 1 for plots only on the terminal,
+   or -1 for plots always in the graphics window (default -1).  If you
+   enter -1, this question will not be asked again and BSPLT will not
+   ask about doing terminal plots either.  Note that if you need to use
+   terminal plots, you will need to specify that option each time that
+   you do a plot. 
+.P
+0 if there are just data values, or 1 if there are also types, or -1 to
+   have columns converted into types (default 0)
+.P
+Number of columns of data values (excluding the optional types).
+   Enter -1 to have the number of columns detected automatically (the
+   default), 0 if the number of columns is to be read just before the
+   data, or enter the number of columns.
+.P
+Number of lines to skip at start of file.  Do not count the line
+   telling the number of columns, if there is one and you just entered
+   0 to the last question.
+.P
+Data file name
+.P
+IF you entered -1 to have columns converted into types, and there is more
+than one column, next enter the column to be placed into the first column in
+the rearranged data.
+.P
+IF there are types, next enter:
+.P
+   Number of groups.  Enter the negative of the number if there is
+      only one type per group, as a shortcut.
+.P
+   IF you entered a positive number, then enter for each group:
+.P
+      Number of types in group, symbol number
+      The type values for the types in the group
+.P
+   BUT IF you entered a negative number, then enter for each group
+      the type value and the symbol number
+.P
+IF there are no type values, just enter the symbol number to be used.
+.P
+Next enter the column number of the data to be examined next.
+.P
+Next specify how the data are scaled:
+   To leave the data alone, enter 0,0
+   To take the logarithm after adding some base amount to the data,
+      enter 1 and the base amount
+   If the data are already logarithms, enter -1,0
+.P
+The program now enters BSHST, which you can skip through if desired.
+.P
+You are now at an option point, which you may return to repeatedly
+while running the program.  Your choices are:
+.P
+.nf
+1 to examine a new data column, first saving the current column as
+   the "previous" column
+2 or 17 to enter BSPLT and plot the column just examined as a set of Y
+   values versus the previous column, as a set of X values.  With 17,
+   successive points in a group will be connected by lines.
+3 to plot the column just examined versus the previous column,
+   first grouping points within each group on the basis of their
+   X values and forming means and standard deviations within
+   groups (see below)
+4 to loop back and define new groups and/or symbols
+5 to loop back to the start of the program and open a new file
+6 to plot the current Postscript file on workstation screen
+7 or 209 to plot the current Postscript file on printer
+8 or -123 to exit the program
+9 to plot the column just examined versus the previous column as
+   series of Tukey box plots, one Tukey box per group.
+10 to plot values with error bars based on S.D. values in another
+   column of the data file.
+11 to group points based upon their X values in the previous
+  column (as in option 3) and then divide the average of the
+  current column by the average of some other column
+12 to select subsets of the data based on the values in some
+   other column than the ones being plotted
+13 to divide the current data column by another column
+14 to examine a new data column while retaining the existing X values,
+   i.e., without copying the current column into the "previous" column
+15 to reorganization data without types to have one type per column, or
+   to restore data from this reorganization
+16 to create an ordinal column, with values from 1 to the number of
+   points in a group for each group
+18 to form a linear combination of two or more columns
+.fi
+.P
+If you select option 3, you first choose whether to plot error bars
+as a multiple of standard deviation or standard error of the mean,
+or as confidence limits.  Enter a positive number to get bars equal
+to that number of S.D.'s, or a negative value to get bars equal to
+that number of S.E.M.'s, or a positive number greater than 30 to get
+confidence limits at that percentage level (e.g., 90 for 90%
+confidence limits).  Then, for each group of types, you will be told
+how many data points there are.  Enter the number of groupings that
+you want to combine these points into, then enter the number of
+points to include in each of the groupings, or just a / to divide
+the points equally among the groupings.  If you enter individual
+numbers for each grouping, they should add up to the total number of
+points in that group of types.
+.P
+If you select option 9, then when the data are plotted on the
+printer, they will appear as Tukey box plots for each group.
+Each such box shows the median and 25 and 50 percentile values of the
+set of Y values for the group; lines and ticks show the 10 and 90
+percentile points, and symbols are plotted for any data values
+outside the 10 and 90 percentile levels.  The box is plotted at the
+mean X coordinate of the points in the group.
+.P
+If you select option 10, you first choose whether to plot error bars
+as a multiple of standard deviation or standard error of the mean,
+or as confidence limits.  Enter a positive number to get bars equal
+to that number of S.D.'s, or a negative value to get bars equal to
+that number of S.E.M.'s, or a positive number greater than 30 to get
+confidence limits at that percentage level (e.g., 90 for 90%
+confidence limits).  If you select S.D.'s, next enter the column
+number in the data file that contains the S.D.'s.  Otherwise, enter
+two column numbers: the one with the S.D.'s and one with N's.  Both
+of these parameters are needed to plot S.E.M.'s or confidence limits.
+.P
+If you select option 11, you first enter a value for error bars as
+in option 3.  Then enter the column to divide the current column by.
+Then specify the groupings of points for each group of data.  The
+default groupings will have nearly equal SUMS for the denominators.
+The program will compute and print out for each set of points the
+following values: mean of previous column (X), mean of current
+column, SD of current column, mean of denominator column, mean of
+current divided by mean of denominator column (Y), SD of current
+divided by mean of denominator (SD associated with Y), and number
+of points in the set.  Error bars based on the resulting SD values
+may or may not be meaningful depending on the nature of the data.
+.P
+If you select option 12, first enter the number of the column that
+will be used to test whether to include data.  Then enter a lower
+and upper limit to a range of values, plus either 0 to include only
+values in that range, or 1 to exclude values in that range.  Use this
+option repeatedly to enter multiple selection criteria.  Data points
+will have to meet all of the criteria to be included in the plots.
+After entering one or more selection criteria, you must select data
+by specifying columns with option 1.  To cancel all of the criteria,
+specify option 12 and enter 0 for the column.
+.P
+If you select option 13, first enter the number of the column to divide by,
+then enter lower and upper limits for the quotient, or 0,0 not to limit the
+quotient.  The current data column is not replaced, so you can use this
+option repeatedly to divide the current data column by different other
+columns.
+.P
+Option 16 is useful for graphing a sequence of values when the data file
+does not contain a column suitable for the X axis.  This option will create
+numbers in the current column from 1 up to the number of items in each
+group .  You will then have to use option 1 to select a new column for the Y
+axis, and the ordinal values will be moved into the "previous" column to
+serve as the X axis.
+.P
+If you select option 18, enter a series of pairs of numbers, first a
+coefficient then a column number, all on one line.  For example,
+"0.5,1,0.25,2,0.25,4" will form a weighted average of columns 1, 2, and 4
+with wieths 0.5, 0.25, and 0.25.  Coefficients need to add to one or be
+positive.   After entering this line, enter 0 to have to current Y axis data
+be moved to the X axis as usual, or 1 to replace it and retain the existing
+X axis data.
+.P
+There are several additional options to control plotting, most of them used
+by Onegenplot(1); options -4 and -5 are also generally useful if making
+postscript plots:
+.P
+.nf
+-2 Enter X axis label and symbol key strings to appear to right of graph.
+    Follow with the X axis label or blank for none, then with the number
+    of key strings (between 0 and 8), then with the key strings on
+    separate lines.
+-3 Invert display contrast to be white lines on black background, or back
+    to black on white.
+-4 Enter a set of colors for selected groups, which will be applied for
+    symbols, lines in both screen plots and postscript plots.  First
+    enter the number of colors to be entered; 0 eliminates all color
+    drawing.  Then enter 4 values that number of times: a group number
+    (numbered from 1), and red, green, and blue components ranging from 0
+    to 255.  A color will be ignored if the graph has fewer groups than
+    the color's group number.
+-5 Enter the index of a text string to apply a color to for each color
+    entered with -4; the colors will be used for the text strings that
+    can be added to a postscript plot.
+-6 Enter a new value for the gap in connecting lines round symbols in
+    postscript plots, or 0 for no gaps.  The value is multiplied by the
+    symbol size to obtain the actual gap; the default is 1.1.
+-8 Wait until graph window is closed then exit
+.fi
+.SH HISTORY
+.nf
+Written by David Mastronarde, has wandered from one kind of computer and
+graphics to another over the years.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

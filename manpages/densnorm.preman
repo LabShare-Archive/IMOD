@@ -1,0 +1,90 @@
+.na
+.nh
+.TH densnorm 1 4.6.34 BL3DEMC
+.SH NAME
+densnorm - Normalize densities in an image file
+.SH SYNOPSIS
+densnorm  [options]  [Input_file]  [Output_file]
+.SH DESCRIPTION
+Densnorm can normalize images by dividing by the incident illumination, an
+operation usually referred to as mass normalization.  It can take the log of
+normalized data, or simply take the log of the input data.  It can also
+output weighting factors that can be supplied to Tilt(1) to provide a
+relative normalization of the data, thus avoiding the need to write a
+normalized file.
+.P
+Mass normalization is done in order to bring different images to a common
+scale so that they all represent projections of the same structure.  That
+way, images at different angles will be appropriately weighted in a
+backprojection.  A relative normalization, where images are just adjusted for
+different exposures, is sufficient for this purpose.  An absolute
+normalization is useful if one wants images that are proportional to the sum
+of the mass densities in the specimen, with no additive constants.  Absolute
+normalization requires information about the image intensity that would be
+produced by the unattenuated beam.  With this information, the program can
+compute a transmittance value, I/I0, where I is the image intensity at each
+pixel and I0 is the intensity produced by the unattenuated beam.
+.P
+The treatment of transmittance values depends on whether the log is going to
+be taken of the data.  This choice would depend on the source of contrast.
+For stained samples where amplitude contrast dominates, the projected mass
+density should be proportion to the negative of the log of the
+transmittance.  In this case, taking the log of the transmittance is
+appropriate and will result in negative values, where 0 corresponds to 0
+projected mass.  When phase contrast dominates, it seems that the amount of
+attenuation of the beam should be proportional to the linear sum of mass
+densities.  Here, it should be appropriate not to take the log.  Thus, when
+the log is not being taken, the program will express the densities as
+attenuations by taking one minus the transmittance (1 - I/I0).  These
+attenuations will also be negative numbers, with 0 corresponding to 0 mass.
+In either case, you can convert the negative values to positive ones, but
+this will reverse the contrast of the data and make density appear white.
+.P
+Standard R-weighted backprojection as implemented in Tilt(1) is insensitive
+to the mean value of images, and there is no value in having an absolute
+normalization.  On the other hand, having density values where 0 means 0
+mass is potentially important for algebraic reconstruction techniques, where
+it is possible to constrain values to be all positive or all negative.
+These considerations motivate the following recommendations for various
+cases:
+.P
+1) R-weighted back projection when taking the log: Do not bother to normalize
+the data; it should have no effect.
+.P
+2) R-weighted back projection when not taking the log: A relative
+normalization is sufficient; use this program either to normalize the data
+or to compute weighting factors to pass to Tilt(1).
+.P
+3) Algebraic technique without zero constraints, and taking the log:
+Normalization is unnecessary but use this program to take the log before
+starting the reconstruction procedure.
+.P
+4) Algebraic technique without zero constraints, and without taking the
+log: A relative normalization is sufficient; as in 2), either normalize the
+data or pass weighting factors to Tilt(1) (assuming Tilt(1) will be involved
+in the algebraic technique).
+.P
+5) Algebraic technique with zero constraints, and taking the log: An
+absolute normalization is needed, using reference image data; take the log
+after normalizing.
+.P
+6) Algebraic technique with zero constraints, and without taking the log: An
+absolute normalization is needed.
+.SH OPTIONS
+Densnorm uses the PIP package for input exclusively (see the manual page for
+pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 7/16/07
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

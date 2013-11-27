@@ -1,0 +1,93 @@
+.na
+.nh
+.TH filltomo 1 4.6.34 BL3DEMC
+.SH NAME
+filltomo - Replace pixels in dual-axis tomogram with values from one
+.SH SYNOPSIS
+filltomo  [options]  matched_to_tomogram  tomogram_to_fill
+.SH DESCRIPTION
+Filltomo improves a combined tomogram from a two-axis tilt series by
+replacing pixels in locations where the "matching" tomogram had no data with
+the values from the tomogram that was matched to.  It determines a linear
+scaling between the latter tomogram and the combined tomogram so that the
+intensities will match as well as possible.  It can also be applied to fill
+the tomogram from the axis that is transformed to match, prior to combining.
+.P
+Three files need to be considered to understand how the program works: 1) The
+tomogram from the axis being matched to, which is the source for replacement
+pixels; 2) the tomogram from the other axis, which needed to be transformed
+into alignment with the first one; 3) the tomogram in which pixels are being
+replaced, which is either the transformation of the second tomogram, or the
+combination of that transformed tomogram with the first axis.
+.P
+The decision of whether to replace a pixel is made in up to four stages.
+First, the program determines if the pixel back-transforms to a location
+outside the boundaries of the tomogram from the other axis, in which case it
+was filled with a mean value during the transformation.  Second, if options
+are entered to define the region containing valid data in the tomogram from
+the other axis, then the program can also determine if a pixel
+back-transforms to a location outside that defined region.  Third, if
+options are entered to define the region containing valid data in the
+tomogram being matched to, the program will refrain from replacing pixels
+outside those regions.  Fourth, if regions near the edges are specified
+where the pixels should be replaced regardless of these other criteria, then
+pixels in such regions will be replaced unconditionally.
+.P
+There are two different ways to define the region containing valid data in a
+tomogram.  "Valid data" refers to regions where there is a relatively
+complete set of views providing back-projected data, not just to regions
+that have material suitable for correlations.   One way is to create an IMOD
+model with a contour surrounding the area with valid data, when viewing the
+raw tomogram in flipped orientation (perpendicular to the plane of
+section).  The other way is to provide the size of the original unaligned
+image data and the transformations used to align them.  The latter way works
+only if the tomogram is centered on the original image data (i.e., the
+aligned stack was centered on the original stack and neither an X nor a Y
+shift was used in building the tomogram).  If a tomogram is not centered,
+then a boundary model needs to be used instead.
+.P
+Specifying the valid data area in the tomogram from the other axis becomes
+increasingly important the greater the rotation of the tilt axis from
+vertical or horizontal, the bigger the shift between the two
+volumes, and the greater the difference between reconstruction
+and raw data size.  In the context of combining data from two axes, however,
+there appears to be no merit in specifying the valid data region in the
+tomogram being matched to.
+.SH OPTIONS
+Filltomo uses the PIP package for input (see the manual page for pip(1))
+but can take input interactively for basic operations, to maintain
+compatibility with old command files. The following options can be specified
+either as command line arguments (with the -) or one per line in a command
+file or parameter file (without the -).  Options can be abbreviated to
+unique letters; the currently valid abbreviations for short names are shown
+in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUTS
+If no command line arguments are entered, inputs are prompted interactively.
+Inputs to the program:
+.P
+Name of combined tomogram file
+.P
+Name of the tomogram that was matched TO, which will be the source of
+   replacement values
+.P
+Either the name of the tomogram that was transformed to match, or the
+   X, Y and Z dimensions of that file
+.P
+Name of file containing inverse transformation used by MATCHVOL
+.P
+Number of pixels to replace unconditionally along the four sides of the
+   tomogram when in flipped orientation.  Enter four numbers, for the
+   number of pixels on the left (lower X), right (upper X), bottom
+   (lower Y in flipped tomogram), and top (upper Y) edges.
+.SH HISTORY
+.nf
+Written by David Mastronarde, November 1995
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

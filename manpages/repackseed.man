@@ -1,0 +1,43 @@
+.na
+.nh
+.TH repackseed 1 4.6.34 BL3DEMC
+.SH NAME
+repackseed - process seed model produced by transferfid
+.SH SYNOPSIS
+repackseed
+.SH DESCRIPTION
+This is a companion program for the shell script Transferfid.
+It is used to give the user a list of how points correspond between
+the original fiducial model and the new seed model, to repack
+the seed model to eliminate empty contours, and to produce a file with
+the coordinates of corresponding fiducials.  If it is given a file
+listing object and contour numbers for fiducials whose positions
+have been solved for in the first set, the list provided to the user
+will be correct provided that all of the seed points track.  Otherwise
+the lists could be wrong.  If a corresponding coordinate file is
+produced, no statements are made about the accuracy of the list and the
+user is informed that fiducials can be added or deleted as needed.
+.P
+Its inputs are:
+.P
+File name of original fiducial model for the first axis
+.P
+Name of file with X/Y/Z coordinates, as produced by Tiltalign, or
+Return if none available
+.P
+Name of new seed model for the second axis, produced by Beadtrack and
+stripped of points from the first axis
+.P
+Output file for final repacked seed model
+.P
+Output file for list of corresponding coordinates (Return for none)
+.P
+Section numbers (numbered from 0) for the best views in the original and
+in the second tilt series, and 0 or 1 for A to B or B to A transfer
+.SH HISTORY
+.nf
+Written by David Mastronarde, 5/23/02
+Modified for corresponding coordinates, April 2006
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

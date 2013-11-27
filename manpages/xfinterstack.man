@@ -1,0 +1,62 @@
+.na
+.nh
+.TH xfinterstack 1 4.6.34 BL3DEMC
+.SH NAME
+xfinterstack - transform a model to match model built on other stack
+.SH SYNOPSIS
+xfinterstack
+.SH DESCRIPTION
+This program will transform a model that has been built on one data
+stack so that it will match the coordinates of a different data stack
+that has some sections overlapping the first stack.
+.P
+To use it, you must first build a model file in which each object
+has two points: the first point placed on a point in the first
+data stack, the second point placed on the exactly corresponding
+point on the same section in the second data stack.  This does not
+require very many objects - 10 should be plenty.
+.P
+Entries to the program are:
+.P
+Name of the model file containing the objects with corresponding
+points on an overlapping section.
+.P
+The Z value (typically the section #) for the points on the section
+in the first data stack.  Only model objects whose first point has
+this Z value will be included
+.P
+1 for a full report of deviations of points from perfect
+correspondence (see below)
+.P
+(After the program solves for a transformation):
+.br.
+Name of the model file to be transformed
+.P
+0 to transform model from fitting the first stack to fitting the
+second stack, or 1 to transform it from fitting the second stack
+to fitting the first stack.
+.P
+If the second point in each correspondence object has a different
+Z value from the first point (i.e. if the two data stacks do not have
+congruent Z coordinates), then the Z values of all points in the
+model being transformed will be adjusted by the difference in Z's
+of the correspondence points.
+.P
+When the program solves for the transformation between a pair of
+sections, it applies the transformation to the points on the second
+section of the pair, and computes the displacement, or deviation,
+between each point and the corresponding point on the first section
+of the pair.  It then reports the mean deviation for all of the
+points, the maximum deviation, and the object number of the point
+with maximum deviation.  In addition, you may elect to have a
+complete report of the deviations of all points for particularly bad
+sections.  If you choose this option, you control which sections are
+reported by specifying criterion values for the mean and maximum
+deviations; the full report will be made for any sections with mean
+or maximum deviations greater than the respective criteria.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1/4/90
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

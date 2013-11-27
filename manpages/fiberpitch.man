@@ -1,0 +1,129 @@
+.na
+.nh
+.TH fiberpitch 1 4.6.34 BL3DEMC
+.SH NAME
+fiberpitch - measure pitch of fibers and position relative to an axis
+.SH SYNOPSIS
+fiberpitch
+.SH DESCRIPTION
+Fiberpitch measures the angle of fibers relative to a central axis
+and their distance from the axis.  The pitch is resolved into radial
+and tangential components.  Several fiber bundles in a model may be
+analyzed separately by drawing contours around them.  The central
+axis may be specified by a model contour; otherwise it will be
+assumed to be located at the centroid of the fibers and oriented
+either vertically or along the average trajectory of the fibers.
+Measurements can be made from fibers in a subset of the model
+in Z.  The program can analyze several models and output the results
+to a single file.
+.P
+To use the program, the fibers should be modeled as open contours in
+an Imod model.  These contours can be in more than one object. The
+pitch for a fiber will be measured from the vector connecting the
+starting and ending points of the contour.  The position of the fiber
+is characterized by a single point for the purposes of measuring the
+distance from the central axis, resolving the pitch into radial
+and tangential components, and determining whether a fiber is a
+member of a bundle.  This point can be either the starting point,
+ending point, or middle of the contour; the same kind of point is
+used for every contour in an object.  If the middle is chosen, the
+program finds the point in the contour that is halfway along the
+length of the contour between the starting and ending points.  If a
+subset of Z is chosen for analysis, then the starting and ending
+points for all of these purposes are the first and last points inside
+the specified Z range, respectively.
+.P
+If separate bundles are to be analyzed, include an object with
+separate closed contours that surround the fibers in each bundle.
+These contours should be drawn in an X/Y plane and may be drawn at
+any desired Z-level.  The X and Y coordinates of the characteristic
+point for each contour are used to determine whether it is inside a
+given boundary contour.
+.P
+To define the central axes of bundles, include another object with
+open contours that describe the trajectories of the axes.  Only two
+points are needed for each axis.  The first point should be placed
+at about the same Z level as the characteristic points for the
+fibers.  The direction in Z will affect the angles and should be
+chosen appropriately (see below).  If no central axis object is
+used, or if there is no central axis contour inside the contour
+specifying a particular bundle, then the program will assume that
+the axis for that bundle is  located at the centroid of the
+characteristic points for all of the fibers in that bundle.  You can
+specify that such an axis will follow the mean trajectories of the
+fibers; otherwise it will be made perpendicular to the X/Y plane.
+.P
+The program includes in its output an identifying number for the
+model (optional), the contour number of the boundary contour
+(optional), the object and contour number of the fiber, the X and Y
+coordinates of the characteristic point relative to the central axis
+(in a coordinate system achieved after rotating the axis to
+vertical), the distance from the axis to the characteristic point,
+the angle between the fiber and axis, and the radial and tangential
+components of the pitch.  The coordinates and distance will be in
+nanometers, or in pixels if there is no scale in the model header.
+The overall angle varies from 0 to 180  degrees and will depend on
+the direction of the central axis as well as that of the fiber.  It
+is greater than 90 degrees if the fiber forms an oblique angle with
+the axis, with these directions taken into account.  The radial
+pitch varies from -180 to 180 degrees; it is positive if the fiber
+is heading away from the axis and negative if the fiber is heading
+toward it; its magnitude is greater than 90 the the angle to the
+axis is oblique.  The tangential pitch varies from -90 to 90 degrees
+and is positive or negative depending on whether the fiber follows a
+right-handed or lefted-handed screw thread around the axis.  The
+program allows options to invert the polarity of all the fibers in
+an object, and to invert the polarity of the axis marker for a
+particular object, so that these angles can all be made to come out
+right even if fibers or the axis marker are not modeled in the right
+polarity for a particular object.  When an axis is derived from the
+mean trajectory of fibers that have mixed polarities, the polarity
+of the axis is determined by which polarity is predominant among the
+fibers.
+.P
+The first three entries to the program apply to the output for all
+of the following models:
+.P
+Name of output file, or Return to output to the terminal or log file.
+.P
+1 to output an identifying number for each model, or 0 not to.
+.P
+1 to output boundary contour numbers, or 0 not 0.
+.P
+The following entries are made for each model to be processed:
+.P
+Name of model file, or Return to exit the program.
+.P
+IF you entered 1 above to output identifying numbers, then enter
+the identifying number for this model; otherwise skip this entry.
+.P
+Lower and upper Z levels within which to measure pitches, or 0,0
+to have no constraints in Z.
+.P
+List of objects with fibers to analyze.  Ranges may be entered, e.g.,
+1-3,5,8.
+.P
+For each object to be analyzed, enter -1, 0, or 1 to take the
+characteristic point for measuring fiber position to be at the start,
+middle, or end of the contour, respectively.
+.P
+For each object to be analyzed, enter 1 to invert the polarity of
+fibers and compute their direction using the vector from the end to
+the start, or 0 to use the normal polarity from start to end.
+.P
+For each object to be analyzed, enter 1 to invert the polarity of
+the central axis, or 0 not to.
+.P
+Object number of object containing boundary contours around bundles
+of fibers, or 0 to treat all fibers as belonging to one bundle.
+.P
+Object number of object containing contours marking the central axes,
+or 0 to use a vertical axis through the centroid of the fiber
+positions in X and Y, or -1 to use an axis that follows the mean
+trajectory of the fibers.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 5/3/01
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

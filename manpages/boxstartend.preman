@@ -1,0 +1,114 @@
+.na
+.nh
+.TH boxstartend 1 4.6.34 BL3DEMC
+.SH NAME
+boxstartend - to clip out portions of a volume around contour points
+.SH SYNOPSIS
+boxstartend  [options]  input_image  input_model  [output_file]
+.SH DESCRIPTION
+Boxstartend will extract subvolumes centered on the starting or ending
+points of model contours, or on all points in a model contour.  It can place
+each volume into a separate file, or stack all the extracted volumes into a
+single output file.  In the latter case, the program can generate two lists
+of piece coordinates to allow the volumes to be examined in two different
+ways in 3dmod(1).  One list will assemble all of the volumes into a single
+square array, with the extracted starting or ending points all appearing on
+the same section.  The other list will display each piece in its true
+position in the original volume of images.
+.P
+When all subvolumes are stacked into a single file, an average will also be
+accumulated and saved in the file after the last extracted subvolume.  This
+average will show up as the rightmost item in the top row when viewing the
+square array in 3dmod(1).  If there is insufficient memory, the average will
+not be computed.
+.P
+The coordinates in the model are scaled to fit the current volume.  This
+means that you can model points in a binned-down volume and use that model
+directly to extract boxes from the full-sized volume.  You can also model
+points on a volume loaded into 3dmod with flipping.  However, all of the
+entries to the program referring to X, Y, and Z or slices must correspond to
+the actual X, Y, and Z coordinates in the unflipped volume, not to the
+coordinates as visualized in 3dmod.
+.P
+When each volume is placed in a separate file, the origin of each output
+file is adjusted for its position in the input volume, so that a model built
+on an extracted file should display at the correct position in the full
+volume, and vice versa.
+.SH OPTIONS
+Boxstartend uses the PIP package for input (see the manual page for pip(1))
+and can also still take input interactively.  The following options can be
+specified either as command line arguments (with the -) or one per line in a
+command file or parameter file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are
+shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+For compatibility with older command files, the program will also
+accept input interactively if started with no command line arguments.
+The interactive entries to the program are:
+.P
+Image file name
+Piece list file name, if image file is a montage
+Model file name
+.P
+0 to take the coordinates in the model as they are, or 1 to transform
+    the coordinates by a set of transformations, or -1 to
+    back-transform the coordinates.  The latter would be used to
+    take coordinates from an aligned model and extract images from
+    unaligned images.
+.P
+IF you entered -1 or 1 for transformed coordinates, next enter the
+   name of the file with the transforms.  The first transform in the
+   file should correspond to the first section in the file.
+.P
+Minimum and maximum X, and minimum and maximum Y index coordinates
+   within which starting or ending points must be contained in order
+   for them to be extracted, or / for no limits on coordinates
+.P
+Minimum and maximum section numbers within which the extracted
+   volumes must be contained, or / for no limits on section number
+.P
+List of numbers of objects containing contours whose endpoints
+   should be selected, or Return for all objects.  Ranges may be
+   entered, e.g. 1-3,6.
+.P
+0 to extract starting points, or 1 to extract ending points, or -1
+   to extract all points.
+.P
+Size of box, in pixels
+.P
+Number of sections before endpoint to extract, and number of
+   sections after endpoint to extract
+.P
+0 to output all images into a single file, or 1 to output each
+   box into a separate, numbered file
+.P
+IF you entered 1 for separate files, next enter the root name for the
+   numbered files.  This is then the last entry.  IF you entered 0
+   for a single file, then make the following additional entries:
+.P
+Name of output file for images
+.P
+Name of output file in which to place a list of piece coordinates in
+   order to view the pieces in a square array, or Return for no
+   file of such coordinates
+.P
+IF you specify a file name, next enter the amount of blank space to
+   leave between adjacent pieces, in pixels
+.P
+Name of output file in which to place a list of the true, original
+   coordinates of each piece, or Return for no such file
+.SH HISTORY
+.nf
+Written by David Mastronarde, 4/23/90 - revised 1/19/93, for IMOD 4/24/97
+Modified for separate files and all point output 10/26/99
+Converted to PIP and made so practically any volume can be extracted, 
+   12/4/07
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

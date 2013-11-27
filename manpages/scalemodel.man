@@ -1,0 +1,12 @@
+.na
+.nh
+.TH scalemodel 1 4.6.34 BL3DEMC
+.SH NAME
+scalemodel - rescale a model for changes in image origin, delta or tilt
+.P
+.SH SYNOPSIS
+scalemodel
+.SH DESCRIPTION
+  Will rescale a model for changes in image origin, delta or tilt
+.SH BUGS
+Email bug reports to mast@colorado.edu.

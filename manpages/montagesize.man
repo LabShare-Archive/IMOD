@@ -1,0 +1,23 @@
+.na
+.nh
+.TH montagesize 1 4.6.34 BL3DEMC
+.SH NAME
+montagesize - Determine dimensions of a montaged image file
+.SH SYNOPSIS
+montagesize  input_image_file [input_piece_list_file]
+.SH DESCRIPTION
+Montagesize will determine the X, Y, and Z dimensions of a montaged
+image file, from piece coordinates that are contained either in the
+the file header or in a separate piece list file.
+.P
+The file names are specified exclusively as command line arguments:
+first the image file name, then the piece list file name, if any.
+If there is one argument, the program attempts to read the
+coordinates from the image file header.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, December 1999
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

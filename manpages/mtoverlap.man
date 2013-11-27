@@ -1,0 +1,381 @@
+.na
+.nh
+.TH mtoverlap 1 4.6.34 BL3DEMC
+.SH NAME
+mtoverlap - to sdisplay and analyze overlap of spindle MTs
+.SH SYNOPSIS
+mtoverlap
+.SH DESCRIPTION
+Mtoverlap allows one to display sets of "bundles" of microtubules
+(MT's) and to compute overlap between MT's coming from the two
+different directions.  It has a lot of flexibility but one can select
+a default, standard display format fairly easily.
+.P
+Before running the program, you must figure out how to specify which
+MT's are in a bundle.  If all of the MT's in a model belong to
+one bundle, then this task is easy.  If you have several bundles in
+one model, then you have several alternatives.  One is to determine
+the lower and upper X, Y and Z coordinates of a box, such that the
+bundle consists of all MT's that contain at least one point within
+the box.  Another way is to make a model contour within the plane
+of one section to serve as a boundary contour.  This contour,
+together with a lower and upper Z coordinate, specifies a "cylinder",
+and this program will include in the bundle any MT with at least one
+point inside this cylinder.  The most elaborate way is to make a
+series of model contours for boundary contours in different sections.
+The program will then include in the bundle any MT that is included
+within any one of the contours.
+.P
+For each bundle that the program deals with, it will want to know a
+center Z coordinate; this center value is used to align different
+bundles for display and to compute the average distance past center
+that each class of MT extends.  The program can compute the center
+value that makes two classes of MT's extend past the center by the
+same amount (in opposite directions).  It can do this computation
+for each bundle separately, for all bundles pooled together, or
+for any combination of bundles that you desire.  Alternatively, you
+may enter the center Z coordinates.
+.P
+When you enter X, Y or Z coordinates for either of the above
+purposes, they must be index coordinates of the image file.  That
+is, X and Y values must be in terms of pixel coordinates, and Z
+values must be in units of the original section numbers, before
+adjustment for tilt or scaling by section thickness.
+.P
+If the sections were significantly tilted during microscopy, the
+program can adjust for these tilts given the proper information.
+Prepare a file in which the first line shows the Z value and the
+tilt of the first tilted section (or of the first section, if that
+one was tilted), and each successive line shows the Z value and tilt
+for each section on which tilt was changed.  Z values should occur in
+ascending order.
+.P
+The program refers to different kinds of MTs as "types".  For an IMOD
+model, the type is simply the object number; for data from a WIMP
+model file, the type is 256 minus the object color, or the negative
+of this value if the WIMP object is turned off.  A default display
+format is set up to be used with either kind of model file.  To use
+the defaults with an IMOD model, MTs starting at low and high Z
+should be in objects 1 and 2 respectively; continuous MTs in object
+3, and free MTs in object 4.  With a WIMP model, MTs from low and
+high Z should have colors 250 and 251 (types 6 and 5 in the
+program), and continuous and free MTs 252 and 255 (types 4 and 1).
+.P
+When you start the program, you will have to make a standard series
+of entries until you get the first display.  From there, you can
+select a number of options to loop back and change those entries.
+Initial entries in order are:
+.P
+Name of command file to take entries from, or Return to continue
+making entries from the keyboard. The program can read entries from
+a file instead of from the keyboard, then switch back to keyboard
+input if the file ends with the appropriate entry.
+.P
+A list of types to be mapped, or changed, into new types, or
+Return for no mapping of one type into another.  This option is
+useful if you have several different types that you want to combine
+into one.  For example, if you want to treat types 11 and 13 like
+type 1, and types 12 and 14 like 2, and if you also have some
+existing MT's of types 1 and 2 that you don't want to include
+with these types, then you need to remap all of these types by
+entering 11-14,1,2
+.P
+IF you entered some types to remap, next enter the types to change
+them into.  For the example just described, you would enter:
+1,2,31,32
+.P
+Number of bundles to read from model files, or 0 if the entries
+specifying all of the bundles are in yet another file.
+.P
+IF you enter a positive number, then enter for each bundle:
+.P
+   Name of model file with bundle in it, or Return to use same file
+   as previous bundle
+.P
+   IF you enter the name of file, make the following 1-3 entries:
+.P
+      Name of file with information on tilt angles, or Return if
+      there is no such file (pictures taken at 0 tilt)
+.P
+      IF the model header has no scaling information, make the next
+      two entries as well to specify scaling:
+.P
+        Section thickness in nm, to scale Z coordinates to microns;
+        or / to leave Z values unscaled
+.P
+        Magnification of negatives, and scale of digitization (the
+        value of microns/pixel from VIDS), to scale the X/Y
+        coordinates correctly; or / to leave X/Y coordinates
+        unscaled.  This entry makes no difference unless you choose
+        to calculate one of the special three-dimensional overlap
+        factors.
+.P
+   Number of limiting regions (boundary contours or rectangles
+   defined by X/Y coordinates) needed to specify the bundle, or
+   0 to take all of the objects in the model.
+
+   For each limiting region, then enter:
+.P
+      Either IMOD object number and contour number of the boundary
+      contour, or a WIMP object number and 0 for data taken from a
+      WIMP model file, or 0,0 to enter limiting X and Y coordinates
+      of a box.
+.P
+         IF you entered 0,0 next enter the lower and upper X index
+         coordinates and the lower and upper Y coordinates of the
+         box, or enter / to have no limit on the X and Y coordinates
+         THEN enter the lower and upper Z coordinates of the box (in
+         units of sections), or / to have no limits on Z coordinates
+.P
+         IF you entered numbers for a boundary contour, next enter
+         lower and upper Z coordinates of the "cylinder", or /
+         to set those limiting coordinates to the Z coordinate of the
+         boundary contour.  The latter is typical if one uses several
+         contours in different sections to specify the bundle.
+.P
+IF you entered 0 for the number of bundles, next enter instead the
+name of a file.  The first line of this file should have the number
+of bundles specified there.  The rest of the file should be all of
+the entries just described for each bundle.
+.P
+Enter 0 if you want to specify EVERYTHING or 1 to use the default
+format for types, display colors, etc. with an IMOD model, or 2 to
+use defaults for a WIMP model.  With an entry of 1, you will
+get centers of bundles calculated from MT types 1 and 2, overlap
+calculated from types 1 and 2, and a display occupying the whole
+screen with, from top down, type 4 in order by increasing length,
+types 1 and 2 interleaved with 1 in order by increasing Z of
+endpoint and 2 in order by decreasing Z or startpoint, then type
+3 in order by increasing length.
+.P
+Enter a list of numbers of the bundles to work with.  Ranges may be
+entered, e.g. 1-3,7-9.
+.P
+Enter 1 to have each bundle's center computed separately, 2 to have a
+single center Z value computed with all bundles pooled together,
+3 to specify a single center Z coordinate for all bundles, or
+4 to control center specification more intimately.
+.P
+IF you entered 3, next enter the Z value to use as center for all
+bundles, in units of original section numbers.
+.P
+IF you entered 4, next enter a set of numbers, one for each bundle:
+either a specific Z center section value for that bundle, or the
+negative of a specific Z center value in microns, or 0 to have its
+center computed separately from other bundles, or a negative number
+less than -100; all bundles with the same negative number will be
+pooled and given the same computed center value.
+.P
+IF you did not select default display, next enter two lists of
+types to calculate the center from, where ranges may be entered:
+.P
+   List of types coming from low Z
+.P
+   List of types extending to high Z
+.P
+IF you did not select default display, next enter two lists of types
+to compute the overlap from, or 2 Returns to omit computing overlap:
+.P
+   List of types coming from low Z
+.P
+   List of types extending to high Z
+.P
+Enter 0 for simple overlap factor (without considering proximity
+in the X/Y plane), or 1, 2 or 3 for a 3-D overlap factor, where the
+amount of overlap between two MT's per section decays with increasing
+distance between them in the X/Y plane, either as a step function (1
+within a certain distance and 0 beyond it), an inverse power, or
+exponentially.
+.P
+   IF you entered 1-3, next enter 0 to compute an average
+   overlap factor for each MT, then average those values over the
+   MT's, or 1 to compute the sum of overlap factors for each MT, then
+   average those sums over the MT's.  In the latter case, the
+   resulting values may depend heavily on bundle size.
+.P
+   IF you entered 1-3, next enter the distance in the X/Y plane
+   at and below which overlap will equal 1.  The distance should be
+   in microns if you have scaled X/Y values, or in pixels if you
+   have not.  For the step function option, enter the maximum
+   preferred distance between MT's.
+.P
+   IF you entered 2, next enter the power for the decay (e.g., with
+      a power of 2, overlap will decay as the inverse square of
+      distance)
+.P
+   IF you entered 3, enter instead the space constant for exponential
+   decay.  Overlap will be 1/e less for MT's separated by 2 space
+   constants than for MT's separated by 1 space constant.  Distance
+   should be in microns if you have scaled X/Y values, or in pixels
+   if you have not.
+.P
+IF you did not select default display, make the following entries
+to control the display:
+.P
+   List of types to display, or Return for no display.  Ranges OK.
+.P
+   Colors to display them as, or / to take standard colors.  Colors
+   are specified as numbers from 0 to 255.  0-240 correspond to gray
+   scales from black to white, then 237-255 give olive, dim yellow,
+   orange, red, green, blue, yellow, magenta, and cyan. For data
+   from an IMOD model, / will assign colors as 256 minus the type.
+   For data from a WIMP model, / will give the same colors as in the
+   model, unless types have been remapped.
+.P
+   Enter a number for each type to control the ordering of the MT's
+   from the top down: 1 or -1 to have in order by increasing or
+   decreasing Z of the starting point; 2 or -2 for order by
+   increasing or decreasing ending Z; 3 or -3 for order by
+   increasing or decreasing length
+.P
+   Enter a positional value for each type, where positions are
+   numbered from the top down; two types with the same position
+   number will be displayed with their MT's interleaved.
+.P
+Enter 1 to plot all bundles in the same graph, 2 to plot each bundle
+in a separate graph, or 3 to specify more complicated combinations
+.P
+IF you entered 3, enter a graph number for each bundle included in
+the display, where graphs are numbered from the top down.  Bundles
+with the same graph number will be pooled for display.
+.P
+IF you did not select default display, make three more entries
+.P
+   Either the negative of the total horizontal size of display, in
+   pixels, or the number of pixels per unit of Z,
+   or / to use the default indicated (initally 1280 pixels).
+.P
+   Total vertical size of display, in pixels, or / to use the default
+.P
+   Line spacing in regions where MT's are interleaved relative to
+   spacing in non-interleaved regions, line thickness, axis
+   thickness, label thickness, and lengths of major and minor ticks.
+   (It will tell you what the defaults are.)  A thickness of 2 IS
+   available, but higher even thicknesses are rounded up by 1 (so
+   only odd thicknesses are available above 3).  To get lines drawn
+   in order from the bottom up instead of from the top down, enter
+   the negative of the desired value for interleaved line spacing
+   (typically, the negative of the indicated default value.)
+.P
+   Colors for the axes, the labels, and the fitted lines; size of
+   labels; # of pixels of additional shift leftward and downward
+   for labels; intervals (in # of ticks) at which to have major
+   ticks and labels.  It will tell you the defaults; enter / to use
+   them.
+.P
+At this point you will get the display and some output: the number of
+each type of tube in each graph and the mean and standard deviation
+of their lengths, and computed overlap values for each bundle
+separately and for all bundles together (the last line of output).
+Four overlap values are computed (mean, S.D., and # of MT's
+contributing to each value are printed).  The first is the
+distance past the center that each MT extends.  The other three are
+overlap values for MT's coming from low Z (from the left), for
+MT's coming from high Z (from the right), and for both of those sets
+of MT's combined.  With the simplest overlap computation, the
+overlap value for a single MT is the average amount of Z overlapping
+with other MT's, where the average is only over those MT's from the
+other direction that actually do overlap with the given MT.  The
+values printed out are the mean and S.D. of these averages for all
+the MT's from the given direction.
+.P
+With the inverse power or exponential decay options, instead of
+counting 1 unit of overlap per section of overlap between two MT's,
+the amount of "overlap" in each section is computed from the
+distance between the two MT's in that section, giving a number that
+is 1 for nearest neighbor MT's and less for more separated MT's.
+This overlap factor is then summed over all sections in which both
+MT's appear.  For a given MT, the program will then form either the
+mean or the sum of the summed overlap factor between that MT and all
+other overlapping MT's.  The sum is probably a more meaningful
+measure.  Finally, these means or sums are averaged over all MT's
+from a given direction, including MT's with 0 overlap.
+.P
+Now you can loop back to various parts of the program. Enter:
+.nf
+1 to combine the overlap calculation for a group of bundles
+2 to change the display size or interleave/non-interleave spacing
+3 to specify which bundles should go in which graphs
+4 to specify the types to display, and their colors, positions and
+   ordering parameters
+5 to specify the types to compute overlap from, or the way of
+   computing the overlap factor
+6 to change which bundles are included in the display or computations
+7 to control output of numbers of MT's and overlap values to a file
+8 to read in new bundles and add them to existing ones
+9 to read in new bundles and replace previously read ones
+10 to take commands from a file (next enter filename, or Return to
+   take input from the keyboard)
+11 to exit
+12 to fit lines to the starting and ending points of certain types
+13 to change the mapping of one type into another
+14 to plot the graph to a postscript file
+15 to display such a postscript file on the screen
+16 to print the postscript file
+.fi
+.P
+IF you enter 1, next enter the list of bundles to combine for
+computing overlap (ranges are ok).  If there are, say, 4 bundles
+included in the computation and/or display, they are referred to as
+numbers 1 to 4, regardless of their numbers among the entire set of
+bundles that have been read in.
+.P
+IF you enter 7, on the first such occasion, enter the name of a file
+to store output into.  Then enter:
+0 to turn off output to the file
+1 to output only the overlap calculations to the file
+2 to output only the numbers of MT's to the file
+3 to output both overlap and numbers.
+.P
+IF you enter 6, 8, or 9, you will loop back and have to make all of
+entries that follow the point to which you looped back; other options
+involve re-entering only a subset of the parameters.
+.P
+IF you enter 12, the program will fit a line to the starting points
+of one type of MT, and another line to the ending points of another
+type of MT.  It will display the fitted lines and report two factors:
+the slope, in units of percent of that type of MT starting (or
+ending) per unit of Z; and the distance past the center at which the
+line crosses the level of 50% of the MT's.  It reports these factors
+separately for the two lines, and also shows the average of the
+values for the two lines.  If there are too few MTs to derive a
+value, the value is reported as 0.  It also reports the number of
+MT's used to derive the factors.  Each line displayed on the screen
+occupies the vertical extent of the MT's included in the fit.  When
+you enter 12, you next make two entries:
+.P
+   The type to whose starting points a line will be fit, and the type
+   to whose ending points a line will be fit, or / to accept the
+   defaults, which are initially the types used to calculate overlap.
+.P
+   The lower and upper percentile limits for the MT's to be included
+   in the fits, or / to accept the defaults shown in parentheses.
+   MT's are counted from the top of the display downward.  For
+   example, if you enter 5 and 85, then the top 5% and the bottom 15%
+   of MT's in each type will NOT be included in the fits.
+.P
+IF you enter 13 to change type mapping, you should then select
+option 6 in order to make sure that the new types are being used
+correctly for display or computation.
+.P
+IF you enter 14 to plot the graphs, the program will ask for the
+X and Y size and lower left X and Y coordinates, in inches, of
+the location on paper corresponding to the full screen display.  You
+can use these entries to change the size or aspect ratio of the
+display.  Next the program will ask for a label for the X axis; enter
+Return for no label.  The size and spacing of the axis numeric and
+text labels can be controlled by the entries that one sets when
+displaying the graphs on the screen.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 10/3/90
+2/21/92: changes to scale data into microns, add line fits
+5/1/92: implemented simple distance-dependent overlap
+6/9/92: implemented mapping of types
+11/5/94: fixed interset and intergraph spacing, aligned interleaves
+         at the bottom of each set to obviate need to invert drawing
+6/14/96: added plotting output
+4/28/97: changes for IMOD models
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

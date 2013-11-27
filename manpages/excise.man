@@ -1,0 +1,38 @@
+.na
+.nh
+.TH excise 1 4.6.34 BL3DEMC
+.SH NAME
+excise - Extracts images from sepcified areas in an image file
+.SH SYNOPSIS
+excise
+.SH DESCRIPTION
+.P
+Excise will chop out pieces from an image file, at positions
+specified in a file of coordinates.  The file consists of three
+integer index coordinates per position (x, y, z), such as is put out
+by Model2point(1).  The centers of the excised pieces can
+be offset from the point coordinates by specified amounts.  If a
+piece extends beyond the edge of the original image, it will be
+padded with the mean intensity of the input file.
+.P
+The inputs are:
+.P
+.nf
+Input image file
+Name of piece list file if image is a montage; otherwise Return
+Name of file of point coordinates
+Name of output file for pieces
+X and Y dimensions of the output file
+X and Y offsets, which will be added to the point coordinates to
+   obtain the coordinates of the center of each output piece
+.fi
+.P
+The program can extract pieces from a montaged image file, but it
+will not do so properly if a piece falls in the overlap zone between
+montage frames.  It would have to be modified to do this properly.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 3/4/91
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

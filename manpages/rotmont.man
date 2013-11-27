@@ -1,0 +1,32 @@
+.na
+.nh
+.TH rotmont 1 4.6.34 BL3DEMC
+.SH NAME
+rotmont - Rotates sections from a montage by 90 degrees
+.SH SYNOPSIS
+rotmont
+.SH DESCRIPTION
+  ROTMONT will rotate selected sections from a montage by plus or minus
+  90 degrees and allow one to shift the coordinates by a fixed amount.
+.P
+  Entries are as follows:
+.P
+  Input image file
+  Name of input file with list of piece coordinates
+  Output image file
+  Name of new file for list of coordinates of pieces in the output file
+.P
+  0 to rotate images by +90 degrees (counterclockwise) or 1 to rotate
+     by -90 degrees (clockwise)
+.P
+  A list of sections to rotate, or Return for all sections (ranges may
+     be entered).
+.P
+  Amounts to ADD to all X, Y and Z piece coordinates
+.P
+.SH HISTORY
+.nf
+  Written by David Mastronarde, July 1996
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

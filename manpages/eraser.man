@@ -1,0 +1,57 @@
+.na
+.nh
+.TH eraser 1 4.6.34 BL3DEMC
+.SH NAME
+eraser - to erase small flaws in image
+.SH SYNOPSIS
+eraser
+.SH DESCRIPTION
+This program replaces deviant pixels with interpolated values from
+surrounding pixels.  To use it, one first prepares a point list file
+(e.g. with model2point(1)) containing a point for each area that one wishes to
+erase.  Best results will be obtained if the point is the most
+extreme value in the area.  (For elongated areas, one might want to
+to enter more than one point).
+.P
+The program works by building up a list of points around the
+specified point that need to be replaced.  The list starts with just
+the specified point.  A rectangular box is defined by a placing a
+border around the points on the list; e.g. for a border size of 3,
+there will be at least 3 pixels between any point on the list and
+the edge of the box.  Then the mean and standard deviation of density
+is computed for pixels that are in the box but are not on the list
+or adjacent to a point on the list.  Then, all of the adjacent points
+are examined, and they are added to the list if they deviate from the
+mean by more than the specified criterion number of standard
+deviations (and in the same direction from the mean as the original
+specified point).  This process is repeated until no further points
+get added to the list, or until the box reaches a limiting size.
+After the list is stable, the pixels in the box and not on the list
+are fit to a polynomial function of x and y, and the pixels on the
+list are replaced by values computed from the polynomial.
+.P
+.nf
+The inputs are:
+Input image file
+Output image file, or <Return> to place modified sections back into
+      the input file.  USE REPLACEMENT OPTION WITH CAUTION
+Point list file
+Criterion # of standard deviations for adding a pixel to the list
+      of points needing replacement  (try 2)
+Border size around points on list (default 3 pixels)
+Maximum # of pixels to include in box (default 400)
+Order of polynomial (default=2, terms in x, y, x**2, y**2 and x*y)
+.fi
+.P
+At each position, the program outputs a map of the pixels in the box,
+with the initial specified point marked by a 2 and other replaced
+points marked by a 1.
+.P
+This program doesn't always do a good job.  It could be improved, but
+it is better to keep dirt off of the images in the first place.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 2/27/89
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

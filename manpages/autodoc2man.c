@@ -19,10 +19,12 @@ int main(int argc , char **argv)
             "   type = -3 for fallback Fortran option code (f90 free format)\n"
             "          -2 for fallback Fortran option code (f77 fixed format)\n"
             "          -1 for cat output (.1)\n"
+            "           0 for usage output\n"
             "           1 for man output (.man)\n"
             "           2 for fallback C option code\n"
             "           3 for fallback Python option code\n"
-            "   directories_up = number of ../ to find autodoc directory\n");
+            "   directories_up = number of ../ to find autodoc directory,\n"
+            "                    or 0 to use $IMOD_DIR/autodoc\n");
     exit(1);
   }
 
@@ -34,8 +36,8 @@ int main(int argc , char **argv)
   mantype = atoi(argv[1]);
   local = atoi(argv[2]);
   PipExitOnError(1, "ERROR: AUTODOC2MAN - ");
-  PipReadOptionFile(argv[3], 3, local);
   PipSetManpageOutput(mantype);
+  PipReadOptionFile(argv[3], mantype ? 3 : 1, local);
   PipPrintHelp(argv[3], 0, 0, 0);
   return 0;
 }

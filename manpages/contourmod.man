@@ -1,0 +1,67 @@
+.na
+.nh
+.TH contourmod 1 4.6.34 BL3DEMC
+.SH NAME
+contourmod - to generate contour maps as a model file
+.SH SYNOPSIS
+contourmod
+.SH DESCRIPTION
+Contourmod will generate contour maps of selected sections in an
+image file and place them into an IMOD model that can then be
+displayed on the images.  You can produce contours at regularly
+spaced intervals or at individually specified levels.  Each contour
+level may have a different color.
+.P
+The contours are lines connecting points spaced about 1 pixel apart
+or less; thus a complete set of contour lines for one image can
+have quite a large number of points, especially if the image is
+large or has a lot of fine detail.  The program will give an error
+message and stop adding points to the model if no further points can
+fit in the model storage arrays.  If this happens when contouring
+several sections, you need to make more than one model file.  If it
+happens when contouring a single image, the image is too large or too
+detailed and needs to be reduced in size or filtered.
+.P
+Entries to the program are:
+.P
+Name of file with images to contour
+.P
+Name of model file to place contours into
+.P
+List of sections to contour, or / for all sections in the image file.
+Ranges may be entered, e.g. 0-2,5,7
+.P
+X and Y scaling factors to apply to the model relative to the image
+pixels, or / for 1,1.  If you are going to display the contours on
+an image that has been expanded by a certain factor with a
+transformation, it is recommended that you generate the contours on
+the original rather than the expanded image, so as to avoid getting
+a contour model with a vast number of points.  In this case, you
+would enter that expansion factor as the X and Y scaling factors, and
+the contour model would fit the expanded images.
+.P
+Enter a positive number of contours for regularly spaced contours,
+or the negative of the number of contours if you want to specify
+each contour level individually.
+.P
+IF you entered a positive number greater than 1, next enter the
+lowest and highest contour levels desired.
+.P
+IF you entered 0 or 1, instead enter the single contour level
+desired.
+.P
+IF you entered a negative number, instead enter all of the desired
+contour levels.
+.P
+Finally, enter an intensity level or color (0 to 255) for each
+contour level.  If you might need to change the colors or turn any
+contours off inside IMOD, it is recommended that you give each level
+a unique color value.  For example, if you want several bright white
+or several black lines, make them 240, 239, 238, etc or 0, 1, 2, etc.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde 12/1/90, using CONTUR package from Tim Baker
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

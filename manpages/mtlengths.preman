@@ -1,0 +1,116 @@
+.na
+.nh
+.TH mtlengths 1 4.6.34 BL3DEMC
+.SH NAME
+mtlengths - compute lengths of MTs in a model
+.SH SYNOPSIS
+mtlengths
+.SH DESCRIPTION
+Mtlengths computes the lengths, in microns, of contours in
+IMOD models, and produces a list giving the object number and contour
+length for each contour.  This list may be used to generate a
+histogram of lengths with a program such as Genhstplt(1).  One may
+optionally add a certain amount of length to each contour at its
+high Z end, so that the length calculation will include the
+thickness of every section in which a contour appears.
+.P
+If the reconstruction is from serial sections that were significantly tilted
+during microscopy, the program can adjust for these tilts given the proper
+information.  Prepare a file in which the first line shows the Z value and
+the tilt of the first tilted section (or of the first section, if that one
+was tilted), and each successive line shows the Z value and tilt for each
+section on which tilt was changed.  Z values should occur in ascending
+order.
+.P
+If the contours are mainly perpendicular in the model (e.g.,
+microtubules in good cross-section in tilted images), then this simple
+adjustment for tilting is adequate.  However, if trajectories are
+oblique, the program can do a more complex adjustment for the tilting
+if it is given information about the location of the tilt axis in the
+images.  This information consists of the angle of the axis in raw
+images (i.e., the angle of rotation from the vertical to the tilt
+axis), and optionally the list of transformations applied to align the
+raw images.  When the program adjusts for obliqueness, there is a
+potential ambiguity about the sign of the tilt angles.  It thus
+computes lengths both with the tilt angles as given and with their signs
+inverted.  It reports the fraction of line segments that come out
+longer with the angles as given than with the angles inverted.  This
+fraction is referred to as the fraction that are "better", because it
+is assumed that the tilting was done in the direction that reduced the
+obliqueness of the fibers by as much as possible.  This fraction is
+reported for each range of Z values at a single tilt angle, and
+overall.  If the fraction better is less than 0.5, one should rerun the
+program, selecting the option to invert tilt angles.  On this run, the
+angles will be considered to be specified as the negative of the angles
+in the tilt file, and the fraction of segments that are longer with the
+angles as specified will be greater than 0.5.
+.P
+These adjustments for tilting are irrelevant for a tomographic
+reconstruction.
+.P
+The program can also be provided with an object containing a contour
+that serves as a length marker.  It will report the length of this
+contour both without and with the correction for obliqueness, and with
+the length given for both polarities of the tilt angle.
+.P
+If one corrects for obliqueness, there is also an option to produce a
+set of transformations that can be applied to produce the model that
+would have been obtained if the sections had not been tilted.
+Imodtrans(1) or Xfmodel(1) can be used to transform the model.
+.P
+The output of the program depends on whether one is correcting for
+obliqeness.  If one is not, the output consists of the object number and
+the length for each MT.  With obliqueness correction, the output consists
+of the object and contour number, the length uncorrected for obliqueness,
+the length with angles as specified, and the length with angles inverted.
+On the final run, with the polarity of angles selected as inverted if
+necessary, the desired lengths will be in the fourth column.
+.SH OPTIONS
+Mtlengths uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively if correction for obliqueness is not
+required.  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+For compatibility with older command files, the program will also
+accept input interactively if started with no command line arguments,
+but it will not be able to correct for obliqueness.
+The interactive entries to the program are:
+.P
+Name of model file
+.P
+Name of file with tilt information, or Return if none
+.P
+IF the model has no scaling information in its header, make the
+following three entries:
+.P
+   Magnification of negatives (without any commas), or 1000
+.P
+   Scale, in microns per pixel, at which negatives were digitized, or
+   pixel size on specimen in nanometers
+.P
+   Section thickness in nanometers
+.P
+Amount to add to the high Z end of each object in order to account
+   for section thickness.  For example, enter 1 to allow a section's
+   worth of length for each section that an object appears in.
+.P
+Name of output file in which to place list of lengths, or Return for
+   output to the terminal
+.P
+List of IMOD objects to exclude from the output, or Return to output
+   all objects.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1/27/90; modified for IMOD 4/24/97;
+incorporated obliqueness correction and switched to PIP input, 9/4/03
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

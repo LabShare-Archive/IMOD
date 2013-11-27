@@ -1,0 +1,74 @@
+.na
+.nh
+.TH sortbeadsurfs 1 4.6.34 BL3DEMC
+.SH NAME
+sortbeadsurfs - preprocess 3D model of gold bead positions for flattenwarp
+.SH SYNOPSIS
+sortbeadsurfs  [options]  input_model  output_model
+.SH DESCRIPTION
+.P
+Sortbeadsurfs can be used to process two different kinds of models of the 3D
+positions of gold beads to make them suitable to use in Flattenwarp(1) for
+describing a surface to be flattened.  One kind of model would be of gold
+positions measured directly in the tomogram, such as by Findbeads3d(1).
+Here it is essential that if the beads are on two surfaces, each surface be
+represented by a separate object.  Sortbeadsurfs uses the same routine that
+Tiltalign(1) does to sort the beads into two objects.  The second kind of
+model is the one produced by Tiltalign(1) of the fiducial positions in 3D.
+Here it is essential that the model be tilted around the X axis by the X
+axis tilt used to generate the tomogram, that its X and Y coordinates be
+shifted and/or scaled as appropriate to match the final tomogram, and that
+the points are in only one object for each surface.
+.P
+If you have a model from Findbead3d(1), you should first edit it to remove
+points that are obviously not on the surfaces.  (Flattenwarp has an option
+for removing more subtle outlying points, but it is best to get rid of the
+obvious points beforehand.)  Then run this program on the model.  Examine
+the output model to make sure points have been sorted correctly between the
+two surfaces.  If not, and if the failure is because the surface is too
+warped to analyze all at once, then try the -subarea option to analyze the
+beads in subareas.  If subareas are not suitable, you may have to edit the
+model to fix errors.  Each point in the output model is a separate contour,
+so it is possible to click on points with the third mouse button in the
+model view window to select them, and use the Edit_contour-Move dialog to
+move the points to the right object.
+.P
+If you have a model from Tiltalign(1), you should run this program on it to
+apply the X axis tilt that was used when generating the tomogram.  The
+program will attempt to sort the points into two surfaces, but if this
+creates a problem, use the -already option to skip the sorting if they are
+already sorted into two surfaces.  If fiducials were tracked with multiple
+objects, the program automatically combines them into two objects based on
+the colors of the objects.  If the beads are on one surface, use the -one
+option to skip the sorting and combine multiple objects, if any, into one
+object.  The program has a host of options for adjusting for: a full aligned
+stack bigger or smaller than the original stack; binning of the prealigned
+stack or of the final aligned stack or tomogram; trimming of the tomogram in
+X or Y (or alternatively, generation of a tomogram that is a subarea in X
+and Y); or flipping by Y and Z rather than rotation around X in the trimming
+step.
+.P
+You should be able to load the resulting model on the tomogram to verify
+that it has the right coordinates.  To do so, be sure to use the -rescale
+option to account for any change in binning and to start 3dmod(1) with the
+-m option so that it ignores previous scale information in the model.  The
+points will not be on the right Z planes, so you will have to use the
+Edit-Model-Offsets dialog to shift the model in Z until it fits.
+.SH OPTIONS
+Sortbeadsurfs uses the PIP package for input exclusively (see the manual
+page for pip(1)).  The following options can be specified either as command
+line arguments (with the -) or one per line in a command file or parameter
+file (without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Added to IMOD, 12/6/09
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

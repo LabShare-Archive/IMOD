@@ -1,0 +1,203 @@
+.na
+.nh
+.TH bsplt 1 4.6.34 BL3DEMC
+.SH NAME
+BSPLT - an interactive 2-D plotting routine called by Genhstplt
+       and other programs
+.SH DESCRIPTION
+Subroutine BSPLT allows one to plot one variable against another,
+with graphical display in a graphics window
+and output to a Postscript printing file.
+.P
+The first entry controls where the graph is displayed; it is not asked if
+the calling program (e.g., Genhstplt(1)) was told to always use screen
+plots:
+   0 for plot in the graphics window (which must have been enabled by
+      selecting the appropriate option in the calling program)
+   1 for plot on the terminal
+.P
+The next entry allows you to type or file the data or allows you to
+specify some aspects of a Postscript plot:
+   0 for none of these options
+   1 to type the data on the terminal
+   -1 to store the data in the file
+   n+1 to draw n lines in Postscript plot; e.g. 4 to draw 3 lines
+   -n-1 to connect points with lines of thickness n in the Postscript
+      plot; e.g. -2 to connect with lines of thickness 1.  For
+      standard usage of the routine, subtract 100 to connect only
+      points within the same (e.g. -102).  When the routine is
+      called specifically to generate error bars, it will connect
+      only within groups with -n-1, and subtracting 100 will make
+      it connect all points.  Sorry about this.
+.P
+IF you elect to write the data to a file, next enter a file name.
+   If the file already exists, the data will be appended to the file.
+.P
+The next entry can select a Postscript plot:
+   0 for no plot - return to calling program
+   6, 7, 8, 9 for Postscript plots in the upper left, lower left,
+      upper right, or lower right quadrants of a page, or 10 to left,
+      specify the size and location of the graph on the page.  The
+      range of X and Y units plotted will be the same as in the
+      plot on the screen.
+   -6 to -10 for plots in the fixed or specified location, if you
+      wish to change the range of X and Y units that will be plotted
+      or control the number of ticks, and the grid and symbol size
+      and thickness
+.P
+IF you selected a negative plot number, next make these entries:
+.P
+   Lower and upper limits of the range of X units to be plotted,
+      lower and upper limits for Y, and the number of ticks for the
+      X and for the Y axis.  If one or both of these units are
+      logarithmic, you will be informed of the range of the actual
+      values (not of their logarithms), and you can then enter the
+      lower and upper limits of the actual values, not of the
+      logarithms.  For a linear axis, the "number of ticks" is
+      actually the number of divisions along the axis; but for a
+      logarithmic axis, it is the number of tick marks, which is
+      the number of divisions plus 1.  Sorry again.  Enter negative
+      the number of ticks to get unidirectional ticks.
+.P
+   Tick and symbol size (in inches), grid and symbol thickness (small
+      integers), 1 for a complete box, i.e. axes on all 4 sides.
+      If you selected unidirectional ticks, positive and negative
+      tick lengths give ticks toward the inside and outside of the
+      box, respectively.
+.P
+   If you are plotting error bars, next enter the total length of
+      ticks at the ends of the bars, in inches.
+.P
+IF you selected graph 10 (or -10), make these entries:
+      X and Y size of graph, and lower left X and Y coordinates, in
+      inches.  Enter the negative of the left X coordinate to offset
+      the vertical grid lines from the edge of the graphing area,
+      and/or the negative of the lower Y coordinate to offset the
+      horizontal grid lines.  (Sorry again)
+.P
+   IF you entered a negative left X coordinate, enter the amount to
+      offset the vertical grid lines in the X direction
+.P
+   IF you entered a negative lower Y coordinate, enter the amount to
+      offset the horizontal grid lines in the Y direction
+.P
+   IF you are plotting fraction boxes, enter the box width, height
+      and tick size
+.P
+IF you selected a graph and are plotting Tukey box plots, enter:
+      Width of box, size of tick at 10/90% points, gap between
+      ticks and outlying points (points closer than this amount to
+      a tick will be omitted), and line thickness.  The first three
+      values are all in inches.
+.P
+IF you selected a graph, enter 1 for a new page, or 0 to plot on the
+   same page as any previous graphs
+.P
+IF you selected a negative graph number and the X-axis is
+logarithmic, enter the values at which X ticks should be drawn
+.P
+IF you selected a negative graph number and the Y-axis is
+logarithmic, enter the values at which Y ticks should be drawn
+.P
+IF you said that you wanted to draw some lines, next enter the
+   specification for each line.  The format is:
+   Slope (Y/X), Y-intercept, starting and ending X coordinate (all in
+   your units, not inches), line thickness (small integer), and
+   0,0 for a solid line or length of dash and length between dashes
+   for a dashed line.  If you enter the negative of line thickness,
+   then X and Y are inverted, so the entries are the X/Y slope, the
+   X-intercept, and the starting and ending Y coordinates.
+.P
+IF you selected a negative graph number, then you can next make many
+   entries to label the axes and add other symbols and lines to the
+   graph.
+.P
+First, for the X axis, enter:
+.P
+   # of ticks to label with numeric labels, and number of lines of
+      text labels.
+.P
+   IF you specified a nonzero number of ticks to label, next enter:
+.P
+     If the ticks are to be labeled at regular intervals, enter the
+        number of the first tick to label (first tick is #1) and
+        the interval between labeled ticks (e.g. 2 for every other
+        tick or enter 0,0 to specify a list of ticks to label.
+.P
+        IF you entered 0,0, next enter the #'s of the ticks to label
+.P
+     Labels for the ticks, in one line, separated by commas or spaces
+.P
+     Numeric label size and separation from axis, in inches
+.P
+   IF you specified a nonzero number of text labels, next enter for
+       each label in turn:
+.P
+      Text label size, separation from axis, and offset along axis
+           between center of axis and center of text.
+.P
+      Text label
+.P
+Next enter these parameters in the same order for the Y axis
+.P
+Finally, the program calls the IMMISC subroutine.  Here, coordinates
+   may be specified in one of three ways independently for each of
+   the entries to the program.  The coordinates may be in "user"
+   units (the units of the numbers being graphed), in absolute units
+   of inches on the plotter page, or in units relative to the frame
+   of the graph (e.g. 0.1,0.9 for a position in the upper left
+   corner, or 0.5,1.1 for a position centered above the graph frame).
+.P
+   Enter the number of text labels, # of letters in circles,
+      # of symbols in boxes, and # of dashed or solid lines to draw
+.P
+   IF you entered a non-zero # of text labels, then for each, enter:
+.P
+      X and Y position, and 0 for user or 1 for absolute or -1 for
+          relative units
+.P
+      0 to center, -1 to left justify, or 1 to right justify the
+          character string on this position
+.P
+      Size of characters in inches, and orientation angle in
+          degrees (usually 0 or 90)
+.P
+      Text, on one line
+.P
+   IF you entered a non-zero # of circled letters, then for each:
+.P
+      X and Y position, and 0 for user or 1 for absolute or -1 for
+         relative units
+.P
+      Diameter of circle in inches, line thickness
+.P
+      Size of character in inches
+.P
+      Letter (upper case)
+.P
+   IF you entered a non-zero # of boxed symbols, then for each:
+.P
+      X and Y position, and 0 for user or 1 for absolute or -1 for
+          relative units
+.P
+      Symbol type (or 0 for no symbol), symbol size in inches,
+          symbol thickness (a small integer), box size in inches
+          (or 0 for no box), box line thickness
+.P
+   IF you entered a non-zero # of lines, then for each, enter:
+.P
+       0 for user, 1 for absolute, or -1 for relative units
+.P
+       A line specification as described above, in the units just
+           indicated
+.P
+NOTE FOR SIMPLEST USE: If you just want some standard graphs, with
+the same scaling as appears on the screen, then there are only 4
+entries:
+   0 for graphics window, 1 for terminal plot
+   0, or -2 if you need connected points
+   6, 7, 8, or 9 (in that sequence)
+   1 for new page
+Be sure to note down the range of X and Y values plotted.
+.SH BUGS
+Email bug reports to mast@colorado.edu.

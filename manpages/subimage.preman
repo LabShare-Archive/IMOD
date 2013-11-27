@@ -1,0 +1,52 @@
+.na
+.nh
+.TH subimage 1 4.6.34 BL3DEMC
+.SH NAME
+subimage - subtracts one image from another
+.SH SYNOPSIS
+subimage  [options]  input_file_A  input_file_B  output_file
+.SH DESCRIPTION
+.P
+Subimage will subtract one image from another, or a series of images from one
+file from a series in another file.  It will report the minimum, maximum,
+mean, and standard deviation of each difference image.
+.SH OPTIONS
+Subimage uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively.  The following options
+can be specified either as command line arguments (with the -) or one per
+line in a command file or parameter file (without the -).  Options can be
+abbreviated to unique letters; the currently valid abbreviations for short
+names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If there are no command-line arguments, Subimage takes sequential input
+the old way, with the following entries:
+.P
+Image file A
+.P
+List of section numbers for the images from file A; ranges may be
+     entered, or / for all sections in the file
+.P
+Image file B, or a blank line to use the backup of file A (A~).
+.P
+List of corresponding section numbers for the images from file B;
+      again, ranges may be entered, and / will sections from the
+      beginning of the file
+.P
+Output file for difference A minus B, or a blank line for no output
+      file, if only statistics are desired
+.SH HISTORY
+.nf
+Written by Sam Mitchell, 2/8/89
+Revised by David Mastronarde to do multiple sections, 11/4/00
+Revised by David Mastronarde to provide statistics and omit output file,
+     11/6/01
+Converted to PIP input and to work on unlimited file sizes, 12/24/03
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

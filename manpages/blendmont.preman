@@ -1,0 +1,277 @@
+.na
+.nh
+.TH blendmont 1 4.6.34 BL3DEMC
+.SH NAME
+blendmont - aligns and blends overlapping edges of montaged images
+.SH SYNOPSIS
+blendmont  [options]
+.SH DESCRIPTION
+.P
+Blendmont will take montaged images, blend their overlapping edges together,
+and output the blended images.  Linear or warping transformations can be
+applied to align serial sections, and densities can be floated over whole
+sections so that density occupies the maximum range for each section.  The
+program can also correct for minor or substantial displacements between
+pieces, using cross-correlation to find substantial shifts.
+.P
+The program performs these feats by examining each edge, or region of
+overlap, between adjacent pieces, and deriving a function that maps pixels
+in one piece to corresponding pixels in the adjacent piece.  These "edge
+functions" are stored in two separate files (for pieces that are adjacent in
+X or Y, respectively).  Thus, even if one needs to run the program more than
+once on the same input images, the edge functions need to be calculated only
+once, since they can be read from the files on later runs.  However, if the
+input image file is changed in any way, the edge functions must be
+recalculated.
+.P
+To blend images at an overlap zone, the program considers each pixel in the
+output image in turn.  It finds the two corresponding positions (in the two
+adjacent input pieces) whose weighted average equals the position of the
+desired output pixel, where the weights are proportional to the distance
+across the overlap zone.  Near one edge of the overlap zone, the output
+pixel has very nearly the same position as the corresponding pixel in the
+nearby piece; in the middle of the overlap zone, the output pixel has a
+position midway between the positions of the corresponding pixels in the two
+pieces.
+.P
+If pieces are shifted by more than a few pixels from the positions specified
+by their piece coordinates, then the program will not be able to find the
+edge functions without doing an initial cross-correlation between the
+regions that overlap in adjacent pieces.  Thus, if your montage is "sloppy"
+enough, you should select the option for initial cross-correlations.
+.P
+If the pieces are shifted at all from the positions specified by their piece
+coordinates, the program can correct for this.  It can take the information
+about the shift between each pair of overlapping pieces and use it to find
+the amounts to shift each piece so as to fit the pieces together best.  If
+the shifts are more than a few pixels, then an initial cross-correlation
+should be selected; otherwise this step is not needed.  There are three ways
+to implement this correction step.  One is based solely on the information
+in the edge functions.  Another is a hybrid method based on both
+cross-correlation and edge functions; the program will solve for shifts
+twice, using the displacements implied by the edge functions then those
+implied by correlations, and select the solution that gives the smallest
+mean error.  The third method is based on cross-correlations alone and is
+not as reliable as the hybrid method.  This method should be used (with the
+-xcorr option) with older data if it is important to have an image stack
+that exactly matches that produce by Blendmont prior to June 1, 2001, when
+the hybrid option was implemented. It might also be useful in cases where
+the edge functions are not reliable, such as when there are large blank
+areas in the edge regions.  It is also used by default (as of IMOD 4.2.3)
+when there is only one piece in one of the two directions, because in this
+case the mean error is zero regardless of whether correlations or edge
+functions are used.  In such cases, you would have to use the -edge option
+to have it use the displacements from edge functions instead.
+.P
+In any case where cross-correlations are being computed, the program will
+write the displacements between pieces into a file with the extension
+".ecd".  On another run of the program, you can choose to have these
+displacements read in from the file, just as edge functions can be read in
+instead of recomputed.  This allows you to edit bad displacements with
+Midas(1), then use Blendmont to get a stack with pieces properly shifted
+into register.
+.P
+If your montage frames have large displacements from their nominal
+positions, then a number of parameter changes can be needed to get
+reliable correlations.  Select the VerySloppyMontage option to get
+these parameter settings (see below for full listing).  If there are
+still numerous bad displacements in edges where there appears to be
+usable image information, then two of these parameters can be varied
+further.  Experiment with larger values of AspectRatio, the ratio of
+length to width of the overlap areas being correlated (up to 10), and
+with a larger value of ExtraXcorrWidth, which makes the areas being
+correlated wider than the nominal overlap zone (up to 0.5 has been
+tried with good results).
+.P
+Sometimes there is simply not enough information in an overlap zone to allow
+the displacement between pieces to be determined.  You can exclude such
+overlap zones from being considered in two different ways: 1) by marking
+edges to exclude in Midas(1); 2) by making a model marking each edge to be
+excluded.  The simplest way to handle bad edges is just with Midas(1) and
+not with a model file.  Do an initial run of Blendmont then run Midas(1)
+with the .ecd file.  Find each bad edge and select the checkbox to exclude
+it.  Save the .ecd file and rerun Blendmont with that .ecd file read in.
+.P
+To make a model instead, run 3dmod on the unblended montage, and
+edit the object type to make the type be scattered points with symbols
+displayed at each point, but with no sphere radius.  Mark an edge to be
+excluded by placing a point near the middle of the line (discontinuity)
+that appears between the two adjacent pieces.  This position is actually on
+one side of the overlap zone between the pieces, but Blendmont will be able
+to assign your points to edges based upon where it thinks each such line
+appears in 3dmod.  Blendmont will correctly scale a model that was built on
+a montage at a different binning than the one being blended.
+.P
+Information about excluded edges is maintained in the edge displacement
+(.ecd) file written and read by both Blendmont and Midas(1).  When Blendmont
+writes the file, it will mark all edges excluded by a model file.  These
+edges will then show up as excluded when the .ecd file is read into
+Midas(1).  You can fix a displacement and include an edge that was
+previously excluded, but if you do that, you should either remove the model
+file from the options to Blendmont or set the -nonzero option to 1 or 2,
+depending on whether you want to have an edge function computed for such
+edges.  Otherwise, edges will be excluded if they either marked as excluded
+in the .ecd file or marked in the model file.
+.P
+Warping transformations can consist of either displacements at a set of
+control points, as output directly by Midas(1), or displacements on a
+regular grid, as produced by Xftoxg(1).  Such warping files contain
+information about the size of the images that were aligned and their pixel
+size.  The transforms will be adjusted for a difference between that pixel
+size and the pixel size of the image file being transformed.  They will also
+be extrapolated as necessary to cover an image area larger than that
+specified in the warping file.  If there is a size mismatch, the program
+assumes that the input images are centered on the images with which the
+warping file was prepared, unless the starting coordinates of the file that
+was used for alignment are entered with -unaligned option.  Suitable values
+for this option were output when Blendmont was run to create the unaligned
+file with a line "Starting coordinates of output in X and Y =".
+.P
+By default, the program puts the output into a single frame.  However,
+when you specify the maximum frame size and minimum overlap of the output
+image, the program will pick the largest frame size less than that maximum,
+with the smallest overlap greater than that minimum, so that the resulting
+image will contain at least as many pixels as the original input image.
+The program picks a frame size that is a multiple of 2 and has no prime
+factor greater than 19 (so that fourier transforms can be run on the
+resulting pieces).  This behavior is silly for very large images and can be
+overridden with the -nofft option.
+.P
+The program was originally written to handle montages digitized from
+multiple film negatives, with each negative transformed so as to produce
+the best fit between the negatives.  This is unlikely to work, but here is
+the documentation for it. If sections come from more than one negative,
+this may be specified in either of two ways.  If every section has the same
+division of pieces into negatives, then one can specify this universal
+division into negatives as an interactive input to the program.
+Alternatively, one may add negative numbers after the z coordinates in the
+file of piece coordinates.  The only restriction on these numbers is that
+they should be non-zero, and every piece from the same negative should have
+the same number.  Thus, one could number negatives 1, 2, 3 ... in each
+section that has multiple negatives, or one could use the identifying
+number on each negative.
+.P
+When pieces of a section come from more than one negative, the
+program uses the edge functions between the negatives to determine
+how each negative should be rotated and translated to align it with
+adjacent negatives.  This collection of rotations and translations
+between adjacent negatives is then resolved into a single rotation
+and translation for each negative, so as to bring all of the
+negatives into best alignment.  Blending of edges is performed after
+such rotations and translations have been applied.
+.SH OPTIONS
+Blendmont uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively, to maintain compatibility
+with old command files.  The following options can be specified either as
+command line arguments (with the -) or one per line in a command file or
+parameter file (without the -).  Options can be abbreviated to unique
+letters; the currently valid abbreviations for short names are shown in
+parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If there are no command-line arguments, Blendmont takes sequential input
+the old way, with the following entries:
+.P
+Input image file
+.P
+Output image file
+.P
+Data mode for output file (the default is same as mode of input)
+.P
+1 to float each section to maximum range for the data mode, 0 not to
+.P
+Name of file of g transforms to apply to align the sections, or a
+      blank line for no transforms
+.P
+Name of input file with list of piece coordinates
+.P
+IF this file has entries specifying that pieces are on different
+negatives, enter 1 to do an initial cross-correlation in the overlap
+zones to find the average displacement between pieces
+.P
+IF this file does NOT have any entries specifying that pieces belong
+to different negatives, there are several possibilities for either
+specifying negatives or correcting for displacements between frames.
+Use the negative of an option to do initial cross-correlations to
+correct for sloppy montages:
+.P
+      Enter 1 or -1 to specify how the sections should be divided
+         into negatives
+      OR 2 or -2 to use edge functions to find a shift for each frame
+         that aligns the frames as well as possible
+      OR 3 or -3 to use cross-correlations exclusively, rather than
+         edge functions to find the best shift for each frame
+         (obsolete, use 5/-5 except to replicate old data)
+      OR 4 or -4 to use only cross-correlations read from an edge
+         correlation displacement file to find the best shifts
+         (obsolete, use 6/-6 except to replicate old data)
+      OR 5 or -5 to use both cross-correlations and edge functions
+         (whichever is better) to find the best shifts
+      OR 6 or -6 to use both cross-correlations read from a file and
+         edge functions to find the best shifts
+      OR 0 for none of these options
+.P
+   IF you enter 1 or 2 to specify division into negatives, enter 2
+         lines:
+.P
+      # of frames (pieces) per negative in the X direction, and the
+          # of frames missing from the left-most negative.  E.g., if
+          there are 2 frames from the left-most negative, 4 from the
+          middle one, and 1 from the right-most one, there are 4
+          frames per negative, with 2 missing from the left-most one
+.P
+      # of frames (pieces) per negative in the Y direction, and the
+          # of frames missing from the bottom-most negative.
+.P
+Name of new file for list of coordinates of pieces in the output file, or
+Return to skip making this file, which is not needed when the output image
+is a single piece.
+.P
+IF you have g transforms, enter on the next line:
+   X and Y center coordinates of the transforms, or / to accept the
+   default, which is the center of the input image.
+.P
+List of sections to be included in output file, or / to include all
+   sections from the input file in the output file.  Ranges may be
+   entered (e.g. 0-5,8-14,17-23)
+.P
+Minimum and maximum X, and minimum and maximum Y coordinates that
+      should be included in the output image.  Enter "/" to obtain
+      the entire input image.
+.P
+Maximum limit on the X and Y frame size for output pieces, and
+      minimum limit on overlap between output pieces.  The program
+      will then choose new frame sizes and overlaps based on these
+      limits
+.P
+0 to accept the program's choices of frame size and overlap.  When
+      running interactively, entering 1 will allow you to loop back
+      and enter new minimum and maximum X and Y coordinates and a
+      new maximum frame and minimum overlap.  Note that on the first
+      two entries, the program will enforce a minimum overlap of 2;
+      if for some reason you want an overlap of 0, you need to loop
+      back so that you enter the frame size and overlap 3 times.
+.P
+0 to build new files of edge functions, 1 to use old files that were
+      generated on a previous run of the program
+.P
+Root filename for edge function files.
+.P
+Widths over which to blend positions at an edge, in the X and Y directions.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, February 1989
+12/21/98: added ability to do initial cross-correlation and to find
+   best shifts to correct for sloppy montages
+6/1/01: implemented ability to write and read in edge correlation
+   displacements; added a search step to improve on cross-correlations
+8/9/03: converted to PIP input.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

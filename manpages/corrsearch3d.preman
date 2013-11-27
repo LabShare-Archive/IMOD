@@ -1,0 +1,118 @@
+.na
+.nh
+.TH corrsearch3d 1 4.6.34 BL3DEMC
+.SH NAME
+corrsearch3d - search for array of 3D displacements between two volumes
+.SH SYNOPSIS
+corrsearch3d  options
+.SH DESCRIPTION
+Corrsearch3d will determine the 3D displacement between two image
+volumes at a regular array of positions.  At each position, it extracts
+a patch of a specified size from each volume, then searches for a local
+maximum in the cross-correlation between the two patches, computing
+correlations in real space at each displacement between the patches.
+The starting point of the search is based upon the displacements of
+adjacent patches that have already been determined.  If there are no
+such adjacent patches, or if no maximum is found for displacements
+within a specified range, the program uses FFT-based cross-correlation
+instead of real-space correlation.  The program works from the center
+of the volume outward, analyzing patches in the X direction, then in
+the shorter of Y and Z dimensions, then in the longer of those
+dimensions.  An optional model file can be entered with contours
+enclosing the area where patches should be analyzed; patches outside
+this area are excluded.  Information about the source volume for the
+file being transformed can be entered so that the program can analyze
+patches only from regions that are good in the second image file.  In
+addition, a model can be provided enclosing good areas in the source
+for the second file.
+.P
+The data being correlated can be filtered by convolving with a 3x3x3 or
+5x5x5 Gaussian kernel in real space.  This smoothing is applied to one
+of the two patches before correlating them.  The degree of filtering is
+controlled by the sigma (standard deviation) of the Gaussian, which
+should be a small number on the order of 1.  Computation time will
+increase by ~30% when smoothing with a 3x3x3 kernel and it will double
+with a 5x5x5 kernel.  By default, the program will select a 3x3x3
+kernel for sigma less than 1.5 and a 5x5x5 kernel for larger sigmas,
+unless the size is explicitly selected.  The useful range of sigma is
+probably 0.5 to 3.
+.P
+Low and high frequency filtering can also be applied in Fourier space,
+but this is useful only for testing because it is used only with the
+rare FFT-based correlations.
+.P
+The program works with files whose thin dimension is in either Y or Z.
+If the volumes are offset from each other (such as adjacent tomograms),
+this offset can be specified with the -InitialShiftXYZ option.  The
+displacements computed by the program are in addition to this global
+shift.
+.P
+The program outputs an initial line with the total number of
+patches, then one line for each patch, containing the X, Y, and Z
+coordinates of the patch, the displacement between the two files
+in X, Y, and Z, and the correlation coefficient.
+.SH OPTIONS
+Corrsearch3d uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively for options that existed when it was
+converted, to maintain compatibility with patchcrawl3d(1).  The
+following options can be specified either as command line arguments (with
+the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If the program is started with no command line arguments, it reverts to
+interactive input with the following entries:
+.P
+Name of reference image file being aligned to
+.P
+Name of image file that will be transformed to match
+.P
+Name of output file for patch positions and displacements
+.P
+Name of a temporary file for output from onepatchcorr
+.P
+Name of a model file with contours that enclose the areas where
+patches should be analyzed, or Return to analyze patches at all
+locations
+.P
+Size of patches in X, Y and Z
+.P
+Number of patches in the X, Y and Z directions
+.P
+Size of borders to be excluded on the lower and upper sides in X,
+the lower and upper sides in Y, and the lower and upper sides in Z
+.P
+Number of pixels over which to taper the patches in X, Y and Z
+.P
+Maximum displacement to determine by searching
+.P
+Either the X, Y, and Z size or the name of the original source
+volume for the second image file.  Return to omit analysis of
+positions in this file.
+.P
+Name of the 3-D transformation file used to generate the second
+image file from its source volume, or Return to omit analysis of
+positions in the second file.
+.P
+Size of borders to be excluded on the lower and upper sides in X
+and the lower and upper sides in Z in the original source volume
+for the second image file.
+.SH HISTORY
+.nf
+Written by David Mastronarde  7/16/01
+7/20/02: Added analysis of areas to exclude based on positions in the
+      source for the second volume
+8/16/06: Converted to PIP, incorporated FFT correlations internally,
+      added filtering, made it extract the B patches based on the local
+      shift instead of using the same coordinates in both volumes,
+      added model file for B and initial displacement, handled volumes
+      in both orientations.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

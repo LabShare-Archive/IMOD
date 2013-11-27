@@ -1,0 +1,60 @@
+.na
+.nh
+.TH taperoutvol 1 4.6.34 BL3DEMC
+.SH NAME
+taperoutvol - to excise a subset of a volume, taper and pad outside
+.SH SYNOPSIS
+taperoutvol  [options]  input_file  output_file
+.SH DESCRIPTION
+Taperoutvol will cut a subset out of an image volume, pad it into a larger
+volume, and taper the intensity down to the mean value of the volume over
+the extent of the padding region, i.e., from the edge of the actual excised
+pixels to the edge of the new volume.  None of the original excised pixels
+are attenuated by this method.  The resulting volume will have dimensions
+suitable for taking the FFT unless the -nofft option is entered.  Its origin
+will be set so that a model built on this subvolume in 3dmod(1) should load
+correctly on the full volume.
+.SH OPTIONS
+Taperoutvol uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively, to maintain compatibility
+with old command files.  The following options can be specified either as
+command line arguments (with the -) or one per line in a command file or
+parameter file (without the -).  Options can be abbreviated to unique
+letters; the currently valid abbreviations for short names are shown in
+parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If there are no command-line arguments, Taperoutvol takes sequential input
+the old way, with the following entries:
+.P
+Inputs to the program:
+.P
+Name of input file
+.P
+Name of output file
+.P
+The starting and ending X index coordinates (number from 0), the
+starting and ending Y index coordinates, and the starting and ending
+Z index coordinates to extract.  The default is the whole volume.
+.P
+The width of the borders, in X, Y, and Z, with which to pad the
+image block.  Borders will be made larger as necessary to make the
+output image size suitable for taking a 3D FFT, with the exception
+that if a single Z slice is requested with no padding, only a single
+slice is produced without padding.
+.P
+The program will stop with an error message if memory cannot be allocated
+for the output image, or if the subset is not entirely within the input
+volume.
+.SH HISTORY
+.nf
+Written by David Mastronarde  3/1/01
+Converted to PIP, 1/8/10
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

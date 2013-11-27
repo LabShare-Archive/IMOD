@@ -1,0 +1,175 @@
+.na
+.nh
+.TH ccderaser 1 4.6.34 BL3DEMC
+.SH NAME
+ccderaser - erase X-rays, defects and fiducial markers from images
+.SH SYNOPSIS
+ccderaser  [options]  input_file  [output_file]
+.SH DESCRIPTION
+.P
+This program replaces deviant pixels with interpolated values from
+surrounding pixels.  It is designed to correct defects in electron
+microscope images from CCD cameras.  It can use two algorithms to
+automatically remove peaks in intensity caused by X-rays.  It can also
+take an IMOD model file with specifications of regions to be replaced; in
+this mode it can be used to erase gold fiducial markers.  With a model,
+the program can replace a group of adjacent pixels with interpolated
+values, or all of the pixels along a line.  It can do this on only a
+specific image, or on all of the sections in the file. The program can
+operate in trial mode, without making an output file, and it can output a
+model file with points at the pixels to be replaced.
+.SS Automatic X-Ray Removal
+The automatic removal of X-rays works by dividing
+the area of each image into patches for scanning.  The mean and standard
+deviation (SD) of the pixels in a patch are computed.  The patch is then
+scanned for pixels that deviate from the mean by more than a criterion
+number of SDs (the scan criterion, a relatively low number to keep from
+missing peaks).  When such a pixel is found, the program searches
+neighboring pixels to find a peak in intensity.  It then computes the mean
+and SD of pixels in an annulus around the peak and makes sure that the
+peak deviates from this local mean by more than a criterion number of SDs
+(the peak criterion).  Neighboring pixels inside the inner radius of the
+annulus are added to the list of pixels to be replaced if they deviate by
+a lower criterion (the grow criterion).  The patch of pixels is then
+replaced by fitting a polynomial to adjacent pixels and interpolating from
+the polynomial.  If the peak does not deviate sufficiently from this local
+mean, but is stronger than the mean of the scan area by the scan criterion
+plus 1, then the mean and SD is again computed in a larger annulus.  If the
+peak deviates from this mean by a number of SDs bigger than another
+criterion for extra-large peaks, a patch of pixels is found, but it is
+replaced only if enough pixels differ from adjacent ones by large enough
+amounts (see the -big option below).  The reason for these two stages is
+that the inner radius for the first stage must be set safely smaller than
+the radius of gold beads to avoid erasing part of the beads, whereas the
+second stage can work with larger areas because it has more stringent
+criteria that reject gold beads.
+.P
+After the peaks are found in a scanning patch, the program next finds the
+difference between each pixel and the mean of the eight adjacent pixels.
+The mean and SD of this difference is computed, then pixels are sought
+that deviate from the mean by yet another criterion, the difference
+criterion.  When such a pixel is found, neighboring pixels are examined
+and added to the patch of pixels to replace if their difference exceeds
+the grow criterion.  If the number of pixels in the patch does not exceed
+a specified maximum, replacement proceeds as above; otherwise the patch is
+ignored.
+.P
+Two methods are used because the first method is probably more reliable
+for dealing with strong peaks that extend over several pixels, while the
+second method is definitely better for finding small X-rays.
+.P
+Tuning the removal of X-rays would primarily involve adjusting two of
+the criteria.  The peak and difference criteria would be adjusted down or
+up to increase or decrease the number of deviant pixels that are found.
+The grow criterion could also be adjusted down or up depending on whether
+too few or too many pixels are included in a patch that is replaced, but
+this step is not usually done in practice.  If there are strong, large
+artifacts that are not being removed, the big difference criterion for
+extra-large peaks should be lowered first, then if necessary, the maximum
+radius and criterion strength for extra-large peaks can be adjusted.
+.SS Manual Removal of Defects and Markers
+For manual removal of defects,
+prepare an IMOD model file to specify the points to be replaced.  There
+can be four kinds of objects:
+.P
+1)  Pixel objects, in which there is a point inside of every pixel to be
+replaced, and each contour corresponds to a separate patch of points.
+.P
+2) Boundary objects, in which each contour encloses a separate patch of
+pixels to be replaced.
+.P
+3) Line objects, in which each contour defines a horizontal or vertical
+line of points to be replaced.
+.P
+4) Circle objects, used to replace pixels in a circle around each point.
+.P
+Pixel, boundary, and line objects can be applied either on the section
+where they are drawn, or on all sections.  For example, one might have two
+different pixel objects, one for patches to be replaced on a single
+section and one for patches to be replaced on all sections.  Note that if
+you are working with a montage, "all sections" means "all pieces".  If you
+are modeling on images displayed as a montage with no overlap between the
+pieces, you only need to draw a patch on one of the pieces to have it erased
+on all the pieces at each view.
+.P
+TO set up a pixel object, make the object type be scattered points, and
+turn on drawing of circles, but leave the sphere radius at zero.  To
+specify a patch of points, start a new contour and place a point inside of
+EVERY pixel in the patch.  Each separate patch should be in a
+separate contour.  If the correction is to be made on only a single
+section, all of the points must lie on that section; but the points for a
+patch to be corrected on all sections can be on more than one section,
+because sometimes they are more discernable on particular sections.
+.P
+A boundary object should be the default, closed contour type.  Draw a
+contour around each patch of pixels to be erased.  A pixel will be
+included in the erasure if its center is inside or on the boundary line.
+Contours can be arbitrarily large, and there is tapering of intensities
+inside contours that are bigger than 1000 pixels.
+.P
+A line object should be closed or open contour type.  To specify a line of
+points, make a contour with two points, at the start and end of the line
+to be replaced.  Lines must be horizontal or vertical.  Each pixel will be
+replaced by the average of the two pixels on either side of the line.  Put
+each line in a different contour.  Ajdacent lines will be detected and
+erased together.
+.P
+To set up a circle object, make the object type be scattered points, set
+the sphere radius to an appropriate value, and check the option to display
+spheres only on their center section.  If necessary, you can give some of
+the points sizes that are different from the default by opening a dialog
+with Edit-Point-Size.  A pixel will be replaced if its center lies inside
+or on the circle.  For small radii, the fact that the default sphere
+radius is constrained to an integer may be a problem; if so, use the
+-better option to enter a floating point default radius for Ccderaser to
+use.  For using circle objects to remove gold markers, -merge should also
+be used so that adjacent markers are removed together, and -exclude will
+help keep dark pixels just outside the circle from making the filled in
+region too dark.
+.SH OPTIONS
+Ccderaser uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively only for specifying manual replacement
+with a model file, to maintain compatibility with old command files.  The
+following options can be specified either as command line arguments (with
+the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If the program is started with no command line arguments, it reverts to
+interactive input with the following entries:
+.P
+Input image file
+.P
+Output image file, or <Return> to place modified sections back into
+the input file.  USE REPLACEMENT OPTION WITH CAUTION
+.P
+Model file
+.P
+A list of objects which specify points or lines to be replaced on
+all sections, or / if all objects do so, or Return if none do.
+Ranges may be entered.
+.P
+A list of objects which specify lines to be replaced, or / if
+all objects do so, or Return if none do.  Ranges may be entered.
+.P
+Size of the border around the points in a patch, which contains the
+points which will be fit to (/ for default of 2 pixels)
+.P
+Order of polynomial (/ for default of 2, which includes terms in
+x, y, x**2, y**2 and x*y)
+.P
+0 to exclude or 1 to include points adjacent to the points being replaced
+in the polynomial fit (/ for default of 1)
+.SH HISTORY
+.nf
+Written by David Mastronarde  11/10/98
+Automatic X-ray removal and pioneer use of PIP input, 6/9/03
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

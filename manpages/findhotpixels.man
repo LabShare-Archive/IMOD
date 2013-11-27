@@ -1,0 +1,75 @@
+.na
+.nh
+.TH findhotpixels 1 4.6.34 BL3DEMC
+.SH NAME
+findhotpixels - find pixels to exclude from X-ray analysis in SerialEM
+.SH SYNOPSIS
+findhotpixels  [options]  input_image  output_model
+.SH DESCRIPTION
+Findhotpixels will analyze a set of CCD camera dark reference images to
+identify relatively hot pixels in the CCD chip and will output a list of the
+pixels in a format suitable for placing in the property file for SerialEM.
+Automatic removal of X-rays from dark references can then be activated in
+SerialEM, and it will then be able to avoid identifying a hot pixel as an
+X-ray.  It is recommended that three long-exposure (e.g., 3 sec) dark
+reference images be used for this analysis.
+.P
+The program works by finding pixels that deviation from the image mean by a
+specified threshold.  The lower the threshold, the more pixels it will find.
+You may need to run the program several times to find a threshold that gives
+a reasonable number of hot pixels (under 100).  A threshold on the order of
+0.2% of the dynamic range of the camera should be appropriate.
+.P
+Hot columns are excluded from the analysis.  With 4-port readout cameras
+from Gatan, it is important to exclude a fairly large number of bright
+columns near the edges; otherwise you will need to set the threshold higher
+than the optimal level for finding the hot pixels in the rest of the
+camera.  The program could be smarter about this and use a deviation from a
+local mean, but there is no point in doing so under SerialEM uses a local
+criterion as well.
+.P
+The program outputs a list of the hot pixels coordinates and their values
+above the image mean.  At the end is a set of HotPixels and HotColumns
+entries suitable for pasting into the SerialEM properties file.
+.SH OPTIONS
+The program can be run either interactively or with command line arguments
+processed by the PIP interface (see the man page for pip(1)).  With command
+line arguments, the options are:
+.TP
+.B -input \fROR\fP -InputFile 	 \fIFile name\fR
+Name of input image file with dark reference images.  If this option is
+not entered, the first non-option argument is used
+.TP
+.B -output \fROR\fP -OutputFile 	 \fIFile name\fR
+Name of output model file with a point at every hot pixel.  If this option
+is not entered, the second non-option argument is used.
+.TP
+.B -columns \fROR\fP -HotColumns 	 \fIList of integer ranges\fR
+List of hot columns to exclude (numbered from 0).  Ranges may be entered.
+.TP
+.B -threshold \fROR\fP -ThresholdDifference 	 \fIFloating point\fR
+Threshold difference from mean value for seeking hot pixels
+.TP
+.B -help \fROR\fP -usage
+Print help output
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUTS
+If no command line arguments are entered, input is requested interactively
+as follows:
+.P
+Name of input image file with dark reference images
+.P
+Name of output model file with a point at every hot pixel
+.P
+List of hot columns to exclude (numbered from 0)
+.P
+Threshold difference from mean value for seeking hot pixels
+.P
+.SH HISTORY
+Written by David Mastronarde in 2003.
+Added to IMOD, 10/17/06.
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -45,6 +45,7 @@ typedef struct pipOptions {
   char *longName;       /* Long option name */
   char *type;           /* Type string */
   char *helpString;     /* Help string */
+  char *format;         /* value format: to appear after option for usage/man output */
   char **valuePtr;      /* pointer to array of string pointers with values */
   int multiple;         /* 0 if single value allowed, or number of next one
                            being returned (numbered from 1) */
@@ -142,6 +143,8 @@ static int sNoAbbrevs = 0;
 static int sNotFoundOK = 0;
 static char *sLinkedOption = NULL;
 static int sTestAbbrevForUsage = 0;
+static int sDoubleDashOptions = 0;
+static int sNoHelpAbbrevs = 0;
 
 /*
  * Initialize option tables for given number of options
@@ -170,6 +173,7 @@ int PipInitialize(int numOpts)
     sOptTable[i].longName = NULL;
     sOptTable[i].type = NULL;
     sOptTable[i].helpString = NULL;
+    sOptTable[i].format = NULL;
     sOptTable[i].valuePtr = NULL;
     sOptTable[i].multiple = 0;
     sOptTable[i].count = 0;
@@ -205,6 +209,7 @@ void PipDone(void)
     B3DFREE(optp->longName);
     B3DFREE(optp->type);
     B3DFREE(optp->helpString);
+    B3DFREE(optp->format);
     if (optp->valuePtr) {
       for (j = 0; j < optp->count; j++) {
         B3DFREE(optp->valuePtr[j]);
@@ -691,7 +696,7 @@ int PipGetFloatArray(const char *option, float *array, int *numToGet, int arrayS
 int PipPrintHelp(const char *progName, int useStdErr, int inputFiles, 
                  int outputFiles)
 {
-  int i, j, abbrevOK, lastOpt, jlim, optLen, numOut = 0, numReal = 0, brokeAtSpace;
+  int i, j, abbrevOK, lastOpt, jlim, optLen, hasbf, numOut = 0, numReal = 0, brokeAtSpace;
   int helplim = 74;
   char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
@@ -733,8 +738,9 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
 
     if (!numReal)
       return 0;
-    fprintf(out, "Options can be abbreviated, current short name abbreviations are in "
-            "parentheses\n");
+    if (!sNoHelpAbbrevs)
+      fprintf(out, "Options can be abbreviated, current short name abbreviations are in "
+              "parentheses\n");
     fprintf(out, "Options:\n");
     descriptions = &sTypeForUsage[0];
   }
@@ -747,7 +753,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
 
     /* Try to look up an abbreviation of the short name */
     abbrevOK = 0;
-    if (sname && *sname) {
+    if (sname && *sname && !sNoHelpAbbrevs) {
       jlim = strlen(sname) - 1;
       if (jlim > TEMP_STR_SIZE - 10)
         jlim = TEMP_STR_SIZE - 10;
@@ -830,19 +836,42 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
         fprintf(out, ".TP\n.B ");
       fprintf(out, " ");
       if (sname && *sname)
-        fprintf(out, "-%s", sname);
+        fprintf(out, "%s-%s", sDoubleDashOptions ? "-" : "", sname);
       if (abbrevOK)
-        fprintf(out, " (-%s)", sTempStr);
+        fprintf(out, " (%s-%s)", sDoubleDashOptions ? "-" : "", sTempStr);
       if (sname && *sname && lname && *lname)
-        fprintf(out,"  OR  ");
+        fprintf(out,"  %sOR%s  ", sOutputManpage > 0 ? "\\fR" : "", 
+                sOutputManpage > 0 ? "\\fP" : "");
       if (lname && *lname)
-        fprintf(out, "-%s", lname);
+        fprintf(out, "%s-%s", sDoubleDashOptions ? "-" : "", lname);
+
+      /* Get index for description string */
       for (j = 0; j < sNumTypes; j++)
         if (!strcmp(sOptTable[i].type, sTypes[j]))
           break;
-      if (strcmp(sOptTable[i].type, BOOLEAN_STRING))
-        fprintf(out, "%s%s", sOutputManpage > 0 ? " \t " : "   ", 
-                descriptions[j]);
+
+      /* If there is a format, then for manpage output, wrap it in \fI-\fR unless it
+         already starts with \f.  For usage output, strip \fx */
+      if (sOptTable[i].format) {
+        if (sOutputManpage > 0) {
+          hasbf = PipStartsWith(sOptTable[i].format, "\\f");
+          fprintf(out, " \t %s%s%s", hasbf == 0 ? "\\fI" : "", sOptTable[i].format, 
+                  hasbf == 0 ? "\\fR" : "");
+        } else {
+          optLen = strlen(sOptTable[i].format);
+          fprintf(out, "   ");
+          for (j = 0; j < optLen; j++) {
+            if (PipStartsWith(sOptTable[i].format + j, "\\f"))
+              j += 2;
+            else
+              fprintf(out, "%c", sOptTable[i].format[j]);
+          }
+        }
+
+        /* Otherwise output the description string, inside \fI \fR for man output */
+      } else if (strcmp(sOptTable[i].type, BOOLEAN_STRING))
+        fprintf(out, "%s%s%s", sOutputManpage > 0 ? " \t \\fI" : "   ", 
+                descriptions[j], sOutputManpage > 0 ? "\\fR" : "");
       fprintf(out, "\n");
     } else if (fort77 || fort90 || cCode || python)
       continue;
@@ -1068,11 +1097,12 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
   char *pipDir;
   char *textStr;
   char *helpStr;
+  char *formatStr;
   int numOpts = 0;
   int bigSize = LINE_STR_SIZE;
   int readingOpt = 0;
   char *longName, *shortName, *type, *usageStr, *tipStr, *manStr;
-  int gotLong, gotShort, gotType, gotUsage, gotTip, gotMan;
+  int gotLong, gotShort, gotType, gotUsage, gotTip, gotMan, gotFormat;
   int gotDelim = 0;
   char *optStr = NULL;
   int optStrSize = 0;
@@ -1180,9 +1210,14 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
     }
 
     /* Look for new keyword-value delimiter before any options */
-    if (!numOpts)
+    if (!numOpts) {
       CheckKeyword(bigStr + indst, "KeyValueDelimiter", &sValueDelim, &gotDelim,
                    &lastGottenStr, NULL);
+      if (PipStartsWith(bigStr + indst, "DoubleDashOptions"))
+        sDoubleDashOptions = 1;
+      if (PipStartsWith(bigStr + indst, "NoHelpAbbreviations"))
+        sNoHelpAbbrevs = 1;
+    }
 
     /* Look for options */
     if (LineIsOptionToken(bigStr + indst) > 0)
@@ -1197,8 +1232,8 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
 
   /* rewind file and process the options */
   rewind(optFile);
-  longName = shortName = type = usageStr = tipStr = manStr = sNullString;
-  gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = 0;
+  longName = shortName = type = usageStr = tipStr = manStr = formatStr = sNullString;
+  gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = gotFormat = 0;
 
   while (1) {
     lineLen = PipReadNextLine(optFile, bigStr, bigSize, '#', 0, 0, &indst);
@@ -1266,6 +1301,10 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
       if ((err = PipAddOption(optStr)))
         return err;
 
+      /* Assign format if got one */
+      if (gotFormat)
+        sOptTable[sNextOption - 1].format = formatStr;
+
       /* Clean up memory and reset flags */
       if (gotShort)
         free(shortName);
@@ -1279,8 +1318,8 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
         free(tipStr);
       if (gotMan)
         free(manStr);
-      longName = shortName = type = usageStr = tipStr = manStr = sNullString;
-      gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = 0;
+      longName = shortName = type = usageStr = tipStr = manStr = formatStr = sNullString;
+      gotLong = gotShort = gotType = gotUsage = gotTip = gotMan = gotFormat = 0;
       readingOpt = 0;
     }
 
@@ -1325,14 +1364,16 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
       else {
         lastGottenStr = NULL;
         inQuoteIndex = -1;
-        if ((err = CheckKeyword(textStr, "short", &shortName, &gotShort,
-                                &lastGottenStr, NULL)))
+        if ((err = CheckKeyword(textStr, "short", &shortName, &gotShort, &lastGottenStr,
+                                NULL)))
           return err;
-        if ((err = CheckKeyword(textStr, "long", &longName, &gotLong,
-                                &lastGottenStr, NULL)))
+        if ((err = CheckKeyword(textStr, "long", &longName, &gotLong, &lastGottenStr,
+                                NULL)))
           return err;
-        if ((err = CheckKeyword(textStr, "type", &type, &gotType,
-                                &lastGottenStr, NULL)))
+        if ((err = CheckKeyword(textStr, "type", &type, &gotType, &lastGottenStr, NULL)))
+          return err;
+        if ((err = CheckKeyword(textStr, "format", &formatStr, &gotFormat, &lastGottenStr,
+                                NULL)))
           return err;
         
         /* Check for usage if at help level 1 or if we haven't got either of

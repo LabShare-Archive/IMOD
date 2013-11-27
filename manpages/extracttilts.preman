@@ -1,0 +1,46 @@
+.na
+.nh
+.TH extracttilts 1 4.6.34 BL3DEMC
+.SH NAME
+extracttilts - Extract tilt angles or other info from image file header
+.SH SYNOPSIS
+extracttilts  [option] input_image_file [output_file]
+.SH DESCRIPTION
+Extracttilts will extract one kind of information from the header of an
+image file, if it is present, and produce a file with a list of the values.
+The default behavior is to extract tilt angles; these can be extracted from
+headers in the Agard/FEI format or from headers produced by SerialEM.
+Enter an option to extract one of the other kinds of information written by
+SerialEM.
+.P
+In addition to extracting data stored in the image file header, the program
+can extract from a metadata file written by SerialEM in the autodoc format.
+A wider range of information can be stored in such a file than in the
+header.  The metadata file must have the same number of sections as the
+image file.
+.SH OPTIONS
+Extracttilts uses the PIP package for input (see the manual page for
+pip(1)). Thus, the following options can be specified either as command line
+arguments (with the -) or one per line in a command file (without the -).
+Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+If the program is started with no command line arguments, it reverts to
+interactive input with the following entries:
+.P
+Image file with tilt information
+.br
+Output file for tilt angles, or Return to print to standard output
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1999
+Converted for PIP input and to get other information, 3/17/04
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

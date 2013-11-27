@@ -1,0 +1,45 @@
+.na
+.nh
+.TH fftrans 1 4.6.34 BL3DEMC
+.SH NAME
+fftrans - to compute forward or reverse fourier transform of images
+.SH SYNOPSIS
+fftrans  [options]  [input filename]  [output filename]
+.SH DESCRIPTION
+This program will do 2- or 3-dimensional FFT's in either direction. The
+real-space origin is at (1,1) and the origin of reciprocal space is at
+(1,NY/2+1) for 2-D FFT's.  The FT of an image NX,NY is NX/2+1,NY complex
+values.  For 3-D FFT's, the origin is at (1,NY/2+1,NZ/2+1)
+.P
+For distributed IMOD packages, transforms are done with FFTW and have
+no restrictions on image dimensions. For a package not built with FFTW,
+transforms are done using Lynn ten Eyck's subroutines. These allow
+arbitrary-sized images with dimensions that are even and have a
+LARGEST PRIME factor of 19.
+.P
+3-D images are treated as stacks of images that are transformed
+independently in 2-D, unless the -3dfft option is given.
+.P
+If no command line arguments are given the program will request the input
+and output file names interactively.  Otherwise, the program uses the PIP
+package for input (see pip(1)).  The following options can be specified
+either as command line arguments (with the -) or one per line in a command
+file (without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Originally written by David Agard for VAX.  David Mastronarde modified
+to do in "memory" rather than use giantfft as long as the image will
+actually fit into the dimensioned array.  Also, changed to properly
+package arrays in memory and use iwrsec to write sections.
+10/24/04: Converted to PIP input and added 3D FFT, mode, quiet options.
+7/15/13: Switched to dynamic array allocation; changes for FFTW
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

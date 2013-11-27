@@ -1,0 +1,51 @@
+.na
+.nh
+.TH xcorrstack 1 4.6.34 BL3DEMC
+.SH NAME
+xcorrstack - to cross-correlate a single image with a whole image stack
+.SH SYNOPSIS
+xcorrstack  [options]  image_stack  single_image  output_stack
+.SH DESCRIPTION
+Xcorrstack cross-correlates each of the sections in one image stack with a single
+image in a second image file.  A subset of sections may be done. The
+correlation may be filtered with the same set of parameters as in other IMOD
+programs (see man page for Enhance(1)).  The single image may be smaller
+than the images in the stack.  In this case, by default the single image
+will be placed in an array of the larger size, with the MIDDLE of the
+smaller image moved to the LOWER-LEFT corner of the larger array.  As a
+consequence of this shift, the coordinates of the peaks in the correlation
+will correspond to the coordinates of the centers of features in the image
+stack that best match the single image.  If the single image and stack have
+the same dimensions, then you have a choice as to whether to keep the single
+image as it is or to move its middle into the lower left corner.
+Displacements between images would then be reflected by the positions of
+peaks in the correlogram relative to the (0,0) pixel (if the image is not
+shifted) or relative to the middle (NX/2,NY/2) pixel (if the image is
+shifted.)
+.P
+Images will be padded if necessary for taking the FFT, so their size may be
+odd or contain large prime factors.
+.P
+Filtering is specified with the standard four parameters used in other IMOD
+programs.  The filter functions produced by these options can be visualized
+with the program Filterplot(1); see that man page a full description of
+their effects.
+.SH OPTIONS
+Xcorrstack uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde 4/26/89
+Converted to PIP, got rid of redundant filters, adjusted origin 10/29/07
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,28 @@
+.na
+.nh
+.TH reducemtmod 1 4.6.34 BL3DEMC
+.SH NAME
+reducemtmod - to reduce the number of points in a MT model
+.SH SYNOPSIS
+reducemtmod
+.SH DESCRIPTION
+Reducemtmod will reduce the number of points in a simple model (i.e.
+one with no branch points), retaining the starting and ending points
+and every Nth point in between, where N is the reduction factor
+specified by the user.
+.P
+Entries:
+.P
+Name of input model file
+.P
+Name of output file for reduced model
+.P
+Reduction factor.  2 will retain every 2nd point; 3, every 3rd point,
+    etc.  To retain only the start and end, enter a number greater
+    than the longest object length.
+.SH HISTORY
+.nf
+  Written by David Mastronarde, 2/9/90
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

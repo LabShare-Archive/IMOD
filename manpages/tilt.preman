@@ -1,0 +1,140 @@
+.na
+.nh
+.TH tilt 1 4.6.34 BL3DEMC
+.SH NAME
+tilt - calculates 3-D tomographic reconstruction from a tilt series
+.SH SYNOPSIS
+tilt [options] [input_file] [output_file]
+.SH DESCRIPTION
+.P
+Tilt is a program for reconstructing a three-dimensional object from a
+series of two-dimensional projections.  The projections are assumed to arise
+from rotation about a fixed tilt axis, subject to minor variations from this
+scheme.
+.P
+The program uses a number of different numerical strategies depending on
+the complexity of the alignments needed to reconstruct the volume and on
+whether the computation is being done by the central processing unit (CPU)
+or the graphical processing unit (GPU).  If there are no local alignments
+being applied, then for processing on the CPU, the program will do a
+preliminary stretching of each input line by the cosine of the tilt
+angle.  This stretching speeds up the direct backprojection because each
+stretched input line is in register with the lines of the output planes.
+The stretching will not be used if the maximum tilt angle is over 80
+degrees, if the option "COSINTERP 0" is entered, or in the unlikely event
+that there is insufficient memory for the stretched data.  When computing on
+the GPU, the program does not use cosine stretching, thus avoiding the
+consequences of interpolating the data twice.
+.P
+If there is no X-axis tilt being imposed, then each output plane is derived
+from one line of the input data; i.e., data all at one Y value in the input
+images.  With a fixed tilt around the X axis, each output slice derives from
+several lines of input data.  However, as long as there are no "Z-factors",
+it is still possible to compute a slice prior to the tilting from a single
+line of input.  Thus, the program will compute such untilted slices, one per
+input line, and interpolate an output slice from the relevant untilted
+slices.  If the option "XTILTINTERP 0" is entered, or in the unlikely event
+that there is insufficient memory for this approach, the program reverts to
+"old-style" X-axis tilting, in which the output slice is computed directly
+from the various input slices.
+.P
+With output of perpendicular slices, the header of the output file will set
+up a coordinate system congruent with that of the original views. This
+represents a 90 degree rotation about X but no change in handedness.  With
+parallel slice output using "PARALLEL", the handedness is inverted; whereas
+parallel slice output with the "RotateBy90" option retains the handedness.
+.P
+The program can do two different kinds of reprojections.  First, it can
+compute each tomogram slice as usual then, instead of writing the slice to
+the output file, it outputs a reprojection of that slice at selected
+angles.  This reprojection should match what xyzproj(1) would produce by
+reprojecting from the tomogram, but it will not match the input images if
+the reconstruction is computed with a fixed or variable X axis tilt, Z
+factors, or local alignments.  Getting a reprojection that matches input
+images in any of these cases requires multiple slices of reconstruction to
+get one line of reprojection.  Thus, these reprojections are obtained by
+first computing the full reconstruction, then providing this file as input
+to the program on a second run.  On that run, the program needs to know
+about all the parameters used to make the reconstruction, as well as about
+the original projection file.
+.P
+The scaling of data by the backprojection is somewhat unpredictable.  If the
+radial filter were scaled to go from 0 at zero frequency to 1 at 0.5
+cycle/pixel, then the backprojection would produce numbers that correspond
+approximately to the underlying densities; i.e., their reprojection by
+summation would give numbers comparable to those in the input projections.
+Unfortunately, the radial filter goes from 0 to NX / 2, where NX is the X
+dimension of the input data.  This means that in order to get output
+that would reproject to give values comparable to the input, you would need
+to: a) not take the log of the data; and b) set the scaling factor in the
+SCALE entry to 2/NX.
+.P
+The scaling of data in the reprojection from a tomogram takes the
+backprojection scaling into account.  Specifically, the program first undoes
+the output scaling that was specified by the SCALE entry, then it multiplies
+by 2.2 / NX.  The reprojection is computed by summing these unscaled
+values.  If the log was not being taken in the backprojection, these sums
+are then divided by the weighting factors entered with WeightFile, if any,
+and output.  If the log was taken, the sums are adjusted by adding an amount
+that should give a constant mean level, then the exponential is taken.
+.P
+The program can use the GPU of an NVIDIA graphics card for all kinds of
+reconstructions and reprojections from an existing reconstruction file.  The
+card must be capable of supporting computations with CUDA, and you must have
+a version of NVIDIA graphics drivers installed that supports the particular
+version of CUDA against which your version of Tilt was compiled.  Typically
+this will be CUDA 2.1, supported by drivers 180.22 and higher in Linux, or
+181.20 and higher in Windows.  Not all IMOD packages can be used with a GPU;
+ones that do will have cudart and cufft libraries in either IMOD/bin,
+IMOD/lib or IMOD/qtlib.
+.P
+The program can compute multiple iterations of the Simultaneous Iterative
+Reconstruction Technique (SIRT) internally for the situation where a
+reconstruction slice backprojects from, and reprojects to, a single set of
+lines in the projection images.  This option is thus not available when the
+reconstruction involves the Z factors produced when solving for linear
+stretch in Tiltalign(1), a variable X-axis tilt produced when correcting for
+beam tilt, or local alignments.  It also requires that the reconstruction be
+the same size as the aligned stack in X and Y (i.e., no SLICE or WIDTH
+entries) and that the tilt axis be in the center of the aligned images.  The
+procedure starts with a slice computed with no or reduced R-weighting, or
+read in from prevous iterations.  The slice is reprojected, the difference
+is formed between the reprojections and the original projections, and this
+difference is backprojected with a weighting that distributes the error in
+difference among the pixels along a projection ray.  The backprojected
+difference is then subtracted from the starting slice, and the procedure is
+ready to be iterated.  The program carries each slice through the full set
+of iterations before writing it out and going on to the next slice.  Further
+details are given under the SIRTIterations options.
+.P
+Backprojection works with angles up to and beyond 90 degrees on both the CPU
+and GPU.  Both reprojection and internal SIRT should work for such data sets
+provided that local alignments are not used.
+.SH OPTIONS
+Tilt uses the PIP package for input (see the manual page for pip(1)) but
+it has several special features to maintain compatibility with the old
+input method and old command files.  1) Options are case-insensitive and can
+be entered in upper, lower, or mixed case.  2) If the program is started
+with no command line arguments, it behaves as if -StandardInput were given
+and takes lines from standard input.  3) The first two lines taken from
+standard input can be the input and output filenames, without their
+respective keywords.  This will not work if the filenames match a subset
+of any of the option strings.
+.P
+The following options can be specified either as command line arguments
+(with the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+The program was originally written by Mike Lawrence and has been modified
+vastly and repeatedly by David Mastronarde.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

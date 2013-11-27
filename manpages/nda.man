@@ -1,0 +1,671 @@
+.na
+.nh
+.TH nda 1 4.6.34 BL3DEMC
+.SH NAME
+nda - to do neighbor density analysis of point positions in plane
+.SH SYNOPSIS
+nda
+.SH DESCRIPTION
+     NDA is a program that performs "neighbor density analysis" of a pattern
+of points in a planar region.  The key word in this name is "density".  In one
+of its modes of operation, the program computes the average density of
+neighboring points as a function of radial distance from a point.  This has
+several advantages.  First, unlike a nearest neighbor analysis, NDA uses all
+of the information available about neighboring points, rather than just the
+distance to the nearest point.  Second, the density values (in units of points
+per square micron or per square pixel) are intuitively meaningful.  Third, a
+completely random distribution would give a flat curve of density versus
+distance, while the curve for a real distribution of points contains its own
+control or baseline region because it flattens out to the average density at
+large distances.  Deviations from a flat density curve can be quantified by
+integrating the deviation from the baseline level.  The program integrates in
+a special way to obtain the actual number of points that are extra or
+deficient, relative to the number expected with a random distribution.  Again,
+this kind of integral is an intuitively meaningful quantity.
+     There are two ways to evaluate the significance of an apparent deviation
+from randomness.  If the set of points is classified into two or more types,
+one way is simply to assign the points randomly to the various types.  The
+second way is to generate a sample of randomly distributed points within the
+region being analyzed, with the same number of points of each type as in the
+original data.  One can require these points to be separated by a minimum
+distance.  More realistically, one can specify a series of probabilities for
+various separations, so that the neighbor density can rise gradually rather
+than abruptly from zero back to the mean level.  With either of these two
+forms of randomized data, the program can measure the statistical significance
+of deviations in the actual data.  To do so, it draws many samples of random
+data, computes integrals for each sample, and thus determines how often
+randomly sampled data would give an integral as large as one obtained from the
+real data.
+     Before using NDA, one must prepare an IMOD model file in which different
+types of points are each in a different object.  For the most accurate density
+graphs, a single model contour should be drawn to enclose each area in which
+points are to be analyzed.  The placement of the boundary contour is important
+because NDA uses a sophisticated edge correction method in order to compute
+densities only from the relevant areas inside the boundary.  An arbitrarily
+shaped contour is allowed and, indeed, preferred.  Draw the contour close to
+the outermost points in the region to be analyzed ("close" here means roughly
+at the preferred spacing between points, if one is evident by inspection).
+NDA will automatically connect the first and last points of the boundary
+object to make a closed contour, so you do not need to make the last point
+superimpose the first one.  If there are obvious regions lacking points inside
+the data area, try to draw a contour that excludes such regions.  You can do
+this by tracing a path from the outer boundary of points to the hole inside,
+then drawing around the hole, then following nearly the same path back to the
+outside.  Be careful that this tracing does not cross itself anywhere!  If you
+make the boundary contour too big (leaving excessive space between it and the
+data points), or if you fail to eliminate significant interior holes, then you
+will get graphs of density that decline artifactually at larger distances.
+     It is also possibly to analyze all points on a single section without
+drawing a boundary contour.  You might want to do this for quick exploratory
+analysis, or if you need to average over so many sections that it would be
+unduly burdensome to draw that many model contours.  In the simplest form, you
+can make the boundary be the smallest square that encloses all of the points
+on the desired section.  Or instead, you can have the program find the
+smallest convex polygon that encloses all of the points.  A convex polygon is
+one with no indentations, so that a straight line between any two points
+inside the polygon stays inside the polygon.  This option is described more
+fully below at the point where the appropriate entries are described.
+     NDA can make two kinds of density graphs.  The first, referred to as a
+"radial" graph, shows the density of neighboring points as a function of
+radial distance from a central point.  The central point is referred to as a
+reference point.  You can choose independently which types of points will be
+considered as reference points, and which types will be considered as
+neighbors to those reference points.  The second kind of graph, the "angular"
+graph, shows density versus the angular separation between neighbors in an
+annulus around a reference point.  This graph is more complicated in its
+complete generality, since it involves a distinction between two types of
+neighbors to a reference point: neighbors that are themselves considered
+reference points for the density graph, and "angular" neighbors whose density
+is measured as a function of angular separation from the "reference"
+neighbors.  To make such a graph, you must choose the inner and outer radii of
+the annulus, the types of points to be considered reference points, the types
+to be considered as "reference" neighbors, and the types to be considered as
+"angular" neighbors.
+.P
+     When you start NDA, you will make a standard series of entries until you
+get your first set of density graphs.  Then you will have many options to
+choose from.  The initial standard entries are now described in order.
+.P
+Name of a file to take entries from, or Return to take entries from the
+keyboard.  You can place a laborious series of initial entries into such a
+command file, with one line for each line that you would otherwise type in
+to the program.  However, you would need to have, at least, all of the
+standard entries that are required to get to the point in the program where
+options may be selected.  Finish the command file with a 24 to return to input
+from the keyboard, or with a 25 to exit the program.
+.P
+Name of a file to store density values in, or Return for none.  You can later
+use option 12 to store density values for selected graphs in this file.
+.P
+0 to get graphs displayed in a graphics window, or 1 to suppress graphs.
+.P
+Name of model file with points to be analyzed.
+.P
+If this model file does not have a pixel size defined, then enter 0 to not
+scale the data (distances will be in pixels and densities in points per square
+pixel), 1 to scale the data to microns (densities will be points per square
+micron), or -1 to specify some other scaling.
+.P
+  IF you entered 1, next make two entries.  For data digitized from film, enter:
+      Magnification of the negatives, e.g. 15500
+      Scale during digitization, in microns per pixel
+    For data acquired from CCD, enter: 
+      1000 for the magnification 
+      the pixel size on the specimen in nanometers
+.P
+  IF you entered -1, instead enter the desired multiplicative scaling factor.
+.P
+0 for graphs of density versus radial distance from the average reference
+point, or 1 for graphs of density versus the angular separation between
+neighbors in an annulus around a reference point.
+.P
+IMOD object number and contour number of the model contour that describes the
+boundary of the region to be analyzed, or for data read directly from a WIMP
+model file, the object number and 0.  Enter 0,0 to analyze all points on a
+section, without using a model contour to specify the boundary.  (Enter -1,0
+at this point to loop back and read a different model file.)
+.P
+  IF you entered 0,0, the next line asks for two entries: the Z value
+  of the section, numbered from 0; and either 0 to use the smallest
+  rectangle that encloses all of the points on the section, or 1 to
+  select some special options that would provide a fancier boundary
+  than this, or -1 to use special options selected previously.  The
+  default for the Z value is one more than the Z value of the last area
+  analyzed, so it is possible to analyze a series of sequential
+  sections quickly by using , or / to take this default value.
+.P
+     IF you enter 1 to select some special options, next make the
+     following entries:
+.P
+     A list of types of points to consider in selecting the boundary,
+       or just Return to include all types of points.
+.P
+     A distance to "pad" the boundary, so that it will always be at
+       least this distance from any of the points to be included.
+       Enter the distance in microns, or the negative of the number of
+       pixels if you want that number to be scaled into microns.  (If
+       there is no scaling, just enter the number of pixels).
+.P
+     0 for a square boundary, or 1 for the smallest convex polygon (see
+       above).
+.P
+       IF you enter 1, next enter the fraction of points farthest from
+         the rest to omit in finding the boundary, or just enter 0 to
+         have a boundary that includes all of the points.
+.P
+At this point the program determines what points are within the boundary and
+types out the number and density of each type of point.  The types are the
+object numbers from an IMOD file, or 256 minus the object color for a WIMP
+file.  However, if a point comes from a WIMP object whose display is turned
+OFF, its type is the NEGATIVE of the object's color.
+.P
+Next you must specify the bin width and extent of the density graphs.
+.P
+   For radial graphs, enter the bin width (the increment of radial
+   distance over which a single value of density is computed) and the
+   number of bins. The total radial extent of the graph is the product
+   of the bin width and number of bins.  The bin width should be in
+   microns if the model file had a pixel size defined, or if you
+   entered a pixel size as described above. 
+.P
+   For angular graphs, the extent of the graph is always 180 degrees.
+   Enter the number of bins to divide this range into, and the inner
+   and outer radii of the annulus within which to look for neighbors to
+   a reference point. 
+.P
+Next you must specify the graphs that you want to compute.  First enter the
+number of graphs that you want.  Then enter the following specifications for
+each graph in turn:
+.P
+For radial graphs, which show the density of neighboring points around
+the average reference point, enter:
+   A list of types of points to consider as reference points, or Return
+      to include all types.  Ranges may be entered, e.g., 250-252,255
+   A list of types of points to consider as neighboring points, or
+      Return to include all types.
+.P
+For angular graphs, which show the density of "angular neighbor" points as
+a function of angular separation from a "reference neighbor" point, where both
+neighbors are within the specified annulus around a central reference
+point, enter:
+   A list of types of points to consider as central reference points,
+      or Return to include all types.
+   A list of types of points to consider as reference neighboring
+      points, or Return to include all types.
+   A list of types of points to consider as angular neighbors to those
+      neighboring points, or Return to include all types.
+.P
+Finally, your graphs are displayed and you are presented with the following
+options:
+.P
+.nf
+1/2: Type/Average selected bins of the graph in a specified window
+3: Compute integrated number of (excess/missing) items in selected bins
+4/5: Display one graph in a window/Enter list of graphs to display
+6/7: Rescale X or Y axis of one window/Y axis of all windows
+8/9: Plot one window/all windows to PostScript graphics file
+10/11: Output PostScript graphics file to screen window/printer
+12: Output single or average graph to file
+13: Loop back to specify model contour defining new area to analyze
+14: Loop back to specify radial or angular graph and new boundary contour
+15: Analyze new region and average with previous region(s)
+16: Redo current region(s) with new bin size, # of bins, or types for
+    graphs 
+17: Redo current region(s) with angular instead of radial graph or vice
+    versa 
+18: Save bins of a graph to specify rejection probabilities for random
+    points 
+19/26/20: Do current region(s) with shuffled/converted types or random
+          points 
+21: Save current set of points and their types as an IMOD model
+22/27/23: Do many sets with shuffled/converted types/random pnts for
+          integrals 
+24: Take command input from file        25: Exit
+28/29/30: Save a graph/Average/Combine 2 graphs into an extra graph
+          location 
+31/32: Save graph in file/Read from file into an extra graph location
+33: Replace some sets of bins by their averages
+34/35: Set up special big array for plots/Plot all windows in array
+37/38/39: Add list of graphs/Read list of graphs from file/Read&Add from
+          file 
+42: Export graph values or points for drawing to file
+.fi
+.P
+     First note that the graphs are referred to by number, from 1 up to the
+total number that you computed.  The first few graphs (up to 4 graphs) are
+displayed in the graphics window.  There are 4 areas in this graphics window
+which are referred to as "windows"; each window shows both the window number
+and the number of the graph displayed there, with the format WINDOW # : GRAPH
+#.  In some options, you refer to graphs by the graph number, while in other
+options, you refer to them by their window number.
+.P
+Here is a specific description of each option:
+.P
+1/2: To type or average some of the bins of a graph that is currently
+displayed in a window; enter the window number (1 to 4) and the starting and
+ending bin numbers to type or average, or / for all bins.  If you enter the
+negative of the graph number for option 1, you will get the raw values of the
+number of points counted in each bin, rather than the density averaged over
+the reference points.
+.P
+3: Use this option to integrate the number of neighboring points that are
+represented by a particular set of bins in a density graph displayed in a
+window.  Enter the window number, the starting and ending bins to integrate,
+and the baseline or control level.  If you enter a control level of 0, you
+will get the total number of points in that range of radial or angular
+distances.  Otherwise, you will get the number of points that are excess or
+deficient relative to the control level.  The default value for the control
+level (selected by terminating the entry with ",," or "/" instead of a value)
+is the last average obtained with option 2.
+.P
+4: To display one graph in a window; enter the graph number and the window
+number.
+.P
+5: To display a set of graphs in up to 4 windows; enter a list (ranges
+allowed, e.g. 5-8) of up to 4 graph numbers, which will then be displayed in
+windows 1 to 4.
+.P
+6: Rescale X or Y axis of one window; enter the window number and 0 to rescale
+X or 1 to rescale Y.  The program tells you the maximum value of the data in
+that dimension and the current full-scale value on that axis.  Then enter the
+desired full scale X or Y value.
+.P
+7: Use this option to rescale the Y axis of all windows to the same value, the
+largest full-scale value needed by any one window.  Note that you need to set
+up the scaling of the graphs to your liking with options 6 and 7 before using
+a plot command.
+.P
+8: Plot one window to a PostScript graphics file; enter the window number
+and either 1, 2, 3, or 4 to put the graph in one of the 4 standard positions
+on a page, or 0 to specify the graph location and dimensions.  Next, enter 1
+to start the graph on a new page from a previous graph (if there was any
+previous graph).  IF you elected to specify the graph location and position,
+you now have many entries to make; see the section at the end of this document
+for details.
+.P
+9: Plot all windows (up to 4) to a PostScript graphics file.  The graphs
+will go in the four standard positions.  Enter 1 to start the graph on a
+new page from a previous graph.  Note that you need to set up the scaling of
+the graphs to your liking with options 6 and 7 before using a plot command.
+.P
+10: Graph the PostScript file on the screen.  When you return from this
+option, the program will start a new graphics file if you make any more graphs
+with options 8 or 9, and you will lose the file for the graphs that you have
+just seen.  So, if you want those graphs, you need to print them immediately
+with option 11, or rename the file from gmeta.ps.
+.P
+11: Print the graphs in the Postscript graphics file.
+.P
+12: Print the density values and other pertinent information about a graph in
+the output file defined when you started the program; enter the graph number.
+.P
+13: Loop back to specify a new region to analyze; enter the object and contour
+numbers of the boundary contour, 0,0 for a whole section, or -1,0 to read in a
+different model file.  If you have analyzed and averaged results from a series
+of regions, you will be warned that this option will destroy that list of
+regions, and you will have to confirm your desire to proceed.
+.P
+14: Loop back to specify both whether you want radial or angular graphs and a
+new region to analyze.  If you have analyzed and averaged results from a
+series of regions, you will be warned that this option will destroy that list
+of regions, and you will have to confirm your desire to proceed.
+.P
+15: Analyze a new region and average its density graphs with those from
+previous analyzed region(s); enter the object and contour numbers of the new
+boundary contour, 0,0 for a whole section, or -1,0 to read in a different
+model file.  The first time that you select this option after analyzing a
+single region, you will be told the graph numbers of the average graphs.  If
+there are N kinds of graphs being built, then graphs for the newly analyzed
+region alone are referred to as 1 to N, and average graphs are referred to as
+N+1 to 2N.
+.P
+16: Re-analyze the currently defined region(s) with different bin sizes,
+number of bins, or different specifications of the types to be used to build
+graphs from.  After entering a new bin size or number of bins, enter 1 if you
+want to specify new types of graphs, or 0 to use the existing specifications.
+If several regions have been averaged together, then the program will
+automatically analyze and average all of those regions.
+.P
+17: Re-analyze the currently defined region(s) with angular instead or radial
+graphs, or radial instead of angular graphs.  You will have to enter new bin
+sizes, etc, as well as a complete new list of types for the various kinds of
+graphs that you want.  If several regions have been averaged together, then
+the program will automatically analyze and average all of those regions.
+.P
+18: Save the initial bins of a graph to use later as a list of probabilities
+for rejecting a randomly sampled point that is too close to another point.
+Enter the graph number and a baseline density level that corresponds to a
+probability of 1.0.  The densities in the bins that are less than this
+baseline level will be converted to probabilities between 0 and 1 and stored
+for later use with options 20 and 23.  This option is convenient but does not
+produce a very good match to the rising phase of a density graph; to do that,
+you have to adjust probabilities by hand.
+.P
+19: Do the currently defined analysis on the currently defined region(s),
+but with point types randomly shuffled.
+.P
+26: Do the currently defined analysis on the currently defined region(s),
+but with some of the point randomly converted to other types.  This option
+requires the following entries:
+.P
+   Number of types to convert into other types
+.P
+   For each of the types to be converted, then enter:
+      The type to convert, the type to change it into, and the fraction
+         of points of that type to convert
+.P
+20: Do the currently defined analysis on the currently defined region(s),
+but select random points for each region.  This option requires the following
+entries:
+.P
+   Minimum allowed distance of the points from the boundary contour; to
+      enter this distance in pixels, enter the negative of the desired
+      distance (e.g., -10 for 10 pixels)
+.P
+   IF you have previously saved probability values with option 18,
+      enter 1 to use these values, or 0 not to.
+.P
+   IF you are not using stored probability values, make the following
+        entries: 
+      The number of bins of probability values to use for rejecting
+         sampled points as being too close to other points, and the bin
+         size  (a radial distance).  Enter 0,0 for no rejection of
+         close points.
+      The probability values (between 0 and 1)
+.P
+21: Save the current set of points and their types as an IMOD model.  Enter the
+model file name.  Use this option to examine shuffled types or randomly
+sampled points.
+.P
+22/27/23: Do a series of sets of randomly shuffled or converted types or
+randomly sampled points in order to obtain statistics on the significance of
+integrated deficiencies or excesses in the real density graphs.  If you select
+option 27, first enter 0 to use previously specified conversions of types, or
+1 to specify new conversions, in which case you would then make the entries
+listed under option 26 above.  If you select option 23, first make the entries
+described above under option 20 to control the sampling of points.  For all of
+the options, then make the following entries to control the computation of
+integrals:
+.P
+   0 to make a separate specification for each graph of the bins to use
+      in computing the integral, or 1 to use the same specification for
+      all graphs 
+.P
+   IF you entered 0, make the following entries for each graph;
+      otherwise just make these entries once:
+.P
+      Starting and ending bins of the peak or deficiency to integrate
+.P
+      Starting and ending bins to compute a baseline density from, or
+         0,0 to use a fixed value for the baseline instead of computing
+         it from each graph
+.P
+      IF you entered 0,0, then enter the fixed baseline density value.
+.P
+The program will next compute and type out the integral for each graph.  It
+will then ask you for the number of control sets to run.  It will do these
+control sets, and type out the mean and standard deviation of the integral for
+each graph, and the number of sets whose integrals exceed the integral of the
+real data.  You can specify a new number of sets to run, whose results will be
+accumulated with existing results, or you can enter 0 to return to
+selecting options.
+.P
+24: Take input from a command file; enter the file name or Return to continue
+or resume input from the keyboard.  The file should end with a 24 and a blank
+line to resume input from the keyboard, or a 25 to exit the program.
+.P
+28:  Save a graph in an "extra" graph location.  An extra location is any
+graph location up to 50; it may already contain a graph.  Enter the graph
+number, and the number of the graph location to save it into.
+.P
+29:  Average two graphs into an extra graph location.  The program will
+average the two graphs by computing the total point count and the total area
+occupied by each bin and deriving the density from these values.  Enter the
+numbers of the two graphs to average and the number of the graph location (any
+number of 50) in which to place the result.
+.P
+30:  Linearly combine two graphs into an extra graph location.  This will form
+a weighed sum of two graphs.  Enter the numbers of the two graphs, the
+coefficients to apply to each, and the number of the location to place the
+result in.
+.P
+31:  Save a graph in a file, in a form that can be easily retrieved and
+redisplayed.  First enter the number of the graph to save.  Then enter the
+name of the file to save it in, or Return to add it to the currently open file
+if graphs have already been saved into that file.
+.P
+32:  Read a graph from a file that was saved with option 31.  First enter the
+number of the graph location to read the graph into (any value up to 50).
+Then enter the name of the file to read from, or return to read from a file
+that has been read from before.  Then enter the number of the graph in the
+file to read.
+.P
+33:  Replace some sets of bins by their averages.  In its simplest form, this
+option allows you to combine bins into larger bins and get the same graph you
+would have gotten if you had run the analysis with the larger bin size.
+However, you can choose to combine only selected sets of bins, thus allowing
+you to have a single graph with narrow bins in some places and apparently
+broader bins elsewhere.  Also, you can have the program automatically figure
+out which bins to combine where, so that the densities in all of the new
+apparent bins are based on roughly the same amount of area.  This will give
+you a graph with a noise level that is nearly constant across the graph, and
+may help you distinguish signal from noise.  For simple combination of bins,
+enter the number of bins to be averaged together in each replacement, and the
+starting and ending bin numbers to replace (e.g., 3,1,12 will replace bins 1,
+2, and 3 by their average, 4, 5, and 6 by their average, and 7-9 and 10-12 by
+their averages).  For automatic optimal combination of bins, enter the
+NEGATIVE of the desired number of apparent bins to end up with over the range
+of bins being replaced, and the starting and ending bin numbers to replace.
+For example, -5,1,20 will divide the 20 bins from 1 to 20 into 5 sets that
+have, as nearly as possibly, the same amount of area for the density
+calculation.  The program will then replace the bins in each set by that set's
+average.
+     After this first entry, next enter a list of graphs to apply the
+replacement to, or Return to apply it to all graphs.  Although you can validly
+run the option first on one set of bins and then again on a non-overlapping
+set of bins, do not run the option more than once on the same set of bins.
+To experiment with combining bins in different ways, copy the desired graph
+into an extra graph location and combine the bins of that copy.  To get the
+best results from the automatic combination of bins, start with bins that are
+much smaller than the final desired bin size.
+.P
+34:  To set up a big array of graphs on a page for printing.  This requires
+the following entries:
+.P
+   Number of columns and rows in the array
+.P
+   0 to fill one row after another, or 1 to fill one column after
+     another 
+.P
+   Number of ticks along the X axis, number along the Y axis
+.P
+   Size of gutter between graphs in X and in Y (/ for 0.20 0.20)
+.P
+   A value to scale all graphs to on the Y axis, or 0 for no rescaling
+.P
+35:  To plot all of the currently displayed windows into the next free
+positions in the big array set up by 34.  The program will tell you where each
+graph has been placed.
+.P
+37: Add a list of graphs into an extra graph loaction.  First enter the list
+of graphs to add together, then enter the location in which to place the sum.
+.P
+38: Read a list of graphs from a file and place each in a separate extra graph
+location.  First enter the list of graph numbers in the file, then enter the
+list of graph locations in which to place them, then enter the name of the
+graph file from which to read the graphs.
+.P
+39: Add together a list of graphs from a file.  First enter an extra location
+in which to place the final sum, and an extra location to be used for
+temporary storage.  Then enter the list of graph numbers in the file.  Finally
+enter the name of the graph file.
+.P
+42: Export a graph to a file; i.e., output the graph information in a
+format suitable for importing into a spreadsheet or graphing program.
+First enter the number of the graph to save.  Then enter the
+name of the file to save it in (only one graph can be saved per file).
+Then enter 0 to output the density values or 1 to output raw counts in each
+bin.  Finally, enter 1 to output points that could be connected to draw a
+histogram, or 2 to output the starting distance and bin value for each bin,
+3 for the midpoint distance and bin value of each bin, or 4 for the
+starting and ending distance and bin value for each bin.
+.P
+     If you have generated a random data set by randomizing types or by
+sampling random points, and there is only one region being analyzed, then when
+you invoke options 16 or 17, you have the option of analyzing either the
+random data or the original, real data.  This allows you to examine a single
+random set in some detail.  Also, if you have sampled random points with
+option 20 and you select option 19 to shuffle point types, you will have the
+option of shuffling the types of those random points or of the original, real
+data.
+.P
+.SS Making Special Graphs with Good Labels
+     If you used option 8 and entered a 0 to indicate that you wanted to
+specify all the characteristics of the graph, then you have many entries to
+make.  If you are trying to make graphs for publication, it is much easier to
+set up a command file to do this.  The file ndapltexamp.dat (in the
+directory $IMOD_DIR/com) can be copied and modified for this use. Some
+guidance to the use of this file is given below, but first, here is a
+blow-by-blow description of the entries required after electing to specify the
+graph characteristics:
+.P
+   The graph size in X and Y and coordinates of the lower-left corner
+   in inches; there are 7.5 inches on the page and the lower-left
+   corner of the page is at coordinates of (0,0).
+.P
+   The number of divisions (ticks) along the X and Y axes, the tick
+   size in inches, the line thickness (a small integer, 1 for ordinary
+   lines), and 1 to enclose the graph in a box or 0 to omit the top and
+   right axes.  Use negative numbers of ticks and a negative tick size
+   to get ticks that go outward from the graph only.
+.P
+   Next, for the X axis, enter:
+.P
+     # of ticks to label with numeric labels, and number of lines of
+         text labels.
+.P
+     IF you specified a nonzero number of ticks to label, next enter:
+.P
+       If the ticks are to be labeled at regular intervals, enter the
+           number of the first tick to label (first tick is #1) and
+           the interval between labeled ticks (e.g. 2 for every other
+           tick or enter 0,0 to specify a list of ticks to label.
+.P
+           IF you entered 0,0, next enter the #'s of the ticks to label
+.P
+       Labels for the ticks, in one line, separated by commas or spaces
+.P
+       Numeric label size and separation from axis, in inches
+.P
+     IF you specified a nonzero number of text labels, next enter for
+         each label in turn:
+.P
+        Text label size, separation from axis, and offset along axis
+             between center of axis and center of text.
+.P
+        Text label
+.P
+   Next enter these parameters in the same order for the Y axis
+.P
+   Finally, the program calls the IMMISC subroutine.  Here, coordinates
+   may be specified in one of three ways independently for each of
+   the entries to the program.  The coordinates may be in "user"
+   units (the units of the numbers being graphed), in absolute units
+   of inches on the plotter page, or in units relative to the frame
+   of the graph (e.g. 0.1,0.9 for a position in the upper left
+   corner, or 0.5,1.1 for a position centered above the graph frame).
+.P
+    Enter the number of text labels, # of letters in circles,
+        # of symbols in boxes, and # of dashed or solid lines to draw
+.P
+    IF you entered a non-zero # of text labels, then for each, enter:
+.P
+        X and Y position, and 0 for user or 1 for absolute or -1 for
+            relative units
+.P
+        0 to center, -1 to left justify, or 1 to right justify the
+            character string on this position
+.P
+        Size of characters in inches, and orientation angle in
+            degrees (usually 0 or 90)
+.P
+        Text, on one line
+.P
+    IF you entered a non-zero # of circled letters, then for each:
+.P
+        X and Y position, and 0 for user or 1 for absolute or -1 for
+            relative units
+.P
+        Diameter of circle in inches, line thickness
+.P
+        Size of character in inches
+.P
+        Letter (upper case)
+.P
+    IF you entered a non-zero # of boxed symbols, then for each:
+.P
+        X and Y position, and 0 for user or 1 for absolute or -1 for
+            relative units
+.P
+        Symbol type (or 0 for no symbol), symbol size in inches,
+            symbol thickness (a small integer), box size in inches
+            (or 0 for no box), box line thickness
+.P
+    IF you entered a non-zero # of lines, then for each, enter:
+.P
+        0 for user, 1 for absolute, or -1 for relative units
+.P
+        A line specification as described above, in the units just
+            indicated
+.P
+.P
+     Here are some hints about using the ndapltexamp.dat file.
+     1) If you want to make several graphs on a page, you have two options:
+either make a command file for each graph, or combine all of the needed
+commands into a single file.
+     2) For the first graph placed into a new PostScript file, the program does
+not ask whether you want a new page; so for the first graph, you need to omit
+the line specifying whether to start a new page or not.
+     3) You need to decide how many divisions to divide the X and Y axes into,
+based upon the number of units displayed along the axes.
+     4) Negative numbers of ticks, and a negative tick size, as in the
+example, will produce tick marks that go only toward the outsides of the
+graph, which is preferable.
+     5) If you want neither numeric nor text labels for an axis, set the
+number of these labels to 0 and 0 and eliminate the following 5 lines.  If you
+want only numeric labels, eliminate the two lines related to text labels; if
+you want only a text label, eliminate the three lines related to numeric
+labels.
+     6) You must list the desired numeric labels on a line, separated by
+commas.
+     7) Special characters can be placed into text labels.  The example shows
+how to get a Greek micron and a superscript.  There are three special codes:
+^P to make the next character a superscript, ^B to make the next character a
+subscript, and ^S to make the next character be printed from the symbol font.
+(If you want more than one special character in a row, each must be preceded
+by the nexessary code.)  In the symbol font, letters map to Greek characters;
+some other useful entries are \260 for a degree symbol, \261 for +/-, and
+\264 for a times symbol (x).
+     8) If you want a single X text label to span two graphs that are side by
+side, label the X axis for the graph on the left and shift it to the right by
+the appropriate amount by putting in a positive "offset right from center".
+Similarly, to have one Y label for two graphs on top of each other, specify
+the label for the lower graph and shift it up with a positive "offset up from
+center".
+     9) The example provides for one line of text and one letter in a circle;
+you can easily add more lines of text.  These items need not be placed inside
+the frame of the graph: the relative X and Y coordinates can be less than 0 or
+greater than 1 to place items outside the frame.
+     10) If you want no text labels, set the "# of lines of text" to 0 and
+eliminate the 4 lines related to the text line.  If you want no letter in a
+circle, set the "# of letters in circles" to 0 and eliminate the 4 lines
+related to the letter in the circle.
+     11) If you want to plot more than one graph with a command file, put the
+appropriate NDA commands in place, then a new set of plotting commands, before
+returning to keyboard input with a 24.
+.SH HISTORY
+.nf
+   Written by David Mastronarde  7/31/90
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

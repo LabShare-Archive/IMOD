@@ -1,0 +1,80 @@
+.na
+.nh
+.TH combinefft 1 4.6.34 BL3DEMC
+.SH NAME
+combinefft - combine FFTs of tomograms from a double-axis tilt series
+.SH SYNOPSIS
+combinefft  options
+.SH DESCRIPTION
+Combinefft combines the FFTs from the two tomograms of a double-axis
+tilt series, taking into account the tilt range of each tilt series
+and the transformation used to match one tomogram to the other.  For
+a location in Fourier space where there is data from one tilt series
+but not the other, it takes the Fourier value from just the one
+appropriate FFT; everywhere else it averages the Fourier values from
+the two FFTs.
+.P
+The program can take input files that are either both FFTs or both matching
+tomograms.  The FFTs would generally be from a subvolume of the tomogram;
+and if the tomograms are used as input, a subvolume would generally be
+processed.  The program will consume 8 times as much memory as the number of
+voxels being processed in either case.  It uses dynamic memory allocation
+but will refuse to process subvolumes bigger than 1 gigavoxel.  On 32-bit
+systems, the allocation will fail for size above 250-370 megavoxels,
+depending on the operating system.
+.P
+There is an option (-reduce) to reduce amplitudes in regions of the FFT
+derived from only one tomogram to match the reduction in amplitudes in
+regions where data were averaged.  Apparently, the averaged data have lower
+amplitudes when there is substantial noise in the reconstruction because
+some of the noise averages out, while the noise in regions derived from one
+tomogram is unattenuated.  This may result in directionally patterned noise.
+The reduction option will reduce the noise (and signal) in the regions
+derived from one tomogram in attempt to keep it from dominating over the
+rest of the data.
+.P
+There is an option (-weight) for more sophisticated weighting that gives
+worse results with test data.
+.SH OPTIONS
+Combinefft uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively for options that existed when it was
+converted, to maintain compatibility with old command files.  The
+following options can be specified either as command line arguments (with
+the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If the program is started with no command line arguments, it reverts to
+interactive input with the following entries:
+.P
+File name of FFT of first tomogram (the one matched TO)
+.P
+File name of FFT of second tomogram (the one produced by MATCHVOL)
+.P
+Name of output file for resulting FFT, or Return to write into the
+    file of the second FFT, overwriting that FFT.
+.P
+Name of file with inverse of transformation used to match the two
+    tomograms (output by MATCHVOL)
+.P
+For the first tomogram file, either the starting and ending tilt
+   angles, or the name of a file with tilt angles in it.  In the
+   latter case, the first number on the first line will be taken as
+   the starting tilt angle; the first number on the last line will
+   be taken as the ending tilt angle.
+.P
+For the second tomogram file, either the starting and ending tilt
+   angles, or the name of a file with tilt angles in it.
+.SH HISTORY
+.nf
+Written by David Mastronarde, November 1995
+Converted to PIP and experimental options added, 7/12/04
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

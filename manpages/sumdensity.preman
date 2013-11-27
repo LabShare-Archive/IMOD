@@ -1,0 +1,59 @@
+.na
+.nh
+.TH sumdensity 1 4.6.34 BL3DEMC
+.SH NAME
+sumdensity - adds densities above a threshold for pixels within contours
+.SH SYNOPSIS
+sumdensity  [options]  image_file  model_file  output_file
+.SH DESCRIPTION
+Sumdensity will sum the density within contours of selected IMOD model
+objects.  Pixels within a specified distance of the boundary contour can be
+excluded.  A threshold can be set so that only pixels above threshold are
+summed, and the threshold value is subtracted from the pixel values in the
+sum.  Data are reported by surface if there are surfaces defined in the model
+contours.
+.P
+The threshold density must be specified in one of three ways.  It can be
+entered as an absolute density value, such as one would view in the Pixel
+View window in 3dmod.  If you do not want to apply a threshold at all you
+could specify the minimum density in the file, or zero, whichever is less.
+The second way to enter the density is as a contrast setting.  Load the data
+into 3dmod without any intensity scaling (i.e., without using "-s").  Bring
+the black and white sliders together and adjust until structures of interest
+are selected by the threshold.  The slider value would be entered with the
+"-contrast" option.  Finally, one can draw contours around reference areas
+that contain the desired baseline density.  The mean of density within these
+contours will be taken as the threshold density.  All of these contours
+should be in a single object specified with "-reference".
+.P
+The output of the program consists of a summary table with the following
+columns: object number, surface number or ALL for the entire object, the
+number of pixels within the contour (after excluding the border region), the
+number of pixels above the threshold, the percent of pixels above threshold,
+and the sum, average, and standard deviation of the densities above
+threshold.  If a pixel model is being produced then the number of points
+selected for the model appears in a final column; this value can be less
+than the points above threshold if adjacent points are required.  These
+values are reported for each surface in an object, then for the sum of all
+surfaces.  With the "-verbose" option, values are reported for each
+contour.
+.P
+The program will detect contours that are nested inside other contours and
+exclude pixels that are inside or with a border distance of inner contours.
+There can be any number of levels of nested contours, and in the general
+case the program will exclude pixels that are inside an even-level contour
+but not inside an odd-level contour contained within it (where the outermost
+contour is considered level 1).
+.SH OPTIONS
+Sumdensity uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,60 @@
+.na
+.nh
+.TH findcontrast 1 4.6.34 BL3DEMC
+.SH NAME
+findcontrast - Finds contrast settings for converting to bytes
+.SH SYNOPSIS
+findcontrastl  [options  input_file  output_file
+.SH DESCRIPTION
+Findcontrast finds the black and white contrast settings that are
+used when converting an image file to bytes with newstack(1) or mrcbyte(1).
+It computes a histogram of pixel values within a selected volume,
+which it uses to determine the contrast settings that would truncate
+the values of a specified, small number of pixels in the volume.
+.P
+The program reports the absolute minimum and maximum pixel values
+within the selected volume, the minimum and maximum values with
+truncation of the specified number of pixels, and the black and white
+contrast settings that would give this amount of truncation.
+.SH OPTIONS
+Findcontrast uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively.  The following options
+can be specified either as command line arguments (with the -) or one per
+line in a command file or parameter file (without the -).  Options can be
+abbreviated to unique letters; the currently valid abbreviations for short
+names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUTS
+If there are no command-line arguments, Findcontrast takes sequential input
+the old way.  The program was originally designed to be used with
+newly-created tomograms, so coordinates in this case are always entered as
+they would be observed in a flipped volume, with Y and Z transposed.
+.P
+Inputs to the program are:
+.P
+Name of image file
+.P
+First and last slice to include in the volume to be analyzed.  The
+first slice is numbered 1, so the numbers entered can be the
+3dmod section #'s in a flipped volume.
+.P
+Lower and upper X coordinates, and lower and upper Y coordinates,
+of the volume to analyze, as viewed in a flipped volume.  Enter /
+for the default, which omits a 10% border on each side.
+.P
+Maximum number of pixels to truncate (saturate) at black and at
+white within the analyzed volume.  Enter / for the default, which
+is one pixel per slice or one pixel per million, whichever is
+greater.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, January 2000
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

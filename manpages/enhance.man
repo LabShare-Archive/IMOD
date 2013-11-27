@@ -1,0 +1,108 @@
+.na
+.nh
+.TH enhance 1 4.6.34 BL3DEMC
+.SH NAME
+enhance - to apply gaussian bandpass filter
+.SH SYNOPSIS
+enhance  [input_filename]  [output_filename]
+.SH DESCRIPTION
+.P
+This is a two-dimensional gaussian bandpass filter program for image
+enhancement purposes.  For three-dimensional images, each image in the
+stack is separately bandpass filtered.  This program is superceded by
+Mtffilter(1), which provides all of the same filtering capabilities
+plus padding to avoid edge artifacts.
+.P
+The filter is specified by four input parameters: Sigma1, Sigma2, Radius1,
+and Radius2.  Several other IMOD programs take these same 4 parameters,
+which produce the same effect as described here.  The filter functions
+produced by these parameters can be visualized with the program
+Filterplot(1).  The filter is the product of two gaussian functions, the
+first one typically controlled by Sigma1 and the second one by Sigma2,
+Radius1, and Radius2.  If all values are positive or zero, then the first
+filter is in the form of a gaussian highpass filter given by:
+     (1. - exp(-r**2/(2*Sigma1**2)))
+.br
+The second filter is a gaussian-edged band-pass filter. This filter is
+flat between Radius1 --> Radius2 and decays symmetrically as a gaussian
+below Radius1 or above Radius2:
+     exp(-(r-Radius)**2/(2.*sigma2**2))
+.P
+If either Sigma = 0, then that part of the filter is removed.
+.P
+The units are in fractional reciprocal lattice units,
+that is r goes from 0-->sqrt(2)/2   (0-->.5 on each axis)
+.P
+If Sigma1 is negative, the first filter is the second derivative of a
+gaussian, Del-squared G, with formula
+     r**2*exp(-r**2/(2.*Sigma1**2))
+.br
+This filter alone is bandpass with a peak at 1.414*|Sigma1|, so Sigma2 and
+the Radii can be set to zero.
+.P
+If Sigma2 is negative, the second filter is inverted (1 minus the Gaussian
+band-pass filter).  This filter is then multiplied by the filter specified
+by sigma1 (if any).
+.P
+If Radius1 is negative, then the first filter is 0 out to |Radius1| and
+rises as an inverted gaussian from that point:
+     (1. - exp(-(r-|Radius1|)**2/(2.*Sigma1**2)))
+.br
+The effective Radius1 for the second filter is then 0, but this filter can
+still be used to add lowpass filtering.
+.P
+Several modes of operation are possible:
+.P
+Gaussian low-pass filter (temperature factor)
+      :  Sigma1 & Radii = 0, use Sigma2
+.P
+Gaussian bandpass centered at Radius
+      :  Sigma1=0,            use Radius1=Radius2 & Sigma2
+.P
+Gaussian-edged badpass between Radius1 & Radius2
+      :  Sigma1=0,            use Radius1,Radius2 & Sigma2
+.P
+Gaussian bandpass (low-pass + high-pass)
+      : Radii = 0,            use Sigma1 & Sigma2
+.P
+.P
+For versions of IMOD distributed or built with FFTW, there are no
+restrictions on the image dimensions.  Otherwise, 
+image dimensions must be even and have no prime factors
+greater than 19.  
+.P
+The program will accept file names either from the command line
+or as entries to the program after it is started.  If there are
+two names on the command line, they will be taken as the input
+and output file names; if there is one name, it will be taken
+as the input file name and the program will ask for the output
+file name; if there are no command line arguments, the program
+will ask for both input and output file names.
+.P
+The output file will have the same mode as the input, and for integer
+data modes, each section will be individually scaled to occupy the
+range for that mode.
+.P
+Input parameters are:
+.P
+SIGMA1,SIGMA2,RADIUS1,RADIUS2
+                      as described above
+.P
+IORIG                         if IORIG = 1 then the F(0,0) is
+                              unchanged by filter operation
+.P
+.SH HISTORY
+.nf
+Version 1.10    27.MAY.82       DAA             FOR VAX
+Version 1.11    02.JUNE.82      DAA             FOR VAX
+Version 1.12    10.JUNE.82      DAA             FOR VAX
+Version 1.13    23.JULY.82      DAA             FOR VAX
+Update  1.13    18.November.82  DAA             FOR VAX
+Bug fix         14.July.88      DNM             FOR uVAX
+Bit mode        09.August.88    DNM             FOR uVAX
+Del-squared G   01.September.88 DNM             FOR uVAX
+Inverted filter 26.April.89     DNM             FOR uVAX
+Ported to unix  07.December.94  DNM             FOR SGI
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

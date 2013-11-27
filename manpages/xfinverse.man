@@ -1,0 +1,54 @@
+.na
+.nh
+.TH xfinverse 1 4.6.34 BL3DEMC
+.SH NAME
+xfinverse - forms the inverse of a list of transformations
+.SH SYNOPSIS
+xfinverse  [options]  input_file  output_file
+.SH DESCRIPTION
+Xfinverse will take the inverse of each transformation in a file.
+The only option is whether to set the translations to zero or retain
+them in the output.  The latter would give the true inverse, but the
+former has been useful in arcane realignment procedures.
+.P
+The transform file can consist of warping transformations instead of simple
+linear transforms.  The warping transforms can consist either of
+displacements at sets of control points or displacements on a regular grid.
+The output file has the same form as the input file.
+.SH OPTIONS
+Xfinverse uses the PIP package for input (see the
+manual page for pip(1)). Thus, the following options can be specified
+either as command line arguments (with the -) or one per line in a
+command file (without the -):
+.TP
+.B -input OR -InputFile   \fIFile name\fR
+File with transforms to be inverted.  If this option is not entered, the
+first non-option argument will be used for this input file.
+.TP
+.B -output OR -OutputFile   \fIFile name\fR
+Output file for inverse transforms.  If this option is not entered, the
+second non-option argument will be used for the output file.
+.TP
+.B -zero OR -ZeroShifts
+Set shifts to zero when taking inverse of linear transforms.
+.TP
+.B -help OR -usage
+Print help output
+.P
+.P
+If no command line arguments are entered, the program takes the following
+inputs sequentially:
+.P
+Input file with list of transformations
+.P
+Output file for inverse transformations
+.P
+0 to set the translations (shifts) to zero, or one to retain them
+and output the true inverse transformation
+.SH HISTORY
+.nf
+Written by David Mastronarde, added to IMOD 4/21/00
+Warping added, June 2011
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

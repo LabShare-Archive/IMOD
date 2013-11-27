@@ -1,0 +1,23 @@
+.na
+.nh
+.TH avgstack 1 4.6.34 BL3DEMC
+.SH NAME
+avgstack - Averages multiple sections from an image file
+.SH SYNOPSIS
+avgstack
+.SH DESCRIPTION
+.P
+Avgstack will read sections from an image file and average them.  The input
+file may have any mode.  The mode of the output file will be 2 (real numbers).
+The inputs to the program are:
+.P
+   Input file name
+   Output file name
+   Starting and ending section numbers to average (/ for the default, all
+      sections in the file)
+.SH HISTORY
+.nf
+  Written by Sam Mitchell, 1/27/89
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

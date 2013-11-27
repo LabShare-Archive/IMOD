@@ -1,0 +1,123 @@
+.na
+.nh
+.TH clipmodel 1 4.6.34 BL3DEMC
+.SH NAME
+clipmodel - to clip a MT model by location or object number
+.SH SYNOPSIS
+clipmodel  [options]  input_file  output_file
+.SH DESCRIPTION
+Clipmodel will clip out a portion of a model and output either a
+new model file, or a simple list of point coordinates.  It can either
+include only points within a defined rectangular block of 3-
+dimensional coordinate space, or exclude points within such a block.
+This process of inclusion or exclusion may be invoked repeatedly.
+The program can also eliminate an entire IMOD object.
+.P
+To specify a rectangular block of coordinate space, one enters the
+minimum and maximum X, Y and Z coordinates of the block.  The
+default values for the minimum and maximum X and Y coordinates are
+very large numbers, so one can select the default if one wants no
+limitation on either the X, the Y, or both coordinates.  A point on
+the edge of the block (i.e. with one coordinate exactly equal to one
+of the lower or upper limits) is treated as if it is inside the
+block.  The Z limits are extended by 0.005 to help this work as
+expected even if Z values differ slightly from integers; for example,
+limits of 117,117 will retain the point at Z = 117.
+.P
+The coordinates that you enter should correspond to the index
+coordinates in the image display from which the model was last saved.
+If you last saved the model from an 3dmod display of a subset of the
+image stack, then you need to refer to coordinates within that
+subset.  If this is a problem, reload the model onto the full image
+stack (or a subset starting at 0,0,0) and save it again. Index
+coordinates are numbered from zero, so your Z values should be 1
+less than the section number shown in 3dmod.
+.P
+The program does not create new contours.  This limitation means that
+if there is more than one segment of a contour inside a block being
+included (or more than one segment outside a block being excluded),
+you have two options.  The program either can truncate the contour
+to be the longest such segment, discarding any other segments, or
+it can clip all of the points out of the contour that are in the
+region being excluded, connecting the remaining segments with
+straight lines.
+.P
+If an object consists of scattered points, then all points in the
+region being included will be included, regardless of which clipping
+option you choose for clipping contours.
+.P
+When you choose to retain all segments in the region being included,
+the program will sum and report the total length of cut edges, so
+that the cut surface can be subtracted from a computed surface area.
+For objects consisting of closed contours, this total will include
+an edge between the starting and ending points of a clipped
+contour, if points were clipped off at those ends of the contour.
+For open contour objects, this edge will not be included.
+.SH OPTIONS
+Clipmodel uses the PIP package for input (see the manual page for pip(1))
+and can still take input interactively if a sequence of operations is needed
+that cannot be achieved with the PIP options.  The following options can be
+specified either as command line arguments (with the -) or one per line in a
+command file or parameter file (without the -).  Options can be abbreviated
+to unique letters; the currently valid abbreviations for short names are
+shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+In interactive mode, entries to the program are:
+.P
+Name of input model file
+.P
+Name of output file for clipped model
+.P
+0 to output a model file, 1 to output a file with a simple list of
+   integer point coordinates, or -1 to output such a point list with
+   two additional corner points preceding the points on any given
+   section.  Such a file could be used as a set of teaching points
+   for MTTEACH and MTDETECT; but beware of the need for each "zone"
+   to be contained within a single piece in a montaged image file.
+.P
+0 to retain only the longest segment of a contour included in a
+   volume (if the contour passes through the volume more than once),
+   or 1 to retain all segments included in the volume.
+.P
+0 to include points in the rectangular coordinate block to be
+   specified next, or 1 to exclude points in such a block, or -1 to
+   exclude whole IMOD objects, or -2 to clip points off of one end
+   of all contours in selected IMOD objects.
+.P
+IF you entered 0 or 1, next specify the coordinates as follows:
+.P
+   Minimum and maximum X, minimum and maximum Y coordinates of the
+     block.  / selects the defaults of no limits
+.P
+   Minimum and maximum Z of the block
+.P
+BUT IF you entered -1, enter instead a list of the numbers of the
+   objects to be excluded.  For data from a WIMP model file, use
+   256 minus the WIMP object color (e.g. 1 for color 255), or the
+   negative of this value to refer to WIMP objects that are turned
+   off.  Ranges may be entered (e.g. 1-3,6).
+.P
+OR IF you entered -2, enter the number of points to clip off of the
+   start, and the number of points to clip off of the end, of
+   contours in selected objects.  Next enter a list of the numbers of
+   the objects to be clipped in this fashion, where WIMP objects may
+   again be referred to by 256 minus their color, or the negative of
+   this value if they are turned off.  Ranges may be entered.
+.P
+0 to store the current result, or 1 to loop back and specify a new
+   block to include or exclude (or objects to exclude or clip)
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1/11/90
+Modified for IMOD 4/24/97 
+Compute cut edges and handle coordinates better, 10/24/00
+Converted to PIP input, July 2012.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

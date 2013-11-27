@@ -1,0 +1,35 @@
+.na
+.nh
+.TH resamplemod 1 4.6.34 BL3DEMC
+.SH NAME
+resamplemod - Turn a model perpendicular to Z axis and resection
+.SH SYNOPSIS
+resamplemod  [options]  input_file  output_file
+.SH DESCRIPTION
+Resamplemod can be used to resample or resection a model of fiber
+trajectories after rotating it so that the fibers run parallel to the Z
+axis.  The program can find the mean trajectories of the fibers themselves
+and then rotate the model to bring the mean trajectory parallel to the Z
+axis, or one can supply a special contour to indicate the axis that should
+be rotated to the vertical.  Contours will be resampled at single pixel
+intervals so that the model will have the correct dimensions when it has the
+same Z scale factor as the original model.
+.SH OPTIONS
+Resamplemod uses the PIP package for input (see the manual page for pip(1))
+The following options can be specified either as command line arguments
+(with the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 2000; incorporated in IMOD 9/5/03
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

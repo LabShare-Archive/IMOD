@@ -1,0 +1,91 @@
+.na
+.nh
+.TH refinematch 1 4.6.34 BL3DEMC
+.SH NAME
+refinematch - Solve for a refined match between two tomograms
+.SH SYNOPSIS
+refinematch  [options]  input_file  [output_file]
+.SH DESCRIPTION
+Refinematch will solve for a general 3-dimensional linear transformation
+to align two volumes to each other.  It performs multiple linear
+regression on the displacements between the volumes determined at a matrix
+of positions.  The displacements must be contained in a file with the
+following form:
+.P
+Number of displacements
+One line for each displacement consisting of the X, Y, and Z
+   coordinates in the first volume, then the displacements in X, Y
+   and Z involved in moving from the first to the second volume
+.P
+The program will automatically eliminate "outliers", patch displacements
+that are likely to be incorrect because they are so extreme, when compared
+to the rest of the displacements.  This elimination is conservative, but
+if for some reason it operates incorrectly, you can control the parameters
+of elimination or stop the elimination from occurring.  The program will
+eliminate up to 10% of the patches.  If more than this number are bad,
+either get a new set of patches that do not approach so close to the edge
+of the volume, make a model in the tomogram with contours enclosing the
+patches to use, eliminate the bad ones from the file by hand, or use
+Findwarp(1) to eliminate a whole row or column of patches. When the mean
+residual exceeds a value that you specify, the program will exit with an
+error.
+.P
+A model specifying which patches to include in the fit can be quite
+simple, consisting of just a single contour enclosing the region where
+patches are generally good.  This contour can be drawn in any Z plane of
+the flipped tomogram.  However, if the good region changes through the
+depth of the tomogram, you can draw contours at several Z levels.  If you
+have two layers of patches, draw two contours, one near the top and one
+near the bottom of the tomogram; if you have three layers, add another
+contour in the middle, etc.  For a given patch, the program will find the
+contour at the nearest Z level and use that one to determine whether to
+include the patch.
+.P
+If there is only one layer of patches in one dimension, there is
+insufficient information to solve for the full transformation, so the
+program will solve for only two of the three columns of the transformation
+matrix.  This typically occurs in the Y dimension, in which case the
+second column of the matrix is fixed at 0, 1, 0.
+.SH OPTIONS
+Refinematch uses the PIP package for input (see the manual page for pip(1))
+but can still take input interactively for compatibility with old versions
+of Matchorwarp(1).  The following options can be specified either as
+command line arguments (with the -) or one per line in a command file or
+parameter file (without the -).  Options can be abbreviated to unique
+letters; the currently valid abbreviations for short names are shown in
+parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If the program is started with no command line arguments, it takes
+interactive input with the following entries:
+.P
+Name of file with positions and displacements
+.P
+Either the file name, or the X, Y, and Z dimensions of the volume being
+   matched to.
+.P
+Name of an IMOD model file with contours enclosing the patches to
+   be included in the fit, or Return to use all patches.
+.P
+Limiting value for the mean residual; above this value, the program
+   will exit with an error.
+.P
+Name of output file in which to place the transformation, or Return
+   for no output to a file
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1995
+12/24/98: added outlier elimination; 6/6/99: added error exit
+8/21/06: converted to PIP, made it handle both orientations of volume
+         better, changed outlier output to be a summary as in Findwarp,
+         added options for controlling outlier elimination and getting
+         residual output.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

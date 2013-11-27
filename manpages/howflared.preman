@@ -1,0 +1,123 @@
+.na
+.nh
+.TH howflared 1 4.6.34 BL3DEMC
+.SH NAME
+howflared - measure microtubule end flaring and curvature
+.SH SYNOPSIS
+howflared  [options]  output_file
+.SH DESCRIPTION
+  Howflared analyzes tracings of the walls of microtubules (MTs) to compute
+various measures of the amount of curvature or "flaring" at the MT end.  The
+IMOD model with MT tracings must meet a number of requirements.  The first
+step is to extract the MTs into subvolumes so that they are oriented
+vertically, with the end facing downward.  This can be done with
+Mtrotlong(1).  The orientations do not need to be perfect.  Once subvolumes
+have been extracted as a set, they can be loaded into 3dmod together as a
+4-dimensional data set.  The 4th dimension is referred to as "time".
+Alternatively, a central slice can be extracted from each and a stack made
+with these central slices.
+.P
+  The tracings must all be drawn starting near the top of the image in Y and
+ending at the MT end.  Each tracing defines two regions of an MT wall: a
+linear segment before the end, and a potentially curved segment.  A line is
+fit to a defined part of the linear segment and extrapolated into the region
+of the end.  The quantitative measures are based on the deviation of the
+curved segment from this extrapolated line.  Thus, a tracing must include a
+linear segment, and there must be some way to indicate where the linear
+segment ends and the measurement of the deviation should begin. There are
+essentially three different ways to indicate this boundary.
+.P
+  One way is to specify how far down from the top of the tracing the
+beginning and the end of the line fit should be.  This method is suitable if
+all the tracings have similar starting points near the top of the subvolumes
+and their curvature starts at similar locations as well.  The starting and
+ending points can be specified as either absolute units (in pixels) or as a
+fraction of the distance from the maximum to the minimum Y value in the
+tracing.  The second method is to use a horizontal line, consisting of only
+two points, entered as a separate contour, to specify the boundary point.
+With this method, one might still enter an ending limit, in which case the
+maximum of the ending limit and the Y position of the marker line are used
+for the end of the linear fit, but the measurement of deviation starts at
+the marker position.  The third method is to model the linear segment with
+just two points.  In this case, one would enter 0,0 for starting and ending
+limits.  The second and third methods can both used in the same model; the
+second point will be used as the boundary only if there is no horizontal
+marker line.
+.P
+  The program can analyze either two paired walls of a MT, or a single wall.
+When two walls are paired, the linear fit finds a single slope for the two
+walls, and a width between them.  This width is used for normalizing some of
+the flaring measurements.  If there are also single, unpaired walls, a width
+is assumed when normalizing these measurements (see -width option).  When a
+horizontal marker is used for a pair of walls, it should be drawn from near
+the boundary point on the left wall to near the boundary point on the right
+wall.  A single wall is treated like the wall on the left of a pair; so in
+this case a marker line should have its left end near the boundary point on
+the wall.
+.P
+  The program needs to be able to tell when two MTs are paired, and when a
+marker line belongs with one or two MTs.  Nothing special needs to be done
+when modeling in only a single plane per MT.  If you are modeling in
+multiple sub-volumes, the program will segregate the tracing based on their
+times; if you are modeling in a stack of single slices from different MTs,
+the segregation will be based upon Z value.  However, if you want to trace
+multiple, unpaired walls in the Slicer, either you need to segregate them by
+placing them in either separate objects or separate surfaces, or you need to
+use the -nopairs option.  Thus, you could have one object for all of the
+first tracings in each MT, a second object for the second tracing, etc.
+Similarly, you could use the surface number 0 for the first tracing in each
+MT, 1 for the second, etc.; or you could simply put each tracing (or tracing
+pair) with associated marker into a separate surface.  If you are willing to
+have no marker lines, then you can use the -nopairs option to indicate that
+there are neither pairs nor markers.
+.P
+  The program computes various quantities and stores them in columns of a
+data matrix; you specify which columns you want output with -columns.  The
+items and their units are:
+.P
+  The area between the tracing and the extrapolation of the wall, down to
+the minimum Y value of the tracing (square nm).
+  The square root of this area (nm)
+  The sum, over all line segments, of the product of the line segment length
+and the angle between the segment and the extrapolation of the
+wall(nm*radians)
+  The area divided by the square of the average MT width (square MT widths)
+  The square of the area divided by the average MT width (MT widths)
+  The angular sum divided by the average MT width (MT widths * radians)
+  The total length of the tracing after the boundary (nm)
+  The final angular deviation of the tracing from the extrapolation of the
+wall (degrees)
+  The angular change in degrees per nm of length
+  The average radius of curvature in nm.
+.P
+  The first 6 items are placed into columns 1-6 for the left wall of a pair
+or for an unpaired wall, and into columns 7-12 for the right wall of a pair.
+The sum of the two values for left and right in placed in columns 13-18.
+The last 4 items are placed into columns 19-22 for the left wall of a pair
+or for an unpaired wall, and into columns 23-26 for the right wall of a
+pair.
+.P
+  In the output file, these columns of output are preceded by 3 or 4
+numbers.  The first number is a model identifier; the second is the object
+number.  If you used surface numbers to segregate tracings, the third of 4
+numbers is the surface number; if you used the -nopairs option, the third of
+4 numbers is the contour number.  The last number is the time value, or the
+Z value.
+.SH OPTIONS
+  Howflared uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH HISTORY
+.nf
+Written by David Mastronarde in 1996
+Modified for PIP input and incorporation into IMOD, 10/14/06
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

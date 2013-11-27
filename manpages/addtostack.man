@@ -1,0 +1,43 @@
+.na
+.nh
+.TH addtostack 1 4.6.34 BL3DEMC
+.SH NAME
+addtostack - add sections to end of existing stack
+.SH SYNOPSIS
+addtostack
+.SH DESCRIPTION
+Addtostack will append sections from one or more files to an
+existing image file.  The X and Y dimensions of all files must match.
+All sections will be appended from the files that are being added.
+No image transformation or scaling is performed.  The header of the
+resulting image file will be set to give "pixel spacing" of 1 (grid
+and cell sizes equal to image size).
+.P
+There is one option: whether or not to make a copy of the existing
+file before adding sections to it.  If you elect to make a copy,
+this will take some extra time and will require the disk space to
+hold 2 copies of the file.  You will then be able to examine the new
+file to see if it meets your expectations before deleting the old
+file with a purge command.  If you do not make a copy, the program
+will run quicker and less disk space will be required, but it is
+conceivable that the file will become unusable if certain types of
+errors occur.  (If you specify a non-existent file or one of the
+wrong size, or if there is an error reading one of the files, the
+file being appended to will NOT become unusable.)
+.P
+Entries to the program:
+.P
+Name of file to append to
+.P
+0 to append to existing file, or 1 to make new copy and append to it
+.P
+Number of files to append to the file
+.P
+Names of these files, one per line
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 5/28/90
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

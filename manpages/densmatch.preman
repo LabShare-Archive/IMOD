@@ -1,0 +1,45 @@
+.na
+.nh
+.TH densmatch 1 4.6.34 BL3DEMC
+.SH NAME
+densmatch - Scale densities in one volume to match those in another
+.SH SYNOPSIS
+densmatch  [options]  Reference_file  File_to_scale  [Output_file]
+.SH DESCRIPTION
+Densmatch scales the density values in one volume so that its mean
+and standard deviation match that of another volume.  To determine
+the mean and S.D. for each volume, it samples up to 100000 pixels in
+the central eighth of each volume (central half in X, Y, and Z).  It
+can write the scaled values either to a new file or back into the
+file of the volume being scaled.  THE LATTER WILL DESTROY THE
+ORIGINAL VALUES IN THAT FILE.
+.SH OPTIONS
+Densmatch uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively, but with no options.
+The following options can be specified either as command line arguments
+(with the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If there are no command-line arguments, Densmatch takes sequential input
+the old way, with the following entries:
+.P
+Name of the first volume, the one whose densities are being matched
+.P
+Name of the second volume, the one being scaled
+.P
+Name of an output file, or a blank line to have the scaled values
+written back into the second file.
+.SH HISTORY
+.nf
+Written by David Mastronarde, November 1995
+Converted to PIP input, added reporting option, 8/23/04
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

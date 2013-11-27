@@ -1,0 +1,38 @@
+.na
+.nh
+.TH idfprocess 1 4.6.34 BL3DEMC
+.SH NAME
+idfprocess - do operations on and get statistics from distortion fields
+.SH SYNOPSIS
+idfprocess [options] input_file(s) output_file
+.SH DESCRIPTION
+Idfprocess will do several simple operations on image distortion field
+files: it can compute the inverse of the fields in one file, or the
+product or difference of fields in two files, and it can report
+statistics on the vectors of each distortion field.
+.P
+If a product or difference is taken, two input files are required, but the
+output file is optional.  If an inverse is taken, only one input file is
+expected, and again the output file is optional.  In either case, if no
+output file is specified, the program will reports statistics on the output
+automatically.  If no operation is performed, statistics will be reported
+for the fields in the input file.
+.P
+For products and differences, if one file has one field and the other has
+more than one, the single field will be combined with each of the fields in
+the other file.  If both files have more than one field, there must be the
+same number of fields in both files, and corresponding pairs are combined to
+produce the same number of fields in the output.
+.SH OPTIONS
+Idfprocess uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file (without the -).
+Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH BUGS
+Email bug reports to mast@colorado.edu.

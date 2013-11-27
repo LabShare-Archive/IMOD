@@ -1,0 +1,40 @@
+.na
+.nh
+.TH fixmont 1 4.6.34 BL3DEMC
+.SH NAME
+fixmont - substitute sections from one montage into another
+.SH SYNOPSIS
+fixmont
+.SH DESCRIPTION
+Fixmont will substitute sections from one montage file into another,
+with a linear scaling of the intensities in the sections being
+substituted.  It can also be used with ordinary image stacks by
+making dummy piece lists for each of the stacks.
+.P
+Entries to the program:
+.P
+.nf
+Name of image file to insert corrected sections into
+Name of list of piece coordinates for file to be corrected
+Name of image file with sections to be inserted into other file
+Name of list of piece coordinates for file with corrections
+.fi
+.P
+List of section numbers to take from the correction file and
+substitute into the file to be corrected.  Enter / to take all
+sections; ranges may be entered (e.g., 9-11,14,7)
+.P
+A pair of intensity scaling factors for each section; intensities
+will be multiplied by the first factor, then the second factor will
+be added.  Enter / for factors of 1,0, which will leave intensities
+unchanged.
+.P
+The same image file (and the same piece list file) may be used
+for both entries.
+.SH HISTORY
+.nf
+Written by David Mastronarde,  5/7/92
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

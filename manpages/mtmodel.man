@@ -1,0 +1,82 @@
+.na
+.nh
+.TH mtmodel 1 4.6.34 BL3DEMC
+.SH NAME
+mtmodel - to build a MT model out of individual points
+.SH SYNOPSIS
+mtmodel
+.SH DESCRIPTION
+Mtmodel builds a model using a list of unconnected points.
+It links points from one section to the next by considering each
+point and seeing if the x-y coordinates are within a certain radius
+of a point in the next section.  It can first do a scan through the
+points with a narrow radius, then further scans with progressively
+bigger radii (ignoring points that are already matched in a previous
+scan).  By default, all objects will be given color 250 (red), but
+one can have objects colored in a cycle of colors or coded for their
+length and termination.
+.P
+One can add the points in the list to an existing model if desired.
+Simply enter the name of this model file as the first entry in the
+program.  The points at the ends of existing objects will be examined
+first for their possible connections to new points.  Any new points
+within a specified number of pixels of the existing points will be
+discarded.  The color and other attributes of the objects in the
+existing model will remain unchanged.
+.P
+ENTRIES:
+.P
+Name of file with old model to extend, or Return if none
+.P
+IF you are extending a model, next enter the minimum distance to
+   allow between a new point and a point in the existing model.
+.P
+Name of point list file
+Name of new model file to create
+.P
+Radius to search for matching points in first scan, radius to search
+   in last scan, number of scans
+.P
+1 to use colors to code for the size of objects and whether they
+   start at the beginning or end of the data stack
+.P
+IF you specify 1, next enter the minimum object length which should
+   be coded with the colors for "long" objects
+.P
+1 to change the default colors.
+.P
+IF you enter 1 here, next specify a list of colors from 247 to 255.
+   Ranges (e.g. 250-253) may be entered.
+   If you are not coding for object length/endpoints, then the
+   default is to color every object red.  In this case, if you change
+   the default, colors will be assigned to objects by cycling
+   repeatedly through the list that you enter.
+   If you are coding for colors, the default color list, and the
+   order in which colors should be respecified in the list, is:
+.P
+.nf
+single point=magenta
+points in every section = white
+long from beginning section = orange
+short from beginning section = red
+long from end section = blue
+short from end section = light blue (cyan)
+long in middle only = green
+short in middle only = yellow
+.fi
+.P
+.P
+Minimum number of connected points required to make an object in the
+   output model.  Points that would conenct into objects smaller than
+   this minimum number will be discarded.
+.P
+Finally, if there are gaps in the progression of Z values in the list
+   of points, the program will tell you how many gaps.  Enter 1 to
+   connect points across the gaps; otherwise all objects will end at
+   the gaps.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 9/8/88
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

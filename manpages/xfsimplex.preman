@@ -1,0 +1,155 @@
+.na
+.nh
+.TH xfsimplex 1 4.6.34 BL3DEMC
+.SH NAME
+xfsimplex - Searches for best transformation between two images
+.SH SYNOPSIS
+xfsimplex  [options]  input_file_a  input_file_b  output_file
+.SH DESCRIPTION
+.P
+This program searches for the best general linear transform between a pair
+of images by varying either the six formal parameters of the transform, the
+six "semi-natural" parameters underlying such a transform, or restricted
+subsets of those semi-natural parameters.
+.P
+These semi-natural parameters are, in the order in which the program will
+consider them:
+   Delta X
+   Delta Y
+   Global rotation (average rotation of X & Y axes)
+   Global magnification (average stretch of X & Y axes)
+   Difference between stretch along Y- & X-axis
+   Difference between rotation of Y- & X-axis
+With the -variables option, one enters either zero to search for formal
+parameters, or a number specifying how many of the natural parameters are to
+be varied.  If one selects 2, only Delta X and Delta Y will be varied; if
+one selects 4, global rotation and magnification will be varied also. At the
+end, the program outputs a six-parameter transformation (the 2x2 A matrix
+and DX and DY) in the standard format.
+.P
+Because the search method used by this program works iteratively from a
+given starting point, it is unlikely to find the proper alignment if it
+requires a large displacement.  To overcome this problem, the program
+can be given an initial transformation to work from. This allows a large
+displacement to be found by cross-correlation and passed to this program.
+.P
+To find the best fit between images, the search can optimize either a simple
+point-by-point difference between the images, the cross-correlation
+coefficient, or a measure of the distance between points of similar
+intensities in the images.  The resulting transformation is applied to the
+second image to align it to the first.
+.P
+The search uses a so-called simplex minimization routine which starts
+searching with an initial step size and refines the step size near a
+minimum.  It terminates the minimization when either 1) the most recent
+points under consideration gave difference measures all within a certain
+fractional tolerance of the point with the minimum measure; or 2) the most
+recent points had transformation parameters all within a certain tolerance
+of the point with the minimum measure. The latter tolerances are expressed
+as fractions of the following basic step sizes: 1 for delta X and Y; 0.025
+for the 4 parameters of the transformation matrix, if using formal
+parameters; or 2 degrees for global rotation and differences between X and Y
+rotations, and 0.025 for global magnification and difference between X and Y
+magnifications, if using semi-natural parameters.
+.P
+By default, the program will perform an initial minimization with a coarse
+tolerance for termination, then it will restart the minimization at the best
+point, and terminate with a finer tolerance. If the overall alignment method
+involves two stages, coarse and fine, then you should omit the initial
+minimization by specifying tolerances of zero for it.
+.P
+At the end of the search, the program outputs the number of iterations,
+the minimum difference/distance or maximum correlation value found, and the
+transformation parameters.  If semi-natural parameters were searched for,
+first those parameters are output, then the formal parameter matrix is
+output.  The difference measure is normalized to be the mean difference per
+pixel as a multiple of the standard deviation of the first image.  If
+correlation coefficients are used, then the measure of difference being
+minimized is one minus the correlation coefficient.  The distance measure is
+expressed as the mean distance per comparison point.
+.SH OPTIONS
+Xfsimplex uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively, to maintain compatibility
+with old command scripts.  The following options can be specified either as
+command line arguments (with the -) or one per line in a command file or
+parameter file (without the -).  Options can be abbreviated to unique
+letters; the currently valid abbreviations for short names are shown in
+parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+A subset of entries can still be made by running the program interactively.
+All of the parameters have defaults which may be selected with , or / (the
+values in [] below and contained in [] in the prompts)
+.P
+***lines 1-4
+ first image file
+ second image file
+ data file into which to place the best fitting transformation
+ name of file file with starting transformation, or Return if none
+.P
+*** line 5 (6 values):
+ Fractional tolerances in the difference/distance measure and in the
+   transformation parameter values, to allow termination of final or
+   only minimization [.0005 and 0.02, or .001 and 0.04 for
+   images no bigger than 128 by 128]
+ Fractional tolerances in the difference/distance measure and in the
+   transformation parameter values, to allow termination of initial
+   minimization [.005 and 0.2].  Enter 0,0 to skip initial search.
+ Factor to apply to basic step sizes to get initial step sizes [2]
+ 1 for trial-by-trial output, 2 for output of trials that yield new
+   minima only.
+.P
+***line 6
+ 0 for search on formal parameters, or # of natural parameters to
+   vary [0]
+.P
+***lines 7-10
+ Fraction of images to ignore at edges [0.05]; or number of pixels
+   if the number entered is 1 or greater
+ float images to have same range (0) or same mean and S.D. (1), or
+   do not float images (-1) [1]
+ binning factor for reducing images in x and y [2]
+ use difference (0) or distance (1) measure [0]
+.P
+If difference measure is chosen, one more line of input:
+.P
+***line 11
+ 1 to use bilinear interpolation during the search [0]
+.P
+If distance measure is chosen, 5 more lines of input:
+.P
+*** lines 11-14
+ distance to search to eliminate redundant points with similar
+   densities from comparison [default depends on image size after
+   reduction, if any: 0 for # of pixels < 240*180, 1 if # of pixels
+   between 240*180 and 480*360, 2 if # of pixels > 480*360
+ distance to search for matching densities [4 if reduce by 2, 5 if
+   not]
+ maximum density difference constituting a match [0.05]
+ Number of ranges of densities to make comparisons with [2]
+.P
+*** line 15
+ lower and upper PERCENTILES for these ranges.  The default is 0,8,92,
+   100 for small images.  This means that the darkest 8% and brightest
+   8% of pixels will be used for comparison (minus ones eliminated
+   because of redundancy).  The default depends on image size after
+   reduction, if any; the range is scaled from 8% down to 5% as image
+   size increases from 320*240 to 640*480
+.P
+The distance measure has been little used and the defaults for it are based
+on limited experimentation. These defaults are set in an attempt to
+limit the number of "points for comparison" to several thousand.  If
+there are more than about "5000 points for comparison", you should
+depart from the defaults in order to reduce this number.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 4/5/91 (adapted from XFSEARCH)
+7/1/08: Converted to PIP, added search limits, filtering, CCC
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,217 @@
+.na
+.nh
+.TH solvematch 1 4.6.34 BL3DEMC
+.SH NAME
+solvematch - Solve for transformation matching one tomogram to another
+.SH SYNOPSIS
+solvematch  [options]
+.SH DESCRIPTION
+Solvematch will solve for a 3-dimensional linear transformation
+relating the tomogram volumes resulting from tilt series around two
+different axes.  It can use information from the 3-D coordinates of
+fiducials found by Tiltalign(1), or from IMOD models of corresponding
+points in the two volumes, or from both of these sources together.
+Current versions of Tiltalign produce fiducial lists with coordinates
+corresponding the coordinates in the tomogram, thus providing all of
+the information that Solvematch needs to find the transformation.  Older
+versions of Tiltalign(1) produced coordinates centered around zero; this
+situation is discussed below.
+.SS Using Fiducial Coordinates
+When you use fiducial coordinates, the program needs to know how the
+fiducial points correspond between the two tilt series.  There are two
+different ways that this information can be provided.
+.P
+If Transferfid(1) was used to produce the seed model for one of the axes
+from the fiducial model for the other, then it can be given an option to
+produce a file with the coordinates of corresponding fiducial points from
+one view in each data set.  This file can be provided to Solvematch with
+the "-transfer" option and the program will be able to deduce how the
+points in the fiducial lists from Tiltalign(1) correspond.  This
+capability allows you to add or delete fiducial points in either fiducial
+model after running Transferfid(1) without having to keep track of how
+this affects the correspondence between points.  This option requires
+that both fiducial models be supplied to Solvematch.  Also, it is
+essential that Solvematch be informed if the A axis is being matched to the
+B axis, with the -atob option.
+.P
+In the absence of a transfer coordinate file, the program needs lists of
+points that correspond between the two data sets.  If it is given
+a small list of points which do correspond, it can find the rest of the
+correspondences and ignore any points from either set that do not have a
+mate.  There are two restrictions in using this capability.  First, one
+must identify at least 4 initial correspondences; in fact, having at
+least 5 is recommended.  Second, if there are fiducials on both surfaces
+of the section, this initial list must include at least one from each
+surface.
+.P
+When you enter point numbers, use the numbers listed on the left in
+the fiducial coordinate file.  These numbers may not correspond to
+the contour numbers in the original fiducial model if some contours
+were not included in the solution.  These numbers do not need to be
+sequential; i.e., you can delete points from the coordinate file.
+The program will refer to points by these numbers.  When you have
+both fiducial coordinates and points from matching models, it will
+refer to the latter points by the negative of their point number.
+.P
+When using fiducial coordinates, you also need to indicate to Solvematch
+whether the gold fiducials are on one surface or distributed in depth
+(typically but not necessarily on two surfaces).  If there is gold on
+only one surface, you must determine whether the two tomograms are
+inverted in Y (Z in flipped orientation); i.e. whether the gold is on
+the "top" of the section in one tomogram and the "bottom" in the other even
+though they can be superimposed by a rotation.  The program needs to know
+this because there is no reliable information about this polarity in the
+fiducial coordinates.  However, such an inversion should be impossible when
+data are acquired with a CCD camera.
+.SS Using Matching Models
+When fiducial points from Tiltalign(1) are not available, you can use
+models of corresponding points to register the two volumes.  Pick a set
+of points that can be localized well in both tomograms and enter them in
+the same order into a model for each tomogram.  The points can be in the
+same or in different objects or contours, as long as they occur in the
+same order in each model.  The points should be well-distributed in
+all dimensions, and they must not all be in one plane.  At least 8 points
+are recommended.  If this is to provide the basis for the final alignment of
+the volumes, they should be relatively near the 8 corners of the volume, and
+more points should be used for greater accuracy; but if the alignment is to
+be refined with correlation, this is not necessary.
+.P
+Using Old, Relative Fiducial Coordinates
+With fiducial coordinates from older versions of Tiltalign(1), the program
+can solve for the 3 by 3 transformation but not for the shifts in X, Y
+and Z.  There are two ways to get these shifts: by cross-correlation
+of one transformed volume with the other, and by giving Solvematch
+models of corresponding points in the two tomograms.  The shell script
+that does correlations, Matchshifts(1), is generally successful.  If it
+fails, you have two options: rerun Tiltalign to get absolute
+coordinates; or create matching models.  If you do this, 3-6 points are
+recommended.  If fiducials are essentially on one surface, then the
+modeled points are needed to find the scaling in Y (Z in flipped
+orientation) between the two tomograms.  In this case, be sure to
+distribute the points in depth (rather than all on one surface) and use
+5-6 points so as to provide information on this scaling.
+.SS Local Fitting
+Sometimes the fit to the fiducial points gives a high maximum residual
+error because there is a big nonlinear distortion between the two
+volumes.  In these cases, fitting to local sets of points can be used to
+determine that the fiducials have been properly identified and that the
+global fit is as good as it is ever going to be.  If the LocalFitting
+option is selected, the program will try local fits when the maximum
+residual is above the specified limit.  It determines the size of the area
+that, on average, would contain the specified minimum number of points.
+It then sets up local areas of this size, overlapping by 50%, and expands
+an area if necessary to contain the minimum number of points.  It performs
+fits to the points in each area and reports the results of the fits.  If
+the overall maximum residual is less than 1.5 times the specified limit,
+and no more than 5% of the areas have maximum residuals above this limit,
+the fit is considered adequate.
+.P
+If local fitting is being done, then the program will also compute a local
+fit to points at the center of the volume so as to determine how far the
+global 3D transformation will shift data at the center of the volume out
+of alignment.  If this shift is large enough, then corrsearch3d(1) may
+have trouble starting to find the alignment of the data.  Thus, if the
+program finds that this shift is bigger than a specified limit, it
+recommends initial shifts to be used when running corrsearch3d(1) and may
+also recommend that the initial matching volume be made the same size as
+the volume being transformed.  It will exit with an error so that you can
+adjust these parameters before proceeding.
+.SS Program Operation
+The program will automatically remove "outliers", pairs of points
+that are likely to be incorrect because their residual errors are
+so extreme relative to the other points.  Up to 10% of points may
+be removed in this way.  If, even after removing such outliers, the
+maximum residual in the linear fit is still higher than a value that
+you specify, then the program will exit with an error.
+.P
+The program determines the transformation and computes the deviation
+between each actual point in the first tomogram and the transformation of
+the corresponding point in the second tomogram.  It reports the mean and
+S.D. of these deviations, the number of the point with the highest
+deviation, and the magnitude of its deviation.
+.SH OPTIONS
+Solvematch uses the PIP package for input (see the manual page for pip(1))
+and can also take input interactively to maintain compatibility with old
+command files.  The following options can be specified either as command
+line arguments (with the -) or one per line in a command file or parameter
+file (without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If the program is started with no command line arguments, it reverts to
+interactive input and is restricted to older modes of operation.  The
+input takes different forms depending on what data are available.  The
+inputs to the program when fiducials from Tiltalign are available are:
+.P
+Name of file with coordinates of fiducials from the first tilt series
+.P
+Name of file with coordinates of fiducials from the second series
+.P
+A list of the points in series 1 for which a corresponding point in
+   series 2 is known with confidence, or / if all points correspond
+   between the two series.
+.P
+A list of the corresponding points in the second series, or / if all
+   points correspond between the two series.
+.P
+The values of X axis tilt that were used in generating the first and
+   second tomograms.
+.P
+The limiting value for the maximum residual, so that the program will
+   exit with an error if this value is exceeded.
+.P
+Enter either 0 to determine shifts from model files of corresponding
+   points, or -1, 1, or 2 to determine just the 3 by 3 transformation
+   and not the shifts.  Enter 2 if there are fiducials on two
+   surfaces, 1 if fiducials are on one surface and the tomograms are
+   NOT inverted relative to each other, or -1 if the tomograms are
+   inverted and there are fiducials on only one surface.
+.P
+IF you entered 0, make the following four entries:
+.P
+   Either the file name or the X, Y and Z dimensions of the first
+     tomogram
+.P
+   Name of model of points from the first tomogram
+.P
+   Either the file name or the X, Y and Z dimensions of the second
+     tomogram
+.P
+   Name of model of points from the second tomogram
+.P
+Finally, enter name of file for output of the transformation, or
+   Return for none
+.P
+.P
+Inputs to the program when matching models alone are being used:
+.P
+A blank line (Return) in place of the name of the first fiducial file
+.P
+The limiting value for the maximum residual
+.P
+Either the file name or the X, Y and Z size of the first tomogram
+.P
+Name of model of points from the first tomogram
+.P
+Either the file name or the X, Y and Z size of the second tomogram
+.P
+Name of model of points from the second tomogram
+.P
+Name of file for output of the transformation, or Return for none
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1995; modified for zero shifts, 7/4/97
+Added outlier elimination and error exit, 6/5/99
+Added ability to start with small initial set of matches, 3/20/00
+Added ability to use matching models only, 7/21/02
+Fixed treatment of single-surface case and converted to PIP, 12/24/03
+Added ability to deal with absolute fiducial coordinates, 6/9/04
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

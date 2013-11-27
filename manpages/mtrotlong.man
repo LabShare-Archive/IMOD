@@ -1,0 +1,81 @@
+.na
+.nh
+.TH mtrotlong 1 4.6.34 BL3DEMC
+.SH NAME
+mtrotlong - extract MTs rotated into longitudinal orientation
+.SH SYNOPSIS
+mtrotlong
+.SH DESCRIPTION
+Mtrotlong can be used to extract a series of subvolumes with fibrous
+elements such as microtubules (MTs) rotated into a longitudinal
+orientation, and with one end of the item in the center of the extracted
+subvolume.  To use it, model each fiber in 3dmod(1) with a single open
+contour along its axis.  Then run Mtrotlong with entries indicating which
+contours to analyze and how to orient them, and it will produce an IMOD
+command file for extracting the subvolumes with Rotatevol(1).  This command
+file would then be run with "subm command_file".  This allows the rotation
+angles to be edited if necessary to produce a better result, using angles
+found in the Slicer window.
+.P
+The program will determine the orientation near the end of a fiber by
+fitting to a specified number of points.  It is thus desirable to have
+different fibers modeled with points at roughly equivalent spacings.  For
+example, if some fibers are modeled very densely while others are modeled
+with only a few points over a long distance, then the fit will be over a
+very short distance in the former case and over a very long distance in
+the latter if it is determined from the same number points in each case.
+The orientation may be less than optimal in both cases.  Another way to
+avoid this problem is to enter different values for the number of points
+to fit.
+.P
+The program can produce subvolumes with double the sampling in the Z
+dimension, i.e. half the pixel size.  Do do this, it issues commands to
+extract the volume twice, one with an odd Z size and once with an even Z
+size, which results in a half-pixel offset.  These files are then combined
+by running Newstack(1) with a file named "interleave", which is also
+produced by Mtrotlong.
+.P
+The program will extract a volume at either the starting or the ending
+point of a contour.  To have it do both, just make two entries for the
+contour.  Each subvolume will be named with a starting letter that encodes
+the object number, the contour number, an ending letter that encodes with
+it is from the start or end of a contour, and the extension .st.
+.P
+Inputs to the program:
+.P
+Name of input model file
+.P
+Name of output command file
+.P
+Name of input image file
+.P
+1 if the volume has been flipped or rotated so that the X/Y planes are the
+plane of the sample, or 0 if not (i.e. if it still needs to be loaded into
+3dmod with flipping)
+.P
+1 for an isotropic volume, 2 for a volume with double sampling (half the
+pixel size) in the Z dimension
+.P
+X, Y and Z size of a single isotropic extracted volume.  If the sampling
+is doubled in Z, the final volume will have Z size 2 * NZ + 1
+.P
+Single letter codes for each object; for example if object 1 has
+kinetochore and object 2 has nonkinetochire MTs, the entry could be "kn"
+.P
+Two single letter codes for volumes extracted from contour starts and
+ends, respectively.
+.P
+A series of lines with the following format:
+.P
+Object number, contour number, 0 or 1 to extract from contour start or
+end, 0 or 1 to rotate so that the fiber extends upward or downward from
+the middle, and the number of points to fit over
+.P
+A line with 0,0,0,0,0 to end the series and exit the program
+.SH HISTORY
+.nf
+Written by David Mastronarde about 1996
+Incorporated in IMOD 9/11/06
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

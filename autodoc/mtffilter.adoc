@@ -143,7 +143,7 @@ usage = Phase plate diameter, voltage, focal length for amplifier filter
 tooltip =
 manpage = Parameters of phase plate imaging, used to compute a nominal cutoff
 radius for the low-frequency amplifier filter.  Enter the phase plate diameter
-in nanometers, the voltage in kilovolts, and the objective lens focal lenth in
+in nanometers, the voltage in kilovolts, and the objective lens focal length in
 millimeters.
 
 [Field = PixelSize]

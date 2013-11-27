@@ -1,0 +1,80 @@
+.na
+.nh
+.TH mtdetect 1 4.6.34 BL3DEMC
+.SH NAME
+mtdetect - detect circularly symmetric features
+.SH SYNOPSIS
+mtdetect
+.SH DESCRIPTION
+This program is a companion to Mtteach, the interactive program for
+defining a discriminant analysis for feature detection.  On each
+section, it follows the procedures of that program: it looks at
+either single pixels or sums of pixels within circular windows,
+seeking points with values beyond a threshold value, then applies
+the discriminant function derived in Mtteach to classify the points
+as features or non-features.  However, it also reads in the teaching
+points used by MTTEACH and uses them, as well as the points
+identified by the procedure just described, as a basis for searching
+from one section to the next for additional points.  On the first
+pass through the sections, it applies the procedure just described,
+then it examines the vicinity of known points on adjacent sections.
+For each such position, it looks for points within a specified
+radius that have values greater than a relaxed threshold, and forms
+discriminant scores for those points; if there are points with
+scores better than the criterion (which may be relaxed by a
+specified amount), then the best such point is taken as a new
+feature point. On a second pass through the sections, it does only
+the checking from section to section.  If the images being examined
+are unaligned but an alignment is available, one can enter a file of
+g transforms to improve the section-to-section correspondence for
+the search.
+.P
+ENTRIES to the program:
+.P
+.nf
+Image file name
+Name of file of piece coordinates if image is a montage, otherwise
+   Return
+Name of file of teaching points
+Name of output file for list of detected points
+Name of file of discriminant analysis parameters and solutions
+   produced by MTTEACH
+Name of file of g transforms that align the whole data stack, or
+   Return if none is available
+.fi
+.P
+IF you enter a file of g transforms, enter 4 lines:
+   0 if images are unaligned, or 1 if images are aligned via these
+      transforms
+   0 if teaching points were picked on unaligned images, or 1 if
+      points were picked on aligned images
+   0 to output points that would match unaligned images, or 1 to
+      output points that match aligned images
+   X and Y center coordinates of the transforms, or / to take the
+      default of the center coordinates of the image file
+.P
+Minimum distance between centers of adjacent features
+.P
+Radius to search around the position of a feature for features in
+   adjacent sections
+.P
+Amount to relax criterion discriminant score for the search in
+   adjacent sections.  This is expressed as the number of standard
+   deviations of the scores for true features; the program will first
+   print out what the criterion is already in terms of the number of
+   S.D.'s below the mean score for true features.
+.P
+Amount to relax threshold for choosing peaks in the search for
+   features in adjacent sections.  Use the same units in which the
+   threshold was specified in MTTEACH, i.e. an absolute or a relative
+   value.
+.P
+Starting and ending section to analyze, or / to do all sections
+.SH HISTORY
+.nf
+Written by David Mastronarde, May 1989
+4/29/90 - add ability to set range of sections to analyze
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,35 @@
+.na
+.nh
+.TH boxavg 1 4.6.34 BL3DEMC
+.SH NAME
+boxavg - averages images from specified locations in an image file
+.SH SYNOPSIS
+boxavg  [options]  image_input_file  model_input_file  average_output_file
+.SH DESCRIPTION
+.P
+Boxavg will average images at points specified in an IMOD model file.
+By default, it take all points from open contour and scattered point
+objects, but specific objects can be selected instead.  After computing
+an average, it can then align each extracted image with the average by
+searching for the shift that minimizes the standard deviation of the
+difference between the two.
+.SH OPTIONS
+Boxavg uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 4/26/89
+Converted to PIP, using a model file and non-integer coordinates,
+   10/21/07
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

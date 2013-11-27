@@ -1,0 +1,63 @@
+.na
+.nh
+.TH joinmodel 1 4.6.34 BL3DEMC
+.SH NAME
+joinmodel - to join two models together
+.SH SYNOPSIS
+joinmodel
+.SH DESCRIPTION
+Joinmodel will combine two models, joining objects in the
+SECOND model to the ends of objects in the FIRST model, if the
+corresponding points match up sufficiently well.  Branch points are
+allowed in either model, and should be preserved even during joining
+of objects.  Point "marks" (numbers controlling point symbol
+display), which are properties of individual points in the model,
+will be preserved, but text labels in the second model will not.
+.P
+Objects will be joined together only if there is physical
+overlap between the end of the object in the FIRST model and the
+start of the object in the SECOND model.  If an object in the FIRST
+model ends on one section and an object in the SECOND model starts
+in the same location on the next section, they will not be joined.
+.P
+When two objects are joined together, the points in the object in the
+SECOND model that overlap will be thrown away, and the rest of the
+points in that object will be added to the end of the object in the
+FIRST model.  The resulting object will have the same color and
+other attributes as the original object in the FIRST model.  All
+other objects will be carried over into the joined model without
+modification.
+.P
+Entries to the program:
+.P
+.nf
+Name of SECOND model file (YES, it needs the SECOND one first).
+Name of FIRST model file
+Name of output model file
+.fi
+.P
+Maximum distance in the X-Y plane, and maximum separation in Z,
+   allowed in order for points from the two different models to be
+   considered matching points.  Enter / to accept the default values
+   in brackets.
+.P
+Maximum overlap to look for between objects in the two models.
+   Enter / to accept the default value in brackets.  This parameter
+   controls how long it takes the program to look for matches.
+.P
+.P
+The program considers the end point of each object in the FIRST
+model in turn.  It looks for a match between that end point and the
+first, second, etc. point of each object in the SECOND model
+(up to the number specified by the maximum overlap parameter).  When
+it finds a match, it then tests whether each of the points from the
+beginning of the object in the SECOND model up to that matching point
+also match the corresponding points in the object in the FIRST model.
+Only if there is a complete match along the entire stretch of overlap
+will the objects be joined.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1/10/90
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

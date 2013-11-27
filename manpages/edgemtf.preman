@@ -1,0 +1,128 @@
+.na
+.nh
+.TH edgemtf 1 4.6.34 BL3DEMC
+.SH NAME
+edgemtf - Computes MTF curves from images of an edge
+.SH SYNOPSIS
+edgemtf [options] image_file output_rootname
+.SH DESCRIPTION
+Edgemtf analyzes an image of a vertically oriented edge and computes the
+modulation transfer function (MTF).  The MTF is the Fourier transform of the
+derivative of the edge.  The edge need not be perfectly vertical because the
+program will align the derivatives of individual lines across the edge.
+(In fact, the edge should not be perfectly vertical, in order to sample the
+full range of alignments between the edge and the pixels).  Because
+derivatives could be noisy, the program usually sums a few adjacent lines
+together before taking the derivative.  The program proceeds as follows:
+  1) It sums the lines together as indicated by the -sum option.
+  2) It averages together the number of summed lines indicated by the -average
+option to form an initial reference.
+  3) It takes the derivative of each summed line and of the reference (the
+simple difference between successive values).
+  4) It aligns each derivative to that of the reference
+  5) It computes shifted lines and adds them together to make a second
+reference.
+  6) It repeats step 3, 4, and 5, ending up with a final sum of all aligned
+lines.
+  7) It takes the derivative of that final sum.
+  8) It takes the Fourier transform of that derivative and then takes the
+magnitudes of the Fourier components.
+  9) It averages successive sets of these magnitudes to obtain the MTF curve
+at the number of points indicated by the -points option.  It averages the
+first few components and scales the curve so that the average of those
+components would be 1.  This is not ideal.
+.P
+The program will put out a complete output file and an MTF file for each
+section suitable for use with Mtffilter(1).  The complete file has three
+columns of data, where the first column is a type number.  There are five
+kinds of output for each section:
+.nf
+section_number      frequency     averaged MTF value
+100+section_number  frequency     unaveraged scaled Fourier magnitudes
+200+section_number  X coordinate  average of aligned lines
+300+section_number  X coordinate  derivative from average of lines
+400+section_number  Y coord/sum   alignment shift for each summed line
+.fi
+.SH OPTIONS
+Edgemtf uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SS HOW TO GET A CCD CAMERA MTF CURVE
+Take an unbinned image of the beam stop in the microscope, gain normalized,
+with a high number of counts.  You are only interested in the straight
+segment of the beam stop, so you can acquire a subarea that excludes
+unneeded areas.  However, include at least as much white area above and
+below the beam stop as the width of this straight segment.
+.P
+Open the image in 3dmod and activate the Zap window rubberband.  Draw the
+rubberband to encompass the good area of one edge of the beam stop in the
+straight region.  Omit bumps if possible, but otherwise make the band as
+long as possible.  Make it about 1 1/2 times as high as the width of the
+beam stop, and position it so that it is centered on the edge.  Select
+File-Extract in the Info window to save this to a file (e.g., edge.1).
+.P
+Shift the rubberband with the second mouse button to center it on the other
+edge.  Run File-Extract again to save to a second file (e.g., edge.2).
+.P
+Run header on each file to make sure they are the same size.
+  header edge.1
+  header edge.2
+.br
+If they are not the same size, put the smaller one first in the following
+newstack command, or specify a rotated output size with the -size option.
+Stack and rotate the two images:
+  newstack -ro 90 edge.1 edge.2 edges.st
+.P
+Open the stack file in 3dmod and click on the middle of the edge. Open a
+graph window and zoom and/or stretch it until you can see the pixel steps
+easily (use the left and right arrows to step by pixels in X).  Use up and
+down arrows to look at various points along the edge and see if it rasters
+between places where the edge falls sharply over one pixel, and places where
+it falls a lot over two pixels instead.  A very sharp edge will show a
+variation like this, whereas unbinned images typically will not.  If you see
+this kind of behavior, pick a Y value where the big falloff is over one
+pixel instead of two.  You want a place where there is a step from one pixel
+at some distance below halfway up to the next pixel being the same distance
+above halfway up.  You do not want a place where there is a pixel at a value
+halfway up.  Watch where the red line cuts the curve as you go up and down
+in Y (shift with left and right arrows to keep the line near the center of
+the edge).  Repeat this procedure to pick a Y value for the other section.
+.P
+If you don't see a variation in the falloff, just take the default of
+starting at the center in Y.  If do see the variation but find all this too
+confusing, you can skip this step, since it makes very little difference in
+the final curve even for a sharp edge.
+.P
+Run Edgemtf after picking an informative root name for the output (e.g. 200KV)
+  edgemtf edges.st 200KV
+.P
+Examine the MTF curves to make sure they are sufficiently smooth and
+properly normalized, and to pick one side of the edge over the other.  You
+could do this with any plotting program.  To use Onegenplot(1) enter
+  onegenplot -ty 0,1 rootname.out
+.P
+The first curve will be graphed with circles, the second with crosses.
+If they are noisy you need to average more components
+(decrease the number of output points).
+.P
+To analyze at different binnings, just run, for example,
+  newstack -bin 2 edges.st edgesbin2.st
+  edgemtf -bin 2 edgesbin2.st 200KVbin2
+.P
+The amount of summing and averaging is set based on the -bin entry, but if
+you had to change the defaults for the unbinned case, you will probably have
+to do so for binned cases too.
+.SH HISTORY
+.nf
+Written by David Mastronarde, late 1990's
+Added to IMOD, 6/3/11
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

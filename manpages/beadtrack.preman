@@ -1,0 +1,256 @@
+.na
+.nh
+.TH beadtrack 1 4.6.34 BL3DEMC
+.SH NAME
+beadtrack - Tracks fiducial gold particles through a tilt series
+.SH SYNOPSIS
+beadtrack  options
+.SH DESCRIPTION
+Beadtrack will track selected fiducial gold beads through a series of tilted
+views.  It takes a "seed" model, where each bead of choice is marked with at
+least a single point on a view near zero tilt.  It tracks each bead as far
+as possible and puts out a new model.
+.P
+The program works from one view to the next, using the existing data about
+bead positions to deduce a projected position for each bead on the next view
+to be processed.  After bead positions are available on enough views, the
+program will use tilt alignment to estimate the 3D position of each bead,
+and use this position to project a position on the next view.  The program
+searches for beads from the center outward.  Before looking for a particular
+bead, it uses the positions of beads already found on that view to refine
+the projected position.  It will adjust by a shift if there are 3 points (or
+at least one point from the seed model), by shift and rotation if there are
+4 or 5 points, or by shift, rotation, and a size change if there are more
+than 5 points.
+.P
+The program will do one or two passes for each view.  On the first pass, it
+uses an average of the current bead over the nearest views for which
+positions have already been identified.  It cross-correlates that average
+with a box at the expected position of the bead and derives a bead position
+from the peak of the correlation.  It then calculates the centroid and the
+integral of the density at that position.  To do so, it takes the average of
+pixels more than a certain radius away, subtracts this background value from
+the pixels within that radius, and uses pixels above the background to
+calculate a centroid and an integral.  The position is then refined with
+Sobel filtering of the image (see below), if that option is selected.  If
+the integral is too low, or if the putative position is too far from the
+expected position, the program then attempts a "rescue".  The criterion for
+a rescue based on distance is set by the user.  The criterion for a rescue
+based on density is set by the mean value of the bead integral on previous
+views.  Specifically, the criterion is the minimum of a certain fraction of
+the mean and a certain number of standard deviations below the mean.  The
+latter parameters are also set by the user.  To rescue, the program starts
+at the expected bead position and examines every position in a series of
+progressively wider circles around that point.  It calculates an integral
+for each position, and when it first finds an integral above a relaxed
+criterion value, it takes that position as the bead position.  The criterion
+can be relaxed by different factors for "density" and "distance" rescues.
+.P
+After the first pass, the program does a tilt alignment and uses two
+different tests for whether to  eliminate a point on the current view.  One
+test is whether the residual for the point is greater than a user-specifed
+limit ("criterion for rescue after fitting").  The other test is whether the
+mean residual for that bead, averaged over all currently available views,
+has just increased by an unusual amount.  It finds the mean and SD of
+previous increases in this mean residual, and tests whether the latest
+increase exceeds the mean by a user-specified criterion number of SD's.
+.P
+If any points were eliminated by these tests, or if any points failed to be
+found, the program does a second pass.  On this pass there is no
+correlation, just an attempted rescue at the expected position (possibly
+refined because of the additional information about other beads on this
+pass).  The maximum distance for this rescue is set by the user.  After the
+second pass, the program does another tilt alignment and tests only the
+behavior of the increase in mean residual for each point.  If that increase
+is too great, a point is eliminated for good.
+.P
+A Sobel filter, an edge-detecting filter, can be used to get more
+accurate bead positions in many cases.  This filter produces a ring of
+intensity around the edge of the bead.  After filtering, a single bead image
+is correlated with a filtered reference based on many images of that bead,
+and of others if necessary (see the AverageBeadsForSobel option).  For most
+data sets with relatively low noise, this method produces significantly
+better positions and a lower mean residual error in the alignment solution
+in Tiltalign(1).  The improvements are less for higher-noise data (e.g.,
+cryo data), and such data require a higher-than-default sigma value for the
+Gaussian smoothing filter applied before the Sobel filter, otherwise worse
+results may be obtained.
+.P
+For data sets that track well, the benefit from using the Sobel filter can
+be assessed even before running Tiltalign(1) and/or completing the model by
+examining the errors in the alignment solution that Beadtrack does.  Look at
+the values for F (the root-mean-squared error) and for the mean residual at
+the end of the log, when all views have been included in the fit.  If you
+are using local fitting, look at the end of the tracking for several of the
+local areas, just before the output on the number of points missing for that
+area.  Run without and with Sobel filtering and compare the error values.
+Also, for high-noise data, you can run with different sigma values for the
+kernel filtering and see which gives the best result.
+.P
+The program will leave gaps in the model rather than insert bad
+points.  It will try to resume tracking after a gap, but only if the
+gap is not larger than a user-defined limit.
+.P
+The user can choose whether or not the program will fill in gaps in
+the incoming seed model.  If the image stack has sizable shifts that
+could prevent accurate tracking, then one should use one of the beads
+as a "pioneer".  It is not necessary to model that bead on every
+view, just on the views before and after a large shift.  However, one
+should be sure to have the program fill in gaps in this case.  Also,
+one can place one point for a bead on the view near zero tilt, then
+place a few points on distant views where one can anticipate that the
+program will have trouble tracking through (e.g., where another bead
+crosses, or where the bead goes too close to the edge).
+.P
+The program performs poorly when the tilt alignment solution gives a poor
+fit, which happens easily with large areas.  The solution to this
+is to track on subsets of beads in local areas and/or to restrict the number
+of views in the tilt alignment.  There are options to enable these features
+when the program is run with PIP input.  An alternative, available when
+running with sequential input, is to place seed points into separate objects
+in different areas; e.g., 4-9 areas for 2K x 2K images, depending on how
+many fiducials are available.  There should be at least 6-8 points per area.
+When there are multiple objects in the seed model, the program will
+automatically track them separately unless local area tracking or the
+TrackObjectsTogether option is selected.
+.P
+For each view and pass, the program outputs the results from the linear fit
+between actual and projected positions, the tilt alignment root-mean-squared
+error, and which beads have been deleted or added back. After doing all
+views, the program outputs a summary of which views are missing for each
+bead.
+.SH OPTIONS
+Beadtrack uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively, to maintain compatibility
+with old command files.  The following options can be specified either as
+command line arguments (with the -) or one per line in a command file or
+parameter file (without the -).  Options can be abbreviated to unique
+letters; the currently valid abbreviations for short names are shown in
+parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH SEQUENTIAL INPUTS
+Image file name
+.P
+Piece list file name if the file is montaged (or if it is digitized
+   out of order), otherwise enter a blank line
+.P
+Name of model file with starting bead coordinates
+.P
+Name of output model file
+.P
+List of views to skip over.  Model contours will pass through
+   these views; points will need to be added by hand afterwards.
+   Ranges may be entered, e.g. 1,4-6.  Views are numbered from 1.
+.P
+Angle of rotation of the tilt axis in the images; specifically, the
+   angle from the vertical to the tilt axis (counterclockwise
+   positive).
+.P
+Number of sets of views to treat separately from the main set of
+   views when automapping the tilt angle and magnification
+   variables.  Enter 0 if all views can be treated together when
+   automapping.  These sets would typically be lists of views
+   that were reshot.
+.P
+IF a number other than 0 was entered, next enter one line for each
+    separate set, giving a list of the views included in that set.
+    Ranges are allowed here.
+.P
+-1 to enter individual tilt angle for each view, 1 to specify a
+   starting and increment tilt, or 0 to read tilt angles from a file
+.P
+IF you entered 1, next enter the starting and incremental tilt angles
+IF you entered -1, enter the tilt angle of each view.
+IF you entered 0, enter name of file with tilt angles
+.P
+The default number of views to group together in solving for tilt
+   angles, and the number of ranges of views that should have some
+   grouping other than the default.  If a negative number of views
+   is entered, then reshoot sets will NOT be segregated from the
+   rest of the views in this default mapping.
+.P
+   IF you entered a non-zero number of ranges to be treated
+      separately, then for each such range, enter the starting and
+      ending view number and the number of views that should be
+      grouped in that range.  If a negative number of views is
+      entered, then reshoot sets will NOT be segregated from the
+      rest of the views in this range.
+.P
+The default number of views to group together in solving for
+   magnifications, and the number of ranges of views to group in
+   some other way.  If you enter a non-zero number of ranges, then
+   for each one, enter starting and emding view numbers and group
+   size.  Note that extensive grouping of tilt angle and
+   magnification variables is desirable, but the grouping should be
+   adjusted if there are known places where magnification or the
+   deviation from the ideal tilt angle changes abruptly.
+.P
+Minimum number of views with bead positions available before trying
+   to do a tilt alignment.  To skip the tilt alignment computations,
+   set this to a number higher than the number of views.
+.P
+Radius for centroid calculation, and 0 if beads are darker or 1 if
+   they are lighter than background.  The radius need not be a whole
+   number; e.g., 4.5 is acceptable.
+.P
+1 to fill in gaps in the seed model, or 0 not to fill in gaps
+.P
+Maximum size of gap to create in the model.  If a bead cannot be
+   tracked through some views, the tracking may be resumed as long as
+   the gap thus created is no larger than this amount.
+.P
+Minimum range of tilt angles for which data must be available before
+   trying to find the angle of the tilt axis, and minimum range of
+   angles required before trying to solve for tilt angles.  Suggested
+   values are 10 and 20.
+.P
+X and Y dimensions of the box used to search for a bead
+   (32,32 suggested)
+.P
+Maximum number of views over which to average a bead (4 suggested)
+   A running average is kept of the appearance of the bead over
+   the most recent views examined; this parameter specifies the
+   maximum number of views averaged.
+.P
+Number of positions to use for extrapolating the bead position to
+   the next view, and minimum required to do extrapolation rather
+   than simply taking the mean of positions on the last few views.
+.P
+Fraction of mean bead integral, and number of standard deviations
+   below mean, to use as the criterion for when to attempt a rescue
+   based on bead density.
+.P
+Distance in pixels away from expected position at which to attempt
+   a rescue based on excessive distance
+.P
+Factors by which to adjust (relax) the density criterion when
+   trying to rescue.  Enter one factor for density rescue and one for
+   distance rescue.  A value of 1 does not relax the criterion.
+.P
+Criterion distance for deletion of a point after tilt alignment.
+   Points with residuals greater than this amount will be deleted on
+   the first pass, and a rescue search performed on the second pass.
+.P
+Factor by which to relax the density criterion on the second pass,
+   and maximum distance to search from the expected position on this
+   pass.
+.P
+Maximum and minimum number of changes in mean residual to use in
+   finding the mean and SD of changes in the mean residual for a
+   bead as more points have been added.  Suggested values 9 and 5.
+.P
+Minimum change in residual, and criterion number of SD's from the
+   mean residual change, to require for deletion of a point on pass 1
+   or 2.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1995.  Tilt alignment added 10/6/97.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

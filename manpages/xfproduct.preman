@@ -1,0 +1,78 @@
+.na
+.nh
+.TH xfproduct 1 4.6.34 BL3DEMC
+.SH NAME
+xfproduct - forms product of two lists of transformations
+.SH SYNOPSIS
+xfproduct [options] input_file1 input_file2 output_file
+.SH DESCRIPTION
+Xfproduct  is used to concatenate two lists of transforms, or to
+multiply all of the transforms in one file by another transform.
+.P
+In the first case, for each line in the input files, it multiplies
+the transform in the first input file by the transform in the second
+file, and writes the product in the output file.  This can thus be
+used to implement two stage alignment: If the first set of
+transforms were obtained by a first stage of aligning raw images,
+and the second set are obtained by a second stage of alignment
+applied to images that have been aligned by the first set, then the
+products produced by this program can be applied to the raw images,
+in one step, to produce an alignment that incorporates both stages.
+.P
+To multiply all of the transforms in one file by a single transform,
+make the latter transform be the only one in a file.  The file with
+the single transform can be either the first or the second file.
+.P
+If transforms in the two files apply to images at different scales,
+then it is necessary to scale the X/Y translations of one of them to
+make the two sets of transforms correspond.  For example, if the first
+set of transforms align unbinned images, but the second set refines
+the alignment for images binned by 2, then the option "-scale 1,2"
+would be needed to make transforms to align the original unbinned
+images.
+.P
+Either or both input files can contain warping transformations instead of
+simple linear transforms.  The transforms can be either displacements at a
+set of control points or displacements on a regular grid of positions.  If
+two warping files are multiplied, the output will consist of grids of
+displacements regardless of the type of input.  If one file is a warping
+file and the other has linear transforms, then the output will have the same
+type of displacements as the warping input file.
+.P
+Warping transform files contain information about the pixel size and number
+of pixels of the images for which they were obtained.  When both input files
+have warping transforms, they must be for images of the same total size (the
+product of pixel size and pixel number must match).  If the pixel sizes
+differ, the transforms from the first file will be scaled to match that of
+the second one.  If you enter the -scale option, it overrides this default
+scaling but is not allowed to change the relative scaling between the two
+files.  Since an entry is not needed, since Newstack(1) and Blendmont(1) will
+compensate for a difference between the pixel size in the warping file and
+the pixel size of the images being transformed.  However, a -scale entry
+might be needed if one file has linear transforms and the other has warping
+transforms.
+.P
+.SH OPTIONS
+The easiest way to run the program is on the command line, as shown in
+the synopsis.  Xfproduct uses the PIP package for input (see the
+manual page for pip(1)). Thus, the following options can be specified
+either as command line arguments (with the -) or one per line in a
+command file (without the -).  Options can be abbreviated to unique letters;
+the currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+If the program is started with no command line arguments, it reverts to
+interactive input with the first input file, second input file, and
+output file entered on successive lines.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1989
+Converted to PIP input and added scaling option, 1/25/04
+Added support for warping transforms, June 2011
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

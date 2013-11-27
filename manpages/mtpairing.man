@@ -1,0 +1,238 @@
+.na
+.nh
+.TH mtpairing 1 4.6.34 BL3DEMC
+.SH NAME
+mtpairing - to analyze pairing between MTs
+.SH SYNOPSIS
+mtpairing
+.SH DESCRIPTION
+Mtpairing calculates the length over which MTs are paired with each other in
+3-D, and allows one to assign MTs to new objects based on these pairing
+lengths.  It can also assign polarities to MTs based on the positions of
+their endpoints in Z, and allows one to assign MTs to new objects based on
+these polarities.  The program combines features of MTOVERLAP and GENHSTPLT.
+It also has several exploratory features that are not documented because
+they were not particularly useful.
+.P
+MTs are considered "paired" when they are within a certain distance of each
+other in the X/Y plane.  Typically, you would set this distance to be the
+upper limit of the peak from a neighbor density analysis.  The absolute
+pairing length for a pair of MTs is the total length in Z over which they
+are within that distance of each other.  A fractional pairing length is also
+computed; this is the pairing length divided by the length over which the
+two MTs appear in the same sections.
+.P
+Before running the program, you must figure out how to specify which MT's
+are in a bundle.  If all of the MT's in a model belong to one bundle, then
+this task is easy.  If you have several bundles in one model, then you have
+several alternatives.  One is to determine the lower and upper X, Y and Z
+coordinates of a box, such that the bundle consists of all MT's that contain
+at least one point within the box.  Another way is to make a model object
+within the plane of one section to serve as a boundary contour.  This
+contour, together with a lower and upper Z coordinate, specifies a
+"cylinder", and this program will include in the bundle any MT with at least
+one point inside this cylinder.  The most elaborate way is to make a series
+of model objects for boundary contours in different sections.  The program
+will then include in the bundle any MT that is included within any one of
+the contours.
+.P
+When you enter X, Y or Z coordinates for this purpose, they must be index
+coordinates of the image file.  That is, X and Y values must be in terms of
+pixel coordinates, and Z values must be in units of the original section
+numbers, before adjustment for tilt or scaling by section thickness.
+.P
+If the sections were significantly tilted during microscopy, the program can
+adjust for these tilts given the proper information.  Prepare a file in
+which the first line shows the Z value and the tilt of the first tilted
+section (or of the first section, if that one was tilted), and each
+successive line shows the Z value and tilt for each section on which tilt
+was changed.  Z values should occur in ascending order.
+.P
+When you start the program, you will have to make a standard series of
+entries until you get the first display.  From there, you can select a
+number of options to loop back and change those entries.  Initial entries in
+order are:
+.P
+0 for plots in the graphics window, or 1 for plots only on the
+   terminal, or -1 for plots always in the graphics window.  If you
+   enter -1, BSPLT will not ask about doing terminal plots.  Note that
+   if you need to use terminal plots, you will need to specify that
+   option each time that you do a plot.
+.P
+Name of command file to take entries from, or Return to continue making
+entries from the keyboard. The program can read entries from a file instead
+of from the keyboard, then switch back to keyboard input if the file ends
+with the appropriate entry.
+.P
+Number of bundles to read from model files, or 0 if the entries specifying
+all of the bundles are in yet another file.
+.P
+IF you enter a positive number, then enter for each bundle:
+.P
+   Name of model file with bundle in it, or Return to use same file as
+   previous bundle
+.P
+   IF you enter the name of file, then make the following 3 entries:
+.P
+      Name of file with information on tilt angles, or Return if there
+      is no such file (pictures taken at 0 tilt)
+.P
+      Section thickness in nm, to scale Z coordinates to microns; or /
+      to leave Z values unscaled
+.P
+      Magnification of negatives, and scale of digitization (the value
+      of microns/pixel), to scale the X/Y coordinates correctly; or /
+      to leave X/Y coordinates unscaled.  This entry makes no
+      difference unless you choose to calculate one of the special
+      three-dimensional overlap factors.
+.P
+   Number of limiting regions (boundary contours or rectangles defined
+   by X/Y coordinates) needed to specify the bundle, or 0 to take all
+   of the objects in the model.
+.P
+   For each limiting region, then enter:
+.P
+      The number of an object specifying a boundary contour, or 0 to
+      enter limiting X and Y coordinates of a box.
+.P
+         IF you entered 0, next enter the lower and upper X index
+         coordinates and the lower and upper Y coordinates of the box,
+         or enter / to have no limit on the X and Y coordinates THEN
+         enter the lower and upper Z coordinates of the box (in units
+         of sections), or / to have no limits on Z coordinates
+.P
+         IF you entered the number of a boundary object, next enter
+         lower and upper Z coordinates of the "cylinder", or / to set
+         those limiting coordinates to the Z coordinate of the boundary
+         contour. The latter is typical if one uses several contours in
+         different sections to specify the bundle.
+.P
+IF you entered 0 for the number of bundles, next enter instead the name of a
+file.  The first line of this file should have the number of bundles
+specified there.  The rest of the file should be all of the entries just
+described for each bundle.
+.P
+Enter a list of numbers of the bundles to work with.  Ranges may be entered,
+e.g. 1-3,7-9.
+.P
+The lower and upper limits of Z within which to compute pairing.
+.P
+A minimum number of sections to assume as shared sections when the
+fractional pairing is computed.  This entry was intended to avoid
+unreasonably large fractional pairing lengths when two MTs only appear
+together in a few sections.  A value of 4 may be useful.
+.P
+The number of kinds of pairs to compute pairing for.  If you enter a
+positive number, then each type in a pair will be treated as both reference
+MTs and as neighbors MTs.  If you enter a negative number, the first type in
+a pair will be treated only as reference MTs and the second type only as
+neighbors.
+.P
+Enter two types (object numbers) for each pair of types, the types of
+"reference MTS" and "neighbor MTs" in the pairing calculations.  Enter a 0
+to include all types in a pairing.  If you entered a positive number for the
+previous entry, then entering, e.g., "1,2" is the same as entering
+"1,2,2,1".
+.P
+Enter 1 for a simple pairing factor which is 1 for MTs within a certain
+distance of each other and 0 beyond, or 2 or 3 for a pairing factor that
+decays with distance in the X/Y plane, either as an inverse power or
+exponentially.
+.P
+Enter the distance in the X/Y plane at and below which overlap will equal 1.
+The distance should be in microns if you have scaled X/Y values, or in
+pixels if you have not.
+.P
+   IF you entered 2, next enter the power for the decay (e.g., with a power
+      of 2, overlap will decay as the inverse square of distance)
+.P
+   IF you entered 3, enter instead the space constant for exponential decay.
+   Overlap will be 1/e less for MT's separated by 2 space constants than for
+   MT's separated by 1 space constant.  Distance should be in microns if you
+   have scaled X/Y values, or in pixels if you have not.
+.P
+Minimum pairing length that a pair of MTs should have before its data will
+be stored for examination.  If there are not hundreds of MTs, a minimum of 0
+will retain all data about MTs with any pairing.
+.P
+At this point, the program computes the pairings and gives information about
+the lengths of the many pairs of MTs with no pairing.  You are then at the
+option point.  Options are:
+.P
+1: to plot the pairing data about each MT.  Columns available are:
+   1 = MT length
+   2 = absolute pairing length summed over all neighbors to the MT
+   3 = maximum pairing length achieved with one other MT
+   4 = fractional pairing length summed over all neighbors to the MT
+   5 = maximum fractional pairing length achieved with one other MT
+   6 = Z value of midpoint of MT.
+.P
+2: to plot the data about paired MTs.  Columns available are:
+   1 = arithmetic mean of the lengths of the two MTs
+   2 = geometric mean of the lengths of the two MTs
+   3 = absolute pairing length of that pair
+   4 = fractional pairing length
+   9 = mean separation between MTs while they were paired
+  10 = SD of separation
+  11 = coefficient of variation = SD/mean of separation
+.P
+With either option 1 or 2, you must enter the numbers of the columns to be
+plotted on the X or Y axes.  Next, enter a number for the symbol type as
+commonly referred to in Genhstplt(1) and other places.  After this, you will
+enter the BSPLT subroutine, whose entries are described in the manpage for
+Bsplt(1).
+.P
+3: to loop back to the point where you specify which bundles to work with
+and then enter other parameters of the pairing calculations.
+.P
+4: to loop back and read in new bundles, replacing existing ones.
+.P
+5: to loop back and read in new bundles, retaining existing ones.
+.P
+6/7: to plot the current Postscript file on the screen/printer
+.P
+8: to exit the program
+.P
+9: to output a model with MTs reassigned to new objects.  After selecting
+this option, you make an indefinite series of entries of the following form.
+In one line, you enter the following information to select a set of MTs:
+.P
+   New object # for MTs.  Enter -1 here to terminate the series of
+   reassignments.
+.P
+   Column to use to select MTs.  The data about each MT are referred to
+   by positive column numbers (1 to 6 as described above); the data
+   about pairs are referred to by negative column numbers (-1 to -4 as
+   described above). An entry of 0 will use the "polarity" values
+   determined after using options 11 and 12.
+.P
+   The lower and upper criterion limits to apply to values in that
+   column. 
+.P
+   0 to select MTs that are within the limits, or 1 to select ones
+   outside the limits.
+.P
+   On the next line, enter a list of the original types (object
+   numbers) that MTs should have in order for them to be reassigned
+   according to these criteria, or Return to apply the criteria to MTs
+   of all types.
+.P
+In this way, you can assign each type of MT that meets a particular
+criterion to a particular new object.
+.P
+After you have entered all of the selections, enter the name of the output
+file in which to place the new model.
+.P
+10: to take commands from a file (next enter filename, or Return to
+   take input from the keyboard)
+.P
+11 will find clusters of mutually paired MTs (which can be all of the MTs in
+a bundle), 12 will find polarities based on positions of the MTs in the
+bundle or cluster, and 13 will graph the clusters.  These features are not
+documented here - consult the code.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1993
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,36 @@
+.na
+.nh
+.TH numericdiff 1 4.6.34 BL3DEMC
+.SH NAME
+numericdiff - compare numeric entries between two text files
+.SH SYNOPSIS
+numericdiff  [options]  input_file_A  [input_file_B]
+.SH DESCRIPTION
+Numericdiff compares the numeric contents of two text files.  It scans
+through each file, identifying sections of purely numeric text and sections
+with non-numeric text.  Within a section of numeric text, it reads the
+numbers from each file and finds the maximum absolute value of the
+difference between numbers in each column.  These maxima are reported for
+each numeric section, and if limits for the maximum differences are entered,
+the program reports that there are differences above the limits and exits
+with a non-zero status.
+.P
+The lines in a section may have different numbers of columns.  The two files
+can differ in the number of lines in a numeric section; the extra lines in
+one file will be ignored.  Sections of non-numeric text can also be
+different length between the two files.  However, there is no attempt to
+match the text in non-numeric sections, so both files must match in the way
+that they alternate between numeric and non-numeric text.
+.SH OPTIONS
+Numericdiff uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH BUGS
+Email bug reports to mast@colorado.edu.

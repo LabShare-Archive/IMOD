@@ -1,0 +1,40 @@
+.na
+.nh
+.TH xf2rotmagstr 1 4.6.34 BL3DEMC
+.SH NAME
+xf2rotmagstr - Convert transforms to rotation, magnification, stretch
+.SH SYNOPSIS
+xf2rotmagstr input_file
+.SH DESCRIPTION
+xf2rotmagstr takes a file with a set of linear transformations expressed as
+2x2 matrices plus a shift in X and Y, and converts each 2x2 matrix to a
+rotation, magnification, and stretch along an axis.  The output appears as:
+.P
+1: rot=   11.80, mag= 1.0001, str= 0.9916 on   -4.9 axis, Mean mag= 0.9959
+.P
+where rot is rotation angle in degrees, mag is magnification factor, str is
+a stretch factor, the axis of the stretch is given in degrees of rotation
+from the X axis (counterclockwise positive).  Mean mag is the average size
+change with the stretch taken into account.  Rot, mag, and str match the
+values that would be shown if the transformations were read into midas(1).
+.P
+The program will also accept a warping file as produced by Midas(1) or
+Tiltxcorr(1).  In that case, it extracts the linear transformation for each
+section and uses it to produce the same report.
+.P
+The format of each line of a simple linear transformation file is
+   a11 a12 a21 a22 dx dy
+.br
+where the coordinate transformation is
+   x' = a11 * (x - xci) + a12 * (y - yci) + dx + xco
+   y' = a21 * (x - xci) + a22 * (y - yci) + dy + yco
+.br
+and x, y is the original position, x', y' is the position in the transformed
+image, xci, yci is the center of input images, and xco, yco is the center of
+transformed images.
+.SH HISTORY
+.nf
+Written by David Mastronarde, added to IMOD 10/5/06
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

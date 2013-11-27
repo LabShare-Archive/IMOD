@@ -1,0 +1,85 @@
+.na
+.nh
+.TH edpiecepoint 1 4.6.34 BL3DEMC
+.SH NAME
+edpiecepoint - edit a list of piece coordinates
+.SH SYNOPSIS
+edpiecepoint  [options] [input_file] output_file
+.SH DESCRIPTION
+This program allows one to "edit" a list of piece coordinates, or a list of
+integer point coordinates, in three ways:
+1) The set of Z values may be mapped, one-to-one, to any arbitrary new set
+of Z values; and
+2) The X, Y or Z coordinates of all pieces or points may be shifted by a
+constant.
+3) The overlap between pieces can be changed.
+In addition, one can create a new piece list for single frame images or
+montaged images.  The pieces can be ordered in rows or in columns.
+.P
+The remapping of Z values is specified by a list of values (comma-separated
+ranges, e.g. 0-3,5-7).  This list must have the same number of Z values as
+in the input list of Z values.  The Z values in the input list will be
+mapped one-to-one onto the new list.  Enter "/" to take the input list
+without modification Enter numbers between -999 and -990 to delete points
+with a particular Z value; e.g. if the input list has Z values from 0 to 9,
+entering 0-4,-999,5-8 will delete all points with Z between 4.5 and 5.5, and
+shift the Z of points with Z greater then 5.5 down by 1.  If the input list
+has Z from 0-19, entering 0-9,-999--990 will remove all pooints with Z from
+10 to 19.  Enter -1 to replace each Z value with its negative.
+.P
+When you create a new piece list, you control the overlap between pieces by
+entering a spacing instead.  This spacing is the frame size minus the
+overlap; e.g., for a size of 2048 and an overlap of 10%, one would enter
+2048 - 204 = 1844.  Spacing can be measured by taking the difference between
+the coordinates of corresponding points in adjacent pieces.  For example, if
+a feature is at an X coordinate of 1800 in one piece and at 100 in the piece
+to the right, then the spacing in X is 1800 - 100 = 1700.  Enter a negative
+number for X spacing if pieces are ordered from right to left, or a negative
+number for Y spacing if pieces are ordered from top to bottom.  Enter / if
+you just have one piece.
+.SH OPTIONS
+Edpiecepoint uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively.  The following options
+can be specified either as command line arguments (with the -) or one per
+line in a command file or parameter file (without the -).  Options can be
+abbreviated to unique letters; the currently valid abbreviations for short
+names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If there are no command-line arguments, Edpiecepoint takes sequential input
+the old way, with the following entries:
+.P
+Name of input piece or point list file, or Return if none
+.P
+IF you enter "Return", then the program will create a new piece
+   list.  Then make the following 4 entries:
+.P
+   Number of sections (N) for which to make piece coordinates.  The Z
+     coordinates will initially run from 0 to N-1, and the lower left X
+     and Y coordinates will be 0.
+.P
+   Number of pieces in X and in Y (enter / for 1,1)
+.P
+   Spacing between pieces in X and in Y.  See above.
+.P
+   0 if pieces progress along rows in the image file, or 1 if they
+   progress along columns.
+.P
+Name of output piece or point list file
+.P
+New list of Z values.  See above.
+.P
+Amounts to add to all X, Y, and Z coordinates.  These values will be
+   added after the remapping of Z values, if any.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 5/8/89
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

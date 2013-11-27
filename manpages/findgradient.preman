@@ -1,0 +1,71 @@
+.na
+.nh
+.TH findgradient 1 4.6.34 BL3DEMC
+.SH NAME
+findgradient - Finds mag gradient that minimize montage blending error
+.SH SYNOPSIS
+findgradient [options]
+.SH DESCRIPTION
+Findgradient finds parameters related to magnification gradients that
+minimize the displacement errors when Blendmont shifts pieces into
+registration.  When the illumination in the microscope produces a
+significant gradient in magnification with changing Z height, montages taken
+at high tilt do not fit together well.  The error in the overlap zones,
+after shifting pieces into registration, can be several pixels.  Correcting
+for the gradient can reduce the error to a fraction of a pixel.  Thus, the
+parameters of the gradient can be found by adjusting them to give minimum
+error.  The two gradient parameters are the percent change in magnification
+and the degrees of rotation per micron of Z height change.  The other
+parameter that affects the Blendmont error is the effective tilt angle for
+the corrections, which can differ from the nominal tilt angle by several
+degrees.
+.P
+Findgradient can be run in three different modes, corresponding to the
+number entered with the SearchType option.  Two of these modes would be used
+when measuring mag gradients from a set of calibration montages, and the
+third would be used to adjust the tilt angles for an individual tilt series
+to give optimum correction.
+.P
+For calibrating gradients, it is recommended that montages be taken at a
+single intensity at extreme positive and negative tilt angles (e.g., -60,
+-50, 50, and 60 degrees).  Then montages would be taken at one extreme angle
+and a series of intensities.  The first step in the analysis would be to run
+Findgradient on the sections taken at the same intensity and over a range of
+angles, computing the error from all of those sections together and
+searching for both the magnification gradient and the best offset to the
+tilt angle (SearchType 3, RunSeparately 0).  Then take the tilt offset from
+the search and specify it in the OffsetTilts entry, and search for the
+magnification gradient separately for all of the sections at the extreme
+angle (SearchType -2, RunSeparately 1).
+.P
+To find the best tilt offset for an individual tilt series once the mag
+gradients have been calibrated, select two or three views from each end of
+the tilt series.  Select views where Blendmont does not have any difficulty
+finding the displacements in the overlap zones, which may not be the case at
+the very highest tilt.  Run Findgradient to analyze all of these sections
+together and search for the tilt offset only (SearchType -1 or 1,
+RunSeparately 0).  The mag gradient file must also be specified with
+GradientFile.
+.P
+At the end of the search for each section or group of sections, the program
+prints a summary of the number of iterations in the search, the final error,
+and the gradient values.  The latter values are in addition to any initial
+gradient specified by a gradient file, so they would be entered into
+Blendmont(1) with the AddToGradient option.
+.P
+Some of the options to Findgradient are passed directly to Blendmont.  If
+there are additional options that need to be used when running Blendmont,
+they can be specified with BlendOption entries.
+.SH OPTIONS
+Findgradient uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH BUGS
+Email bug reports to mast@colorado.edu.

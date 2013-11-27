@@ -1,0 +1,149 @@
+.na
+.nh
+.TH xftoxg 1 4.6.34 BL3DEMC
+.SH NAME
+xftoxg - Converts transforms between sections into alignment transforms
+.SH SYNOPSIS
+xftoxg  [options]  input_file  [output_file]
+.SH DESCRIPTION
+.P
+Xftoxg takes a list of transformations (f) from each section to
+the previous one, and computes a list of xforms (g) to apply to each
+section to obtain a single consistent set of alignments.  Transforms can be
+simple 6-component linear transforms or warping transformations.
+.P
+Three different modes of operation can be selected.    In the first, all
+sections will be transformed to a single position in the "center" of
+the series.    Here "position" refers to the entire set of parameters
+describing the transformation, i.e. not just the x,y coordinates but
+the rotation and stretch as well.  This mode, sometimes referred as giving a
+global alignment, can be invoked with the option "-n 0".  This mode will
+remove any consistent trends in the data stack, such as a progressive
+rotation, compression or shift.  Because of this effect, this mode is often
+inappropriate for large sets of serial sections.  For example, if the
+alignment is dominated by a structure (such as a cell boundary) that becomes
+actually smaller toward one end of the series, the global alignment will
+erroneously expand sections at the end of the series to keep the structure
+the same size.
+.P
+In the second mode, the "center" position is allowed to change progressively
+over the series.  For each section, the program fits polynomials to the
+transformation parameters over the selected distance (centered on the given
+section, if possible), and uses these polynomial fits to define the position
+to which that section should be transformed.  This mode will retain trends
+in the data stack that occur over the range of the specified distance; for
+the example in the last paragraph, the trend for the cell to get smaller
+would be retained and sections would not be expanded inappropriately.  This
+is the default mode of operation, with linear fits over 7 adjacent sections.
+.P
+In the third mode, the "center" position is assumed to change progressively
+over the whole series, based on a polynomial fit to the series, and a
+transformation will be computed for each section that will align it to a
+fitted shifting center position.  If a polynomial order of 1 is selected,
+the center position will shift linearly from one end to the other of the
+data stack.  This mode will retain trends in the data stack to the extent
+that they can be fit by the order of polynomial chosen.  For example, if
+order 1 is chosen, the fit is a linear one, and the resulting transforms
+will retain trends that occur at a constant rate from one end to the other.
+.P
+It is also possible to do a mixed or hybrid alignment in which trends are
+retained for some parameters while they are eliminated for others.  Trends
+will be eliminated for X and Y translations, and can optionally be
+eliminated for rotations and overall size changes.  The most appropriate
+choice would be to eliminate trends for translations and rotations, unless
+the rotation trends in the data are meaningful and should be preserved.
+This hybrid method can be used with either local or global polynomial fits
+(the second or third mode of operation).
+.P
+Sometimes a small minority of sections are rotated at a large angle from
+the rest.  Including such sections in the computation of the "center"
+position would skew the average rotation.  In such cases, the "-range"
+option can be used to exclude sections whose rotation angles fall outside
+of the given range from the averaging and fitting procedures.  For example,
+if a range of 45 degrees is given, then the program will find the largest
+group of sections whose angles span a range of 45 degrees or less, and use
+only these sections to compute the global average alignment.
+.P
+The input file can contain warping transformations, which can be specified
+either as displacements at a set of control points, or as displacements on a
+regular grid.  In either case, the output will consist of a regular grid of
+displacements, with the same grid locations for every section.  The program
+first analyzes each warping transform to remove the linear component from it
+and combine that with the separate linear transformation.  The linear
+transforms are treated as usual, according to the various options that are
+given, including the choice for a hybrid alignment.  The remaining warp
+transforms are analyzed similarly to the linear transforms.  When a global
+alignment is being done, the program forms a cumulative warping transform by
+multiplying successive transforms, determines the average cumulative
+transform and multiplies each cumulative transform by this average.  This
+method produces an acceptable result for a small number of sections.  When
+local or global polynominal fits are used for the linear transforms, a
+similar fitting method is applied at each position of the warping
+transforms.  This method keeps the converted warp vectors from building up
+over large numbers of sections.
+.P
+The program can also do robust fitting, in which it attempts to eliminate or
+down-weight transformation components that appear to be outliers.  This is
+an experimental feature intended to deal with situations where a few
+isolated images need a much bigger shift, rotation, size change, or stretch
+than others to bring them into alignment.  With the default linear fitting
+to 7 sections, an aberrant image would be brought 6/7 of the way into
+alignment with its neighbors, and the neighbors would be pulled out of their
+proper alignment by the remaining 1/7.  In principle, with robust fitting,
+the aberrant image would be eliminated from local fits, the neighbors'
+alignments would be undisturbed, and the aberrant one would be brought to
+their alignment.
+.P
+To do the averaging and fitting, the program converts the A matrix of the
+g transforms to the "semi-natural" parameters: global rotation and
+magnification, and differences between Y and X axis rotation and stretch.
+This conversion allows the hybrid alignments to be done.  It also means
+that if input transformations involve only a restricted set of these
+parameters (e.g., rotation only), this restriction will be retained in the
+final g transforms.
+.P
+The ability to use both the local fits and fits of order higher than 1 is
+somewhat redundant.  If local fitting is used, start with order 1 and go
+to higher orders only if necessary.
+.SH OPTIONS
+Xftoxg uses the PIP package for input (see the manual page for pip(1))
+and can take also input interactively to maintain compatibility with old
+command files.  The following options can be specified either as command
+line arguments (with the -) or one per line in a command file (without the
+-).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If the program is started with no command line arguments, it reverts to
+interactive  input with the following entries:
+.P
+0 to align all sections to a single average central alignment, 1 to align
+to an average alignment fit to a single polynomial, N > 1 to align each
+section to an average alignment fit to the nearest N sections, or -1 or
+-N to do a hybrid of central and shifting alignments with fits to a single
+polynomial or to locally fitted polynomials
+.P
+IF you entered a negative number, next enter 2 for central alignment of
+translations only, 3 for central alignment of translations and rotations,
+or 4 for central alignment of translations, rotations and size changes
+.P
+IF you entered a nonzero number to the first query, next enter the order
+of the polynomials to fit (1 for linear fits)
+.P
+Name of input file of F transforms
+.P
+Name of output file of G transforms
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1988
+Added hybrid method, 7/26/01
+Converted to PIP input, 1/25/04
+Added support for warping transforms, June 2011
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

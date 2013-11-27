@@ -1,0 +1,51 @@
+.na
+.nh
+.TH assemblevol 1 4.6.34 BL3DEMC
+.SH NAME
+assemblevol - assemble an image file from an array of subvolumes
+.SH SYNOPSIS
+assemblevol
+.SH DESCRIPTION
+.P
+Assemblevol will assemble a single MRC file from separate files that form an
+array of subvolumes in X, Y, and Z.  In effect, it can take montaged images
+and compose them into single images, just as Reducemont(1) can, but its
+advantage is that it can take the images from multiple files.  Its primary
+use is for reassembling a tomogram after it has been chopped into pieces,
+using the coordinates output by Tomopieces(1).  A second use to concatenate
+reprojections computed in parallel by Tilt(1).
+.P
+Inputs to the program:
+.P
+Name of output file for the assembled volume
+.P
+Number of input files in the X, Y and Z dimensions
+.P
+For each position in X, enter a line with the starting and ending X index
+coordinates (numbered from 0) to be extracted from the files at that
+position.  These coordinates should be chosen to eliminate any overlap
+between the files at successive positions.  For example, if there are
+two files in X, each 1000 pixels wide, and they overlap by 20 pixels, you
+would enter 0,989 and 10,999.  If there is no overlap between any of the
+files in X, you can enter 0,0 for each position, but you can not enter 0,0
+for some positions and actual coordinates for others.
+.P
+Similarly, for each position in Y, enter a line with starting and ending Y
+index coordinates to be extracted from files at that position.  Again, if
+there is no overlap between any of the files in Y, you can enter 0,0 for
+each position.
+.P
+For each position in Z, enter a line with starting and ending Z index
+coordinates to be extracted from files at that position.  If there is no
+overlap between any of the files in Y, you can enter 0,0 for each position.
+.P
+The input file names, one per line, in order by increasing X, then
+increasing Y, then increasing Z.  For example, if there are files only in X
+and Z, enter all of the files in the first row in Z in order by increasing
+X, then the files in the second row, etc.
+.SH HISTORY
+.nf
+Written by David Mastronarde  3/1/01
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,120 @@
+.na
+.nh
+.TH alterheader 1 4.6.34 BL3DEMC
+.SH NAME
+alterheader - to alter header information in an MRC file
+.SH SYNOPSIS
+alterheader  [filename]
+.SH DESCRIPTION
+Alterheader allows one to alter header information in an MRC file
+without rewriting the file.  For each standard header entry selected by
+the user, the program prints the current values and asks for new values,
+checking for legality in some cases.  Other operations can be performed
+as described below.  Multiple changes can be made.  The header is not
+written to the file until you enter DONE to exit the program, so you can
+interrupt with Ctrl-C to discard changes.  Entries are not case
+sensitive.
+.P
+The file name can be entered on the command line; if not, the program
+will ask for it.
+.P
+The MRC header stores three pieces of information about size: the number
+of pixels in X, Y, and Z, which is output as "columns, rows, sections",
+the sample grid size, output as "grid x,y,z", and the cell size, which is
+not directly output in the standard printing of the header.  The pixel
+spacing in Angstroms is defined to be the ratio of the cell size to the
+sample size in each dimension.  Programs in IMOD generally try to keep
+the sample size the same as the image size, and to set the cell size to
+achieve an appropriate pixel spacing.
+.P
+The options to the program are as follows:
+.P
+ORG - Change the origin in X, Y, Z.  In IMOD, the origin is defined as the
+coordinates of the origin relative to the lower-left corner of the first
+section in the file, in units scaled by the pixel size.  The origin is
+defined in the opposite way in UCSF Chimera; use INVERTORG to switch the
+sign of the origin values.
+.P
+CEL - Change the cell size in X, Y, Z.  This will show up as a change in
+pixel spacing, as described above.
+.P
+DAT - Change data type, which is defined as 0 for normal data, 1 for tilt
+series, 2 for stereo pairs, 3 for averaged data, 4 for averaged stereo
+pairs.  The only non-zero value that could be useful in IMOD is 1; with
+this value you can set a starting angle and increment that will be
+accepted by the Tilt(1) program instead of entering angles from a file.
+.P
+DEL - Change the pixel size in X, Y, Z to given values.  The program will
+change the cell size so that the ratio of cell to sample size will give
+the entered pixel size.
+.P
+MAP - Set mapping from X, Y, Z to rows, columns, sections.  The only
+effect of this in IMOD is to reorder the sample grid and pixel spacing
+values by the given mapping.  Do not use it.
+.P
+SAM - Set sampling in X, Y, Z.  See note above on IMOD conventions.
+.P
+TLT - Change current tilt angles to given alpha, beta, gamma.  These
+values will be used to apply a rotation to a model loaded into 3dmod
+along with the image.
+.P
+TLT_ORIG - Change original tilt angles.  These angles have no effect in
+IMOD.
+.P
+TLT_ROT - Rotate current tilt angles by the given alpha, beta, and gamma
+values, where the rotations are applied the order gamma (around Z), beta
+(around Y), alpha (around X).
+.P
+LAB - Delete a list of labels, or add a label.  You will see a numbered list
+of existing labels.  To delete some labels, enter a range (comma-separated
+list) of the numbers to delete.  To add a label, enter the negative of the
+label number after which you want the new label to appear.  Enter 0 to have
+the new label become the first one, or -9 to have it added after the last
+one.  Then enter the complete label (the date/time stamp will not be
+added).  If you need to program this operation in a script, first delete the
+tenth label, if any, with entries "lab - 10 - 1 - lab -9 your_new_label".
+.P
+MMM - Read the file to recompute the minimum, maximum, and mean
+densities and the RMS density.
+.P
+RMS - Print the current RMS value (root-mean-square deviation from the mean
+density) then do the same operation as MMM.
+.P
+FIXPIXEL - Set the cell and sample sizes the same as the image size,
+resulting in a pixel spacing of 1, 1, 1.
+.P
+FEIPIXEL - Set the pixel spacing in X, Y, Z from the value for the pixel
+size of the first section in an Agard/FEI-style extended header.  If the
+existing pixel spacing is not 1 but is equal to 2, 3, or 4, this will be
+assumed to represent a binning of the data, and the pixel size will be
+multiplied by this value.
+.P
+FIXEXTRA - Change the flags in the header so that 3dmod no longer
+interprets the extended header as having piece coordinates for a montage.
+.P
+FIXMODE - Change mode from 1 (signed 16-bit integer) to 6 (unsigned) or
+from 6 to 1.  The program will warn if the current minimum and maximum
+densities indicate that there are values that will not be interpreted
+correctly after the change.
+.P
+INVERTORG - Invert the signs of the X, Y, and Z origin values to switch
+the header between different definitions of the origin.
+.P
+SETMMM - Set the minimum, maximum, and mean densities directly with the
+given values.
+.P
+REAL - Change a mode 4 FFT file to mode 2 and double the X size.
+.P
+FFT - Change a mode 2 file to mode 4 and divide the X size by 2; this can be
+done only if the X size is two times an odd number.
+.P
+HELP - print a summary of these options.
+.P
+DONE - Write the modified header to the file and exit.
+.SH HISTORY
+.nf
+Written by David Mastronarde 10/24/88; ported to SGI 12/7/94
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

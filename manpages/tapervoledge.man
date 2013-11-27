@@ -1,0 +1,46 @@
+.na
+.nh
+.TH tapervoledge 1 4.6.34 BL3DEMC
+.SH NAME
+tapervoledge - to excise a subset of a volume, taper the edges, and pad
+.SH SYNOPSIS
+tapervoledge
+.SH DESCRIPTION
+This program will cut a subset out of an image volume, taper the
+intensity down to the mean value at the edge of the volume over
+a specified range of pixels, and embed this subset into a larger
+volume with specified borders.  The resulting volume will have
+dimensions suitable for taking the FFT.  As a special case, a single
+X/Y plane may be excised and tapered at its edges.
+.P
+Inputs to the program:
+.P
+Name of input file
+.P
+Name of output file
+.P
+Dimensions of the block to cut out, in X, Y and Z.  The default is
+the whole volume.
+.P
+The index coordinates (ix, iy, iz) of the center of the block.  The
+default is the center of the input volume.
+.P
+The width of the borders, in X, Y, and Z, with which to pad the
+image block.  Borders will be made larger as necessary to make the
+output image size suitable for taking an FFT.  If the dimension being
+excised in Z is 1, then padding must be zero in Z.
+.P
+The extent in X, Y, and Z over which to taper the image intensity
+down to the mean at the edge.  For example, if an extent of 3 is
+used for the X direction, the last three pixels on a line would be
+attenuated toward the mean value by 1/4, 1/2, and 3/4.
+.P
+The program will stop with an error message if the subset or the
+output image is too large, or if the subset is not entirely within
+the input volume.
+.SH HISTORY
+.nf
+  Written by David Mastronarde  7/22/97; 2/2/01: taper a single slice.
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

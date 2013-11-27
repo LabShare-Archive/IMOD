@@ -1,0 +1,43 @@
+.na
+.nh
+.TH realscalemod 1 4.6.34 BL3DEMC
+.SH NAME
+realscalemod - to scale a model to microns, adjusting for tilts
+.SH SYNOPSIS
+realscalemod
+.SH DESCRIPTION
+REALSCALEMOD will take a model and rescale it into microns.
+It will adjust not only for pixel size and section thickness but
+also for any tilts during microscopy.
+.P
+If the sections were significantly tilted during microscopy, the
+program can adjust for these tilts given the proper information.
+Prepare a file in which the first line shows the Z value and the
+tilt of the first tilted section (or of the first section, if that
+one was tilted), and each successive line shows the Z value and tilt
+for each section on which tilt was changed.  Z values should occur in
+ascending order.
+.P
+Entries to the program are:
+.P
+Name of model file to be scaled
+.P
+Name of output file in which to place scaled model
+.P
+Name of file with tilt information, or Return if none
+.P
+IF the model has no scaling information in its header, also make the
+following three entries:
+.P
+     Magnification of negatives (without any commas)
+.P
+     Scale, in microns per pixel, at which negatives were digitized
+.P
+     Section thickness in nanometers
+.P
+.SH HISTORY
+.nf
+  Written by David Mastronarde, 11/19/93; modified for IMOD 4/24/97
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

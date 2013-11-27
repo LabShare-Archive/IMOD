@@ -1,0 +1,69 @@
+.na
+.nh
+.TH filterplot 1 4.6.34 BL3DEMC
+.SH NAME
+filterplot - plot filter created by 4 IMOD filter parameters
+.SH SYNOPSIS
+filterplot
+.SH DESCRIPTION
+Filterplot shows a graph of the filter function created by the four
+parameters that are used in many IMOD programs: Sigma1, Sigma2, Radius1,
+and Radius2.  After you start the program, simply enter the parameters
+to see the graph of the filter attenuation factor versus spatial frequency.
+Frequency is in reciprocal pixels and ranges from 0 to 0.5 in the graph,
+although the filter function does extend farther than 0.5 to cover the
+higher frequencies found at oblique angles in 2D images and 3D volumes.
+.P
+The filter is the product of two gaussian functions, the first one typically
+controlled by Sigma1 and the second one by Sigma2, Radius1, and Radius2.  If
+all values are positive or zero, then the first filter is in the form of a
+gaussian highpass filter given by:
+     (1. - exp(-r**2/(2*Sigma1**2)))
+.br
+The second filter is a gaussian-edged band-pass filter. This filter is
+flat between Radius1 --> Radius2 and decays symmetrically as a gaussian
+below Radius1 or above Radius2:
+     exp(-(r-Radius)**2/(2.*sigma2**2))
+.P
+If either Sigma = 0, then that part of the filter is removed.
+.P
+The units are in fractional reciprocal lattice units,
+that is r goes from 0-->sqrt(2)/2   (0-->.5 on each axis)
+.P
+If Sigma1 is negative, the first filter is the second derivative of a
+gaussian, Del-squared G, with formula
+     r**2*exp(-r**2/(2.*Sigma1**2))
+.br
+This filter alone is bandpass with a peak at 1.414*|Sigma1|, so Sigma2 and
+the Radii can be set to zero.
+.P
+If Sigma2 is negative, the second filter is inverted (1 minus the Gaussian
+band-pass filter).  This filter is then multiplied by the filter specified
+by sigma1 (if any).
+.P
+If Radius1 is negative, then the first filter is 0 out to |Radius1| and
+rises as an inverted gaussian from that point:
+     (1. - exp(-(r-|Radius1|)**2/(2.*Sigma1**2)))
+.br
+The effective Radius1 for the second filter is then 0, but this filter can
+still be used to add lowpass filtering.
+.P
+Several modes of operation are possible:
+.P
+Gaussian low-pass filter (temperature factor)
+      :  Sigma1 & Radii = 0, use Sigma2
+.P
+Gaussian bandpass centered at Radius
+      :  Sigma1=0,            use Radius1=Radius2 & Sigma2
+.P
+Gaussian-edged badpass between Radius1 & Radius2
+      :  Sigma1=0,            use Radius1,Radius2 & Sigma2
+.P
+Gaussian bandpass (low-pass + high-pass)
+      : Radii = 0,            use Sigma1 & Sigma2
+.SH HISTORY
+.nf
+Added to package, 6/19/08
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

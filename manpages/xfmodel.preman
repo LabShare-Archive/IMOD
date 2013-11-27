@@ -1,0 +1,211 @@
+.na
+.nh
+.TH xfmodel 1 4.6.34 BL3DEMC
+.SH NAME
+xfmodel - solves for transformations and applies them to models
+.SH SYNOPSIS
+xfmodel  [options]  input_model  output_file
+.SH DESCRIPTION
+Xfmnodel will take an IMOD model, and either
+a) use corresponding points in two sections to obtain a transformation
+   between the sections, or
+b) transform the points in the model to match a new alignment of images
+.P
+To solve for transforms, the model objects should consist of
+corresponding points in two or more successive sections.  The program
+considers each pair of successive sections independently.  If an object
+contains two points in the same section, the program will take the point
+whose Z value is closer to that of the other section in the pair.
+.P
+The program can "edit" an existing list of f transforms (transforms
+that relate each section to the previous one).  That is, the model may
+have points from only a few sections, or one may specify which sections to
+find transforms for, and the program will output a list containing new
+transforms for those sections and transforms from the existing list for
+the rest.
+.P
+In solving for transforms, the model can be built on unaligned images
+or on images that have been aligned with a previously existing set of
+transforms.  In the latter case, if you specify the file of g transforms
+that were used to prealign the images, then the new transforms will apply
+to the original images; otherwise, the new transforms are incremental to
+the first alignment and would apply to the prealigned images.
+.P
+When the program solves for the transformation between a pair of
+sections, it applies the transformation to the points on the second
+section of the pair, and computes the displacement, or deviation, between
+each point and the corresponding point on the first section of the pair.
+It then reports the mean deviation for all of the points, the maximum
+deviation, and the object number of the point with maximum deviation.
+In addition, you may elect to have a complete report of the deviations of
+all points for particularly bad sections.  If you choose this option, you
+control which sections are reported by specifying criterion values for the
+mean and maximum deviations; the full report will be made for any sections
+with mean or maximum deviations greater than the respective criteria.
+.P
+If the images are montaged, this is specified by entering the the name of
+the file of piece coordinates.  The Z values in this list of pieces are
+used to establish the correspondence between Z values in the model and
+transform number in the list of transforms.  If the image is missing some
+sections, you should specify whether the transform lists contain a
+transform only for each existing section or a transform for each section
+number, including the missing sections.  The choice here will be applied
+both to lists of existing transforms that are read in and to the list that
+is computed by the program, if any.  In either case, if there are model
+objects that bridge a gap over missing sections, the program can compute a
+transform between the sections on either side of the gap.
+.P
+Instead of solving for transforms between pairs of adjacent sections,
+the typical mode of operation, the program can solve for transforms between
+a single specified section and each other section.
+.P
+It is possible to find the X/Y translation alone that best aligns the set of
+points on a section to those on a previous section.  The resulting
+transformations (which involve no rotations or size changes) can be used in
+a second stage of model alignment to remove progressive shifts in position
+while retaining trends in size and rotation.  It is also possible to find the
+translation and rotation alone that best aligns two sections.  The resulting
+transformations (which involve no size changes) can be used in a second
+stage of model alignment to remove progressive shifts in position and
+rotations while retaining trends in size.  Finally, you can also obtain
+transformations that include translation, rotation, and magnification change
+but no stretch.
+.SS Transforming Models
+A model that was built on unaligned images can be
+transformed to match with aligned images.  A model built on aligned images
+can be back-transformed to match the raw, unaligned images, or it can be
+transformed to match a new alignment of the images.  This behavior is
+controlled by specifying the transforms used for prealignment.  The
+possibilities can be illustrated with operations on a fiducial model for
+tilt series alignment, which was built on images prealigned with the
+transforms in setname.prexg.  Tiltalign produces transforms in setname.tltxf
+that could be used to bring the prealigned images into final alignment.  To
+transform the fiducial model to the final aligned stack, use:
+  xfmodel -xf setname.tltxf setname.fid setname.fidali
+.P
+Once setname.tltxf and setname.prexg are multiplied to obtain the full
+alignment transforms setname.xf, the same result is achieved with:
+  xfmodel -xf setname.xf -pre setname.prexg setname.fid setname.fidali
+.P
+To transform the model back to the raw stack, use:
+  xfmodel -back -pre setname.prexg setname.fid setname.fidunali
+.P
+When a distortion field is specified, it is important to indicate the
+prealignment transforms, if any, because the distortion field is accurate
+only for the original images.  The program can behave in 4 different ways:
+  1) -distort only: the model is assumed to be built on unaligned images and
+is simply undistorted (or redistorted, if -back in included)
+  2) -distort and -xform: the model is assumed to be built on unaligned images
+and is undistorted then transformed by the given transforms.
+  3) -distort and -prealign: the model was built on prealigned images.  It is
+back-transformed, undistorted, then re-transformed into alignment with
+undistorted prealigned images.
+  4) -distort, -prealign, -xform: the model was built on prealigned images.
+The transforms specified by -xform must be ones that would apply to original
+rather than prealigned images.  The model is back-transformed by the
+prealignment transforms, undistorted, then re-transformed by the transforms
+specified by -xform.
+.P
+Each linear transformation in a transform file is specified by a line with
+six numbers:
+  A11 A12 A21 A22 DX DY
+where the coordinate (X, Y) is transformed to (X', Y') by:
+  X' = A11 * X + A12 * Y + DX
+  Y' = A21 * X + A22 * Y + DY
+.SH OPTIONS
+Xfmodel uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively only for options available when the program
+was converted to PIP input, to maintain compatibility with old command
+files.  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SS INTERACTIVE INPUT
+If the program is started with no command line arguments, it reverts to
+interactive input with the following entries:
+.P
+Name of image file that model was built on, or blank line to enter
+center coordinates instead
+.P
+IF you entered an image file name, next enter the name of a piece
+list file if the image is a montage, otherwise enter a blank line
+.P
+OR if you did not enter an image file, next enter the X and Y index
+coordinates of the center of the image (NX/2, NY/2)
+.P
+IF there are gaps in the Z values described by the piece list, next
+enter 0 if transform files have transforms only for the Z values
+that exist, or 1 if they have transforms for all Z values
+.P
+Name of model file
+.P
+Enter one of:
+  -1 to back-transform the model to fit a raw image stack
+  0 to find linear transformations
+  1 to transform the model with a set of transformations
+  2 to find X/Y translations only
+  3 to find translations and rotations
+  4 to find translation, ratation, and mag change
+.P
+IF you entered any option other than -1 to back-transform, next enter
+0 if the model was built on raw sections, or the sections that you
+want to further transform; or 1 if the model was built on pre-aligned
+sections and you want to reference transforms to the raw sections
+.P
+IF you are back-transforming OR if you entered 1 to the last query,
+next enter the file name of the g transforms used to pre-align the
+sections
+.P
+IF you are transforming or back-transforming the model, next enter
+the name of the output model file.  This is the final entry for
+option -1
+.P
+IF you are transforming, enter the name of the file with transforms
+to apply; this is the final entry for option 1
+.P
+IF you finding transforms instead, continue with the following
+entries:
+.P
+Name of file with existing f transforms to be replaced by any
+transforms that are solved for
+.P
+Name of output file for new f transforms
+.P
+A list of section numbers to find transforms for (the second section
+of each pair, sections numbered from zero), or / to find transforms
+for all sections with data in the model, or -999 to find transforms
+of all sections relative to a single section
+.P
+IF you entered -999, next enter:
+   The number of the single section
+   The real list of transforms to find sections for, or / for all
+.P
+1 for complete reports of the deviations for each point on sections
+with bad fits, or 0 for no detailed reports
+.P
+IF you entered 1, then enter a criterion for the mean deviation and
+a criterion for the maximum deviation; a complete report will be
+given for any section that exceeds either criterion.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1988
+DNM 7/20/89  changes for new model format
+DNM 1/10/90  have it transform only existing model points, not all
+points in p_coord array, to avoid bad Z values
+DNM 5/28/90  fix bug in rounding 0.5 values, implement ability to
+transform relative to a single section.
+DNM 3/31/92  Implement translation only finding
+DNM 5/1/92   Implement translation and rotation only finding
+DNM 4/24/95 changed model reading/writing to be portable
+DNM 9/23/97  Add translation, rotation, and mag change finding
+DNM 9/4/02  Change to take scaling from model and scale properly
+DNM 12/27/03 Convert to PIP input, add distortion correction
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

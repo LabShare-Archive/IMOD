@@ -1,0 +1,27 @@
+.na
+.nh
+.TH extposition 1 4.6.34 BL3DEMC
+.SH NAME
+extposition - get list of position numbers for axoneme doublets
+.SH SYNOPSIS
+extposition
+.SH DESCRIPTION
+This program produces a list of position numbers for portions of
+images extracted by the program Extstack.  It is a quick hack of
+that program.  It requires the two point files used by Extstack,
+the reference point file and the extraction point file.  In addition,
+it requires a file of points specifying the location of position 1
+on whichever sections that can be determined.  Also, one must
+specify whether position numbers increase in the counter-clockwise
+or clockwise direction.
+.P
+If there is a position 1 point for a particular section, then the
+program assigns appropriate position numbers to all of the
+extraction points on that section; otherwise it assigns a position
+number of zero.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 12/1/92  from Extstack by Sam Mitchell
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

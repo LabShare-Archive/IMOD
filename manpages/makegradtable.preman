@@ -1,0 +1,74 @@
+.na
+.nh
+.TH makegradtable 1 4.6.34 BL3DEMC
+.SH NAME
+makegradtable - make a magnification gradient table
+.SH SYNOPSIS
+makegradtable [options] output_file
+.SH DESCRIPTION
+Makegradtable can be used to construct a magnification gradient table from
+two kinds of data: gradients based upon analysis of montaged images at high
+tilt, and transformations that align images taken at different Z heights.
+In the one case it will read a log file from running Findgradient(1), and in
+the other case it will read the transformation file produced by Xfalign(1)
+and possibly edited in Midas(1).  These data can be smoothed and
+extrapolated as needed.  To do this, the program will transform the beam
+intensity values into: 1 / (Intensity - crossover).  Gradients are nearly
+linearly related to this transformed intensity value, so lines can be fit to
+the points and used for smoothing and extrapolation.
+.P
+To run the program, you must have a file of the intensities extracted from
+the original image file header, which can be obtained with
+  extracttilts -int input_file output_file
+.br
+You must also supply the intensity of beam crossover for the given spot
+size.
+.P
+To derive a gradient table from montages, enter the name of the log file
+from Findgradient with the FindgradFile option.  This file should contain
+program output once for each intensity that is to be included in the
+gradient table.  The output can be from running each section separately or
+from running several sections together (i.e., ones taken at the same
+intensity).  If more than one run of Findgradient was needed to analyze the
+montages, the log files can simply be concatenated; just be sure that each
+intensity is represented only once.  The section numbers given in the log
+file will be used to look up the intensities from the intensity file.
+.P
+To derive a gradient table from images taken at different Z heights, the
+original image stack should consist of image pairs where the intensity is
+kept the same for the two images of a pair, and the stage is moved by the
+same amount and in the same direction for each pair.  Transformations can
+be obtained with Xfalign(1) using the -bpair option, which will just align
+the paired images to each other.  When running Makegradtable, enter the name
+of the transform file with the TransformFile option and enter the Z height
+change if it is different from 10 microns.  The program will obtain
+gradients from every second transform in the file.
+.P
+The program will produce a version 2 mag gradient table with the following
+format, with the last line repeated for each intensity:
+   Version_number
+   crossover_intensity
+   intensity   %_mag_change_per_micron  degrees_rotation_per_micron
+   ...
+.P
+The table becomes incorrect when the microscope alignments are updated in a
+way that changes the crossover intensity.  When this happens, you can use
+Fixgradtable(1) to make a new table with the entries adjusted for the change
+in crossover.
+.SH OPTIONS
+Makegradtable uses the PIP package for input exclusively (see the manual
+page for pip(1)).  The following options can be specified either as command
+line arguments (with the -) or one per line in a command file or parameter
+file (without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH HISTORY
+.nf
+Written by David Mastronarde, February 2006
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

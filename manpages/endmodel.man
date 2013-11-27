@@ -1,0 +1,44 @@
+.na
+.nh
+.TH endmodel 1 4.6.34 BL3DEMC
+.SH NAME
+endmodel - make a model file with starting & ending points of contours
+.SH SYNOPSIS
+endmodel
+.SH DESCRIPTION
+Endmodel will make a new model file containing only specified
+starting and ending points of contours in a model.  The contours in the
+the original objects may end up in completely different new model object.
+.P
+Entries to the program:
+.P
+Name of input model file
+.P
+Name of output model file
+.P
+Number of different objects to create in the output
+model.  For each such object, next enter the following two lines:
+.P
+   "Color" of the object in the output model, and number of kinds of
+   ends to include in that object.  This "color" is 256 minus the
+   desired object number.  (For example, "250,4" to include
+   four kinds of ends in object 6)
+.P
+   A list of pairs of values: each pair consists of an object number
+   in the old model, and either a 0 to take the starting point or a 1
+   to take the ending point for each contour in that object.  (For
+   example, to take starting points of contours in objects 1 and 3,
+   and ending points of contours in objects 2 and 4, enter the list
+   "1,0,3,0,2,1,4,1" )
+.P
+Number of points to generate for each new model contour, and the
+increment in Z between them.  If you need this model just to look at,
+enter "1,0" to get just a single point.  If you intend to run an MTK
+analysis of 3-D distances between these ends, you need at least 2
+points; in this case enter "2,0.1"
+.SH HISTORY
+.nf
+Written by David Mastronarde, 11/23/92;  modified for IMOD 4/24/97
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

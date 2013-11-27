@@ -1,0 +1,160 @@
+.na
+.nh
+.TH avgstatplot 1 4.6.34 BL3DEMC
+.SH NAME
+avgstatplot - to plot the output of IMAVGSTAT
+.SH SYNOPSIS
+avgstatplot
+.SH DESCRIPTION
+Avgstatplot is an interactive program for displaying and plotting the
+output of the program Imavgstat(1).
+.P
+This output consists of mean, standard deviation, and standard error
+of the mean for all of the summing areas in a series of different
+data sets.  The summing areas were derived from a set of summing
+regions specified by an IMOD model; each summing region was divided
+into one or more summing areas.  In a single plot, you can include
+any collection of summing regions for any collection of data sets.
+When you select a summing region, points for all of the areas within
+that region are plotted, connected by lines.  There are no lines
+connecting the different summing regions for a data set, but those
+different regions will all appear with the same symbol type.
+.P
+Symbol types are selected by number, but the numbers have different
+meanings for symbols in the graphics window and in a Postscript plot.
+See the man page for Genhstplt(1) for details.
+.P
+Each of the data sets included in a plot may be rescaled
+independently; i.e. a particular linear scaling may be applied to all
+of the points in a data set, a different scaling may be applied to
+all points in another set, etc.  It is also possible to apply the
+same scaling, or the same form of scaling, to all data sets without
+entering values for each set separately.  Scaling may be specified
+in four ways:  1) One may directly specify a factor to multiply by
+and a factor to add.  4)  One may specify that the values for a set
+are all to be divided by the value for a specified area of that set.
+3) One may specify that a given set should have its values shifted
+(without any multiplication) so that the mean of a particular
+collection of summing regions matches the corresponding mean for
+some other data set.  4) One may do a least-squares linear
+regression between the data points of the set being scaled and the
+corresponding data points of some other set, and use the
+coefficients of the regression to determine the scaling factors.
+The data points used for regression are the means from the summing
+areas within a particular collection of summing regions.
+.P
+If you are displaying only one region, and it has more than 20
+summing areas, then you have two options.  First, you are allowed
+to select a subset of the areas for display.  Second, you may average
+together successive segments of areas.  This is useful for obtaining
+an average density tracing for a periodic, repeating structure.
+.P
+Entries to the program are now described in order as they are first
+encountered.  After looking at one graph, one may loop back to a
+variety of different points in order to change different parameters.
+.P
+Name of statistics file output by IMAVGSTAT
+.P
+0 for plots in the graphics window, or 1 for plots only on the
+   terminal.  Note that if you need to use terminal plots, you will
+   need to specify that option each time that you do a plot.
+.P
+List of numbers of the sets to include in the graph.  Sets are
+   numbered from 1.  You can enter ranges separated by commas,
+   e.g. 1-3,7-9
+.P
+List of symbol types for these sets.  Ranges may be entered, but the
+   total number of types specified must equal the total number of
+   sets.
+.P
+List of numbers of the regions to include in the plot.  Ranges are OK
+.P
+IF you enter only one region, and that region has more than 20 areas,
+   then make the following two entries:
+.P
+   Starting and ending areas to include in display, or / for all.
+.P
+   / for no averaging of areas; or the interval over which to average
+      areas (i.e. the period of the repeat, which need not be an
+      integer value), the number of areas to roll (shift) the display
+      (+ or - to shift to the right or left), and the number of areas
+      to add to the display by replication.  Such areas will be added
+      symmetrically, half to the beginning and half to the end of
+      the display.  For example, if there are 10 repeats in 564
+      areas, enter 56.4,0,0 the first time and examine the display.
+      If you find that the structure that you wish to appear in the
+      middle of the display (area 29 of 56) is located to the left,
+      say in area 20, then you need to shift by 9.  If you want to
+      display 1.5 repeats, then you need to add 28 areas to the
+      display.  Thus, on a second time through, enter 56.4,9,28.
+.P
+Enter a small positive value for error bars whose size is the
+   standard error of the mean times that that value; or a negative
+   value for error bars that are that value times the standard
+   deviation; or a large positive value for error bars showing
+   confidence limits with that percentage of confidence; or 0 for
+   no error bars.
+.P
+0 to plot the means of the summing areas, or 1 to plot the integrals,
+   which are the means times the number of pixels.
+.P
+List of numbers of sets to rescale - ranges may be entered, or just
+   Return for no rescaling, or enter / to select either all sets or
+   the sets selected last time, as indicated by the prompt.
+.P
+IF you select rescaling, first enter 0 to specify scaling separately
+   for each set, or 1 to apply the similar scaling to all sets.
+.P
+IF you select rescaling, next make the following entries for each
+   set that you specified for rescaling:
+.P
+   0 to specify scaling factors directly, 999 to divide values by the
+     value in one area, or the number of another data set, if you
+     wish to regress this set against the other set, or the negative
+     of the number of another set, if you wish to shift this set to
+     have the same mean as that set.
+.P
+   IF you entered 0, next enter the factor to multiply by, and the
+     amount to add after multiplication
+.P
+   IF you entered 999, next enter the region number, and the number
+     of the area within that region, to divide by.
+.P
+   BUT, IF you entered a set number, next enter a list of the numbers
+     of the regions to use for comparing the two data sets.
+.P
+Amount to offset each data set from the last in the X direction (as a
+   fraction of distance between successive summing areas.
+.P
+After the last entry, you enter the subroutine BSPLT, whose operation
+is described in its man page (Bsplt(1)).
+.P
+When you return from BSPLT, enter one of the following:
+1 to loop back to the entry of the number of SEM's or SD's for error
+   bars
+2 to loop back to entering the list of regions to plot
+3 to loop back to entering the list of data sets and their symbols
+4 to loop all the way back and read a new data file
+5 to plot the current Postscript file on the workstation screen
+6 to plot the current Postscript file on the printer
+7 to type values to screen or output to file in tabular format
+8 to exit
+.P
+If you plot the current Postscript file (gmeta.ps), that file will
+be closed and new plots will be placed in a new version of the file.
+Thus, if you plot the file on the workstation screen, be sure to rename it
+or plot it on the printer before generating any new plots, unless you don't
+want any printout of it.
+.P
+If you elect option 7 to type values in tabular format, you will get
+the scaled values just displayed in the last graph.  Enter a file
+name to have the table printed into a file, or Return to have it
+types on the screen.  If the file already exists, the table will be
+appended to the file.
+.P
+.SH HISTORY
+.nf
+Written by  David Mastronarde  1/23/90
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,50 @@
+.na
+.nh
+.TH vmstocsh 1 4.6.34 BL3DEMC
+.SH NAME
+vmstocsh - converts VMS-style command file to C-shell script
+.SH SYNOPSIS
+vmstocsh  [output log file]
+.SH DESCRIPTION
+.P
+Vmstocsh takes a VMS-style command file from standard input and
+converts it to text suitable for piping to a C shell, on standard
+output.  The command file may contain: lines to run programs, which
+must be preceded by either a $ or a %; comment lines, preceded by
+either $! or #; and entries to the programs that are run, which
+follow the line starting the program, just as in a VMS command file.
+If a command line to run a program is too long, it may be broken
+into multiple lines by ending each line except the last one with a \\.
+If it is necessary to have the command line itself passed to the shell
+as multiple lines, end a line with \\\\ instead of \\.  The command up to
+that point will be output with the \\\\ converted to a \\, and next line
+will be output on a separate line.  In either case, the continuation
+lines should not start with a $ or %.
+.P
+Many C shell commands can be included in the command file as long as they
+are prefixed by $ or %.  Specifically, variables may be defined with set
+and accessed with $variable.  If a variable needs to appear at the
+beginning of a line that is an entry to a program, the line should start
+with \\$ and this will be converted to $ instead of interpreted as a
+command line.  This conversion happens only at the beginning of a line.
+.P
+If there is a command-line argument, that argument will be set up
+as a log file: the text output of each command will be directed
+into this log file.
+.P
+The easiest way to use this program is through the submbg script
+together with an alias to run submbg in the background, such as
+.P
+    alias subm 'submfg \\!^ & '
+.P
+With this alias, if your command file is stuff.com, you can give the
+command "subm -s stuff" and the file will be executed in background, a
+log file stuff.log will be created, and you will be notified when the
+job is completed.  Type 'submfg' to see the usage statement for more
+details.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 4/24/1995
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

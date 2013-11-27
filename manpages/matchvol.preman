@@ -1,0 +1,78 @@
+.na
+.nh
+.TH matchvol 1 4.6.34 BL3DEMC
+.SH NAME
+matchvol - transform a volume to match another with a general linear
+			transformation
+.SH SYNOPSIS
+matchvol  [options  input_file  output_file
+.SH DESCRIPTION
+Matchvol will transform a volume using a general linear
+transformation.  Its main use is to transform one tomogram from
+a two-axis tilt series so that it matches the other tomogram.
+To do so, it can combine an initial alignment transformation and
+any number of successive refining transformations.  The program
+uses the same algorithm as Rotatevol for rotating large volumes.
+.P
+The format of the 3D transform when stored in a file is to consist of 3
+lines:
+    a11  a12  a13  dx
+    a21  a22  a23  dy
+    a31  a32  a33  dz
+.br
+which specify a transformation for getting from a location in the input
+volume to a location in the output volume:
+    xo = a11 * xi + a12 * yi + a13 * zi + dx
+    yo = a21 * xi + a22 * yi + a23 * zi + dy
+    zo = a31 * xi + a32 * yi + a33 * zi + dz
+.br
+where (xo, yo, zo) are coordinates relative to the center of the output
+volume, and (xi, yi, xi) are coordinates relative to the center of the input
+volume.
+.SH OPTIONS
+Matchvol uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively for options that existed when it was
+converted, to maintain compatibility with old command files.  The
+following options can be specified either as command line arguments (with
+the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUTS
+If the program is started with no command line arguments, it reverts to
+interactive input with the following entries:
+.P
+Name of the input file to be transformed
+.P
+Name of the output file for the transformed volume
+.P
+Path name of directory (for example, /usr/tmp) where temporary files
+   can be placed, or Return to have files placed in the current
+   directory
+.P
+X, Y, and Z dimensions of the output file, or / to accept the default
+   values, which are NZ, NY, and NX of the input volume (a 90-degree
+   rotation about the Y axis)
+.P
+Number of successive transformations to combine and apply
+.P
+For each transformation, either enter the name of a file with
+   the transformation, or enter a Return, then enter the 12-element
+   transformation directly.  Transform files need not all occur before
+   direct entries.
+.P
+Name of a file in which to place the inverse of the combined
+   transformation, or Return for no such output
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1995
+Converted to PIP/autodoc 10/10/03
+Converted to Fortran 95, parallelized with OpenMP, 6/14/09
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

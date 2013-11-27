@@ -1,0 +1,42 @@
+.na
+.nh
+.TH edgeeraser 1 4.6.34 BL3DEMC
+.SH NAME
+edgeeraser - erase defects along the edges of images
+.SH SYNOPSIS
+edgeeraser
+.SH DESCRIPTION
+This program erases bad portions of an image near its edges.  It is
+designed to eliminate the sharp borders created when an image
+digitized from film does not fill the entire frame.  The image is
+tapered down to the mean intensity gradually to eliminate the strong
+artifacts that would otherwise occur in a tomographic reconstruction.
+.P
+To use the program, first prepare an IMOD model file to indicate
+which edges need to be erased.  Each edge should be specified with a
+separate contour; do not go around a corner with a single contour to
+specify two edges.  Draw the contour just inside the edge of the bad
+region on the image.  The program will erase along that entire side
+of the image, so you should generally draw a contour along the whole
+length of a side.  If you do not, the program will extrapolate from
+the endpoints of a contour.
+.P
+The inputs are:
+.P
+Input image file
+.P
+Output image file, or <Return> to place modified sections back into
+the input file.  USE REPLACEMENT OPTION WITH CAUTION
+.P
+Model file
+.P
+Distance over which the image should be tapered down to the mean
+intensity, or / to accept the default.  This taper will occur inside
+of the drawn contour, so that the mean intensity is reached at the
+position of the contour.
+.SH HISTORY
+.nf
+	  Written by David Mastronarde  12/4/98
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

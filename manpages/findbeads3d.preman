@@ -1,0 +1,84 @@
+.na
+.nh
+.TH findbeads3d 1 4.6.34 BL3DEMC
+.SH NAME
+findbeads3d - Find spherical densities in a volume
+.SH SYNOPSIS
+findbeads3d  [options]  input_image_file  output_model_file
+.SH DESCRIPTION
+Findbeads3d will find gold particles and other spherical densities in
+tomograms.  Given the diameter of the beads, it will search for particles of
+this size and store their locations in a model along with the strengths of
+their correlations with an average particle.  It will automatically
+determine the threshold strength that separates the gold particles from
+lesser densities.
+.P
+The search occurs in two phases.  First, density is summed over small cubes
+centered on each pixel, about 3/8 of the bead diameter on a side, and local
+peaks in the summed density are found.  The peak strength is measured by an
+integral of the densities relative to the background denisty.  When two of
+these candidate peaks are too close together, the weaker one is eliminated.
+The integrals are scaled so that they range up to 1, a subset of the
+strongest peaks are selected, and an average bead is obtained by extracting
+a small volume at each selected peak location.  By default, the subset is
+selected by analyzing a histogram of the peak strengths to find a dip
+separating the gold from weaker features; however, the -threshold option can
+be used to specify a number of peaks to use or a relative peak strength to
+use as the threshold.
+.P
+In the second phase, the average bead is cross-correlated with subvolumes at
+all of the candidate peak locations from the first phase.  This time the
+value of the cross-correlation (not a normalized correlation coefficient) is
+taken as the peak strength, and again they are scaled to range up to 1.  A
+selection of the strongest peak locations are then written to the output
+model.  Again, the default method for this selection is to analyze a
+histogram of peak strengths for a dip between beads and weaker peaks, but
+the number of points stored in the model can also be controlled with the
+-store option.
+.P
+The output model consists of a scattered point object with one point per
+contour.  The peak strength is stored as a general value, and the object
+properties are generally set so that only points above threshold are
+displayed.  However, points below threshold generally do exist and need to be
+removed before reprojecting the points with Tilt(1).  To see all of the
+points, adjust the threshold, or delete points below the threshold, load the
+model into 3dmod and open the Bead Fixer in Seed mode.  The Bead Fixer will
+have a slider for adjusting the threshold, a checkbox to controlling whether
+points below threshold will be displayed, and a button to delete points
+below threshold.  Since these points are located on many Z planes, be sure
+to check "Delete on all sections" before deleting the points.
+.P
+The tomogram can be built from binned down aligned images, and the model
+will load correctly on an unbinned tomogram.  Also, a reprojection of the
+points by Tilt(1) will load correctly on an unbinned or a binned aligned
+stack.  Findbeads3d will work much faster on a binned tomogram and may even
+work better, as long as the bead size in the binned tomogram is at least 5
+pixels.
+.P
+The tomogram needs to be thicker than normal because the program cannot find
+beads too close to the surfaces of the tomogram.  With the typical
+elongation taken into account, the program will find only the beads that are
+more than ~1.1 bead diameters from the surface.  If gold is on two surfaces,
+thickness thus needs to be at least 2.2 bead diameters more than the
+average distance between the surfaces, which is indicated in the Surface
+Analysis output of Tiltalign(1) as "Thickness at Z intercepts".  To the
+extent that beads do not lie exactly in planes, even more thickness will be
+required; 3 diameters might be a good starting point.
+.SH OPTIONS
+Findbeads3d uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde  12/10/08
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

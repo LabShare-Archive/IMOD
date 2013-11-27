@@ -1,0 +1,76 @@
+.na
+.nh
+.TH remapmodel 1 4.6.34 BL3DEMC
+.SH NAME
+remapmodel - to remap Z values and shift coordinates of a model
+.SH SYNOPSIS
+remapmodel  [options]  input_file  output_file
+.SH DESCRIPTION
+This program allows one to remap coordinates in a model, in two ways:
+1) The set of Z values may be mapped, one-to-one, to any arbitrary
+new set of Z values; and
+2) The X, Y or Z coordinates may be shifted by a constant.
+.P
+Also, a mapping can be set up easily for the case where serial section
+tomograms are being rejoined with different spacings.
+.P
+The program works by mapping from an old list of Z values to a new list of
+Z values.  The old list is, by default, the list of actual Z values in the
+file, although you can enter a different list to map from.  The mapping of Z
+values is done by first converting each Z value to the nearest integer,
+looking up the new integral Z value that you wish to map that integer to,
+then shifting the actual Z value by the difference between the new and the
+original integral value.
+.P
+The new list of Z values should have the following form.  Use ranges
+(e.g. 0-3,5-7,10-8) to specify a list of integers with the same number of Z
+values as in the list of values being mapped.  The latter Z values will be
+mapped one-to-one onto the new list.  Enter numbers between -999 and -990 to
+delete points with a particular Z value; e.g. if the input model has Z
+values from 0 to 9, entering 0-4,-999,5-8 will delete all points with Z
+between 4.5 and 5.5, and shift the Z of points with Z greater then 5.5
+down by 1.  If the input model has Z from 0-19, entering 0-9,-999--990 will
+remove all points with Z from 10 to 19.  Enter the single value -1 to
+replace each Z value by its negative.
+.P
+.SH OPTIONS
+Remapmodel uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively for a basic mapping of existing Z values in
+the model.  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+The program will accept input interactively if started with no command line
+arguments; the interactive entries to the program are:
+.P
+Name of input model file
+.P
+Name of output model file
+.P
+New list of Z values.  See notes above on the format of this list.  In
+addition, you can enter "/" to take the input list without modification.
+.P
+Amounts to add to all X, Y, and Z coordinates.  These values will be
+   added after the remapping of Z values, if any.  Values should be
+   in units of pixels (image index coordinates).
+.P
+IF your new list of Z values is not in monotonic order, enter 1 to
+   have the program reorder the points within each object so that
+   they occur with monotonically changing Z.  This option would be
+   used if you wanted to switch two sections within a stack.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 5/8/89
+DNM 7/20/89  changes for new model format
+DNM 2/20/90  changes to negate Z and reorder by Z
+DNM 10/27/06: Convert to PIP and provide new options for tomogram joins
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

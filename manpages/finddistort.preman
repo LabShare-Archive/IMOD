@@ -1,0 +1,71 @@
+.na
+.nh
+.TH finddistort 1 4.6.34 BL3DEMC
+.SH NAME
+finddistort - Solves for image distortion field from overlapping images
+.SH SYNOPSIS
+finddistort [options] input_file output_rootname
+.SH DESCRIPTION
+Finddistort analyzes overlapping images and solves for the underlying image
+distortion field.  The basis for the analysis is the fact that after two
+overlapping images are shifted into best registration, the remaining image
+displacement at a particular point in the overlap zone is the difference
+between the distortion vectors at two locations in the original images.  The
+optimal input for this analysis is a set of 4 pairs of overlapping images.
+Each pair would overlap over a little more than 50% of their area.  The two
+paired images would be displaced from each other horizontally, vertically,
+and on 45 and 135 degree diagonals for the 4 kinds of pairs.  With this
+arrangement, the different pairs provide largely independent rather than
+redundant information, and the amount of data about image displacements is
+about twice as numerous as the number of vectors of the image distortion
+field to be solved for; thus a robust solution can be obtained.
+.P
+The program operates as follows.  First, each pair of images is
+cross-correlated with a large amount of padding to find the overall
+displacement.  This is done by running Tiltxcorr(1).  Next, this overall
+displacement is applied to align the two images where they overlap, then the
+local displacements are found at a grid of locations in the overlap zone,
+using the same subroutines that Blendmont(1) uses to find "edge functions".
+The spacing of this grid is specified by the GridSpacing option.  Linear
+equations are set up relating data interpolated from this grid (at a spacing
+set by the DataSpacing option) to the unknown vectors of the underlying
+distortion field.  These unknowns are located on a grid at yet another
+spacing (set by the FieldSpacing option), and making this spacing larger
+than the data spacing makes the equations even more overdetermined.  The
+program solves these equations to find an initial distortion field.
+.P
+Once there is a distortion field, the procedure is iterated, except that the
+images are undistorted before being correlated to find the overall
+displacement.  However, this procedure will not converge to a unique
+solution unless the distortion field is modified by another operation at
+each step, because it is possible to change the overall displacement between
+overlapping images and stretch the distortion field to compensate.  Thus,
+every time a field is solved for, any net stretch in the field is removed to
+preduce a stretch-free distortion field.  With this step, the iterations
+converge to a stable solution for the stretch-free distortion field.  This
+distortion field is output to a file rootname.nosidf after each iteration.
+.P
+The stretch in the distortion field can be determined from the
+transformation needed to align two images of the same field rotated by an
+angle near 90 degrees.  When such a transformation is supplied, the program
+computes the implied stretch in the projection process, and then introduces
+this stretch into the distortion field.  Whether or not this transformation
+is given, the final field is output into rootname.idf.
+.P
+Other temporary files produced are: rootname.xcxf with the shifts for one
+image pair, output by Tiltxcorr(1); rootname.tmpxf with rootname.rawxf with
+the initial shifts between paired images; rootname.udxf with the shifts
+between undistorted imaged; rootname.udst with the undistorted images.
+.SH OPTIONS
+Finddistort uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH BUGS
+Email bug reports to mast@colorado.edu.

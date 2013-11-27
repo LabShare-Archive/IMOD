@@ -1,0 +1,117 @@
+.na
+.nh
+.TH stitchalign 1 4.6.34 BL3DEMC
+.SH NAME
+stitchalign - compute alignment for stitching montage of overlapping volumes
+.SH SYNOPSIS
+stitchalign  [options]  supermontage_info_file
+.SH DESCRIPTION
+.P
+Stitchalign computes an alignment between a montage of overlapping tomograms
+(referred to as a supermontage) so that they can be stitched into a single
+volume.  It does this using information about the local displacements in the
+overlap zones between each pair of adjacent volumes, i.e., the patch vectors
+produced by Corrsearch3d(1).  It also uses values for the overall
+displacements between the volumes computed by Edgepatches(1) and stored in
+the supermontage info file.
+.P
+The first step is to compute a single rotation in the X/Y plane, and overall
+shifts of the volumes, that would bring their centers onto a regular
+rectangular grid.  This rotation can compensate for the effects of the tilt
+axis not being perpendicular in the original images.  Specifically, if the
+data were acquired on a regular grid of positions in the camera coordinate
+system, the reconstructions end up being staggered from one another by the
+rotation of the tilt axis to the vertical, and this rotation will correct
+for the staggering.  If the value found is not appropriate, there is an
+option to supply a specific value instead.  In addition, if the angle
+between the pieces is not related to this tilt axis effect, you might want
+to prevent rotation entirely.
+.P
+The next step is to compute a set of single transformations, one per volume,
+that best aligns the volumes.  The parameters available for alignment are
+rotation about the three axes (referred to as alpha, beta, and gamma), an
+overall size change (referred to as magnification), stretch along one axis
+in the X/Y plane (expressed as stretch of the Y axis relative to the X axis
+and rotation of the Y axis relative to the X axis), and a thinning factor in
+the Z dimension.  Any subset of the parameters can be selected; the
+rotations are included by default and there is one option to exclude one or
+more of them; there are three separate options for including the
+magnification, stretch, and thinning.  The parameters are found using the
+same variable metric minimization routine used by Tiltalign(1).  The program
+can do a single search that includes the parameters for all volumes at once,
+but this turns out not to work, apparently because of multiple minima
+produced by competing alignments between different pairs of valumes.  Thus,
+the program will do a separate search for each pair of overlapping volumes,
+then resolve the relative alignment parameters between pairs of volumes into
+a set of parameters for the individual volumes.
+.P
+These single transformations may leave substantial misalignments in the
+overlap zones.  The final step uses the remaining local displacements in the
+overlap zones to compute the amount that each volume needs to be displaced
+locally to bring it into alignment with an adjacent volume (which is also
+being displaced locally).  The result is a set of patch vectors for each
+volume, which Findwarp(1) can use to find a series of transformations for
+warping each volume into the final alignment.  By default, these vectors are
+produced on a finer grid than the original patch vectors for the overlap
+zones.  This oversampling may not be necessary if the original vectors are
+relatively finely spaced; it can be controlled by the -spacing option.
+Tomostitch(1) takes this spacing factor into account when running
+Findwarp(1) so that the local fits will require about the same amount of
+original data as if the spacing were unchanged.
+.P
+Within this program, there is no local fitting to patch vectors in order to
+determine the quality of fit and to identify aberrant displacements.  Bad
+vectors in the input files will generally produce bad warping vectors that
+are hard to eliminate.  It is thus critical to get as reliable a set of
+patch vectors from Edgepatches(1) as possible, to use Fitpatches(1) to
+assess the quality of fit and provide local fitting information for
+Stitchalign, and to manually remove aberrant vectors from patch models where
+necessary.  Stitchalign will use the output from Fitpatches(1) in several
+ways.  It will read all available patch vector files for an overlap zone:
+the original patch vectors, the "reduced" patch vectors with correlation
+coefficients produced by removing the large linear component from the patch
+vectors, and the patch vectors that have been passed through Findwarp(1) to
+obtain residual and outlier information.  A vector will be eliminated from
+the analysis if it is not still present in all available patch files; thus,
+you can edit whichever patch model you prefer.  A vector will be eliminated
+if the fraction of times it has been removed from Findwarp(1) fits as an
+outlier exceeds a criterion.  Vectors with high residuals can also be
+eliminated based on a criterion, but this does not happen by default because
+it is hard to set a default criterion.
+.P
+You can run the alignment on subsets of the data either for experimentation
+or if that subset is going to be stitched.  Ultimately, all of the volumes
+to be stitched must be included in one run of the program - it is not
+possible to run one subset with one set of parameters and another subset
+with other parameters then combine those results into a single alignment.
+.P
+The size of the volumes to be stitched together by Tomostitch(1) is set when
+Stitchalign is run.  The default is the largest size of the input volumes,
+but it can be controlled with the -size parameter.  If oversized tomograms
+were generated to retain data that would otherwise be lost because of the
+tilt axis rotation, then this is the point at which a size close to that of
+the original data can be specified.
+.SH OPTIONS
+Stitchalign uses the PIP package for input exclusively (see the manual
+page for pip(1)).  The following options can be specified either as command
+line arguments (with the -) or one per line in a command file or parameter
+file (without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SS FILES
+Stitchalign produces two files for each volume included in the analysis:
+  piecename.matxf    File with single linear transformation
+  piecename.patch    File with patch vectors for computing a warping
+.br
+It also produces a file "sectionmame.ecdstub" with the displacements between
+pieces needed when blending.
+.SH HISTORY
+.nf
+Written by David Mastronarde, April 2007
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

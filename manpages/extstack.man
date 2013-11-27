@@ -1,0 +1,33 @@
+.na
+.nh
+.TH extstack 1 4.6.34 BL3DEMC
+.SH NAME
+extstack - extract images from objects with rotational symmetry
+.SH SYNOPSIS
+extstack
+.SH DESCRIPTION
+.P
+This program will extract subsections from a symmetrical
+object and create a stack of normalized subsections as the
+output. It works best when used upon a symmetrical object
+such as an axoneme cross-section.
+.br
+The input requirements are:
+       1) An image file containing 1 or more sections
+       2) A point file ( corresponding to (1) ) containing
+          a point at the center of every subsection to be
+          extracted.
+       3) A point file ( corresponding to (1) ) containing
+          all of the points used to determine the section
+          center.
+.br
+The program requires that the dimensions of the subsection
+box be give as the edge lengths of the box.  An additional
+subsection rotation may be specified.  The output will be
+an image file containing all of the normalized subsections.
+.SH HISTORY
+.nf
+Written by Sam MItchell, Feb 6, 1989
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

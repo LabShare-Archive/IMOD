@@ -1,0 +1,37 @@
+.na
+.nh
+.TH model2point 1 4.6.34 BL3DEMC
+.SH NAME
+model2point - converts model file to point file
+.SH SYNOPSIS
+model2point  [options]  model_file  point_file
+.SH DESCRIPTION
+.P
+Model2point will convert an IMOD or WIMP model file to a list of
+points with integer or floating point coordinates.  Each point will be
+written on a separate line, and the coordinates may be written either
+with no information about which object or contour the point came from,
+or with contour numbers, or with object numbers.
+.P
+Model2point and the companion program, Point2model(1), provide a more
+simple, but less versatile, way of converting data from and to an IMOD model
+than the Ascii format that can be output by Imodinfo(1).
+.SH OPTIONS
+Model2point uses the PIP package for input (see the manual page for pip(1)).
+The following options can be specified either as command line arguments
+(with the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 4/23/95
+Converted to PIP, added output options
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

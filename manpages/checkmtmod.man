@@ -1,0 +1,70 @@
+.na
+.nh
+.TH checkmtmod 1 4.6.34 BL3DEMC
+.SH NAME
+checkmtmod - check various features of a MT model
+.SH SYNOPSIS
+checkmtmod
+.SH DESCRIPTION
+Checkmtmod will check a microtubule tracking model built on serial
+sections for three kinds of errors: branch points, skipped sections,
+and failure of the Z coordinate to increase monotonically. In
+addition, it can search for situations where the start of one contour
+is near the end of another contour, so that one can then check
+whether these contours are in fact the same microtubule.
+.P
+All branch points are reported.  The Z coordinate is expected to
+increase monotonically within each contour, so there will be a report
+whenever Z stays the same or decreases.  If an entire contour is in
+one Z plane, there will be just one report for that contour.
+Z values are expected to occur in a regular progression, and gaps in
+that progression will be reported unless they occur at missing
+sections, at which no contours have points.
+.P
+You can specify a list of additional sections on which some points
+may be intentionally missing.  The program will then not report the
+contours that skip over that section.  You can enter a list with
+ranges, such as 1-3,37,78.
+.P
+To search for starts near ends, enter a distance within the X-Y plane
+to search, and the maximum difference in Z coordinates to search.
+(Enter / to accept the default values for these parameters, or enter
+0,0 to skip the search).
+.P
+Enter the scaling in Z relative to the X and Y scaling (this would
+be the same as the scale value used to display
+the model at the true scale).  This value is needed to compute angles
+between trajectories of MTs with nearby ends.  If you are not
+searching for starts near ends, it doesn't matter what you enter.
+.P
+When searching for starts near ends, the program will report
+the starting and ending points whenever those two points are within
+the selected distance in the X-Y plane and the Z value of the
+starting point minus the Z value of the ending point is positive and
+less than the selected difference in Z values.  The program also
+fits a line to the last three points in the contour that ends, and
+another line to the first 3 points in the contour that starts.  It
+uses these lines to extrapolate the trajectory of each contour to the
+position in Z midway between the ending and starting points.  It then
+reports the distance between these extrapolated positions, and the
+angle between the trajectories in degrees.
+.P
+For each match, the program outputs on two lines the following
+information:
+.P
+.nf
+# of contour that ends, X, Y, Z coordinates of the ending point,
+# of contour that starts, X, Y, Z coordinates of the starting point,
+separation between objects extrapolated to a single plane in Z,
+and angle between the trajectories of the objects.
+.fi
+.P
+This information on extrapolated separation and angle can be used
+to zero in on the matches that need to be examined in the model;
+most "matches" can be eliminated without examination because either
+the angle or the separation is unreasonably large.
+.SH HISTORY
+Written by David Mastronarde, 1/21/90, jazzed up 4/32/93, modified for
+IMOD 4/25/97
+.SH BUGS
+Email bug reports to mast@colorado.edu.

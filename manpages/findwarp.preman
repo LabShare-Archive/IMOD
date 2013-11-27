@@ -1,0 +1,209 @@
+.na
+.nh
+.TH findwarp 1 4.6.34 BL3DEMC
+.SH NAME
+findwarp - to find a series of 3-D transformations to warp one volume
+           into alignment with another
+.SH SYNOPSIS
+findwarp  [options]  input_file  [output_file]
+.SH DESCRIPTION
+Findwarp will solve for a series of general 3-dimensional linear
+transformations that can then be used by Warpvol(1) to align two volumes
+to each other.  It performs a series of multiple linear regression on
+local sets of the displacements between the volumes determined at a matrix
+of positions (patches).  The displacements must be contained in a file
+with the following form:
+.P
+Number of displacements
+.br
+One line for each displacement consisting of the X, Y, and Z
+   coordinates in the first volume, then the displacements in X, Y
+   and Z involved in moving from the first to the second volume
+.P
+The program has two basic modes of operation.  In one mode, it will
+compute a solution for a specified number of patches to be included in
+each local fit.  In the other mode, it automatically searches for the
+largest number of patches that gives local fits with mean residuals less
+than a specified criterion.  These modes behave differently depending on
+whether the program is run with parameter input via the PIP interface or
+via interactive input.  With parameter input, the program will either
+run one set of local fits with a given number of patches, or find the best
+warping automatically.  If the program is run interactively, it loops on
+the specification of the subsets of displacements to use until the user
+decides to write out a particular subset.  However, at any point it can be
+told to find the best warping automatically with the current set of
+parameters, in which case it does so then exits.
+.P
+The program will automatically eliminate "outliers", patch displacements
+that are likely to be incorrect because they are so extreme, when compared
+to the rest of the displacements.  This elimination is conservative, but
+if for some reason it operates incorrectly, you can control the parameters
+of elimination or stop the elimination from occurring.  By default, the
+program will eliminate up to 10% of the patches from each local fit.
+.P
+The program also provides two methods for fitting to only a subset of the
+data.  One method is to eliminate whole rows or columns of patches. The
+other is to use a model file to specify which patches to include in the
+fit.  This model can be quite simple, consisting of just a single contour
+enclosing the region where patches are generally good.  This contour can
+be drawn in any Z plane of the volume.  However, if the good region
+changes through the depth of the tomogram, you can draw contours at
+several Z levels.  If you have two layers of patches, draw two contours,
+one near the top and one near the bottom of the tomogram; if you have
+three layers, add another contour in the middle, etc.  For a given patch,
+the program will find the contour at the nearest Z level and use that one
+to determine whether to include the patch.
+.P
+In addition, the program will work with a patch file from which bad
+patches have been removed by hand.  This may become necessary if bad
+patches are too frequent in some location to be eliminated as outliers.
+To use this feature, use Patch2imod(1) to convert the patch file to a
+model file where displacements are represented by vectors, examine the
+file in 3dmod, eliminate aberrant contours, and convert the model file to
+a new patch file with Imod2patch(1).
+.P
+If there is only one layer of patches in the thin dimension, there is
+insufficient information to solve for the full transformation, so the
+program will solve for only two of the three columns of each local
+transformation matrix, and keep the third column of each matrix fixed.
+The same procedure is used if a particular local area does not have
+sufficient data on more than one layer in the thin dimension.
+.P
+For a given arrangement of patches, the program finds a mean and maximum
+residual for each of the fits.  It first reports how many points have been
+eliminated as outliers, in how many fits they appeared to be outliers, and
+a summary of the distribution of their residuals.  On one line, it next
+reports the average and the maximum of the mean residuals.  On the next
+line, it reports the average and maximum of the maximum residuals.  The
+goal is to find an arrangement that contains as many patches as possible
+in each direction yet has residuals comparable to those found with a
+volume that does not need warping (typically 0.1 to 0.2).
+.SH OPTIONS
+Findwarp uses the PIP package for input (see the manual page for pip(1))
+but can still take input interactively for exploring the effect of varying
+parameters.  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUTS
+If the program is started with no command line arguments, it takes
+interactive input with the following entries:
+.P
+Name of file with positions and displacements
+.P
+(At this point the program will report the number of patches in X, Y,
+   and Z in this file, or complain if the data do not have the
+   proper form.)
+.P
+Either the file name, or the X, Y, and Z dimensions of the volume being
+   matched to.
+.P
+Name of an Imod model file with contours enclosing the patches to
+   be included in the fit, or Return to use all patches.
+.P
+0 to proceed interactively, or 1 to find best warping automatically
+.P
+IF you enter 1, next enter:
+.P
+   One or more target mean residuals to achieve.
+.P
+   The minimum and maximum ratio of measurements to unknowns to be
+     allowed in the local fits, or / to use the default values.
+.P
+0 to use all of the data, or 1 to specify a subset of patches to use
+.P
+IF you enter 1, next enter three lines:
+.P
+   Number of columns of patches to eliminate from the left and right
+     sides of the data, 0,0 to use all patches in X, or / to use
+     previous values.
+.P
+   Number of rows or slabs of patches to eliminate from the lower and
+     upper extent in Y, 0,0 to use all patches in Y, or / to use
+     previous values.
+.P
+   Number of slabs or rows of patches to eliminate from the lower and
+     upper extent in Z, 0,0 to use all patches in Z, or / to use
+     previous values.
+.P
+IF you selected automatic warping, the program now proceeds by fitting
+   to the largest possible area that does not exceed the maximum ratio
+   of measurements to unknowns, and it tries progressively smaller
+   areas until the desired mean residual is achieved.  It does this
+   using the parameters (e.g., row or column elimination) that were set
+   on any previous interactive rounds of fitting.  If the target
+   residual is reached, it requests the names of the initial
+   transformation file and the output file, as described below, and
+   exits.  If the residual is not reached, it tries the next target
+   residual if any, and if no targets are met, it exits with an error. 
+.P
+IF you are proceeding interactively, continue with the following:
+.P
+IF there are more than 2 patches in the thin dimension, the program
+   next asks whether you always want to do the local fits to all
+   patches in that dimension.  Just enter 0 for the typical situation.
+.P
+0 to use default parameters for outlier elimination, or 1 to adjust
+   any of these parameters.  Just enter 0 unless you know better.
+.P
+IF you enter 1, then make four entries, or / to take the default:
+.P
+   Maximum fraction of patches to eliminate from each fit.  Set this
+     to 0 to stop the outlier elimination from occurring.
+.P
+   The minimum residual for elimination; patches with residuals
+     smaller than this value will be retained no matter how extreme
+     they are relative to the other patches.
+.P
+   Criterion probability for patches to be considered candidates for
+     for elimination.  A smaller value will eliminate fewer patches.
+.P
+   Criterion probability for patches to be eliminated regardless of
+     the pattern of outliers.  A higher value may force the
+     elimination of more patches.
+.P
+Number of local patches in X and Y, X and Z, or X, Y, and Z to include
+   in each fit. These values must be at least 2 and no larger than the
+   total number of patches in the respective direction. 
+.P
+The program will loop on the last entry until the same numbers are entered
+twice in a row (e.g. with a /).  If you enter 0 for the number of patches
+in X, it will loop back to the query about whether you want to find
+warping automatically.  When you do enter a /, it will request:
+.P
+Name of file with initial 3D transformation that was applied to one of
+   the volumes before the patch correlation, or Return if there was no
+   such file.  The format of such a file is described in the
+   Matchvol(1) man page.
+.P
+Name of output file in which to place the transformations.  These will
+   be inverse transformations, ready for use by Warpvol(1).
+.P
+An exception to the above occurs if you specify that all available patches
+are to be used in a single fit.  You would do this if you just needed to
+eliminate a row or column of patches from the fit.  In this case, when you
+enter a /, the program will simply ask for the name of a file in which to
+place the single refining transformation, just as with Refinematch(1).
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde  1/30/97
+12/24/98: added outlier elimination, integrated complex options.
+6/6/99: added ability to output single refining transformation.
+1/1/00: added model exclusion and automatic finding of best warp
+6/7/01: rewrote data input to handle data with missing patches
+7/20/02: rearranged input to make it easier to run automatically with
+      rows or columns removed
+8/21/06: converted to PIP, made it handle either orientation of volume,
+      made automatic fitting more flexible in the thin dimension,
+      changed outlier output to a summary, added option for patch and
+      residual output
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

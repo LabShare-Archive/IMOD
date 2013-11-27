@@ -1,0 +1,242 @@
+.na
+.nh
+.TH tiltxcorr 1 4.6.34 BL3DEMC
+.SH NAME
+tiltxcorr - to align a tilt series by cross-correlation
+.SH SYNOPSIS
+tiltxcorr  [options]  input_file  output_file
+.SH DESCRIPTION
+.P
+Tiltxcorr uses cross-correlation to find an initial translational alignment
+between successive images of a tilt series.  For a given pair of images, it
+stretches the image with the larger tilt angle perpendicular to the tilt
+axis, by an amount equal to the ratio of the cosines of the two tilt angles
+(cosine stretch).  The stretched image is correlated with the other image,
+and the position of the peak of the correlation indicates the relative shift
+between the images.  There are options to use only a subset of the image, to
+pad the image with a border before correlating, and to taper the image
+intensities down to the average level over some boundary region.  The latter
+feature is particularly important for getting reliable correlation peaks.
+The program also has an option to correlate each image with the sum of
+already-aligned images at lower tilts, a method developed by Christian
+Renken.  In addition, the program can be used to track the centers of
+multiple subareas through the tilt series and produce an IMOD model that can
+be used for fiducial alignment.  The program will reduce the size of images
+larger than 1180 pixels in one dimension by binning them down, i.e. by
+averaging the values in square sets of adjacent pixels (2x3, or 3x3, etc).
+Images are binned by the smallest factor needed to make them 1180 or smaller
+up to a binning of 4, but there is option to set the binning directly.
+.P
+The program is also useful for cross-correlation alignment of untilted images
+such as serial sections and subframes recorded when acquiring an image from
+a direct electron detection camera.
+.P
+Some notes about some of the options:
+.P
+FILTERING: Some high pass filtering, using a small value of Sigma1 such as
+0.03, may be needed to keep the program from being misled by very large
+scale features in the images.  If the images are noisy, some low pass
+filtering with Sigma2 and Radius2 is appropriate (e.g. 0.05 for Sigma2, 0.25
+for Radius2).  If the images are binned, these values specify frequencies in
+the binned image, so a higher cutoff (less filtering) might be appropriate.
+The filter functions produced by these options can be visualized with the
+program Filterplot(1); see that man page for a full description of their
+effects.
+.P
+SUBAREAS: Trimming some area off the edges of the images may be helpful if
+those areas are particularly out of focus or contain material with no useful
+features in it.  The area to be used for correlation can be offset from the
+center of the image by specifying starting and ending coordinates of the
+region to correlate instead of the amount to trim off.  The coordinates
+should be chosen from the zero-tilt image; the program will shift the
+specified box closer to the center of the image at higher tilts so that it
+will contain approximately the same features.  By default, the
+transformations will be adjusted to move the tilt axis back to the center of
+the whole image, but there is an option to leave the axis at the center of
+the correlated area instead.  Note that global rather than image-to-image
+transforms are output in this case; see below for details.
+.P
+PADDING: Padding is customarily done to reduce the contribution to the
+correlation from wrapped around features, which occurs when correlation is
+done with Fourier transforms.  Extensive padding does not help with typical
+biological specimens but may be needed for specimens with periodic
+structures, in which case one should pad each edge by half the image size.
+.P
+TAPERING: In contrast, tapering the images down to a mean intensity at their
+edges is very important.  Tapering over as few as 20 pixels may be adequate,
+but fewer artifacts will appear in the correlation with longer tapers (say,
+50 to 100 pixels).
+.P
+CENTRAL PEAK EXCLUSION: The exclusion of a central peak may be helpful when
+there is fixed noise in the images due to inadequate gain normalization of
+CCD camera images.  Because one image is stretched, this spurious peak can
+actually occur anywhere in an elongated region perpendicular to the tilt
+axis.  As of IMOD 4.6.31, this option has become much more reliable and
+effective, since a peak will be excluded only if certain conditions are met.
+First, the program tests whether the peak center is within 0.3 pixels of the
+center line of the elongated region, whether this peak is narrower than the
+highest peak outside the exclusion region in at least one direction, and
+whether that highest eligible peak is sufficiently stronger than the
+next-highest one.  If these tests are passed, the program computes a
+correlation between unbinned, unstretched images with no high-frequency
+filtering and measures the width of first and second peaks.  If the first
+peak is narrow enough, and sufficiently narrower than the second peak, then
+the highest eligible peak position (in the original correlation) is used.
+.P
+CUMULATIVE CORRELATION: Tiltxcorr has an option to use a cumulative
+correlation method developed by Christian Renken at the National Center for
+the Visualization of Biological Complexity in Albany, N.Y.  With this
+option, the program will take the image at zero tilt as the first reference,
+and correlate it with the image at the next most negative tilt.  It will
+then add the aligned image to the first reference to make the reference for
+the next tilt.  At each tilt, the reference will be the sum of images that
+have already been aligned.  When the most negative tilt angle is reached,
+the procedure is repeated from the zero-tilt view to more positove tilt
+angles.  (If you specify a range of views to correlate that does not pass
+through zero tilt, then this procedure will start at the lowest tilt in the
+specified range.)  There are two options that can be used with this
+procedure.  By default, aligned images are not cosine-stretched before being
+added into the cumulative reference; but the "absstretch" option will add
+images that have been stretched by the inverse of the cosine of the tilt
+angle into the reference.  The "nostretch" option will disable the cosine
+stretching that is used before correlating an image with the reference.
+.P
+180-DEGREE TILT SERIES: If the object being viewed is compact rather than
+slab-like and it is tilted close to 90 degrees, then the cosine stretching
+between views is not appropriate.  Use the "nostretch" option in this case.
+With this option, the program will also not attempt to adjust the shifts
+between images to keep the tilt axis in the center, a procedure which fails
+close to 90 degrees.
+.P
+TRACKING PATCHES: In a completely different mode of operation, the program
+can track the center positions of multiple subareas (patches) through the
+tilt series and produce an IMOD model.  There is no feature detection
+involved here, so the alignment of patches from two successive views is
+averaged over all the image features in the patch.  Patch tracking is
+invoked by entering the -size option to specify the size of the patches.
+The positions of the patches are specified by entering the number of patches
+in X and Y, or by providing a model with scattered points indicating the
+positions of the patch centers.  In the latter case, the points may be on
+any view, but their positions will be transferred by cosine stretching to
+the view nearest to zero tilt, and the tracking will start at that view.
+Note that patches smaller than 1180 pixels will be correlated without
+binning by default, whereas the whole image will typically be binned for
+correlation.  As a result, the patch correlations may be noisier and may
+require either more high-frequency filtering or explicit binning.  If views
+are skipped, there will be no model points on those views and positions will
+be tracked between the views before and after a skipped view.  If the
+transforms used for preliminary alignment of the input stack are supplied,
+then the program will be able to detect when patches contain blank image
+area.  It will either skip a patch when it has too much blank area (more
+that 30%), or it will taper the image data down to the edge of the blank
+area to minimize correlation artifacts.  When a patch is skipped on a view,
+the tracking will be resumed on the next view where the patch has usable
+image data, unless more than 5 views have been skipped.
+.P
+FINDING WARPING TRANSFORMATIONS: In a variation on patch tracking, the
+program can output the local patch displacements as a set of warping
+transformations that align each section to the previous one.  This feature
+is not for tilt series but for other serial images that need to be aligned
+with warping.  With tilt series patch tracking, the tracking area moves
+through the views to follow a piece of image, whereas when finding warp
+transformations, the tracking area is in the same position on every
+section, either on a regular grid or as defined by a seed model.  The format
+of warping transformations is described in the documentation for library
+libiwarp.
+.P
+BOUNDARY CONTOURS: Boundary contours may be used to constrain the region
+being correlated for alignment or the locations tracked by correlation.
+When used with tilt series, contours may be drawn on any view but they will
+be stretched by 1/cosine of the tilt angle to determine their position on
+the zero-tilt view.  When correlating whole images to obtain transforms, the
+boundary contours are used in two ways.  First, the minimum rectangular area
+containing the contours at zero tilt is determined; this area is limited by
+the -border, -xminmax and -yminmax options to define the area that will be
+used for correlation.  Second, on each view, the contours are contracted
+from their positions at zero tilt by the cosine of the tilt angle, and the
+area outside the contours is masked out by setting it to the image mean.
+The masked image is correlated with an unmasked image at the previous tilt.
+Multiple contours may be drawn, and they may intersect.  If there is only
+one contour, the image intensity inside the unmasked region is tapered down
+to the mean at the edge over the course of 16 pixels, equivalent to running
+Mrctaper(1) on the image.  This tapering may help prevent artifacts due to
+sharp edges, but it is not done if there is more than one contour.  If
+tapering and the inclusion of separated areas are both important, use a
+single contour with a narrow connector between them, but take care that the
+contour does not cross itself.
+.P
+Boundary contours are used differently when correlating to track the centers
+of patches.  For a tilt series, the program determines the fraction of each
+patch that is within any of the contours (where all contours are projected
+onto the zero tilt view), and then eliminates patches whose fractions are
+less than 0.75.  There is no masking of the image regions that fall outside
+the boundaries in this case.  When finding warping transformations, the
+boundary contour used at a particular section is taken from the nearest
+section with a boundary contour.  Thus, it is useful to draw boundary
+contours at multiple sections in the stack, whenever the region suitable for
+tracking changes.  The patches are evaluated for inclusion separately on
+every section, using the contours appropriate for that section.
+.SH OPTIONS
+Tiltxcorr uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively, to maintain compatibility
+with old command files.  The following options can be specified either as
+command line arguments (with the -) or one per line in a command file or
+parameter file (without the -).  Options can be abbreviated to unique
+letters; the currently valid abbreviations for short names are shown in
+parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If there are no command-line arguments, Tiltxcorr takes sequential input
+the old way, with the following entries:
+.P
+Image input file
+.P
+Piece list file for reordering the Z values in the stack, or Return
+if none
+.P
+Output file for F transforms
+.P
+-1 to enter individual tilt angle for each view, 1 to specify a
+starting and increment tilt, or 0 to read tilt angles from a file
+.P
+IF you entered 1, next enter the starting and incremental tilt angles
+.br
+IF you entered -1, enter the tilt angle of each view.
+.br
+IF you entered 0, enter name of file with tilt angles
+.P
+Angle of rotation of the tilt axis in the images; specifically, the
+angle from the vertical to the tilt axis (counterclockwise
+positive).
+.P
+Filter parameters to filter the correlation, or / for no filter
+(Enter values of Sigma1, Sigma2, Radius1, Radius2 just as for
+ENHANCE.)
+.P
+1 to exclude a central correlation peak due to fixed pattern noise
+in the images, or 0 not to
+.P
+Number of pixels to trim off each side in the X and Y dimensions, or /
+to use the whole image area
+.P
+Borders (in pixels) with which to pad images in the X and Y dimensions,
+or / for the default, which is 5% of the image dimensions up to 20
+pixels
+.P
+Distances in pixels over which to taper image intensities down to the
+mean at the edges, in the X and Y dimensions.  Enter / for the default,
+which is 10% of the image dimensions up to 100 pixels
+.P
+Starting and ending view #'s (first is 1), or / for all views
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde 10/6/98
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

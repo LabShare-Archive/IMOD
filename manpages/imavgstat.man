@@ -1,0 +1,243 @@
+.na
+.nh
+.TH imavgstat 1 4.6.34 BL3DEMC
+.SH NAME
+imavgstat - Computes mean and SD images, and means in selected areas
+.SH SYNOPSIS
+imavgstat
+.SH DESCRIPTION
+Imavgstat generates statistics on the mean and standard deviation
+of image density in selected areas of images that are obtained by
+averaging multiple samples.  It can also produce a new set of
+averaged images that are all normalized to have the same average
+density in specified reference areas.  A set of images showing the
+standard deviation at each pixel may also be produced and used for
+statistical analysis by other programs such as SUBIMSTAT.
+Typically, the program would be used to compare averages of
+different sample sets.
+.P
+Before running the program, one uses IMOD to construct a model in
+which each contour specifies a "summing region".  A summing region
+may be defined by either 2 points or 4 or more points.  Four points
+define a quadrilateral summing region (a 5th point to make the model
+contour look like a quadrilateral is optional and is ignored by the
+program). Two points define a line; the actual extent of the summing
+region perpendicular to this line is specified when one runs the
+program. This model should be built on an image stack in which all
+of the images being compared are aligned.  More than 4 points can be
+used to specify a region of complex shape.
+.P
+The summing regions are used in the program in two different ways: to
+specify the low and high density normalizing areas, and to specify
+the summing areas, areas that are being compared between images.
+.P
+The normalizing areas are used to scale the averages from all of the
+different sample sets so that the mean density in the low area is 0
+and the mean density in the high area is 100.  Each of these two
+areas may be a combination of more than one summing region.  However,
+all of the regions used to specify a low or high normalizing area
+must be described by contours of at least 4 points.  If you do not
+want the densities normalized, enter one contour for the low
+normalizing area and the same contour for the high normalizing area.
+In this case, average densities will have the same scaling as the
+original data.
+.P
+Summing areas may be whole summing regions or subdivisions of summing
+regions.  When running the program, one specifies the number of
+summing areas that each region should be divided into.  If a region
+is a quadrilateral, it will be divided into areas by lines parallel
+to the short axis of the quadrilateral.  A region specified by 2
+points will be divided into areas at points equally spaced along the
+line connecting the two points.  The shape of those areas is
+specified by a single parameter: 0 for circular areas; 1 for square
+areas with edges parallel and perpendicular to the connecting line;
+or, for rectangular areas, the ratio of width to height (height being
+the dimension parallel to the connecting line).  If you want to
+divide up a region with more than 5 points, then you must trace the
+region in a special way.  Start at one end of the region and trace
+one side along the long axis, with as many points as needed to define
+the region adequately.  At the other end, add a single line segment
+to describe that end, then trace back along the other long side,
+with the same number of points as on the first long side, and with
+each point opposite the corresponding point on the other side.  Both
+short ends must thus be decsribed by a single line segment.
+.P
+You can divide a region into areas by specifying either the number
+of areas to divide it into, or the desired width (in pixels) of each
+of the subdivisions.  In the latter case, you enter the negative of
+the width in pixels.
+.P
+The program has an option to produce an image file with different
+colored pixels for each summing area; one can use this while
+learning how to produce summing regions at desired locations.
+.P
+The program can compute statistics and averages from unaligned
+samples within each data set, applying any needed transformations in
+a single step rather than in the 2 or 3 steps that would ordinarily
+be used to get a series of aligned averages.  The averages produced
+by this program might thus be superior in quality or appearance.  For
+each data set, one can specify 1 or 2 sets of transforms that are
+needed to align all of the samples within the data set.  If multiple
+data sets are being used (or if the summing region model is built on
+an average that was transformed to align with other averages), then
+one must specify in addition the G transform applied to the average
+to align each data set with other averages or with the model.
+.P
+The program requests numerous entries of "lists", in which "ranges
+are OK".  In such a list, a range is specified by 2 numbers separated
+by a dash, and ranges or individual values are separated by commas.
+For example, 2-4,7,9,11-14 specifies the list 2,3,4,7,9,11,12,13,14
+When you put entries into a command file, you may put text after a
+list.
+.P
+The program allows you to append its output to a set of existing
+files from a previous run of the program.  If you elect to append,
+then the files (statistics output, average image, and standard
+deviation image) will first be copied to new versions, then output
+will be appended to those new files.  If the program crashes, the
+previous versions will be intact, but you must be careful to delete
+any new, incorrect versions of the files before trying to run the
+program again.  Be sure NOT TO PURGE before doing this.
+.P
+Entries to the program:
+.P
+0 to place output in new files, or 1 to append to existing files.
+.P
+Name of model file defining summing regions, or Return if no
+   summing or normalizing is desired
+.P
+Name of file of G transforms used to align averages from different
+   data sets to each other.  Enter Return if no G transforms.
+.P
+Name of file to output the statistics into, or Return for no output.
+   This file is readable, but is meant to be run into Avgstatplot(1)
+.P
+Name of file to place new average images into, or Return for none
+.P
+Name of file to place standard deviation images into, or Return
+   for none
+.P
+IF you did not enter a model file with summing areas, skip the next
+   6 entries and go right to entering NX and NY:
+.P
+Name of file for a map of the pixels in the summing areas, or Return
+   for none.
+.P
+List of contours that comprise the LOW density normalizing area.
+   Here and in the next two entries, enter a series of pairs of
+   numbers, all on one line.  The pair is either an IMOD object
+   number and contour number, or a WIMP object number and 0.
+.P
+List of contours that comprise the HIGH density normalizing area.
+   To avoid normalization, enter the same contour as low and high
+   normalizing area.
+.P
+List of contours specifying the summing regions.
+.P
+Number of summing areas in each of the regions just specified, or the
+   negative of the width (in pixels) of the areas that you want the
+   region divided into.  (You must enter one value per region.)
+.P
+0 for circles, 1 for squares, or ratio of width to length for
+   rectangles.  You must enter one value per region; just enter 0 for
+   regions specified by 4 or more points.
+.P
+Horizontal and vertical pixel dimensions of the image file (NX and
+   NY).
+.P
+Number of data sets to analyse and compare
+.P
+Number of subsets of positions to average for each data set.  Enter /
+   if you do not want to do subsets of positions; otherwise enter a
+   number for each data set (use zero for no subsets for a particular
+   set.)
+.P
+--- The rest of the entries are required for each data set in turn:
+.P
+Name of image file containing stack of samples to be averaged
+.P
+List of section numbers to "try" to include in the averaging,
+   or / for all sections.  Ranges may be entered.
+.P
+Number of sets of F transforms to apply to the samples before
+   averaging.  Enter 0, 1 or 2; do not count the G transforms
+   specified above.
+.P
+IF you specified 1 or 2 sets of F's, next enter the name of the only
+   or first file of F transforms
+.P
+IF you specified 2 sets of F's, next enter the name of the second
+   file of F transforms
+.P
+IF you specified any F's, next enter the offset to add to the section
+   number to obtain the line number of the corresponding transform in
+   the file of F's.  Both line and section numbers start at 0.
+   If alignment routines have been used properly, an entry of 0 will
+   suffice.
+.P
+IF you specified a file of G transforms to align different sets to
+   each other, next enter the line number of the G transform for this
+   data set.  The first line is number 0.
+.P
+IF you specified that you wanted to average subsets of positions for
+this data set, next make the following entries:
+.P
+    Name of file with list of position numbers for each section, as
+       produced by EXTPOSITION
+.P
+    For each subset, enter a list of position numbers to include in
+       the average.  Enter each list on a separate line.
+.P
+Enter 1 to set cutoffs for elimination of outliers, -1 for automatic
+   selection of cutoffs, or 0 to skip this option.  If you do select
+   this option, the program enters a loop (with entries described
+   below) in which it repeatedly comes back to this point until you
+   enter a 0.
+.P
+--- An entry of 0 at the last step completes the entries for a data
+.br
+--- set; you then enter all parameters for the next data set, etc.
+.P
+The last option allows you to interactively eliminate "outliers",
+sections that deviate the most from the average in the low and/or
+high normalizing areas or in the difference between high and low
+areas.  This option should be used only if one has a specific basis
+for thinking that some subset of sections are significantly poorer
+than the rest.  Otherwise, it is strongly recommended that you skip
+through this option by entering 0.
+.P
+Outliers can be eliminated based one whether their low normalizing
+area is more than a criterion number of standard deviations away from
+the mean for all samples, or on whether the high normalizing area
+deviates from the mean by more than a separate criterion, or on
+whether the difference between high and low areas deviates by more
+than yet another criterion.  If one enters a criterion of zero for
+one of these 3 deviations, that deviation will not be considered.
+One may elect to eliminate outliers only if all deviations being
+considered are above their respective criteria, or if any of those
+deviations are above criterion.
+.P
+If you do select manual elimination of outliers (with an entry of 1),
+then there two entries:
+.P
+Criterion number of S.D.'s for deviation from mean of low area, of
+   high area, and of difference between low and high areas.  The
+   default is 2,2,2.
+.P
+0 to eliminate a section if any of deviations being considered are
+   over criterion, or 1 to eliminate only if all deviations are over.
+.P
+If you select automatic elimination of outliers with an entry of -1,
+then there are no further entries.  The program will then attempt to
+find the outlier elimination that minimizes the sum of the standard
+errors of the mean of all of SUMMING (not normalizing) areas.  It
+does this by repeatedly scaling the last-entered values of the three
+criteria (or the default values, if none were entered) by a common
+factor until it finds the scaling that minimizes the sum of SEM's.
+.SH HISTORY
+.nf
+Written by David Mastronarde 1/23/90; modified for IMOD 4/25/97
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

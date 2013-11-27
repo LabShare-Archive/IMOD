@@ -1,0 +1,79 @@
+.na
+.nh
+.TH fenestra 1 4.6.34 BL3DEMC
+.SH NAME
+fenestra - find areas of holes in model objects
+.SH SYNOPSIS
+fenestra
+.SH DESCRIPTION
+This program will measure the sizes of holes through model objects
+described by a series of contours, such as fenestrations in Golgi
+cisternae.  It assumes that the objects have been modeled in Z planes
+while the holes appear when looking at the X or Y face of the model.
+For each model object, you must first create a separate object with
+points specifying the locations of the holes.  In general, each hole
+should be marked by two points, on the first and last Z planes
+where the opening occurs.  These points should be placed fairly
+carefully midway between the two contours and underneath the contour
+that closes off the hole on the adjacent Z place.
+.P
+You may place the locator points in separate contours or in the same
+contour, although in the latter case one must be particularly
+careful to enter a pair of points for each hole.  A hole occurring on
+only one Z plane may be specified by either one point or two, but if
+you use one point you MUST place that point in a separate contour.
+.P
+.P
+The program works by finding points on either side of the hole that
+are closest to the line connecting the two locator points.  Given
+all of these edge points, it then finds the plane that fits these
+points best.  The normal to this plane is taken as the best
+direction for viewing the hole.  An initial area is computed from
+the polygon determined by projecting the points into that plane.
+Then, the program reexamines the contours at the edge of the hole
+and finds the points that encroach the most upon the hole, when
+viewed from the best direction determined from the initial points.
+These points are used to compute a "minimized" area.  An equivalent
+diameter is reported, based on this minimized area.
+.P
+The program can read a series of model files and place the output in
+a single text file.
+.P
+Entries to the program:
+.P
+Name of output file for areas and diameters
+.P
+0 for short output of minimized area and equivalent diameter, or 1
+for long output identifying the locator point contour number and
+location, the projection angles, and tyhe initial area
+.P
+For output of the points from which area was computed, as contours
+showing the outline of each hole, enter the number of a new object
+for the initial points, and another number for an object for the
+refined points.  Enter 0,0 for no output, or 0 and an object # for
+just the refined points.  Make sure the same object numbers will
+work for all of the models that will be processed.
+.P
+Model file name, or a blank line if there are no more models to
+process.
+.P
+A list of the numbers of the objects to be analyzed (Ranges
+may be used, e.g., 1-3,6,8)
+.P
+A list of the numbers of the corresponding objects with locator
+points (again, ranges may be used)
+.P
+An identifier or type number for each object being analyzed.
+.P
+IF you selected output of contours, enter the name of the new model
+file.
+.P
+The program will now loop back and ask for another input model to
+analyze.  Enter a blank line when done.
+.P
+.SH HISTORY
+.nf
+        Written by David Mastronarde  9/14/97
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

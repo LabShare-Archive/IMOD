@@ -1,0 +1,104 @@
+.na
+.nh
+.TH tomopitch 1 4.6.34 BL3DEMC
+.SH NAME
+tomopitch - Determines tomogram shift and angles from models of section
+.SH SYNOPSIS
+tomopitch  [options]
+.SH DESCRIPTION
+Tomopitch analyes simple models of the boundaries of the section in slices
+from a tomogram and recommends how much to change tilt angles to make the
+section flat, how much to shift the tilt axis in Z to produce centered
+slices, and how thick to make the slices.  It can also recommend how much
+X-axis tilt is needed to make the section flat in the orthogonal direction
+as well.  It can also be used with a model drawn on a whole tomogram,
+possibly binned down.
+.P
+The typical use is with samples of the tomogram in separate files.  For
+each sample of the tomogram, make a model file with two contours in it.
+Each contour should have two points, with the line between them lying
+along the top or bottom surface of the section.  The points do not have to
+be entered in any particular order, and the lines do not need to be any
+particular length (the program will extend them in X, if necessary, to
+within 5% of each edge of the tomogram).
+.P
+As an alternative to making a separate model file for each sample, you can
+load all of the samples into 3dmod together and make a single model file,
+creating a pair of contours at each different time index. Make this model
+file be the sole entry to Tomopitch, and it will analyze each of the time
+indexes separately, the same as if they were in separate files.
+.P
+A third alternative is to make a model on an entire tomogram.  Such a
+model can take two forms.  It can consist of any number of pairs of
+horizontal lines, where each par is drawn predominantly in the X direction
+along the top and bottom of the section.  This can be done while viewing
+the YZ planes of the tomogram, just as in the samples of YZ slices.  The
+lines can also be drawn while viewing the XY planes of the tomogram in the
+Zap window, or they can be drawn in the Slicer window with the angles
+adjusted to make a surface appear all at once in the window.  These lines
+do not need to be parallel to the X axis, but try to draw the two lines of
+a pair at approximately the same location in Y.  The program expects the
+separation in Y between the two lines of a pair to be less than 0.3 times
+the separation between successive pairs.
+.P
+The second form for a model on a whole tomogram consists of a pair of
+horizontal lines near the middle of the tomogram, and a pair of lines
+oriented vertically (predominantly in the Y direction) along the top and
+bottom of the tomogram.  Only one pair of lines of each type is allowed.
+With this input, the program will construct two more pairs of horizontal
+lines by sliding the pair that were entered to the low Y and high Y ends
+of the vertical lines.  Analysis then proceeds with the three pairs of
+horizontal lines.
+.P
+If you make a model on an entire tomogram, you need not enter a value for
+the spacing in Y.  If the tomogram is binned down relative to the final
+tomogram, enter the binning factor as a scale factor to get values
+appropriate for the final tomogram.
+.P
+The program analyzes each pair of horizontal lines separately.  It
+determines what rotation is required to make the section be flat.  It
+reports the upward shift needed to center the section in Y, and the slice
+thickness needed to contain the section.  These values are derived and
+reported  before and after the recommended rotation is applied.  Thickness
+values include an additional amount that you specify and are rounded up to
+integers suitable for taking 3D FFTs.  After all pairs of lines are
+analyzed, the program makes the same analysis and report based on the data
+from all of the files.  It then computes an X-axis tilt and reports
+thickness and rotation if that tilt is taken into account as well.
+.SH OPTIONS
+Tomopitch uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively for options that existed when it was
+converted, to maintain compatibility with old command files.  The
+following options can be specified either as command line arguments (with
+the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If the program is started with no command line arguments, it reverts to
+interactive input with the following entries:
+.P
+Additional pixels of thickness to add to both the top and the bottom
+of the tomogram, beyond the region described by the model lines.
+.P
+Spacing between tomogram samples (the distance in Y in the tilt
+images.)  If a non-zero number is entered, the program will
+compute the tilt around the X-axis that will make the tomogram be
+flat in its Z dimension.
+.P
+Number of model files to analyze
+.P
+For each file, then enter the name of the file.
+.SH HISTORY
+.nf
+Written by David Mastronarde, January 2000
+5/20/01: Added analysis of single file with multiple time indexes
+11/13/03: Converted to PIP, added ability to draw lines in whole tomogram
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

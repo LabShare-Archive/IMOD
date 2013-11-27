@@ -1,0 +1,91 @@
+.na
+.nh
+.TH xyzproj 1 4.6.34 BL3DEMC
+.SH NAME
+xyzproj - to project volume at a series of tilts around the X, Y, or Z axis
+.SH SYNOPSIS
+xyzproj  [options]  input_file  output_file
+.SH DESCRIPTION
+This program will compute projections of a 3-dimensional block of an
+image file at a series of tilts around either the X, the Y or the Z
+axis.  The block may be any arbitrary subset of the image file.  In addition
+to projecting a fixed block of data, it can project a rectangle of data in
+each X/Y image plane that is aligned with the angle of projection, which is
+useful for common line analysis.
+.P
+A projection along a ray line is simply the average of the pixels in
+the block along that line.  However, rather than taking the values of
+the pixels that lie near the ray, interpolation is used to sample
+density at points evenly spaced at one pixel intervals along the ray.
+.P
+When the input images are a tilt series and any one of the options are
+entered to provide the tilt angles for each image (e.g., -tiltfile), the
+program operates differently.  It automatically produces projections at
+angles around the Z axis, i.e., within the plane of each image.  The
+projections are within a rectangular box that is rotated so its sides are
+parallel to the projection rays.  The size of the box is constrained so that
+it is completely within the image area on the zero-degree view, or within
+the area specified by the -xminmax and -yminmax options.  In addition, the
+box will be made smaller in the direction of projection for images at higher
+tilts by the cosine of the tilt angle, so that it will contain approximately
+the same image features in the different images being projected at a given
+angle.  This tilt foreshortening can be suppressed with the -full option.
+.SH OPTIONS
+Xyzproj uses the PIP package for input (see the manual page for pip(1))
+and can still take sequential input interactively.  The following options
+can be specified either as command line arguments (with the -) or one per
+line in a command file or parameter file (without the -).  Options can be
+abbreviated to unique letters; the currently valid abbreviations for short
+names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If there are no command-line arguments, Xyzproj takes sequential input
+the old way, with the following entries:
+.P
+Input image file
+.P
+Output image file
+.P
+Index coordinates (with numbering starting from 0 in X, Y and Z) of
+the starting and ending X, Y then Z coordinates of the block.  The
+default is the whole image file.  The Z coordinates may be entered
+in inverted order (e.g. 56,34) and should be so entered if the input
+stack is a tomogram that was built in inverted order.
+.P
+Axis to tilt around for projections.  Enter X, Y or Z.  The Z axis
+passes perpendicular to the sections in the file.
+.P
+Starting tilt angle, ending tilt angle, and increment to apply
+between these limits.  All angles are allowed.
+.P
+Width (x dimension) of the output images.  An appropriate default may
+be selected with /
+.P
+Data mode for output file.
+.P
+Scaling factors to apply to the average pixel values: a factor to be
+added to the values, then a factor to multiply by after the addition.
+The default is 0,1, for no scaling.
+.P
+Value to fill parts of the output image that have no points in the
+block projecting to them  The scaling factors are applied to this
+value.  The default is the mean of the input file.
+.P
+.P
+The user must determine the proper scaling in order to output data
+most efficiently (mode 0).  The user must also set the header
+information properly to get the coordinate system to correspond
+to that of the input image file.  This program does not set up the
+header to indicate that the output file is a tilt series.
+.SH HISTORY
+.nf
+Written by David Mastronarde  10/13/89
+Converted to PIP, 6/19/06
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

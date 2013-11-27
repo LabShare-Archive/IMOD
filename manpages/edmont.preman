@@ -1,0 +1,63 @@
+.na
+.nh
+.TH edmont 1 4.6.34 BL3DEMC
+.SH NAME
+edmont - to edit, combine, split apart, bin, and restack montages
+.SH SYNOPSIS
+edmont  [options]  input_file(s)  output_file
+.SH DESCRIPTION
+Edmont is a general montage editor than can be used to extract a subset of
+a montage, combine multiple montaged files or split a montage into multiple
+files, rescale images to a common range or mean of density, and  bin the
+montage pieces.
+.P
+If there are piece coordinates in the extended header of the image file,
+the program will transfer those coordinates to the output file.  These
+coordinates can be used instead of ones from a piece list file.  If one
+wishes to have sections numbered sequentially from zero, or the X and Y
+coordinates of an extracted subset of pieces shifted to start at zero, the
+coordinates in the header of the output file will be modified
+appropriately.
+.P
+The general requirement when combining multiple montages is that they all
+have the same image size and overlap between adjacent pieces, and that
+they all fit on the same regular grid of positions.  They may have
+different numbers of pieces in each direction, and pieces at different
+locations; indeed, it is possible to assemble a montage from different files
+containing laterally adjacent pieces.
+.P
+If floating is not selected, data are rescaled uniformly, if necessary, to
+fit a new output data mode.  Specifically, data will be rescaled when going
+between byte and signed or unsigned integer modes, but only by the
+difference in data range between input and output modes.  Use the -1
+floating option to have the data scaled to fill the data range instead.  If
+the input file has real data (mode 2) that is not confined to the range of
+the output mode, then you must specify one of the three kinds of floating
+to avoid truncating the data.
+.SH OPTIONS
+Edmont uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 5/9/89
+1999: added ability to knock out pieces.
+1/3/00: made it handle extra header data, made scaling logic more
+like NEWSTACK and made sure it could handle negative integers.
+10/24/00: made it actually use coordinates in header and renumber
+sections sequentially.
+7/2/10: Converted to PIP, used memory allocation, added many error checks,
+default section lists, binning, shifting, subsetting by frame number, and
+more flexibility in assembling montages.
+.fi
+.SS SEE ALSO
+blendmont(1), newstack(1), reducemont(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.

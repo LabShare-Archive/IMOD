@@ -1,0 +1,85 @@
+.na
+.nh
+.TH subimstat 1 4.6.34 BL3DEMC
+.SH NAME
+subimstat - Subtracts one average image from another with a t-test
+.SH SYNOPSIS
+subimstat
+.SH DESCRIPTION
+.P
+Subimstat subtracts one average image from another and uses standard
+deviation or variance images to find the statistical significance of the
+difference at each pixel, as evaluated by a t-statistic.  It then sets to
+zero all differences that are less significant than the specified level of
+significance.  It can also output pixel values reflecting the level of
+significance rather than the difference.
+.P
+The average and standard deviation/variance images can be ones produced by
+Imavgstat, Clip, PEET, or other means.  When one starts the program, one
+designates a pair of A files (with average and S.D./variance images) and a
+pair of B files.  One can then subtract any section in B from any section in
+A; A and B may be the same pair of files.  Alternatively, a whole set of
+corresponding sections can be subtracted between the two files.
+.P
+The user is responsible for keeping track of how many samples were used in
+making each average, and informing this program of those numbers.  The
+program needs these numbers to compute the t-statistic and evaluate its
+significance.
+.P
+Entries to the program:
+.P
+.nf
+Average image file A
+Standard deviation or variance image file A
+Average image file B, or Return if same as file for A
+Standard deviation or variance image file B, or Return if same as file
+   for A 
+Output image file to store differences in
+.fi
+.P
+0 if the files have standard deviations in them, or 1 if the files
+   have variances
+.P
+0 to enter each pair of sections separately, with potentially different
+numbers of samples and significance levels, or 1 to enter a list of
+corresponding sections and treat them all the same.
+.P
+IF you entered 0, next enter:
+.P
+  The number of differences to compute
+.P
+  Then for each difference, enter:
+.P
+     Section # in file A, section # in file B
+.P
+     Number of samples making up those averages in A and B
+.P
+     Significance level for setting differences to zero.  Enter a
+        probability value such as 0.05, 0.01, etc.  Differences less
+        significant than this value will be set to zero.  Enter a
+        negative value to have significant pixels values set to
+        the negative of the log of the probability, or to the positive
+        log for negative differences.  For example, positive and
+        negative differences with a P of 0.01 would be output as
+        2 and -2, respectively.
+.P
+IF you entered 1 to treat a set of corresponding sections the same, next
+enter:
+.P
+  The list of sections to subtract between the files, or / to do all
+  sections
+.P
+  The number of samples making up the averages in A and B
+.P
+  The significance level for settings differences to zero, a positive
+  or negative value as just described.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde,  1/27/90
+4/23/90 - have program look up criterion t value.
+4/12/95 - use local subroutines for t-value
+1/19/11 - allow list of corresponding sections
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

@@ -1,0 +1,116 @@
+.na
+.nh
+.TH mtffilter 1 4.6.34 BL3DEMC
+.SH NAME
+mtffilter - filter by inverse of MTF and general Fourier filter
+.SH SYNOPSIS
+mtffilter [options] input_file [output_file]
+.SH DESCRIPTION
+.P
+Mtffilter can restore contrast in CCD camera images by multiplying them by
+the inverse of the camera's modulation transfer function (MTF).  It can
+also apply a low pass filter to reduce high frequency noise, as well as a
+high pass filter to eliminate low frequencies.  Any combination of these
+filters may be applied.  In fact, the program provides all of the options
+that Enhance(1) does for specifying a general Fourier filter.  Because
+images are automatically padded to dimensions suitable for taking an FFT,
+there are no restrictions on image size, unlike with Enhance(1).  This
+program can filter either real-space images in 2D planes, real-space images
+in 3D or 3D Fourier transforms in 3D.  The filter functions produced by
+these options can be visualized with the program Filterplot(1); see that man
+page for a full description of their effects.
+.P
+The program can also apply a third kind of filter that has been found useful
+for reducing fringe effects in EM images taken with a phase plate.  This
+filter is specified by a cutoff radius, and exponential power, and an
+amplification factor, the amount by which it amplifies low frequencies
+relative to high ones.  It goes from 1 at zero frequency to a floor of
+1/ amplificationFactor at high frequencies and falls 1/e of the way to the
+floor at the cutoff radius.  A higher power increases the sharpness of the
+falloff.  This filter is referred to here as a low-frequency amplifier
+filter.  It is selected by entering the -amplifier option plus either the
+cutoff radius (with -cutoff) or parameters of the phase plate imaging (with
+-phase).  It cannot be used together with the low-pass and high-pass
+filter options.
+.P
+Simply multiplying by the inverse of an MTF would amplify noise too much,
+so the inverse MTF filter is shaped by three parameters.  The first
+and most important is the maximum inverse value, which limits how high the
+inverse can become.  The other two parameters are a cutoff frequency at
+which to start a Gaussian rolloff of the inverse back to 1.0, and the
+sigma value for this Gaussian rolloff.  The default values for these
+parameters (listed below) are based on limited experimentation and are
+fairly conservative.  All of these parameters together will keep the
+inverse filter from amplifying high frequency noise.  The low pass
+filter's role is to filter out those high frequencies.
+.P
+If both filters are used, there are potentially 4 different frequency
+ranges:
+  1) From 0 to the frequency at which the inverse reaches its maximum, the
+filter is actually the inverse of the MTF,
+  2) From there to the cutoff frequency for the inverse rolloff, the filter
+equals the maximum inverse,
+  3) Beyond this cutoff frequency, the filter progressively decays back to
+1.0,
+  4) Beyond the cutoff radius for the low-pass filter, the filter is
+multiplied by another Gaussian and decays to 0.
+.P
+The MTF curve to be applied should be read in from a file containing
+values for spatial frequency (in reciprocal pixels) and for the MTF, one
+pair per line.  The program has one built-in curve in which the MTF
+crosses 0.5 at 0.117/pixel.  This curve can be adjusted by scaling its axis,
+which will make it approximately correct for other situations.
+.P
+To apply only low-pass and high-pass filters, omit the -mtf and -stock
+options; to apply only an inverse filter, omit the -lowpass and other
+options for general filtering.  Similarly, to apply only a low-frequency
+amplifier filter, omit the -mtf and -stock other general filter options.
+.P
+If the input file is a real image, then without the "-3d" option the program
+will take the FFT of each section, apply the filter, take the inverse FFT,
+and write out the filtered section.  With the "-3d" option, it will load the
+whole file into memory, tapered and padded just as in Taperoutvol(1), take
+the 3D FFT, filter, inverse FFT, and write the volume.  If the input file is
+a Fourier transform, it must be a 3D FFT (obtained from "clip fft -3d" or
+"fftrans -3d").  In this case the program will apply the filter to the
+transforms in three dimensions and write out a filtered FFT.
+.P
+The program allocates memory dynamically, so it is capable of filtering a
+rather large volume in 3D, as long as the padded volume is smaller than
+2 gigavoxels.  However, it will require 4 bytes of memory per voxel; e.g.,
+4 GB for a 1 gigavoxel volume.  In addition, the time per voxel increases as
+the log of the volume size, so it can be quicker to chop a volume into
+pieces, filter them, and reassemble the result.  To filter a large image
+file in 3D this way, simply make a file filterbig.com with one line:
+   $mtffilter -3d <filtering options> INPUTFILE OUTPUTFILE
+.br
+where you insert your filtering options, but INPUTFILE and OUTPUTFILE are
+exactly as shown, and not the names of your actual input and output files.
+The run:
+   chunksetup -p 0 filterbig.com  input_file output_file
+.br
+where "-p 0" eliminates padding because Mtffilter will take care of padding,
+and this time you do put your actual input and output file names.  See
+Chunksetup(1) for details.  You can execute the resulting command files with
+parallel processing (via Processchunks(1) or eTomo) or sequentially with:
+   subm filterbig-all
+.SH OPTIONS
+Mtffilter uses the PIP package for input (see the manual page for pip(1)).
+The following options can be specified either as command line arguments
+(with the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Added to package, 3/30/04
+Added ability to operate on 3D FFT, 6/19/04
+Added ability to take filter real volume in 3D, 5/20/08
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

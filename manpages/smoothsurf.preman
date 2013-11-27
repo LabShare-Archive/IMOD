@@ -1,0 +1,57 @@
+.na
+.nh
+.TH smoothsurf 1 4.6.34 BL3DEMC
+.SH NAME
+smoothsurf - to smooth a surface defined by model contours
+.SH SYNOPSIS
+smoothsurf  [options]  input_file  output_file
+.SH DESCRIPTION
+This program will smooth a surface defined by model contours, adjusting
+the positions of points in each contour as needed.  At each point on the
+surface, it fits a 3-D polynomial to all points within a defined range of
+Z-levels and within a specified distance of the central point.  That
+point's position is then replaced by the fitted position from the
+polynomial.  After this surface smoothing operation, each contour is
+independently smoothed by local fitting to 2-D (ordinary) polynomials.
+.P
+The default values for the number of Z levels (sections or slices) and
+for the maximum distance in 3D should give a good starting point for
+smoothing models drawn on tomographic reconstructions.  Increase or
+decrease these two numbers together to increase or decrease the
+smoothing.  Because the default values give a big disparity between the
+total extent in Z versus X and Y (7 versus 30), the Z range should be
+increased more than the distance.  For example, try "-nz 11 -dist 20" and
+"-nz 15 -dist 25" for progressively more smoothing.  If you want to
+experiment more broadly with the parameters, you can try changing the
+balance between these two numbers, as well as omitting the independent
+contour smoothing with "-cont 0".
+.P
+For serial section reconstructions, note that the Z scaling is NOT taken
+into account in computing 3D distances, so the maximum distance
+corresponds more closely to distance in the X/Y planes than to true 3D
+distance.  The default parameters may be a good starting point, but here
+it may be appropriate to increase the maximum distance more relative to
+the number of sections (e.g., start with "-dist 25").
+.P
+Smoothsurf moves only the contours, not the points in any existing
+meshes.  To see the resulting surface, you need to rerun imodmesh(1).
+.SH OPTIONS
+Smoothsurf uses the PIP package for input (see the manual page for pip(1)).
+The following options can be specified either as command line arguments
+(with the -) or one per line in a command file or parameter file (without
+the -).  Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 9/9/97
+6/17/04: Converted to PIP input with default values, fixed bug in contour
+smoothing, made it work properly with pixel sizes in image file header
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

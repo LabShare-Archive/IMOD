@@ -1,0 +1,103 @@
+.na
+.nh
+.TH xfjointomo 1 4.6.34 BL3DEMC
+.SH NAME
+xfjointomo - use model features to refine serial tomogram alignment
+.SH SYNOPSIS
+xfjointomo  [options]  input_file  output_file(s)
+.SH DESCRIPTION
+.P
+Xfjointomo computes transforms for aligning tomograms of serial sections
+from features modeled on an initial joined tomogram.  This fiducial model
+can have two kinds of features: contours following trajectories on either
+side of a boundary, and contours with one point on either side of a
+boundary.  Thus, features such as oblique microtubules can be used for
+alignment and, if trajectories at different angles are available, the
+optimal spacing between the tomograms can be determined.
+.P
+The inputs to and outputs from the program depend on how one plans to
+generate an aligned joined tomogram.  If this refinement step is done right
+after making a joined tomogram, then the results should be used to rerun
+Finishjoin(1), since this avoids interpolating the data twice.  In this
+case, the program needs to be informed about the offsets and binning, if
+any, used to compute the joined file that was modeled.  It will output
+two transform files: one with the transforms that align each tomogram to
+the previous one (referred to as f transforms); and one with global
+transforms (g transforms) to be passed to Finishjoin(1).  Note that the
+latter are not necessarily suitable for transforming the fiducial model
+into the new alignment; rather, transforms for this purpose should be
+obtained by running "xftoxg -n 0" on the output file of f transforms.
+The resulting g transforms can be used with Xfmodel(1) provided that the
+sizes of the sections are given to Xfmodel(1) with the -chunk option.  When
+used in this mode, the program can run repeatedly to "edit" a file of f
+transforms.  For example, you can run it with one set of parameters and get
+solutions for a subset of the boundaries, then run it again with other
+parameters for a different subset of boundaries.
+.P
+The second way of using the program is with the intention of using
+Newstack(1) to transform the existing joined volume, or Xfmodel(1) to
+transform a model on that volume.  Transforming the joined volume will
+degrade the image data slightly but might be the most convenient option in
+some cases.  To use this method, use the -slice option to get one transform
+per slice in the image file.  These are f transforms relating each slice to
+the previous, and need to be converted to g transforms with "xftoxg -n 0".
+Note that the resulting transformation will be slightly different from that
+produced by running Xfjointomo without the -slice option, so you need to
+avoid mixing the modes of operation of this program.
+.P
+Data from trajectories such as microtubules are used to determine a pair of
+positions at a boundary between two sections, each position determined by
+extrapolating the trajectory on each side of the boundary.  When you model
+trajectories such as microtubules, use enough points on each side of a
+boundary so that a line fit will give a reasonable extrapolation of the
+trajectory.  The number of points used for the line fit is controlled by the
+-points entry; by default, fits will be done to 5 points if they are
+available, and to a minimum of 2 points.  Points on each side of the gap
+must be on more than one Z slice, otherwise the line through them will not
+extrapolate to the other side of the gap.  If a microtubule is curved
+at some distance from a boundary, you should add points densely enough so
+that the points being fit will be in a straight segment near the
+boundary. Avoid using the "Fill in Z" option, because that will create
+redundant data between actual points within a section, and incorrect data in
+a line segment across the boundary.
+.P
+In addition to trajectories, you can use contours with two points in them to
+specify the centers of features that should align across a boundary.  You
+may find that setting a symbol size or spherical point size for each point
+allows you to judge the centering of the point in a feature such as a
+vesicle.  These pairs of points are included together with the pairs of
+positions extrapolated from trajectories in a single least-squares fit to
+find the transformation at a boundary.  You can select the kind of
+transformation to solve for: translation only, rotation as well,
+magnification as well, or a full linear transformation including stretch.
+The linear transformation requires the most data, and requires data spread
+out over the area that you want to align well.
+.P
+With data from trajectories, the program can fit the data with different
+assumed spacings between the sections (gap sizes) and find the adjustment to
+the spacing that minimizes the error.  It will print out the error and other
+information for each gap size, and save the transform that occurs at the gap
+size wit the minimum error.  If you find that the minimum error occurs at a
+gap other than zero, you can change the number of sections in the final
+join, adding sections for a positive gap size and taking some away for a
+negative gap size.  If you do not want to adjust the section spacing, leave
+out the -gap option to get the best fitting solution for the current spacing
+between sections.  Note that if you are transforming a model and need to
+adjust section spacings, you can use Remapmodel(1) after transforming.
+.SH OPTIONS
+Xfjointomo uses the PIP package for input exclusively (see the manual page
+for pip(1)).  The following options can be specified either as command line
+arguments (with the -) or one per line in a command file or parameter file
+(without the -).  Options can be abbreviated to unique letters; the
+currently valid abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 10/26/06
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

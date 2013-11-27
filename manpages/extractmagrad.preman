@@ -1,0 +1,50 @@
+.na
+.nh
+.TH extractmagrad 1 4.6.34 BL3DEMC
+.SH NAME
+extractmagrad - Extract mag gradients for each image from header
+.SH SYNOPSIS
+extractmagrad  [options]  input_image_file  output_file
+.SH DESCRIPTION
+Extractmagrad will extract information needed to correct for magnification
+gradients from the header of an image file.  Intensities and tilt angles
+must be present in the extended header of the image file.  In addition, a
+file must be supplied with a table of mag gradients versus intensity.
+.P
+The program can read either version 1 or version 2 of the mag gradient
+table.  In a version 1 table, each line should contain a Tecnai scripting
+intensity value between 0 and 1 (not the scaled percent C2 readout), the
+magnification change in percent per micron of Z height, and the image
+rotation in degrees per micron of Z height.  The lines must be in order by
+increasing intensity.  The program will interpolate between values in this
+table but not extrapolate beyond the first or last intensities.  A version 2
+table starts with a line with the version number (2), followed by a line
+with the Tecnai scripting intensity at crossover.  After this would be the
+lines for the magnification and rotation at each intensity.  Given this kind
+of table, the program will use the crossover intensity to linearize the
+data, which improves the interpolation between measured points and allows it
+to extrapolate reliably.
+.P
+The output of the program is a file containing pixel size and tilt axis
+information plus a tilt angle, mag gradient, and rotation for each image
+in the input file.  This is the information needed by Newstack and Xfmodel
+to adjust images and models for the mag gradients.
+.SH OPTIONS
+Extractmagrad uses the PIP package for input (see the manual page for
+pip(1)). Thus, the following options can be specified either as command line
+arguments (with the -) or one per line in a command file (without the -).
+Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1999
+Converted for PIP input and to get other information, 3/17/04
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

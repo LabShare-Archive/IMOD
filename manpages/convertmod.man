@@ -1,0 +1,12 @@
+.na
+.nh
+.TH convertmod 1 4.6.34 BL3DEMC
+.SH NAME
+convertmod - to convert an IMOD model file to a WIMP model file
+.SH SYNOPSIS
+convertmod
+.SH DESCRIPTION
+Convertmod  will read in a model file (WIMP ASCII or IMOD) and
+output a WIMP-style ASCII model file
+.SH BUGS
+Email bug reports to mast@colorado.edu.

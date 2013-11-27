@@ -1,0 +1,81 @@
+.na
+.nh
+.TH findsection 1 4.6.34 BL3DEMC
+.SH NAME
+findsection - Locates section boundaries in tomogram slices
+.SH SYNOPSIS
+findsection
+.SH DESCRIPTION
+Findsection  analyes groups of slices from a tomogram, detects
+the boundaries of the section, and recommends how much to change
+tilt angles to make the section flat, how much to shift the tilt
+axis in Z to produce centered slices, and how thick to make the
+slices.  It can also recommend how much X-axis tilt is needed to
+make the section flat in the orthogonal direction as well.
+.P
+The program detects the section boundary at a certain position in
+the tomogram by measuring the standard deviation of image intensity
+at each value of Y in the tomogram slice.  It measures S.D. in a
+"patch" with a width in the X direction and extent in the Z
+direction specified by the user.  To find the bottom edge of the
+section, it takes the mean S.D. over several Y values at the bottom
+of the slice and over Y values just below the middle of the slice.
+It finds the point where S.D. rises above halfway between these mean
+values and fits a line to the nearby S.D. values.  The Y values where
+this line crosses the halfway point and the mean at the bottom of the
+slice are estimates of the position of the middle and the end of the
+edge, respectively.  The mid-positions are fairly accurate and are
+used to determine the midpoint of the section in Y; the end positions
+are less accurate and are used just to obtain a more conservative
+measure of section thickness.  The same procedure is used on the top
+of the section.
+.P
+This analysis is performed at a series of patch positions across
+the width of the tomogram.  It can be done over a set of files (each
+being a portion of the same tomogram), with the same patch positions
+being analyzed in each.  After analyzing a set of patches for one
+file, the program determines what rotation is required to make the
+section be flat.  It reports the upward shift needed to center
+the section in Y, and the slice thickness needed to contain either
+edge middles or edge ends.  These values are derived and reported
+before and after the recommended rotation is applied.  Thickness
+values are rounded up to integers suitable for taking 3D FFTs.
+After all files are analyzed, the program makes the same analysis and
+report based on the data from all of the files.  It then computes an
+X-axis tilt and reports thickness and rotation if that tilt is taken
+into account as well.
+.P
+Entries to the program:
+.P
+Width of patch in X, number of patches to analyze across the width
+   of the tomogram
+.P
+Number of points to average to get mean S.D. at the edge of the
+   slice, number to average to get mean S.D. near the middle of the
+   slice, and number of points to fit the line to.  Note that the
+   within-section average is taken on one side of the middle, not
+   across the center of the slice, so the number of points should be
+   constrained accordingly.  Defaults are 3, 10, and 4.
+.P
+Spacing between tomogram samples (the distance in Y in the tilt
+   images.)  If a non-zero number is entered, the program will
+   compute the tilt around the X-axis that will make the tomogram be
+   flat in its Z dimension.
+.P
+Number of files to analyze
+.P
+For each file, first enter the name of the file.
+.br
+Then enter the starting and ending slices to analyze (/ for all in
+   the file)
+.br
+Then enter a list of patches to drop from the analysis for that file,
+   or Return to retain all patches.
+.P
+.SH HISTORY
+.nf
+Written by David Mastronarde, November 1995
+2/18/99: added X axis tilt output
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

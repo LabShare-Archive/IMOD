@@ -1,0 +1,43 @@
+.na
+.nh
+.TH mtsmooth 1 4.6.34 BL3DEMC
+.SH NAME
+mtsmooth - to smooth a model of MTs
+.SH SYNOPSIS
+mtsmooth
+.SH DESCRIPTION
+Mtsmooth will take a model of tracked microtubules and smooth the
+trajectory of each MT independently.  It will make a much nicer
+model for presentation than any kind of transformations will.
+However, it will not necessarily preserve the spacing between MTs on
+any given section.  Such a smoothed model should thus NOT be used for
+any kind of analysis that depends on the separations between MTs.
+.P
+The program operates by considering each point of each MT in turn.
+It fits a polynomial to the nearest N points to that point in the MT,
+where N is a number specified by the user.  (More precisely, it fits
+a polynomial to X coordinates as a function of Z, and a separate
+polynomial to the Y coordinates as a function of Z.)  It replaces the
+given point with the coordinates of the fitted polynomial at that
+position in Z.  The order of the polynomials (1 for a straight line,
+2 for a parabola, etc.,) is also chosen by the user.
+.P
+Entries to the program:
+.P
+Name of input model file
+.P
+Name of output model file
+.P
+Number of points to fit polynomials to, and the order of the
+polynomials.  Fitting to 5 or 7 points, with an order of 2, is
+recommended.
+.P
+Minimum object length for fitting polynomials of the chosen order;
+objects shorter than this will be fit with a simple straight line.
+A value of 5 is recommended for this parameter.
+.SH HISTORY
+.nf
+Written by David Mastronarde, 1/13/93
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

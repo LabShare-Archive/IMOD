@@ -56,6 +56,7 @@ class pipOption:
       self.longName = ''
       self.type = ''
       self.helpString = ''
+      self.format = ''
       self.values = []
       self.multiple = 0
       self.count = 0
@@ -503,7 +504,11 @@ def PipPrintHelp(progName, useStdErr, inputFiles, outputFiles):
                break
             
          if (sOptTable[i].type != "B"):
-            out.write("   " + descriptions[jj])
+            format = descriptions[jj]
+            if sOptTable[i].format:
+               format = sOptTable[i].format.replace("\\fR", '').replace("\\fI", '').\
+                   replace("\\fB", '')
+            out.write("   " + format)
 
       out.write("\n")
 
@@ -747,8 +752,10 @@ def PipReadOptionFile(progName, helpLevel, localDir):
 
    numOpts = 0
    optList = []
+   formatList = []
    longName = shortName = type = ''
    helpStr = ['','','']
+   formatStr = ''
    readingOpt = 0
    inQuoteIndex = -1
    
@@ -808,10 +815,12 @@ def PipReadOptionFile(progName, helpLevel, localDir):
          optStr = shortName + ":" + longName + ":" + type + ":" + \
                   helpStr[helpInd]
          optList.append(optStr)
+         formatList.append(formatStr)
 
          # Clean up 
          longName = shortName = type = ''
          helpStr = ['','','']
+         formatStr = ''
          readingOpt = 0
 
       if (lineLen == -3):
@@ -856,6 +865,9 @@ def PipReadOptionFile(progName, helpLevel, localDir):
             retval = CheckKeyword(textStr, "type", 0)
             if retval[0]:
                (type, lastInd, inQuoteIndex) = retval
+            retval = CheckKeyword(textStr, "format", 0)
+            if retval[0]:
+               (formatStr, lastInd, inQuoteIndex) = retval
 
             # Check for usage if at help level 1 or if we haven't got
             # either of the other strings yet
@@ -913,6 +925,7 @@ def PipReadOptionFile(progName, helpLevel, localDir):
       err = PipAddOption(optList[i])
       if err:
          return err
+      sOptTable[sNextOption - 1].format = formatList[i]
 
    return 0
                               

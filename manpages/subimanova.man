@@ -1,0 +1,81 @@
+.na
+.nh
+.TH subimanova 1 4.6.34 BL3DEMC
+.SH NAME
+subimanova - subtracts image averages with analysis of variance
+.SH SYNOPSIS
+subimanova
+.SH DESCRIPTION
+.P
+SUBIMANOVA subtracts one set of average images from another set and
+uses a nested analysis of variance (ANOVA) to find the statistical
+significance of the difference at each pixel.  It then sets to zero
+all differences less significant than a specified level.  The program
+can output either actual differences or pixel values that reflect
+the level of significance.  In order to do the ANOVA, it must have a
+standard deviation or variance image corresponding to each average
+image.
+.P
+The average and standard deviation/variance images can be ones
+produced by IMAVGSTAT or by other means.  When one starts the
+program, one designates a pair of A files (with average and S.D./VAR
+images) and a pair of B files.  One can then subtract any set of
+sections in B from any set of sections in A; A and B may be the same
+pair of files.
+.P
+The user is responsible for keeping track of how many samples were
+used in making each average, and informing this program of those
+numbers.  The program needs these numbers to do the ANOVA.
+.P
+Entries to the program:
+.P
+.nf
+Average image file A
+Standard deviation or variance image file A
+Average image file B, or Return if same as file for A
+Standard deviation or variance image file B, or Return if same as
+   file for A
+Output image file to store differences in
+.fi
+.P
+0 to use a simple mean when combining the average images of one set,
+   or 1 to form a weighted mean, where each average image would be
+   weighted by the number of samples combined to form that average.
+   In the latter case, the mean would be identical to the average
+   image that could be obtain by combining ALL of the samples of
+   that set.
+.P
+0 if the files have standard deviations in them, or 1 if the files
+   have variances
+.P
+Number of differences to compute
+.P
+For each difference, enter:
+.P
+   List of section numbers in file A, where ranges are allowed
+      (e.g. 0-2,4,7-8).
+.P
+   List of section numbers in file B, where ranges are allowed
+.P
+   Number of samples making up those averages for each section in A
+.P
+   Number of samples making up those averages for each section in B
+.P
+   Significance level (e.g. 0.05, 0.01, etc).  Differences with less
+      than this significance will be set to zero.  Enter a
+      negative value to have significant pixels values set to
+      the negative of the log of the probability, or to the positive
+      log for negative differences.  For example, positive and
+      negative differences with a P of 0.01 would be output as
+      2 and -2, respectively.
+.P
+.P
+The infamous Satterthwaite approximation will be used whenever the
+criteria for its application are satisfied.
+.SH HISTORY
+.nf
+Written by David Mastronarde,  4/23/90
+4/12/95 changed to use local subroutines instead of NAG ones
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

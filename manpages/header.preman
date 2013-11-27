@@ -1,0 +1,53 @@
+.na
+.nh
+.TH header 1 4.6.34 BL3DEMC
+.SH NAME
+header - to read and display the header of an MRC image file.
+.SH SYNOPSIS
+header [options] filename(s)
+.SH DESCRIPTION
+Header will read and display the information in the
+header of an MRC image file - image size, data type, min, max, etc.
+The program will accept the file name either from the command line or
+as an entry to the program after it is started.  If there is no file
+name or other arguments on the command line, the program asks for an
+input file name.
+.P
+If no options are given, the program will print the complete standard header
+output.  If any of the output options describe below are given, then the
+program prints only the numeric output for the given options, without any
+descriptive labels.  If multiple options are given, each option will produce
+one line of numeric output, with the output in the order that the options
+appear below (and that the output appears in the standard header output).
+If multiple file names are entered, then all of the header entries will be
+printed for one file, then for the next, etc.
+.P
+If the program finds that the file has an extended header from SerialEM, it
+will report what items are stored there and summarize the commands needed to
+extract them.  If the file has an Agard/FEI-style extended header, the
+program will report a pixel size and rotation angle from there.  In such a
+case, if the pixel spacing in the standard header is 2, 3, or 4, the program
+will assume that this represents bininng that was applied in IMOD, and it
+will report the original pixel size times this binning.  If the file came
+from the FEI acquisition software, the sign of the rotation angle is
+inverted to conform with the conventions used in IMOD.
+.P
+.SH OPTIONS
+The options are processed by the PIP package (see man page for pip(1)).
+Options can be abbreviated to unique letters; the currently valid
+abbreviations for short names are shown in parentheses.  They are:
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH HISTORY
+.nf
+Originally written as part of the MRC image processing package.
+Converted to run on SGI by Paul Furcinitti and David Mastronarde, 1994.
+Converted to PIP input with simplified output options, 2/15/06.
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.

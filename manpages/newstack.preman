@@ -1,0 +1,234 @@
+.na
+.nh
+.TH newstack 1 4.6.34 BL3DEMC
+.SH NAME
+newstack - Make a new mrc image stack.
+.SH SYNOPSIS
+newstack  [options]  input_file(s)  output_file
+.SH DESCRIPTION
+.P
+Newstack is a general stack editor to move images into, out of, or between
+stacks.  It can float the images to a common range or mean of density. It
+can bin images and apply a general linear transformations as well as a
+specified rotation or expansion. It can put the output into a smaller or
+larger array and independently recenter each image separately from the
+transformation.  Images can be taken from multiple input files and placed
+into multiple output files.
+.SH OPTIONS
+Newstack uses the PIP package for input (see the manual page for pip(1))
+and can take input interactively only for options available before
+conversion to PIP, to maintain compatibility with old command files.  The
+options accepted by the old newst script are all accepted by newstack.
+Almost all options can be abbreviated to one or two letters.  The following
+options can be specified either as command line arguments (with the -) or
+one per line in a command file or parameter file (without the -).  Options
+can be abbreviated to unique letters; the currently valid abbreviations for
+short names are shown in parentheses.  However, if you are using short names
+in a script or command file, always use a least 3 letters, because new
+options might use the same one or two initial letters.
+.P
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input.
+.P
+.SH INTERACTIVE INPUT
+If no command line arguments are entered, inputs are prompted interactively.
+The input is as follows; lines starting with IF are entered only if a
+particular option is selected.
+.P
+Number of input files, or -1 to enter list of files from a file
+.P
+IF you enter a number >0, then for each input file, enter two lines:
+   File name
+   list of section numbers to take from that file.  The first
+     section is numbered 0 and ranges may be entered (e.g. 0-4,5,7-9)
+.P
+OTHERWISE, IF you enter -1, then enter the name of the file with list
+     of files and sections.  The format of this file should be
+   Number of input files
+   File name
+   list of section numbers (numbered from 0), ranges allowed
+   next file and list of sections, etc.
+.P
+Number of output files, or -1 to enter list of files from a file
+.P
+IF you enter 1, next enter the name of the single output file.
+.P
+OR IF you enter a number >1, then for each output file, enter two
+     lines: 
+   File name
+   Number of sections to put in that file
+.P
+OR IF you enter -1, then enter the name of the file with the list of
+     files and numbers of sections.  The format of this file is:
+   Number of output files
+   File name
+   number of sections to place in that file
+   next file and number of sections, etc.
+.P
+The X and Y dimensions of the output file, or / to take the same
+     dimensions as the first input file
+.P
+The data mode of the output file, or / to take the same mode as the
+     first input file.  Mode can be 0 for bytes, 1 for 16-bit integers,
+     2 for 32-bit real numbers, or 9 to 15 for 9 to 15 bit values.
+.P
+0 for no offsets, or 1 to apply X and Y offsets separately to each
+     section, or -1 to apply the same X and Y offset to all sections
+.P
+IF offsets are selected, next specify the X and Y center offsets of
+   each of the sections (they need not be on separate lines), or the
+   single offset to apply to all sections.
+   Hint: offsets of 50,50 will take the center of the output image
+   from the upper right quadrant of the input image.
+.P
+0 for no transforms, or 1 to transform images using cubic
+   interpolation, or 2 to transform using bilinear interpolation
+.P
+IF transforming is selected, next specify the file for transforms, and
+   on a separate line, a list of lines to use in the file (numbered
+   from 0).  Ranges are allowed here, but all must be on one line.  To
+   have a single transform applied to all of the sections, just enter a
+   single number.
+.P
+0 for no floating of densities, 1 to float densities so that each
+    section occupies the same RANGE of densities (the optimum range for
+    the particular data mode), 2 to float so that all sections have the
+    same MEAN and STANDARD DEVIATION of density (which requires the
+    input sections to be read twice), -1 to specify a single scaling
+    that will be applied equally to all sections, -2 to scale all
+    sections by the same amount, determined by black and white contrast
+    settings, in order to convert to bytes with stretched contrast, 3
+    to SHIFT sections to the same mean value without rescaling, or 4 to
+    SHIFT sections to the same mean then rescale all sections by the
+    same specified scaling.
+.P
+IF single rescaling is selected with "-1", next specify the density
+   values to which the minimum and maximum in the data file should be
+   mapped, or just enter "/" to have them mapped to the full-scale
+   range for the data mode, or enter "1,1" to override any scaling of
+   data that would otherwise occur because of a change of mode.  This
+   scaling method can be used to invert densities by entering, e.g.,
+   255,0.
+.P
+IF scaling by black and white contrast settings is selected with -2,
+   next enter the black and white settings (see mrcbyte(1)).
+.P
+OR, IF shifting and rescaling was selected with "4", next specify the
+   density values to which the new, shifted minimum and maximum values
+   should be mapped, or just enter "/" to have them mapped to the full-
+   scale range for the data mode.
+.SH Additional Notes
+The program will adjust the pixel spacing in the header of the output file
+if binning and/or the expansion or shrinkage options are used.  Models built
+on the input file in 3dmod should display correctly on a file scaled by
+these three options.  However, the image origin is not adjusted for images
+that are a subset of the input image unless the -origin option is entered as
+well.  Without this option, it would be necessary to shift a model manually
+in 3dmod to display it on a subset.
+.P
+When there is a change of modes, data are rescaled optimally in most
+cases. If floating is not selected, the scaling is by an amount that would
+map the range for the input data mode into the range for the output data
+mode (e.g., going from mode 1 to mode 2, it would scale data up by a factor
+of 128).  Generally, all sections will be rescaled by the same amount, thus
+preserving relative differences between sections.  However, if the output
+mode is 2 (reals), this kind of rescaling will not occur.  In general, if
+your input mode is real and you are outputing to bytes or integers, you need
+to specify some kind of floating, shifting, or scaling in order to get
+usable values.  These same kinds of automatic scalings upon change of mode
+will occur with shifting to a common mean (option 3), but here the program
+is more careful to apply the same scaling to all sections.  To disable the
+scaling upon change of mode, the use the option "-scale 1,1," or the "-1"
+floating option with interactive input.
+.P
+At the end, the program will report how many pixels have been truncated at
+the low or high limits of the output range.  If this happens after shifting
+with a specified output range, try again with a slightly smaller range.
+.P
+The transformation file entered with -xform can contain warping
+transformations as well as simple linear transforms.  The transforms can
+consist of either displacements at a set of control points, as output
+directly by Midas(1), or displacements on a regular grid, as produced by
+Xftoxg(1).  Such warping files contain information about the size of the
+images that were aligned and their pixel size.  The transforms will be
+adjusted for a difference between that pixel size and the pixel size of the
+image file being transformed.  They will also be extrapolated as necessary
+to cover an image area larger than that specified in the warping file;
+however, the program assumes that the input images are centered on the
+images with which the warping file was prepared.  The warping will be
+incorrect if this is not the case.
+.P
+Warping cannot be used with distortion corrections.  If this is necessary,
+consider using Blendmont(1), which can combine such operations.  The -expand
+and -rotate options also cannot be used with warping transformations because
+such transformation would occur after the warping while the linear transform
+included in a warping file occurs before the warping.  If these operations
+are necessary, you can avoid transforming the images twice by preparing a
+one-line text file with
+   factor  0.  0.  factor  0.  0.
+.br
+for expansion by the factor, or with
+   cos(angle)  -sin(angle)  sin(angle)  cos(angle)  0.  0.
+.br
+for rotation by the angle.  Then use Xfproduct(1) to multiply the warping
+transforms by the single linear transform, and transform the images with the
+product.
+.P
+Complex data (Fourier transforms) can be stacked but not otherwise
+manipulated.  Don't try to change the size or center of the FFT's.
+.P
+Newstack will not work directly with color data (MRC data mode 16), but
+there is a script, Colornewst(1), that will split the color channels into
+three byte-mode files with "clip splitrgb", use Newstack to perform
+identical operations on each of the three files, and recombine the data into
+a color file with "clip joinrgb".
+.P
+The program attempts to allocate enough memory to hold an entire input
+image and output image in 4 bytes per pixel, but it can work on large images
+with less memory than this by reading, operating on, and writing strips of
+the image if necessary.  On a 32-bit system, if the memory allocation fails,
+it will try to work with just under 2 GB of memory.  Memory allocation will
+probably not fail on a 64-bit system.  In either case, system performance
+will suffer if the program allocates more than the amount of memory
+available, and it is up to the user to limit the memory as appropriate with
+the "-memory" option.  The ability to work on the image in strips is limited
+when images are rotated by large angles (30-90 degrees); in such cases the
+program will need at least enough memory to hold the whole input images.
+.P
+The program can manipulate and transform images bigger than 4 gigapixels,
+but distortion correction is currently limited to 2 gigapixel images.
+.P
+Each linear transformation in a transform file is specified by a line with
+six numbers:
+  A11 A12 A21 A22 DX DY
+.br
+where the coordinate (X, Y) is transformed to (X', Y') by:
+  X' = A11 * (X - Xci) + A12 * (Y - Yci) + DX + Xco
+  X' = A21 * (X - Xci) + A22 * (Y - Yci) + DY + Yco
+.br
+where (Xci, Yci) and (Xco, Yco) are the center coordinates of the input and
+output images, respectively.
+.SH HISTORY
+.nf
+DNM (mast) for VAX    8/88
+5/4/89 changed to float to same mean and sd rather than mean and min.
+12/19/89 added full control of density scaling; fixed bug in
+interpolation that was generating half-pixel error half the time.
+4/19/90 added line-by-line prompts for file and section entry and
+added time/date stamp
+1/23/91: fixed so that it can correctly pad images and extract
+subsets of images with either center-shifting or transforms
+6/11/91: fixed bug if trying to output scaled real values les than 0
+Feb 94 : Ported to SGI by Paul Furcinitti.
+Jul 94 : PSF (Furcinitti) Fixed bug when writing byte files.
+11/16/94: DNM added shifting to mean, rationalized scaling somewhat
+9/24/01: changed to read and write in chunks if images are big
+12/24/03: converted to PIP input, added undistorting and binning
+June 2011: Added support for warping
+.fi
+.SH SEE ALSO
+mrcbyte(1), tif2mrc(1), clip(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.

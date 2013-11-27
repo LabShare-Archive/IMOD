@@ -1,0 +1,24 @@
+.na
+.nh
+.TH checkxforms 1 4.6.34 BL3DEMC
+.SH NAME
+checkxforms - find maximum displacement & rotation in set of transforms
+.SH SYNOPSIS
+checkxforms
+.SH DESCRIPTION
+Checkxforms will examine a list of transformations to determine the
+maximum image rotation and the maximum image displacement specified
+by those transforms.  It reports the maximum rotation in degrees and
+the section number at which that maximum occurs, and the maximum
+displacement in pixels and the section number at which that maximum
+occurs.
+.P
+After starting the program, just enter the names of desired transform
+files, one after another.  Type Return to exit the program when done.
+.SH HISTORY
+.nf
+  Written by David Mastronarde, 1/2/92
+.P
+.fi
+.SH BUGS
+Email bug reports to mast@colorado.edu.
