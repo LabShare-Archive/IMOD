@@ -4,7 +4,7 @@
 .SH NAME
 mrcbyte \- Converts an MRC file into byte type data.
 .SH SYNOPSIS
-mrcbyte -[rRblecsxyz] <infile> <outfile>
+mrcbyte  [options]  input_file  output_file
 .SH DESCRIPTION
 mrcbyte will convert MRC files to an MRC byte type file.  The
 default is to convert the entire file with a full linear ramp
@@ -13,13 +13,13 @@ the intensity scaling can be modified to match the scaling achieved when
 viewing the file in 3dmod(1).  Subsets of the image can also be copied.
 Complex data will also be scaled just as when loaded into 3dmod, so this
 program can be used to save a viewable form of a Fourier transform as bytes.
-.SS Options
+.SH OPTIONS
 .TP
-.B -c <black,white>
+.B -c \fIblack,white\fR
 Specify intensity scaling to match the scaling achieved with the given
 black and white contrast settings in 3dmod(1).
 .TP
-.B -s <min,max>
+.B -s \fImin,max\fR
 Specify an initial intensity scaling, which will scale "min" to 0 and
 "max" to 255, just as is achieved with the 
 .B -s
@@ -38,13 +38,13 @@ Use exponential scaling (valid for short integer and floating point data).
 .B -R
 Reverse contrast in the output.
 .TP
-.B -x <X0,X1>
+.B -x \fIX0,X1\fR
 Write out pixels in X between X0 and X1, inclusive, numbered from 0.
 .TP
-.B -y <Y0,Y1>
+.B -y \fIY0,Y1\fR
 Write out pixels in Y between Y0 and Y1, inclusive, numbered from 0.
 .TP
-.B -z <Z0,Z1>
+.B -z \fIZ0,Z1\fR
 Write out pixels in Z between Z0 and Z1, inclusive, numbered from 0.
 .TP
 .B -b

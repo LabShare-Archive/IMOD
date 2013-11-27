@@ -4,9 +4,9 @@
 .SH NAME
 processchunks \- Run command files in parallel on multiple processors
 .SH SYNOPSIS
-processchunks [options] <machine list> <root name of command files>
+processchunks  [options]  machine_list  root_name_of_command_files
 
-processchunks [options] -q # <queue command and arguments> <root name>
+processchunks  [options]  -q #  queue_command_and_arguments  root_name
 .SH DESCRIPTION
 processchunks will process a set of command files in parallel on multiple
 machines or processors that have access to a common filesystem.  It can also
@@ -228,7 +228,7 @@ environment variable IMOD_PROCESSORS to the number of processors, e.g.,
     setenv IMOD_PROCESSORS 4     (for tcsh users)
     export IMOD_PROCESSORS=4     (for bash users)
 
-.SS Options
+.SH OPTIONS
 Processchunks uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

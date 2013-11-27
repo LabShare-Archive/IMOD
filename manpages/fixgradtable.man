@@ -4,7 +4,7 @@
 .SH NAME
 fixgradtable -\ Adjust magnification gradient table for new crossover value
 .SH SYNOPSIS
-fixgradtable new_crossover old_grad_table new_grad_table
+fixgradtable  new_crossover  old_grad_table  new_grad_table
 .SH DESCRIPTION
 Ths Python script adjusts all of the intensity values in a magnification
 gradient table produced by Findmaggrad(1) for a change in the crossover

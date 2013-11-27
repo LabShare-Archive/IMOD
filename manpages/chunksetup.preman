@@ -4,7 +4,7 @@
 .SH NAME
 chunksetup \- Set up command files to process a volume in chunks
 .SH SYNOPSIS
-chunksetup [options] <command file> <input file>  <output file>
+chunksetup  [options]  command_file  input_file  output_file
 .SH DESCRIPTION
 chunksetup will produce a set of command files to process a 3D image file in
 chunks and reassemble the chunks into a single image file.  This procedure can
@@ -77,7 +77,7 @@ processchunks machine_list comfile
 where machine_list is a list of the machines to use, or just the number of
 processor to use on the local machine.
 
-.SS Options
+.SH OPTIONS
 Chunksetup uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

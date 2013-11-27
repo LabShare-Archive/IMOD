@@ -4,12 +4,12 @@
 .SH NAME
 imodsetvalues \- store per point or per contour values in an IMOD model.
 .SH SYNOPSIS
-imodsetvalues [options] -values <values file> <input model> <output model>
+imodsetvalues [options] -values values_file  input_model  output_model
 
 .SH DESCRIPTION
 Store or modify per point or per contour values in an IMOD model, and 
 configure the views to display these values in pseudo-color. Input file
-<values file> specifies the (possibly floating point) values to be 
+\fIvalues-file\fR specifies the (possibly floating point) values to be 
 stored and their desired location in the model. Three different modes of 
 operation are supported, depending on the number of columns in the
 values file.
@@ -53,7 +53,7 @@ object, not just those effected by the values file. In fact, when a
 min/max file is specified (and only then), the values file can 
 optionally  be empty.
 
-.SS Options
+.SH OPTIONS
 Imodsetvalues uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

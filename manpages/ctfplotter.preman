@@ -79,7 +79,7 @@ input to the CTF correction program ctfphaseflip(1).
 A sample command file for running the program at the command line
 can be found in the IMOD/com directory.
 
-.SS Options
+.SH OPTIONS
 Ctfplotter uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

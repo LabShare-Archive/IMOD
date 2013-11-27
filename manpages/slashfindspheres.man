@@ -5,7 +5,7 @@
 slashfindspheres \- Inputs spheres from one or more scattered point objects 
 and outputs new spheres with similar pixel values (useful for small vesicles).
 .SH SYNOPSIS
-slashfindspheres [options] <image> <input_model> <output_model>
+slashfindspheres  [options]  image_file input_model  output_model
 .SH DESCRIPTION
 Uses a simple template matching algorithm to try to finding non-overlapping
 sphere-shaped objects within the specified MRC image volume, and then
@@ -42,9 +42,9 @@ you can open in 3dmod and check them by selecting the very last point and hittin
 that don't match. Separating them into many objects can also help delete large
 number of bad points at once. 
 
-.SS Options
+.SH OPTIONS
 .TP 
-.B -o #/list
+.B -o \fI#/list\fR
 A list of objects to use as "input spheres" (eg: "-o 1,2,4-6"). These objects should
 all be scattered point object and contain on the order of 5-20 points/spheres
 representing the spherical compartments you want segmented. An 3D area around each
@@ -53,7 +53,7 @@ sphere (if any) is most similar, and then this point will adopt the same radius.
 If no list is specified, the program will try to use the first scattered point
 object in the model.
 .TP 
-.B -e #/list
+.B -e \fI#/list\fR
 A list of "extra" objects which we don't our output spheres to overlap. Unlike the
 input object list, this list can include non-scattered point objects (i.e. closed
 and open contour objects) and considers all points in these objects regardless
@@ -65,7 +65,7 @@ included as the program already rejects spheres that overlap these regions, but
 listing them again here doesn't hurt either.
 If "-e 0" is entered then ALL objects wil listed (to ensure no overlaps).
 .TP 
-.B -G #
+.B -G \fI#\fR
 Represents the number of pixels to use as a "gutter" around each sphere when
 generating a template to match. In addition to the pixels inside a points radius,
 pixels in this gutter region are also evaluated and since this region is usually
@@ -79,7 +79,7 @@ black spheres on a white background this program is likely to think all the pixe
 in a huge huge black blob/tube match perfectly and thus represent the center of a sphere.
   (default: 2)
 .TP 
-.B -Z #
+.B -Z \fI#\fR
 Represents the number of pixels to use as a gutter in the Z axis. The default
 value for this is this "z gutter" value is the -G (normal gutter) value
 divided by the input model's z scale (under Model > Header). In most electron
@@ -88,7 +88,7 @@ it makes sense that this value is much lower than -G. In cases where X, Y and Z 
 have the same pixel size, however, the two values should be the same.
   (default: G/zScale)
 .TP 
-.B -C #
+.B -C \fI#\fR
 Cut off value for cross-correlation, which you can enter as a percentage (eg: 80 = 80%).
 This "cut-off" value dictates how similar a sphere must be to an input sphere
 (where 100%=identical) to be counted. By default, the cutoff value will be determined
@@ -96,41 +96,41 @@ by comparing the similarity between input spheres and printed out in results.
 A suitable cut-off value will differ from image to image to differences in intensities,
 contrast and so on.
 .TP 
-.B -R #
+.B -R \fI#\fR
 A range of pixel values by which to scale cross-correlation measurements. By default
 this value will get sent to the difference between the minimum and maximum
 pixel value in the image, which is typically some number less than 255 and usually
 a good value to use as a measuring stick for deviation.
 .TP 
-.B -M #
+.B -M \fI#\fR
 The maximum number of pixels a template will span - meaning any pixels outside this
 diameter will not be included.       
   (default value: 30)
 .TP 
-.B -B #
+.B -B \fI#\fR
 The maximum number of Z slices to keep in the 'slice buffer' at once. The higher this
 number, the less 'reloads' will be necessary (meaning faster processing), but if this
 value is too high will take up far more memory and either cause a slow down or 
 a crash / segmentation fault if it can't all fit in memory.       
   (default value: 30)
 .TP 
-.B -N #
+.B -N \fI#\fR
 Maximum number of spheres to add. Since the cutoff value can be difficult to estimate
 this value can be used to help ensure you don't add way more spheres than you
 expect to see in your model.
   (default: 10,000)
 
 .TP 
-.B -x #,#
+.B -x \fI#,#\fR
 Minimum and maximum limit in the X axis of your image to search for the center
 of a sphere. The -x, -y and -z arguments below can be used to reduce the search
 to a sub-volume in each dimensions. If omitted, all pixels in the image are searched.
 .TP 
-.B -y #,#
+.B -y \fI#,#\fR
 Min and max limit in X axis of your image to search for the center of a sphere.
   (example: "-y 0,2000")
 .TP 
-.B -z #,#
+.B -z \fI#,#\fR
 Min and max slice or "Z limit" of your image to search for the center of a sphere,
 where 1 represents the bottom-most slice. When first running slashfindspheres,
 it can be helpful to start with a small z range to see fast results and decide if
@@ -149,7 +149,7 @@ If entered, "duplicate" or overlapping spheres are allowed. In other words, "can
 spheres" are not checked to see if they overlap input spheres, but are still checked
 against each other and against any "extra" spheres in "-e".
 .TP 
-.B -t #
+.B -t \fI#\fR
 A "test radius" used for "early rejection" - a feature used to quickly skip pixels
 which look unlikely to match any of your input spheres. This value is 3 by default,
 meaning that an area of 6x6 (on the current slice only) pixels around each pixel is
@@ -161,7 +161,7 @@ warned that it will then take much longer to process!
   (default: 3)
 
 .TP 
-.B -s #
+.B -s \fI#\fR
 The number of new objects to split new spheres over. Objects are, by default,
 colored using a heat-map color gradient with the following colors representing
 from most to least confident:   red, yellow, green, aqua, blue. The name of 
@@ -180,17 +180,17 @@ New objects will be given the same color as the original object (from the -o lis
 By default, new objects get given "heap-map" gradient colors starting at red
 for most confident then progressing through yellow, green, cyan and blue.
 .TP 
-.B -w #
+.B -w \fI#\fR
 Write out an intermediate MRC files reflecting confidence value. If filters were
 applied then the result of these filters will appear in a second MRC file.
 .TP 
-.B -p #
+.B -p \fI#\fR
 Represent a "print level" where the # is 0-10. A '-p 0' prints almost nothing
 while values of 5 will show a lot of output information to help in any confusing
 or debugging situation.
   (default: 2)
 .TP 
-.B -F keys
+.B -F \fIkeys\fR
 An ordered list of image filters applied in the form 'm5,s' where:
  > 0  = no filters
  > m# = median filter of size #

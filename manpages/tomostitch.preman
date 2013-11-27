@@ -4,7 +4,7 @@
 .SH NAME
 tomostitch \- Warps, stacks, and blends a montage of overlapping volumes
 .SH SYNOPSIS
-tomostitch options supermontage_info_file
+tomostitch  options  supermontage_info_file
 .SH DESCRIPTION
 Tomostitch is a Python program for performing the final steps in stitching
 together adjacent, overlapping volumes.  These steps are: 1) running
@@ -97,7 +97,7 @@ where the unbinned volumes are.  Then run Tomostitch with all the same
 parameters as before, using both "-scale" and "-apply" so that the program
 will scale all size and position related entries to fit the unbinned data.
 
-.SS Options
+.SH OPTIONS
 Tomostitch uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

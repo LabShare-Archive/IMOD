@@ -4,7 +4,7 @@
 .SH NAME
 dm2mrc \- Create an MRC image stack from Digital Micrograph files.
 .SH SYNOPSIS
-dm2mrc [-d] <DM files...> <mrc image file>
+dm2mrc  [options]  DM_files...  MRC_image_file
 .SH DESCRIPTION
 dm2mrc will convert Digital Micrograph (DM) image files to an MRC stack,
 using raw2mrc(1).  The program should be able to convert version DM 2.5 files

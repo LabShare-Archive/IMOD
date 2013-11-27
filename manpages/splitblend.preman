@@ -4,7 +4,7 @@
 .SH NAME
 splitblend \- Produce command files for running blendmont in parallel
 .SH SYNOPSIS
-splitblend [options] <Blendmont command file>
+splitblend  [options]  Blendmont_command_file
 .SH DESCRIPTION
 Splitblend is a Python script that takes a command file for running
 Blendmont(1) and produces files that can be run in parallel with
@@ -51,7 +51,7 @@ into one ".ecd" file.
 Blending can be dominated by file input/output, particularly if overlap zones
 are small and there are no distortion corrections.  If disk access is slow,
 there may be little value in running Blendmont(1) in parallel in such cases.
-.SS Options
+.SH OPTIONS
 Splitblend uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

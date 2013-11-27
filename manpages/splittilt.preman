@@ -4,7 +4,7 @@
 .SH NAME
 splittilt \- Produce multiple command files for running Tilt in parallel
 .SH SYNOPSIS
-splittilt [options] <Tilt command file>
+splittilt  [options]  Tilt_command_file
 .SH DESCRIPTION
 splittilt will take a command file for running the Tilt(1) program for tomogram
 generation and produce multiple command files that can be run in parallel by
@@ -66,7 +66,7 @@ minimum number of slices in each chunk.
 The program will also operate on a command file for reprojecting from a
 tomogram; here, it just maintains a minimum number of slices per chunk.
 
-.SS Options
+.SH OPTIONS
 Splitblend uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

@@ -4,7 +4,7 @@
 .SH NAME
 makecomfile \- Create single command file for optional step in tomogram generation
 .SH SYNOPSIS
-makecomfile [options] output_file
+makecomfile  [options]  output_file
 
 .SH DESCRIPTION
 Makecomfile is used to make a single command file for an optional step in
@@ -111,7 +111,7 @@ PolynomialOrder to 0.
 .B sirtsetup
 File to run Sirtsetup(1); sets StartFromZero and set RadiusAndSigma to 0.4,0.05.
 
-.SS Options
+.SH OPTIONS
 Makecomfile uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

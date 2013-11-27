@@ -4,7 +4,7 @@
 .SH NAME
 nad_eed_3d \- Nonlinear anisotropic diffusion, edge enhancing, in 3D
 .SH SYNOPSIS
-nad_eed_3d [options] <input file> <output file>
+nad_eed_3d  [options]  input_file  output_file
 .SH DESCRIPTION
 nad_eed_3d is Frangakis and Hegerl's 3D anisotropic diffusion program with
 edge-enhancing diffusion only (see Frangakis, A., and Hegerl, R., 2001.
@@ -40,20 +40,20 @@ The eTomo program contains an
 interface for extracting a subvolume, testing different K values and iteration
 numbers, and running the diffusion on a full volume.  From the File menu,
 select "New Parallel Process" then press the "Nonlinear Anisotropic Diffusion" button.
-.SS Options
+.SH OPTIONS
 .TP
-.B -k <value>
+.B -k \fIvalue\fR
 The K value (sometimes referred to as lambda).  The ratio
 of the local image gradient to K is used to determine whether density will
 diffuse isotropically or primarily in the direction of least density
 variation (along edges).  Lower K values will preserve more edges; higher K
 values will give more isotropic smoothing.
 .TP
-.B -n <value>
+.B -n \fIvalue\fR
 The number of iterations.  The higher the number of iterations, the smoother
 the result.
 .TP
-.B -i <list>
+.B -i \fIlist\fR
 A list of iterations at which output should be written to a file (ranges such
 as 1-3,5,8 or allowed).  If such a list is entered, the 
 .B -n
@@ -65,14 +65,14 @@ leading zeros as needed to give three digits.  However, if the
 option is entered, a single slice will be written at each of the specified
 iterations, all into the same output file.
 .TP
-.B -o <value>
+.B -o \fIvalue\fR
 Single slice to output (numbered from 1).  This option is useful when
 adjusting parameters if you can
 judge the performance by looking at just one slice.  It will not make the
 program do the computation on only one slice; it will still operate on the
 whole input volume.
 .TP
-.B -m <value>
+.B -m \fIvalue\fR
 Mode for output file: 0 for byte, 1 for integer, 2 for real, or 6 for unsigned
 integer.  By default, the
 output file will have the same mode as the input file.  This works for byte
@@ -82,12 +82,12 @@ input data with a low
 dynamic range, you may need to specify real output to avoid
 seeing discrete density levels in the smoothed regions.
 .TP
-.B -s <value>
+.B -s \fIvalue\fR
 Sigma value for smoothing or averaging the structure tensor, which might
 give a more accurate estimate of the direction of an edge.  The default is 0
 for no smoothing.
 .TP
-.B -t <value>
+.B -t \fIvalue\fR
 The time step.  The product of the time step and the number of iterations
 determines the amount of diffusion.  The diffusion will run faster with a
 higher time step but may become unstable.

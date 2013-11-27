@@ -28,14 +28,14 @@ The two best matching images will be undistorted and these undistorted images
 should then differ only by a stretch, allowing the stretch to be determined
 with the greatest accuracy.
 
-.SS Options
+.SH OPTIONS
 .TP
-.B -za <z1,z2>
+.B -za \fIz1,z2\fR
 The starting and ending sections from the first input file to include in the
 search, numbered from 1.  The default is to use all sections from the first
 file.
 .TP
-.B -zb <z1,z2>
+.B -zb \fIz1,z2\fR
 The starting and ending sections from the second input file to include in the
 search, numbered from 1.    The default is to use all sections from the second
 file.  Note that the two tilt series can be placed in the
@@ -45,7 +45,7 @@ and
 .B -zb
 options can be used to indicate where the two tilt series are in the file.
 .TP
-.B -a <value>
+.B -a \fIvalue\fR
 Use this option to specify the direction of rotation from the first to the
 second axis.  Only the sign of this number matters, so you can enter -1 or -90
 for clockwise rotations, or 1 or 90 for counterclockwise rotations.  In the
@@ -57,10 +57,10 @@ in Midas as the initial alignment for all pairs of views that are considered.
 A correction for stretch will be applied in the initial alignment of the other
 pairs and may be needed in some cases.
 .TP
-.B -d <file>
+.B -d \fIfile\fR
 Name of file with zero-stretch image distortion field from Finddistort(1).
 .TP
-.B -b <value>
+.B -b \fIvalue\fR
 The binning of the images, which usually needs to be specified when
 undistorting.
 .TP 

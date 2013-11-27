@@ -40,7 +40,7 @@ options be entered.  It places output in a numbered series of
 subdirectories, "raptor1", "raptor2", etc. if it is run multiple times.
 It takes care of making an IMOD model that can be loaded onto the image stack
 in 3dmod(1).
-.SS Options
+.SH OPTIONS
 RAPTOR uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

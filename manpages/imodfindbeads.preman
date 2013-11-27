@@ -4,7 +4,7 @@
 .SH NAME
 imodfindbeads \- Find gold particles in images
 .SH SYNOPSIS
-imodfindbeads options in_image out_model
+imodfindbeads  options  input_image  output_model
 .SH DESCRIPTION
 Imodfindbeads finds gold particles or other circular densities (beads) in
 images by a combination of cross-correlation and other methods.  It starts
@@ -86,7 +86,7 @@ and
 .B -sig2.
 There are many other options that were added during program development and
 can be ignored.
-.SS Options
+.SH OPTIONS
 Imodfindbeads uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

@@ -4,7 +4,7 @@
 .SH NAME
 xfalign \- Automatic image alignment using xfsimplex
 .SH SYNOPSIS
-xfalign [options] <input image file>  <output transform file>
+xfalign  [options]  input_image_file  output_transform_file
 .SH DESCRIPTION
 xfalign will search for the linear transformations that align each section to
 the previous one in an image stack, or that align each section to a single
@@ -127,7 +127,7 @@ color reference file is used.  If a color file is named "rootname.ext", the
 gray-scale file will be named "rootname_gray.ext".  Transforms can be applied
 to a color file by running Colornewst(1).
 
-.SS Options
+.SH OPTIONS
 The
 .B -prexcorr
 option cannot be used with either the

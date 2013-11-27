@@ -5,7 +5,7 @@
 slashmasksort \- Sorts and/or splits contours into a set of new objects based
 on whether its points fall inside any closed contours in the specified 'mask' object(s).
 .SH SYNOPSIS
-slashmasksort -o <list> -m <list> [options] <input_model> <output_model>
+slashmasksort  -o list  -m list  [options]  input_model  output_model
 .SH DESCRIPTION
 This program requires you to enter one list of objects with contours you want
 sorted (eg: '-o 1'), and a second list of closed contour objects (eg: '-m 1,2')
@@ -45,16 +45,16 @@ and not surface information. To get closed mask contours on every slice
 you can use the "Interpolator" window (3dmod >> Special >> Interpolator) or
 the "imodsortsurf" and "imodfillin" programs.
 
-.SS Options
+.SH OPTIONS
 
 .TP 
-.B -o #/list
+.B -o \fI#/list\fR
 A list of "input objects" (eg: '1,4-5') containing contours/points that you wish
 to sort/split into new objects. These objects can be of any type, and you must
 list at least one.
 
 .TP 
-.B -m #/list
+.B -m \fI#/list\fR
 A list of closed contour objects to use as "mask objects". Note that you
 will want to have a closed contour on every slice of your desired mask volume
 and that during the sorting/splitting phase each input contour only gets sorted

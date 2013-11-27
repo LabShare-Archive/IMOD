@@ -24,7 +24,7 @@ command files for running the program in parallel.
 A sample command file for running the program with "subm" can be found in the
 IMOD/com directory (ctfcorrection.com).
 
-.SS Options
+.SH OPTIONS
 Ctfphaseflip uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

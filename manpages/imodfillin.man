@@ -4,7 +4,7 @@
 .SH NAME
 imodfillin \- fill in missing contours in IMOD model using mesh data
 .SH SYNOPSIS
-imodfillin [options] <input model> <output model>
+imodfillin  [options]  input_model  output_model
 .SH DESCRIPTION
 imodfillin will fill in contours in an IMOD model on sections that were
 skipped during modeling.  It interpolates a contour between existing ones
@@ -42,7 +42,7 @@ mesh with the
 .B -S
 option to preserve this surface information in the meshes, so that the
 interpolated contours will have the same surface numbers as the original ones.
-.SS Options
+.SH OPTIONS
 .TP
 .B -e
 Place new contours in existing objects.  Use this option if you do not
@@ -55,18 +55,18 @@ will be created for each object that is being filled in.  These contours
 may be moved into the proper object either one by one or all at once via
 the Edit-Contour-Move dialog and M hotkey in 3dmod(1).
 .TP
-.B -o <list>
+.B -o \fIlist\fR
 Do operations only on objects in the list of numbers.  The list can consist
 of comma-separated ranges (e.g., 1,7-11,13-17,19).
 Without this option, all closed contour objects with meshes are filled in.
 .TP
-.B -i <value>
+.B -i \fIvalue\fR
 Set the Z increment for filling in contours.  This option has two effects:
 the program will fill in only gaps that are wider than the given value,
 and it will insert new contours at this given Z increment instead of on every
 section.
 .TP
-.B -R <value>  
+.B -R \fIvalue\fR  
 Resolution or tolerance for point reduction
 in the generated contours.  Points are eliminated if they are within this
 distance of the lines connecting the remaining points, just as with the -R

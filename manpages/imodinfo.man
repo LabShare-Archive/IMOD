@@ -4,7 +4,7 @@
 .SH NAME
 imodinfo \- Prints information about IMOD files.
 .SH SYNOPSIS
-imodinfo [options] <IMOD filename>
+imodinfo  [options]  IMOD_filename
 .SH DESCRIPTION
 Prints information about an IMOD model to standard output.
 The types of information output vary, depending upon the options.
@@ -92,7 +92,7 @@ The options
 and 
 .B -s 
 are mutually exclusive.
-.SS Options
+.SH OPTIONS
 .TP
 .B -a
 Print ascii readable IMOD output. Not all of the types
@@ -125,7 +125,7 @@ has one defined.
 .B -r
 Print ratio of length to area for closed contours.
 .TP
-.B -o <list>
+.B -o \fIlist\fR
 Print full report on the objects given in the list, a comma-separated list
 of ranges.
 .TP
@@ -137,11 +137,11 @@ you analyze a subset in X or Y, or use clipping planes.
 Individual contour data will not be printed for closed contour 
 objects.
 .TP 
-.B -x <min,max>
+.B -x \fImin,max\fR
 .TP
-.B -y <min,max>
+.B -y \fImin,max\fR
 .TP
-.B -z <min,max>
+.B -z \fImin,max\fR
 Compute areas and volumes within the subvolume specified by the minimum and
 maximum values.  One or two of these three options may be entered if
 desired.  Subvolume analysis works only with closed contour and scattered
@@ -151,7 +151,7 @@ with the
 option.  In the standard output, the number of scattered points within 
 the subvolume will be reported for each object.
 .TP
-.B -t <1/-1>
+.B -t \fI1/-1\fR
 Truncate objects by their respective clipping planes; enter 
 .B -t 1
 or
@@ -181,7 +181,7 @@ option.
 Suppress the information about each contour in the standard model output.
 Use this option to extract summary information more easily from large models.
 .TP
-.B -f <filename>
+.B -f \fIfilename\fR
 Write output to given filename instead of to standard output.
 .SH AUTHORS
 .nf

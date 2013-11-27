@@ -4,7 +4,7 @@
 .SH NAME
 3dmodv \- View an Imod model.
 .SH SYNOPSIS
-3dmodv [options] <model files...>
+3dmodv  [options]  model_files...
 .SH DESCRIPTION
 3dmodv is used to view models drawn with 3dmod.  The main 3dmodv window is
 the same as the "Model View" window available in the program 3dmod.  When
@@ -16,22 +16,22 @@ The command line options and hot keys are given below.  See the Help menu of
 the Model View window for information on mouse actions and menu entries; see
 the help pages for individual dialogs for full details on the controls in each
 dialog.
-.SS Options
+.SH OPTIONS
 3dmodv can accept standard Qt options in addition to
 the options described below.
 .TP
 .B -f
 Open model view window to maximum size supported by graphics.
 .TP
-.B -b <color>
+.B -b \fIcolor\fR
 Select the color that 3dmodv uses as the rendering background.
 The color is a standard Qt color name.
 .TP
-.B -s <width,height>
+.B -s \fIwidth,height\fR
 Set the initial size of the model view area of the window.  This is useful if
 you want to take snapshots at a specific size.
 .TP
-.B -E <keys>
+.B -E \fIkeys\fR
 Open the windows specified by the key letters, which are the same as the
 hot keys for opening windows (m, O, C, L, B, M, N, V, I, U), plus D for
 depth cue and S for stereo.

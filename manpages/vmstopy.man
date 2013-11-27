@@ -4,7 +4,7 @@
 .SH NAME
 vmstopy - converts IMOD command file to Python script
 .SH SYNOPSIS
-vmstopy [-x | -q] com_filename log_filename [output_file]
+vmstopy  [option]  com_filename  log_filename  [output_file]
 .SH DESCRIPTION
 Vmstopy is a Python program for converting an IMOD command file into a Python
 script that will run commands in the file and direct output to a log file.
@@ -184,7 +184,7 @@ $matchshifts
 .br
 $sync    (on Windows)
 
-.SS Options
+.SH OPTIONS
 .TP
 .B -x
 Execute the script with a new Python instance.
@@ -195,12 +195,12 @@ Suppress output messages about the progress of running the script.
 .B -c
 Output "CHUNK DONE" to the log file after successful execution.
 .TP
-.B -e VAR=val
+.B -e \fIVAR=val\fR
 Set the environment variable VAR to the given value at the beginning of the
 script.  If no value is needed, "-e VAR" can be entered.  This option can be
 entered as many times as needed.
 .TP
-.B -n #
+.B -n \fI#\fR
 Increment the process niceness by the given # at the beginning of the script.
 .TP
 .B -t

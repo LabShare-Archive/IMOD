@@ -61,7 +61,7 @@ option.
 Since IMOD is distributed with version 4 of the TIFF library, the program will read TIFF
 files bigger than 2 GB, including ones in the BigTIFF format.
 
-.SS Options
+.SH OPTIONS
 .TP
 .B -g
 This
@@ -118,11 +118,11 @@ first image.  This option is no longer needed to process files with thumbnail
 images embedded; if there are pages with differnt sizes, only the largest size
 will be converted to sections, and thus a thumbnail image will be ignored.
 .TP
-.B -o <#,#>
+.B -o \fI#,#\fR
 Set the size of the output to the given dimensions in X and Y.  This option
 has no effect for multi-page input files.
 .TP
-.B -F <#>
+.B -F \fI#\fR
 Set the value to use when filling regions that have no image data because an
 image is smaller than the output size.  The default is to fill with the mean
 value of each image.  The value must be within the valid
@@ -139,21 +139,21 @@ override the limit automatically, define the environment variable TIFF_RES_PIXEL
 to the desired limit, a floating point number in microns.  Pixel size is
 assigned from the size found in the first input file.
 .TP
-.B -p <#>
+.B -p \fI#\fR
 Set the pixel spacing in the header of the output file to the given value.
 This spacing is defined as having units of Angstroms, but you can place
 arbitrary values there.  This option cannot be used with 
 .B -p
 and the entered value supercedes any resolution value in the TIFF file.
 .TP 
-.B -b file
+.B -b \fIfile\fR
 This option loads a background file in TIFF format.
 If a background file is loaded its values are subtracted from
 the values in the rest of the files.
 The background file must have the same data type as the images from which
 it is being subtracted (8-bit or 16-bit grayscale).
 .TP
-.B -T <file>
+.B -T \fIfile\fR
 When the input files are produced by TVIPS data acquisition software (after
 October, 2012), this option can be used to output tilt angles, one per line,
 to the given file.  Regardless of whether this option is used, when the
@@ -174,7 +174,7 @@ same potential to cause other programs' memory to be swapped to disk
 regardless of whether mapping was on or off, apparently because the mapped
 memory is coincident with file system cache.
 .TP
-.B -t <value>
+.B -t \fIvalue\fR
 Set the criterion for processing each file in chunks to the given value in
 megabytes (fractional values are allowed).  Whole images will be 
 read in, processed, and saved as a unit if they are less than this criterion
