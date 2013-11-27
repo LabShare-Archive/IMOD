@@ -4,13 +4,13 @@
 .SH NAME
 makejoincom \- Create files for joining tomograms
 .SH SYNOPSIS
-makejoincom [options] rootname
+makejoincom  [options]  rootname
 
 .SH DESCRIPTION
 Makejoincom generates a command file and an information file to start the
 process of joining (stacking) a set of serial tomograms into one volume.
 
-.SS Options
+.SH OPTIONS
 Makejoincom uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

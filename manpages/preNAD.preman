@@ -25,7 +25,7 @@ quality of electron tomography image volumes using pre-reconstruction
 filtering", Journal of Structural Biology, (2012) 180: 132-142.
 Please reference this article if you use the filter.
 .P
-.SS Options
+.SH OPTIONS
 preNAD uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

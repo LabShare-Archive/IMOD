@@ -4,7 +4,7 @@
 .SH NAME
 flattenwarp -\ compute warping transformations for flattening a volume 
 .SH SYNOPSIS
-flattenwarp [options] <model_file> <warping_output_file>
+flattenwarp  [options]  model_file  warping_output_file
 .SH DESCRIPTION
 Flattenwarp produces transformations for flattening the material of interest
 in a volume, such as the sectioned material in a tomogram.  It works from two
@@ -142,7 +142,7 @@ with
 where "warp_file" is the output file from Flattenwarp.  If you know that you
 can reduce the size of Z in the flattened volume, say to "new_z", you can add
 the option "-size ,,new_z".  
-.SS Options
+.SH OPTIONS
 Flattenwarp uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

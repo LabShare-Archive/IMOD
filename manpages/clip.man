@@ -4,7 +4,7 @@
 .SH NAME
 clip \- command line image processing for mrc files.
 .SH SYNOPSIS
-clip [process] [options] [input files...] [output file]
+clip process  [options]  input_files...  [output_file]
 .SH DESCRIPTION
 The processes that clip can do are listed below. One and only one
 process must be selected on the command line.  Only the first three or
@@ -139,19 +139,19 @@ Append data to output file.  Append and overwrite are not available for
 processing modes that do not take standard input and output size and centering
 options.
 .TP
-.B -ov <section>
+.B -ov \fIsection\fR
 Overwrite output starting at section number
 .I section.
 Range is from 0 (first section) to z size - 1 (last section) unless the
 .B -1
 option is entered to number sections from 1.
 .TP
-.B \-p <value>
+.B \-p \fIvalue\fR
 Image coordinates with no image data are padded with the given 
 .I value.
 The default is the mean value of the input image.
 .TP
-.B -c[xyz] <value>
+.B -c[xyz] \fIvalue\fR
 Adjust the center of input image. Default is center of first input 
 file.
 The
@@ -168,12 +168,12 @@ option will center the z coordinate on the given
 .I value.
 
 .TP
-.B -ix <value>
+.B -ix \fIvalue\fR
 .PD 0
 .TP
-.B -iy <value>
+.B -iy \fIvalue\fR
 .TP
-.B -iz <value>
+.B -iz \fIvalue\fR
 .PD
 Sets the size of input image.  
 The default is the size of the first input file.
@@ -191,10 +191,10 @@ option is included.  In the latter case, the
 is interpreted as a comma-separated list of ranges. Commas indicate individual
 section numbers and dashes (or minus symbol) indicate a range of sections.
 .TP
-.B -x <value,value>
+.B -x \fIvalue,value\fR
 .PD 0
 .TP
-.B -y <value,value>
+.B -y \fIvalue,value\fR
 .PD
 These options are an alternative way of specifying the size and center of the 
 input image.  The two values are the starting and ending coordinates,
@@ -213,12 +213,12 @@ nor
 may be entered with it.  These coordinates are not constrained to lie within
 the volume; regions outside the volume will be filled with the padding value.
 .TP
-.B -ox <value>
+.B -ox \fIvalue\fR
 .PD 0
 .TP
-.B -oy <value>
+.B -oy \fIvalue\fR
 .TP
-.B -oz <value>
+.B -oz \fIvalue\fR
 .PD
 Size of output file.  Default is same as input size, 
 options 
@@ -254,7 +254,7 @@ The following options are valid for selected processes:
 .B -s
 Switch, use depends on process.
 .TP
-.B -m <mode>
+.B -m \fImode\fR
 Output modes: "byte", "ubyte", "sbyte", "short", "float", "complex", "ushort",
 "rgb", or 0-4, 6, or 16.  0 = byte, 1 = short, 2 = float, 3 = complex short, 
 4 = complex float, 6 = unsigned short, 16 = rgb.  "byte" will produce byte
@@ -267,17 +267,17 @@ external software that has followed recent documentation of the MRC format.
 Regardless of the representation in the file, bytes are read into IMOD programs as
 unsigned with a range of 0 to 255.
 .TP
-.B -h <level>
+.B -h \fIlevel\fR
 Has five uses: 1) Level for high pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 0. 2) High level for image truncation; the default is no
 truncation.  3) Width of area analyzed in quadrant correction.  4) Upper
 limit for histogram output.  5) Threshold above
 which values will be truncated With 4-bit unpacking.
 .TP
-.B -k <value>
+.B -k \fIvalue\fR
 K threshold value for anisotropic diffusion; the default is 2.0.
 .TP
-.B -l <level>
+.B -l \fIlevel\fR
 Has multiple uses: 1) Level for low pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 1.0.  2) Sigma of Gaussian kernel for smoothing; the
 default is to use the standard kernel shown below.
@@ -291,11 +291,11 @@ base to be added to values for scaling.  7) Lower limit for histogram
 output.  8) When truncating values from 4-bit unpacking, sets the value to
 assign to a pixel above the truncation threshold.
 .TP
-.B -cc <value>
+.B -cc \fIvalue\fR
 Specifies type of edge stopping function for diffusion: 1 for exponential
 function, 2 for rational function, 3 for Tukey biweight.  The default is 2.
 .TP
-.B -n <value>
+.B -n \fIvalue\fR
 Input number. Use depends on process: threshold for averaging, scaling factor
 for brightness/contrast/shadow, padding for correlations,
 iterations for smoothing or anisotropic diffusion, size for
@@ -304,23 +304,23 @@ when undoing wraparound, number of images to analyze together for quadrant
 correction, bin size for histogram output, scaling for multiply, divide, and 
 unpacking 4-bit values and applying a gain reference.
 .TP
-.B -r <value>
+.B -r \fIvalue\fR
 Red value;   Range is (0.0 - 1.0) Default is 1.0.
 .TP
-.B -g <value>
+.B -g \fIvalue\fR
 Green value; Range is (0.0 - 1.0) Default is 1.0.
 .TP
-.B -b <value>
+.B -b \fIvalue\fR
 Blue value;  Range is (0.0 - 1.0) Default is 1.0.
 .TP
-.B -P <file>
+.B -P \fIfile\fR
 Name of piece list file, in order to have coordinates in statistics converted
 to position in a montage displayed with adjusted overlap.  The overlap in the
 display is assumed to be zero, unless overlap is specified with the
 .B -O
 option.
 .TP
-.B -O <value,value>
+.B -O \fIvalue,value\fR
 Overlap values in X and Y to be used when printing coordinates corresponding
 to positions in a displayed montage.  Negative values correspond to spaces
 between the displayed pieces.

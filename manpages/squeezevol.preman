@@ -4,10 +4,10 @@
 .SH NAME
 squeezevol \- Reduce or expand a volume in all dimensions by interpolation.
 .SH SYNOPSIS
-squeezevol [options] <input file>  <output file>
+squeezevol  [options]  input_file  output_file
 .SH DESCRIPTION
-squeezevol provides a 
-command-line interface to the program matchvol, for reducing (or expanding)
+Squeezevol provides a 
+command-line interface to the program Matchvol(1), for reducing (or expanding)
 an image volume in size in all dimensions by 3-D interpolation.
 There are options for specifying the overall scaling factor, independent 
 scaling factors for each dimension, and the extent of the input volume to
@@ -25,7 +25,7 @@ Pixel size and origin values in the header of the output file are set so that
 the coordinate system matches that of the input file.  Thus, models drawn on
 the input file in 3dmod should load correctly onto the output file, and vice
 versa.
-.SS Options
+.SH OPTIONS
 Squeezevol uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

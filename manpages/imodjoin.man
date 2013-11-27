@@ -47,21 +47,21 @@ with similar coordinate systems (e.g., identical pixel spacings and origins).
 The warnings could be avoided by loading the model together with a relevant
 image file into 3dmod and resaving the model.
 
-.SS Options
+.SH OPTIONS
 All options except for
 .B -o
 must be entered before the first input model; 
 .B -o
 may be entered before each input model.
 .TP
-.B -o <list of objects>
+.B -o \fIlist of objects\fR
 This option can be used before a model file to specify a list of objects that 
 should be taken from that file.
 Each list of objects 
 can consist of comma-separated ranges of numbers, for example
 1-3,6-9,13,15.
 .TP
-.B -r  <list of objects>
+.B -r  \fIlist of objects\fR
 This option can be used to replace the listed objects in the first model 
 with objects from the second model.  In this case, the 
 .B -o
@@ -91,7 +91,7 @@ objects from each model.
 Models are from different volumes rather than from the same volume or volumes
 with congruent coordinate systems (see above).
 .TP 
-.B -i <filename>
+.B -i \fIfilename\fR
 With this option, the header information in the given image file will be
 taken as the reference for all models, and the resulting model will display
 correctly on this image file.  Otherwise, the first model is taken as the

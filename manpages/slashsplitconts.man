@@ -5,7 +5,7 @@
 slashsplitconts \- Inputs one or more objects then splits all contours in those objects
 so they have no more than a specified number of points.
 .SH SYNOPSIS
-slashsplitconts -o <list> [options] <input_model> <output_model>
+slashsplitconts  -o list  [options]  input_model  output_model
 .SH DESCRIPTION
 This program requires you to enter one list of objects with contours you want
 split. By default, all contour will be split so that the final contours have only
@@ -14,15 +14,15 @@ program can be useful to split scattered point objects so there is only one
 point per contour, but could eventually be expanded so that contours could be
 split into fixed length increments.
 
-.SS Options
+.SH OPTIONS
 
 .TP 
-.B -o #/list
+.B -o \fI#/list\fR
 A list of "input objects" (eg: '1,4-5') containing contours/points that you wish
 to sort/split into new objects. These objects can be of any type, and you must
 list at least one.
 .TP 
-.B -p #
+.B -p \fI#\fR
 The number of points you want per contour (default value: 1)
 .TP 
 .B -w

@@ -4,7 +4,7 @@
 .SH NAME
 fitpatches \- manage and fit to patch vector files for supermontaging
 .SH SYNOPSIS
-fitpatches options supermontage_info_file
+fitpatches  options  supermontage_info_file
 .SH DESCRIPTION
 Fitpatches is a Python program that assists with the evaluation and editing of
 patch vector files produced by Edgepatches(1) and provides information on
@@ -76,7 +76,7 @@ patches with CCCs.  If you do want to edit both kinds of patches, it is
 recommended that you first edit the reduced patches with CCCs, then run
 Fitpatches to make new patches with residuals, then edit the patches with
 residuals.
-.SS Options
+.SH OPTIONS
 Edgepatches uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

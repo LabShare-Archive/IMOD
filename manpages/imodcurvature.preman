@@ -4,7 +4,7 @@
 .SH NAME
 imodcurvature \- Measures radius of curvature of model objects
 .SH SYNOPSIS
-imodcurvature options in_model out_model
+imodcurvature  options  input_model output_model
 .SH DESCRIPTION
 This program will compute the local radius of curvature of objects in a model
 and encode that value into the model as a color or a 2D or 3D point size.
@@ -86,7 +86,7 @@ particular zoom specified with the
 .B -sy
 option.
 
-.SS Options
+.SH OPTIONS
 Imodcurvature uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

@@ -4,7 +4,7 @@
 .SH NAME
 matchorwarp \- Find registration between two volumes and transform one
 .SH SYNOPSIS
-matchorwarp [options] <input file>  <output file>
+matchorwarp  [options]  input_file  output_file
 .SH DESCRIPTION
 Matchorwarp runs Refinematch(1) to attempt to find a single linear
 transformation relating two volumes.  If a single transformation gives an
@@ -16,7 +16,7 @@ file from the output file; otherwise it exits with an error.
 There are options to run Matchorwarp in a trial mode and to exclude rows or
 columns of patches, so this program can be used to explore different fits 
 before or instead of running Findwarp(1) interactively.
-.SS Options
+.SH OPTIONS
 Give the command "matchorwarp" without arguments to see a list of the current
 defaults for many of these options.  Options may be abbreviated to the minimum
 number of unambiguous characters.

@@ -4,7 +4,7 @@
 .SH NAME
 imodmop -\ extract image data inside of IMOD model contours
 .SH SYNOPSIS
-imodmop [options] <model_file> <image_file> <image_output_file>
+imodmop  [options]  model_file  image_file  image_output_file
 .SH DESCRIPTION
 The "mop" in imodmop stands for MOdel Painter; the program can be used to
 color in data inside of model contours.  It will operate on all modes of 
@@ -57,7 +57,7 @@ option.  Some experimentation may be needed to get reasonable results.
 If you are modeling in an FFT, you can load the FFT into 3dmod(1) either
 non-mirrored or mirrored.  However, if you load it mirrored (the default),
 then be sure to model only in the right half of the FFT.
-.SS Options
+.SH OPTIONS
 Imodmop uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

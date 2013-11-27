@@ -4,7 +4,7 @@
 .SH NAME
 onegenplot \- Make an X/Y plot with genhstplt
 .SH SYNOPSIS
-onegenplot [options] data_file
+onegenplot  [options]  data_file
 .SH DESCRIPTION
 Onegenplot is a Python script to make Genhstplt(1) draw one X/Y plot then exit
 when its graph window is closed.  It has many default settings so that simple
@@ -31,7 +31,7 @@ sequential values of one or more columns or types.
 Note that the graph window can be saved as a PNG file or printed from a popup
 menu brought up by right-clicking in the window.  For publication-quality
 graphs in Postscript, it is necessary to run Genhstplt(1) directly.
-.SS Options
+.SH OPTIONS
 Onegenplot uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

@@ -59,11 +59,12 @@ the program will find the contour at the nearest Z level and use
 that one to determine whether to include the patch.
 
 .SH HISTORY
-Patchcrawl3d, corrsearch2d, and onepatchcorr replace patchcorr3d.  The latter
+Patchcrawl3d, Corrsearch3d, and Onepatchcorr replace Patchcorr3d.  The latter
 program used FFT-based 3-D cross-correlation at each patch position.  Computing
 the correlation directly at each displacement and searching for a local
 peak in the correlation is much faster when the
-approximate displacement is already known.
+approximate displacement is already known.  Patchcrawl3d is written in
+C-shell and is obsolete since Corrsearch3d can be run directly with PIP input.
 
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>

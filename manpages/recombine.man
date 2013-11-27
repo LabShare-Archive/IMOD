@@ -4,7 +4,7 @@
 .SH NAME
 recombine \- Recombine an MRC file disassembled with splitmrc
 .SH SYNOPSIS
-recombine [-d directory]  <split list file>
+recombine  [-d directory]  split_list_file
 .SH DESCRIPTION
 recombine will reassemble an MRC image file that has been broken into
 pieces with splitmrc.  It will prompt for a new CD to be inserted if

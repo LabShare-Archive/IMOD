@@ -4,7 +4,7 @@
 .SH NAME
 autofidseed \- Automatically make a seed model for tilt series fiducial tracking
 .SH SYNOPSIS
-autofidseed [options]
+autofidseed  options
 .SH DESCRIPTION
 Autofidseed uses a series of other programs to generate a seed model for
 tracking tilt series fiducial particles in Beadtrack(1).  Given a desired
@@ -160,7 +160,7 @@ for clustered points with elongation values of 0 to 3, and are colored mustard
 green, red, light blue, and orange.  Open the Surface/Contour/Point dialog in
 3dmod (Edit-Surface-Go To) to navigate to contours within and between surfaces
 and to see labels for the surfaces.
-.SS Options
+.SH OPTIONS
 Autofidseed uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

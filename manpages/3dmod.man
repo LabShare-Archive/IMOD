@@ -4,7 +4,7 @@
 .SH NAME
 3dmod \- Make a model from a 3-D image stack.
 .SH SYNOPSIS
-3dmod [options] [image filenames]  [model filename]
+3dmod  [options]  [image_filenames]  [model_filename]
 .SH DESCRIPTION
 .P
 3dmod is typically invoked with one image file, but multiple image
@@ -197,16 +197,16 @@ These windows are described below.  However, see the on-line help
 available from each window (as well as from most dialog boxes) for a
 comprehensive description of all of the available features.
 
-.SS Options
+.SH OPTIONS
 3dmod will accept some
 Qt options (such as -style) along with the following options:
 .TP
-.B -x <min,max>
+.B -x \fImin,max\fR
 .PD 0
 .TP
-.B -y <min,max>
+.B -y \fImin,max\fR
 .TP
-.B -z <min[,max]>
+.B -z \fImin[,max]\fR
 .PD
 The 
 .B -x, -y 
@@ -217,7 +217,7 @@ of the original image.  The offsets are saved in the model
 so if a different area is loaded the model is automatically
 transformed to match the new sub area. 
 .TP
-.B -B <value>
+.B -B \fIvalue\fR
 Bin images by the given amount in all three dimensions.  For binning by 2,
 3dmod averages 8 pixels to produce one display pixel.  Models built on
 unbinned images will be
@@ -225,7 +225,7 @@ displayed properly on binned images and, when saved again, will display
 properly on unbinned images again.  RGB images and multiple single image files
 being displayed as sections may not be binned.
 .TP
-.B -b <nxy[,nz]>
+.B -b \fInxy[,nz]\fR
 Bin images by 
 .B nxy
 in X and Y and by
@@ -234,7 +234,7 @@ in Z.  Omit
 .B nz
 for no binning in Z.  
 .TP
-.B -s <min,max>
+.B -s \fImin,max\fR
 The 
 .B -s
 option will scale image intensities linearly so that the min and max values
@@ -248,7 +248,7 @@ menu entry Edit-Image-Reload.  If raw image files are being read, entering
 this option will set the scaling limits for these files and prevent them from
 being scanned for their minimum and maximum values.
 .TP 
-.B -I <0 or 1>
+.B -I 0 \fRor\fP 1
 This option controls whether images are stored in program memory as 16-bit
 integers instead of bytes.  The entered number overrides the default loading method
 selected in the 3dmod Preferences dialog.  Enter 1 to load data as integers,
@@ -307,7 +307,7 @@ Open the startup dialog box for setting program options and selecting
 files.  The box will be filled in with any other arguments included in the
 command line.
 .TP
-.B -C <value>
+.B -C \fIvalue\fR
 The 
 .B -C
 option controls the image cache used by 3dmod. 
@@ -340,7 +340,7 @@ of the cache with the
 .B -C
 option.
 .TP
-.B -p <filename>
+.B -p \fIfilename\fR
 Load a file containing a piece list for the input image.  
 This allows one to montage image sections together or to view
 images that are either missing sections or have sections out of order.
@@ -357,7 +357,7 @@ but the size can be changed with the
 .B -C
 option.
 .TP
-.B -P <nx,ny>
+.B -P \fInx,ny\fR
 Create an internal piece list to display images from the file in a montage
 of
 .I nx
@@ -369,7 +369,7 @@ option, then this option is ignored; with this option, montage information
 in the
 file header is ignored.
 .TP
-.B -o <nx,ny>
+.B -o \fInx,ny\fR
 When creating an internal piece list with the
 .B -p
 option, set the overlap between pieces to
@@ -385,12 +385,12 @@ or
 options), then the overlaps in the piece list will be adjusted to the given
 values.  This allows one to see all the image data in a montage.
 .TP
-.B -a <filename>
+.B -a \fIfilename\fR
 Specify a file with angles to be shown in the Zap window toolbar.  The angles
 should be one per line, in degrees, as in the .rawtlt and .tlt files in
 tomogram processing.
 .TP
-.B -r <nx,ny,nz>
+.B -r \fInx,ny,nz\fR
 Set the size for raw image files to
 .I nx
 in X,
@@ -400,14 +400,14 @@ in Y, and
 in Z.  This entry will be applied to all raw files and will prevent the Raw
 Image Description dialog from being brought up for any raw files.
 .TP
-.B -t <value>
+.B -t \fIvalue\fR
 Specify the type of raw files using a value corresponding to an MRC mode:
 0 for unsigned bytes, 1 for signed
 16-bit integers, 2 for 32-bit floating point, 4 for complex (pairs of floating
 point numbers), 6 for unsigned 16-bit integers, or 16 for color files stored
 as R-G-B triplets of bytes; or, enter -1 for signed bytes.
 .TP
-.B -H <value>
+.B -H \fIvalue\fR
 Set the size of the header to be skipped, in bytes, for raw image files.
 .TP
 .B -w
@@ -448,7 +448,7 @@ Display images in color index mode using a color table, rather than in
 24-bit color mode.  Color index mode only has 8 bits and works rather
 poorly under Qt. 
 .TP
-.B -cm <file>
+.B -cm \fIfile\fR
 Read a specification for the false color map used in 3dmod from a file.
 This file can have one of two forms.  One form starts with a line
 with 256, then has 256 lines with red, green, and blue values from 0-255.
@@ -468,7 +468,7 @@ displayed in color regardless of this option.
 Either option will run 3dmod in model view mode, the same as using the command
 3dmodv to start the program.  Only 3dmodv(1) options are allowed in this case.
 .TP
-.B -E <keys>
+.B -E \fIkeys\fR
 Open the windows specified by the key letters: t for Object Type, l for Object
 Color, h for Model Header, o for Model Offset, s for Surf/Cont/Point, v for
 Contour Move, c for Contour Copy, a for Auto Contour, b for Contour Break, j
@@ -596,7 +596,7 @@ using hot keys.
 .B C/c
 \- Go to the next/previous Contour.
 .br
-.B ]/[  or  >/<
+.B ]/[  or  \fR/\fI
 \- Go to the next/previous Point.
 .TP
 .I The Show Checkbox

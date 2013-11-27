@@ -5,19 +5,19 @@
 clonemodel \- clone copies of a model (e.g. an isosurface from a PEET average)
 back to the aligned positions and orientations.
 .SH SYNOPSIS
-clonemodel [options] -at <csvFile> <inputModel> <outputModel>
+clonemodel  [options]  -at csv_file  input_model  output_model
 
 .SH DESCRIPTION
 After aligning and averaging a set of subvolumes with PEET and creating an 
 isosurface model of the average, it is often useful to create 
 a new model containing multple copies of that isosurface reflecting the  
 positions and orientations of the individual aligned particles in the original 
-volume. Clonemodel performs this operation. The <inputModel> will be cloned
-at locations and orientations specified in <csvFile> and the output
-written to <outputModel>. The comma-separated value location/orientation file,
-<csvFile>, will typically have been created by running PEET program 
-createAlignedModel(1). The <outputModel> will be silently overwritten if it 
-already exists. Neither <inputModel> nor <summaryFile> will be modified.
+volume. Clonemodel performs this operation. The \fIinput_model\fR will be cloned
+at locations and orientations specified in \fIcsv_file\fR and the output
+written to \fIoutput_model\fR. The comma-separated value location/orientation file,
+\fIcsv_file\fR, will typically have been created by running PEET program 
+createAlignedModel(1). The \fIoutput_model\fR will be silently overwritten if it 
+already exists. Neither \fIinput_model\fR nor \fIcsv_file\fR will be modified.
 
 The PEET alignment and average must have been created with "Align Averages 
 Vertically" disabled for proper orientations of the cloned models.
@@ -30,7 +30,7 @@ comma-separated fields representing contour number, X, Y, and Z center
 coordinates in pixels, and Z-Y-X Slicer angles in degrees (stored in the
 order X, Y, Z), respectively.
 
-.SS Options
+.SH OPTIONS
 Clonemodel uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

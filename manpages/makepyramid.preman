@@ -4,7 +4,7 @@
 .SH NAME
 makepyramid \- Create an image pyramid for rapid viewing in 3dmod
 .SH SYNOPSIS
-makepyramid [options] input_file
+makepyramid  [options]  input_file
 
 .SH DESCRIPTION
 Makepyramid will make an "image pyramid", a set of files representing the same
@@ -63,7 +63,7 @@ recreated from the montage with a command like
    reducemont -nofft -plin rootname-1xy-1z.pl -plout dummy.pl \
       rootname-1xy-1z.mrc full-size-file.mrc
 
-.SS Options
+.SH OPTIONS
 Makepyramid uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

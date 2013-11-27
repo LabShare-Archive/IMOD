@@ -4,7 +4,7 @@
 .SH NAME
 setupcombine \- Create command files for combining dual-axis tomograms
 .SH SYNOPSIS
-setupcombine [options] -name rootname
+setupcombine  [options]  -name rootname
 
 .SH DESCRIPTION
 Setupcombine generates the command files needed to combine two single-axis
@@ -14,7 +14,7 @@ used for processing in eTomo.  Files matchvol2.com and warpvol.com are also
 created and could be used at the command line instead of the matchorwarp
 step.
 
-.SS Options
+.SH OPTIONS
 Setupcombine uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

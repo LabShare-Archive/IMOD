@@ -6,9 +6,9 @@ onepatchcorr \- Correlate a patch from two volumes at one position
 .SH SYNOPSIS
 onepatchcorr xsize ysize zsize  xcen ycen zcen  filea fileb  output_file
 .SH DESCRIPTION
-onepatchcorr will determine the 3-D displacement between a single subset
-or patch extracted from two image volumes in filea and fileb.
-It extracts the patch from each of the two 
+onepatchcorr is a C-shell script to determine the 3-D displacement
+between a single subset or patch extracted from two image volumes in
+filea and fileb.  It extracts the patch from each of the two 
 volumes using tapervoledge.  It then uses clip to do 3-D cross-correlation
 between the patches and determines the displacement of the patch in fileb
 relative to the patch in filea.  

@@ -4,7 +4,7 @@
 .SH NAME
 splitmrc \- Split an MRC file into CD-sized chucks
 .SH SYNOPSIS
-splitmrc [options] <mrc filename>
+splitmrc [options] MRC_filename
 .SH DESCRIPTION
 splitmrc will split an MRC image file into multiple files of a limited size,
 typically the size that will fit on a CD.  Although the resulting files are
@@ -17,12 +17,12 @@ images files have the original file name with ".s1", ".s2", etc., added to it.
 If the original file does have to be recreated from CDs, it is most 
 convenient (but not essential) if the .slist file is stored with the first 
 image file.
-.SS Options
+.SH OPTIONS
 .TP
-.B -d <pathname>
+.B -d \fIpathname\fR
 Place the resulting files in the directory sepcified by "pathname".
 .TP
-.B -m <size>
+.B -m \fIsize\fR
 Make the maximum file size be the given number of megabytes (e.g. -m 650).
 .TP
 .B -b

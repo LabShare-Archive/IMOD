@@ -4,7 +4,7 @@
 .SH NAME
 transferfid \- make seed model for second axis from fiducials for first axis
 .SH SYNOPSIS
-transferfid [options] setname
+transferfid  [options]  setname
 .SH DESCRIPTION
 transferfid will make a seed model for tracking fiducials in one axis 
 of a dual-axis tilt series, using the fiducial model for the other axis.  It
@@ -82,7 +82,7 @@ the program will abandon one rotation direction if it is clearly worse after
 considering four pairs of views, or only two if the difference between
 directions is very large.
 
-.SS Options
+.SH OPTIONS
 Transferfid uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

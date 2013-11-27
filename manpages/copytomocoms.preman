@@ -4,7 +4,7 @@
 .SH NAME
 copytomocoms \- Create command files for generating tomograms
 .SH SYNOPSIS
-copytomocoms [options] -name rootname
+copytomocoms  [options]  -name rootname
 
 .SH DESCRIPTION
 Copytomocoms generates the command files needed for nearly all of the
@@ -16,7 +16,7 @@ increment tilt angle, in a file with a list of angles (which can be extracted
 from the image file or supplied separately), or directly as a list of angles. 
 For each axis, one of these option must be entered for the tilt angle entry,
 but only one way can be specified.
-.SS Options
+.SH OPTIONS
 Copytomocoms uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

@@ -4,7 +4,7 @@
 .SH NAME
 trimvol \- Trim a volume and optionally rotate or scale to bytes or integers
 .SH SYNOPSIS
-trimvol [options] <input file>  <output file>
+trimvol  [options]  input_file  output_file
 .SH DESCRIPTION
 Trimvol provides a command-line interface to the programs Findcontrast(1) and
 Newstack(1), for copying a selected portion of an MRC image volume into a new
@@ -42,7 +42,7 @@ This adjustment can be turned off with the
 .B -k
 option.
 
-.SS Options
+.SH OPTIONS
 You can enter only one of
 .B -c,
 .B -sz

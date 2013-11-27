@@ -4,7 +4,7 @@
 .SH NAME
 splitcombine \- Produce command files for running volcombine in parallel
 .SH SYNOPSIS
-splitcombine [options] [Combine command file]
+splitcombine  [options]  [Combine_command_file]
 .SH DESCRIPTION
 splitcombine will take a command file for combining pieces from two 
 dual-axis tomograms and
@@ -31,7 +31,7 @@ in /usr/tmp or /tmp, other machines will not be able to access this directory
 and the program will warn you that the operation cannot be run on multiple
 machines.
 
-.SS Options
+.SH OPTIONS
 Splitcombine is a Python script and uses the PIP package for input (see the
 manual page for pip(1)). Options can be specified either as command line
 arguments (with the -) or one per line in a command file (without the -).

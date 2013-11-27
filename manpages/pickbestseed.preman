@@ -124,7 +124,7 @@ the bead was identified as elongated.
 equal to the inverse of the score.  With two surfaces, points on the top surface
 are given surface number 1, which is assigned magenta color.
 
-.SS Options
+.SH OPTIONS
 Pickbestseed uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

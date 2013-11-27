@@ -4,7 +4,7 @@
 .SH NAME
 mrctaper \- Tapers edges of images between actual and filled-in values
 .SH SYNOPSIS
-mrctaper [-i] [-t #] [-z min,max] input_file [output_file]
+mrctaper  [-i]  [-t #]  [-z min,max]  input_file  [output_file]
 .SH DESCRIPTION
 mrctaper will taper the edges between actual image data and areas that have
 been filled in with a constant value, thus eliminating the sharp transitions
@@ -21,16 +21,16 @@ doing so progressively less for pixels farther from the edge.  This method
 will throw away some information but will be most successful at preventing 
 artifacts in Fourier transforms.
 
-.SS Options
+.SH OPTIONS
 .TP
 .B -i
 Taper inside rather than outside.
 .TP
-.B -t #
+.B -t \fI#\fR
 Taper over the given number of pixels.  The default value is 1% of the mean
 of the X and Y sizes of the image, but at least 16 pixels and no more than 127.
 .TP
-.B -z <min,max>
+.B -z \fImin,max\fR
 Operate only on sections from
 .B min
 to

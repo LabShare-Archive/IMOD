@@ -5,7 +5,7 @@
 .SH NAME
 tomodataplots \- Make an X/Y plot of output from tilt series processing
 .SH SYNOPSIS
-tomodataplots [options] data_file
+tomodataplots  [options]  data_file
 .SH DESCRIPTION
 Tomodataplots is a Python script to plot selected output from various stages of
 tilt series processing in a window, using Genhstplt(1) via Onegenplot(1).
@@ -23,7 +23,7 @@ in a separate group, so in this case, connecting points will not work as desired
 Note that the graph window can be saved as a PNG file or printed from a popup
 menu brought up by right-clicking in the window.  Left-clicking will pop up a
 report of the coordinates clicked.
-.SS Options
+.SH OPTIONS
 Tomodataplots uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

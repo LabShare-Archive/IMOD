@@ -4,7 +4,7 @@
 .SH NAME
 imod2vrml2 \- Make a VRML2.0 model from an IMOD model file.
 .SH SYNOPSIS
-imod2vrml2 [options] <IMOD model> <wml file>
+imod2vrml2  [options]  IMOD_model  WML_file
 .SH DESCRIPTION
 Convert an IMOD model file to the VRML 2.0 file format used by VRML
 viewers and as a common format for interchange of 3D models by
@@ -27,7 +27,7 @@ the Diffuse setting, and then with the Specular and Shininess settings.
 Transparency may also need to be set higher to achieve the desired level, as
 well to minimize artifacts from overlapping transparent
 surfaces which become more evident at some orientations.
-.SS Options
+.SH OPTIONS
 .TP 
 .B -l
 Use low-resolution meshes, if any are available.  The default is to use the

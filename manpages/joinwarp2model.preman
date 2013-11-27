@@ -4,7 +4,7 @@
 .SH NAME
 joinwarp2model \- Selects best seed points for autofidseed
 .SH SYNOPSIS
-joinwarp2model options warping_xf_file model_file
+joinwarp2model  options  warping_xf_file  model_file
 .SH DESCRIPTION
 Joinwarp2model produces a model file that can be used as a starting point for
 a refining model when joining serial tomograms where warping has been applied in the
@@ -24,7 +24,7 @@ correspondences implied by the trajectories will not agree perfectly with the
 correspondences created by warping, and the fitting will average over all of
 the data, producing a non-unit linear transformation and shifting the
 warping points out of correspondence to some extent.
-.SS Options
+.SH OPTIONS
 Joinwarp2model uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file
