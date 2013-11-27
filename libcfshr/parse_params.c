@@ -840,7 +840,8 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       if (abbrevOK)
         fprintf(out, " (%s-%s)", sDoubleDashOptions ? "-" : "", sTempStr);
       if (sname && *sname && lname && *lname)
-        fprintf(out,"  OR  ");
+        fprintf(out,"  %sOR%s  ", sOutputManpage > 0 ? "\\fR" : "", 
+                sOutputManpage > 0 ? "\\fP" : "");
       if (lname && *lname)
         fprintf(out, "%s-%s", sDoubleDashOptions ? "-" : "", lname);
 
