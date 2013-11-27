@@ -6,7 +6,7 @@ addtostack - add sections to end of existing stack
 .SH SYNOPSIS
 addtostack
 .SH DESCRIPTION
-ADDTOSTACK will append sections from one or more files to an
+Addtostack will append sections from one or more files to an
 existing image file.  The X and Y dimensions of all files must match.
 All sections will be appended from the files that are being added.
 No image transformation or scaling is performed.  The header of the
