@@ -114,7 +114,6 @@ install : configure man sourcedoc
 #
 man : configure ALWAYS
 	(cd manpages ; $(MAKE) install)
-	(cd flib/man ; $(MAKE) install)
 	(cd autodoc  ; $(MAKE) install)
 
 docs :	configure man sourcedoc ALWAYS
@@ -170,7 +169,6 @@ clean : configure ALWAYS
 	cd scripts    ; $(MAKE) $@
 	cd manpages   ; $(MAKE) $@
 	cd flib       ; $(MAKE) $@
-	cd flib/man   ; $(MAKE) $@
 	cd com        ; $(MAKE) $@
 	cd html       ; $(MAKE) $@
 	(cd include ; \find . -type f -name "GLw*.h" -exec rm "{}" \;)
