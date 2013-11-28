@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/23/13: In eTomo allowing quoted values in autodocs.(Bug# 1631)
+11/28/13: In eTomo allowing quoted values in autodocs.(Bug# 1631)
 
 11/21/13: IMOD_4-6-33
 11/21/13: Changed Corrsearch3d to use dynamic allocation, load from file more 
