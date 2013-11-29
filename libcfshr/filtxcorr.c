@@ -314,6 +314,8 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
   int blockSize = 5;
   int nBlocksX = (nx + blockSize - 1) / blockSize;
   int nBlocksY = (ny + blockSize - 1) / blockSize;
+  int ixTopPeak = 10 * nx;
+  int iyTopPeak = 10 * ny;
   float xLimCen, yLimCen, xLimRadSq, yLimRadSq, threshold = 0.;
 
   /* If using elliptical limits, compute center and squares of radii */
@@ -378,6 +380,8 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
       *ypeak = (float)iypeak;
     }
     threshold = minStrength * *peak;
+    ixTopPeak = ixpeak;
+    iyTopPeak = iypeak;
   }
    
   /* Now find all requested peaks */
@@ -462,7 +466,8 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
           if (local > array[ixpeak + iybm] && local > array[ixpeak + iybp] &&
               local > array[ixm + iyb] && local > array[ixm + iybm] &&
               local > array[ixm + iybp] && local > array[ixp + iyb] &&
-              local > array[ixp + iybm] && local > array[ixp + iybp]){
+              local > array[ixp + iybm] && local > array[ixp + iybp] && 
+              (ixpeak != ixTopPeak || iypeak != iyTopPeak)){
             
             // Insert peak into the list
             for (i = 0; i < maxPeaks; i++) {
