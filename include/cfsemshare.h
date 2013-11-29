@@ -65,7 +65,8 @@ extern "C" {
   void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
                      float *ypeak, float *peak, int maxpeaks);
   void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *ypeak,
-                          float *peak, float *width, float *widthSD, int maxpeaks);
+                          float *peak, float *width, float *widthSD, int maxpeaks, 
+                          float minStrength);
   void setPeakFindLimits(int limXlo, int limXhi, int limYlo, int limYhi, int useEllipse);
   double parabolicFitPosition(float y1, float y2, float y3);
   void conjugateProduct(float *array, float *brray, int nx, int ny);
