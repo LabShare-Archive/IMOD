@@ -519,6 +519,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\minimize1D.c"
+				>
+			</File>
+			<File
 				RelativePath=".\parallelwrite.c"
 				>
 			</File>
