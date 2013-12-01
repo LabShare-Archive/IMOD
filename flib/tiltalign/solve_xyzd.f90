@@ -439,17 +439,11 @@ subroutine solve_xyzd_iter(xx, yy, isecView, irealStart, nview, numRealPt, tilt,
     d(i) = cosTheta * gsinPhi
     e(i) = gcosPhi
     f(i) = csinTheta * gsinPhi
+  enddo
     !
     ! the square and cross product terms for the x and y paired
     ! observations are always added together - so just combine them here
-    !
-    asq(i) = a(i)**2 + d(i)**2
-    bsq(i) = b(i)**2 + e(i)**2
-    csq(i) = c(i)**2 + f(i)**2
-    axb(i) = a(i) * b(i) + d(i) * e(i)
-    axc(i) = a(i) * c(i) + d(i) * f(i)
-    bxc(i) = b(i) * c(i) + e(i) * f(i)
-  enddo
+  call regressionCrossProducts(nview, a, b, c, d, e, f, asq, bsq, csq, axb, axc, bxc)
   !
   ! start looping until maxSolve times, or diffMax gets small, or error
   ! really blows up a lot from first iteration
@@ -476,52 +470,8 @@ subroutine solve_xyzd_iter(xx, yy, isecView, irealStart, nview, numRealPt, tilt,
     !
     do jpt = 1, numRealPt
       if (jpt < numRealPt) then
-        !
-        ! zero the matrix elements for sums of squares and cross-products
-        !
-        am11 = 0.
-        am12 = 0.
-        am13 = 0.
-        am22 = 0.
-        am23 = 0.
-        am33 = 0.
-        bv1 = 0.
-        bv2 = 0.
-        bv3 = 0.
-        !
-        ! for each projection of the real point, add terms to matrix
-        !
-        do i = irealStart(jpt), irealStart(jpt + 1) - 1
-          iv = isecView(i)
-          xpr = xx(i) - dxy(1, iv)
-          ypr = yy(i) - dxy(2, iv)
-          am11 = am11 + asq(iv)
-          am22 = am22 + bsq(iv)
-          am33 = am33 + csq(iv)
-          am12 = am12 + axb(iv)
-          am13 = am13 + axc(iv)
-          am23 = am23 + bxc(iv)
-          bv1 = bv1 + a(iv) * xpr + d(iv) * ypr
-          bv2 = bv2 + b(iv) * xpr + e(iv) * ypr
-          bv3 = bv3 + c(iv) * xpr + f(iv) * ypr
-        enddo
-        !
-        ! fill out lower triangle of matrix
-        !
-        am31 = am13
-        am21 = am12
-        am32 = am23
-        !
-        ! solve it
-        !
-        det = am11 * (am22 * am33 - am23 * am32) - am12 * (am21 * am33 - am23 * am31) &
-            + am13 * (am21 * am32 - am22 * am31)
-        bvec(1) = (bv1 * (am22 * am33 - am23 * am32) - am12 * (bv2 * am33 - am23 * bv3) &
-            + am13 * (bv1 * am32 - am22 * bv3)) / det
-        bvec(2) = (am11 * (bv2 * am33 - am23 * bv3) - bv1 * (am21 * am33 - am23 * am31) &
-            + am13 * (am21 * bv3 - bv2 * am31)) / det
-        bvec(3) = (am11 * (am22 * bv3 - bv2 * am32) - am12 * (am21 * bv3 - bv2 * am31) &
-            + bv1 * (am21 * am32 - am22 * am31)) / det
+        call oneXYZbyRegression(a, b, c, d, e, f, asq, bsq, csq, axb, axc, bxc, dxy, xx, &
+            yy, irealStart(jpt), irealStart(jpt + 1) - 1, isecView, bvec)
       else
         !
         ! get coordinates of last point as minus sum of all other points
@@ -695,3 +645,78 @@ subroutine init_dxy(xx, yy, isecView, irealStart, nview, numRealPt, iminTilt, dx
   return
 end subroutine init_dxy
 
+
+! regressionCrossProducts takes the 6 factors of x, y, z and computes the cross-products
+! and squares needed for quick regression
+!
+subroutine regressionCrossProducts(nview, a, b, c, d, e, f, asq, bsq, csq, axb, axc, bxc)
+  implicit none
+  integer*4 nview, i
+  real*4 a(*), b(*), c(*), d(*), e(*), f(*), asq(*), bsq(*), csq(*), axb(*), axc(*),bxc(*)
+  do i = 1, nview
+    asq(i) = a(i)**2 + d(i)**2
+    bsq(i) = b(i)**2 + e(i)**2
+    csq(i) = c(i)**2 + f(i)**2
+    axb(i) = a(i) * b(i) + d(i) * e(i)
+    axc(i) = a(i) * c(i) + d(i) * f(i)
+    bxc(i) = b(i) * c(i) + e(i) * f(i)
+  enddo
+  return
+end subroutine regressionCrossProducts
+
+
+! oneXYZbyRegression solves for the x, y, z coordinates of a single fiducial given the
+! limits of its projection points, the set of all projection points, and the 6 factors and
+! cross-products 
+!
+subroutine oneXYZbyRegression(a, b, c, d, e, f, asq, bsq, csq, axb, axc, bxc, dxy, xx, &
+    yy, indStart, indEnd, isecView, bvec)
+  implicit none
+  integer*4 isecView(*), indStart, indEnd, i, iv
+  real*4 a(*), b(*), c(*), d(*), e(*), f(*), asq(*), bsq(*), csq(*), axb(*), axc(*),bxc(*)
+  real*4 dxy(2, *), bvec(3), xx(*), yy(*), ypr
+  real*4 am11, am12, am13, am21, am22, am23, am31, am32, am33, det, bv1, bv2, bv3, xpr
+  !
+  ! zero the matrix elements for sums of squares and cross-products
+  am11 = 0.
+  am12 = 0.
+  am13 = 0.
+  am22 = 0.
+  am23 = 0.
+  am33 = 0.
+  bv1 = 0.
+  bv2 = 0.
+  bv3 = 0.
+  !
+  ! for each projection of the real point, add terms to matrix
+  do i = indStart, indEnd
+    iv = isecView(i)
+    xpr = xx(i) - dxy(1, iv)
+    ypr = yy(i) - dxy(2, iv)
+    am11 = am11 + asq(iv)
+    am22 = am22 + bsq(iv)
+    am33 = am33 + csq(iv)
+    am12 = am12 + axb(iv)
+    am13 = am13 + axc(iv)
+    am23 = am23 + bxc(iv)
+    bv1 = bv1 + a(iv) * xpr + d(iv) * ypr
+    bv2 = bv2 + b(iv) * xpr + e(iv) * ypr
+    bv3 = bv3 + c(iv) * xpr + f(iv) * ypr
+  enddo
+  !
+  ! fill out lower triangle of matrix
+  am31 = am13
+  am21 = am12
+  am32 = am23
+  !
+  ! solve it
+  det = am11 * (am22 * am33 - am23 * am32) - am12 * (am21 * am33 - am23 * am31) &
+      + am13 * (am21 * am32 - am22 * am31)
+  bvec(1) = (bv1 * (am22 * am33 - am23 * am32) - am12 * (bv2 * am33 - am23 * bv3) &
+      + am13 * (bv1 * am32 - am22 * bv3)) / det
+  bvec(2) = (am11 * (bv2 * am33 - am23 * bv3) - bv1 * (am21 * am33 - am23 * am31) &
+      + am13 * (am21 * bv3 - bv2 * am31)) / det
+  bvec(3) = (am11 * (am22 * bv3 - bv2 * am32) - am12 * (am21 * bv3 - bv2 * am31) &
+      + bv1 * (am21 * am32 - am22 * am31)) / det
+  return
+end subroutine oneXYZbyRegression
