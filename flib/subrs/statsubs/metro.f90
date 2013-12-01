@@ -132,7 +132,7 @@ subroutine metro(n, X, funct, f, G, stepInitial, epsilon, limitIn, ier, H, numIt
     ! Something's flaky: dg >= 0.  But it is OK if vector length is very small
     if (delXdotG >= 0.D0) then
       delXlength = deltaXlength()
-      ! write(*,'(a,2f15.12)')'DG > 0, xlength', sqrt(delXlength),epsilon
+      ! write(*,'(a,2f15.12)')'DG > 0, xlength', delXlength,epsilon
       if (delXlength < epsilon / 5.) return
       ier = 1
       return
@@ -171,7 +171,7 @@ subroutine metro(n, X, funct, f, G, stepInitial, epsilon, limitIn, ier, H, numIt
           !
           ! DMN 11/27/13: if step is too small, just terminate if delta X is small enough
           delXlength = deltaXlength()
-          ! write(*,'(a,2f15.12)')'step too small, xlength', sqrt(delXlength),epsilon
+          ! write(*,'(a,2f15.12)')'step too small, xlength', delXlength,epsilon
           if (delXlength < epsilon) return
           ier = 2                           ! Linear search lost
           return
