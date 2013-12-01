@@ -79,7 +79,7 @@ subroutine funct(nvarSearch, var, ferror, grad)
   real*4 grad(*), var(*), ferror
   integer*4 nvarSearch
   !
-  double precision error, gradSum
+  double precision error, gradSum, errorMin
   !
   real*4 dermat(9)
   real*4 projMat(4), umat(9)
@@ -89,6 +89,8 @@ subroutine funct(nvarSearch, var, ferror, grad)
   real*4 afac, bfac, cfac, dfac, efac, ffac, xpxRlast, xpyRlast, xpzRlast, ypxRlast
   real*4 ypyRlast, ypzRlast, valAdd, cosPSkew, sinPSkew, cosBeam, sinBeam
   real*4 cos2rot, sin2rot
+  character*2 star
+  save errorMin
   real*8 gradientSum
   !
   ! Stretch type: 1 for dmag = stretch on X axis, skew = X axis rotation
@@ -138,6 +140,7 @@ subroutine funct(nvarSearch, var, ferror, grad)
 !!$      enddo
 !!$      print *,nvarSearch
 !!$      write(*,'(7f11.7)') (var(i), i = 1, nvarSearch)
+    errorMin = 1.e37
   endif
   !
   ! precompute the a - f and items related to them.  Store the component
@@ -253,8 +256,14 @@ subroutine funct(nvarSearch, var, ferror, grad)
     enddo
   enddo
 
+  ! Keep track of minimum error for trace output
   ferror = error
-  ! write(*,'(f25.15)') error
+  star = ''
+  if (error < errorMin) then
+    errorMin = error
+    star = ' *'
+  endif
+  ! write(*,'(f55.15,a)') error,star
   !
   ! compute derivatives of error w / r to search parameters
   ! first clear out all the gradients

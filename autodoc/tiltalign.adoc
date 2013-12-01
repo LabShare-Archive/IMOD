@@ -802,6 +802,15 @@ manpage = Use a robust fitting method that gives less weight to points with
 residuals higher than the median residual, and no weight to the most extreme
 points.
 
+[Field = WeightWholeTracks]
+type = B
+usage = Do robust fitting to entire contours in patch track models
+tooltip = 
+manpage = When doing robust fitting with a model from patch tracking, 
+assign the same weight to all the points in each contour.  Contours with
+mean residuals higher than the median will thus be given less weight, and ones
+with the most extreme residuals will be given weights of 0.02.
+
 [Field = KFactorScaling]
 type = I
 usage = Amount to scale the K factor that controls how many points are down-weighted
@@ -834,7 +843,11 @@ views; and if there are enough points, the points in a global alignment run
 are also sorted into rings based on distance from the center.  These entries
 set the minimum sizes of these groups.  If the total number of points
 available for fitting falls below the minimum, the robust fitting is not
-done and a warning or error is issued.  The defaults are 100 and 65.
+done and a warning or error is issued.  The defaults are 100 and 65 when
+adjusting weights for individual points.  When assigning weights to whole
+contours with data from patch tracking, a similar approach is used to divide
+the contours into groups that are analyzed together.  Here, the defaults are
+30 and 20.
 
 [Field = AxisZShift]
 short = 

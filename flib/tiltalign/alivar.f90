@@ -16,7 +16,7 @@ module alivar
   implicit none
   !
   real*4, allocatable :: xx(:), yy(:), xyz(:,:), dxy(:,:)
-  real*4, allocatable :: xresid(:), yresid(:), weight(:), viewMedianRes(:)
+  real*4, allocatable :: xresid(:), yresid(:), weight(:), viewMedianRes(:), trackResid(:)
   integer*4, allocatable :: isecView(:), irealStr(:)
   !
   integer*4, allocatable :: mapTilt(:), mapGmag(:), mapComp(:)
@@ -35,14 +35,17 @@ module alivar
   real*4 fixedTilt2, fixedRot, fixedAlf, projStrRot, projSkew, beamTilt, kfacRobust
   real*4 smallWgtMaxFrac, smallWgtThreshold
   integer*4, allocatable :: mapViewToFile(:), mapFileToView(:)
+  integer*4, allocatable :: mapRealToTrack(:), mapTrackToReal(:), indFullTrack(:)
   integer*4 nfileViews, mapProjStretch, mapBeamTilt
   !
   real*4, allocatable :: glbRot(:), glbTilt(:), glbAlf(:)
   real*4, allocatable :: glbGmag(:), glbDmag(:), glbSkew(:)
   integer*4 incrGmag, incrDmag, incrSkew, incrTilt, incrAlf, incrRot
-  logical firstFunct, xyzFixed, robustWeights/.false./
-  integer*4 numWgtGroups
+  logical firstFunct, xyzFixed, robustWeights/.false./, patchTrackModel/.false./
+  logical*4 robustByTrack/.false./
+  integer*4 numWgtGroups, numFullPatchTracks/0/, numFullTracksUsed, numTrackGroups
   integer*4, allocatable :: indProjWgtList(:), ivStartWgtGroup(:), ipStartWgtView(:)
+  integer*4, allocatable :: itrackGroup(:)
 
 CONTAINS
 

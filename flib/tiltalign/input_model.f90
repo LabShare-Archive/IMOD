@@ -18,7 +18,7 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
   !
   character*320 soluFile, angleFile
   logical exist, readSmallMod, pipinput
-  integer getImodHead, getImodScales, getImodMaxes, numberInList
+  integer getImodHead, getImodScales, getImodMaxes, numberInList, getModelName
   !
   include 'smallmodel.inc90'
   !
@@ -35,7 +35,6 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
   integer*4 PipGetThreeIntegers
   integer*4 PipGetString, PipGetTwoIntegers, PipGetTwoFloats
   character*320 concat
-  logical b3dxor
   !
   ! read model in
   !
@@ -50,6 +49,8 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
   endif
   exist = readSmallMod(modelFile)
   if (.not.exist) call errorExit('READING MODEL FILE', 0)
+  ierr = getModelName(listString)
+  patchTrackModel = listString == 'Patch Tracking Model'
   !
   ! get dimensions of file and header info on origin and delta
   !
@@ -306,7 +307,7 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
       !
       ! remove points on exclude list or not on include list
       !
-      if (b3dxor(ifSpecify <= 2, ifOnList == 1)) then
+      if (ifSpecify <= 2 .neqv. ifOnList == 1) then
         numInZlist = numInZlist - 1
         do j = i, numInZlist
           listz(j) = listz(j + 1)
@@ -398,29 +399,26 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
           ! check for two points on same view
           !
           do i = numProjPt + 1, nprojTmp
-            if (inlist == isecview(i)) then
+            if (inlist == isecView(i)) then
               !
               ! Find the other point
               do j = 1, ipt - 1
-                if (nint((p_coord(3, object(j + ibase)) + zorig) / delta(3)) &
-                    == iz) inlist = j
+                if (nint((p_coord(3, object(j + ibase)) + zorig) / delta(3)) == iz) &
+                    inlist = j
               enddo
               call objToCont(iobject, obj_color, ibase, numInObj)
               write(*,'(/,a,i5,a,i5,a,i5,a,i5,a,i4)') &
                   'ERROR: TILTALIGN - TWO POINTS (#', inlist, ' AND', ipt, &
-                  ') ON VIEW', iz + 1, ' IN CONTOUR', numInObj, ' OF OBJECT', &
-                  ibase
+                  ') ON VIEW', iz + 1, ' IN CONTOUR', numInObj, ' OF OBJECT', ibase
               call exit(1)
             endif
           enddo
           nprojTmp = nprojTmp + 1
           if (nprojTmp > maxprojpt) call errorExit( &
               'TOO MANY PROJECTION POINTS FOR ARRAYS', 0)
-          xx(nprojTmp) = (p_coord(1, object(ipt + ibase)) + xorig) / xdelt &
-              - xcen
-          yy(nprojTmp) = (p_coord(2, object(ipt + ibase)) + yorig) / ydelt &
-              - ycen
-          isecview(nprojTmp) = inlist
+          xx(nprojTmp) = (p_coord(1, object(ipt + ibase)) + xorig) / xdelt - xcen
+          yy(nprojTmp) = (p_coord(2, object(ipt + ibase)) + yorig) / ydelt - ycen
+          isecView(nprojTmp) = inlist
         endif
       enddo
       !
@@ -428,11 +426,9 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
       !
       if (nprojTmp - numProjPt >= 2) then
         nrealpt = nrealpt + 1
-        if (nrealpt > maxreal) call errorExit( &
-            'TOO MANY FIDUCIAL POINTS FOR ARRAYS', 0)
+        if (nrealpt > maxreal) call errorExit('TOO MANY FIDUCIAL POINTS FOR ARRAYS', 0) 
         irealstr(nrealpt) = numProjPt + 1
-        call objToCont(iobject, obj_color, imodObj(nrealpt), &
-            imodCont(nrealpt))
+        call objToCont(iobject, obj_color, imodObj(nrealpt), imodCont(nrealpt))
         numProjPt = nprojTmp
         npt_in_obj(iobject) = 1
       else
@@ -442,16 +438,20 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
       npt_in_obj(iobject) = 0
     endif
   enddo
-  irealstr(nrealpt + 1) = numProjPt + 1             !Needed to get number in real sometimes
+  irealstr(nrealpt + 1) = numProjPt + 1           !Needed to get number in real sometimes
+  !
+  ! For a patch tracking model, find which contours belong to an original full track and
+  ! make lists and maps back and forth
+  if (patchTrackModel) then
+    call analyzePatchTracks(numProjPt)
+  endif
   !
   ! shift listz to be a view list, and make the map of file to view
   ! listz will be copied into mapviewtofile
-  do i = 1, nfileviews
-    mapfiletoview(i) = 0
-  enddo
+  mapFileToView(:) = 0
   do i = 1, numInZlist
     listz(i) = listz(i) - minZval + 1
-    mapfiletoview(listz(i)) = i
+    mapFileToView(listz(i)) = i
   enddo
   return
 end subroutine input_model
@@ -460,7 +460,7 @@ end subroutine input_model
 
 ! WRITE_XYZ_MODEL will write out a model containing only a single point
 ! per object with the solved XYZ coordinates, to file modelFile, if
-! that string is non - blank.  IGROUP is an array with the group number
+! that string is non-blank.  IGROUP is an array with the group number
 ! if the points have been assigned to surfaces.
 !
 subroutine write_xyz_model(modelFile, xyz, igroup, nrealpt)
@@ -479,7 +479,7 @@ subroutine write_xyz_model(modelFile, xyz, igroup, nrealpt)
   !
   if (modelFile == ' ') return
   !
-  ! get a scattered point size (simplified 1 / 30 / 03)
+  ! get a scattered point size (simplified 1/30/03)
   !
   xyzmax = 0.
   do ireal = 1, nrealpt
