@@ -4,7 +4,7 @@
 .SH NAME
 imod2obj \- Make a OBJ model from an IMOD model file.
 .SH SYNOPSIS
-imod2obj [options] <IMOD model> <obj file> [mtl file]
+imod2obj  [options]  IMOD_model  obj_file  [mtl_file]
 .SH DESCRIPTION
 Convert an IMOD model file to the Wavefront .obj text file format which
 a very simple but common format for interchange of 3D meshes between
@@ -24,7 +24,7 @@ The model produced will generally have similar attributes to those set in
 off will not be included in the OBJ file. OBJ files can and do not allow
 contours to be rendered as contours, thus only objects which have been meshed
 will appear in the OBJ file.
-.SS Options
+.SH OPTIONS
 .TP 
 .B -l
 Use low-resolution meshes, if any are available.  The default is to use the
@@ -44,7 +44,7 @@ This feature is useful when exporting to animation programs
 Output normals (off by default as most 3d programs which import OBJ can
 generate their own normals if missing).
 .TP
-.B -s #
+.B -s \fI#\fR
 Specifies number of segments to render per sphere - the more segments the
 nicer the sphere, but the more faces and thus longer to load. Think of this
 number as the number of lines of longitude (the ones that go up and down).

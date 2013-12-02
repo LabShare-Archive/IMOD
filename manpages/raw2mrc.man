@@ -4,7 +4,7 @@
 .SH NAME
 raw2mrc \- Create an MRC image stack from raw image data.
 .SH SYNOPSIS
-raw2mrc [options]  raw_image_files...  MRC_output_file
+raw2mrc  [options]  raw_image_files...  MRC_output_file
 .SH DESCRIPTION
 raw2mrc can be used to create MRC image files from many types
 of raw binary image data.  
@@ -12,20 +12,20 @@ Command line options are used to adjust the image size and
 to skip the input image header.
 Several raw images can be combined into one file by listing all of their
 filenames before the name of the output file.
-.SS Options
+.SH OPTIONS
 .TP
-.B -x <width>
+.B -x \fIwidth\fR
 Set the width of the image, the default value is 640 pixels.
 .TP
-.B -y <height>
+.B -y \fIheight\fR
 Set the height of the input image, 
 the default is 480 pixels.
 .TP
-.B -z <sections>
+.B -z \fIsections\fR
 Set the number of sections in each input image file,
 the default is 1.
 .TP
-.B -t <type>
+.B -t \fItype\fR
 Set the type of input data, the default byte data. 
 The allowed types are
 byte, short, ushort, long, ulong, float and rgb.
@@ -37,11 +37,11 @@ point value and rgb is three byte values--one for each color.
 .B -s
 Swap input bytes.
 .TP
-.B -o <offset>
+.B -o \fIoffset\fR
 Set the offset value used at the beginning of the file, 
 the default is 0.
 .TP
-.B -oz <offset>
+.B -oz \fIoffset\fR
 Set the offset value used at the end of each section,
 the default offset is 0.
 .TP
@@ -84,10 +84,10 @@ can be used to store the numbers as unsigned integers in a file of mode 6.
 If values in the input files are all less than 32768, 
 then specify the type as long instead of ulong.
 .TP
-.B -p <pixel>
+.B -p \fIpixel\fR
 Set the pixel spacing of the MRC file header to the given value, which should
 generally be a pixel size in Angstroms.
-.B -pz <pixel>
+.B -pz \fIpixel\fR
 Set the Z pixel spacing of the MRC file header to the given value if it is 
 different from the one given with the 
 .B -p

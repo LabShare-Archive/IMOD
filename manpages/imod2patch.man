@@ -4,9 +4,9 @@
 .SH NAME
 imod2patch \- converts a model to a patch displacement file
 .SH SYNOPSIS
-imod2patch <IMOD model file> <new patch file>
+imod2patch  IMOD_model_file  output_patch_file
 .SH DESCRIPTION
-imod2patch converts an IMOD model originally produced by patch2imod(1)
+Imod2patch converts an IMOD model originally produced by Patch2imod(1)
 back into a list of patch positions and displacements.  Specifically,
 for every contour in the model consisting of at least two points, it outputs
 a line listing
@@ -14,14 +14,14 @@ a 3-D position and a displacement.  The
 position is that of the first point.  The displacement is the 
 vector from the first to the second point, divided by the scaling factor
 that was stored as the pixel size in the model header.  The resulting file
-can then be analyzed by findwarp(1) or refinematch(1).
+can then be analyzed by Findwarp(1) or Refinematch(1).
 .P
 If the original patch file contained correlation coefficients (from
-corrsearch3d(1)) or residual values (from refinematch(1) or findwarp(1)),
-and these were stored as values in the model file by patch2imod(1), then
-imod2patch will add these values to each line, or a 0 if there is no value
+Corrsearch3d(1)) or residual values (from Refinematch(1) or Findwarp(1)),
+and these were stored as values in the model file by Patch2imod(1), then
+Imod2patch will add these values to each line, or a 0 if there is no value
 for a particular point.  In addition, if there outlier fractions output by
-findwarp(1) and stored in the model, these will be output as well.
+Findwarp(1) and stored in the model, these will be output as well.
 .SH FILES
 If the output file already exists, it becomes a backup file with ~ added to its
 name.

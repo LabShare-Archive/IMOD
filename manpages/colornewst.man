@@ -4,7 +4,7 @@
 .SH NAME
 colornewst -\ Run Newstack command on a color file
 .SH SYNOPSIS
-colornewst [options] input_file output_file
+colornewst  [options]  input_file  output_file
 .SH DESCRIPTION
 Colornewst is a Python script to run Newstack(1) operations on a color file by
 splitting the file into components with "clip splitrgb", running Newstack(1),
@@ -53,13 +53,13 @@ Convert the input file from TIFF to MRC, process it, and convert the processed
 file to TIFF.  The option is not needed if the input filename ends in ".tif",
 ".tiff", ".TIF", or ".TIFF".
 .TP
-.B -cntempdir dir
+.B -cntempdir \fIdir\fR
 Path to directory to use for temporary files, namely the red, green, and blue
 components produced by "clip splitrgb" and files for each component processed
 by Newstack(1).  The default is the standard temporary directory for IMOD
 commands.
 .TP
-.B -cnmaxtemp #
+.B -cnmaxtemp \fI#\fR
 Maximum amount of space to use in the temporary directory, in megabytes
 (floating point values allowed).  The default is 1024.  When processing the
 whole file at once would require more than this amount of space, the program

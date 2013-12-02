@@ -4,7 +4,7 @@
 .SH NAME
 queuechunk \- Place a csh or python script file on a queue or kill a job
 .SH SYNOPSIS
-queuechunk [options] <root name of script file>
+queuechunk [options]  root_name_of_script_file
 
 .SH DESCRIPTION
 Queuechunk will take a csh or python script file and submit it to a cluster queue,
@@ -21,9 +21,9 @@ the command to Queuechunk must be the root name of the script file, excluding
 the extension .csh but including everything before the extension (-001, etc).
 If the action is L to report a load average, this argument may be omitted.
 
-.SS Options
+.SH OPTIONS
 .TP
-.B -t <type>
+.B -t \fItype\fR
 Type of queue.  This option must be entered with the value of either pbs or
 pbs-maui (for a PBS queue) or sge (for a Grid Engine queue).  The type
 pbs-maui can be used if the queue software has been configured so that
@@ -33,21 +33,21 @@ gives output for the processors assigned to that queue
 of the form
      0 Active Jobs       0 of   40 Processors Active (0.00%)
 .TP
-.B -q <name>
+.B -q \fIname\fR
 Name of queue to submit to.  This option must entered if the queue type is
 pbs-maui.
 .TP
-.B -h <name>
+.B -h \fIname\fR
 Name of the head node.  When this option is entered, the qsub, qstat, and qdel
 operations are run via ssh to the head node.  It is necessary to have 
 passwordless access between machines for this to work.
 .TP
-.B -w <dir>
+.B -w \fIdir\fR
 Name of the current working directory, as it must be used by the machine
 running the job.  If this name contains spaces, they should be escaped
 with backslashes.  The default is the current directory name.
 .TP
-.B -a <action>
+.B -a \fIaction\fR
 The action to be performed:
    R  -  Run the job by placing it on the queue
    S  -  Run the job on the queue but synchronously, waiting until it is done

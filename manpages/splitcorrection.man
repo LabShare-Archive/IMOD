@@ -4,7 +4,7 @@
 .SH NAME
 splitcorrection \- Produce multiple command files for running ctfphaseflip in parallel
 .SH SYNOPSIS
-splitcorrection [options] <ctfphaseflip command file>
+splitcorrection  [options]  ctfphaseflip_command_file
 .SH DESCRIPTION
 splitcorrection is a Python script that will take a command file for running
 the ctfphaseflip(1) program and produce multiple command files that can be run
@@ -28,14 +28,14 @@ task and clean up intermediate files. One can then enter
 where "machine_list" is the comma-separated list of machines to use, the
 number of processors to use on a single machine.
 
-.SS Options
+.SH OPTIONS
 When the program is invoked with no arguments, it gives a usage statement that
 shows the default values for these options.
 .TP
-.B -m <value>
+.B -m \fIvalue\fR
 Set the number of views to be processed per chunk to the given value (the default is 5 ).
 .TP
-.B -b <value>
+.B -b \fIvalue\fR
 Number of pixels at each boundary between chunks to save in separate boundary
 files (named setname-nnn.cbound) and rewrite to the output file in the
 -finish.com file.  The default is 2048.  

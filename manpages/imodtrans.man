@@ -4,7 +4,7 @@
 .SH NAME
 imodtrans \- Transform an IMOD model file.
 .SH SYNOPSIS
-imodtrans [options] <input model> <output model>
+imodtrans  [options]  input_model  output_model
 .SH DESCRIPTION
 Applies transformations to an IMOD model and copies the result to a new
 IMOD model.  The transformations can be specified in three
@@ -77,14 +77,14 @@ In addition, the model can be transformed to match a particular image
 file, just the same as if it were loaded onto that file in 3dmod.  The order
 of operations is: flipping, then transforming to match an image file, then 
 transforming either via transformations in a file or via the entered options.
-.SS Options
+.SH OPTIONS
 .TP
-.B -tx <value>
+.B -tx \fIvalue\fR
 .PD 0
 .TP
-.B -ty <value>
+.B -ty \fIvalue\fR
 .TP
-.B -tz <value>
+.B -tz \fIvalue\fR
 .PD
 The
 .B -tx, -ty
@@ -94,12 +94,12 @@ options can be used to
 translate the model in the particular direction by the given floating point 
 value, in pixels.
 .TP
-.B -sx <value>
+.B -sx \fIvalue\fR
 .PD 0
 .TP
-.B -sy <value>
+.B -sy \fIvalue\fR
 .TP
-.B -sz <value>
+.B -sz \fIvalue\fR
 .PD
 The
 .B -sx, -sy
@@ -108,12 +108,12 @@ and
 options can be used to 
 scale the model in the particular dimension by the given floating point value.
 .TP
-.B -rx <value>
+.B -rx \fIvalue\fR
 .PD 0
 .TP
-.B -ry <value>
+.B -ry \fIvalue\fR
 .TP
-.B -rz <value>
+.B -rz \fIvalue\fR
 .PD
 The
 .B -rx, -ry
@@ -122,7 +122,7 @@ and
 options can be used to 
 rotate the model about the particular axis by the given value in degrees.
 .TP
-.B -2 <transform file>
+.B -2 \fItransform file\fR
 Transform the model in 2-D sections using the given transform file
 as input.  One line is expected per section, and slices at Z values greater 
 than the
@@ -145,14 +145,14 @@ can be used with this option, and
 can be used when applying one transform to the whole model.  In each case, the
 option can be entered only once, and the shift is applied after the transformation.
 .TP
-.B -l <line #>
+.B -l \fIline #\fR
 Transform the whole model with the single 2D transformation at the given line
 number in the transform file entered with 
 .B -2.
 Lines are numbered from 0.  
 
 .TP
-.B -3 <transform file>
+.B -3 \fItransform file\fR
 Transform the model with the single 3-D transformation in the given file.
 The format of the file is to have 3 lines, each with 4 numbers, the
 coefficients for multiplying the old X, Y, and Z coordinates and a translation
@@ -164,13 +164,13 @@ options, or with
 It can be used with the translation options, but each option can be entered
 only once, and the shift is applied after the transformation.
 .TP
-.B -S <factor>
+.B -S \fIfactor\fR
 Scale the X, Y, and Z shifts in the transformations from transform files by the given
 factor.  This option is needed, e.g., if transformations have shifts based on
 unbinned coordinates and the model is now in
 binned coordinates.
 .TP
-.B -n <NX,NY,NZ>
+.B -n \fINX,NY,NZ\fR
 Specify the dimensions of the image file on which the model is to be
 displayed, if these dimensions are not the same as for the image file
 on which the model was originally built.  This entry is needed to
@@ -190,7 +190,7 @@ flipped, use this option to apply the transformation to the flipped
 coordinates.  The default is to apply the transformation to native, unflipped
 coordinates, which will work with transformations obtained from Solvematch.
 .TP
-.B -i <image file>
+.B -i \fIimage file\fR
 Transform the model coordinates as if the model were being loaded into 3dmod
 together with the given image file.  The maximum coordinates in the model
 (reported as "max # # #" in the output from Imodinfo(1)) will be changed to

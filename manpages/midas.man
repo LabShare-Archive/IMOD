@@ -4,7 +4,7 @@
 .SH NAME
 midas \- manual image alignment for MRC files.
 .SH SYNOPSIS
-midas [options] <image file> [transform file]
+midas  [options]  image_file  [transform_file]
 .SH DESCRIPTION
 Midas allows one to assess and adjust the alignment between pairs of images.
 It is typically used to align images from serial sections and to correct
@@ -292,20 +292,20 @@ are going to use the robust fitting option in Blendmont(1), you would need to
 set the criterion to this same value to prevent a misalignment across this
 edge.
 
-.SS Options
+.SH OPTIONS
 Midas accepts some Qt options (such as -style) and
 the following options.
 .TP
 .B -g
 Start Midas in global alignment mode.  The default is local alignment mode. 
 .TP
-.B -r <filename>
+.B -r \fIfilename\fR
 Load a reference image from a file with the given 
 .I filename.
 This reference image can be used for
 aligning an image stack to the single reference image.
 .TP
-.B -rz <section>
+.B -rz \fIsection\fR
 This option will select the 
 .I section 
 number to be used when loading in a reference image with the
@@ -315,13 +315,13 @@ The default value is the first
 .I section 
 which is numbered 0.
 .TP
-.B -c <list of sizes>
+.B -c \fIlist of sizes\fR
 Determine alignment between chunks of sections.  Enter a comma-separated list
 of the number of sections in each chunk.  The list should add up to the
 total number of sections in the image file.  When chunks are entered in this
 way, the reference or current section can be set to any section within a chunk.
 .TP
-.B -cs <list of sizes>
+.B -cs \fIlist of sizes\fR
 Determine alignment between chunks of sections from samples near the
 boundaries between chunks (e.g., tomograms corresponding to physical
 sections).  Enter a comma-separated list of the number of sections in each
@@ -330,21 +330,21 @@ have two samples.  The list should add up to the total number of sections in
 the image file.  When chunks are entered in this way, the reference and
 current section are constrained to stay within a sample.
 .TP
-.B -B <factor>
+.B -B \fIfactor\fR
 Bin images by the given factor when reading them in.  The translation
 component of the transformation shown and adjusted in the program will be
 smaller by this amount.  Translations will be scaled down when read in from a
 file and scaled back up when written out to file.  Errors shown when fixing
 montage overlaps will also be smaller by the binning factor.
 .TP
-.B -p <filename>
+.B -p \fIfilename\fR
 Load piece coordinates for a montaged image file from the given
 .I filename
 and enter montage fixing mode.  The final argument on the command line would
 ordinarily be the .ecd file produced by Blendmont(1), but it is possible to
 open a montage without such a file.
 .TP
-.B -C <size>
+.B -C \fIsize\fR
 Set the cache
 .I size
 to the given number of sections.  Sections are read from
@@ -358,7 +358,7 @@ file has more pixels than there is memory, you should enter an appropriate
 .I size
 to avoid disk swapping.
 .TP
-.B -s <min,max>
+.B -s \fImin,max\fR
 Scale the image intensities when reading from the file, so that the range from
 .I min
 to
@@ -366,7 +366,7 @@ to
 will be scaled to range from 0 to 255 when the section is stored in the
 program.
 .TP
-.B -b <size>
+.B -b \fIsize\fR
 Set the initial 
 .I size
 of the blocks for transforming the current image.  The
@@ -375,22 +375,22 @@ larger the block
 the faster the display, but quality will suffer, especially for images that
 are rotated substantially.  A size of 0 will turn on image interpolation.
 .TP
-.B -a <angle>
+.B -a \fIangle\fR
 Display all images with a global rotation specified by
 .I angle.
 When the program is started with this option, the angle can be adjusted if
 necessary with a spin box control.
 .TP
-.B -o <filename>
+.B -o \fIfilename\fR
 Save transforms to a file with the given 
 .I filename
 instead of to the file that transforms were read from.
 .TP
-.B -e <number>
+.B -e \fInumber\fR
 When fixing montage overlaps, show the given number of buttons with the
 highest errors (between 2 and 10).
 .TP
-.B -O <2 letters>
+.B -O \fI2 letters\fR
 Specify the colors for the previous and current image in overlay mode.  The
 colors must be two of r g b c m y which stand for red, green, blue, cyan 
 (green + blue), magenta (red + blue), and yellow (red + green).  The two

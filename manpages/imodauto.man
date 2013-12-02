@@ -4,7 +4,7 @@
 .SH NAME
 imodauto \- creates a model from an mrc image stack.
 .SH SYNOPSIS
-imodauto [options] <MRC image file> <IMOD model file>
+imodauto  [options]  MRC_image_file  output_model_file
 .SH DESCRIPTION
 imodauto creates an IMOD model from an MRC image stack using
 a simple image thresholding.  Both a low and a high threshold may be set; 
@@ -70,22 +70,22 @@ from the region at sharp corners.  3) Use the contour smoothing option in
 Drawing Tools, available from the Special menu of 3dmod(1).  Check the option
 to "ALLOW POINTS TO BE MOVED" and reduce the "min distance to move" to 0.1.
 This may be the best method.
-.SS Options
+.SH OPTIONS
 .TP
-.B -l <value>
+.B -l \fIvalue\fR
 Specifies the low threshold level.
 Contours will be generated around pixels that map to levels below the low
 threshold level.
 The default value is 0, which will give no contours for areas below threshold.
 .TP 
-.B -h <value>
+.B -h \fIvalue\fR
 Specifies the high threshold level.
 Contours will be generated around pixels that map to levels above the high
 threshold level.
 The default value is 255, which will give no contours for areas above
 threshold.
 .TP
-.B -E <value>
+.B -E \fIvalue\fR
 Specifies an exact value to generate contours around, regardless of whether
 surrounding pixels are high or lower than this (see discription above).
 The
@@ -94,7 +94,7 @@ and
 .B -d
 options may not be entered together with this option.
 .TP
-.B -d <value>
+.B -d \fIvalue\fR
 Determines how the low and high threshold levels are computed.
 The default value is d = 1, in which case the low and high values are used
 directly.  When d = 2, the high and low values are treated as 
@@ -110,7 +110,7 @@ corresponding to the actual values in the image file.  By default,
 threshold values are instead interpreted as scaled values to be applied after
 the images are scaled to the range of 0 to 255. 
 .TP
-.B -f <value>
+.B -f \fIvalue\fR
 Determines whether diagonals are followed when finding groups of connected
 pixels.  The default value is 0, meaning that diagonals will not be
 followed.  With a value of 3, diagonals will always be followed.  With 1 or 2
@@ -121,25 +121,25 @@ the low threshold, respectively.
 Find inside contours in closed, annular regions.  To use this option, enter
 one threshold as appropriate for defining your regions of interest.
 .TP
-.B -m <value>
+.B -m \fIvalue\fR
 Minimum area for each contour, in square pixels.
 Any values less than 1 will be treated as 1.
 The default value is 10.
 .TP
-.B -M <value>
+.B -M \fIvalue\fR
 Maximum area for each contour, in square pixels.  If this option is not used,
 no maximum size will be enforced.
 Any value entered should be greater than
 the minimum area specified by
 .B -m.
 .TP
-.B -e <value>
+.B -e \fIvalue\fR
 Criterion for eliminating contours based on the number of edges of the image
 that they touch.  Values from 1 to 4 are meaningful; for example, a value of
 2 will eliminate contours that touch 2 or more edges.  The default is zero,
 for no selection on the basis of edges touched.
 .TP
-.B -r <value>  
+.B -r \fIvalue\fR  
 Resolution for point shaving, in which points are removed when they are closer
 than the given distance apart.  This method of point removal will eliminate
 some detail and might be useful for smoothing; otherwise, the 
@@ -147,7 +147,7 @@ some detail and might be useful for smoothing; otherwise, the
 option is preferable.
 The default value is 0.0, which turns this feature off.
 .TP
-.B -R <value>  
+.B -R \fIvalue\fR  
 Resolution or tolerance for point reduction
 when generating the final model.  Points are eliminated if they are within this
 distance of the lines connecting the remaining points, just as with the -R
@@ -160,7 +160,7 @@ option.
 Values in the range 0.25 to 0.5 are often useful.
 The default value is 0.0, which turns this feature off.
 .TP
-.B -s <min,max>
+.B -s \fImin,max\fR
 Set the intensity scaling for the image data, so that
 .I min
 is mapped to 0 and
@@ -168,14 +168,14 @@ is mapped to 0 and
 is mapped to 255.  The default for these values are the minimum and maximum
 from the image file header.
 .TP
-.B -X <min,max>
+.B -X \fImin,max\fR
 Load and model a subset in X from 
 .I min
 to
 .I max,
 where the coordinates are numbered from 0.  
 .TP
-.B -Y <min,max>
+.B -Y \fImin,max\fR
 Load and model a subset in Y from 
 .I min
 to
@@ -189,14 +189,14 @@ or
 then decisions about contours are made based on the edges of the loaded
 subset of the image, not of the full image.
 .TP
-.B -Z <min,max>
+.B -Z \fImin,max\fR
 Load and model a subset in Z from 
 .I min
 to
 .I max,
 where the coordinates are numbered from 0.
 .TP
-.B -B <filename>
+.B -B \fIfilename\fR
 Specify a model with boundary contours around the region(s) to be modeled.
 These contours should all be in one closed contour object.  More than one
 contour can be drawn on each section.  By default, when there are any boundary
@@ -212,24 +212,24 @@ contour was eliminated while the inner ones were retained.
 Apply the boundary contours only on the same sections as they are drawn;
 sections without boundary contours will be analyzed in their entirety.
 .TP
-.B -O <value>
+.B -O \fIvalue\fR
 Specify the object number that contains boundary contours in the boundary
 model.  By default, the program will use the first closed contour object in
 the model.
 .TP
-.B -k <sigma>
+.B -k \fIsigma\fR
 Smooth the data with a kernel filter whose Gaussian sigma is given by the
 entered value.  This filter is the same as the smoothing filter in the
 3dmod(1) image processing window or in Clip(1).  Use a value of 0 to select the
 simple default filter instead of the Gaussian kernel.
 .TP
-.B -z <value>
+.B -z \fIvalue\fR
 Set the zscale for the model.  The zscale is a factor that compensates for
 3 dimensional data that is sampled at a different z resolution than the
 x-y plane data.  If the images have 25nm pixels and 100nm z slice size then the
 z-scale factor would be 4.0.
 .TP
-.B -c <r,g,b>
+.B -c \fIr,g,b\fR
 Set the color of the model object by specifying red, green, blue values
 separated by commas.  The values can range from 0 to 1 or from 0 to 255;
 i.e., 1.0,0.5,0 and 255,128,0 could both be used to specify orange.

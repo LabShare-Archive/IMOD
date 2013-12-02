@@ -4,7 +4,7 @@
 .SH NAME
 imodkillgroup -\ Kill process group or process tree given one process ID
 .SH SYNOPSIS
-imodkillgroup [-t | -v] pid [pid...]
+imodkillgroup  [options]  pid  [pid...]
 .SH DESCRIPTION
 Imodkillgroup is a Python script to kill one or more sets of related
 processes.  It works in two different ways. 1) For a given process ID (PID), it

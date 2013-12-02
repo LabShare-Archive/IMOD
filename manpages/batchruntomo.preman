@@ -4,7 +4,7 @@
 .SH NAME
 batchruntomo \- Align tilt series and generate tomograms automatically
 .SH SYNOPSIS
-batchruntomo [options] directive_files
+batchruntomo  [options]  directive_files...
 
 .SH DESCRIPTION
 Batchruntomo runs all the operations required to align a tilt series and build
@@ -224,7 +224,7 @@ present, the central one-third of slices will be used.  All of these size
 and scaling directives may be specified either as a number of pixels, or as a
 fraction between 0.02 and 1.
 
-.SS Options
+.SH OPTIONS
 Batchruntomo uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

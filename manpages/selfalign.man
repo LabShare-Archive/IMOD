@@ -4,7 +4,7 @@
 .SH NAME
 selfalign \- Realign model based on fits to trajectories
 .SH SYNOPSIS
-selfalign [options] <root_name | input_file output_file>
+selfalign  options  root_name|input_file  output_file
 .SH DESCRIPTION
 selfalign will refine the alignment of a model of fibers that progress through
 the Z-dimension, such as microtubules modeled through serial sections, using
@@ -39,35 +39,35 @@ model named root_name.selfmod.  Alternatively, use two arguments to
 specify the full names of the input and output models.
 In this case, the root name for the other files is assumed to be the name of 
 the input model with any extension removed.
-.SS Options
+.SH OPTIONS
 Run selfalign with no arguments to get a usage statement listing the default
 values of the parameters.
 .TP
-.B -s <list>
+.B -s \fIlist\fR
 Solve for transformations over the range of sections given in 
 .I list.
 A single range (e.g., 3-32) will give best results.  
 The default is to solve over the whole extent of the model.
 .TP
-.B -l <extent>
+.B -l \fIextent\fR
 Do local fits to transformation parameters over the number of sections given
 in
 .I extent.
 This parameter is used in running xftoxg(1).
 .TP
-.B -o <order>
+.B -o \fIorder\fR
 Set the polynomial order for the local fits to 
 .I order.
 This parameter is also used in running xftoxg(1).
 .TP
-.B -t <type>
+.B -t \fItype\fR
 Specify the type of transformations to solve for; set 
 .I type
 to 0 for general linear transforms, 2 for translations only, 3 for 
 rotations and translations, or 4 for magnifications, rotations and 
 translations.
 .TP
-.B -i <file>
+.B -i \fIfile\fR
 Specify the name of the image stack upon which the model was built.  If no
 file is entered, the default is the root name of the model with extension .ali.
 If such an image file is not available, the program will extract the needed

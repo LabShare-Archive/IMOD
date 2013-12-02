@@ -4,7 +4,7 @@
 .SH NAME
 imodextract \- Extract objects from a model into a new model.
 .SH SYNOPSIS
-imodextract <list of objects> <input model> <output model>
+imodextract  list_of_objects  input_model  output_model
 .SH DESCRIPTION
 Extracts a subset of the objects from an IMOD model and places them into a new 
 model.  This can be much more convenient than making a copy of a model and 

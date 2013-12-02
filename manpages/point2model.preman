@@ -4,7 +4,7 @@
 .SH NAME
 point2model -\ Convert point listing to IMOD model file
 .SH SYNOPSIS
-point2model [options] <point_file> <model_file>
+point2model  [options]  point_file  model_file
 .SH DESCRIPTION
 Point2model will convert a text file with a simple list of 3D point
 coordinates, one per line, to an IMOD model.  The file can be in one of three
@@ -22,7 +22,7 @@ options for setting properties of the model or objects.  These are provided
 to save having to edit a model in 3dmod, a convenience that becomes
 significant when models are produced repeatedly at the command line or by a
 script.  Other such options could be added easily.
-.SS Options
+.SH OPTIONS
 Point2model uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated

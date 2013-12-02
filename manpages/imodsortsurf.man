@@ -4,7 +4,7 @@
 .SH NAME
 imodsortsurf \- Sort contours into surfaces or surfaces into objects
 .SH SYNOPSIS
-imodsortsurf [-o objects ] <input model> <output model>
+imodsortsurf  [options]  input_model  output_model
 .SH DESCRIPTION
 This program can do two different operations related to surfaces. 1) It can
 use the mesh produced by imodmesh to analyze the connections between contours, 
@@ -14,7 +14,7 @@ be done either on existing surfaces or on the surfaces produced by analyzing
 the mesh.
 .SS OPTIONS
 .TP
-.B -o <list>
+.B -o \fIlist\fR
 Restrict the sorting to objects in the given list of object numbers, which
 can consist of a comma-separated set of ranges.  The default is to do all
 objects.

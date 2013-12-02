@@ -4,7 +4,7 @@
 .SH NAME
 setupstitch \- Initial set up for stitching montage of overlapping tomograms
 .SH SYNOPSIS
-setupstitch options supermontage_info_file
+setupstitch  options  supermontage_info_file
 .SH DESCRIPTION
 Setupstitch is a Python program that performs the first step in stitching
 together tomograms that overlap laterally, which are referred to as a
@@ -134,7 +134,7 @@ Z limits are taken first from an entry for that edge if that exists; then from
 an entry for the lower piece if that exists; then from the Z border entered
 with the -borders option if neither exists.
 
-.SS Options
+.SH OPTIONS
 Setupstitch uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

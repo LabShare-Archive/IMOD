@@ -4,7 +4,7 @@
 .SH NAME
 sirtsetup \- Produce multiple command files for iterative reconstruction
 .SH SYNOPSIS
-sirtsetup [options] <Tilt command file>
+sirtsetup  [options]  Tilt_command_file
 .SH DESCRIPTION
 Sirtsetup sets up command files to do a form of Simultaneous Iterative
 Reconstruction Technique (SIRT) using backprojection and reprojection with the
@@ -118,7 +118,7 @@ numbers on each line are the mean and the standard deviation of the difference
 reconstruction.  The fall in the latter value provides some indication of the
 progress of the iterations.
 
-.SS Options
+.SH OPTIONS
 Sirtsetup uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

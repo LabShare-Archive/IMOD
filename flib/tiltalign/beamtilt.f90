@@ -32,9 +32,11 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
   do while (.true.)
     !
     ! restart every run at output of first one
+    ! 11/29/13: this was probably because of a high risk of error 2 when starting from a
+    ! previous solution, which is now much reduced, and could be ignored
     if (numCuts >= 0) var(1:numVarSearch) = varerr(1:numVarSearch)
     call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, 1,  &
-        rmsScale, fnew, kount, metroError)
+        rmsScale, fnew, kount, metroError, .false.)
     write(*,101) beamTilt / dtor, kount, sqrt(fnew * rmsScale)
 101 format(' For beam tilt =',f6.2, ', ',i4,' cycles,',T48,'final   F : ', &
         T61,F14.6)
@@ -54,7 +56,7 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
       beamTilt = btOrig
       var(1:numVarSearch) = varerr(1:numVarSearch)
       call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
-          rmsScale, fFinal, kount, metroError)
+          rmsScale, fFinal, kount, metroError, .false.)
       return
     endif
     !
@@ -78,7 +80,7 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
     beamTilt = btBelow + (j - 1) * scanInt
     var(1:numVarSearch) = varerr(1:numVarSearch)
     call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, &
-        rmsScale, fScan(j), kount, metroError)
+        rmsScale, fScan(j), kount, metroError, .false.)
     write(*,101) beamTilt / dtor, kount, sqrt(fScan(j) * rmsScale)
     if (fScan(j) < fmin .or. j == 2) then
       fmin = fScan(j)
@@ -131,7 +133,7 @@ subroutine searchBeamTilt(beamTilt, binStepIni, binStepFinal, scanStep, numVarSe
   ! Run finally at the solved beam tilt
   var(1:numVarSearch) = varerr(1:numVarSearch)
   call runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, -ncycle, 1, rmsScale, &
-      fFinal, kount, metroError)
+      fFinal, kount, metroError, .false.)
   print *
   write(*,104) beamTilt / dtor, kount, sqrt(fFinal * rmsScale)
 104 format(' Solved beam tilt =',f6.2, ', ',i4,' cycles,',T48,'Final   F : ', &
@@ -155,9 +157,10 @@ end subroutine searchBeamTilt
 ! fFinal is the final error measure
 ! KOUNT is the cycle count
 ! metroError is maintained with a count of total errors
+! ignoreError2 can be set .true. to ignore error 2 when starting from a previous solution
 !
 subroutine runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, &
-    ifHush, rmsScale, fFinal, kount, metroError)
+    ifHush, rmsScale, fFinal, kount, metroError, ignoreError2)
   use alivar
   implicit none
   integer maxMetroTrials
@@ -165,6 +168,7 @@ subroutine runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, &
   real*4 var(*), varerr(*), grad(*), h(*), facm, fFinal, rmsScale
   real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
   integer*4 numVarSearch, ncycle, metroError, ifLocal
+  logical*4 ignoreError2
   integer*4 i, ier, metroLoop, kount, ifHush
   real*4 fInit, f, eps
   external funct
@@ -190,7 +194,7 @@ subroutine runMetro(numVarSearch, var, varerr, grad, h, ifLocal, facm, ncycle, &
     CALL metro (numVarSearch, var, funct, F, Grad, facm * trialScale(metroLoop), &
         eps, NCYCLE, IER, H, KOUNT, rmsScale)
     metroLoop = metroLoop + 1
-
+    if (ier == 2 .and. ignoreError2) ier = 0
     !
     ! For errors except limit reached, give warning message and restart
     !

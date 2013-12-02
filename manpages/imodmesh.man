@@ -4,7 +4,7 @@
 .SH NAME
 imodmesh \- create a triangle mesh from IMOD contour data.
 .SH SYNOPSIS
-imodmesh [options] <model files...>
+imodmesh  [options]  model_files...
 .SH DESCRIPTION
 imodmesh is used to create mesh data in an IMOD model file
 from closed or open contours.  Each contour is connected to
@@ -242,7 +242,7 @@ In addition,
 a set of "-no" options are available for turning off options selected in the
 stored parameters.
 
-.SS Options
+.SH OPTIONS
 .TP
 .B -u
 Use parameters stored in each object to set options for meshing.
@@ -253,7 +253,7 @@ This option will cap off the ends of objects at their extreme limits in Z.
 .B -C
 This option will cap off all unconnected contours.  
 .TP
-.B -D <list of Z-values>
+.B -D \fIlist of Z-values\fR
 This option can be used with the
 .B -C
 option to keep caps from being made on certain sections.  The list of 
@@ -261,7 +261,7 @@ Z-values (a comma-separated list of ranges) should specify the Z-values at
 which contours are missing for whatever reason.  An unconnected contour on an
 adjacent section will not be capped.  
 .TP
-.B -p <value>
+.B -p \fIvalue\fR
 Don't make connections unless a given percentage of
 the contour overlaps with contours above and below.
 The valid range is 0 to 100.	The default is 0, 
@@ -279,7 +279,7 @@ Note that with this option alone, the sections must contain either no data
 or whatever is
 considered to be a full amount of data.
 .TP
-.B -P <value>
+.B -P \fIvalue\fR
 Do the given number of passes through the contours, connecting contours 
 that are progressively farther apart in Z on each pass.  In the simplest case,
 contours up to 2 sections apart will be connected with 2 passes, etc.  However,
@@ -322,14 +322,14 @@ the
 option will be connected.  If this option makes undesirable connections, use
 contour connection numbers.
 .TP
-.B -t list
+.B -t \fIlist\fR
 Open contours are by default connected together in a mesh if possible.
 This option causes a tube-like mesh of diameter given by the
 line width to be created instead, for objects in the list (comma-separated list
 of ranges).  Closed contour objects included in the list will be meshed as
 usual.
 .TP
-.B -d <diameter>
+.B -d \fIdiameter\fR
 Override the default diameter used for making tubes with the
 .B -t
 option.  The diameter is given in pixels, the default value is the
@@ -359,12 +359,12 @@ possible sets of connections instead of guessing at one initial connection.
 This may help reduce artifacts in some cases.  This flag can cause the
 computation to take an order of magnitude more time.
 .TP
-.B -o <list of object #'s>
+.B -o \fIlist of object #'s\fR
 Do operations only on objects in the list of numbers.  The list can consist
 of comma-separated ranges (e.g., 1,7-11,13-17,19).
 Without this option, all objects are scanned for skinning.
 .TP
-.B -R <value>
+.B -R \fIvalue\fR
 Tolerance value for point reduction, given in pixels.  With this option, the
 number of points is reduced by removing ones which are less than a certain
 distance from the remaining line segments.  This will remove points
@@ -373,19 +373,19 @@ A tolerance value of about 0.25 can substantially reduce the number of points
 with little perceptible change in the model; larger values could be used to
 get models that mesh and display faster.
 .TP
-.B -i <value>
+.B -i \fIvalue\fR
 Form a mesh between contours at z-values that are a multiple of
 the given z-increment.
 .TP
-.B -z <minimum>,<maximum>,[increment]
+.B -z \fIminimum,maximum,[increment]\fR
 Filters which contours will be considered while meshing.
 Contours less then the minimum value and greater then the
 maximum value will be skipped. An optional increment value
 will cause only z-values that are a multiple of the given
 increment to be meshed.
 .TP
-.B -x <minimum>,<maximum>
-.B -y <minimum>,<maximum>
+.B -x \fIminimum,maximum\fR
+.B -y \fIminimum,maximum\fR
 Exclude triangles from the mesh if they are outside the given limits in X or
 in Y.  This is an alternative to using clipping planes to chop off surfaces at
 the edge of the data set, although the result will be more ragged than using a
@@ -403,7 +403,7 @@ options, relatively large default values are used to generate a coarse mesh.
 The low resolution mesh can be toggled on and off in the 3dmod Model View
 window with the View-Low Res menu entry or the "R" hot key.
 .TP
-.B -F <value>
+.B -F \fIvalue\fR
 This option sets the criterion Z difference for deciding whether
 contours are flat enough to mesh without rotating.
 If the value is nonzero, the program will determine the maximum Z extent of
@@ -438,7 +438,7 @@ Rescale the normals in the existing mesh by the value given in the
 .B -Z
 option.
 .TP
-.B -Z <scale>
+.B -Z \fIscale\fR
 A scaling multiplier applied to the z values of normals.  The
 default value is 1.0.
 .TP

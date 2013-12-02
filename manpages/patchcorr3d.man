@@ -7,12 +7,12 @@ patchcorr3d \- Correlate a series of local patches from two volumes
 patchcorr3d xsize ysize zsize  nx ny nz  xlo xhi ylo yhi \\
        zlo zhi filea fileb [transform_file original_fileb]
 .SH DESCRIPTION
-patchcorr3d will determine the 3-D displacement between the two image volumes
-in filea and fileb, at a regular array of positions.  At each position, it
-extracts a patch from each of the two 
-volumes using tapervoledge.  It then uses clip to do 3-D cross-correlation
-between the patches and determines the displacement of the patch in fileb
-relative to the patch in filea.
+patchcorr3d is a C-shell script that will determine the 3-D
+displacement between the two image volumes in filea and fileb, at a
+regular array of positions.  At each position, it extracts a patch from
+each of the two volumes using tapervoledge.  It then uses clip to do
+3-D cross-correlation between the patches and determines the
+displacement of the patch in fileb relative to the patch in filea.
 
 The program outputs an initial line with the total number of patches, then
 one line for each patch, containing the X, Y, and Z coordinates of the patch 

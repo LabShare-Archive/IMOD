@@ -4,7 +4,7 @@
 .SH NAME
 edgepatches \- Initial alignment in stitching montage of overlapping tomograms
 .SH SYNOPSIS
-edgepatches options supermontage_info_file
+edgepatches  options  supermontage_info_file
 .SH DESCRIPTION
 Edgepatches is a Python program that performs the first alignment steps for stitching
 together tomograms that overlap laterally, which are referred to as a
@@ -45,7 +45,7 @@ will be used by Stitchalign(1) to eliminate some bad vectors.  In general, you
 should use the information from Fitpatches(1) in order to adjust the
 parameters used in Edgepatches to produce the best vectors possible, and then
 edit out bad vectors manually if necessary.
-.SS Options
+.SH OPTIONS
 Edgepatches uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
 arguments (with the -) or one per line in a command file

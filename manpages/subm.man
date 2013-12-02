@@ -4,7 +4,7 @@
 .SH NAME
 subm/submfg -\ Run an IMOD command file in the background or foreground
 .SH SYNOPSIS
-submfg [options] command_file [command_file ...]
+submfg  [options]  command_file  [command_file ...]
 .SH DESCRIPTION
 subm runs the operations in one or more IMOD command files in the background.
 When multiple files are given, they are run in sequence.
@@ -41,7 +41,7 @@ only way if invoking with script instead of the alias, is to use
 .br
 where PID is the process ID printed when each job starts.  This method will
 leave behind the temporary file.
-.SS Options
+.SH OPTIONS
 .TP
 .B -c
 Continue with the next command file even if one command file fails; the
@@ -54,10 +54,10 @@ Print the elapsed real and CPU time when each command file finishes.
 Convert the command files to C-shell scripts with Vmstocsh(1) and run with
 csh.  See that man page for the allowed format.
 .TP
-.B -n #
+.B -n \fI#\fR
 .TP
 Run the jobs with a "niceness" increment set to the given number.
-.B -l #
+.B -l \fI#\fR
 Set the type of numbered or time-stamped log file names to use.  The options
 are:
       1 - 4 for sequential numbers with 1 to 4 digits

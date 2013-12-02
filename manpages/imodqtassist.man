@@ -4,7 +4,7 @@
 .SH NAME
 imodqtassist \- Displays pages in qch file through Qt Assistant
 .SH SYNOPSIS
-imodqtassist [options] path_to_help_collection_file
+imodqtassist  [options]  path_to_help_collection_file
 .SH DESCRIPTION
 This program will run Qt Assistant and send it commands to display pages
 in a Qt compressed help (qch) file.  The command line arguments indicate where the

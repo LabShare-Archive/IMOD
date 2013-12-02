@@ -5,7 +5,7 @@
 mrcx \- Convert MRC files between different operating systems
 
 .SH SYNOPSIS
-mrcx [-vms|-ieee] filename [optional output filename]
+mrcx [-vms|-ieee] filename [optional_output_filename]
 .SH DESCRIPTION
 Numbers are stored on computers in two different orders, termed
 "little-endian" (as on Windows and Linux PCs and Macs with Intel processors)

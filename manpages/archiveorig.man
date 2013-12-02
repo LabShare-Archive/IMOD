@@ -4,10 +4,10 @@
 .SH NAME
 archiveorig \- Archive/restore original data after X-ray removal
 .SH SYNOPSIS
-archiveorig [options] setname.st
+archiveorig  [options]  setname.st
 .SH DESCRIPTION
 archiveorig is a Python script that allows one to create a small file to
-archive original data after removing X-rays with ccderaser(1).  This
+archive original data after removing X-rays with Ccderaser(1).  This
 eliminates the huge redundancy in archiving the both original and X-ray
 removed data.  The script assumes that files are named with the conventions
 that eTomo uses.  Specifically, when the input file is given as setname.st,
@@ -23,7 +23,7 @@ of setname.st to setname_orig.st also rename an existing setname_xray.st.gz by a
 number to the end.  The first time, 1 is added; after than, a number 1 higher
 than the highest existing number is added.  The programs that do this are
 eTomo and Batrchruntomo(1).  
-.SS Options
+.SH OPTIONS
 .TP
 .B -d
 Delete setname_orig.st after successfully producing setname_xray.st.gz.  By

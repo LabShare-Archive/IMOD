@@ -1,6 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/23/13: In eTomo allowing quoted values in autodocs.(Bug# 1631)
+11/30/13: Changes to Tiltalign to deal with patch tracking data: it can select
+a subset of patches for the global alignment to avoid solving for too many
+variables; it can do robust fitting with weights assigned either to individual
+points or to whole contours.
+
+11/28/13: Made changes in the search routine used by Tiltalign/Beadtrack to
+reduce the high risk of "minimization errors" when starting close to the final
+solution; also ignore particular errors after first round of robust fitting.
+
+11/28/13: In eTomo allowing quoted values in autodocs.(Bug# 1631)
 
 11/21/13: IMOD_4-6-33
 11/21/13: Changed Corrsearch3d to use dynamic allocation, load from file more 

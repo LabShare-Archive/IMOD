@@ -1725,11 +1725,11 @@ CONTAINS
     if (limitingShift)  &
         call setPeakFindLimits(limitXlo, limitXhi, limitYlo, limitYhi, ifEllipse)
     call xcorrPeakFindWidth(array, nxPad + 2, nyPad, xpeakList, ypeakList, &
-        peakList, widths, widthMins, maxXcorrPeaks)
+        peakList, widths, widthMins, maxXcorrPeaks, 0.05)
     !
     ! Get the true number of peaks and start an index to them
     do i = 1, maxXcorrPeaks
-      if (peakList(i) > -0.9e30) numXcorrPeaks = maxXcorrPeaks
+      if (peakList(i) > -0.9e30) numXcorrPeaks = i
       indPeakSort(i) = i
     enddo
     wallPeak = wallPeak + wallTime() - wallStart

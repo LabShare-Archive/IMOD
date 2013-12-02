@@ -287,9 +287,11 @@ static int sApplyLimits = 0;
 static int sLimitXlo, sLimitXhi, sLimitYlo, sLimitYhi;
 
 /*!
- * Finds the coordinates of the [maxpeaks] highest peaks in [array], which is dimensioned
- * to [nxdim] by [ny], and returns the positions in [xpeak], [ypeak], and the peak values
- * in [peak].  In addition, if [width] and [widthMin] are not NULL, the distance from the
+ * Finds the coordinates of up to the [maxPeaks] highest peaks in [array], which is 
+ * dimensioned to [nxdim] by [ny], and returns the positions in [xpeak], [ypeak], and the 
+ * peak values in [peak].  If [minStrength] is greater than 0, then only those peaks that
+ * are greater than that fraction of the highest peak will be returned.  In addition, if 
+ * [width] and [widthMin] are not NULL, the distance from the
  * peak to the position at half of the peak height is measured in 8 directions, the 
  * overall mean width of the peak is returned in [width], and the minimum width along one
  * of the four axes is returned in [widthMin].  The X size of the 
@@ -297,11 +299,12 @@ static int sLimitXlo, sLimitXhi, sLimitYlo, sLimitYhi;
  * a parabola separately in X and Y to the peak and 2 adjacent points.  Positions
  * are numbered from zero and coordinates bigger than half the image size are
  * shifted to be negative.  The positions are thus the amount to shift a second
- * image in a correlation to align it to the first.  If fewer than [maxpeaks]
+ * image in a correlation to align it to the first.  If fewer than [maxPeaks]
  * peaks are found, then the remaining values in [peaks] will be -1.e30.
  */
 void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *ypeak,
-                        float *peak, float *width, float *widthMin, int maxpeaks)
+                        float *peak, float *width, float *widthMin, int maxPeaks, 
+                        float minStrength)
 {
   float cx, cy, y1, y2, y3, local, val;
   float widthTemp[4];
@@ -311,7 +314,9 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
   int blockSize = 5;
   int nBlocksX = (nx + blockSize - 1) / blockSize;
   int nBlocksY = (ny + blockSize - 1) / blockSize;
-  float xLimCen, yLimCen, xLimRadSq, yLimRadSq;
+  int ixTopPeak = 10 * nx;
+  int iyTopPeak = 10 * ny;
+  float xLimCen, yLimCen, xLimRadSq, yLimRadSq, threshold = 0.;
 
   /* If using elliptical limits, compute center and squares of radii */
   if (sApplyLimits < 0) {
@@ -324,13 +329,14 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
   }
 
   /* find peaks */
-  for (i = 0; i < maxpeaks; i++) {
+  for (i = 0; i < maxPeaks; i++) {
     peak[i] = -1.e30f;
     xpeak[i] = 0.;
     ypeak[i] = 0.;
   }
 
-  if (maxpeaks < 2) {
+  /* Look for highest peak if looking for one peak or if there is a minimum strength */
+  if (maxPeaks < 2 || minStrength > 0.) {
 
     /* Find one peak within the limits */
     if (sApplyLimits) {
@@ -373,8 +379,14 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
       *xpeak = (float)ixpeak;
       *ypeak = (float)iypeak;
     }
-  } else {
-    
+    threshold = minStrength * *peak;
+    ixTopPeak = ixpeak;
+    iyTopPeak = iypeak;
+  }
+   
+  /* Now find all requested peaks */
+  if (maxPeaks > 1) {
+
     // Check for local peaks by looking at the highest point in each local 
     // block
     for (iyBlock = 0 ; iyBlock < nBlocksY; iyBlock++) {
@@ -435,7 +447,7 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
               }
             }
             val = array[ix + iy * nxdim];
-            if (val > local && val > peak[maxpeaks - 1]) {
+            if (val > local && val > peak[maxPeaks - 1] && val > threshold) {
               local = val;
               ixpeak = ix;
               iypeak = iy;
@@ -454,12 +466,13 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
           if (local > array[ixpeak + iybm] && local > array[ixpeak + iybp] &&
               local > array[ixm + iyb] && local > array[ixm + iybm] &&
               local > array[ixm + iybp] && local > array[ixp + iyb] &&
-              local > array[ixp + iybm] && local > array[ixp + iybp]){
+              local > array[ixp + iybm] && local > array[ixp + iybp] && 
+              (ixpeak != ixTopPeak || iypeak != iyTopPeak)){
             
             // Insert peak into the list
-            for (i = 0; i < maxpeaks; i++) {
+            for (i = 0; i < maxPeaks; i++) {
               if (peak[i] < local) {
-                for (j = maxpeaks - 1; j > i; j--) {
+                for (j = maxPeaks - 1; j > i; j--) {
                   peak[j] = peak[j - 1];
                   xpeak[j] = xpeak[j - 1];
                   ypeak[j] = ypeak[j - 1];
@@ -476,7 +489,7 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
     }
   }
       
-  for (i = 0; i < maxpeaks; i++) {
+  for (i = 0; i < maxPeaks; i++) {
     if (peak[i] < -0.9e30)
       continue;
 
@@ -544,32 +557,34 @@ static float peakHalfWidth(float *array, int ixPeak, int iyPeak, int nx, int ny,
 }
 
 /*!
- * Fortran wrapper to @@XCorrPeakFindWidth@.  If [maxpeaks] is 1, then [xpeak], 
+ * Fortran wrapper to @@XCorrPeakFindWidth@.  If [maxPeaks] is 1, then [xpeak], 
  * [ypeak], and [peak] can be single variables instead of arrays.
  */
 void xcorrpeakfindwidth(float *array, int *nxdim, int *ny, float  *xpeak, float *ypeak,
-                        float *peak, float *width, float *widthMin, int *maxpeaks)
+                        float *peak, float *width, float *widthMin, int *maxPeaks,
+                        float *minStrength)
 {
-  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, width, widthMin, *maxpeaks);
+  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, width, widthMin, *maxPeaks,
+                     *minStrength);
 }
 
 /*!
- * Calls @@XCorrPeakFindWidth@ with [width] and [widthMin] NULL.
+ * Calls @@XCorrPeakFindWidth@ with [width] and [widthMin] NULL and [minStrength] 0.
  */
 void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
-                        float *ypeak, float *peak, int maxpeaks)
+                        float *ypeak, float *peak, int maxPeaks)
 {
-  XCorrPeakFindWidth(array, nxdim, ny, xpeak, ypeak, peak, NULL, NULL, maxpeaks);
+  XCorrPeakFindWidth(array, nxdim, ny, xpeak, ypeak, peak, NULL, NULL, maxPeaks, 0.);
 }
 
 /*!
- * Fortran wrapper to @@XCorrPeakFind@.  If [maxpeaks] is 1, then [xpeak], 
+ * Fortran wrapper to @@XCorrPeakFind@.  If [maxPeaks] is 1, then [xpeak], 
  * [ypeak], and [peak] can be single variables instead of arrays.
  */
 void xcorrpeakfind(float *array, int *nxdim, int *ny, float  *xpeak,
-                   float *ypeak, float *peak, int *maxpeaks)
+                   float *ypeak, float *peak, int *maxPeaks)
 {
-  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, NULL, NULL, *maxpeaks);
+  XCorrPeakFindWidth(array, *nxdim, *ny, xpeak, ypeak, peak, NULL, NULL, *maxPeaks, 0.);
 }
 
 /*!

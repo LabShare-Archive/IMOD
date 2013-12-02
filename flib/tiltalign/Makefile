@@ -3,8 +3,8 @@ O        = $(OBJEXT)
 E        = $(BINEXT)
 
 # Objects that depend on alivar:
-ALIDEP = tiltalign.$(O) input_model.$(O) input_vars.$(O) \
- solve_xyzd.$(O) funct.$(O) map_vars.$(O) beamtilt.$(O) robustfit.$(O)
+ALIDEP = tiltalign.$(O) input_model.$(O) input_vars.$(O) patchtrack.$(O) \
+ solve_xyzd.$(O) funct.$(O) map_vars.$(O) beamtilt.$(O) robustfit.$(O) 
 # Other objects
 TAOBJS =  $(ALIDEP) find_surfaces.$(O) fill_matrices.$(O) alivar.$(O) \
 
@@ -33,4 +33,5 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.$(OBJEXT) *.exe *~ tiltalign xfforfidless alivar.mod
+	-\rm -f *.$(OBJEXT) *.exe *~ tiltalign xfforfidless alivar.mod mapsep.mod  \
+	arraymaxes.mod functvars.mod

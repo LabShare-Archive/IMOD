@@ -4,7 +4,7 @@
 .SH NAME
 imodsendevent \- Sends a clipboard message with a command to 3dmod
 .SH SYNOPSIS
-imodsendevent [options] Window_ID action [argument] [action...]
+imodsendevent  [options]  Window_ID  action  [argument]  [action...]
 .SH DESCRIPTION
 This program will send a command to 3dmod(1) to perform one or more actions.
 The first command-line
@@ -17,7 +17,7 @@ with that action, such as the name of a model file when opening a
 model.
 .SH OPTIONS
 .TP
-.B -t <time>
+.B -t \fItime\fR
 Timeout, or length of time that the program will wait for a reply from 3dmod,
 in seconds.  The default is 5.
 .TP

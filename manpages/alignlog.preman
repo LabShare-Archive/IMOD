@@ -4,7 +4,7 @@
 .SH NAME
 alignlog - extract data from tiltalign log file
 .SH SYNOPSIS
-alignlog <options> [a | b | log_filename]
+alignlog  options  [a | b | log_filename]
 .SH DESCRIPTION
 This Python script extracts useful sections from the output of Tiltalign(1).
 One or more options may be entered in any order; if multiple options are given,
@@ -12,7 +12,7 @@ the different sections are printed out in the order given.  If no filename is
 entered, alignlog will attempt to extract sections from the file align.log.
 If a or b is entered instead of a filename after the options, then sections
 will be printed from aligna.log or alignb.log, respectively.
-.SS Options
+.SH OPTIONS
 .P
 Alignlog uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)

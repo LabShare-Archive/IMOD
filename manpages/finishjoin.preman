@@ -4,14 +4,14 @@
 .SH NAME
 finishjoin \- Join serial section tomograms after finding alignments
 .SH SYNOPSIS
-finishjoin [options] rootname
+finishjoin  [options]  rootname
 .SH DESCRIPTION
 finishjoin will complete the operations required to join serial section
 tomograms together, after one has made a command file with "makejoincom", run
 the command file, and found alignments between the tomograms.  "rootname"
 is the root name for various intermediate files and the joined tomogram, as
 already specified to "makejoincom".  
-.SS Options
+.SH OPTIONS
 Finishjoin uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated
