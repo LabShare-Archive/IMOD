@@ -1,0 +1,193 @@
+Version = 1.0
+Pip = 1
+DoubleDashOptions=
+
+
+[SectionHeader = Options]
+[Field = help]
+short=h
+type=B
+usage=Output usage message.
+
+[Field = listen]
+type=B
+usage=Run 3dmod with -L (Windows only).
+manpage=Forces all 3dmods to be run with the -L option.  This only has an
+effect on Windows computers because -L is always used on Linux and Mac.
+
+[Field = timestamp]
+type=B
+usage=Timestamp processes.
+manpage=Send timestamps to standard error before and after processes are
+run.
+
+
+[SectionHeader = File-Based Automation Options]
+[Field = fromBRT]
+type=B
+usage=Won't validate directive and template files.  Used by batchruntomo.
+manpage=Prevents eTomo from validating the directive file and the
+template files.  Used by batchruntomo.  Not useful when eTomo is called
+from the command line.
+
+[Field = directive]
+format=\fB"\fIdirective_file\fB.adoc"
+usage=Do automation based on the directive_file.adoc.
+manpage=Causes automation to be performed based on a file called
+\fIdirective_file\fB.adoc\fR.  No interface will come up and most
+\fBCommand-Line-Based Automation Options\fR will have no effect.
+^\fBCommand-Line-Based Automation Options\fR that can be used with this
+option:
+^   \fB--cpus\fR
+^   \fB--gpus\fR
+^These options are automatically set to true when \fB--directive\fR is
+used:
+^   \fB--fg\fR
+^   \fB--headless\fR
+^   \fB--create\fR
+^   \fB--exit\fR
+^The directive file must end in ".adoc" and conform to autodoc syntax.
+
+
+[SectionHeader = Command-Line-Based Automation Options]
+[Field = axis]
+format=\fBsingle\fR|\fBdual
+usage=Sets the Axis Type in the Setup Tomogram dialog during automation.
+
+[Field = cpus]
+format=\fR[ignored]
+usage=Turns on the Parallel Processing checkbox in the Setup Tomogram
+dialog.
+
+[Field = create]
+type=B
+usage=Runs Create Com Scripts in the Setup Tomogram dialog during
+automation.
+
+[Field = dataset]
+format=\fItilt_series_file\fR|\fIdataset_name
+usage=Sets Dataset Name in the Setup Tomogram dialog during automation.
+manpage=Sets Dataset Name in the Setup Tomogram dialog during automation.
+The value can be a file containing a tilt series, or the name of a
+dataset.  A dataset name is the root name of the tilt series file - the
+extension (and the trailing "a" or "b" in the dual axis case) is removed.
+The file must be in the local directory unless the \fB--dir\fR option is
+used.
+
+[Field = dir]
+format=\fB"\fIdirectory_path\fB"
+usage=The location of the dataset during automation.
+manpage=For automation.  The absolute or relative directory containing
+the file or dataset specified with the \fB--dataset\fR option.
+
+[Field = exit]
+type=B
+usage=During automation, exit after the Setup Tomogram dialog has
+completed.
+
+[Field = fg]
+type=B
+usage=Run eTomo in the foreground.
+manpage=Causes \fBeTomo\fR to be run in the foreground rather then in the
+background.  This is useful when running \fBeTomo\fR with automation from
+a script because a script will not wait until a background command has
+completed.
+
+[Field = fiducial]
+type=F
+usage=Sets the Fiducial Diameter in the Setup Tomogram dialog during
+automation.
+
+[Field = frame]
+format=\fBsingle\fR|\fBmontage
+usage=Sets the Frame Type in the Setup Tomogram dialog during automation.
+
+[Field = gpus]
+format=\fR[ignored]
+usage=Selects the Graphics Card Processing checkbox in the Setup Tomogram
+dialog.
+
+[Field = scan]
+type=B
+usage=Runs Scan Header in the Setup Tomogram dialog during automation.
+
+
+[SectionHeader = Diagnostic Options]
+[Field = actions]
+type=B
+usage=Send actions and file name to eTomo's _err.log.
+manpage=Send actions and file name to \fBeTomo\fR's \fB_err.log\fR.  File
+names which do not contain an extension or are entirely numeric will be
+excluded.
+
+[Field = debug]
+type=I
+format=\fR[\fB-1\fR|\fB0\fR|\fB1\fR|\fB2\fR|\fB3\fR|\fB4\fR]
+usage=Send extra information to eTomo's _err.log.
+manpage=Send extra information to eTomo's \fB_err.log\fR.
+^The optional parameter has the following meaning:
+^   \fB-1\fR - limited output
+^   \fB0\fR - no debug output
+^   \fB1\fR - default debug output
+^   \fB2\fR - more information
+^   \fB3\fR - extensive information - may degrade \fBeTomo\fR's performance
+^   \fB4\fR - as for \fB3\fR, plus the log will be very large
+
+[Field = ignoresettings]
+type=B
+manpage=\fBETomo\fR will not load from or save to the \fB.etomo\fR
+configuration file.
+
+[Field = memory]
+type=I
+format=\fR[\fIinterval_in_minutes\fR]
+usage=Log memory usage statements before and after processes are run.
+manpage=Send memory usage statements to \fBeTomo\fR\s \fB_err.log\fR before
+and after processes are run.  \fInterval_in_minutes\fR is the interval at
+which to send additional memory usage statements.
+
+[Field = selftest]
+type=B
+usage=Causes eTomo to do some internal testing.
+manpage=Causes \fBeTomo\fR to do some internal testing. \fBETomo\fR may run
+more slowly.
+
+
+[SectionHeader = Development and Testing Options]
+[Field = autoclose3dmod]
+type=B
+usage=ETomo automatically closes the 3dmod instance.
+manpage=Instead of popping up a message asking to close an open \fB3dmod\fR
+instance, \fBeTomo\fR automatically closes it.  Used for automated user
+interface testing.
+
+[Field = headless]
+type=B
+usage=No interface will come up.
+manpage=No interface will come up.  Used for unit testing.
+
+[Field = ignoreloc]
+type=B
+usage=The interface will come up in the default location.
+manpage=The interface will come up in the default location rather then the
+location saved in \fB.etomo\fR.  Used for automated user interface testing.
+
+[Field = names]
+type=B
+usage=The names of screen elements are sent to eTomo's _out.log.
+manpage=The names of screen elements are sent to \fBeTomo\fR's
+\fB_out.log\fR.  Used for automated user interface testing.
+
+[Field = newstuff]
+type=B
+manpage=May cause \fBeTomo\fR to run with unreleased functionality.
+
+[Field = test]
+type=B
+usage=Used for unit testing and automated user interface testing.
+
+
+[SectionHeader = Deprecated Options]
+[Field = demo]
+type=B
+usage=Deprecated
