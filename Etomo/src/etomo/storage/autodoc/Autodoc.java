@@ -685,7 +685,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this, false, true, debug);
+    parser = new AutodocParser(this, false, true, debug, false);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -716,7 +716,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this, false, true, debug);
+    parser = new AutodocParser(this, false, true, debug, false);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -737,11 +737,11 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws LogFile.ReadException
    */
   void initialize(BaseManager manager, File file, boolean storeData,
-      boolean versionRequired, boolean writable) throws FileNotFoundException,
-      IOException, LogFile.LockException {
+      boolean versionRequired, boolean writable, final boolean peetVariant)
+      throws FileNotFoundException, IOException, LogFile.LockException {
     this.writable = writable;
     autodocFile = LogFile.getInstance(file);
-    parser = new AutodocParser(this, allowAltComment, versionRequired, debug);
+    parser = new AutodocParser(this, allowAltComment, versionRequired, debug, peetVariant);
     if (storeData) {
       parser.initialize();
       parser.parse();
