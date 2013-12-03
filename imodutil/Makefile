@@ -18,9 +18,9 @@ PROGS = clonemodel$(E) clonevolume$(E) imodauto$(E) imod-dist$(E) \
  imodsetvalues$(E) imodsortsurf$(E) imodexplode$(E) patch2imod$(E) \
  imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
  imodfindbeads$(E) point2model$(E) flattenwarp$(E) slashmasksort$(E) \
- slashsplitconts$(E) joinwarp2model$(E) $(IMODWINCPU)
+ slashfindspheres$(E) joinwarp2model$(E) imodchopconts$(E) $(IMODWINCPU)
 
-all : $(PROGS) slashfindspheres$(E)
+all : $(PROGS)
 
 clonemodel$(E) : clonemodel.$(O)
 	$(CC) -o clonemodel clonemodel.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
@@ -100,6 +100,9 @@ echo2$(E) : echo2.$(O)
 imodfillin$(E) : imodfillin.$(O)
 	$(CC) -o imodfillin imodfillin.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
+imodchopconts$(E) : imodchopconts.$(O)
+	$(CC) -o imodchopconts imodchopconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
 imodcurvature$(E) : imodcurvature.$(O)
 	$(CC) -o imodcurvature imodcurvature.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS)
@@ -128,9 +131,6 @@ pickbestseed$(E) : pickbestseed.$(O)
 flattenwarp$(E) : flattenwarp.$(O)
 	$(LAPACKLINK) -o flattenwarp flattenwarp.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS) $(LAPACKLIBS) $(LAPACK_FLIBS) $(LIMESH)
-
-slashsplitconts$(E) : slashsplitconts.$(O)
-	$(CXX) -o slashsplitconts slashsplitconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 slashmasksort$(E) : slashmasksort.$(O)
 	$(CXX) -o slashmasksort slashmasksort.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
