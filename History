@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/3/13: In eTomo - PEET, excluding the quoted values functionality.
+(Bug# 1631)
+
 11/30/13: Changes to Tiltalign to deal with patch tracking data: it can select
 a subset of patches for the global alignment to avoid solving for too many
 variables; it can do robust fitting with weights assigned either to individual
