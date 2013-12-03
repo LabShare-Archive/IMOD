@@ -94,7 +94,7 @@ public final class AutodocFactory {
   public static final String rcsid = "$Id$";
 
   public static final String EXTENSION = ".adoc";
-  
+
   public static final String VERSION = "1.2";
   public static final String TILTXCORR = "tiltxcorr";
   public static final String MTF_FILTER = "mtffilter";
@@ -215,7 +215,7 @@ public final class AutodocFactory {
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     autodoc.setDebug(true);
     try {
-      autodoc.initialize(manager, file, true, false, true);
+      autodoc.initialize(manager, file, true, false, true, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -230,7 +230,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, true, false, true);
+      autodoc.initialize(manager, file, true, false, true, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -257,7 +257,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, false, false, true);
+      autodoc.initialize(manager, file, false, false, true, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -277,7 +277,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, true, versionRequired, false);
+      autodoc.initialize(manager, file, true, versionRequired, false, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -301,7 +301,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, false, true, false);
+      autodoc.initialize(manager, file, false, true, false, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
