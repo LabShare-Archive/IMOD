@@ -122,6 +122,12 @@ import etomo.ui.swing.Token;
  * emptyLine => ^ -WHITESPACE- ( EOL | EOF )
  * 
  * !emptyLine => ^ -WHITESPACE- ( \EOL & EOF\ )
+ * 
+ * 
+ * PEET variant:
+ * No quoted strings in the PEET variant.
+ * 
+ * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
  *
  *
  * Non-embedded EOL and WHITESPACE are stripped from values.
@@ -298,9 +304,12 @@ import etomo.ui.swing.Token;
 final class AutodocParser {
   public static final String rcsid = "$$Id$$";
 
+  private final Vector line = new Vector();
+
+  private final boolean peetVariant;
+
   private AutodocTokenizer tokenizer;
   private String name = null;
-  private final Vector line = new Vector();
   private int tokenIndex = 0;
   private Autodoc autodoc = null;
   private Token token = null;
@@ -331,9 +340,10 @@ final class AutodocParser {
 
   private boolean debug = false;
 
-  AutodocParser(Autodoc autodoc, boolean allowAltComment, boolean versionRequired,
-      boolean debug) {
+  AutodocParser(final Autodoc autodoc, final boolean allowAltComment,
+      final boolean versionRequired, final boolean debug, final boolean peetVariant) {
     this.debug = debug;
+    this.peetVariant = peetVariant;
     if (autodoc == null) {
       throw new IllegalArgumentException("autodoc is null.");
     }
@@ -692,7 +702,10 @@ final class AutodocParser {
   }
 
   /**
-   * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- -QUOTE#- value #QUOTE
+   * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- -QUOTE#- value
+   *
+   * PEET variant:
+   * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
    *         
    * Adds an attribute tree to the attribute map.
    * @throws IOException
@@ -721,7 +734,7 @@ final class AutodocParser {
     }
     matchToken(Token.Type.WHITESPACE);
     // attach the value to the last attribute
-    value(list, leafAttribute, pair, matchToken(Token.Type.QUOTE));
+    value(list, leafAttribute, pair, peetVariant ? null : matchToken(Token.Type.QUOTE));
     testEndFunction("pair", true);
     return true;
   }
