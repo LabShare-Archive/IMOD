@@ -40,6 +40,7 @@ subroutine setupWeightGroups(maxRings, minRes, minTiltView, ierr)
   ! Loop from largest number of rings down, first evaluate plausibility if
   ! all points are present.  Here use the number of full tracks for patch tracking
   NUM_RING_LOOP:  do nring = maxRings, 1, -1
+    ierr = 1
     nrealPerRing = nrealForViews / nring
     if (nrealPerRing == 0) cycle
     neededViews = max(1, minRes / nrealPerRing)
@@ -315,12 +316,13 @@ subroutine setupTrackWeightGroups(maxRings, minres, indAllReal, ierr)
 
   ! Evaluate possibility of rings before any track group combine
   NUM_RING_LOOP:  do nring = maxRings, 1, -1
+    ierr = 1
     maxCombine = max(1, 2 * (numTrackGroups / 2))
     if (nring > 1) then
       if (numFullTracksUsed / nring < minres) cycle
       maxCombine = 1
     endif
-    !print *,'nring,maxCombine',nring,maxCombine
+    ! print *,'nring,maxCombine',nring,maxCombine
 
     ! Combine track groups until we find a set that works with given # of rings
     numViewGroups = numTrackGroups
@@ -329,7 +331,7 @@ subroutine setupTrackWeightGroups(maxRings, minres, indAllReal, ierr)
         if (mod(numCombine, 2) > 0) cycle
         numViewGroups = maxCombine / numCombine
       endif
-      !print *,'numCombine,numViewGroups', numCombine,numViewGroups
+      ! print *,'numCombine,numViewGroups', numCombine,numViewGroups
       indGroup = 1
       indProj = 1
       indView = 1
@@ -358,7 +360,7 @@ subroutine setupTrackWeightGroups(maxRings, minres, indAllReal, ierr)
             listTrack(ninList) = (numTrackGroups + 1) / 2
           endif
         endif
-        !write(*,'(a,i3,a,12i4)')'view group',igroup,'  track groups', &
+        ! write(*,'(a,i3,a,12i4)')'view group',igroup,'  track groups', &
         !    (listTrack(i),i=1,ninList)
         !
         ! Loop on the rings, count up tracks actually in there
