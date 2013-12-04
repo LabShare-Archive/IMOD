@@ -2,8 +2,6 @@ Version = 1.0
 Pip = 1
 DoubleDashOptions=
 
-
-[SectionHeader = Options]
 [Field = help]
 short=h
 type=B
@@ -22,7 +20,10 @@ manpage=Send timestamps to standard error before and after processes are
 run.
 
 
-[SectionHeader = File-Based Automation Options]
+[SectionHeader = DirectiveAutomationOptions]
+usage=AUTOMATION OPTIONS - DIRECTIVE FILE
+
+
 [Field = fromBRT]
 type=B
 usage=Won't validate directive and template files.  Used by batchruntomo.
@@ -49,7 +50,10 @@ used:
 ^The directive file must end in ".adoc" and conform to autodoc syntax.
 
 
-[SectionHeader = Command-Line-Based Automation Options]
+[SectionHeader = CommandAutomationOptions]
+usage=AUTOMATION OPTIONS - COMMAND LINE
+
+
 [Field = axis]
 format=\fBsingle\fR|\fBdual
 usage=Sets the Axis Type in the Setup Tomogram dialog during automation.
@@ -112,7 +116,10 @@ type=B
 usage=Runs Scan Header in the Setup Tomogram dialog during automation.
 
 
-[SectionHeader = Diagnostic Options]
+[SectionHeader = DiagnosticOptions]
+usage=DIAGNOSTIC OPTIONS
+
+
 [Field = actions]
 type=B
 usage=Send actions and file name to eTomo's _err.log.
@@ -153,7 +160,10 @@ manpage=Causes \fBeTomo\fR to do some internal testing. \fBETomo\fR may run
 more slowly.
 
 
-[SectionHeader = Development and Testing Options]
+[SectionHeader = DevelopmentOptions]
+usage=DEVELOPMENT AND TESTING OPTIONS
+
+
 [Field = autoclose3dmod]
 type=B
 usage=ETomo automatically closes the 3dmod instance.
@@ -187,7 +197,10 @@ type=B
 usage=Used for unit testing and automated user interface testing.
 
 
-[SectionHeader = Deprecated Options]
+[SectionHeader = DeprecatedOptions]
+usage=DEPRECATED OPTIONS
+
+
 [Field = demo]
 type=B
 usage=Deprecated
