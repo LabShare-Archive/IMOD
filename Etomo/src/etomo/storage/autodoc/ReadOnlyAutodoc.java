@@ -80,6 +80,8 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList, ReadOnlySectionL
 
   public SectionLocation getSectionLocation(String type);
 
+  public SectionLocation getSectionLocation();
+
   public ReadOnlySection nextSection(SectionLocation location);
 
   void runInternalTest(InternalTestType type, boolean showTokens, boolean showDetails)
