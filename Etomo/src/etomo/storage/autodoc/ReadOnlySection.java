@@ -30,4 +30,6 @@ public interface ReadOnlySection extends ReadOnlyStatementList,ReadOnlySectionLi
   public static  final String  rcsid =  "$Id$";
   
   public ReadOnlyAttribute getAttribute(String name);
+  
+  public String getType();
 }
