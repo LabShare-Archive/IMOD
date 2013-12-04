@@ -56,6 +56,8 @@ from pip import setExitPrefix
 setExitPrefix(prefix)
 setLibPath()
 
+newstuff = '--newstuff' in sys.argv
+
 ETOMO_MEM_LIM = '128m'
 if os.getenv('ETOMO_MEM_LIM') != None:
    ETOMO_MEM_LIM = os.environ['ETOMO_MEM_LIM']
@@ -117,15 +119,25 @@ if sys.platform.find('cygwin') >= 0:
    os.environ['PATH'] = '/bin' + os.pathsep + os.environ['PATH']
    cygbin = '/bin'
 
-# But in Windows, we need to find cygwin in path
+# But in Windows, we need to find cygwin in path unless the psutil module is present
 if sys.platform.find('win32') >= 0:
-   cygdrive = 'C'
-   for dir in os.environ["PATH"].split(os.pathsep):
-      if re.search('cygwin', dir, re.IGNORECASE):
-         cygdrive = dir[0]
-         break
-   cygbin = os.path.join(cygdrive + ':\cygwin', 'bin')
-   os.environ['PATH'] = cygbin + os.pathsep + os.environ['PATH']
+   findCyg = True
+   try:
+      if newstuff:    # This will go away when etomo is ready
+         import psutil
+         findCyg = False
+
+   except ImportError:
+      pass
+
+   if findCyg:
+      cygdrive = 'C'
+      for dir in os.environ["PATH"].split(os.pathsep):
+         if re.search('cygwin', dir, re.IGNORECASE):
+            cygdrive = dir[0]
+            break
+      cygbin = os.path.join(cygdrive + ':\cygwin', 'bin')
+      os.environ['PATH'] = cygbin + os.pathsep + os.environ['PATH']
 
 if cygbin and not os.path.exists(os.path.join(cygbin, 'python.exe')):
    if os.path.exists(os.path.join(cygbin, 'python')):
