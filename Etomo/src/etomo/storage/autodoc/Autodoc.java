@@ -323,6 +323,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return null;
   }
 
+  public SectionLocation getSectionLocation() {
+    if (sectionList.size() > 0) {
+      return new SectionLocation(0);
+    }
+    return null;
+  }
+
   /**
    * Starts with the section that location is pointing to returns the first
    * section which the same type as location.  Increments location.
