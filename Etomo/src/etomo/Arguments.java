@@ -2,14 +2,23 @@ package etomo;
 
 import java.awt.GraphicsEnvironment;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import etomo.storage.DataFileFilter;
+import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
+import etomo.storage.autodoc.ReadOnlyAttribute;
+import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
+import etomo.storage.autodoc.SectionLocation;
+import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.ViewType;
 import etomo.ui.UIComponent;
@@ -113,147 +122,6 @@ public final class Arguments {
   private static final String GPUS_TAG = "--gpus";
   private static final String FROM_BRT_TAG = "--fromBRT";
 
-  static final String HELP_MESSAGE = "\nOptions:" + "\n  " + HELP1_TAG + ", " + HELP2_TAG
-      + "\tSend this message to standard out and exit."
-
-      + "\n\n  " + LISTEN_TAG
-      + "\tForces all 3dmods to be run with the -L option.  This only has"
-      + "\n\t\tan effect on Windows computers because -L is always used on"
-      + "\n\t\tLinux and Mac."
-
-      + "\n\n  " + TIMESTAMP_TAG
-      + "\tSend timestamps to standard error before and after processes"
-      + "\n\t\tare run."
-
-      + "\n\nFile-Based Automation Options:"
-
-      + "\n  " + FROM_BRT_TAG
-      + "\tPrevents eTomo from validating the directive file and the"
-      + "\n\t\ttemplate files.  Used by batchruntomo.  Not useful when eTomo"
-      + "\n\t\tis called from the command line."
-
-      + "\n\n  " + DIRECTIVE_TAG + " \"directive-file.adoc\""
-      + "\n\t\tCauses automation to be performed based on the directive file."
-      + "\n\t\tNo interface will come up and most command-line-based"
-      + "\n\t\tautomation options (below) will be ignored.  However " + CPUS_TAG + " and"
-      + "\n\t\t" + GPUS_TAG + " work with both types of automation.  Implied options:"
-      + "\n\t\t" + FG_TAG + ", " + HEADLESS_TAG + ", " + CREATE_TAG + ", and " + EXIT_TAG
-      + ".  The directive file must"
-      + "\n\t\tend in \".adoc\" and conform to autodoc syntax."
-
-      + "\n\nCommand-Line-Based Automation Options:"
-
-      + "\n  " + AXIS_TAG + " " + AxisType.SINGLE_AXIS.getValue() + "|"
-      + AxisType.DUAL_AXIS.getValue()
-      + "\n\t\tFor automation.  Sets the Axis Type in the Setup Tomogram"
-      + "\n\t\tdialog."
-
-      + "\n\n  " + CPUS_TAG + " [ignored]"
-      + "\n\t\tTurns on the Parallel Processing checkbox in the Setup Tomogram"
-      + "\n\t\tdialog."
-
-      + "\n\n  " + CREATE_TAG
-      + "\tFor automation.  Runs Create Com Scripts in the Setup Tomogram"
-      + "\n\t\tdialog."
-
-      + "\n\n  " + DATASET_TAG + " tilt_series_file|dataset_name"
-      + "\n\t\tFor automation.  Sets Dataset Name in the Setup Tomogram"
-      + "\n\t\tdialog.  Can be set to a file containing a tilt series or to"
-      + "\n\t\tthe dataset name.  A dataset name is the root name of the tilt"
-      + "\n\t\tseries file, excluding the extension - and the axis extension"
-      + "\n\t\t(\"a\" or \"b\") in the case of dual axis.  Must be in the local"
-      + "\n\t\tdirectory unless the " + DIR_TAG + " option is used."
-
-      + "\n\n  " + DIR_TAG + " \"directory_path\""
-      + "\n\t\tFor automation.  The absolute or relative directory containing"
-      + "\n\t\tthe file or dataset specified with the " + DATASET_TAG + " option."
-
-      + "\n\n  " + EXIT_TAG
-      + "\tFor automation.  Causes Etomo to exit after the Setup Tomogram"
-      + "\n\t\tdialog is completed."
-
-      + "\n\n  " + FG_TAG
-      + "\t\tUsed with automation.  Causes Etomo to be run in the foreground"
-      + "\n\t\trather then in the background.  This is useful when running"
-      + "\n\t\tEtomo with automation from a script; a script will not wait"
-      + "\n\t\tuntil Etomo is done unless Etomo is running in the foreground."
-
-      + "\n\n  " + FIDUCIAL_TAG + " fiducial_diameter"
-      + "\n\t\tFor automation.  Sets the Fiducial Diameter (a double) in the"
-      + "\n\t\tSetup Tomogram dialog."
-
-      + "\n\n  " + FRAME_TAG + " " + ViewType.SINGLE_VIEW.getParamValue() + "|"
-      + ViewType.MONTAGE.getParamValue()
-      + "\n\t\tFor automation.  Sets the Frame Type in the Setup Tomogram"
-      + "\n\t\tdialog."
-
-      + "\n\n  " + GPUS_TAG + " [ignored]"
-      + "\n\t\tTurns on the Graphics Card Processing checkbox in the Setup"
-      + "\n\t\tTomogram dialog."
-
-      + "\n\n  " + SCAN_TAG
-      + "\tFor automation.  Runs Scan Header in the Setup Tomogram dialog."
-
-      + "\n\nDiagnostic Options:"
-
-      + "\n  " + ACTIONS_TAG
-      + "\tPrint actions and file names, without printing other debug"
-      + "\n\t\tinformation.  File names which do not contain an extension or"
-      + "\n\t\tare entirely numeric will not be printed."
-
-      + "\n\n  " + DEBUG_TAG + " [level]"
-      + "\n\t\tSend extra information to standard error.  The " + DEBUG_TAG + " option"
-      + "\n\t\tincludes the following options:  " + MEMORY_TAG + " and " + TIMESTAMP_TAG
-      + "." + "\n\t\tLevel can be " + DebugLevel.OFF.value + " (debug is off), "
-      + DebugLevel.DEFAULT.value + " (default), " + DebugLevel.LIMITED.value
-      + " (limited output), " + "\n\t\t" + DebugLevel.EXTRA.value
-      + " (more information), " + DebugLevel.VERBOSE.value
-      + " (output that may degrade eTomo's" + "\n\t\tperformance), or "
-      + DebugLevel.EXTRA_VERBOSE.value + " (as for " + DebugLevel.VERBOSE.value
-      + " plus the log will be very large)."
-
-      + "\n\n  " + IGNORE_SETTINGS_TAG
-      + "\n\t\tPrevents the .etomo from loading from and saving to the .etomo"
-      + "\n\t\tconfiguration file."
-
-      + "\n\n  " + MEMORY_TAG + " [interval]"
-      + "\n\t\tLog memory usage statements before and after processes are run."
-      + "\n\t\tThe interval is an integer which denotes the interval in"
-      + "\n\t\tminutes at which to send additional memory usage statements."
-
-      + "\n\n  " + SELFTEST_TAG
-      + "\tCauses Etomo to do some internal testing.  Etomo may run more"
-      + "\n\t\tslowly."
-
-      + "\n\nDevelopment and Testing Options:"
-
-      + "\n  " + AUTO_CLOSE_3DMOD_TAG
-      + "\n\t\tFor user interface testing.  Instead of popping up a message"
-      + "\n\t\tasking to close an open 3dmod instance, Etomo automatically"
-      + "\n\t\tcloses the 3dmod instance."
-
-      + "\n\n  " + HEADLESS_TAG
-      + "\tFor testing.  No window is created.  Used for unit testing."
-
-      + "\n\n  " + IGNORE_LOC_TAG
-      + "\tFor user interface testing.  Keeps eTomo from using the last"
-      + "\n\t\tlocation information that is saved in .etomo."
-
-      + "\n\n  " + NAMES_TAG
-      + "\tFor testing.  Send the names of screen elements to standard"
-      + "\n\t\tout.  For writing automated regression tests."
-
-      + "\n\n  " + NEWSTUFF_TAG
-      + "\tMay cause Etomo to run with unreleased functionality."
-
-      + "\n\n  " + TEST_TAG
-      + "\tFor testing.  Test mode is used for unit testing and automated"
-      + "\n\t\tregression testing."
-
-      + "\n\nDeprecated Options:"
-
-      + "\n  " + DEMO_TAG + "\tDeprecated.";
-
   private final List<String> paramFileNameList = new ArrayList<String>();
 
   private boolean debug = false;
@@ -306,6 +174,94 @@ public final class Arguments {
   private final EtomoNumber enFiducial = new EtomoNumber(EtomoNumber.Type.DOUBLE);
 
   Arguments() {
+  }
+
+  static void printHelpMessage() {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(null, AutodocFactory.ETOMO, AxisID.ONLY);
+      if (autodoc != null) {
+        String dash = "-";
+        if (autodoc.getAttribute(EtomoAutodoc.DOUBLE_DASH_ATTRIBUTE_NAME) != null) {
+          dash = "--";
+        }
+        // Get this information in order
+        SectionLocation sectionLocation = autodoc.getSectionLocation();
+        if (sectionLocation != null) {
+          ReadOnlySection section = null;
+          ReadOnlyAttribute attribute = null;
+          String attributeValue = null;
+          String sectionType = null;
+          while ((section = autodoc.nextSection(sectionLocation)) != null) {
+            sectionType = section.getType();
+            if (sectionType.equals(EtomoAutodoc.HEADER_SECTION_NAME)) {
+              if ((attribute = section.getAttribute(EtomoAutodoc.USAGE_ATTRIBUTE_NAME)) != null
+                  && (attributeValue = attribute.getValue()) != null) {
+                // Print section header
+                System.out.println("\n" + attributeValue);
+              }
+            }
+            else if (sectionType.equals(EtomoAutodoc.FIELD_SECTION_NAME)) {
+              // Print parameter
+              System.out.print(dash + section.getName());
+              // Look for short parameter name
+              if ((attribute = section.getAttribute(EtomoAutodoc.SHORT_ATTRIBUTE_NAME)) != null
+                  && (attributeValue = attribute.getValue()) != null) {
+                System.out.print(" OR -" + attributeValue);
+              }
+              // Look for value description
+              if ((attribute = section.getAttribute(EtomoAutodoc.FORMAT_ATTRIBUTE_NAME)) != null
+                  && (attributeValue = attribute.getValue()) != null) {
+                System.out.println("   " + stripManpageFormatting(attributeValue));
+              }
+              else if ((attribute = section
+                  .getAttribute(EtomoAutodoc.TYPE_ATTRIBUTE_NAME)) != null
+                  && (attributeValue = attribute.getValue()) != null) {
+                if (attributeValue.equals(EtomoAutodoc.BOOLEAN_TYPE)) {
+                  System.out.println();
+                }
+                if (attributeValue.equals(EtomoAutodoc.FLOAT_TYPE)) {
+                  System.out.println("   " + "Floating point");
+                }
+                if (attributeValue.equals(EtomoAutodoc.INTEGER_TYPE)) {
+                  System.out.println("   " + "Integer");
+                }
+              }
+              // Look for parameter description
+              if ((attribute = section.getAttribute(EtomoAutodoc.USAGE_ATTRIBUTE_NAME)) != null
+                  && (attributeValue = attribute.getValue()) != null) {
+                System.out.println("     " + attributeValue);
+              }
+              else if ((attribute = section
+                  .getAttribute(EtomoAutodoc.MANPAGE_ATTRIBUTE_NAME)) != null
+                  && (attributeValue = attribute.getValue()) != null) {
+                System.out.println("     " + stripManpageFormatting(attributeValue));
+              }
+            }
+          }
+          return;
+        }
+      }
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.LockException e) {
+      e.printStackTrace();
+    }
+    System.out.println("\nFor more information run 'man etomo'.");
+  }
+
+  private static String stripManpageFormatting(final String input) {
+    if (input.indexOf("\\f") != -1) {
+      String regexp = "\\\\f";
+      return input.replaceAll(regexp + "B", "").replaceAll(regexp + "I", "")
+          .replaceAll(regexp + "R", "");
+    }
+    return input;
   }
 
   public boolean isReconAutomation() {
