@@ -9,6 +9,7 @@
 progname = 'makecomfile'
 prefix = 'ERROR: ' + progname + ' - '
 origComDir = 'origcoms'
+dfltComDir = 'dfltcoms'
 
 #### MAIN PROGRAM  ####
 #
@@ -171,7 +172,7 @@ if typeName == 'xcorr_pt':
 
 # AUTOFIDSEED
 elif typeName == 'autofidseed':
-   comlines = ['# Command file for running autofidseed created by makeonecom',
+   comlines = ['# Command file for running autofidseed created by makecomfile',
                '$autofidseed -StandardInput',
                'TrackCommandFile	track' + axislet + '.com',
                'MinSpacing	0.85',
@@ -179,7 +180,7 @@ elif typeName == 'autofidseed':
 
 # TRANSFERFID
 elif typeName == 'transferfid':
-   comlines = ['# Command file for running transferfid created by makeonecom',
+   comlines = ['# Command file for running transferfid created by makecomfile',
                '$transferfid -StandardInput',
                'Setname	' + rootname,
                'CorrespondingCoordFile	transferfid.coord']
@@ -217,7 +218,7 @@ elif typeName == 'findbeads3d':
    if beadSize <= 0:
       exitError('BeadSize must be entered')
    prefix = [baseout + axislet, 'findbeads3d']
-   comlines = ['# Command file for running findbeads3d created by makeonecom',
+   comlines = ['# Command file for running findbeads3d created by makecomfile',
                '$findbeads3d -StandardInput',
                'InputFile	' + rootname + '_3dfind.rec',
                'OutputFile	' + rootname + '_3dfind.mod',
@@ -232,7 +233,7 @@ elif typeName == 'golderaser':
    beadSize = PipGetFloat('BeadSize', 0.)
    if beadSize <= 0:
       exitError('BeadSize must be entered')
-   comlines = ['# Command file for running ccderaser created by makeonecom',
+   comlines = ['# Command file for running ccderaser created by makecomfile',
                '$ccderaser -StandardInput',
                'InputFile	' + rootname + '.ali',
                'OutputFile	' + rootname + '_erase.ali',
@@ -251,7 +252,7 @@ elif typeName == 'tilt_3dfind_reproject':
 
 # SIRTSETUP
 elif typeName == 'sirtsetup':
-   comlines = ['# Command file for running sirtsetup created by makeonecom',
+   comlines = ['# Command file for running sirtsetup created by makecomfile',
                '$sirtsetup -StandardInput',
                'CommandFile	tilt' + axislet + '.com',
                'RadiusAndSigma	0.4,0.05',
@@ -262,7 +263,16 @@ if sedcom:
    sedlines = pysed(sedcom, comlines, None)
 else:
    sedlines = comlines
+
 if baseChanges or finalChanges or changeList:
+
+   # Make a default com file with directive and final changes left out - not clear about
+   # whether final changes should be in
+   if (changeList or finalChanges) and os.path.exists(dfltComDir) and \
+          os.path.isdir(dfltComDir) and os.access(dfltComDir, os.W_OK):
+      dfltlines = modifyForChangeList(sedlines, baseout, axislet,
+                                      baseChanges)
+      writeTextFile(os.path.join(dfltComDir, outfile), dfltlines)
    sedlines = modifyForChangeList(sedlines, baseout, axislet,
                                   baseChanges + changeList + finalChanges)
 makeBackupFile(outfile)
