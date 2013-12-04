@@ -39,30 +39,27 @@ int main( int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
   
   // Fallbacks from    ../manpages/autodoc2man 2 1 imodchopconts
-  int numOptions = 6;
+  int numOptions = 7;
   const char *options[] = {
-    "input:InputFile:FN:", "output:OutputFile:FN:", "length:LengthAndOverlap:IP:",
-    "number:NumberAndOverlap:IP:", "surfaces:AssignSurfaces:B:",
-    "objects:ObjectsToDo:LI:"};
+    "input:InputModel:FN:", "output:OutputModel:FN:", "length:LengthOfPieces:I:",
+    "overlap:MinimumOverlap:I:", "number:NumberOfPieces:I:",
+    "surfaces:AssignSurfaces:B:", "objects:ObjectsToDo:LI:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
                         2, 1, 1, &numOptArgs, &numNonOptArgs, imodUsageHeader);
 
   /* Get input and output files */
-  if (PipGetInOutFile("InputFile", 0, &filename))
-      exitError("No input file specified");
+  if (PipGetInOutFile("InputModel", 0, &filename))
+      exitError("No input model file specified");
 
   model = imodRead(filename);
   if (!model) 
     exitError("Reading model %s", filename);
   free(filename);
 
-  if (PipGetInOutFile("OutputFile", 1, &filename))
-      exitError("No output file specified");
-
-  // Set up default contour length as Z size of model
-  lenContour = model->zmax;
+  if (PipGetInOutFile("OutputModel", 1, &filename))
+      exitError("No output model file specified");
 
   // Get object list if any
   if (!PipGetString("ObjectsToDo", &listString)) {
@@ -72,35 +69,49 @@ int main( int argc, char *argv[])
       exitError("Bad entry in list of objects to do");
   }
 
-  /* Process other options */
-  PipGetBoolean("AssignSurfaces", &assignSurf);
-  ierr = PipGetTwoIntegers("LengthAndOverlap", &lenContour, &minContOverlap);
-  if (!PipGetTwoIntegers("NumberAndOverlap", &numContour, &minContOverlap)) {
-    if (!ierr)
-      exitError("You cannot enter both -length and -overlap");
-    
-    // Determine maximum length of contours
-    maxLen = 1;
-    for (obNum = 0; obNum < model->objsize; obNum++) {
-      if (!numberInList(obNum + 1, objList, numObj, 1))
-        continue;
-      obj = &model->obj[obNum];
-      for (co = 0; co < obj->contsize; co++)
-        maxLen = B3DMAX(maxLen, obj->cont[co].psize);
-    }
-
-    // Derive length for new contours
-    lenContour = B3DNINT((maxLen + (numContour - 1) * B3DMAX(0, minContOverlap)) /
-                         numContour);
-    printf("Maximum contour length = %d, length for new contours = %d\n", maxLen, 
-           lenContour);
+  // Determine maximum length of contours
+  maxLen = 1;
+  for (obNum = 0; obNum < model->objsize; obNum++) {
+    if (!numberInList(obNum + 1, objList, numObj, 1))
+      continue;
+    obj = &model->obj[obNum];
+    for (co = 0; co < obj->contsize; co++)
+      maxLen = B3DMAX(maxLen, obj->cont[co].psize);
   }
+
+  // Set up default contour length as max of Z size of model and max contour length
+  lenContour = B3DMAX(model->zmax, maxLen);
+
+  PipGetBoolean("AssignSurfaces", &assignSurf);
+
+  // Get the length entry
+  ierr = PipGetInteger("LengthOfPieces", &lenContour);
+  if (lenContour == -1)
+    lenContour = B3DMAX(16, model->zmax / 5);
+  if (lenContour <= 0)
+    exitError("New contour length must be a positive number");
+
+  // Set new default of 0 for overlap if length is 1, then get overlap and process it
+  if (lenContour == 1)
+    minContOverlap = 0;
+  ierr = PipGetInteger("MinimumOverlap", &minContOverlap);
   if (minContOverlap == -1) {
     noOverlap = 1;
     minContOverlap = 0;
   }
   if (minContOverlap < -1) 
-    exitError("Contour overlap cannot be negative");
+    exitError("Contour overlap cannot be negative, other than -1 to enforce 0 overlap");
+
+  // Then process number option
+  if (!PipGetInteger("NumberOfPieces", &numContour)) {
+    if (!ierr)
+      exitError("You cannot enter both -length and -number");
+    
+    // Derive length for new contours
+    lenContour = B3DNINT((maxLen + (numContour - 1) * minContOverlap) / numContour);
+    printf("Maximum contour length = %d, length for new contours = %d\n", maxLen, 
+           lenContour);
+  }
   if (lenContour < minContOverlap + 2)
     exitError("Contour length must be greater than the overlap + 1");
 

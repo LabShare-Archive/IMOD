@@ -8,11 +8,15 @@ imodchopconts  [options]  input_model  output_model
 .SH DESCRIPTION
 This program will chop contours into pieces with equals numbers of
 points, and with a specified amount of overlap between the pieces.  It
-has two main uses: 1) Breaking up the contours produce by patch tracking with
+has two main uses: 1) Breaking up the contours produced by patch tracking with
 Tiltxcorr(1) into overlapping pieces, which can give a better fit in Tiltalign(1).
 2) Splitting up scattered point contours so that there is one point per
 contour.  However, it could also be used to split up contours into
 other lengths, with or without overlap.
+.P
+Specifying positive numbers for the \fB-length\fR and
+\fB-overlap\fR options here has exactly the same effect as providing
+those two numbers to the  \fB-length\fR option of Tiltxcorr(1).
 .P
 Fine grained information at the point level will be preserved in the
 newly created contours.  Fine-grained information for an individual

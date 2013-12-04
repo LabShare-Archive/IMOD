@@ -1,7 +1,7 @@
 Version = 1.0
 Pip = 1
 
-[Field = InputFile]
+[Field = InputModel]
 short = input
 type = FN
 usage = Input model filename
@@ -9,7 +9,7 @@ tooltip =
 manpage = Name of input model file.  If this option is not entered,
 the first non-option argument will be taken as the input file.
 
-[Field = OutputFile]
+[Field = OutputModel]
 short = output
 type = FN
 usage = Output model filename
@@ -17,24 +17,37 @@ tooltip =
 manpage = Name of output model file.  If this option is not entered,
 the second non-option argument will be taken as the output file.
 
-[Field = LengthAndOverlap]
+[Field = LengthOfPieces]
 short = length
-type = IP
-usage = Number of points and minimum overlap for new contours
+type = I
+usage = Number of points to put in each new contour
 tooltip = 
-manpage = Number of points (length) and minimum number of overlapping points
-for new contours.  If the overlap is 0 or positive, then all new contours will
-be given the same number of points, but both the overlap and the number of
-contours will vary depending on the length of the original contour.  Enter an
-overlap value of -1 to enforce zero overlap between contours and have the
-contours broken into variable lengths, typically less than the specified length.
+manpage = The length of the new contours, i.e., the number of points to put in
+each.  The actual length can be affected by the entry for \fB-overlap\fR.  If
+-1 is entered, the length will be the default for breaking up contours from
+patch tracking in eTomo, which is the Z size in the
+model divided by 5, but no less than 16.  The default if neither this option
+nor \fB-length\fR is entered is to leave contours as they are.
 
-[Field = NumberAndOverlap]
-short = number
-type = IP
-usage = Number of pieces to break longest contours into, and minimum overlap
+[Field = MinimumOverlap]
+short = overlap
+type = I
+usage = Minimum overlap between pieces, or -1 for 0 overlap
 tooltip = 
-manpage = The option provides an alternative way to specify how to chop up
+manpage = The minimum number of points overlapping between pieces.  If the
+minimum overlap is 0 or positive, then all new contours will be given the same
+number of points, but both the overlap and the number of contours will vary
+depending on the length of the original contour.  Enter -1 to enforce zero
+overlap between contours and have the contours broken into variable lengths,
+typically less than the specified length.  The default is 4, unless 1 is
+entered for \fB-length\fR, in which case the default is 0.
+
+[Field = NumberOfPieces]
+short = number
+type = I
+usage = Number of pieces to break longest contours into
+tooltip = 
+manpage = This option provides an alternative way to specify how to chop up
 contours.  The maximum number of points in any contour to be processed will be
 divided by the given number to determine the number of points to require in
 each new contour.
