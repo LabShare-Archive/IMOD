@@ -366,7 +366,8 @@ public class EtomoDirector {
     System.err.println("GraphicsEnvironment.isHeadless()="
         + GraphicsEnvironment.isHeadless());
     // print versions
-    System.err.println("\neTomo version:  " + ImodVersion.CURRENT_VERSION + " " + VersionControl.TIME_STAMP);
+    System.err.println("\neTomo version:  " + ImodVersion.CURRENT_VERSION + " "
+        + VersionControl.TIME_STAMP);
     List<String> imodInfo = VersionControl.getImodInfo(null);
     if (imodInfo != null && imodInfo.size() > 0) {
       System.err.println("IMOD Version: " + imodInfo.get(0));
@@ -986,7 +987,8 @@ public class EtomoDirector {
   }
 
   private final void printUsageMessage() {
-    System.out.println("Usage: etomo [options] [data files]\n" + Arguments.HELP_MESSAGE);
+    System.out.println("Usage: etomo [options] [data files]\n");
+    Arguments.printHelpMessage();
   }
 
   /**
