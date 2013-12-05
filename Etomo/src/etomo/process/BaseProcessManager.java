@@ -772,7 +772,7 @@ public abstract class BaseProcessManager {
           "Cannot write to " + dir.getAbsolutePath(), "File Error");
       return;
     }
-    String[] commandArray = { "touch", absolutePath };
+    String[] commandArray = {"python", BaseManager.getIMODBinPath() + "b3dtouch", absolutePath };
     startSystemProgramThread(commandArray, AxisID.ONLY, manager);
     final int timeout = 5;
     int t = 0;
