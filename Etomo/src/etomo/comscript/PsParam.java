@@ -100,7 +100,13 @@ public final class PsParam {
     }
     // The calling function expects at least one line be returned even when the
     // pid is not found.
-    command.add("ps");
+    if (osType == OSType.WINDOWS) {
+      command.add("python");
+      command.add(BaseManager.getIMODBinPath() + "b3dwinps");
+    }
+    else {
+      command.add("ps");
+    }
     if (osType == OSType.WINDOWS) {
       parentPidColumn = true;
       windowPidColumn = true;
