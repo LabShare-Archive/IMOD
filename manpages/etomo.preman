@@ -1,0 +1,76 @@
+.TH etomo 1 2/12/2009 BL3DEMC
+.na
+.nh
+
+
+.SH NAME
+etomo - A GUI program to run IMOD and PEET batch programs
+
+
+.SH SYNOPSIS
+.HP
+.B etomo \fR[\fIoption\fR ...] [\fIdata_file\fR ...]
+
+
+.SH
+DESCRIPTION
+\fBEtomo\fR is an interface for running a subset of IMOD and PEET commands.  It
+can be run interactively, with automation, or with a combination of
+the two.  ETomo contains interfaces for a variety of projects:  tomographic
+reconstructions, joining tomograms, subvolume averaging, aligning serial sections,
+blending montages, nonlinear anisotropic diffusion, running processes using IMOD's
+parallel processing capabilies, flattening tomograms, and testing a GPU.
+
+.SS Automation
+Automating eTomo functionality can be done either with eTomo parameters or with
+directives. For more information on directives, run \fBimodhelp\fR and choose "Directives
+for batch processing and eTomo templates" on the IMOD Help Index page.
+
+INSERT OPTION TEXT HERE
+
+
+.SH FILES
+.SS Data Files
+.TP
+\fIdataset\fB.edf
+Tomographic reconstruction data file.
+
+.TP
+\fIdataset\fB.ejf
+Data file for joining tomograms.
+
+.TP
+\fIdataset\fB.epe
+Subvolume averaging (PEET) data file.
+
+.TP
+\fIdataset\fB.epp
+Data file for generic parallel process and nonlinear anisotropic diffusion interfaces.
+
+.TP
+\fIdataset\fB.ess
+Data file for aligning serial sections and blending montages.
+
+
+.SS Log Files
+.TP
+.B $HOME/.etomologs/etomo_err_\fItimestamp\fB.log
+Contains the log. The location is configurable (see \fBman imodenv\fR).
+
+.TP
+.B etomo_err.log
+Contains the location of the log.  Placed in the directory from which
+\fBetomo\fR is run.
+
+.TP
+.B etomo_out.log
+Contains the output of the \fB--names\fR parameter.  May also contain diagnostic
+messages.  Placed in the directory from which \fBetomo\fR is run.
+
+
+.SH AUTHOR
+Sue Held
+
+
+.SH SEE ALSO
+imodenv(1), uitest(1), 3dmod(1), imodhelp(1).
