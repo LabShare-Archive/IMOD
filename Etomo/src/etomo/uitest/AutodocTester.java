@@ -1383,7 +1383,8 @@ final class AutodocTester extends Assert implements VariableList {
 
   private void touch(final File file) {
     SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
-        new String[] { "touch", file.getAbsolutePath() }, AxisID.ONLY);
+        new String[] { "python", BaseManager.getIMODBinPath() + "b3dtouch",
+            file.getAbsolutePath() }, AxisID.ONLY);
     copy.run();
   }
 
@@ -2034,7 +2035,7 @@ final class AutodocTester extends Assert implements VariableList {
         else {
           tryAgain = true;
           frameWait++;
-          System.err.println("Wait "+ frameWait+" for "+name);
+          System.err.println("Wait " + frameWait + " for " + name);
         }
       }
       else {
