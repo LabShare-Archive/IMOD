@@ -264,6 +264,8 @@ program tiltalign
     ierr = PipGetInteger('MaximumCycles', ncycle)
     ierr = PipGetBoolean('RobustFitting', ifDoRobust)
     ierr = PipGetLogical('WeightWholeTracks', robustByTrack)
+    if (ifDoRobust > 0 .and. robustByTrack .and. .not. patchTrackModel) call exitError( &
+        'Weighting whole contours can be done only with a patch track model')
     if (PipGetTwoIntegers('MinWeightGroupSizes', minResRobust, minLocalResRobust) .ne. &
         0) then
       ! They were loaded with the point residual values, so change if track residuals
@@ -573,6 +575,7 @@ CONTAINS
     if (ifDoRobust .ne. 0 .and. metroError > metroRobust) then
       write(*,'(/,a,/)') 'Skipping robust fitting because of minimization error'
     endif
+    robFailed = .false.
     if (ifDoRobust .ne. 0 .and. metroError == metroRobust) then
       maxTotCycles = abs(ncycle) * robustTotCycleFac
       numTotCycles = 0

@@ -138,9 +138,28 @@ if typeName == 'xcorr_pt':
    except ValueError:
       exitError('Getting size from montagesize output')
 
+   addChop = PipGetBoolean('AddChopCommand', 0)
+   fidExt = '.fid'
+   if addChop:
+      fidExt = '_pt.fid'
+      lastLine = ''
+      if 'savework' in comlines[-1]:
+         lastLine = comlines[-1]
+         comlines = comlines[0:-1]
+      comlines = ['$goto doxcorr',
+                  '$doxcorr:'] + comlines + \
+                  ['$dochop:',
+                   '$imodchopconts -StandardInput',
+                   'InputModel ' + rootname + fidExt,
+                   'OutputModel ' + rootname + '.fid',
+                   'MinimumOverlap 4',
+                   'AssignSurfaces 1']
+      if lastLine:
+         comlines.append(lastLine)
+      
    xborder = int(0.05 * nx + 0.5)
    yborder = int(0.05 * ny + 0.5)
-   sedcom = [fmtstr('/^OutputFile/s/{0}.prexf/{0}.fid/', rootname),
+   sedcom = [fmtstr('/^OutputFile/s/{0}.prexf/{0}{1}/', rootname, fidExt),
              fmtstr('/^InputFile/s/{0}.st/{0}.preali/', rootname),
              '/^OutputFile/a/PrealignmentTransformFile	' + rootname + '.prexg/']
 

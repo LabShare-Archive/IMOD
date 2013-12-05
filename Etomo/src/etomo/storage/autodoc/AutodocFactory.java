@@ -217,7 +217,7 @@ public final class AutodocFactory {
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     autodoc.setDebug(true);
     try {
-      autodoc.initialize(manager, file, true, false, true);
+      autodoc.initialize(manager, file, true, false, true, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -232,7 +232,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, true, false, true);
+      autodoc.initialize(manager, file, true, false, true, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -259,7 +259,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true, stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, false, false, true);
+      autodoc.initialize(manager, file, false, false, true, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -279,7 +279,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, true, versionRequired, false);
+      autodoc.initialize(manager, file, true, versionRequired, false, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -303,7 +303,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(stripFileExtension(file));
     try {
-      autodoc.initialize(manager, file, false, true, false);
+      autodoc.initialize(manager, file, false, true, false, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {

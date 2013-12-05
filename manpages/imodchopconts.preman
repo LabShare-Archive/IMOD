@@ -1,0 +1,46 @@
+.na
+.nh
+.TH imodchopconts 1 2.50 BL3DEMC
+.SH NAME
+imodchopconts \- Break contours in IMOD model into pieces with specified overlap
+.SH SYNOPSIS
+imodchopconts  [options]  input_model  output_model
+.SH DESCRIPTION
+This program will chop contours into pieces with equals numbers of
+points, and with a specified amount of overlap between the pieces.  It
+has two main uses: 1) Breaking up the contours produced by patch tracking with
+Tiltxcorr(1) into overlapping pieces, which can give a better fit in Tiltalign(1).
+2) Splitting up scattered point contours so that there is one point per
+contour.  However, it could also be used to split up contours into
+other lengths, with or without overlap.
+.P
+Specifying positive numbers for the \fB-length\fR and
+\fB-overlap\fR options here has exactly the same effect as providing
+those two numbers to the  \fB-length\fR option of Tiltxcorr(1).
+.P
+Fine grained information at the point level will be preserved in the
+newly created contours.  Fine-grained information for an individual
+contour will be transferred to each of the new contours derived from
+it.  Surface-level fine-grained information will also be preserved
+unless the 
+.B -surfaces 
+option is given.
+.SH OPTIONS
+Imodchopconts uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -).  Options can be abbreviated to unique letters; the currently
+valid abbreviations for short names are shown in parentheses.
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+tiltxcorr(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.

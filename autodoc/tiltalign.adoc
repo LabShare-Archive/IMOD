@@ -804,8 +804,9 @@ points.
 
 [Field = WeightWholeTracks]
 type = B
-usage = Do robust fitting to entire contours in patch track models
-tooltip = 
+usage = Do robust fitting by weighting entire contours in patch track models
+tooltip = Do robust fitting by finding weights for entire contours, giving the
+same weight to all points in a contour (for patch tracking models only).
 manpage = When doing robust fitting with a model from patch tracking, 
 assign the same weight to all the points in each contour.  Contours with
 mean residuals higher than the median will thus be given less weight, and ones
