@@ -502,7 +502,6 @@ void XCorrPeakFindWidth(float *array, int nxdim, int ny, float  *xpeak, float *y
 
     /* Return width if non-NULL */
     if (width && widthSD) {
-      width[i] = (widthTemp[0] + widthTemp[0] + widthTemp[0] + widthTemp[3]) / 4.;
       widthTemp[0] = peakHalfWidth(array, iypeak * nxdim, ixpeak, 1, nx, 1) - cx;
       widthTemp[1] = peakHalfWidth(array, iypeak * nxdim, ixpeak, 1, nx, -1) + cx;
       widthTemp[2] = peakHalfWidth(array, ixpeak, iypeak, nxdim, ny, 1) - cy;
