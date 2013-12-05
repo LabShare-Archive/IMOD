@@ -35,6 +35,11 @@ public final class SectionLocation {
     this.index = index;
   }
 
+  SectionLocation(int index) {
+    type = null;
+    this.index = index;
+  }
+
   String getType() {
     return type;
   }
