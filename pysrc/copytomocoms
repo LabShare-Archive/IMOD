@@ -30,6 +30,7 @@ backupline = '$if (-e ' + backupname + ') ' + backupname
 dstext = ""
 setlet = ""
 origComDir = 'origcoms'
+dfltComDir = 'dfltcoms'
 laterBname = 'laterbsetup.com'
 laterBlines = []
 
@@ -51,7 +52,11 @@ def editAndWrite(srcRoot, dstRoot, sedcom, doChanges = True):
    makeBackupFile(dstfile)
    sedlines = pysed(sedcom, srcfile, None)
    sedlines.append(backupline)
+
+   # If there are directive changes, first write the default file, then apply changes
    if doChanges and len(changeList) > 0:
+      if dfltComDir:
+         writeTextFile(os.path.join(dfltComDir, dstfile), sedlines)
       sedlines = modifyForChangeList(sedlines, srcRoot, setlet, changeList)
    writeComFile(dstfile, sedlines)
 
@@ -277,21 +282,22 @@ if distort:
    distort = newDistort
    subdistort = "DistortionField"
 
-# Make the origcoms directory if needed
-if os.path.exists(origComDir):
-   if not os.path.isdir(origComDir):
-      warning('Cannot make directory for original com files; a regular file named ' +
-              origComDir + ' already exists')
-      origComDir = ''
-   if not os.access(origComDir, os.W_OK):
-      warning('Cannot write to the directory for original com files, ' + origComDir)
-      origComDir = ''
-else:
-   try:
-      os.mkdir(origComDir)
-   except OSError:
-      warning('Error making directory for original com files')
-      origComDir = ''
+# Make the origcoms and dfltcoms directories if needed
+for (comDir, comDescr) in ((origComDir, 'original'), (dfltComDir, 'default')):
+   if os.path.exists(comDir):
+      if not os.path.isdir(comDir):
+         warning('Cannot make directory for ' + comDescr + ' com files; a regular file '+\
+                    'named ' + comDir + ' already exists')
+         comDir = ''
+      if not os.access(comDir, os.W_OK):
+         warning('Cannot write to the directory for ' + comDescr + ' com files, ' +comDir)
+         comDir = ''
+   else:
+      try:
+         os.mkdir(comDir)
+      except OSError:
+         warning('Error making directory for ' + comDescr + ' com files')
+         comDir = ''
 
 
 # SKIP ALLOWING STACKS IN BACKUP DIRECTORY AND MAKING LINKS TO THEM
