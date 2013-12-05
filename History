@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/4/13: Updated the eTomo manpage.  Improved the eTomo help statement.
+(Bug# 1764)
+
 12/3/13: In eTomo - PEET, excluding the quoted values functionality.
 (Bug# 1631)
 
