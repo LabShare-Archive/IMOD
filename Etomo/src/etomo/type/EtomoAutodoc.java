@@ -27,13 +27,23 @@ import etomo.util.PrimativeTokenizer;
 public class EtomoAutodoc {
   public static final String rcsid = "$Id$";
 
-  public static final String FIELD_SECTION_NAME = "field";
+  public static final String HEADER_SECTION_NAME = "SectionHeader";
+  public static final String FIELD_SECTION_NAME = "Field";
   public static final String REQUIRED_ATTRIBUTE_NAME = "required";
+  public static final String TYPE_ATTRIBUTE_NAME = "type";
+  public static final String SHORT_ATTRIBUTE_NAME = "short";
+  public static final String FORMAT_ATTRIBUTE_NAME = "format";
+  public static final String USAGE_ATTRIBUTE_NAME = "usage";
+  public static final String MANPAGE_ATTRIBUTE_NAME = "manpage";
+  public static final String BOOLEAN_TYPE = "B";
+  public static final String FLOAT_TYPE = "F";
+  public static final String INTEGER_TYPE = "I";
   public static final String COMMENT_KEY = "comment";
   public static final int REQUIRED_TRUE_VALUE = 1;
   public static final char VAR_TAG = '%';
   public static final char NEW_LINE_CHAR = '^';
   private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
+  public static final String DOUBLE_DASH_ATTRIBUTE_NAME="DoubleDashOptions";
 
   private static boolean debug = false;
 
@@ -55,7 +65,7 @@ public class EtomoAutodoc {
         return text;
       }
     }
-    attribute = section.getAttribute("usage");
+    attribute = section.getAttribute(USAGE_ATTRIBUTE_NAME);
     if (attribute != null) {
       text = removeFormatting(attribute.getMultiLineValue());
       if (text != null) {
@@ -69,7 +79,7 @@ public class EtomoAutodoc {
         return text;
       }
     }
-    attribute = section.getAttribute("manpage");
+    attribute = section.getAttribute(MANPAGE_ATTRIBUTE_NAME);
     if (attribute != null) {
       return removeFormatting(attribute.getMultiLineValue());
     }
