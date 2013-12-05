@@ -210,6 +210,13 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     return statement;
   }
 
+  public String getType() {
+    if (type == null) {
+      throw new IllegalStateException("type is required");
+    }
+    return type.getValues();
+  }
+
   public String getName() {
     if (name == null) {
       throw new IllegalStateException("name is required");
@@ -243,7 +250,8 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
 
   boolean equalsType(String type) {
     if (type == null) {
-      return false;
+      // For a section location with a null type, all sections are returned.
+      return true;
     }
     return this.type.getKey().equals(Token.convertToKey(type));
   }
@@ -276,7 +284,7 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
 
   void write(LogFile file, LogFile.WriterId writerId) throws LogFile.LockException,
       IOException {
-    //write section header
+    // write section header
     file.write(AutodocTokenizer.OPEN_CHAR, writerId);
     if (subsection) {
       file.write(AutodocTokenizer.OPEN_CHAR, writerId);
@@ -292,7 +300,7 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     for (int i = 0; i < statementList.size(); i++) {
       ((Statement) statementList.get(i)).write(file, writerId);
     }
-    //if subsection, write subsection footer
+    // if subsection, write subsection footer
     if (subsection) {
       file.write("" + AutodocTokenizer.OPEN_CHAR + AutodocTokenizer.OPEN_CHAR
           + AutodocTokenizer.CLOSE_CHAR + AutodocTokenizer.CLOSE_CHAR, writerId);
@@ -384,7 +392,7 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
     else {
       System.out.println();
     }
-    //name value pair list
+    // name value pair list
     Autodoc.printIndent(level);
     System.out.println("Statements:");
     for (int i = 0; i < statementList.size(); i++) {
