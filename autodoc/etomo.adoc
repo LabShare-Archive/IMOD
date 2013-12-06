@@ -1,6 +1,8 @@
 Version = 1.0
 Pip = 1
 DoubleDashOptions=
+NoHelpAbbreviations=
+NoAbbreviations=
 
 [Field = help]
 short=h
