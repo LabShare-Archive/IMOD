@@ -14,7 +14,7 @@ etomo - A GUI program to run IMOD and PEET batch programs
 
 .SH
 DESCRIPTION
-\fBEtomo\fR is an interface for running a subset of IMOD and PEET commands.  It
+ETomo is an interface for running a subset of IMOD and PEET commands.  It
 can be run interactively, with automation, or with a combination of
 the two.  ETomo contains interfaces for a variety of projects:  tomographic
 reconstructions, joining tomograms, subvolume averaging, aligning serial sections,
@@ -60,12 +60,12 @@ Contains the log. The location is configurable (see \fBman imodenv\fR).
 .TP
 .B etomo_err.log
 Contains the location of the log.  Placed in the directory from which
-\fBetomo\fR is run.
+eTomo is run.
 
 .TP
 .B etomo_out.log
 Contains the output of the \fB--names\fR parameter.  May also contain diagnostic
-messages.  Placed in the directory from which \fBetomo\fR is run.
+messages.  Placed in the directory from which eTomo is run.
 
 
 .SH AUTHOR
