@@ -93,8 +93,7 @@ public final class Arguments {
   public static final String SELFTEST_TAG = "--selftest";
   public static final String TEST_TAG = "--test";
   static final String HEADLESS_TAG = "--headless";
-  private static final String HELP1_TAG = "-h";
-  private static final String HELP2_TAG = "--help";
+  private static final String[] HELP_TAGS = new String[] { "--help", "--h", "-h" };
   public static final String DEBUG_TAG = "--debug";
   private static final String MEMORY_TAG = "--memory";
   private static final String NEWSTUFF_TAG = "--newstuff";
@@ -207,7 +206,15 @@ public final class Arguments {
               // Look for short parameter name
               if ((attribute = section.getAttribute(EtomoAutodoc.SHORT_ATTRIBUTE_NAME)) != null
                   && (attributeValue = attribute.getValue()) != null) {
-                System.out.print(" OR -" + attributeValue);
+                System.out.print(" OR " + dash + attributeValue);
+                if (section.getName().equals("help")) {
+                  if (dash.equals("--")) {
+                    System.out.print(" OR -" + attributeValue);
+                  }
+                  else {
+                    System.out.print(" OR --" + attributeValue);
+                  }
+                }
               }
               // Look for value description
               if ((attribute = section.getAttribute(EtomoAutodoc.FORMAT_ATTRIBUTE_NAME)) != null
@@ -397,7 +404,7 @@ public final class Arguments {
     while (i < args.length) {
       // Filename argument should be the only one not beginning with at least
       // one dash.
-      if (!args[i].startsWith("--")) {
+      if (!args[i].startsWith("-")) {
         paramFileNameList.add(args[i]);
       }
       else {
@@ -407,7 +414,14 @@ public final class Arguments {
               + paramFileNameList.toString() + ", ignored.");
           paramFileNameList.clear();
         }
-        if (args[i].equals(HELP1_TAG) || args[i].equals(HELP2_TAG)) {
+        boolean tagFound = false;
+        for (int tagIndex = 0; tagIndex < HELP_TAGS.length; tagIndex++) {
+          if (args[i].equals(HELP_TAGS[tagIndex])) {
+            tagFound = true;
+            break;
+          }
+        }
+        if (tagFound) {
           help = true;
         }
         else if (args[i].equals(TEST_TAG)) {
