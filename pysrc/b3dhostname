@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+# b3dhostname - Utility to print hostname on all platforms
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+import sys, platform
+sys.stdout.write(platform.node() + "\n")
+sys.exit(0)
+   
