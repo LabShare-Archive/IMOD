@@ -234,7 +234,9 @@ for a man page that is input to \fBnroff\fR, start the string with .SS or .SH
 to avoid the regular indentation of option text.
 
 Other meaningful metadata entries are \fBNoHelpAbbrevations\fR to avoid
-showing unique abbreviations in help output, and 
+showing unique abbreviations in help output, \fBNoAbbreviations\fR to
+turn on the flag for no abbreviations internally and allow otherwise
+ambiguous options, and 
 \fBDoubleDashOptions\fR to show options with two dashes in help output.
 
 .SS Errors and Return Values
