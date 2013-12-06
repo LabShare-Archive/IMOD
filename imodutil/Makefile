@@ -29,7 +29,7 @@ clonevolume$(E) : clonevolume.$(O)
 	$(CC) -o clonevolume clonevolume.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodinfo$(E) : imodinfo.$(O)
-	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+	$(CXX) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod-dist$(E) : imod-dist.$(O)
 	$(CC) -o imod-dist imod-dist.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
