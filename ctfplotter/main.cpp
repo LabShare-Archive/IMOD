@@ -165,6 +165,15 @@ int main(int argc, char *argv[])
   // Instantiate the QApplication and Qt UI elements only if not doing autofit and exiting
   // so that the program can run without a window system available
   if (!saveAndExit) {
+
+#ifdef Q_OS_MACX
+    // fix OS X 10.9 font issue https://bugreports.qt-project.org/browse/QTBUG-32789
+    // MV_10_8 is not defined in Qt 4.6 etc, this is the value in Qt 4.8
+    if (QSysInfo::MacintoshVersion > 0x000A) {
+      QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
+    }
+#endif
+
     ctfHelp = new ImodAssistant("html", "IMOD.adp", "ctfguide");
     qapp = new QApplication(argc, argv);
   }
