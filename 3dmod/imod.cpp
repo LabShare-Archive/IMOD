@@ -245,6 +245,13 @@ int main( int argc, char *argv[])
       exit(0);
 #endif
 
+#ifdef Q_OS_MACX
+  // fix OS X 10.9 font issue https://bugreports.qt-project.org/browse/QTBUG-32789
+  // MV_10_8 is not defined in Qt 4.6 etc, this is the value in Qt 4.8
+  if (QSysInfo::MacintoshVersion > 0x000A)
+    QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
+#endif
+
   /* Open the Qt application */
   // Once we have told Qt about the original arguments, we must not modify argc here
   // Somehow later it accesses the old argument vector with the new number of args
