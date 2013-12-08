@@ -413,7 +413,9 @@ int main (int argc, char **argv)
 
   vw->midasWindow->show();
   vw->midasWindow->setFocus();
-
+#ifdef Q_OS_MACX
+  vw->midasWindow->raise();
+#endif
   return myapp.exec();
 }
 
