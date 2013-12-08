@@ -24,24 +24,24 @@ c       ITYPANG(I,J) is the Ith angluar neighbor type for the Jth graph
 c       GRAPHS(I,J) is returned with the density at the Ith bin of Jth graph
 c       FRACSUM(I,J) is returned with total area contributing to that bin
 c       
-c	  $Author$
-c
-c	  $Date$
-c
-c	  $Revision$
-c
-c	  $Log$
-c
+c       $Author$
+c       
+c       $Date$
+c       
+c       $Revision$
+c       
+c       $Log$
+c       
       subroutine angdist(bx,by,nvert,sx,sy,itype,npoint,rmin,rmax,
      &    nbins, ngraph, nreftyp,nneightyp,nangtyp,itypref,itypneigh,
      &    itypang,graphs,fracsum)
       parameter (limgraphs=50,limbins=1001,limpnts=50000,limcross=20,
      &    limvert=500,limtyp=50,itypall=999,limnay=100,
      &    limptxgrf=100000)
-      real*4 bx(*),by(*)			!boundary vertices
-      real*4 sx(*),sy(*)			!sample points
+      real*4 bx(*),by(*)                        !boundary vertices
+      real*4 sx(*),sy(*)                        !sample points
       real*4 graphs(limbins,limgraphs)
-      integer*4 itype(*)			!types of sample points
+      integer*4 itype(*)                        !types of sample points
       integer*4 nreftyp(*),nneightyp(*)         !# of types for ref and neigh
       integer*4 itypref(limtyp,*),itypneigh(limtyp,*)
       integer*4 nangtyp(*),itypang(limtyp,*)
@@ -102,7 +102,7 @@ c
       t2sum=0.
       do iref=1,npoint
 c         
-c	  first make list of graphs the reference point is needed in
+c         first make list of graphs the reference point is needed in
 c         
         needref=0
         do jj=1,ngraph
@@ -122,7 +122,7 @@ c
 c           if point is inside the safe box, mark it as contributing fully
 c           to all of the graphs by adding 1 to fracsum
 c           
-c	    t1=secnds(0.)
+c           t1=secnds(0.)
           x0=sx(iref)
           y0=sy(iref)
           ncross=0
@@ -144,10 +144,10 @@ c
               y2=by(ivert+1)
               d2sq=(x0-x2)**2+(y0-y2)**2
               if(d2sq.gt.d1sq+dbsq)then
-                distsq=d1sq			!if (x1,y1) is closest
+                distsq=d1sq                     !if (x1,y1) is closest
               elseif(d1sq.gt.d2sq+dbsq)then
-                distsq=d2sq			!if (x2,y2) is closest
-              else				!if somewhere between is closer
+                distsq=d2sq                     !if (x2,y2) is closest
+              else                              !if somewhere between is closer
                 distsq=d2sq-(d2sq+dbsq-d1sq)**2/(4.*dbsq)
               endif
 c               
@@ -183,8 +183,8 @@ c
 c             
             if(mod(ncross,2).ne.0)print *,'odd number of crossings'
           endif
-c	    t1sum=t1sum+secnds(t1)
-c	    t2=secnds(0.)
+c           t1sum=t1sum+secnds(t1)
+c           t2=secnds(0.)
 c           
 c           now make list of all neighboring points in annulus
 c           
@@ -286,21 +286,21 @@ c
               enddo
             endif
           enddo
-c	    t2sum=t2sum+secnds(t2)
+c           t2sum=t2sum+secnds(t2)
 c           
         endif
       enddo
-c	print *,t1sum,t2sum
+c       print *,t1sum,t2sum
 c       
 c       convert counts to densities
 c       
-c$$$	do jj=1,ngraph
+c$$$    do jj=1,ngraph
 c$$$    print *,'Fracsum #',jj
 c$$$    write(*,'(7f11.4)')(fracsum(ii,jj),ii=1,nbins)
 c$$$    print *,'Graph #',jj
 c$$$    write(*,'(7f11.4)')(graphs(ii,jj),ii=1,nbins)
 c$$$    if(jj.ne.ngraph)call mypause (' ')
-c$$$	enddo
+c$$$    enddo
       binarea=3.14159*(rmaxsq-rminsq)/(2.*nbins)
       do ibin=1,nbins
         do jj=1,ngraph

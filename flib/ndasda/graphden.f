@@ -32,10 +32,10 @@ c       $Log$
      &    ngraph,nreftyp,nneightyp,itypref,itypneigh,graphs,fracsum)
       parameter (limgraphs=50,limbins=1001,limpnts=50000,limcross=20,
      &    limvert=500,limtyp=50,itypall=999,limptxgrf=100000)
-      real*4 bx(*),by(*)			!boundary vertices
-      real*4 sx(*),sy(*)			!sample points
+      real*4 bx(*),by(*)                        !boundary vertices
+      real*4 sx(*),sy(*)                        !sample points
       real*4 graphs(limbins,limgraphs)
-      integer*4 itype(*)			!types of sample points
+      integer*4 itype(*)                        !types of sample points
       integer*4 nreftyp(*),nneightyp(*)         !# of types for ref and neigh
       integer*4 itypref(limtyp,*),itypneigh(limtyp,*)
 c       
@@ -50,8 +50,8 @@ c
       rmax=nbins*delr
       rmaxsq=rmax**2
       rmidmaxsq=((nbins-0.5)*delr)**2
-      safexlo=rmax				!"Safe box" not implemented
-      safexhi=-rmax				!Sorry
+      safexlo=rmax                              !"Safe box" not implemented
+      safexhi=-rmax                             !Sorry
       safeylo=rmax
       safeyhi=-rmax
 c       
@@ -90,7 +90,7 @@ c
       t2sum=0.
       do iref=1,npoint
 c         
-c	  first make list of graphs the reference point is needed in
+c         first make list of graphs the reference point is needed in
 c         
         needref=0
         do jj=1,ngraph
@@ -110,7 +110,7 @@ c
 c           if point is inside the safe box, mark it as contributing fully
 c           to all of the graphs by adding 1 to fracsum
 c           
-c	    t1=secnds(0.)
+c           t1=secnds(0.)
           x0=sx(iref)
           y0=sy(iref)
           if(x0.ge.safexlo .and. x0.le. safexhi .and.
@@ -145,10 +145,10 @@ c
               y2=by(ivert+1)
               d2sq=(x0-x2)**2+(y0-y2)**2
               if(d2sq.gt.d1sq+dbsq)then
-                distsq=d1sq			!if (x1,y1) is closest
+                distsq=d1sq                     !if (x1,y1) is closest
               elseif(d1sq.gt.d2sq+dbsq)then
-                distsq=d2sq			!if (x2,y2) is closest
-              else				!if somewhere between is closer
+                distsq=d2sq                     !if (x2,y2) is closest
+              else                              !if somewhere between is closer
                 distsq=d2sq-(d2sq+dbsq-d1sq)**2/(4.*dbsq)
               endif
 c               
@@ -253,10 +253,10 @@ c
                 jj=igraphref(ineed)
                 fracsum(ibin,jj)=fracsum(ibin,jj)+fracadd
               enddo
-            enddo	      
+            enddo             
           endif
-c	    t1sum=t1sum+secnds(t1)
-c	    t2=secnds(0.)
+c           t1sum=t1sum+secnds(t1)
+c           t2=secnds(0.)
 c           
 c           now add neighboring points to bins as needed
 c           
@@ -279,21 +279,21 @@ c
               endif
             endif
           enddo
-c	    t2sum=t2sum+secnds(t2)
+c           t2sum=t2sum+secnds(t2)
 c           
         endif
       enddo
-c	print *,t1sum,t2sum
+c       print *,t1sum,t2sum
 c       
 c       convert counts to densities
 c       
-c$$$	do jj=1,ngraph
+c$$$    do jj=1,ngraph
 c$$$    print *,'Fracsum #',jj
 c$$$    write(*,'(7f11.4)')(fracsum(ii,jj),ii=1,nbins)
 c$$$    print *,'Graph #',jj
 c$$$    write(*,'(7f11.4)')(graphs(ii,jj),ii=1,nbins)
 c$$$    if(jj.ne.ngraph)call mypause (' ')
-c$$$	enddo
+c$$$    enddo
       do ibin=1,nbins
         anularea=3.14159*delr**2*(2*ibin-1)
         do jj=1,ngraph

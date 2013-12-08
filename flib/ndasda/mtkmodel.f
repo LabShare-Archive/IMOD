@@ -7,30 +7,30 @@ c
 c       $Log$
 c       Revision 3.8  2007/01/06 23:56:32  mast
 c       Added ability to preserve and transfer point sizes when writing model
-c
+c       
 c       Revision 3.7  2006/10/30 17:45:14  mast
 c       Fixed moving contours to new object when only one meshed object and
 c       fixed flag setting to get closed contour objects
-c
+c       
 c       Revision 3.6  2006/05/12 14:37:32  mast
 c       Added moving contours in surfaces within window to new objects
-c
+c       
 c       Revision 3.5  2004/10/08 03:27:08  mast
 c       Added scaling to undo image file pixel size
-c	
+c       
 c       Revision 3.4  2003/10/26 05:33:27  mast
 c       change command files to use unit 4 instead reopening 5
-c	
+c       
 c       Revision 3.3  2003/08/08 23:55:16  mast
 c       *** empty log message ***
-c	
+c       
 c       Revision 3.2  2003/08/08 17:48:13  mast
 c       Eliminated STOP statements, provided for model file to be skipped,
 c       fixed Z limiting code to not assume contours in order by Z.  Fixed
 c       object-saving and changing logic so that user no longer specifies
 c       objects and it knows what objects the data are being saved in and
 c       sets properties correctly.
-c	
+c       
 c       
 c       READ_MODEL reads a WIMP model.
 c       if MODELFILE is blank, it requests a model file name; otherwise it
@@ -160,7 +160,7 @@ c
         do i=1,limflag
           if(iobjflag(i).gt.4)iobjflag(i)=iobjflag(i)-4
         enddo
-      endif	  
+      endif       
 c       
 c       get list of z gaps to connect surfaces across
 c       
@@ -330,14 +330,14 @@ c       being accessed
 c       
       do iobj=1,nmt
         iorig=iobjmod(iobj)
-c	  ibase_obj(iobj)=indstrt(iobj)-1
+c         ibase_obj(iobj)=indstrt(iobj)-1
         icoltmp=icolor(iobj)
         if(ncolchg.ne.0)then
           maybenew=-999
           if(nobjwin.ge.0)then
 c             
 c             First see if this contour is in an object being changed
-c
+c             
             do icol=1,ncolchg
               if(icoltmp.eq.icolold(icol))then
                 maybenew=icolnew(icol)
@@ -346,7 +346,7 @@ c
             enddo
 c             
 c             Then see if this contour is in the window (positive iobjwin)
-c
+c             
             if(maybenew.ne.-999)then
               do iow=1,nobjwin
                 if(iobj.eq.iobjwin(iow))then
@@ -356,9 +356,9 @@ c
               enddo
             endif
           else
-c
+c             
 c             For dealing with end separations
-c
+c             
             do iow=1,-nobjwin
               if(iobjmod(iobj).eq.iobjwin(iow))then
                 do icol=1,ncolchg
@@ -378,7 +378,7 @@ c         reassign contour to new object by making a new contour with the
 c         new color value, leaving old one empty, and copy the
 c         contour's points in regardless of whether it is new or old
 c         Also transfer point sizes to a new contour
-c
+c         
         inew = iorig
         if (icoltmp.ne.icolor(iobj)) then
           max_mod_obj = max_mod_obj + 1
@@ -434,7 +434,7 @@ c
 c                   change all the contours in the surface: again, make a new
 c                   contour, assign points to it and zero out old one, and
 c                   transfer point sizes
-c
+c                   
                   icolused(icolind) = 1
                   do icont=istrcont(isurf),istrcont(isurf)+ncontinsurf(isurf)-1
                     iobj=listcont(icont)
@@ -462,7 +462,7 @@ c
       endif
 c       
 c       create connectors
-c
+c       
       n_point=ibase_free+3*ninwin
       do i=1,3*ninwin
         jj=ibase_free+i
@@ -738,7 +738,7 @@ c
 c       
 c       sort the polygons into surfaces: use modind as temporary surface #
 c       
-c	print *,'Sorting surfaces'
+c       print *,'Sorting surfaces'
       listend=iobjpoly(nmeshloaded)-1
       do i=listend+1,npoly
         modind(i)=0
@@ -780,7 +780,7 @@ c
         surfymax(nsurf)=polyymax(ip)
         surfzmax(nsurf)=polyzmax(ip)
         surfarea(nsurf)=polyarea(ip)
-c	  print *,'starting surface ',nsurf,' with polygon',ip
+c         print *,'starting surface ',nsurf,' with polygon',ip
         lcur=listend
 c         
 c         search for more to add to list until current is caught up to end
@@ -906,10 +906,10 @@ c
      &                      polyymin(ipoly).le.polyymax(jpoly).and.
      &                      polyymin(jpoly).le.polyymax(ipoly))ifmost=0
                       enddo
-c			
+c                       
 c                       if this is the farther one into the gap, extract the
 c                       contours
-c			
+c                       
                       if(ifmost.ne.0)then
                         do ipt=1,npmin
                           ip=ipmin(ipt)
@@ -922,7 +922,7 @@ c
                           call contour_from_poly(ipoly,zextr1,cx1, cy1,
      &                        nc1, limcxy)
                           call contour_from_poly(ip,zextr2,cx2,cy2,
-     &			      nc2,limcxy)
+     &                        nc2,limcxy)
 c                           
 c                           check each contour for points inside the other
 c                           
@@ -1000,7 +1000,7 @@ c
 c       
 c       NOW CROSS-REFERENCE CONTOURS TO SURFACES
 c       
-c	print *,'Cross-referencing contours'
+c       print *,'Cross-referencing contours'
       ntmp=0
       norphan=0
       tol=0.1*xyscal
@@ -1097,7 +1097,7 @@ c
             tmpzval(ntmp)=tzval
           else
             norphan=norphan+1
-c	      print *,iobj,' is orphan'
+c             print *,iobj,' is orphan'
           endif
         endif
       enddo
