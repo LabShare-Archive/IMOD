@@ -21,15 +21,13 @@ new Assistant had problems in Qt 4.4 in Windows and Linux, and we thus moved
 to various later versions of Qt on various systems either to solve those
 specific problems or as a precautionary measure.  We now use Qt 4.7.4 for our
 Windows builds, 4.6.3 on RHEL6 Linux, 4.5.3 on RHEL5 Linux, and 4.6.4 for a
-32-bit build under Mac OS X with a carbon interface.  However, the 64-bit
-builds on Mac OS X, which must use the cocoa interface, have a problem in Qt
-4.6.4 or higher (key events are no longer passed to the model view window when
-opened from 3dmod), so we are stuck at 4.6.3 there.
+32-bit build under Mac OS X with a carbon interface.  The 64-bit
+builds on Mac OS X use either 4.6.3 or 4.8.5 because there was a problem in key event
+processing from 4.6.4 through (at least) 4.7.4 that is gone in 4.8.5.
 
 The take home message: if you have Qt 4.3 or higher on your system already,
-you can safely build with that.  If you need to build Qt, it is safe to the
-latest Qt compatible with your compilers on any architecture except Mac, where
-you should use Qt 4.6.3 unless you won't be running with these libraries.
+you can safely build with that.  If you need to build Qt, it is safe to use the
+latest Qt compatible with your compilers on any architecture.
 
 Several strategies were used when building Qt.  One was to build in a local
 directory and then run "make install".  With later versions on Mac, this
@@ -55,11 +53,11 @@ program directory.
 In order to build with CUDA support, environment variable CUDA_DIR must be
 defined to point to the directory where the CUDA toolkit is installed.  The
 build computer itself need not be CUDA-capable or have drivers supporting
-CUDA.  So far, CUDA 2.1 - 2.3, 3.1 - 3.3, and 4.0 have been used on various
+CUDA.  So far, CUDA 2.1 - 2.3, 3.1 - 3.3, and 4.0 - 4.1 have been used on various
 systems; 3.1 required some nvcc compiler flag changes and library location
 changes.  These changes have been made for Mac OS X in IMOD 4.1, but not until
 IMOD 4.2.5 for 64-bit Linux.  CUDA support for 64-bit Mac can be built only
-with CUDA 3.1 and only under OS X 10.6.
+with CUDA 3.1 or higher, and only under OS X 10.6 or higher.
 
 The setup scripts automatically configure to use OpenMP in cases where they
 think it is available.
