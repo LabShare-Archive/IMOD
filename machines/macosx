@@ -383,10 +383,15 @@ set ctf_target = `echo $send_target | sed '/imod/s/imodsendevent/ctfplotter/g'`
 set prochunk_target = `echo $send_target | sed '/imod/s/imodsendevent/processchunks/g'`
 set sourcedoc_exe = `echo $send_target | sed '/imod/s/imodsendevent/sourcedoc/g'`
 
+set dyldLibrary = 'export DYLD_LIBRARY_PATH="${IMOD_QTLIBDIR}:${IMOD_DIR}/lib:$DYLD_LIBRARY_PATH"'
+set dyldFrame = 'export DYLD_FRAMEWORK_PATH="${IMOD_QTLIBDIR}:$DYLD_FRAMEWORK_PATH"'
+set errFilter = '2>&1 | grep -v "CoreText performance\|modalSession has been exited"'
+
 # Make some more lists for looping
 #
 set qrun = (runsendevent runqtassist runctfplotter runprocesschunks runmrc2tif runmidas)
 set qtarget = ($send_target $assist_target $ctf_target $prochunk_target $mrc2tif_target)
+set qfilter = (' ' ' ' "$errFilter" ' ' ' ')
 
 # make script files to run programs
 # Set DYLD_LIBRARY_PATH with qtlib before running program
@@ -396,68 +401,43 @@ while ($i < 5)
     @ i++
 cat <<EOF >! $qdir[$i]/$qrun[$i]
 #!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\${IMOD_DIR}/lib:\$DYLD_LIBRARY_PATH"
-export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
-\$IMOD_DIR/bin/${qtarget[$i]} "\$@"
+$dyldLibrary
+$dyldFrame
+\$IMOD_DIR/bin/${qtarget[$i]} "\$@" $qfilter
 EOF
 chmod a+x $qdir[$i]/$qrun[$i]
 end
 
-cat <<EOF >! $imod_dir/runimod
+# Make the scripts with background/foreground options
+#
+set qbrun = (runimod runimodv runmidas)
+set qtarget = ($imod_target "$imod_target -view" $midas_target)
+set qbdir = ($imod_dir $imod_dir $midas_dir)
+set bkg3dmod = '"$i" == "-D" || "$i" == "-W" || "$i" == "-L"'
+set bkgTest = ("$bkg3dmod" "$bkg3dmod" '"$i" == "-D"')
+@ i = 0
+while ($i < 3)
+    @ i++
+cat <<EOF >! $qbdir[$i]/$qbrun[$i]
 #!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\${IMOD_DIR}/lib:\$DYLD_LIBRARY_PATH"
-export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
+$dyldLibrary
+$dyldFrame
 background=1
 for i
 do
-    if [[ "\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L' ]] ; then
+    if [[ ${bkgTest[$i]} ]] ; then
         background=0
     fi
 done
 if [[ \$background == "0" ]] ; then
-    \$IMOD_DIR/bin/${imod_target} "\$@"
+    \$IMOD_DIR/bin/${qtarget[$i]} "\$@" $errFilter
 else
-    \$IMOD_DIR/bin/${imod_target} "\$@" &
+    \$IMOD_DIR/bin/${qtarget[$i]} "\$@" $errFilter &
 fi
 EOF
+chmod a+x $qbdir[$i]/$qbrun[$i]
+end
 
-cat <<EOF >! $imod_dir/runimodv
-#!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\${IMOD_DIR}/lib:\$DYLD_LIBRARY_PATH"
-export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
-background=1
-for i
-do
-    if [[ "\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L' ]] ; then
-        background=0
-    fi
-done
-if [[ \$background == "0" ]] ; then
-    \$IMOD_DIR/bin/${imod_target} -view "\$@"
-else
-    \$IMOD_DIR/bin/${imod_target} -view "\$@" &
-fi
-EOF
-
-cat <<EOF >! $midas_dir/runmidas
-#!/bin/sh
-export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\${IMOD_DIR}/lib:\$DYLD_LIBRARY_PATH"
-export DYLD_FRAMEWORK_PATH="\${IMOD_QTLIBDIR}:\$DYLD_FRAMEWORK_PATH"
-background=1
-for i
-do
-    if [[ "\$i" == '-D' ]] ; then
-        background=0
-    fi
-done
-if [[ \$background == "0" ]] ; then
-    \$IMOD_DIR/bin/${midas_target} "\$@"
-else
-    \$IMOD_DIR/bin/${midas_target} "\$@" &
-fi
-EOF
-
-chmod a+x $imod_dir/runimod $imod_dir/runimodv $midas_dir/runmidas 
 
 cat << EOF  >! $midas_qconf
 INCLUDEPATH += $QTDIR/include/QtOpenGL
