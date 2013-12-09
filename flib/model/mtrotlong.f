@@ -23,7 +23,7 @@ c
       real*4 zdif,xdif,ydif,slopex,bint,ro,gamma,slopey,beta, alpha,cosang
       real*4 sinang,zout,yout, slopez
 c
-      integer*4 iobjfromcont,lnblnk
+      integer*4 iobjfromcont
       real*4 atand, cosd, sind, goodangle       
       logical b3dxor
 c       
@@ -33,7 +33,7 @@ c
 75    exist=readw_or_imod(modelfile)
       if(.not.exist)then
         write(*, '(/,a, a)')'ERROR: MTROTLONG - READING MODEL FILE ', 
-     &      modelfile(1:lnblnk(modelfile)) 
+     &      trim(modelfile) 
         call exit(1)
       endif
       call scale_model(0)
@@ -101,7 +101,7 @@ c	read(5,*)ifflip
       if(iobjin.eq.0)then
         close(3)
         write(*,'(//,a,a,a)')'The command file ',
-     &      pointfile(1:lnblnk(pointfile)),' is ready to run'
+     &      trim(pointfile),' is ready to run'
         call exit(0)
       endif
 c	iobj=iconstr(iobjin)+icont-1

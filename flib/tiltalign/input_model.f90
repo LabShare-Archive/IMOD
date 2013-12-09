@@ -34,7 +34,6 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
   character*1024 listString
   integer*4 PipGetThreeIntegers
   integer*4 PipGetString, PipGetTwoIntegers, PipGetTwoFloats
-  character*320 concat
   !
   ! read model in
   !
@@ -181,7 +180,7 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
     if (residualOut) then
       residualFile = modelFile
     else
-      residualFile = concat(modelFile, '.resid')
+      residualFile = trim(modelFile)//'.resid'
     endif
     !
     ! manage the model file name now; attach extension if model
@@ -190,7 +189,7 @@ subroutine input_model(imodObj, imodCont, numProjPt,  iwhichOut, xcen, ycen, xde
     if (residualOut) then
       modelFile = ' '
     else
-      modelFile = concat(modelFile, '.3dmod')
+      modelFile = trim(modelFile)//'.3dmod'
     endif
   endif
   !

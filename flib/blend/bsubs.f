@@ -51,7 +51,6 @@ c
      &    'bad multinegative specification'/ 
       integer*4 ierr,lenact,ninp,ineg,ipc,iz,listfirst
       integer*4 PipGetString
-      integer*4 lnblnk
 c       
 c       get file name and open file
 c       
@@ -120,7 +119,7 @@ c
       close(3)
       return
 20    write(*,'(1x,a,a,a,a,i6)')'ERROR: BLENDMONT - ',
-     &    filnam(1:lnblnk(filnam)),' - ', errmess(ierr),npclist+1
+     &    trim(filnam),' - ', errmess(ierr),npclist+1
       close(3)
       call exit(1)
       end

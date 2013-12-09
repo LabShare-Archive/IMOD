@@ -31,7 +31,6 @@ c
       character*320 comString
       character*12 endvStr, ypadStr
       character dat*9,tim*8
-      character*320 concat
       character*80 titlech
       logical exist
 
@@ -100,7 +99,6 @@ c
       real*4 fieldChange
       integer*4 iBinning, maxZ
       real*4 cosd, sind, acosd, asind
-      integer*4 lnblnk
 c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean
@@ -220,9 +218,9 @@ c
       call PipDone()
 
 c       tempfile = temp_filename(infile, ' ', 'xf')
-      tempfile = concat(outRoot, '.tmpxf')
-      xffile = concat(outRoot, '.rawxf')
-      outfile = concat(outRoot, '.nosidf')
+      tempfile = trim(outRoot)//'.tmpxf'
+      xffile = trim(outRoot)//'.rawxf'
+      outfile = trim(outRoot)//'.nosidf'
       call int_iwrite(ypadStr, ny / 2, lenYpad)
       if (maxSect .lt. nz) call exitError(
      &    'TOO MANY SECTIONS FOR TRANSFORM ARRAY')
@@ -248,12 +246,12 @@ c         undistort images after the first time
 c         
         stFile = infile
         if (iter .gt. 1) then
-          stFile = concat(outRoot, '.udst')
+          stFile = trim(outRoot)//'.udst'
           call int_iwrite(endvStr, maxZ, lenEndv)
           write(comString, 102)'newstack -sec 0-', endvStr(1:lenEndv),
-     &        ' -image ', iBinning, ' -dist ', outfile(1:lnblnk(outfile)), 
-     &        infile(1:lnblnk(infile)), stFile(1:lnblnk(stFile)),
-     &        quietStr(1:lnblnk(quietStr))
+     &        ' -image ', iBinning, ' -dist ', trim(outfile), 
+     &        trim(infile), trim(stFile),
+     &        trim(quietStr)
 102       format(a,a,a,i3,a,a,1x,a,1x,a,1x,a)
 c           print *,comString
 c           
@@ -282,8 +280,8 @@ c
      &          ' -sigma1 ', sigma1, ' -sigma2 ', sigma2, ' -pad ',
      &          nx / 2, ',', ypadStr(1:lenYpad), ' -views ',
      &          izRef + 1, ',', endvStr(1:lenEndv),
-     &          stFile(1:lnblnk(stFile)), tempfile(1:lnblnk(tempfile)),
-     &          quietStr(1:lnblnk(quietStr))
+     &          trim(stFile), trim(tempfile),
+     &          trim(quietStr)
 101         format(a,f5.2,a,f5.2,a,f5.2,a,i5,a,a,a,i4,a,a,1x,a,1x,a,1x,a)
 
 c             print *,comString
@@ -437,7 +435,7 @@ c           set up not to use old ones and save them under a different name
 c           
           saveXfs = .true.
           useOldXf = .false.
-          xffile = concat(outRoot, '.udxf')
+          xffile = trim(outRoot)//'.udxf'
 c           
 c           Set up the grid for the distortion field.  The minimum
 c           indentation is the maximum of half the grid spacing and the
@@ -763,7 +761,7 @@ c
         endif
       enddo
 
-      outfile = concat(outRoot, '.idf')
+      outfile = trim(outRoot)//'.idf'
       write(*,'(a,4f10.6)')' De-stretch transformation:',
      &    ((aa(i,j),j=1,2),i=1,2)
 
@@ -851,7 +849,7 @@ c
       enddo
 c       
       if (makePatch) then
-        patchFile = concat(outRoot, '.patch')
+        patchFile = trim(outRoot)//'.patch'
         call dopen(1, patchFile, 'new', 'f')
         write(1,'(i7,a)')numTotField,' residuals'
         j = 0

@@ -6,22 +6,19 @@ c       --- Written: 8-feb-1989 Sam Mitchell              ---
 c       -----------------------------------------------------
 c
 c       $Id$
-c       Log at end of file
 c       
       implicit none
       integer maxarr,maxlist
       parameter (maxarr=2100)
       parameter (maxlist=20000)
 
-      real*4    array(maxarr*maxarr), brray(maxarr*maxarr),
-     &    title(20), cell(6)
+      real*4    array(maxarr*maxarr), brray(maxarr*maxarr), title(20), cell(6)
       common /bigarr/ array,brray
       integer   nxyz(3), mxyz(3), nxyzst(3), asec, bsec, nxyz2(3)
       integer*4 listasec(maxlist),listbsec(maxlist),nx,ny,nz,nbsec,isec,kti
       equivalence (nxyz,nx)
       common//nx,ny,nz
       character*160 afile, bfile, cfile
-      character*320 concat
       character dat*9, tim*8
       character*10000 listString
 c       
@@ -108,7 +105,7 @@ c         ierr = PipGetInteger('TestLimit', limarr)
 
       if (PipGetInOutFile('BFileSubtractOff', 2,
      &    'Name of file B, or return for A~', bfile) .ne. 0)
-     &    bfile = concat(afile,'~')
+     &    bfile = trim(afile)//'~'
       nbsec = nasec
 
       if (pipinput) then
@@ -314,35 +311,7 @@ c
 100   call exitError('READING FILE')
       end
 
-c       $Log$
-c       Revision 3.9  2011/06/26 23:40:07  mast
-c       Added options for getting error exit when exceed limits
-c
-c       Revision 3.8  2011/06/21 19:55:37  mast
-c       Added options for subarea for statistics
-c
-c       Revision 3.7  2007/11/18 04:54:58  mast
-c       Redeclared concat at 320
-c
-c       Revision 3.6  2007/07/12 01:51:15  mast
-c       Changed high to upper to preserve -h for help
-c
-c       Revision 3.5  2007/07/10 19:40:22  mast
-c       Added options for zero mean and thresholding on output
-c
-c       Revision 3.4  2006/09/28 21:25:08  mast
-c       changed call to avgsd8
-c       
-c       Revision 3.3  2005/05/26 04:35:43  mast
-c       Used double precision to get SD correct and for new args to iclavgsd
-c       
-c       Revision 3.2  2003/12/24 20:02:15  mast
-c       Changed to read and write in chunks, converted to PIP input, and
-c       made it have default behavior to subtract two whole volumes
-c       
-c       Revision 3.1  2002/08/18 23:12:21  mast
-c       Changed to call iclavgsd in library, dimensioned bigger and put big
-c       arrays in common
+c       Some ancient history:
 c       --- Updates: 31-may-1989, sjm                     ---
 c       --- DNM 11/4/00: added multiple-section capability---
 c       --- DNM 11/6/01: added ability to get statistics only

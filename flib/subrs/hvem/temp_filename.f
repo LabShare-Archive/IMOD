@@ -6,23 +6,22 @@ c       filename in [filein] with leading directories stripped off, and an
 c       extension in [tempext]
 c       
       character*320 function temp_filename(filein,tempdir,tempext)
+      implicit none
       character*(*) filein,tempdir,tempext
-      character*320 concat
+      integer*4 inend, instr, i
 c       
 c       find last / in filein
 c       
-      inend=lnblnk(filein)
-      instr=1
-      do i=1,inend
-        if(filein(i:i).eq.'/')instr=i+1
+      inend = len_trim(filein)
+      instr = 1
+      do i = 1, inend
+        if (filein(i:i) == '/') instr = i + 1
       enddo
 c       
-      if(tempdir.eq.' ')then
-        temp_filename=concat(concat(filein(instr:inend),'.'),
-     &      tempext)
+      if (tempdir == ' ') then
+        temp_filename = trim(filein(instr:inend))//'.'//trim(tempext)
       else
-        temp_filename=concat(concat(concat(concat(tempdir,'/'),
-     &      filein(instr:inend)),'.'),tempext)
+        temp_filename = trim(tempdir)//'/'//trim(filein(instr:inend))//'.'//trim(tempext)
       endif
       return
       end

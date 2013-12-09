@@ -116,7 +116,6 @@ program beadtrack
   real*4 percentileCritFrac, dblNormMinCrit, wcritToLocalMinRatio, outerSigma
   real*4 omadMean, obackMean
   integer*4 maxWneigh, numWneighWant, minFilled, maxFilled
-  character*320 concat
   integer*4 getImodObjsize, niceFrame, surfaceSort, scaledSobel
   logical itemOnList
   real*4 ran
@@ -1215,9 +1214,9 @@ program beadtrack
   !
   nzout = 0
   if (outFile .ne. ' ') then
-    CALL imopen(2, concat(outFile, '.box'), 'NEW')
-    CALL imopen(3, concat(outFile, '.ref'), 'NEW')
-    CALL imopen(4, concat(outFile, '.cor'), 'NEW')
+    CALL imopen(2, trim(outFile)//'.box', 'NEW')
+    CALL imopen(3, trim(outFile)//'.ref', 'NEW')
+    CALL imopen(4, trim(outFile)//'.cor', 'NEW')
     do i = 2, 4
       call itrhdr(i, 1)
       call ialmod(i, modeBox)
@@ -1239,8 +1238,8 @@ program beadtrack
     corroSum = 0.
     corrMin = 1.e20
     corrMax = -1.e20
-    CALL dopen(2, concat(outFile, '.brpl'), 'NEW', 'F')
-    CALL dopen(3, concat(outFile, '.cpl'), 'NEW', 'F')
+    CALL dopen(2, trim(outFile)//'.brpl', 'NEW', 'F')
+    CALL dopen(3, trim(outFile)//'.cpl', 'NEW', 'F')
   endif
   !
   ! Set up formats
@@ -2488,7 +2487,7 @@ CONTAINS
       call int_iwrite(listString, iview, ndel)
       write(pieceFile, '(a,a,a,i1)') '.', listString(1:ndel), '.', ipass
       call scale_model(1)
-      call write_wmod(concat(modelFile, pieceFile))
+      call write_wmod(trim(modelFile)//trim(pieceFile))
       call scale_model(0)
     endif
     numAddTmp = numAdded
