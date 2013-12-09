@@ -43,8 +43,8 @@ usage=Do automation based on the directive_file.adoc.
 manpage=Causes automation to be performed based on a file called
 \fIdirective_file\fB.adoc\fR.  No interface will come up and most
 command-line automation options will have no effect.
-^Command-line automation options\fR that can be used with this
-option:
+^Command-line automation options\fR that can be used with these
+options:
 ^   \fB--cpus\fR
 ^   \fB--gpus\fR
 ^These options are automatically set to true when \fB--directive\fR is
