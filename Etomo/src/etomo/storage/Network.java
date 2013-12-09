@@ -52,8 +52,8 @@ public final class Network {
    */
   public static String getLocalHostName(BaseManager manager, AxisID axisID,
       String propertyUserDir) {
-    SystemProgram hostname = new SystemProgram(manager, propertyUserDir,
-        new String[] { "hostname" }, axisID);
+    SystemProgram hostname = new SystemProgram(manager, propertyUserDir, new String[] {
+        "python", BaseManager.getIMODBinPath() + "b3dhostname" }, axisID);
     hostname.run();
     String[] stdout = hostname.getStdOutput();
     if (stdout == null || stdout.length < 1) {
