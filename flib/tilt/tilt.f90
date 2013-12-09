@@ -2600,7 +2600,7 @@ SUBROUTINE inputParameters()
   ifGpuByEnviron = PipGetInteger('UseGPU', nGPU)
   if (imodGetEnv('IMOD_USE_GPU2', card) == 0) then
     read(card,*) nGPU
-    ifGpuByEnviron = .true.
+    ifGpuByEnviron = 1
   endif
   useGPU = nGPU >= 0
   ierr = PipGetTwoIntegers('ActionIfGPUFails', iactGpuFailOption, &

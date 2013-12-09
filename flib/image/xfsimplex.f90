@@ -45,12 +45,12 @@ Program xfsimplex
   implicit none
   integer*4 mxyz(3), nxyzst(3), nxyz2(3)
   !
-  character*320 inputFile1, inputFile2, outFile, xfInFile, strnTmp
+  character*320 inputFile1, inputFile2, outFile, xfInFile
   !
   real*4, allocatable :: temp(:)
   data nxyzst/0, 0, 0/
   real*4 a(6), da(6), amat(2,2), anat(6), danat(6)
-  real*4 pp(7,7), yy(7), ptmp(6), ptol(6), ctf(8193)
+  real*4 pp(7,7), yy(7), ptol(6), ctf(8193)
   ! if doing formal params, the a(i) are DX, DY, a11, a12, a21, and a22
   ! for natural paramas, the a(i) are DX and DY, Global rotation, global
   ! stretch, difference between Y&X-axis stretch, and difference
@@ -81,7 +81,8 @@ Program xfsimplex
   integer*4 mode, ierr, ivarStart, ii, jj, i, numLimit, lenTemp
   integer*4 numPixels, ibase, mattX, mattY, ixy, ind, iran, lowHigh
   real*4 fracMatt, dmin, dmax, dmean, pctRange, dmin2, dmax2, dmean2, sd2
-  real*4 histScale, val, ix, iy, ixm, iym, ixp, ic, ixcm, iycm, dmin1, dmax1, dmean1
+  integer*4 ix, iy, ixm, iym, ixp, ic, ixcm, iycm
+  real*4 histScale, val, dmin1, dmax1, dmean1
   integer*4 ncrit, limDxy, idx, idy, j, itmp, iter, jmin, izRef, izAli, npad, nxPad
   integer*4 nyPad, nxOrig, nyOrig, ifSobel, ifFiltAfter, lineUse
   integer*4 ifXminMax, ifYminMax, iAntiFiltType
