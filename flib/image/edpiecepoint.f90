@@ -85,8 +85,8 @@ program edpiecepoint
       read(*,*) nzDummy
       write(*,'(1x,a,$)') '# of montage pieces in X and in Y (/ for 1,1): '
       read(5,*) nxFrame, nyFrame
-      write(*,'(1x,a,$)') 'Spacing between pieces in X and Y '//' &
-          (- for pieces in inverse order) : '
+      write(*,'(1x,a,$)') 'Spacing between pieces in X and Y '// &
+          '(- for pieces in inverse order) : '
       read(5,*) nxDelta, nyDelta
       write(*,'(1x,a,$)') '0 for pieces in rows, 1 for pieces in columns: '
       read(5,*) ifInColumns

@@ -5,9 +5,9 @@ c
 c       See man page for details
 c       
 c       David Mastronarde  6/2/11
-c
+c       
 c       $Id$
-c
+c       
       implicit none
       integer idim
       parameter (idim=3000)
@@ -53,7 +53,7 @@ c       fallbacks from ../../manpages/autodoc2man -2 2 edgemtf
       call PipReadOrParseOptions(options, numOptions, 'edgemtf',
      &    'ERROR: EDGEMTF - ', .false., 2, 1, 1, numOptArg, numNonOptArg)
 C       
-C	Open image file
+C       Open image file
       if (PipGetInOutFile('InputFile', 1, ' ', inFile) .ne. 0)
      &    call exitError('NO INPUT FILE SPECIFIED')
 C       
@@ -67,19 +67,19 @@ C
       write(*,'(1x,a,$)')'Output file for curves: '
       outFile = trim(rootname)//'.out'
       call dopen(2,outFile,'new','f')
-c
+c       
       ierr = PipGetInteger('BinningOfImages', ibinning)
       ibinning = max(1, min(4,ibinning))
       ncollapse = ncollvals(ibinning)
       nlinavg = nlinvals(ibinning)
       navgnorm = normvals(ibinning)
-c
+c       
       izst=0
       iznd=nz-1
       ierr = PipGetTwoIntegers('SectionsStartAndEnd', izst, iznd)
       ierr = PipGetInteger('SummingOfLines', ncollapse)
       ierr = PipGetInteger('AveragingForReference', nlinavg)
-c
+c       
       do i=izst,iznd
         ireflin(i)=ny/2
       enddo
@@ -190,7 +190,7 @@ C
           avg=ftmag(ix)/avg1
           write(2,'(i5,f7.4,f9.5)')kk+100,x,avg
           X = X + DELX
-        enddo	  
+        enddo     
 c         
         do ix=1,nx
           write(2,'(i5,f6.1,f12.5)')kk+200,ix-1.,ref(ix)
@@ -288,8 +288,8 @@ c             limit density to between the min and max of original points
         if(ixleft.eq.0)ixleft=nx
         ixright=ixmax+1
         if(ixright.gt.nx)ixright=1
-c	  
-c	  simply fit a parabola to the two adjacent points in X
+c         
+c         simply fit a parabola to the two adjacent points in X
 c         
         cx=0.
         y1=brray(ixleft,iy)
@@ -374,5 +374,3 @@ c         print *,'X',y1,y2,y3,cx
       return
       end
 
-c       
-c       $Log$

@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/4/13: Updated the eTomo manpage.  Improved the eTomo help statement.
+12/6/13: Added option to Imodinfo to get contour lengths broken out by
+fine-grained color, and made -o option provide object list for all outputs.
+
+12/5/13: Updated the eTomo manpage.  Improved the eTomo help statement.
 (Bug# 1764)
 
 12/3/13: In eTomo - PEET, excluding the quoted values functionality.

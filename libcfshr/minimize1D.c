@@ -172,6 +172,6 @@ int minimize1D(float curPosition, float curValue, float initialStep, int numScan
 int minimize1d(float *curPosition, float *curValue, float *initialStep, int *numScanSteps,
                int *numCutsDone, float *brackets, float *nextPosition)
 {
-  minimize1D(*curPosition, *curValue, *initialStep, *numScanSteps, numCutsDone,
-             brackets, nextPosition);
+  return minimize1D(*curPosition, *curValue, *initialStep, *numScanSteps, numCutsDone,
+                    brackets, nextPosition);
 }

@@ -84,8 +84,10 @@ The options
 , 
 .B -l
 , 
-.B -o
-,
+.B -L
+, 
+.B -F
+, 
 .B -p
 , 
 .B -r
@@ -99,7 +101,7 @@ Print ascii readable IMOD output. Not all of the types
 of data stored in a binary model are printed in an ascii
 model file, but all contour and mesh data are printed.  Also, slicer angles,
 clipping planes, and general values assigned to contours and points will be
-printed
+printed.
 .TP
 .B -c
 Print volume, surface area, and center of gravity for each object in
@@ -109,6 +111,19 @@ is computed from the line segments themselves.
 .TP
 .B -l
 Print lengths of open contours in column output.
+.TP
+.B -L
+Print lengths of contours broken out by fine-grained color, if any,
+and excluding gaps.
+For each object, a table is printed for each color used.  This table shows the
+contour number and the length of the portion assigned that color, for each contour
+that uses the color.  If the 
+.B -h
+option is given, only summary information on total and mean lengths os
+printed.  Unlike in other length reports, this one excludes gaps from
+the total length, so this option is useful for getting correct lengths
+of what is drawn when there are gaps, even if there are no fine-grained
+colors.
 .TP
 .B -s
 Print volumes and surface areas for each separate surface in an object, as
@@ -125,8 +140,11 @@ has one defined.
 .B -r
 Print ratio of length to area for closed contours.
 .TP
+.B -F
+Print full report on the objects, a collection of summary information.
+.TP
 .B -o \fIlist\fR
-Print full report on the objects given in the list, a comma-separated list
+Print data only from the objects given in the list, a comma-separated list
 of ranges.
 .TP
 .B -i

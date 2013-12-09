@@ -1,6 +1,12 @@
 Version = 1.0
 Pip = 1
 DoubleDashOptions=
+NoHelpAbbreviations=
+NoAbbreviations=
+
+
+[SectionHeader = Options]
+usage=OPTIONS
 
 [Field = help]
 short=h
@@ -36,9 +42,9 @@ format=\fB"\fIdirective_file\fB.adoc"
 usage=Do automation based on the directive_file.adoc.
 manpage=Causes automation to be performed based on a file called
 \fIdirective_file\fB.adoc\fR.  No interface will come up and most
-\fBCommand-Line-Based Automation Options\fR will have no effect.
-^\fBCommand-Line-Based Automation Options\fR that can be used with this
-option:
+command-line automation options will have no effect.
+^Command-line automation options\fR that can be used with these
+options:
 ^   \fB--cpus\fR
 ^   \fB--gpus\fR
 ^These options are automatically set to true when \fB--directive\fR is
@@ -92,8 +98,8 @@ completed.
 [Field = fg]
 type=B
 usage=Run eTomo in the foreground.
-manpage=Causes \fBeTomo\fR to be run in the foreground rather then in the
-background.  This is useful when running \fBeTomo\fR with automation from
+manpage=Causes eTomo to be run in the foreground rather then in the
+background.  This is useful when running eTomo with automation from
 a script because a script will not wait until a background command has
 completed.
 
@@ -123,7 +129,7 @@ usage=DIAGNOSTIC OPTIONS
 [Field = actions]
 type=B
 usage=Send actions and file name to eTomo's _err.log.
-manpage=Send actions and file name to \fBeTomo\fR's \fB_err.log\fR.  File
+manpage=Send actions and file name to eTomo's \fB_err.log\fR.  File
 names which do not contain an extension or are entirely numeric will be
 excluded.
 
@@ -137,26 +143,26 @@ manpage=Send extra information to eTomo's \fB_err.log\fR.
 ^   \fB0\fR - no debug output
 ^   \fB1\fR - default debug output
 ^   \fB2\fR - more information
-^   \fB3\fR - extensive information - may degrade \fBeTomo\fR's performance
+^   \fB3\fR - extensive information - may degrade eTomo's performance
 ^   \fB4\fR - as for \fB3\fR, plus the log will be very large
 
 [Field = ignoresettings]
 type=B
-manpage=\fBETomo\fR will not load from or save to the \fB.etomo\fR
+manpage=ETomo will not load from or save to the \fB.etomo\fR
 configuration file.
 
 [Field = memory]
 type=I
 format=\fR[\fIinterval_in_minutes\fR]
 usage=Log memory usage statements before and after processes are run.
-manpage=Send memory usage statements to \fBeTomo\fR\s \fB_err.log\fR before
+manpage=Send memory usage statements to eTomo's \fB_err.log\fR before
 and after processes are run.  \fInterval_in_minutes\fR is the interval at
 which to send additional memory usage statements.
 
 [Field = selftest]
 type=B
 usage=Causes eTomo to do some internal testing.
-manpage=Causes \fBeTomo\fR to do some internal testing. \fBETomo\fR may run
+manpage=Causes eTomo to do some internal testing. ETomo may run
 more slowly.
 
 
@@ -168,7 +174,7 @@ usage=DEVELOPMENT AND TESTING OPTIONS
 type=B
 usage=ETomo automatically closes the 3dmod instance.
 manpage=Instead of popping up a message asking to close an open \fB3dmod\fR
-instance, \fBeTomo\fR automatically closes it.  Used for automated user
+instance, eTomo automatically closes it.  Used for automated user
 interface testing.
 
 [Field = headless]
@@ -185,12 +191,12 @@ location saved in \fB.etomo\fR.  Used for automated user interface testing.
 [Field = names]
 type=B
 usage=The names of screen elements are sent to eTomo's _out.log.
-manpage=The names of screen elements are sent to \fBeTomo\fR's
+manpage=The names of screen elements are sent to eTomo's
 \fB_out.log\fR.  Used for automated user interface testing.
 
 [Field = newstuff]
 type=B
-manpage=May cause \fBeTomo\fR to run with unreleased functionality.
+manpage=May cause eTomo to run with unreleased functionality.
 
 [Field = test]
 type=B

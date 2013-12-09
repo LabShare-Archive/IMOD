@@ -16,7 +16,6 @@ c
 c       See man page for more details
 c       
 c       $Id$
-c       Log at end
 c       
       program warpvol
       use rotmatwarp
@@ -33,11 +32,11 @@ c
       integer*4 izsec(6)
       integer*4 inmin(3),inmax(3),icube(3)
       real*4 freinp(10),xyzcen(3),xcen,ycen,zcen
-c      equivalence (xcen,xyzcen(1)), (ycen,xyzcen(2)), (zcen,xyzcen(3))
+c       equivalence (xcen,xyzcen(1)), (ycen,xyzcen(2)), (zcen,xyzcen(3))
 c       
       character*320 filein,fileout,fileinv,tempdir,tempext,patchfile,fillfile
 c       
-c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
+c       DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
       character dat*9,tim*8/'00:00:00'/
       character*80 titlech
@@ -137,9 +136,9 @@ c
         write(*,'(1x,a,3i5,a,$)')'X, Y, and Z dimensions of the '//
      &      'output file (/ for',nxout,nyout,nzout,'): '
         read(5,*)nxout,nyout,nzout
-c	  
+c         
 c         get matrix for inverse transforms
-c	  
+c         
         print *,'Enter name of file with inverse transformations'
         read(5,'(a)')fileinv
       endif
@@ -175,7 +174,7 @@ c
       if (ninp .ne. 9) then
 c         
 c         Every position must be present, find min and max to deduce interval
-c
+c         
         xlocst=1.e10
         xlocmax=-1.e10
         ylocst=1.e10
@@ -396,7 +395,7 @@ c       Set up axes and strides and allocate the array for transforms
       endif
       ix = idimOut(innerAxis)
       allocate (ofsin(3,ix,iy), amx(3,3,ix,iy), stat = ierr)
-c      print *,'allocated',ix,iy,innerAxis,iouterAxis, idimOut
+c       print *,'allocated',ix,iy,innerAxis,iouterAxis, idimOut
       if (ierr .ne. 0) call exitError(
      &    'FAILED TO ALLOCATE ARRAYS FOR PRECOMPUTED TRANSFORMS')
 c       
@@ -494,7 +493,7 @@ c             where the X axis is being output as the Z axis)
             do while (numZleft .gt. 0)
               numZtoDo = min(numZleft, maxZout)
               izEnd = izStart + numZtoDo - 1
-c              print *,ixcube,iycube,izStart,izEnd,numZleft
+c               print *,ixcube,iycube,izStart,izEnd,numZleft
               if(ifempty.eq.0)then
                 
 c                 Set up index limits for inner and outer loops
@@ -510,14 +509,14 @@ c                 Set up index limits for inner and outer loops
                   iouterEnd = izEnd
                 endif
                 indBase = -idimOut(1) - izStart * idimOut(1) * idimOut(2)
-c                print *,iouterStart, iouterEnd,innerStart,innerEnd
+c                 print *,iouterStart, iouterEnd,innerStart,innerEnd
 c                 
 c                 Loop on the outer axis in the Z segment
                 do iouter = iouterStart, iouterEnd
                   xyzcen(iouterAxis)=ixyzcube(iouterAxis,icube(iouterAxis))+
      &                iouter-1- cxyzout(iouterAxis)
                   outerCen = xyzcen(iouterAxis)
-c               
+c                   
 c                   get matrices for each inner position either for the one
 c                   position in Y or for every one
                   if(.not.(nlocz .eq. 1 .and. ioutXaxis .ne. 3)) then
@@ -539,20 +538,20 @@ c                   position in Y or for every one
                   threadWall = walltime()
 c                   
 c                   parallelize loop on Y and inner axes
-c               
-C$OMP PARALLEL DO
-C$OMP& SHARED(nxyzcube, ixyzcube, outerCen,innerStart,innerEnd)
-C$OMP& SHARED(iycube,cyout, baseInt,indBase, innerStride,iouter)
-C$OMP& SHARED(interporder, xofsout, DMEANIN, array, brray,ixlim,iylim,izlim)
-C$OMP& SHARED(amx, ofsin, nlocy,iouterStride, idimOut,innerAxis,iouterAxis)
-C$OMP& DEFAULT(PRIVATE)
+c                   
+C                   $OMP PARALLEL DO
+C                   $OMP& SHARED(nxyzcube, ixyzcube, outerCen,innerStart,innerEnd)
+C                   $OMP& SHARED(iycube,cyout, baseInt,indBase, innerStride,iouter)
+C                   $OMP& SHARED(interporder, xofsout, DMEANIN, array, brray,ixlim,iylim,izlim)
+C                   $OMP& SHARED(amx, ofsin, nlocy,iouterStride, idimOut,innerAxis,iouterAxis)
+C                   $OMP& DEFAULT(PRIVATE)
                   do iy=1,nxyzcube(2,iycube)
                     ycen=ixyzcube(2,iycube)+iy-1-cyout
                     iyxf = iy
                     if (nlocy .eq. 1) iyxf = 1
                     do ix=innerStart, innerEnd
                       xcen=ix+xofsout
-c                     
+c                       
 c                       get indices in array of input data
                       xp=amx(1,innerAxis,ix,iyxf)*xcen+amx(1,2,ix,iyxf)*ycen+
      &                    amx(1,iouterAxis,ix,iyxf)*outerCen+ ofsin(1,ix,iyxf)
@@ -561,9 +560,9 @@ c                       get indices in array of input data
                       zp=amx(3,innerAxis,ix,iyxf)*xcen+amx(3,2,ix,iyxf)*ycen+
      &                    amx(3,iouterAxis,ix,iyxf)*outerCen+ ofsin(3,ix,iyxf)
                       bval = DMEANIN
-c                     
+c                       
 c                       do generalized evaluation of whether pixel is doable
-c                     
+c                       
                       ixp=int(xp + baseInt)
                       iyp=int(yp + baseInt)
                       izp=int(zp + baseInt)
@@ -581,7 +580,7 @@ c
                           ixpm1=max(1,ixp-1)
                           iypm1=max(1,iyp-1)
                           izpm1=max(1,izp-1)
-C                         
+C                           
 C                           Set up terms for quadratic interpolation with
 c                           higher-order terms omitted
 C                           
@@ -594,7 +593,7 @@ C
                           VD = ARRAY(IXP, IYP, IZPM1)
                           vmax=max(v2,v4,v5,v6,v8,vu,vd)
                           vmin=min(v2,v4,v5,v6,v8,vu,vd)
-C                         
+C                           
                           C = (V6 - V4)*.5
                           A = C + V4 - V5
                           D = (V8 - V2)*.5
@@ -604,7 +603,7 @@ C
                           bval = (a*dx+c)*dx + (b*dy+d)*dy + (e*dz+f)*dz + v5
                           bval=min(vmax,max(vmin,bval))
                         else
-C			  
+C                           
 C                           Set up terms for linear interpolation
 C                           
                           d11 = (1. - dx) * (1. - dy)
@@ -625,7 +624,7 @@ C
      &                    iouter * iouterStride) = bval
                     enddo
                   enddo
-C$OMP END PARALLEL DO
+C                   $OMP END PARALLEL DO
                   wallCum = wallCum + walltime() - threadWall
                 enddo
               else
@@ -648,12 +647,12 @@ C$OMP END PARALLEL DO
                 izinfile(ixcube, iycube, iz + izStart) = izsec(iunit)
                 izsec(iunit)=izsec(iunit)+1
               enddo
-c
+c               
 c               End of do while: update start and number left to do
               izStart = izEnd + 1
               numZleft = numZleft - numZtoDo
             enddo
-c	      print *,ixcube,iycube,izcube
+c             print *,ixcube,iycube,izcube
             numDone = numDone + 1
             if (iVerbose .gt. 0) write(*,'(a,f10.4,a,f10.4)')'Cube CPU time:',
      &          cputime()-cpuStart,'   Wall time:',walltime() - wallStart
@@ -684,12 +683,12 @@ c
 99    call exiterror('READING IMAGE FILE')
       end program warpvol
 
-c
+c       
 c       TESTCUBEFACES tests the faces of an output cube at its corners and 
 c       at all positions corresponding to transforms
 c       This was a nice internal subroutine but gfortran would not compile it
 c       with openmp enabled
-c
+c       
       subroutine testCubeFaces(aloc,dloc,xlocst,dxloc,ylocst,dyloc, zlocst,
      &    dzloc, nlocx, nlocy, nlocz, ixcube,iycube,izcube,newExtrarg, inmin,
      &    inmax)
@@ -703,7 +702,7 @@ c
       real*4 dxUse,dyUse,dzUse, xlUse,ylUse,zlUse,dxyz(3),ainv(3,3)
       integer*4 jfx,jfy,jfz,jval,i
       real*4 xcen,ycen,zcen
-c               
+c       
 c       back-transform the faces of the output cube at the corners and
 c       at positions corresponding to transforms to
 c       find the limiting index coordinates of the input cube
@@ -739,12 +738,12 @@ c
 c                 See if any extra pixels are needed in input
 c                 
 c                 if (newExtrarg .ge. 0 .and. newExtrarg .lt.inmax(i) +
-c     &              1-inmin(i)-inpdim) then
-c                   print *,ixcube,iycube,izcube,xcen,ycen,zcen,
-c     &                        inmax(i) + 1 - inmin(i) -
-c     &                        inpdim,i, jval, inmin(i), inmax(i)
-c                   print *,ainv(i,1),ainv(i,2),ainv(i,3),dxyz(i)
-c                   endif
+c                 &              1-inmin(i)-inpdim) then
+c                 print *,ixcube,iycube,izcube,xcen,ycen,zcen,
+c                 &                        inmax(i) + 1 - inmin(i) -
+c                 &                        inpdim,i, jval, inmin(i), inmax(i)
+c                 print *,ainv(i,1),ainv(i,2),ainv(i,3),dxyz(i)
+c                 endif
                 if (newExtrarg .ge. 0) newExtrarg = max(newExtrarg,
      &              inmax(i) + 1 - inmin(i) - inpdim(i))
               enddo
@@ -756,7 +755,7 @@ c                   endif
 
 c       
 c       CUBETESTLIMITS determines limits for cube testing on one axis
-c
+c       
       subroutine cubeTestLimits(icube, ncube, cout, nloc, stloc, dloc, cubelo,
      &    cubehi, ilo, ihi, stluse, dluse)
       implicit none
@@ -781,7 +780,7 @@ c
 c       
 c       INTERPINV takes the array of transforms and a given position
 c       xcen,ycen,zcen and determines the interpolated transform minv,dxyz
-c
+c       
       subroutine interpinv(aloc,dloc,xlocst,dxloc,ylocst,dyloc,zlocst,
      &    dzloc,nlocx, nlocy, nlocz, xcen,ycen,zcen,minv,dxyz)
       implicit none
@@ -804,7 +803,7 @@ c
         fx1 = 0.
         fx = 1.
       endif
-c
+c       
       if (nlocy .gt. 1) then
         y=min(float(nlocy),max(1.,1.+(ycen-ylocst)/dyloc))
         iy=y
@@ -817,7 +816,7 @@ c
         fy1 = 0.
         fy = 1.
       endif
-c
+c       
       if (nlocz .gt. 1) then
         z=min(float(nlocz),max(1.,1.+(zcen-zlocst)/dzloc))
         iz=z
@@ -858,7 +857,7 @@ c       FILLINTRANSFORMS fills in a regular array of transforms by
 c       extrapolation from the nearest transforms to each missing one, where
 c       the extrapolation is a weighted mean with weights proportional to the
 c       square of distance from each existing transform.
-c
+c       
       subroutine fillInTransforms(aloc, dloc, solved, nlocx, nlocy, nlocz,
      &    dxloc, dyloc, dzloc)
       implicit none
@@ -907,8 +906,8 @@ c               zero out the sum
                 enddo
               enddo
               wsum = 0.
-c              write(*,'(a,3i4,a,3i4,f8.2)')'Filling in',ix,iy,iz,'  nearest',
-c     &            minx,miny,minz,sqrt(dmin)
+c               write(*,'(a,3i4,a,3i4,f8.2)')'Filling in',ix,iy,iz,'  nearest',
+c               &            minx,miny,minz,sqrt(dmin)
 c               
 c               Get actual distance to look, range of indexes to search, and
 c               the criterion which is square of maximum distance
@@ -920,7 +919,7 @@ c               the criterion which is square of maximum distance
               jzmin = max(1, nint(iz - dist / max(dzloc, 1.) - 1))
               jzmax = min(nlocz, nint(iz + dist / max(dzloc, 1.) + 1))
               distcrit = dist**2
-c              write(*,'(3i6)')jxmin,jxmax,jymin,jymax,jzmin,jzmax
+c               write(*,'(3i6)')jxmin,jxmax,jymin,jymax,jzmin,jzmax
 c               
 c               Get dominant index for second dimension
               indyz = 2
@@ -967,8 +966,8 @@ c
 c                         For boundary or min point, add to weighted sum
                         if (boundary .or. (jx .eq. minx .and. jy .eq.
      &                      miny .and. jz .eq. minz)) then
-c                        write(*,'(a,3i4,a,f7.1,i4,f12.8)')'Adding in',jx,jy,
-c     &                        jz,' angle, dir', angle, indDom, 1./dist
+c                           write(*,'(a,3i4,a,f7.1,i4,f12.8)')'Adding in',jx,jy,
+c                           &                        jz,' angle, dir', angle, indDom, 1./dist
                           do kx = 1, 3
                             dloc(kx,ix,iy,iz) = dloc(kx,ix,iy,iz) +
      &                          dloc(kx,jx,jy,jz) / dist
@@ -986,14 +985,14 @@ c     &                        jz,' angle, dir', angle, indDom, 1./dist
               enddo
 c               
 c               divide by weight sum
-c              write (*,'(a,f12.8)')'wsum=',wsum
+c               write (*,'(a,f12.8)')'wsum=',wsum
               do jx = 1, 3
                 dloc(jx,ix,iy,iz) = dloc(jx,ix,iy,iz) / wsum
                 do jy = 1,3
                   aloc(jx,jy,ix,iy,iz) = aloc(jx,jy,ix,iy,iz) / wsum
                 enddo
-c                write(*,'(3f9.5,f9.2)')(aloc(jx,jy,ix,iy,iz),jy = 1,3),
-c     &              dloc(jx,ix,iy,iz)
+c                 write(*,'(3f9.5,f9.2)')(aloc(jx,jy,ix,iy,iz),jy = 1,3),
+c                 &              dloc(jx,ix,iy,iz)
               enddo
             endif
           enddo
@@ -1005,7 +1004,7 @@ c     &              dloc(jx,ix,iy,iz)
 c       
 c       SHIFTTRANSFORMS shifts the transforms to fill the center of a larger
 c       array
-c
+c       
       subroutine shiftTransforms(alocIn, dlocIn, solvtmp, nlocx, nlocy, nlocz,
      &    aloc, dloc, solved, newlocx, newlocy, newlocz, nxadd, nyadd, nzadd)
       implicit none
@@ -1035,72 +1034,3 @@ c
       enddo
       return
       end
-
-c       
-c       $Log$
-c       Revision 3.18  2009/06/14 22:52:15  mast
-c       Changes for Fortran 95 and memory allocation and for smarter allocation
-c       of non-cubical dimensions; precomputing of transforms with one layer in
-c       Z; computation of multiple slices so that input data can stride in X
-c       instead of Z; parallelization of transformation only
-c
-c       Revision 3.17  2009/06/05 19:38:18  mast
-c       Oops take out debug output
-c
-c       Revision 3.16  2009/06/05 19:36:29  mast
-c       Implemented extrapolation by weighted average of nearest transforms
-c       Assessed input limits for cube using all grid points of transform as
-c       well as corner points
-c
-c       Revision 3.15  2009/03/31 23:43:54  mast
-c       Give position number in error message when reading file
-c
-c       Revision 3.14  2008/12/31 21:34:34  mast
-c       Added same size option
-c
-c       Revision 3.13  2007/11/18 04:53:46  mast
-c       Increased filename limits to 320
-c
-c       Revision 3.12  2007/08/30 20:13:38  mast
-c       Change izinfile from i*2 3d to i*4 1D array
-c
-c       Revision 3.11  2007/04/07 22:16:25  mast
-c       Redimensioned and allowed for patchy warping file (not tested yet!)
-c
-c       Revision 3.10  2006/06/01 14:16:48  mast
-c       Fixed bug created by deferring opening of output file, switched to
-c       exiterror
-c
-c       Revision 3.9  2006/02/27 05:25:05  mast
-c       Defer opening output file until all errors are assessed
-c
-c       Revision 3.8  2006/01/23 19:31:22  mast
-c       Increased format for status output from i4 to i6
-c	
-c       Revision 3.7  2005/03/01 00:01:41  mast
-c       Needed to iterate finding that extra pixels were needed for input
-c	
-c       Revision 3.6  2004/11/10 02:05:18  mast
-c       Do two passes of allocating data into cubes to avoid overflow, and
-c       also sample positions along edges of cubes to determine real range
-c       needed for loading data
-c	
-c       Revision 3.5  2004/07/24 17:35:38  mast
-c       Added progress output
-c	
-c       Revision 3.4  2003/10/10 20:37:06  mast
-c       Changed to use subroutines in rotmatwarpsubs.f and include file.
-c       Converted to PIP/autodoc input and added linear interpolation option.
-c	
-c       Revision 3.3  2003/10/02 19:59:05  mast
-c       Changed method of writing sections to avoid having to fit output
-c       section into array all at once.
-c       Increased array size and put big array in common
-c	
-c       Revision 3.2  2003/03/14 22:54:09  mast
-c       Standardized error outout and implemented implicit none
-c	
-c       David Mastronarde, 11/15/96; modified for 3-D matrix of
-c       transformations, 7/23/97
-c       DNM 2/26/01: add temporary directory entry and semi-unique filenames
-c       DNM 11/6/01: fixed problem with output array size not being respected

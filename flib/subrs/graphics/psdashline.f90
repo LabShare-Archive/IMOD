@@ -5,10 +5,9 @@
 ! units: x (in inches) = xscale*(x in user units - xlo) +xAdd
 !
 subroutine psDashInteractive(xscale, xlo, xAdd, yScale, ylo, yAdd)
-  write(*,'('' slope, intercept, start and end x (user units), &
-      thickness (- to switch x&y), '') ')
-  write(*,'('' dash on and off in inches &
-      (0, 0 no dash) : '', $) ')
+  write(*,'('' slope, intercept, start and end x (user units), '// &
+      'thickness (- to switch x&y), '') ')
+  write(*,'('' dash on and off in inches (0, 0 no dash) : '', $) ')
   read(5,*) b, a, xStart, xEnd, lineThick, dashOn, dashOff
   call psDashedLine(xscale, xlo, xAdd, yScale, ylo, yAdd, b, a, xStart, xEnd, lineThick, &
       dashOn, dashOff)

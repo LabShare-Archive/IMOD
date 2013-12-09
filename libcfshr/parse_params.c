@@ -51,6 +51,7 @@ typedef struct pipOptions {
                            being returned (numbered from 1) */
   int count;            /* Number of values accumulated */
   int lenShort;         /* Length of short name */
+  int lenLong;          /* Length of long name */
   int *nextLinked;      /* Array of indexes of next non-option argument or linked option,
                            for associating an entry with another one */
   int linked;           /* Flag that it is a linked option (needed for usage/manpage) */
@@ -319,7 +320,7 @@ void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines,
  */
 int PipAddOption(const char *optionString)
 {
-  int ind, indEnd, oldSlen, newSlen;
+  int ind, indEnd, oldSlen, newSlen, newLlen, oldLlen;
   PipOptions *optp = &sOptTable[sNextOption];
   char *colonPtr;
   char *oldShort;
@@ -358,10 +359,13 @@ int PipAddOption(const char *optionString)
       if (PipMemoryError(colonPtr, "PipAddOption"))
         return -1;
       indEnd = colonPtr - subStr;
-      if (indEnd > 0)
+      if (indEnd > 0) {
         optp->longName = PipSubStrDup(subStr, 0, indEnd - 1);
-      else
+        optp->lenLong = indEnd;
+      } else {
         optp->longName = strdup(sNullString);
+        optp->lenLong = 0;
+      }
       if (PipMemoryError(optp->longName, "PipAddOption"))
         return -1;
       subStr += indEnd + 1;
@@ -398,6 +402,7 @@ int PipAddOption(const char *optionString)
         newShort = optp->shortName;
         newLong = optp->longName;
         newSlen = optp->lenShort;
+        newLlen = optp->lenLong;
         for (ind = 0; ind < sTableSize; ind++) {
 
           /* after checking existing ones, skip to NonOptionArg and 
@@ -408,11 +413,18 @@ int PipAddOption(const char *optionString)
           oldShort = sOptTable[ind].shortName;
           oldLong = sOptTable[ind].longName;
           oldSlen = sOptTable[ind].lenShort;
+          oldLlen = sOptTable[ind].lenLong;
+
+          // Allow ambiguous options if no abbrev
           if (((PipStartsWith(newShort, oldShort) || PipStartsWith(oldShort, newShort)) &&
-               ((newSlen > 1 && oldSlen > 1) || (newSlen == 1 && oldSlen == 1))) ||
-              PipStartsWith(oldLong, newShort) || PipStartsWith(newShort, oldLong) ||
-              PipStartsWith(oldShort, newLong) || PipStartsWith(newLong, oldShort) ||
-              PipStartsWith(oldLong, newLong) || PipStartsWith(newLong, oldLong)) {
+               ((newSlen > 1 && oldSlen > 1) || (newSlen == 1 && oldSlen == 1)) &&
+               (!sNoAbbrevs || newSlen == oldSlen)) ||
+              ((PipStartsWith(oldLong, newShort) || PipStartsWith(newShort, oldLong)) &&
+               (!sNoAbbrevs || newSlen == oldLlen)) ||
+              ((PipStartsWith(oldShort, newLong) || PipStartsWith(newLong, oldShort)) &&
+               (!sNoAbbrevs || oldSlen == newLlen)) ||
+              ((PipStartsWith(oldLong, newLong) || PipStartsWith(newLong, oldLong)) &&
+               (!sNoAbbrevs || oldLlen == newSlen))) {
             sprintf(sTempStr, "Option %s  %s is ambiguous with option %s"
                     "  %s", newShort, newLong, oldShort, oldLong);
             PipSetError(sTempStr);
@@ -1217,6 +1229,8 @@ int PipReadOptionFile(const char *progName, int helpLevel, int localDir)
         sDoubleDashOptions = 1;
       if (PipStartsWith(bigStr + indst, "NoHelpAbbreviations"))
         sNoHelpAbbrevs = 1;
+      if (PipStartsWith(bigStr + indst, "NoAbbreviations"))
+        sNoAbbrevs = 1;
     }
 
     /* Look for options */

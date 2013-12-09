@@ -412,7 +412,7 @@ void BeadFixer::openFile()
   QString qname;
   const char *filter[] = {"Align log files (align*.log)", "Log files (*.log)"};
   int firstFilt = 0;
-#if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
+#if defined(Q_OS_MACX) && QT_VERSION >= 0x040500 && QT_VERSION < 0x040805
   firstFilt = 1;
 #endif
   qname  = utilOpenFileName(this, "Select Tiltalign log file", 2 - firstFilt,

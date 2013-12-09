@@ -29,7 +29,7 @@ c
 c       $Log$
 c       Revision 3.1  2002/06/05 21:12:39  mast
 c       Passed remaining size of boundary vertex array to convexbound
-c	
+c       
 c       
       subroutine bundledist(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &    delr,nbins,ngraph,nreftyp,nneightyp,itypref,itypneigh,
@@ -42,7 +42,7 @@ c
       real*4 xmt(*),ymt(*),zmt(*)
       integer*4 indstrt(*),npntobj(*)
       real*4 graphs(limbins,*),xyzend(3,*)
-      integer*4 icolor(*)			!types of sample points
+      integer*4 icolor(*)                       !types of sample points
       integer*4 nreftyp(*),nneightyp(*)         !# of types for ref and neigh
       integer*4 itypref(limtyp,*),itypneigh(limtyp,*)
       integer*4 iwhichend(limtyp,*),iobjwin(*)
@@ -225,7 +225,7 @@ c
                       enddo
                       if(next.gt.indvert(ibund,isec))last=next-1
                     endif
-c		      
+c                     
 c                     compute relative distance from bundle: at center = 0,
 c                     at edge = 1, beyond = >1
 c                     

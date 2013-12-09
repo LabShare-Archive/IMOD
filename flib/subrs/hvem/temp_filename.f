@@ -1,5 +1,4 @@
 c       $Id$
-c       $Log$
 c       
 c       !
 c       Composes a filename from an optional temporary directory [tempdir], a
@@ -19,7 +18,7 @@ c
       enddo
 c       
       if(tempdir.eq.' ')then
-	temp_filename=concat(concat(filein(instr:inend),'.'),
+        temp_filename=concat(concat(filein(instr:inend),'.'),
      &      tempext)
       else
         temp_filename=concat(concat(concat(concat(tempdir,'/'),

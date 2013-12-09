@@ -23,7 +23,7 @@ c
      &    limvert=5000,limregion=200,itypall=999)
       parameter (limtyp=50,limrand=1000)
       parameter (nOptNeedModel=12)
-      real*4 bx(limvert),by(limvert)		!boundary vertices
+      real*4 bx(limvert),by(limvert)            !boundary vertices
       real*4 sx(limpnts),sy(limpnts)            !sample points
       real*4 graphs(limbins,limgraphs),areas(limbins,limgraphs)
       integer*4 itype(limpnts)                  !types of sample points
@@ -161,7 +161,7 @@ c
           endif
         elseif(ifspec.lt.0)then
           padbound=padboundin
-        else	  
+        else      
           ifconvex=0
           padbound=0.
         endif
@@ -833,10 +833,10 @@ c
       endif
 c       
       if(nrestrict.gt.0)then
-c	  write(*,'(1x,a,$)')'Power to raise the probability values to'
-c         &	      //' for use (try about 3): '
-c	  read(in5,*)power
-c	  if(power.eq.0.)power=1.
+c         write(*,'(1x,a,$)')'Power to raise the probability values to'
+c         &           //' for use (try about 3): '
+c         read(in5,*)power
+c         if(power.eq.0.)power=1.
         power=1.
         do ii=1,nrestrict
           probnear(ii)=probnearin(ii)**power

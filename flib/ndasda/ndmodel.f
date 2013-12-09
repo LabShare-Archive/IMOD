@@ -120,7 +120,7 @@ c
           ifplanar=1
           do i=1,npt_in_obj(iobj)-1
             if(abs(p_coord(3,abs(object(ibase_obj(iobj)+i)))-
-     &		p_coord(3,abs(object(ibase_obj(iobj)+i+1)))).gt.0.01)
+     &          p_coord(3,abs(object(ibase_obj(iobj)+i+1)))).gt.0.01)
      &          ifplanar=0
           enddo
         endif
@@ -155,7 +155,7 @@ c
                   sy(npnts)=p_coord(2,ipnt)
                   itype(npnts)=256-obj_color(2,iobj)
                   if(obj_color(1,iobj).eq.0)itype(npnts)=-itype(npnts)
-c		    
+c                   
 c                   look if this type is on list of types; if not, add to
 c                   list of types, then increment count of this type
 c                   
@@ -360,7 +360,7 @@ c
       npt_in_obj(max_mod_obj)=nvert
       ibase_obj(max_mod_obj)=npnts
       obj_color(1,max_mod_obj)=1
-      obj_color(2,max_mod_obj)=247		!so can turn off points easily
+      obj_color(2,max_mod_obj)=247              !so can turn off points easily
       do i=1,nvert
         n_point=npnts+i
         object(n_point)=n_point

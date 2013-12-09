@@ -53,7 +53,7 @@ c       $Id$
       real*4 xmt(*),ymt(*),zmt(*)
       integer*4 indstrt(*),npntobj(*),iobjmod(*)
       real*4 graphs(limbins,*),endsep(*),xyzend(3,*)
-      integer*4 icolor(*)			!types of sample points
+      integer*4 icolor(*)                       !types of sample points
       integer*4 nreftyp(*),nneightyp(*)         !# of types for ref and neigh
       integer*4 itypref(limtyp,*),itypneigh(limtyp,*),iobjwin(*)
       logical onlyshifted, nearestOnly
@@ -220,7 +220,7 @@ c
               glbzmin(ii)=min(glbzmin(ii),zmin(iref))
               glbzmax(ii)=max(glbzmax(ii),zmax(iref))
             enddo
-c	      
+c             
           else
             print *,'Improper object type; cannot proceed'
             return
@@ -317,11 +317,11 @@ c
         endif
         nbinsave=nsurf+(nsurf-1)*(nsurf-2)/2
         usebinsave=irefflag.eq.4.and.neighflag.eq.4
-     &	    .and.nbinsave.le.limbinsave
+     &      .and.nbinsave.le.limbinsave
       endif
       if(manyrandom.eq.0)print *,'Analyzing closest distances...'
 c       
-c	call setfrac(fracsum(1,1),power,delr,nbins)
+c       call setfrac(fracsum(1,1),power,delr,nbins)
 c       
 c       zero out the graphs 
 c       
@@ -360,7 +360,7 @@ c       loop through each sample point considered as reference
 c       
       do iobjref=1,iorefend
 c         
-c	  first make list of graphs the reference point is needed in
+c         first make list of graphs the reference point is needed in
 c         
         needref=0
         do jj=1,ngraph
@@ -448,7 +448,7 @@ c
                     xtmpmax(iout)=xmax(iref)
                     ytmpmax(iout)=ymax(iref)
                     ztmpmax(iout)=zmax(iref)
-                  enddo	    
+                  enddo     
                   ntmp=iout
                 endif
               else
@@ -520,7 +520,7 @@ c
                     indneigh=indstrt(iobjneigh)
                     limneigh=indneigh+npntobj(iobjneigh)-1
                     if(neighflag.eq.1)limneigh=limneigh-1
-c		      
+c                     
 c                     check against global limits
 c                     
                     if(refxmin-glbxmax(iobjneigh).lt.distmin.and.
@@ -597,7 +597,7 @@ c                             write(*,'(5f10.5)')zs1,zn1,zs2,zn2,distmin
                         enddo
 c                         
 c                         NEW LINES TO LINES: seek global minimum
-c			  
+c                         
                       elseif(neighflag.eq.1.and.ntmp.gt.1)then
                         do itmp=1,ntmp-1
                           do ineigh=indneigh,limneigh
@@ -892,8 +892,8 @@ c
                   if(onlyshifted)jshift=indexshift(imesh,
      &                4,icolor,npntobj,nmt)
                   do isurf=iobjsurf(imesh),iobjsurf(imesh)+nsurfobj(imesh)-1
-c		      
-c		      check against surface global limits, eliminate failed
+c                     
+c                     check against surface global limits, eliminate failed
 c                     
                     distmin=1.01*distlim
                     dminsq=distmin**2
@@ -1005,32 +1005,32 @@ c
                         endif
                       enddo
                     endif
-c		      
+c                     
 c                     add to bins
 c                     
                     if(distmin.lt.distlim)then
                       ibin=max(1.,distmin/delr+1.)
                       call addDistanceToGraphs(imesh)
-c$$$			if(distmin.lt.0.005)then
+c$$$                    if(distmin.lt.0.005)then
 c$$$                    distmin2=0.03
 c$$$                    distabs=0.015
 c$$$                    call check_line_surface(isurf,indref,limref,
-c$$$                    &			      xmin,xmax,ymin,ymax,zmin,zmax,xmt,ymt,zmt,
-c$$$                    &			      distmin2,distabs,zscal)
+c$$$                    &                             xmin,xmax,ymin,ymax,zmin,zmax,xmt,ymt,zmt,
+c$$$                    &                             distmin2,distabs,zscal)
 c$$$                    print *,glbxmin(iobjref),glbxmax(iobjref),
-c$$$                    &			      glbymin(iobjref),glbymax(iobjref),
-c$$$                    &			      glbzmin(iobjref),glbzmax(iobjref)
+c$$$                    &                             glbymin(iobjref),glbymax(iobjref),
+c$$$                    &                             glbzmin(iobjref),glbzmax(iobjref)
 c$$$                    print *,surfxmin(isurf),surfxmax(isurf),
-c$$$                    &			      surfymin(isurf),surfymax(isurf),
-c$$$                    &			      surfzmin(isurf),surfzmax(isurf)
+c$$$                    &                             surfymin(isurf),surfymax(isurf),
+c$$$                    &                             surfzmin(isurf),surfzmax(isurf)
 c$$$                    print *,isurf,iobjref,iref,distmin,distmin2
-c$$$			endif
+c$$$                    endif
 
-c			
+c                       
                     endif
-c		      
+c                     
 c                     take care of window stuff here
-c		      
+c                     
                     if(distmin.lt.winmax.and.distmin.ge.winmin)
      &                  call save_connector(x1min,y1min,z1min,x2min, y2min,
      &                  z2min,xmt,ymt,zmt,limxyz,indfree,iobjref, -isurf,
@@ -1071,7 +1071,7 @@ c
                 refdone=seglen.lt.0.5*samplen
               endif
             else
-c		
+c               
 c               points: advance iref, add to fracsum
 c               
               iref=iref+1
@@ -1116,7 +1116,7 @@ c
               refymax=surfymax(isurf)
               refzmax=surfzmax(isurf)
               ionend=nmt
-c		
+c               
 c               add spherical shells to fracsum, with the equivalent radius
 c               taken from the area of the surface
 c               
@@ -1354,7 +1354,7 @@ c
      &                        polyzmin(jpoly)-refzmax.lt.distmin)then
 c                             
 c                             loop on triangles of neighbor
-c			      
+c                             
                             do jtri=istrpoly(jpoly),
      &                          istrpoly(jpoly)+ninpoly(jpoly)-1
                               xminnay=trixmin(jtri)
@@ -1381,7 +1381,7 @@ c
      &                                polyymin(ipoly)-ymaxnay.lt.distmin.and.
      &                                zminnay-polyzmax(ipoly).lt.distmin.and.
      &                                polyzmin(ipoly)-zmaxnay.lt.distmin)then
-c				      
+c                                     
 c                                     loop on triangles in reference polygon
 c                                     
                                     do itri=istrpoly(ipoly),
@@ -1438,19 +1438,19 @@ c
      &                        nrefwin, nneighwin)
                         endif
                         
-                      endif		    
-c$$$			if(distmin.lt.0.005)then
+                      endif                 
+c$$$                    if(distmin.lt.0.005)then
 c$$$                    distmin2=0.03
 c$$$                    distabs=0.015
 c$$$                    call check_two_meshes(isurf,jsurf,distmin2,
-c$$$                    &			      distabs,zscal)
+c$$$                    &                             distabs,zscal)
 c$$$                    print *,'close', isurf,jsurf,distmin,distmin2
-c$$$			endif
+c$$$                    endif
 
-                    endif		    
+                    endif                   
                     if(ibin.gt.0)then
                       call addDistanceToGraphs(iobjNeigh)
-                    endif	    
+                    endif           
                     if(usebinsave)ibinsave(itriang)=ibin
                   endif
                 enddo

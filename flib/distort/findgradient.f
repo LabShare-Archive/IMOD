@@ -1,4 +1,4 @@
-c
+c       
 c       FINDGRADIENT finds parameters related to magnification gradients that
 c       minimize the displacement errors when Blendmont shifts pieces into
 c       registration.   The two gradient parameters are the percent change in
@@ -11,16 +11,16 @@ c
 c       See man page for more details.
 c       
 c       David Mastronarde, February 2006
-c
+c       
 c       $Id$
 c       $Log$
 c       Revision 1.3  2006/06/18 19:38:18  mast
 c       Changed to use new C function for amoeba
-c
+c       
 c       Revision 1.2  2006/02/08 05:38:33  mast
 c       Added header to file
-c
-c
+c       
+c       
       implicit none
 c       
 c       Stuff for amoeba: ftol2 and ptol2 are used the FIRST time
@@ -36,7 +36,7 @@ c
 c       Common for func
 c       
       include 'findgradient.inc'
-c
+c       
       integer*4 ierr,iz,nzdo,nAngles,izdo(limsec),nzlist,nSearch, nMagGrad
       real*4 angles(limsec), dmagPerUm(limsec), rotPerUm(limsec)
       real*4 stepFac, relax, dmagMin, drotMin, dmagInc, drotInc, errNew,errMin2
@@ -111,7 +111,7 @@ c
 c       
 c       Read gradient file in if specified to get tilt angles, otherwise check
 c       for tilt file and read angles from that
-c
+c       
       if (PipGetString('GradientFile', gradName) .eq. 0) then
         call readMagGradients(gradName, limsec, pixelMagGrad, axisRot,
      &      angles, dmagPerUm, rotPerUm, nMagGrad)
@@ -119,7 +119,7 @@ c
       elseif (PipGetString('TiltFile', angleFile) .eq. 0) then
         call read_tilt_file(nAngles, 4, angleFile, angles, limsec)
       endif
-c
+c       
       ierr = PipGetThreeFloats('TiltGeometry', pixelMagGrad, axisRot,
      &    tiltAngle)
       ierr = PipGetTwoFloats('AddToGradient', dmagStart, drotStart)
@@ -153,7 +153,7 @@ c
       if (nvar .eq. 1) da(1) = da(3)
 c       
 c       Set up root name for temp files with filename and sections
-c
+c       
       tmpRoot = concat(rootname, '-fg')
       if (nzlist .gt. 0) then
         write(numString, '(i6)')-izdo(1)
@@ -177,7 +177,7 @@ c
         if (nSearch .eq. -2) then
 c           
 c           Directed search
-c
+c           
           errMin = 1.e30
           errMin2 = 1.e30
           nTrial = 0
@@ -188,7 +188,7 @@ c
 c           
 c           loop until can't improve error by moving in direction of implied
 c           gradient
-c
+c           
           do while (numSince .lt. 8 .and. nTrial .lt. 200)
             call func(var, errNew)
             dmagInc = 0.
@@ -202,7 +202,7 @@ c             If get a new minimum, save it and reset step factor
 c             Need to check against the error stored by func because of 
 c             numerical errors when comparing the func return with the stored
 c             value here.
-c
+c             
             if (errMin2 .gt. errMin) then
               errMin2 = errMin
               stepFac = 1.
@@ -212,11 +212,11 @@ c
             else
 c               
 c               Otherwise relax the step factor
-c
+c               
               numSince = numSince + 1
               stepFac = stepFac * relax
             endif
-c            write(*,'(21x,3f9.4)')dmagInc, drotInc, stepFac
+c             write(*,'(21x,3f9.4)')dmagInc, drotInc, stepFac
             var(1) = dmagMin + stepFac * dmagInc
             var(2) = drotMin + stepFac * drotInc
           enddo
@@ -228,9 +228,9 @@ c            write(*,'(21x,3f9.4)')dmagInc, drotInc, stepFac
           var(1) = tiltOffStart
           call minimize1D(var(1), func, 4., 0.01, 4.1, 20)
         else
-c         
-c         amoeba search: set up for minimization
-c         
+c           
+c           amoeba search: set up for minimization
+c           
           errMin = 1.e30
           nTrial = 0
           var(1) = dmagStart
@@ -257,7 +257,7 @@ c
           enddo
         endif
         call func(var, errMin2)
-c
+c         
         write(*,'(/,a,/,a)')'Final results:','Section - mean error'
         write(*, '(i5,f12.3)')(izsect(i), sectErrs(i), i = 1, nError)
         if (nvar .eq. 2) then
@@ -295,7 +295,7 @@ c
       character*1 starout
       integer*4 ierr, i, imodBackupFile,lnblnk,numeric(limnum),nfield
       character*320 concat
-c	
+c       
       nTrial = nTrial + 1
       paramName = concat(tmpRoot, '.param')
       ierr = imodBackupFile(paramName)
@@ -335,7 +335,7 @@ c
       do i = 1, numBlendOpt
         write(3,'(a)')blendOption(i)
       enddo
-      outName	= concat(tmpRoot, '.out')
+      outName   = concat(tmpRoot, '.out')
       close(3)
       comstring = 'blendmont -param '//paramName(1:lnblnk(paramName))//
      &    ' > '//outName(1:lnblnk(outName))
@@ -413,7 +413,7 @@ c       and the search terminates when the interval in which the minimum lies
 c       is less than ptol.  If points equal to the minimum are found, it scans
 c       the whole interval at a finer grain to find a smaller interval
 c       reliably.
-c
+c       
       subroutine minimize1D(pmin, funk, pstep, ptol, scanInt, numScan)
       implicit none
       real*4 pmin, pstep, ptol, scanInt
@@ -446,7 +446,7 @@ c           on direction
             pBelow = pnew
             fBelow = fnew
           endif
-c
+c           
 c           If this is first iteration, reverse direction; otherwise terminate
           if (iter .eq. 2) then
             idir = -1
@@ -468,7 +468,7 @@ c           or below point
           fmin = fnew
         endif
       enddo
-c             
+c       
 c       Now search until the interval becomes small enough.  Start in most
 c       promising direction
       idir = 1
@@ -476,7 +476,7 @@ c       promising direction
       do while (pAbove - pBelow .gt. ptol .and. iter .lt. maxiter)
 c         
 c         Is it time for a big special scan?
-c
+c         
         if (.not. bigScanned .and. pAbove - pBelow .lt. scanInt) then
           call specialScan(funk, pBelow, fBelow, pAbove, fAbove, pmin, fmin,
      &        equalCrit, numScan, iter)
@@ -513,7 +513,7 @@ c             again
             idir = 1
             if (fBelow .lt. fAbove) idir = -1
           else
-c
+c             
 c             Or replace the endpoint, go in opposite direction
             if (idir .gt. 0) then
               pAbove = pnew
@@ -546,9 +546,9 @@ c             Or replace the endpoint, go in opposite direction
         fScan(iScan) = fnew
         if (fnew .lt. fmin) fmin = fnew
       enddo
-c           
-c           Find last one before minimum and first after
-c
+c       
+c       Find last one before minimum and first after
+c       
       iAbove = numScan + 1
       iBelow = 1
       do iScan = 2, numScan
@@ -559,14 +559,14 @@ c
         if (abs(fScan(iScan) - fmin) .gt. equalCrit .and.
      &      iAbove .eq. iScan + 1) iAbove = iScan
       enddo
-c           
+c       
 c       If interval gets no smaller, give up
-c
+c       
       if (iAbove - iBelow .ge. numScan) then
         pmin = 0.5 * (fAbove + fBelow)
         fAbove = fBelow
       else
-c
+c         
 c         otherwise proceed with new interval and min
 c         
         iScan = (iBelow + iAbove) / 2

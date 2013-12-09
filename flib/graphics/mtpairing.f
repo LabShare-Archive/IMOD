@@ -470,9 +470,9 @@ c
           enddo
         enddo
       else
-c	  
+c         
 c         make list of pairs above the criterion
-c	  
+c         
         nlistpair=0
         do i=1,npair
           if(datpair(i,icol).ge.bundcrit)then
@@ -631,7 +631,7 @@ c
 c           
 c           compute new polarity from sign of old polarity and pairing with
 c           each other MT in cluster - until it stabilizes
-c	    
+c           
           do while (npolchg.ne.0.and.nloop.lt.looplim)
             npolchg=0
             do imt=iclustrt,iclusend
@@ -950,7 +950,7 @@ c
      &        ,' for all'
           call rdlist(5,itypcheck,ntypcheck)
           indchg=2
-c	    if(newcolor.lt.5)indchg=1
+c           if(newcolor.lt.5)indchg=1
           if(icolm.gt.0)then
             do ibun=1,nlistbund
               indstrt=indbundle(listbund(ibun))
@@ -1034,7 +1034,7 @@ c
             if(b3dxor(critval.ge.critlo.and.critval.le.crithi,
      &          ifoutside.ne.0))mtout(i)=1
           endif
-        enddo	    
+        enddo       
       enddo
       selsum=0.
       unsum=0.
@@ -1226,7 +1226,7 @@ c
           close(3)
           do i=1,ntilts-1
             remapz(i+1)=remapz(i)+(tiltzstrt(i+1)-tiltzstrt(i))
-     &		/costilt(i)
+     &          /costilt(i)
           enddo
         endif
 c         
@@ -1341,7 +1341,7 @@ c
             read(inunit,*)zlo,zhi
           endif
         endif
-c	  
+c         
         do iobj=1,max_mod_obj
           looking=notgot(iobj)
           if(npt_in_obj(iobj).gt.1)then
@@ -1367,7 +1367,7 @@ c
      &              npt_in_obj(iobj))))
                 call objtocont(iobj,obj_color,itype(indfree),
      &              icontnum(indfree))
-c		  itype(indfree)=256-obj_color(2,iobj)
+c                 itype(indfree)=256-obj_color(2,iobj)
                 if(obj_color(1,iobj).eq.0)itype(indfree)=-itype(indfree)
                 iobjnum(indfree)=iobj
 c                 

@@ -11,7 +11,7 @@ trimvol makejoincom finishjoin chunksetup collectmmm sampletilt matchorwarp alig
 gputilttest b3dremove b3dcopy b3dcatfiles findsirtdiffs dm2mrc archiveorig runraptor \
 splitcorrection transferfid xfalign startprocess imodhelp submfg etomo colornewst \
 autofidseed onegenplot setupstitch makecomfile batchruntomo makepyramid tomodataplots \
-imodkillgroup b3dtouch b3dwinps subm
+imodkillgroup b3dtouch b3dwinps subm b3dhostname
 
 MODULES = imodpy.py pysed.py supermont.py pip.py comchanger.py
 
