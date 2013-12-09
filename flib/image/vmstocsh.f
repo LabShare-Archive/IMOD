@@ -20,11 +20,11 @@ c
       write(6,101)'nohup'
       if(iargc().ne.0)then
         call getarg(1,logfile)
-        lenlog=lnblnk(logfile)
+        lenlog=len_trim(logfile)
         write(6,101)'if (-e "'//logfile(1:lenlog)//'") \\mv -f "'
      &      //logfile(1:lenlog)//'" "'//logfile(1:lenlog)//'~"'
         logfile='  > "'//logfile(1:lenlog)//'"'
-        lenlog=lnblnk(logfile)
+        lenlog=len_trim(logfile)
       endif
 
       write(6,101)'if ($?IMOD_DIR) then'
@@ -46,7 +46,7 @@ c
         read(5,101,end=10)linein
 101     format(a)
         reading=.true.
-10      lenin=lnblnk(linein)
+10      lenin=len_trim(linein)
 c         
 c         For Cygwin/windows, if the line is not properly stripped of
 c         Return, replace it now
@@ -73,7 +73,7 @@ c               otherwise, a continuation line of a command line: add it on
 c               
               linecom=linecom(1:lencom-1)//' '//linein(1:lenin)
             endif
-            lencom=lnblnk(linecom)
+            lencom=len_trim(linecom)
 c             
           elseif(linein(1:1).eq.'$'.or.linein(1:1).eq.'%') then
 c             
