@@ -17,7 +17,6 @@ c       4/28/97: changes for IMOD models
 c       
 c       $Id$
 c       
-c       
       call plax_initialize('mtoverlap')
       call exit(0)
       end
@@ -658,7 +657,7 @@ c         ix1=zrelmax*zscale+zadd
           endif
         enddo
         if(doplot.and.xlabel.ne.' ')then
-          lbllen=lnblnk(xlabel)
+          lbllen=len_trim(xlabel)
           xlab=(0.5*(zrelmin+zrelmax)*zscale+zadd)*pltsclx+pltofsx
           ylab=(512-nytot/2-idytxt)*pltscly+pltofsy-.012*jsize
           call psWriteText(xlab,ylab,xlabel(1:lbllen),jsize,0,0)

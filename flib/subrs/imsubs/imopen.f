@@ -5,7 +5,6 @@ C       and associate with stream ISTREAM
 C       (ISTREAM = # between 1 & 20 ; MAX of  20 files opened at any time)
 c
 c       $Id$
-c       Log at end
 c       
       SUBROUTINE IMOPEN(ISTREAM,NAME,ATBUTE)
       use imsubs
@@ -19,7 +18,7 @@ c
       equivalence (buf,intbuf)
       logical mrctyp,spityp
       integer*4 j,i,nsam,lenrec,nfilsz,ier,intflip
-      integer*4 lnblnk, imodGetEnv
+      integer*4 imodGetEnv
 C       
 C       Check for valid unit number
 C       
@@ -118,11 +117,11 @@ c       DNM 9/21/06: flush so etomo can know about renames being done
       CALL QINQUIRE(J,FULLNAME,NFILSZ)
       IF (AT2(1:len(atbute)) .EQ. 'NEW' .OR. AT2 .EQ. 'SCRATCH') THEN
         if (print)WRITE(6,2000) AT2(1:len(atbute)),ISTREAM,
-     &      FULLNAME(1:lnblnk(fullname))
+     &      trim(FULLNAME)
         call flush(6)
       ELSE
         if (print)WRITE(6,2100) AT2(1:len(atbute)),ISTREAM,
-     &      FULLNAME(1:lnblnk(fullname)),nfilsz
+     &      trim(FULLNAME),nfilsz
       ENDIF
 2000  FORMAT(/,1x,A,' image file on unit',I4,' : ',A)
 2100  FORMAT(/,1x,A,' image file on unit',I4,' : ',A, '     Size= ',I10,' K')
@@ -147,42 +146,3 @@ C
       if (numopen .lt. 0) numopen = 0
       RETURN
       END
-
-c       $Log$
-c       Revision 3.11  2008/08/22 00:10:45  mast
-c       Allow longer full name from qinquire
-c
-c       Revision 3.10  2007/10/14 17:09:40  mast
-c       Output K for file size
-c
-c       Revision 3.9  2006/10/06 19:23:19  mast
-c       Renamed variable to IMOD_BRIEF_HEADER
-c
-c       Revision 3.8  2006/09/28 21:23:22  mast
-c       Changes for brief output and new qseek call
-c
-c       Revision 3.7  2006/09/22 18:17:18  mast
-c       Fixed flush by fixing test for attribute
-c
-c       Revision 3.6  2006/09/22 00:02:13  mast
-c       Made it flush after printing a new filename
-c
-c       Revision 3.5  2005/11/11 22:36:07  mast
-c       Changed swap test to allow larger files, added nb value for unsigned
-c       
-c       Revision 3.4  2004/04/24 04:41:12  mast
-c       initialized spityp
-c       
-c       Revision 3.3  2002/07/31 17:57:41  mast
-c       Finished standardizing error output, added implicit none, changed
-c       line spacing for output, used lnblnk instead of len to truncate
-c       the filename output
-c       
-c       Revision 3.2  2002/07/21 19:17:31  mast
-c       Standardized error output to ERROR: ROUTINE
-c       
-c       Revision 3.1  2002/06/26 00:23:44  mast
-c       Changed STOP statements to print and call exit(1)
-c       
-c       DNM 8/22/00: changed size limit for detecting swapped bytes to 60000
-c       

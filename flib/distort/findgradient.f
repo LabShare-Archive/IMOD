@@ -13,13 +13,6 @@ c
 c       David Mastronarde, February 2006
 c       
 c       $Id$
-c       $Log$
-c       Revision 1.3  2006/06/18 19:38:18  mast
-c       Changed to use new C function for amoeba
-c       
-c       Revision 1.2  2006/02/08 05:38:33  mast
-c       Added header to file
-c       
 c       
       implicit none
 c       
@@ -43,7 +36,6 @@ c
       integer*4 numSince
       logical separate
       character*40 numString
-      character*320 concat
       character*1 starout
 c       
       logical pipinput
@@ -154,13 +146,13 @@ c
 c       
 c       Set up root name for temp files with filename and sections
 c       
-      tmpRoot = concat(rootname, '-fg')
+      tmpRoot = trim(rootname)//'-fg'
       if (nzlist .gt. 0) then
         write(numString, '(i6)')-izdo(1)
-        tmpRoot = concat(tmpRoot, numString)
+        tmpRoot = trim(tmpRoot)//trim(adjustl(numString))
         if (nzlist .gt. 1) then
           write(numString, '(i6)')-izdo(nzlist)
-          tmpRoot = concat(tmpRoot, numString)
+          tmpRoot = trim(tmpRoot)//trim(adjustl(numString))
         endif
       endif
 
@@ -293,33 +285,32 @@ c
       character*240 comstring
       real*4 error, errSum,xnum(limnum)
       character*1 starout
-      integer*4 ierr, i, imodBackupFile,lnblnk,numeric(limnum),nfield
-      character*320 concat
+      integer*4 ierr, i, imodBackupFile,numeric(limnum),nfield
 c       
       nTrial = nTrial + 1
-      paramName = concat(tmpRoot, '.param')
+      paramName = trim(tmpRoot)//'.param'
       ierr = imodBackupFile(paramName)
       open(3,file=paramName,form='formatted',status='new', err=96)
 
-      write(3,101)'ImageInputFile',imageName(1:lnblnk(imageName))
+      write(3,101)'ImageInputFile',trim(imageName)
 101   format(a,5x,a)
-      write(3,101)'PieceListInput',plName(1:lnblnk(plName))
-      comString = concat(tmpRoot, '.imtmp')
-      write(3,101)'ImageOutputFile',comString(1:lnblnk(comString))
-      write(3,101)'RootNameForEdges',tmpRoot(1:lnblnk(tmpRoot))
+      write(3,101)'PieceListInput',trim(plName)
+      comString = trim(tmpRoot)//'.imtmp'
+      write(3,101)'ImageOutputFile',trim(comString)
+      write(3,101)'RootNameForEdges',trim(tmpRoot)
       if (distName .ne. ' ') write(3,101)'DistortionField',
-     &    distName(1:lnblnk(distName))
+     &    trim(distName)
       if (inputBinning .gt. 0) write(3,'(a,i6)')'ImagesAreBinned',
      &    inputBinning
       if (gradName .ne. ' ') write(3,101)'GradientFile',
-     &    gradName(1:lnblnk(gradName))
+     &    trim(gradName)
       if (angleFile .ne. ' ') write(3,101)'TiltFile',
-     &    angleFile(1:lnblnk(angleFile))
+     &    trim(angleFile)
       if (pixelMagGrad .gt. 0.) write(3,'(a,f12.5,2f8.2)')'TiltGeometry',
      &    pixelMagGrad, axisRot, tiltAngle
       
       if (sectionList .ne. ' ')write(3,101)'SectionsToDo',
-     &    sectionList(1:lnblnk(sectionList))
+     &    trim(sectionList)
       if (nvar .ge. 2) then
         write(3,'(a,2f15.8)')'AddToGradient', p(1), p(2)
       else
@@ -335,10 +326,9 @@ c
       do i = 1, numBlendOpt
         write(3,'(a)')blendOption(i)
       enddo
-      outName   = concat(tmpRoot, '.out')
+      outName   = trim(tmpRoot)//'.out'
       close(3)
-      comstring = 'blendmont -param '//paramName(1:lnblnk(paramName))//
-     &    ' > '//outName(1:lnblnk(outName))
+      comstring = 'blendmont -param '//trim(paramName)//' > '//trim(outName)
 
       ierr = imodBackupFile(outName)
       call system(comString)
@@ -357,7 +347,7 @@ c
             read(3,'(a)',end=10,err=98)comString
           enddo
 10        print *
-          print *,'For full log, see ',outName(1:lnblnk(outName))
+          print *,'For full log, see ',trim(outName)
           call exit(1)
         endif
 c         

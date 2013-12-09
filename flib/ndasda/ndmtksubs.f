@@ -510,7 +510,7 @@ c
      &      filename(1:nch),'): '
       endif
       read(in5,'(a)') namein
-      nchin = lnblnk(namein)
+      nchin = len_trim(namein)
       if(nch.eq.0.and.nchin.eq.0)go to 40
       if(nchin.ne.0.and..not.(namein.eq.'/'))then
         nch=nchin
@@ -554,7 +554,7 @@ c
      &        filename(1:nch),'): '
         endif
         read(in5,'(a)') namein
-        nchin = lnblnk(namein)
+        nchin = len_trim(namein)
         irecgrf=irecget
         if(nch.eq.0.and.nchin.eq.0)go to 40
         if(nchin.ne.0.and..not.(namein.eq.'/'))then

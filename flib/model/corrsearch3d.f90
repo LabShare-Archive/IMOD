@@ -1666,7 +1666,6 @@ subroutine checkAndSetPatches(nx, nBordXlow, nbordXhigh, nxPatch, numXpatch, &
   implicit none
   integer*4 nx, nBordXlow, nbordXhigh, nxPatch, numXpatch, ixStart, ixDelta, iaxis
   character*6 axis
-  character*320 concat
   !
   ! check basic input properties
   !
@@ -1843,13 +1842,12 @@ subroutine dumpVolume(crray, nxDim, nxPad, nyPad, nzPad, rootname)
   integer*4 numFiles /1/
   save numFiles
   character*4 buffer
-  character*320 concat
   character*160 filename
 
   mode = 0
   call int_iwrite(buffer, numFiles, iz)
   numFiles = numFiles + 1
-  filename = concat(rootname, buffer(1:iz))
+  filename = trim(rootname)//trim(adjustl(buffer(1:iz)))
   call imopen(4, filename, 'new')
   !
   kxyz(1) = nxPad

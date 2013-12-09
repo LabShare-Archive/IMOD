@@ -1,24 +1,6 @@
 c       NUMERICDIFF compares numerical output between two text files
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2005/12/09 04:42:35  mast
-c       gfortran: open name= fix
-c       
-c       Revision 3.3  2005/10/11 21:37:48  mast
-c       Updated fallback PIP options
-c       
-c       Revision 3.2  2005/04/17 15:25:12  mast
-c       Had to declare lnblnk
-c       
-c       Revision 3.1  2005/04/16 05:38:25  mast
-c       Addition to package
-c       
+c       $Id$
 c       
       implicit none
       character*120 afile,bfile,stripStr
@@ -27,7 +9,6 @@ c
       integer*4 ierr, numMaxes,numericSect,numError,i, j,lenStrip
       integer*4 ival,numLimits,maxComp,numComp,numAvals,numBvals
       logical*4 inSection,aIsNumeric,bIsNumeric,general,bigOutput,didBig,dump
-      integer*4 lnblnk
       logical numericLine
 
       integer*4 numOptArg, numNonOptArg
@@ -62,7 +43,7 @@ c
      &    call errorexit('NO INPUT FILES SPECIFIED')
 c       
       if (PipGetInOutFile('BInputFile', 2, ' ', bfile) .ne. 0)
-     &    bfile = afile(1:lnblnk(afile))//'~'
+     &    bfile = trim(afile)//'~'
 c       
       open(1, file=afile, status='OLD',form='formatted', err=98)
       open(2, file=bfile, status='OLD',form='formatted', err=99)
@@ -70,7 +51,7 @@ c
       ierr = PipNumberOfEntries('MaxDifferences', numMaxes)
       ierr = PipGetLogical('GeneralFormat', general)
       if (PipGetString('StripLinesWith', stripStr) .eq. 0)
-     &    lenStrip = lnblnk(stripStr)
+     &    lenStrip = len_trim(stripStr)
       ierr = PipGetLogical('BigDifferenceOutput', bigOutput)
 
       do while(.true.)
@@ -144,8 +125,8 @@ c
             if (.not.didBig) write(*,'(a,i3,a)')'Section',numericSect,
      &          ' lines with big differences:'
             didBig = .true.
-            print *,linea(1:lnblnk(linea))
-            print *,lineb(1:lnblnk(lineb))
+            print *,trim(linea)
+            print *,trim(lineb)
           endif
         endif
       enddo
@@ -190,11 +171,11 @@ c
       logical function numericLine(inline, line, stripStr, lenStrip)
       implicit none
       character*(*) line, inline, Stripstr
-      integer*4 lenStrip,i,lnblnk,ival,length
+      integer*4 lenStrip,i,ival,length
 c       
       line = inline
       numericLine = .false.
-      length = lnblnk(line)
+      length = len_trim(line)
       if (length .eq. 0) return
 c       
 c       If the strip string matches, convert the line to all numeric
@@ -218,7 +199,7 @@ c
             line(i:i) = ' '
           endif
         enddo
-        length = lnblnk(line)
+        length = len_trim(line)
         if (length .eq. 0) return
         numericLine = .true.
         return

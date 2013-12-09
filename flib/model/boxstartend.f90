@@ -35,7 +35,6 @@ program boxstartend
   integer*4 listz(LIMPCL)
   integer*4 iobjClip(LIMOBJ), iobjFlags(LIMOBJ), loadObjs(LIMOBJ)
   character*320 inFile, pieceFile, pieceFile2, convNum, rootName
-  character*320 concat
   character*10240 listString
   data nxyzst/0, 0, 0/
   character*9 dateStrn
@@ -413,7 +412,7 @@ program boxstartend
             else
               write(convNum, '(i5.5)') numFile
             endif
-            inFile = concat(concat(rootName, '.'), convNum)
+            inFile = trim(rootName)//'.'//trim(adjustl(convNum))
             call imopen(2, inFile, 'new')
             nxyz2(1) = numPixBox
             nxyz2(2) = nyPixBox

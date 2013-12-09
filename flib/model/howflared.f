@@ -6,22 +6,7 @@ c       See man page for details.
 c
 c       Written by David Mastronarde, 1996
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.3  2006/10/30 20:09:10  mast
-c       Added nopair option
-c
-c       Revision 3.2  2006/10/15 14:09:11  mast
-c       Removed a ;
-c
-c       Revision 3.1  2006/10/14 21:20:10  mast
-c       Added to package
-c
+c       $Id$
 c
       implicit none
       include 'smallmodel.inc'
@@ -48,7 +33,7 @@ c
       real*4 pixsizeDef,xyscal,zscale,xofs,yofs,zofs,widthDef,defscal,dylas
       real*4 fitStartDef, fitEndDef, cosang, sinang
       logical*4 useSurf,noPairs
-      integer*4 getimodtimes, getimodhead, lnblnk, getImodSurfaces
+      integer*4 getimodtimes, getimodhead, getImodSurfaces
       real*4 xinterp, acosd, atan2d, cosd, sind, atand
 c       
       logical pipinput
@@ -141,7 +126,7 @@ c       end and identifier for each model
 c
       do iModel = 1, numModels
         ierr = PipGetString('ModelFile', modelfile)
-        print *,'Processing model: ', modelfile(1:lnblnk(modelfile))
+        print *,'Processing model: ', trim(modelfile)
 
         if(.not.readSmallMod(modelfile)) call exitError('READING MODEL FILE')
 c         

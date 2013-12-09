@@ -216,7 +216,7 @@ c
           if(idrop(i).ge.0.and.idrop(i).le.npatch)
      &        ifuse(ipbase+idrop(i)-1)=0
         enddo
-        call analyzespots(filin(1:lnblnk(filin)),xcen(ipbase),
+        call analyzespots(trim(filin),xcen(ipbase),
      &      ycen(ipbase), thkmid(ipbase),thkedge(ipbase),
      &      ifuse(ipbase),npatch, ysamp(ipbase),0.)
         ipbase=ipbase+npatch

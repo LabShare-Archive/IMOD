@@ -1113,7 +1113,7 @@ c
       character*(*) filename
       character*(*) axis
       character*100 line
-      integer*4 iconta(*),idim,npnta,len,lnblnk,i,j,nxFid, nyFid, nfields
+      integer*4 iconta(*),idim,npnta,len,i,j,nxFid, nyFid, nfields
       integer*4 modobj(*), modcont(*), numeric(10)
       real*4 pnta(3, idim), pixelSize, xnum(10)
 c       
@@ -1127,7 +1127,7 @@ c       get the first line and search for PixelSize: (first version)
 c       or Pix: and Dim: (second version)
 c       
       read(1,'(a)',err=10,end=15)line
-      len = lnblnk(line)
+      len = len_trim(line)
       i = 1
       do while (i .lt. len - 11)
         if (line(i:i+10) .eq. 'Pixel size:')
