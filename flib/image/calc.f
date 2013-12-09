@@ -15,17 +15,7 @@ c       could not easily remove the branches to 8 and 14, which generate
 c       warnings and are very dangerous.  Must be compiled without
 c       optimization.
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.2  2005/12/09 04:44:59  mast
-c       Fixes for gfortran: unraveled the branches into 8 and 14, fixed byte,
-c       reindented to remove tabs in format continuation
-c       
+c       $Id$
 c       
       CHARACTER*132 STRNG
 c       ISTAT=LIB$GET_FOREIGN(STRNG,,LENGTH,IFLAG)      !See if expression
@@ -100,7 +90,7 @@ c       read from command file
 c       
 2     IF (INDFLG) then
         READ(94,'(A)',ERR=209,END=210) STRNG
-        length = lnblnk(strng)
+        length = len_trim(strng)
         IF (LENGTH.EQ.0) GOTO 2
         IF (STRNG(1:1).EQ.'#'.OR.STRNG(1:1).EQ.'!') GOTO 2 !Ignore these
         STRING(LENGTH+1)=ichar(',')             !Insert comma at end
@@ -118,11 +108,11 @@ c       or use argument or read from input
 c       
       IF (NIN.EQ.0) THEN
         call getarg(iargc(),strng)              !last argument:
-        length=lnblnk(strng)                    ! works if in "run" or not
+        length=len_trim(strng)                    ! works if in "run" or not
       else
         WRITE (NOUT,'(1x,''Calc? '',$)')
         READ (NIN,'(A)') STRNG
-        length =lnblnk(strng)
+        length =len_trim(strng)
         IF (LENGTH.EQ.0) CALL EXIT(0)           !FOR DESKCALC
       ENDIF
       IFFLG=0

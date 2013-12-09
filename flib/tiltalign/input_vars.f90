@@ -63,7 +63,6 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
   integer*4 PipGetInteger, PipNumberOfEntries
   integer*4 PipGetString, PipGetFloat, PipGetBoolean
   character*40 PrependLocal
-  character*320 concat
   !
   powerTilt = 1.
   powerComp = 1.
@@ -641,10 +640,9 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
           endif
           call setGrpSize(tilt, nview, power, groupSize)
           call automap(nview, mapList, groupSize, mapFileToView, nfileViews, &
-              ifpip, 1, PrependLocal(concat(distOptTmp(1:lenOpt), &
-              'DefaultGrouping'), ifLocal), PrependLocal(concat( &
-              distOptTmp(1:lenOpt), 'NondefaultGroup'), ifLocal), numInView, &
-              ninThresh, ifLocal, nmapDefDist(idist), nRanSpecDist(idist), &
+              ifpip, 1, PrependLocal(distOptTmp(1:lenOpt)//'DefaultGrouping', ifLocal), &
+              PrependLocal(distOptTmp(1:lenOpt)//'NondefaultGroup', ifLocal), &
+              numInView, ninThresh, ifLocal, nmapDefDist(idist), nRanSpecDist(idist), &
               nmapSpecDist(1, idist), ivSpecStrDist(1, idist), &
               ivSpecEndDist(1, idist))
           if (.not.pipinput) write(6, 111) (mapList(i), i = 1, nview)
@@ -1066,9 +1064,8 @@ character*40 function PrependLocal(string, ifLocal)
   implicit none
   character*(*) string
   integer*4 ifLocal
-  character*320 concat
   PrependLocal = string
-  if (ifLocal .ne. 0) PrependLocal = concat('Local', string)
+  if (ifLocal .ne. 0) PrependLocal = 'Local'//trim(string)
   return
 end function PrependLocal
 
@@ -1088,7 +1085,6 @@ subroutine GetMapList(varName, option, iref, fixval, ifpip, ifLocal, &
   integer*4 ifLocal, ifpip, nview, i, iref, len, numEntry, numTot, numGot
   real*4 fixval
   character*40 mapOption
-  character*320 concat
   character*40 PrependLocal
   integer*4 PipNumberOfEntries, PipGetIntegerArray
 
@@ -1107,8 +1103,7 @@ subroutine GetMapList(varName, option, iref, fixval, ifpip, ifLocal, &
         , fixval, ' give it the same variable # as view', iref
     read(5,*) (mapList(i), i = 1, nview)
   else
-    mapOption = PrependLocal(concat(trim(option), 'Mapping'), &
-        ifLocal)
+    mapOption = PrependLocal(trim(option)//'Mapping', ifLocal)
     numEntry = 0
     len = PipNumberOfEntries(mapOption, numEntry)
     numTot = 0

@@ -132,7 +132,6 @@ c
       integer*4 imodBackupFile, parWrtInitialize, getWarpGrid, readCheckWarpFile
       integer*4 getGridParameters, findMaxGridSize, getSizeAdjustedGrid,getLinearTransform
       integer*4 setCurrentWarpFile
-      character*320 concat
       real*8 walltime, wallstart, fastcum, slowcum
 c       
       logical pipinput
@@ -995,7 +994,7 @@ c         for old files, open, get edge count and # of grids in X and Y
 c         
         do ixy = 1, 2
           lenrec = 24 / nbytes_recl_item
-          edgenam=concat(rootname,edgeext(ixy))
+          edgenam = trim(rootname)//edgeext(ixy)
           open(iunedge(ixy),file=edgenam,status='old',
      &        form='unformatted',access='direct', recl=lenrec, err=53)
           read(iunedge(ixy),rec=1)(nedgetmp(i,ixy), i = 1, 5)
@@ -1020,7 +1019,7 @@ c
           nxgrid(ixy) = nedgetmp(2,ixy)
           nygrid(ixy) = nedgetmp(3,ixy)
           lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
-          edgenam=concat(rootname,edgeext(ixy))
+          edgenam = trim(rootname)//edgeext(ixy)
           open(iunedge(ixy),file=edgenam,status='old',
      &        form='unformatted',access='direct', recl=lenrec, err=53)
         enddo
@@ -1127,7 +1126,7 @@ c           number of bytes per item
 c           
         do ixy = ixyFuncStart, ixyFuncEnd
           lenrec=4*max(6,3*(nxgrid(ixy)*nygrid(ixy)+2))/nbytes_recl_item
-          edgenam=concat(rootname,edgeext(ixy))
+          edgenam = trim(rootname)//edgeext(ixy)
           ierr = imodBackupFile(edgenam)
           if(ierr.ne.0)write(6,'(/,a)')' WARNING: BLENDMONT - error renaming'//
      &        ' existing edge function file'
@@ -1153,7 +1152,7 @@ c       Read old .ecd file(s)
           iedgeDelY = nyoverlap - nint(ecdBin * iedgeDelY)
           print *,'Adjusting by ', iedgeDelX, iedgeDelY
         endif
-        edgenam=concat(rootname,xcorrext(0))
+        edgenam = trim(rootname)//trim(xcorrext(0))
         inquire(file=edgenam,exist=exist)
         iy = 4
         if(.not.exist)then
@@ -1161,14 +1160,14 @@ c
 c           If the file does not exist, look for the two separate files
 c           and put second name in a different variable.  Set unit number to
 c           read one file then the other.
-          edgenam = concat(rootname,xcorrext(1))
+          edgenam = trim(rootname)//trim(xcorrext(1))
           inquire(file=edgenam,exist=exist)
           if (exist) then
-            edgename2 = concat(rootname,xcorrext(2))
+            edgename2 = trim(rootname)//trim(xcorrext(2))
             inquire(file=edgenam,exist=exist)
           endif
           if(.not.exist)then
-            edgenam=concat(rootname,xcorrext(0))
+            edgenam = trim(rootname)//trim(xcorrext(0))
             write(*,'(/,a,a)')'ERROR: BLENDMONT - Edge correlation file does'//
      &          ' not exist: ',trim(edgenam)
             call exit(1)
@@ -1352,12 +1351,12 @@ c         Handle debug output - open files and set flags
 c         
         if (xcorrDebug) then
           if (nxpieces .gt. 1) then
-            edgenam = concat(rootname,'.xdbg')
+            edgenam = trim(rootname)//'.xdbg'
             call imopen(3,edgenam,'new')
             ifDumpXY(1) = 0
           endif
           if (nypieces .gt. 1) then
-            edgenam = concat(rootname,'.ydbg')
+            edgenam = trim(rootname)//'.ydbg'
             call imopen(4,edgenam,'new')
             ifDumpXY(2) = 0
           endif
@@ -2116,7 +2115,7 @@ c
 c       Write the full edge correlation file, or the X or Y component only
 c
       subroutine writeEdgeCorrelations()
-      edgenam=concat(rootname,xcorrext(mod(ifEdgeFuncOnly,3)))
+      edgenam = trim(rootname)//trim(xcorrext(mod(ifEdgeFuncOnly,3)))
       call dopen(4,edgenam,'new','f')
       if (ixyFuncStart .eq. 1) write(4,'(2i7)')nedge(1),nedge(2)
       do ixy = ixyFuncStart, ixyFuncEnd

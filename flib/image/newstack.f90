@@ -462,10 +462,9 @@ program newstack
       numSecOut(i) = 1
       write(convNum, convFormat) i + iseriesBase - 1
       if (seriesExt == ' ') then
-        outFile(i) = concat(concat(tempName, '.'), convNum)
+        outFile(i) = trim(tempName)//'.'//trim(adjustl(convNum))
       else
-        outFile(i) = concat(concat(concat(tempName, convNum), '.'), &
-            seriesExt)
+        outFile(i) = trim(tempName)//trim(adjustl(convNum))//'.'//trim(seriesExt)
       endif
     enddo
     numOutTot = listTotal

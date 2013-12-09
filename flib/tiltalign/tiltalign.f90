@@ -87,7 +87,6 @@ program tiltalign
   integer*4 numRobFailed, minSampledInView, numSampleTarget, minLocalTrackResRob
   integer*4 minTrackResRob, minLocalPointResRob, minPointResRob, nwTot, nw0, nw1, nw2, nw5
   character*20 message
-  character*320 concat
   !
   logical pipinput
   integer*4 numOptArg, numNonOptArg
@@ -461,7 +460,7 @@ program tiltalign
   !
   if (pipinput .and. numSurface > 1) then
     if (PipGetString('OutputTopBotResiduals', modelFile) == 0) then
-      residualFile = concat(modelFile, '.botres')
+      residualFile = trim(modelFile)//'.botres'
       do j = 1, 2
         nbot = 0
         do jpt = 1, nrealPt
@@ -483,7 +482,7 @@ program tiltalign
           close(13)
 
         endif
-        residualFile = concat(modelFile, '.topres')
+        residualFile = trim(modelFile)//'.topres'
       enddo
     endif
   endif
