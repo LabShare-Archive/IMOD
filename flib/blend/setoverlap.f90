@@ -10,7 +10,8 @@
 ! NOVERLAP=MINOVERLAP.
 !
 ! If noFFTsizes is false it will ensure no prime factor greater than 19 so that
-! filtering and FFT's can be done.  If it is true, frame sizes will just be even.
+! filtering and FFT's can be done, regardless of whether FFTW is being used, because
+! goodframe assumes 19 as well.  If it is true, frame sizes will just be even.
 !
 subroutine setOverlap(minTotPix, minOverlap, noFFTsizes, nFrame, idelFrame, numPieces, &
     nOverlap, numTotPix)
