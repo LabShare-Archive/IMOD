@@ -709,6 +709,7 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
                  int outputFiles)
 {
   int i, j, abbrevOK, lastOpt, jlim, optLen, hasbf, numOut = 0, numReal = 0, brokeAtSpace;
+  int brokeAtNewLine;
   int helplim = 74;
   char *sname, *lname, *newLinePt;
   FILE *out = useStdErr ? stderr : stdout;
@@ -903,10 +904,12 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
       while (optLen > helplim || newLinePt) {
 
         /* Break string at newline */
+        brokeAtNewLine = 0;
         if (newLinePt && newLinePt - sname <= helplim) {
           j = newLinePt - sname;
           newLinePt = strchr(sname + j + 1, '\n');
           brokeAtSpace = 0;
+          brokeAtNewLine = 1;
         } else {
 
           /* Or break string at last space before limit */
@@ -920,6 +923,8 @@ int PipPrintHelp(const char *progName, int useStdErr, int inputFiles,
            Also advance past a leading space for manpage output if broke at a space */
         sname[j] = 0x00;
         fprintf(out, "%s%s\n", indentStr, sname);
+        if (sOutputManpage == 1 && brokeAtNewLine && sname[j + 1] != ' ')
+          fprintf(out, ".br\n");
         if (brokeAtSpace && sOutputManpage > 0)
           while (sname[j + 1] == ' ')
             j++;
