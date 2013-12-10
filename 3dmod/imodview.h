@@ -328,9 +328,12 @@ int DLL_EX_IM ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY,
 
 /*!
  * Returns the name of the current image file being displayed.  If multiple single-image 
- * files are loaded in Z, returns the name of the file at the current Z slice.
+ * files are loaded in Z, returns the name of the file at the current Z slice.  If 
+ * [asEntered] is false, it returns a correct absolute path; otherwise, it returns the 
+ * path as the user entered it, which may not be correct if the file is listed in an image
+ * descriptor file located in another directory.
  */
-QString DLL_EX_IM ivwCurrentImageFile(ImodView *inImodView);
+QString DLL_EX_IM ivwCurrentImageFile(ImodView *inImodView, bool asEntered);
 
 /*!
  * Set the captions for the next single-frame snapshot of an image or model view window.

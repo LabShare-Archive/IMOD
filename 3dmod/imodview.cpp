@@ -3433,15 +3433,22 @@ static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert,
 }
 
 // Return the name of the current image file, without any path adjustments
-QString ivwCurrentImageFile(ImodView *inImodView)
+QString ivwCurrentImageFile(ImodView *inImodView, bool asEntered)
 {
   if (inImodView->fakeImage)
     return QString("");
-  if (inImodView->multiFileZ <= 0)
-    return QString(inImodView->image->filename); 
-  int cz = B3DNINT(inImodView->zmouse);
-  B3DCLAMP(cz, 0, inImodView->multiFileZ - 1);
-  return QString(inImodView->imageList[cz].filename);
+  QDir curDir(Imod_IFDpath);
+  QString file;
+  if (inImodView->multiFileZ <= 0) {
+    file =  QString(inImodView->image->filename); 
+  } else {
+    int cz = B3DNINT(inImodView->zmouse);
+    B3DCLAMP(cz, 0, inImodView->multiFileZ - 1);
+    file = QString(inImodView->imageList[cz].filename);
+  }
+  if (asEntered)
+    return file;
+  return QDir::cleanPath(curDir.absoluteFilePath(file));
 }
 
 // Open 3dmod dialogs based on key letters
