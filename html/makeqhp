@@ -114,10 +114,12 @@ writeTextFile(qhpFile, outlines)
 # For Mac, we need to make a temporary copy and change Ctrl to Apple
 if sys.platform.find('darwin') >= 0:
    prnstr('Making a copy with Ctrl replaced by Apple for Mac')
+   sedcom = ['s/Ctrl/Apple/g',
+             's/Edit-Options/3dmod-Preferences/g']
    for name in appleFiles + appleDirs:
       os.rename(name, name + '.save')
    for name in appleFiles:
-      pysed('s/Ctrl/Apple/g', name + '.save', name)
+      pysed(sedcom, name + '.save', name)
    for dir in appleDirs:
       savedir = dir + '.save'
       os.mkdir(dir)
@@ -125,7 +127,7 @@ if sys.platform.find('darwin') >= 0:
       for subfile in allFiles:
          basename = os.path.basename(subfile)
          if basename.endswith('.html'):
-            pysed('s/Ctrl/Apple/g', subfile, dir + '/' + basename)
+            pysed(sedcom, subfile, dir + '/' + basename)
          else:
             shutil.copyfile(subfile, dir + '/' + basename)
 
