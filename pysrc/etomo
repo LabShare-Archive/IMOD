@@ -170,7 +170,7 @@ os.environ['PIP_PRINT_ENTRIES'] = '1'
 # Check for foreground option - needed to run multiple etomos with automation.
 help = 0
 foreground = 0
-if '-h' in sys.argv or '--help' in sys.argv:
+if '-h' in sys.argv or '--help' in sys.argv or '--h' in sys.argv:
    help = 1
 if '--fg' in sys.argv or '--directive' in sys.argv:
    foreground = 1
