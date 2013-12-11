@@ -30,8 +30,8 @@ def processStatus(pid = None):
             except psutil.NoSuchProcess:
                pass
             except Exception:
-               prnstr('Exception accessing status for pid ' + str(proc.pid) + ': ' +
-                      str(sys.exc_info()[1]))
+               prnstr('imodkillgroup - Exception accessing status for pid ' + \
+                         str(proc.pid) + ': ' + str(sys.exc_info()[1]))
                pass
       return statDict
          
@@ -71,8 +71,8 @@ def killGroup(groupid):
    try:
       os.killpg(groupid, signal.SIGKILL)
    except OSError:
-      return 'Error killing processes with group ID ' + str(groupid) + ': ' + \
-                   str(sys.exc_info()[1])
+      return 'imodkillgroup - Error killing processes with group ID ' + \
+          str(groupid) + ': ' + str(sys.exc_info()[1])
    return None
       
 
@@ -163,7 +163,7 @@ if not killTree and not windows:
          if verbose:
             prnstr('Group id: ' + str(groupIds[pidKill]))
       except OSError:
-         prnstr('Error getting group ID for PID ' + str(pidKill) + ': ' + \
+         prnstr('imodkillgroup - Error getting group ID for PID ' + str(pidKill) + ': ' +\
                 str(sys.exc_info()[1]))
          exitVal += 1
          pidDone[pidKill] = 1
@@ -179,7 +179,7 @@ if not killTree and not windows:
       if isinstance(psdict, str):
          psFailed = True
          maxTrials = 2
-         prnstr('Error getting initial ps: ' + psdict + \
+         prnstr('imodkillgroup - Error getting initial ps: ' + psdict + \
                 '  just going to do two group kills without checking processes')
       else:
          for pidKill in pidList:
@@ -225,7 +225,8 @@ if not killTree and not windows:
       time.sleep(0.05)
       psdict = processStatus()
       if isinstance(psdict, str):
-         prnstr('Error getting follow-up ps on trial ' + str(trial) + ': ' + psdict)
+         prnstr('imodkillgroup - Error getting follow-up ps on trial ' + str(trial) + \
+                   ': ' + psdict)
          numAllLeft = -1
       else:
          numAllLeft = 0
@@ -246,16 +247,17 @@ if not killTree and not windows:
       if not numAllLeft:
          break
       if numAllLeft > 0:
-         prnstr(fmtstr('{} processes left after trial {}', numAllLeft, trial))
+         prnstr(fmtstr('imodkillgroup - {} processes left after trial {}', numAllLeft,
+                       trial))
    else:    # ELSE ON FOR
       for pid in pidList:
          if not pidDone[pid]:
             exitVal += 1
       if exitVal:
          if psFailed or not getStatus:
-            prnstr('Kill may have failed, messages on trials:')
+            prnstr('imodkillgroup - Kill may have failed, messages on trials:')
          else:
-            prnstr('Kill of group failed, messages on trials:')
+            prnstr('imodkillgroup - Kill of group failed, messages on trials:')
          for pid in pidList:
             for ind in range(len(messList[pid])):
                if messList[pid][ind]:
@@ -307,7 +309,7 @@ for level in range(100):
             else:
                os.kill(pid, signal.SIGSTOP)
          except Exception:
-            prnstr('Error occurred trying to stop ' + str(pid) + ': ' + \
+            prnstr('imodkillgroup - Error occurred trying to stop ' + str(pid) + ': ' + \
                 str(sys.exc_info()[1]))
       
    # Get a ps and first find out if each PID is still there
@@ -317,7 +319,7 @@ for level in range(100):
    pidTree.append({})
    for pid in pidTree[level]:
       if not pid in psdict:
-         prnstr('PID ' + str(pid) + ' is no longer in the process list')
+         prnstr('imodkillgroup - PID ' + str(pid) + ' is no longer in the process list')
          exitVal += 1
          pidTree[level][pid] = -1
          
@@ -349,7 +351,7 @@ for level in range(len(pidTree) - 1, -1, -1):
          else:
             os.kill(pid, signal.SIGKILL)
       except Exception:
-         prnstr('Error occurred trying to kill ' + str(pid) + ': ' + \
+         prnstr('imodkillgroup - Error occurred trying to kill ' + str(pid) + ': ' + \
                 str(sys.exc_info()[1]))
          exitVal += 1
 
