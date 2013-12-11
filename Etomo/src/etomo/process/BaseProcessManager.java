@@ -1269,10 +1269,10 @@ public abstract class BaseProcessManager {
     boolean windows = Utilities.isWindowsOS();
     String[] command;
     if (!windows) {
-      command = new String[5];
+      command = new String[4];
     }
     else {
-      command = new String[4];
+      command = new String[3];
     }
     int i = 0;
     command[i++] = "python";
