@@ -70,7 +70,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private SystemProcessInterface process = null;
   final BaseManager manager;
   final AxisID axisID;
-  final Map<String,String> computerMap;
+  final Map<String, String> computerMap;
   private final boolean multiLineMessages;
   private int tcshErrorCountDown = NO_TCSH_ERROR;
   private ParallelProgressDisplay parallelProgressDisplay = null;
@@ -88,7 +88,8 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   }
 
   ProcesschunksProcessMonitor(final BaseManager manager, final AxisID axisID,
-      final String rootName, final Map<String,String> computerMap, final boolean multiLineMessages) {
+      final String rootName, final Map<String, String> computerMap,
+      final boolean multiLineMessages) {
     this.manager = manager;
     this.axisID = axisID;
     this.rootName = rootName;
@@ -445,7 +446,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       if (debug) {
         System.err.println(line);
       }
-      messages.addProcessOutput(line);
+      if (line.indexOf("imodkillgroup") == -1) {
+        messages.addProcessOutput(line);
+      }
       if (messages.isError()) {
         // Set failure boolean but continue to add all the output lines to
         // messages.
