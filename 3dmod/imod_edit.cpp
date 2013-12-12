@@ -12,8 +12,11 @@
  */
 
 #include <math.h>
+#include <set>
 #include "imod.h"
+#include "xxyz.h"
 #include "display.h"
+#include "imod_input.h"
 #include "imod_edit.h"
 #include "undoredo.h"
 #include "preferences.h"
@@ -87,21 +90,17 @@ int imodContInsideCont(Iobj *obj, Icont *cont, Icont *outer, float zmin, float z
 /* DNM 6/17/01: pass the selection size as a parameter so that windows can
    make it zoom-dependent */
 float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
-                       float selsize, Imat *mat)
+                       float selsize, int ctime, Imat *mat)
 {
     
   Icont *cont;
   int i, pindex;
   float distance = -1.;
   float temp_distance;
-  int ctime;
   int cz = (int)floor(pnt->z + 0.5);
   int twod = 0;
   double rad, delz;
   Ipoint scale, pntrot, ptsrot;
-    
-  /* Don't report points not in our time. DNM - unless time is 0*/
-  ivwGetTime(vi, &ctime);
     
   /* Ignore Z value if 2d image. */
   twod = (!(vi->dim & 4));
@@ -116,6 +115,8 @@ float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
   for (i = 0; i < obj->contsize; i++){
         
     cont = &(obj->cont[i]);
+
+  /* Don't report points not in our time. DNM - unless time is 0*/
     if ((ctime) && (obj->flags & IMOD_OBJFLAG_TIME) && (cont->time) &&
         (cont->time != ctime))
       continue;
@@ -209,7 +210,7 @@ float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
 }
 
 float imodAllObjNearest(ImodView *vi, Iindex *index, Ipoint *pnt,
-                          float selsize, Imat *mat)
+                        float selsize, int ctime, Imat *mat)
 {
   Imod *imod = vi->imod;
   float temp_distance, distance = -1.;
@@ -223,7 +224,7 @@ float imodAllObjNearest(ImodView *vi, Iindex *index, Ipoint *pnt,
       continue;
     index->object = i;
     temp_distance = imod_obj_nearest
-      (vi, &(imod->obj[i]), index , pnt, selsize, mat);
+      (vi, &(imod->obj[i]), index , pnt, selsize, ctime, mat);
     if (temp_distance < 0.)
       continue;
     if (distance < 0. || distance > temp_distance) {
@@ -567,4 +568,99 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
 
     // But if Ctrl not down, clear out the list
     imodSelectionListClear(vi);
+}
+
+/* 
+ * Returns true if a contour has at least 2 points and is coplanar in the given plane
+ */
+bool imodContourIsPlanar(Icont *cont, int plane)
+{
+  int first, pt;
+  if (cont->psize < 2)
+    return false;
+  if (plane == Z_SLICE_BOX)
+    return !(cont->flags & ICONT_WILD);
+  if (plane == X_SLICE_BOX) {
+    first = B3DNINT(cont->pts[0].x);
+    for (pt = 1; pt < cont->psize; pt++)
+      if (B3DNINT(cont->pts[pt].x) != first)
+        return false;
+  } else {
+    first = B3DNINT(cont->pts[0].y);
+    for (pt = 1; pt < cont->psize; pt++)
+      if (B3DNINT(cont->pts[pt].y) != first)
+        return false;
+  }
+  return true;
+}
+
+/*
+ * Checks the assigned surface number of an optional contour then checks the surfaces of
+ * all contours, working backwards, to find one that has existing planar contours.
+ * If none is found, it accepts the current one or returns -1 if a new one is needed.
+ */
+int imodCheckSurfForNewCont(Iobj *obj, Icont *cont, int time, int plane)
+{
+  std::set<int> checkedSurfs;
+  int coNum, retval = -1;
+  int curSurf = cont ? cont->surf : -1;
+  for (coNum = obj->contsize; coNum >= 0; coNum--) {
+
+    // Loop backwards through object, but first check supplied contour if any
+    if (coNum < obj->contsize)
+      cont = &obj->cont[coNum];
+    if (!cont || cont->time != time || checkedSurfs.count(cont->surf))
+      continue;
+
+    // If contour is planar, add surface to list of checked ones, then see if whole 
+    // surface is planar.  If so, that is the surface
+    if (imodContourIsPlanar(cont, plane)) {
+      checkedSurfs.insert(cont->surf);
+      if (imodSurfaceIsPlanar(obj, cont->surf, time, plane) > 0) {
+        imodTrace('P', "imodCheckSurfForNewCont found surface %d OK for plane %d",
+                  cont->surf, plane);
+        return cont->surf;
+      }
+    }
+  }
+
+  // For Z plane, can we just use the 0 surface?
+  if (plane == Z_SLICE_BOX && imodSurfaceIsPlanar(obj, 0, time, plane) != 0) {
+    imodTrace('P', "imodCheckSurfForNewCont 0 OK for Z plane");
+    return 0;
+  }
+
+  // For other planes, can we use the existing surface number > 0?
+  if (plane != Z_SLICE_BOX && curSurf > 0 && imodSurfaceIsPlanar(obj, curSurf, time,
+                                                                 plane) != 0) {
+    imodTrace('P', "imodCheckSurfForNewCont %d OK for non-Z plane", curSurf);
+    return curSurf;
+  }
+
+  // Otherwise, need a new surface
+  imodTrace('P', "imodCheckSurfForNewCont -1: need new surf");
+  return -1;
+}
+
+/* 
+ * Check each contour in surface with > 1 point and return 0 if any is non-planar,
+ * return 1 if all are planar, or return -1 if there are no non-planar ones
+ */
+int imodSurfaceIsPlanar(Iobj *obj, int surface, int time, int plane)
+{
+  Icont *cont;
+  int coNum, retval = -1;
+  for (coNum = 0; coNum < obj->contsize; coNum++) {
+    cont = &obj->cont[coNum];
+    if (cont->psize > 1 && cont->surf == surface && cont->time == time) {
+      if (!imodContourIsPlanar(cont, plane)) {
+        retval = 0;
+        break;
+      }
+      retval = 1;
+    }
+  }
+  imodTrace('P', "surfaceIsPlanar surf %d time %d plane %d return %d", surface, time,
+            plane, retval);
+  return retval;
 }
