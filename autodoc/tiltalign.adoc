@@ -813,7 +813,7 @@ mean residuals higher than the median will thus be given less weight, and ones
 with the most extreme residuals will be given weights of 0.02.
 
 [Field = KFactorScaling]
-type = I
+type = F
 usage = Amount to scale the K factor that controls how many points are down-weighted
 tooltip = Amount to scale the K factor that controls how many points are
 down-weighted; the default is 1 and smaller values down-weight more points.
