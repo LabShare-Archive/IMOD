@@ -43,20 +43,17 @@ usage=Do automation based on the directive_file.adoc.
 manpage=Causes automation to be performed based on a file called
 \fIdirective_file\fB.adoc\fR.  No interface will come up and most
 command-line automation options will have no effect.
-.br
-^Command-line automation options\fR that can be used with these
+^   Command-line automation options\fR that can be used with these
 options:
-^    \fB--cpus\fR
-^    \fB--gpus\fR
-.br
-^These options are automatically set to true when \fB--directive\fR is
+^      \fB--cpus\fR
+^      \fB--gpus\fR
+^   These options are automatically set to true when \fB--directive\fR is
 used:
-^    \fB--fg\fR
-^    \fB--headless\fR
-^    \fB--create\fR
-^    \fB--exit\fR
-.br
-^The directive file must end in ".adoc" and conform to autodoc syntax.
+^      \fB--fg\fR
+^      \fB--headless\fR
+^      \fB--create\fR
+^      \fB--exit\fR
+^   The directive file must end in ".adoc" and conform to autodoc syntax.
 
 
 [SectionHeader = CommandAutomationOptions]
