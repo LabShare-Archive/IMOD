@@ -851,6 +851,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + ".Tiltxcorr." + FIRST_AXIS_KEY + ".Orig.ViewsWithMagChanges.Set");
   private final EtomoBoolean2 origViewsWithMagChangesSetB = new EtomoBoolean2(COARSE_KEY
       + ".Tiltxcorr." + SECOND_AXIS_KEY + ".Orig.ViewsWithMagChanges.Set");
+  private final EtomoBoolean2 weightWholeTracksA = new EtomoBoolean2(FINE_KEY
+      + FIRST_AXIS_KEY + ".WeightWholeTracks");
+  private final EtomoBoolean2 weightWholeTracksB = new EtomoBoolean2(FINE_KEY
+      + SECOND_AXIS_KEY + ".WeightWholeTracks");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1862,6 +1866,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origViewsWithMagChangesB.reset();
     origViewsWithMagChangesSetA.reset();
     origViewsWithMagChangesSetB.reset();
+    weightWholeTracksA.reset();
+    weightWholeTracksB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2185,6 +2191,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origViewsWithMagChangesB.load(props, prepend);
     origViewsWithMagChangesSetA.load(props, prepend);
     origViewsWithMagChangesSetB.load(props, prepend);
+    weightWholeTracksA.load(props, prepend);
+    weightWholeTracksB.load(props, prepend);
   }
 
   public boolean isTrackElongatedPointsAllowedNull(final AxisID axisID) {
@@ -2585,6 +2593,24 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origViewsWithMagChangesB.store(props, prepend);
     origViewsWithMagChangesSetA.store(props, prepend);
     origViewsWithMagChangesSetB.store(props, prepend);
+    weightWholeTracksA.store(props, prepend);
+    weightWholeTracksB.store(props, prepend);
+  }
+
+  public void setWeightWholeTracks(final AxisID axisID, final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      weightWholeTracksB.set(input);
+    }
+    else {
+      weightWholeTracksA.set(input);
+    }
+  }
+
+  public boolean getWeightWholeTracks(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return weightWholeTracksB.is();
+    }
+    return weightWholeTracksA.is();
   }
 
   public boolean getTrackRaptorUseRawStack() {
