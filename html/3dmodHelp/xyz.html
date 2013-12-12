@@ -2,6 +2,22 @@
 <title>XYZ Window</title>
 </head>
 <A NAME = "TOP"><H2>XYZ Window</H2></A>
+
+Descriptions below refer to the first, second, and third mouse 
+buttons.  By default, these correspond to left, middle, and right 
+buttons of a 3-button mouse, but you can change these assignments in 
+the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
+
+<P>
+<A HREF = "#Basics">Basic Features of the XYZ Window</A>
+<BR><A HREF = "#Toolbars">The Tool Bars</A>
+<BR><A HREF = "#HotKeys">Hot Keys Special to the XYZ Window</A>
+<BR><A HREF = "#MovieMouse">Mouse Button Function in Movie Mode</A>
+<BR><A HREF = "#ModelMouse">Mouse Button Function in Model Mode</A>
+<BR><A HREF = "#MarkerLines">Marker Lines</H3></A>
+<BR><A HREF = "#Modeling">Modeling Meshable Contours in XZ and YZ Planes</A>
+
+<A NAME = "Basics"><H3>Basic Features of the XYZ Window</H3></A>
 The XYZ window displays three slices: through an XY plane in the lower
 left, through a YZ plane in the lower right, and through an XZ plane in
 the upper left.  The intersection of the model with these planes will
@@ -22,18 +38,16 @@ pan, two windows will usually move together to keep corresponding regions of
 the volume visible.
 <P>
 For volumes that are much larger in X and Y than in Z, the 
-The allocation of the window space among the three view boxes can be changed by
+allocation of the window space among the three view boxes can be changed by
 dragging the light blue square, at the intersection of the X and Y marker
 lines.  This square will move along a diagonal so as to keep the Z sizes of
 the XZ and YZ view boxes the same.
+<P>
+Modeling in the XYZ window is very similar to
+the basic modeling that can be done in the Zap window, except that it can be
+done in any of the three planes.  
 
-<H3>Mouse Button Assignments</H3>
-Descriptions below refer to the first, second, and third mouse 
-buttons.  By default, these correspond to left, middle, and right 
-buttons of a 3-button mouse, but you can change these assignments in 
-the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
-
-<H3>The Tool Bar</H3>
+<A NAME = "Toolbars"><H3>The Tool Bar</H3></A>
 <UL>
 <LI>The <B>up</B> and <B>down arrows</B> step the zoom factor up or down.
 <LI>The <B>zoom</B> edit box shows the current zoom factor and allows 
@@ -47,8 +61,14 @@ time, if multiple image files are loaded), regardless of changes in the global
 current point.  With this button on, changes in the display of this window
 (using the sliders, PageUp, PageDown, the arrow hot keys, or 1 or 2 hot keys
 to change time) will not affect the global current point and the display in
-other windows.  Unlike in the ZaP and Slicer windows, both image position and
+other windows.  Unlike in the Zap and Slicer windows, both image position and
 time are locked by this single button.
+<LI>The <B>Z-scale</B> button toggles between displaying voxels at the same
+  scale in Z as in X and Y, and displaying them stretched by the model's
+  Z-scale.  The state of this button is saved between sessions.  Once this
+  setting is turned on, a new XYZ window will open with the boxes apportioned
+  appropriately. The Z-scale can be set in the <A HREF =
+  "modelHeader.html#TOP"> Model Header</A> dialog, opened with Edit-Model-Header.
 <LI>The <B>centering</B> button will pan the images to bring the current point
 as close as possible to the center of each view box.  The centered point is
 either the current image point in movie mode or the current model point in
@@ -59,23 +79,43 @@ model mode.
 particular section to display.
 </UL>
 
-<H3>Hot Keys special to the XYZ window</H3>
+<A NAME = "HotKeys"><H3>Hot Keys Special to the XYZ Window</H3></A>
 <UL>
-<LI><B>k</B>will pan the images to bring the current point
+<LI><B>k</B> will pan the images to bring the current point
 as close as possible to the center of each view box, just as with the 
 <B>centering</B> toolbar button.
 <LI><B>r</B> toggles between fast rendering and 
 slower but higher quality interpolated image rendering.
-<LI><B>P</B> Toggles the projection of the current contour onto the side views.
+<LI><B>P</B> Toggles the projection of the current contour onto the side
+  views. Scattered point objects are always displayed in all three views.
+<LI><B>q</B> Reports the distance between the mouse and the current image or
+  model point, if the mouse is in one of the three view boxes.  The current
+  model point is used in Model Mode, if one is defined.  Otherwise, distance
+  is measured to the current image point in this XYZ window (which may be
+  different from the global current image point).  A 3D distance is reported,
+  althoughly typically it will be the same as the 2D distance in the plane.
 <LI><B>Ins</B> on the keypad: In model mode, this key works the same as 
 the second mouse button.  A single keystrike adds one point; 
 holding the key down allows points to be added continuously.
+<LI><B>Arrows</B> and <B>PageUp/PageDown</B>: These keys move the current
+  viewing point relative to the plane in the box where the mouse is located,
+  or relative to the XY plane if the mouse is not over a box.  For example,
+  when the mouse is over the XZ box, the <B>Up arrow</B> advances in Z
+  and <B>PageUp</B> advances in Y, which switches to the next XZ plane.  This
+  is useful when modeling in the XZ or YZ planes.
+<LI><B>Keypad Arrows</B> and <B>PageUp/PageDown</B>: In model mode, the
+  numeric keypad arrow keys
+  move the current model point laterally and <B>PageUp/PageDown</B> move it
+  between slices, relative to the plane in the box where the mouse is
+  located.  If the latter keys make a planar contour non-planar, a warning
+  will be issued, because as long as this contour is the current one, new
+  contours will not be made automatically when switching to a new plane or slice.
 <LI><B>ESC</B> will close the XYZ window.
 </UL>
 For other keys, see <A HREF = "keyboard.html#TOP">3dmod Hot Keys</A>.
 
 
-<H3>Mouse button function in movie mode</H3>
+<A NAME = "MovieMouse"><H3>Mouse Button Function in Movie Mode</H3></A>
 <UL>
 <LI><B>First Button Click</B>: Select the current image point, marked by 
 a small cross in the three planes.  In one of the three view boxes, this
@@ -99,9 +139,9 @@ forward direction, or stop movie,
 through the planes in the backward direction, or stop movie.
 </UL>
 
-<H3>Mouse button function in model mode</H3>
+<A NAME = "ModelMouse"><H3>Mouse Button Function in Model Mode</H3></A>
 <UL>
-<LI><B>First Button Click</B>: In the XY view box, this makes the nearest
+<LI><B>First Button Click</B>: In any of the slice view boxes, this makes the nearest
 visible model point be the current model point.  If there is no point nearby,
 it detaches from 
 the current point and contour and selects a current viewing point 
@@ -109,19 +149,23 @@ instead.  Elsewhere, this click behaves as in movie mode.  To attach to points
 in any object, including ones that are turned off, there is an option in the
 <B>Behavior</B> panel of the 3dmod Preferences dialog.
 <LI><B>First Button Drag</B>: Pans images or riffles through planes, just as
-in model mode.
-<LI><B>Second Button Click</B>: In the XY view box, adds one point to the
-current contour.
-<LI><B>Second Button Drag</B>: In the XY view box, continually adds points to
+in movie mode.
+<LI><B>Second Button Click</B>: In any of the view boxes, adds one point to the
+current contour or starts a new contour when modeling planar contours and the
+  new point would make the current contour nonplanar.  The latter occurs when
+  modeling a closed 
+  contour object or an open contour object with <B>Start new contour at new
+  Z</B> selected in the Edit-Object-Type dialog.  
+<LI><B>Second Button Drag</B>: In any of the view boxes, continually adds points to
 the current contour as the mouse is moved.
-<LI><B>Third Button Click</B>: In the XY view box, modifies the current model
+<LI><B>Third Button Click</B>: In any of the view boxes, modifies the current model
 point to be at the selected position.
-<LI><B>Third Button Drag</B>: In the XY view box, continually modifies points
+<LI><B>Third Button Drag</B>: In any of the view boxes, continually modifies points
 as the mouse is moved.  This only works when the current model point is in the 
 interior of the contour, not at its end.
 </UL>
 
-<H3>Marker Lines</H3>
+<A NAME = "MarkerLines"><H3>Marker Lines</H3></A>
 The marker lines have little boxes indicating the position of the current
 point, if it is visible in the image.  These can also be used as sliders, as
 follows:
@@ -131,7 +175,42 @@ visible portion of the image.
 <LI>Horizontal slider (between top and main window):  moves the current point
 in X on the visible portion of the image.
 <LI>Vertical slider (between top and main window):  moves the current point in
-Y on the visible portion of the image.
+qY on the visible portion of the image.
+</UL>
+
+<A NAME = "Modeling"><H3>Modeling Meshable Contours in XZ and YZ Planes</H3></A>
+It is possible to draw planar contours in
+the XZ or YZ planes that can be meshed to show a surface, just like ones in
+the XY planes.  There are features that facilitate this, but it requires some
+attention to these details:
+<UL>
+<LI> The meshing code is able to connect contours that not in the XY plane
+  when they are all assigned the same surface number, and when that surface
+  contains only contours that lie in parallel planes.
+<LI> When you start modeling a closed contour in one of the boxes, 3dmod will
+  change the surface number of the contour, if necessary, to make sure that
+  the surface consists only of contours in parallel planes.  This happens both
+  when you create a new contour before starting to draw, and when the program
+  automatically creates a new contour for you.  This behavior can be turned
+  off with an option in the Behavior tab of the 3dmod Preferences dialog.
+<LI> The same features can operate when you model open contours, but only if
+  you select <B>Start new contour at new  Z</B> in the Edit-Object-Type dialog.
+<LI> If you do not manipulate surface numbers or start a new surface yourself,
+  typically contours modeled in the XY plane will be in surface 0, ones in the
+  second plane that you model will be in surface 1, and ones in the other
+  plane will be in surface 2.
+<LI> You can still start new surfaces if you wish to use surfaces to keep track of
+  different structures.
+<LI> If you start modeling in a Zap window when the current contour was drawn
+  in the XZ or YZ plane, 3dmod will recognize that the current surface is
+  inappropriate and change to one appropriate for modeling in the XY plane. This
+  is <I>not</I> the case when returning to drawing in a Zap window after
+  drawing tilted contours in a Slicer window.
+<LI> It is a good idea to open the Surf/Cont/Point dialog (e.g., with
+  Edit-Surface-Go To) to monitor surface numbers. You can also visualize all
+  of the contours in each surface by opening the Model View window and
+  selecting <B>Current surface only</B> in the <B>Subsets</B> panel of the
+  Edit-Objects dialog.
 </UL>
 
 <P>
