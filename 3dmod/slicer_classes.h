@@ -135,6 +135,7 @@ protected:
   void mousePressEvent(QMouseEvent * e );
   void mouseReleaseEvent ( QMouseEvent * e );
   void timerEvent(QTimerEvent *e);
+  void wheelEvent (QWheelEvent *e);
 
  private:
 

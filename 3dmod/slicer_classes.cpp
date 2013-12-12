@@ -37,6 +37,7 @@
 #include <QKeyEvent>
 #include <QVBoxLayout>
 #include "imod.h"
+#include "cont_edit.h"
 #include "hottoolbar.h"
 #include "slicer_classes.h"
 #include "sslice.h"
@@ -597,6 +598,13 @@ void SlicerGL::mouseReleaseEvent ( QMouseEvent * e )
 {
   mMousePressed = false;
   mFuncs->mouseRelease(e);
+}
+
+void SlicerGL::wheelEvent (QWheelEvent *e)
+{
+  if (iceGetWheelForSize())
+    utilWheelChangePointSize(mFuncs->mVi, mFuncs->mZoom, e->delta());
+  
 }
 
 ///////////////////////////////////////////////
