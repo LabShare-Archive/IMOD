@@ -249,6 +249,9 @@ final class TiltalignPanel implements Expandable {
 
   private final CheckTextField ctfRobustFittingAndKFactorScaling = CheckTextField
       .getInstance(FieldType.FLOATING_POINT, "Do robust fitting with tuning factor:");
+  private final CheckBox cbWeightWholeTracks = new CheckBox(
+      "Find weights for contours, not points");
+
   private final PanelHeader phBeamTilt;
 
   private Tab currentTab = Tab.GENERAL;
@@ -330,6 +333,7 @@ final class TiltalignPanel implements Expandable {
     rbNoBeamTilt.addActionListener(tpActionListener);
     rtfFixedBeamTilt.addActionListener(tpActionListener);
     rbSolveForBeamTilt.addActionListener(tpActionListener);
+    ctfRobustFittingAndKFactorScaling.addActionListener(tpActionListener);
   }
 
   private void changeTab(ChangeEvent changeEvent) {
@@ -390,6 +394,8 @@ final class TiltalignPanel implements Expandable {
     disable = (rbRotationAll.isSelected() || rbRotationAutomap.isSelected())
         && (rbDistortionFullSolution.isSelected() || rbDistortionSkew.isSelected());
     rbSolveForBeamTilt.setEnabled(keepEnabled || !disable);
+    cbWeightWholeTracks.setEnabled(patchTracking
+        && ctfRobustFittingAndKFactorScaling.isSelected());
   }
 
   private void action(ActionEvent actionEvent) {
@@ -407,6 +413,9 @@ final class TiltalignPanel implements Expandable {
       updateDisplay();
     }
     else if (actionCommand.equals(rbSolveForBeamTilt.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(ctfRobustFittingAndKFactorScaling.getActionCommand())) {
       updateDisplay();
     }
   }
@@ -476,6 +485,9 @@ final class TiltalignPanel implements Expandable {
 
     ctfRobustFittingAndKFactorScaling.setSelected(params.isRobustFitting());
     ctfRobustFittingAndKFactorScaling.setText(params.getKFactorScaling());
+    if (cbWeightWholeTracks.isEnabled()) {
+      cbWeightWholeTracks.setSelected(params.isWeightWholeTracks());
+    }
     ltfMetroFactor.setText(params.getMetroFactor().toString());
     ltfCycleLimit.setText(params.getMaximumCycles().toString());
 
@@ -645,6 +657,7 @@ final class TiltalignPanel implements Expandable {
     metaData.setNoBeamTiltSelected(axisID, rbNoBeamTilt.isSelected());
     metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
     metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText());
+    metaData.setWeightWholeTracks(axisID, cbWeightWholeTracks.isSelected());
   }
 
   /**
@@ -657,6 +670,7 @@ final class TiltalignPanel implements Expandable {
     rbNoBeamTilt.setSelected(metaData.getNoBeamTiltSelected(axisID).is());
     rtfFixedBeamTilt.setSelected(metaData.getFixedBeamTiltSelected(axisID).is());
     rtfFixedBeamTilt.setText(metaData.getFixedBeamTilt(axisID));
+    cbWeightWholeTracks.setSelected(metaData.getWeightWholeTracks(axisID));
     updateDisplay();
   }
 
@@ -666,6 +680,7 @@ final class TiltalignPanel implements Expandable {
 
   public void setPatchTracking(boolean input) {
     patchTracking = input;
+    updateDisplay();
   }
 
   /**
@@ -731,6 +746,14 @@ final class TiltalignPanel implements Expandable {
         badParameter = ctfRobustFittingAndKFactorScaling.getLabel();
         params.setRobustFitting(ctfRobustFittingAndKFactorScaling.isSelected());
         params.setKFactorScaling(ctfRobustFittingAndKFactorScaling.getText(doValidation));
+
+        if (cbWeightWholeTracks.isEnabled()) {
+          badParameter = cbWeightWholeTracks.getText();
+          params.setWeightWholeTracks(cbWeightWholeTracks.isSelected());
+        }
+        else {
+          params.resetWeightWholeTracks();
+        }
 
         badParameter = ltfMetroFactor.getLabel();
         params.setMetroFactor(ltfMetroFactor.getText(doValidation));
@@ -1136,7 +1159,7 @@ final class TiltalignPanel implements Expandable {
    * Layout the general parameters tab
    */
   private void createGeneralTab() {
-
+    JPanel pnlRobustFitting = new JPanel();
     pnlGeneral.setLayout(new BoxLayout(pnlGeneral, BoxLayout.Y_AXIS));
     pnlGeneralBody.setLayout(new BoxLayout(pnlGeneralBody, BoxLayout.Y_AXIS));
     pnlGeneralBody.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -1208,9 +1231,15 @@ final class TiltalignPanel implements Expandable {
         .setLayout(new BoxLayout(pnlMinimizationParams, BoxLayout.Y_AXIS));
     pnlMinimizationParams.setBorder(new EtchedBorder("Minimization Parameters")
         .getBorder());
-    pnlMinimizationParams.add(ctfRobustFittingAndKFactorScaling.getRootComponent());
+    pnlMinimizationParams.add(pnlRobustFitting);
     pnlMinimizationParams.add(Box.createRigidArea(FixedDim.x0_y3));
     pnlMinimizationParams.add(pnlMetroFactor);
+
+    // RobustFitting
+    pnlRobustFitting.setLayout(new BoxLayout(pnlRobustFitting, BoxLayout.X_AXIS));
+    pnlRobustFitting.add(ctfRobustFittingAndKFactorScaling.getRootComponent());
+    pnlRobustFitting.add(cbWeightWholeTracks);
+   // pnlWeightWholeTracks.add(Box.createHorizontalGlue());
 
     pnlMetroFactor.setLayout(new BoxLayout(pnlMetroFactor, BoxLayout.X_AXIS));
     pnlMetroFactor.add(ltfMetroFactor.getContainer());
@@ -1678,6 +1707,8 @@ final class TiltalignPanel implements Expandable {
         autodoc, TiltalignParam.ROBUST_FITTING_KEY));
     ctfRobustFittingAndKFactorScaling.setFieldToolTipText(EtomoAutodoc.getTooltip(
         autodoc, TiltalignParam.K_FACTOR_SCALING_KEY));
+    cbWeightWholeTracks.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        TiltalignParam.WEIGHT_WHOLE_TRACKS_KEY));
     // Global variables
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         TiltalignParam.TILT_OPTION_KEY);
