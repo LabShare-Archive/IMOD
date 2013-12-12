@@ -115,7 +115,8 @@ writeTextFile(qhpFile, outlines)
 if sys.platform.find('darwin') >= 0:
    prnstr('Making a copy with Ctrl replaced by Apple for Mac')
    sedcom = ['s/Ctrl/Apple/g',
-             's/Edit-Options/3dmod-Preferences/g']
+             's/Edit-Options/3dmod-Preferences/g',
+             's/Edit - Options/3dmod - Preferences/g']
    for name in appleFiles + appleDirs:
       os.rename(name, name + '.save')
    for name in appleFiles:
