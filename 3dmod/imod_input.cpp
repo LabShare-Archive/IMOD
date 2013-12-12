@@ -49,8 +49,6 @@
 #include "undoredo.h"
 #include "vertexbuffer.h"
 
-static void newContourOrSurface(ImodView *vi, int surface);
-
 void inputRaiseWindows()
 {
   /* New way, allows type of windows to be raised in chosen order */
@@ -273,17 +271,20 @@ void inputGhostmode(ImodView *vi)
 // Make a new contour
 void inputNewContour(ImodView *vi)
 {
-  newContourOrSurface(vi, 0);
+  inputNewContourOrSurface(vi, INCOS_NEW_CONT, 0);
 }
 
 // Make a new contour on a new surface number
 void inputNewSurface(ImodView *vi)
 {
-  newContourOrSurface(vi, 1);
+  inputNewContourOrSurface(vi, INCOS_NEW_SURF, 0);
 }
 
-// Make a new contour, optionally assigning it to a new surface
-static void newContourOrSurface(ImodView *vi, int surface)
+/*
+ * Make a new contour, optionally assigning it to a given or new surface. Set surface = -2
+ * for no surface change, surface = -1 for new surface, surface >=0 to assign it
+ */
+void inputNewContourOrSurface(ImodView *vi, int surface, int timeLock)
 {
   Iobj *obj = imodObjectGet(vi->imod);
   Icont *cont;
@@ -291,16 +292,20 @@ static void newContourOrSurface(ImodView *vi, int surface)
     return;
 
   // Register an object property change if there is a new surface
-  if (surface)
+  if (surface == INCOS_NEW_SURF)
     vi->undo->objectPropChg();
   vi->undo->contourAddition(obj->contsize);
 
   imodNewContour(vi->imod);
   cont = imodContourGet(vi->imod);
-  if (surface)
+  if (surface == INCOS_NEW_SURF)
     imodel_contour_newsurf(obj, cont);
+  if (surface >= 0)
+    cont->surf = surface;
 
   ivwSetNewContourTime(vi, obj, cont);
+  if (timeLock && cont->time)
+    cont->time = timeLock;
   vi->undo->finishUnit();
   if (imodSelectionListClear(vi))
     imod_setxyzmouse();
@@ -878,10 +883,10 @@ void inputPointMove(ImodView *vi, int x, int y, int z)
     if (cont->psize > 1) {
       /* DNM: since z is changing, need to set contour's wild flag */
       obj = imodObjectGet(vi->imod);
-      if (iobjClose(obj->flags) && !(cont->flags & ICONT_WILD))
+      if (iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD))
         wprint("\aContour is no longer in one Z plane. "
                "With this contour, you will not get a new"
-               " contour automatically when you change Z.");
+               " contour automatically when you change Z.\n");
       vi->undo->contourPropChg();
       cont->flags |= ICONT_WILD;
     }
@@ -904,6 +909,23 @@ void inputPointMove(ImodView *vi, int x, int y, int z)
   vi->undo->finishUnit();
   imodDraw(vi, IMOD_DRAW_RETHINK | IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
   return;
+}
+
+// Move a point in response to a keypad key
+void inputKeyPointMove(ImodView *vi, int keysym)
+{
+  if (keysym == Qt::Key_Left)
+    inputPointMove(vi, -1, 0, 0);
+  else if (keysym == Qt::Key_Right)
+    inputPointMove(vi, 1, 0, 0);
+  else if (keysym == Qt::Key_Down)
+    inputPointMove(vi, 0, -1, 0);
+  else if (keysym == Qt::Key_Up)
+    inputPointMove(vi, 0, 1, 0);
+  else if (keysym == Qt::Key_PageDown)
+    inputPointMove(vi, 0, 0, -1);
+  else if (keysym == Qt::Key_PageUp)
+    inputPointMove(vi, 0, 0, 1);
 }
 
 /* Find the maximum value within 5 pixels of the current location */
