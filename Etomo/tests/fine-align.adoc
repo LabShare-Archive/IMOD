@@ -274,17 +274,21 @@ assert.enabled.tf.tilt-axis-z-shift=
 [function = minimization-parameters-test-gui-advanced]
 # check values
 assert.cb.do-robust-fitting-with-tuning-factor=off
+assert.cb.find-weights-for-contours,-not-points=off
 assert.tf.do-robust-fitting-with-tuning-factor=1.0
 assert.tf.metro-factor=0.25
 assert.tf.cycle-limit=1000
 # check enabled/disabled
 assert.enabled.cb.do-robust-fitting-with-tuning-factor=
+assert.disabled.cb.find-weights-for-contours,-not-points=
 assert.disabled.tf.do-robust-fitting-with-tuning-factor=
 assert.enabled.tf.metro-factor=
 assert.enabled.tf.cycle-limit=
 #check behavior
 cb.do-robust-fitting-with-tuning-factor=on
 assert.enabled.tf.do-robust-fitting-with-tuning-factor=
+if.var.patch-tracking.assert.enabled.cb.find-weights-for-contours,-not-points=
+if.not.var.patch-tracking.assert.disabled.cb.find-weights-for-contours,-not-points=
 cb.do-robust-fitting-with-tuning-factor=off
 
 
