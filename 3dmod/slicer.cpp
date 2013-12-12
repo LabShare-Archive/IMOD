@@ -1586,7 +1586,8 @@ void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
     setForwardMatrix();
     indSave = vi->imod->cindex;
 
-    distance = imodAllObjNearest(vi, &index , &pnt, selsize, mMat);
+    distance = imodAllObjNearest(vi, &index , &pnt, selsize, ivwWindowTime(vi, mTimeLock),
+                                 mMat);
     if (distance >= 0.)
       imodSelectionNewCurPoint(vi, imod, indSave, ctrlDown);
 
@@ -1638,7 +1639,7 @@ void SlicerFuncs::insertPoint(int x, int y, int ctrl)
   float dist, mindist, maxdist, dplane, distsum;
   float flatCrit = 1.5f;
   float zcrit = 0.75f;
-  bool newsurf;
+  bool newsurf, timeMismatch, notInPlane;
   Iobj *obj = imodObjectGet(vi->imod);
   if (vi->imod->mousemode == IMOD_MMODEL) {
 
@@ -1666,31 +1667,21 @@ void SlicerFuncs::insertPoint(int x, int y, int ctrl)
       if (imodDebug('s'))
         imodPrintStderr("dplane %f  mindist  %f  maxdist %f  mean %f\n",
                         dplane, mindist, maxdist, distsum / cont->psize);
-
-      // If the contour is not flat to current plane, start a new surface
+ 
+     // If the contour is not flat to current plane, start a new surface
       // If it is just too far away, start a new contour
 
       newsurf = maxdist - mindist > flatCrit && ImodPrefs->slicerNewSurf();
-      if (newsurf || fabs(distsum / cont->psize) > zcrit){
-        if (cont->psize == 1) {
-          wprint("Started a new contour even though last "
-                 "contour had only 1 pt.  ");
-          if (iobjClose(obj->flags))
-            wprint("\aUse open contours to model across different slices.\n");
-          else
-            wprint("\aTurn off \"Start new contour at new Z\" to model "
-                   "across different slices.\n");
-        }
-        if (newsurf)
-          inputNewSurface(vi);
-         else
-          inputNewContour(vi);
-        cont = imodContourGet(vi->imod);
+      timeMismatch = ivwTimeMismatch(vi, mTimeLock, obj, cont);
+      notInPlane = fabs(distsum / cont->psize) > zcrit;
+      imodTrace('s', "newsurf %d timeMismatch %d notInPlane %d", newsurf, timeMismatch, 
+                notInPlane);
+      if (newsurf || notInPlane || timeMismatch) {
+        cont = utilAutoNewContour(vi, cont, notInPlane, timeMismatch, mTimeLock,
+                                  newsurf ? INCOS_NEW_SURF : INCOS_NEW_CONT,
+                                  "different slices", "angles");
         if (!cont)
           return;
-        if (newsurf)
-          wprint("Started new surface # %d due to change in angles\n", 
-                 cont->surf);
       }
     }
     if (!mClassic)
