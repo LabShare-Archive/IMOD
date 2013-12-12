@@ -37,6 +37,7 @@
 #include "display.h"
 #include "b3dgfx.h"
 #include "control.h"
+#include "cont_edit.h"
 #include "info_cb.h"
 #include "imod_input.h"
 #include "autox.h"
@@ -86,8 +87,6 @@ static QIcon *fillIcon = NULL;
 
 static const char *sliderLabels[] = {"X", "Y", "Z"};
 enum {X_COORD = 0, Y_COORD, Z_COORD};
-enum {NOT_IN_BOX = 0, X_SLICE_BOX, Y_SLICE_BOX, Z_SLICE_BOX, Y_GADGET_BOX,
-      X_GADGET_BOX, Z_GADGET_BOX, FRACTION_BOX};
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -180,10 +179,9 @@ void xyzPixelViewState(bool state)
   pixelViewOpen = state;
   int i;
   imodDialogManager.windowList(&objList, -1, XYZ_WINDOW_TYPE);
-
   for (i = 0; i < objList.count(); i++) {
     xyz = ((XyzWindow *)objList.at(i));
-    xyz->setMouseTracking(state || insertDown != 0);
+    xyz->mGLw->setMouseTracking(state || insertDown != 0);
   }
 }
 
@@ -520,7 +518,7 @@ void XyzWindow::GetCIImages()
  * Takes a mouse click at x,y and finds which area it is in (the return value)
  * and computes x, y, z image coordinates for that area
  */
-int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
+int XyzWindow::Getxyz(int x, int y, float &mx, float &my, int &mz)
 {
   int cx, cy, cz;
   /* DNM 1/23/02: turn this from float to int to keep calling expressions
@@ -530,9 +528,9 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   y = mWiny - y;
   
   getLocation(cx, cy, cz);
-  *mx = cx;
-  *my = cy;
-  *mz = cz;
+  mx = cx;
+  my = cy;
+  mz = cz;
 
   scale = 1.0 / mZoom;
   zscale = scale / (mApplyZscale ? mVi->imod->zscale : 1.);
@@ -549,8 +547,8 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   if (mouse_in_box(mXorigin1, mYorigin1, mXorigin1 + mWinXdim1,
                    mYorigin1 + mWinYdim1, x, y)) {
     //imodPrintStderr("found center image: x %d, y %d\n",x, y);
-    *mx = (x - mXwoffset1) * scale ;
-    *my = (y - mYwoffset1) * scale;
+    mx = (x - mXwoffset1) * scale ;
+    my = (y - mYwoffset1) * scale;
     //ivwBindMouse(mVi);
     return(Z_SLICE_BOX);
   }
@@ -559,8 +557,8 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   if (mouse_in_box(mXorigin1, mYorigin2, mXorigin1 + mWinXdim1,
                    mYorigin2 + mWinYdim2, x, y)) {
     //imodPrintStderr("found top image: x %d, y %d\n",x, y);
-    *mx = (x - mXwoffset1) * scale;
-    *mz = (int)((y - mYwoffset2) * zscale);
+    mx = (x - mXwoffset1) * scale;
+    mz = (int)((y - mYwoffset2) * zscale);
     //ivwBindMouse(mVi);
     return(Y_SLICE_BOX);
   }
@@ -569,8 +567,8 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   if (mouse_in_box(mXorigin2, mYorigin1, mXorigin2 + mWinXdim2,
                    mYorigin1 + mWinYdim1, x, y)) {
     //imodPrintStderr("found right image: x %d, y %d\n",x, y);
-    *my = (y - mYwoffset1) * scale;
-    *mz = (int)((x - mXwoffset2) * zscale);
+    my = (y - mYwoffset1) * scale;
+    mz = (int)((x - mXwoffset2) * zscale);
     return(X_SLICE_BOX);
   }
 
@@ -579,7 +577,7 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
                    mXorigin2 + mWinXdim2 + 1,
                    mYorigin2 + mWinYdim2 + 1, x, y)) {
     //imodPrintStderr("found z gadget: x %d, y %d\n",x, y);
-    *mz = (int)(0.5 * ((y - mYwoffset2) + (x - mXwoffset2)) * scale);
+    mz = (int)(0.5 * ((y - mYwoffset2) + (x - mXwoffset2)) * scale);
     return(Z_GADGET_BOX);
   }
      
@@ -587,7 +585,7 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   if (mouse_in_box(mXorigin1 - 1, mYorigin1 + mWinYdim1,
                    mXorigin1 + mWinXdim1 + 1, mYorigin2, x, y)) {
     //imodPrintStderr("found top gutter: x %d, y %d\n",x, y);
-    *mx = (x - mXwoffset1) * scale;
+    mx = (x - mXwoffset1) * scale;
     return(X_GADGET_BOX);
   }
      
@@ -595,7 +593,7 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   if (mouse_in_box(mXorigin1 + mWinXdim1, mYorigin1 -1, mXorigin2,
                    mYorigin1 + mWinYdim1 + 1, x, y)) {
     //imodPrintStderr("found right gutter: x %d, y %d\n",x, y);
-    *my = (y - mYwoffset1) * scale;
+    my = (y - mYwoffset1) * scale;
     return(Y_GADGET_BOX);
   }
 
@@ -620,7 +618,8 @@ void XyzWindow::B1Press(int x, int y)
   Iindex index;
   float distance;
   float selsize = IMOD_SELSIZE / mZoom;
-  int box = Getxyz(x, y, &mx, &my, &mz);
+  int box = Getxyz(x, y, mx, my, mz);
+  Imat *mat = NULL;
 
   if (box == NOT_IN_BOX)
     return;
@@ -637,12 +636,19 @@ void XyzWindow::B1Press(int x, int y)
 
   /* DNM 1/23/02: Adopt code from Zap window, get nearest point if in the
      main display panel */
-  if (vi->imod->mousemode == IMOD_MMODEL && box == 3) {
+  if (vi->imod->mousemode == IMOD_MMODEL && box <= Z_SLICE_BOX) {
+    if (box < Z_SLICE_BOX) {
+      mat = imodMatNew(3);
+      if (mat)
+        imodMatRot(mat, 90., box == X_SLICE_BOX ? b3dY : b3dX);
+    }
     pnt.x = mx;
     pnt.y = my;
     pnt.z = mz;
     setLocation(mx, my, mz);
-    distance = imodAllObjNearest(vi, &index , &pnt, selsize);
+    distance = imodAllObjNearest(vi, &index , &pnt, selsize, ivwWindowTime(vi,mTimeLock),
+                                 mat);
+    B3DFREE(mat);
     if (distance >= 0. || !mLock) {
       vi->xmouse = mx;
       vi->ymouse = my;
@@ -669,14 +675,16 @@ void XyzWindow::B2Press(int x, int y)
 {
   float mx, my;
   int mz;
-  int movie;
+  int plane;
   Iobj  *obj;
   Icont *cont;
   Ipoint point;
-  int pt;
+  int pt, newSurf, time, isPlanar;
+  bool timeMismatch, notInPlane;
+  time = ivwWindowTime(mVi, mTimeLock);
 
-  movie = Getxyz(x, y, &mx, &my, &mz);
-  if (movie == NOT_IN_BOX)
+  plane = Getxyz(x, y, mx, my, mz);
+  if (plane == NOT_IN_BOX)
     return;
 
   if (mVi->ax) {
@@ -688,7 +696,7 @@ void XyzWindow::B2Press(int x, int y)
 
   /* DNM 12/18/93: do not start movie in slider areas */
   if (mVi->imod->mousemode == IMOD_MMOVIE) {
-    switch(movie) {
+    switch(plane) {
     case X_SLICE_BOX:
       imodMovieXYZT(mVi, 1, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
@@ -701,12 +709,12 @@ void XyzWindow::B2Press(int x, int y)
     default:
       break;
     }
-    if (movie <= Z_SLICE_BOX)
+    if (plane <= Z_SLICE_BOX)
       imcSetStarterID(mCtrl);
     return;
   }
 
-  if (movie != Z_SLICE_BOX)
+  if (plane > Z_SLICE_BOX)
     return;
 
   obj = imodObjectGet(mVi->imod);
@@ -719,21 +727,40 @@ void XyzWindow::B2Press(int x, int y)
   if (!cont)
     return;
 
+  if (cont->psize > 0) {
+    timeMismatch = ivwTimeMismatch(mVi, mTimeLock, obj, cont);
+    notInPlane = iobjPlanar(obj->flags) && newPointOutOfPlane(cont, plane, mx, my, mz);
+    if (notInPlane || timeMismatch) {
+      newSurf = INCOS_NEW_CONT;
+      if (ImodPrefs->slicerNewSurf())
+        newSurf = imodCheckSurfForNewCont(obj, cont, time, plane);
+      cont = utilAutoNewContour(mVi, cont, notInPlane, timeMismatch, mTimeLock, newSurf,
+                                "planes", "plane");
+      if (!cont)
+        return;
+    }
+  } else if (iobjPlanar(obj->flags) && ImodPrefs->slicerNewSurf()) {
+    
+    // For new or empty contour, see if the current surface works or if a surface change 
+    // is needed.  The current surface is acceptable as is if it does not have nonplanar
+    // contours and is not X or Y plane with surface 0; otherwise do more involved check
+    isPlanar = imodSurfaceIsPlanar(obj, cont->surf, time, plane);
+    if (isPlanar == 0 || (isPlanar < 0 && plane != Z_SLICE_BOX && !cont->surf)) {
+      newSurf = imodCheckSurfForNewCont(obj, cont, time, plane);
+
+      // If this said a new surface is required, get one; in any case assign surf to cont
+      utilAssignSurfToCont(mVi, obj, cont, newSurf);
+    }
+  }
+
   /* Now if times still don't match refuse the point */
-  // TODO: Time match
   if (ivwTimeMismatch(mVi, mTimeLock, obj, cont)) {
     wprint("\aContour time does not match current time.\n"
            "Set contour time to 0 to model across times.\n");
+    mVi->undo->finishUnit();
     return;
   }
 
-  /* DNM: don't make closed contours wild if they're not */
-  if (cont->psize &&  iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD)
-      && (int)floor(cont->pts[0].z + 0.5) != mz) {
-    wprint("\aXYZ will not add a point on a different section to a co-planar"
-           " %s contour.\n", iobjClose(obj->flags) ? "closed" : "");
-    return;
-  }
   point.x = mx;
   point.y = my;
   point.z = mz;
@@ -750,13 +777,13 @@ void XyzWindow::B3Press(int x, int y)
 {
   float mx, my;
   int mz;
-  int movie;
+  int plane;
   Icont *cont;
   Iobj *obj;
   int pt;
 
-  movie = Getxyz(x, y, &mx, &my, &mz);
-  if (movie == NOT_IN_BOX)
+  plane = Getxyz(x, y, mx, my, mz);
+  if (plane == NOT_IN_BOX)
     return;
 
   if (mVi->ax) {
@@ -766,9 +793,8 @@ void XyzWindow::B3Press(int x, int y)
     }
   }
      
-     
   if (mVi->imod->mousemode == IMOD_MMOVIE) {
-    switch(movie) {
+    switch(plane) {
     case X_SLICE_BOX:
       imodMovieXYZT(mVi, -1, MOVIE_DEFAULT, MOVIE_DEFAULT, MOVIE_DEFAULT);
       break;
@@ -781,14 +807,13 @@ void XyzWindow::B3Press(int x, int y)
     default:
       break;
     }
-    if (movie <= Z_SLICE_BOX)
+    if (plane <= Z_SLICE_BOX)
       imcSetStarterID(mCtrl);
     return;
   }
 
-  if (movie != Z_SLICE_BOX)
+  if (plane > Z_SLICE_BOX)
     return;
-
   
   obj = imodObjectGet(mVi->imod);
   cont = imodContourGet(mVi->imod);
@@ -797,7 +822,9 @@ void XyzWindow::B3Press(int x, int y)
     return;
   if (pt < 0)
     return;
-  if (!ivwPointVisible(mVi, &(cont->pts[pt])))
+  if ((plane == Z_SLICE_BOX && !ivwPointVisible(mVi, &(cont->pts[pt]))) ||
+      (plane == X_SLICE_BOX && B3DNINT(mVi->xmouse) != B3DNINT(cont->pts[pt].x)) ||
+      (plane == Y_SLICE_BOX && B3DNINT(mVi->ymouse) != B3DNINT(cont->pts[pt].y)))
     return;
 
   if (ivwTimeMismatch(mVi, mTimeLock, obj, cont))
@@ -806,6 +833,7 @@ void XyzWindow::B3Press(int x, int y)
   mVi->undo->pointShift();
   cont->pts[pt].x = mx;
   cont->pts[pt].y = my;
+  cont->pts[pt].z = mz;
   mVi->undo->finishUnit();
 
   finishNewModelPoint(mx, my, mz);
@@ -959,13 +987,14 @@ void XyzWindow::B2Drag(int x, int y)
   int mz, box;
   Iobj  *obj;
   Icont *cont;
-  Ipoint point;
+  Ipoint point, scale = {1., 1., 1.};
   double dist;
   int pt;
+  scale.z = mApplyZscale ? mVi->imod->zscale : 1.;
 
   if (mVi->ax) {
     if (mVi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      box = Getxyz(x, y, &mx, &my, &mz);
+      box = Getxyz(x, y, mx, my, mz);
       if (box != 3)
         return;
       autox_sethigh(mVi, (int)mx, (int)my);
@@ -976,8 +1005,8 @@ void XyzWindow::B2Drag(int x, int y)
   if (mVi->imod->mousemode != IMOD_MMODEL)
     return;
 
-  box = Getxyz(x, y, &mx, &my, &mz);
-  if (box != 3)
+  box = Getxyz(x, y, mx, my, mz);
+  if (!box || box > Z_SLICE_BOX)
     return;
 
   obj = imodObjectGet(mVi->imod);
@@ -994,8 +1023,7 @@ void XyzWindow::B2Drag(int x, int y)
     return;
 
   /* DNM: don't make closed contours wild if they're not */
-  if (cont->psize &&  iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD)
-      && cont->pts[0].z != mz)
+  if (iobjPlanar(obj->flags) && newPointOutOfPlane(cont, box, mx, my, mz))
     return;
 
   if (obj->extra[IOBJ_EX_PNT_LIMIT] &&
@@ -1008,7 +1036,7 @@ void XyzWindow::B2Drag(int x, int y)
   point.y = my;
   point.z = mz;
 
-  dist = imodel_point_dist(&point, &(cont->pts[pt]));
+  dist = imodPoint3DScaleDistance(&point, &(cont->pts[pt]), &scale);
   if (dist < scaleModelRes(mVi->imod->res, mZoom))
     return;
 
@@ -1016,20 +1044,21 @@ void XyzWindow::B2Drag(int x, int y)
   finishNewModelPoint(mx, my, mz);
 }
 
-// Mouse button 2 drag, continuous modification
+// Mouse button 3 drag, continuous modification
 void XyzWindow::B3Drag(int x, int y)
 {
   float mx, my;
   int mz, box;
   Iobj  *obj;
   Icont *cont;
-  Ipoint point;
+  Ipoint point, scale = {1., 1., 1.};
   double dist;
   int pt;
+  scale.z = mApplyZscale ? mVi->imod->zscale : 1.;
 
   if (mVi->ax) {
     if (mVi->ax->altmouse == AUTOX_ALTMOUSE_PAINT) {
-      box = Getxyz(x, y, &mx, &my, &mz);
+      box = Getxyz(x, y, mx, my, mz);
       if (box != 3)
         return;
       autox_setlow(mVi, (int)mx, (int)my);
@@ -1040,8 +1069,8 @@ void XyzWindow::B3Drag(int x, int y)
   if (mVi->imod->mousemode != IMOD_MMODEL)
     return;
 
-  box = Getxyz(x, y, &mx, &my, &mz);
-  if (box != 3)
+  box = Getxyz(x, y, mx, my, mz);
+  if (!box || box > Z_SLICE_BOX)
     return;
 
   obj = imodObjectGet(mVi->imod);
@@ -1061,7 +1090,7 @@ void XyzWindow::B3Drag(int x, int y)
   point.y = my;
   point.z = mz;
 
-  dist = imodel_point_dist(&point, &(cont->pts[pt]));
+  dist = imodPoint3DScaleDistance(&point, &(cont->pts[pt]), &scale);
   if (dist < scaleModelRes(mVi->imod->res, mZoom))
     return;
 
@@ -1089,6 +1118,43 @@ void XyzWindow::finishNewModelPoint(int mx, int my, int mz)
 
   /* DNM 1/23/02: make it update all windows */
   imodDraw(mVi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
+}
+
+/*
+ * Determine if a new point would render a contour nonplanar
+ */
+bool XyzWindow::newPointOutOfPlane(Icont *cont, int plane, int mx, int my, int mz)
+{
+  int firstX, firstY, pt;
+  bool planarX, planarY, planarZ, onePoint = cont->psize == 1;
+  if (!cont->psize)
+    return false;
+  planarX = planarY = !onePoint;
+  planarZ = !(cont->flags & ICONT_WILD) && !onePoint;
+
+  firstX = B3DNINT(cont->pts[0].x);
+  for (pt = 1; pt < cont->psize; pt++) {
+    if (B3DNINT(cont->pts[pt].x) != firstX) {
+      planarX = false;
+    }
+  }
+  firstY = B3DNINT(cont->pts[0].y);
+  for (pt = 1; pt < cont->psize; pt++) {
+    if (B3DNINT(cont->pts[pt].y) != firstY) {
+      planarY = false;
+    }
+  }
+  // imodPrintStderr("planar X %d Y %d Z %d\n", planarX ?1:0, planarY ?1:0, planarZ ?1:0);
+  if (!(planarX || planarY || planarZ))
+    return false;
+
+  return ((plane == X_SLICE_BOX && (((planarY || planarZ) && !planarX) || 
+                                    ((planarX || onePoint) && firstX != mx))) ||
+          (plane == Y_SLICE_BOX && (((planarX || planarZ) && !planarY) || 
+                                    ((planarY || onePoint) && firstY != my))) ||
+          (plane == Z_SLICE_BOX && (((planarX || planarY) && !planarZ) || 
+                                    ((planarZ || onePoint) &&
+                                     B3DNINT(cont->pts[0].z) != mz))));
 }
 
 /*
@@ -1225,10 +1291,7 @@ void XyzWindow::DrawImage()
   getLocation(cx, cy, cz);
 
   /* Get the time to display, flush images if it doesn't match last drawn */
-  if (mTimeLock)
-    time = mTimeLock;
-  else
-    ivwGetTime(mVi, &time);
+  time = ivwWindowTime(mVi, mTimeLock);
   if (time != mTimeDrawn) {
     b3dFlushImage(mXydata);
     b3dFlushImage(mYzdata);
@@ -2384,12 +2447,16 @@ void XyzWindow::keyRelease(QKeyEvent *event)
 void XyzWindow::keyPressEvent ( QKeyEvent * event )
 {
   Imod *imod = mVi->imod;
-
+  Iobj *obj = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
   int keysym = event->key();
   int shifted = event->modifiers() & Qt::ShiftModifier;
   int ctrl = event->modifiers() & Qt::ControlModifier;
-  
-  int ix, iy, rx;
+  float xMouse, yMouse, dist2d, dx, dy, dz, refx, refy, refz;
+  QString str;
+  Ipoint *curPnt;
+  bool convertKeys = false;
+  int keyuse, ix, iy, zMouse, rx, plane;
   int keypad = event->modifiers() & Qt::KeypadModifier;
 
   if (utilCloseKey(event)) {
@@ -2404,11 +2471,16 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
 
   if (inputTestMetaKey(event))
     return;
-  
+
   // Start with this at 1: set to 0 if NOT handled
   int handled = 1;
 
   ivwControlPriority(mVi, mCtrl);
+
+  // This is needed in 3 places, just do it once
+  ix = (mGLw->mapFromGlobal(QCursor::pos())).x();
+  iy = (mGLw->mapFromGlobal(QCursor::pos())).y();
+  plane = Getxyz(ix, iy, xMouse, yMouse, zMouse);
 
   switch(keysym) {
 
@@ -2467,10 +2539,6 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
       break;
     }
 
-    // It wouldn't work going to a QPoint and accessing it, so do it in shot!
-    ix = (mGLw->mapFromGlobal(QCursor::pos())).x();
-    iy = (mGLw->mapFromGlobal(QCursor::pos())).y();
-
     // Set a flag, set continuous tracking, grab keyboard and mouse
     insertDown = 1;
     mGLw->setMouseTracking(true);
@@ -2496,14 +2564,50 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
   case Qt::Key_Right:
   case Qt::Key_Down:
   case Qt::Key_Up:
-    if (!keypad && mLock) {
-      if (keysym == Qt::Key_PageUp || keysym == Qt::Key_PageDown)
-        setLocation(NOTNEW, NOTNEW, mZlock + (keysym == Qt::Key_PageUp ? 1 : -1));
-      else if (keysym == Qt::Key_Left || keysym == Qt::Key_Right)
-        setLocation(mXlock + (keysym == Qt::Key_Right ? 1 : -1), NOTNEW, NOTNEW);
-      else
-        setLocation(NOTNEW, mYlock + (keysym == Qt::Key_Up ? 1 : -1), NOTNEW);
-      Draw();
+    keyuse = keysym;
+    convertKeys = plane == X_SLICE_BOX || plane == Y_SLICE_BOX;
+    if (convertKeys) {
+      if (keysym == Qt::Key_PageUp)
+        keyuse = plane == X_SLICE_BOX ? Qt::Key_Right : Qt::Key_Up;
+      if (keysym == Qt::Key_PageDown)
+        keyuse = plane == X_SLICE_BOX ? Qt::Key_Left : Qt::Key_Down;
+      if (plane == X_SLICE_BOX && keysym == Qt::Key_Left)
+        keyuse = Qt::Key_PageDown;
+      if (plane == X_SLICE_BOX && keysym == Qt::Key_Right)
+        keyuse = Qt::Key_PageUp;
+      if (plane == Y_SLICE_BOX && keysym == Qt::Key_Down)
+        keyuse = Qt::Key_PageDown;
+      if (plane == Y_SLICE_BOX && keysym == Qt::Key_Up)
+        keyuse = Qt::Key_PageUp;
+    }
+    if (!keypad && (mLock || convertKeys)) {
+      if (mLock) {
+        if (keyuse == Qt::Key_PageUp || keyuse == Qt::Key_PageDown)
+          setLocation(NOTNEW, NOTNEW, mZlock + (keyuse == Qt::Key_PageUp ? 1 : -1));
+        else if (keyuse == Qt::Key_Left || keyuse == Qt::Key_Right)
+          setLocation(mXlock + (keyuse == Qt::Key_Right ? 1 : -1), NOTNEW, NOTNEW);
+        else
+          setLocation(NOTNEW, mYlock + (keyuse == Qt::Key_Up ? 1 : -1), NOTNEW);
+        Draw();
+      } else {
+        if (keyuse == Qt::Key_Up)
+          inputNexty(mVi);
+        else if (keyuse == Qt::Key_Down)
+          inputPrevy(mVi);
+        else if (keyuse == Qt::Key_Right)
+          inputNextx(mVi);
+        else if (keyuse == Qt::Key_Left)
+          inputPrevx(mVi);
+        else
+          inputPageUpOrDown(mVi, 0, keyuse == Qt::Key_PageUp ? 1 : -1);
+      }
+    } else if (keypad && imod->mousemode == IMOD_MMODEL) {
+      if (convertKeys && (keysym == Qt::Key_PageUp || keysym == Qt::Key_PageDown) &&
+          iobjPlanar(obj->flags) && imodContourIsPlanar(cont, plane))
+        wprint("\aContour is no longer in one %s plane. With this contour, you will not"
+               " get a new contour automatically when you change %s slice.\n", 
+               plane == X_SLICE_BOX ? "YZ" : "XZ", plane == X_SLICE_BOX ? "YZ" : "XZ");
+      inputKeyPointMove(mVi, keyuse);
     } else
       handled = 0;
     break;
@@ -2516,6 +2620,32 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
       Draw();
     } else 
       handled = 0;
+    break;
+
+  case Qt::Key_Q:
+    if (plane == NOT_IN_BOX || plane > Z_SLICE_BOX)
+      break;
+
+    // Use the lock position or the xyzmouse; or substitute the current point
+    refx = mLock ? mXlock : mVi->xmouse;
+    refy = mLock ? mYlock : mVi->ymouse;
+    refz = mLock ? mZlock : mVi->zmouse;
+    curPnt = imodPointGet(imod);
+    if (curPnt && imod->mousemode == IMOD_MMODEL) {
+      refx = curPnt->x;
+      refy = curPnt->y;
+      refz = curPnt->z;
+    }
+    dx = mVi->xybin * (xMouse - refx);
+    dy = mVi->xybin * (yMouse - refy);
+    dz = mVi->zbin * (zMouse - refz) * imod->zscale;
+
+    // One of these coordinates should match so just get a 3D distance
+    dist2d  = (float)sqrt((double)dx * dx + dy * dy + dz * dz);
+    wprint("From (%.1f, %.1f, %.1f) to (%.1f, %.1f, %.1f) =\n", refx + 1,
+           refy + 1., refz + 1., xMouse + 1., yMouse + 1., zMouse + 1.);
+    str.sprintf("  %.1f %spixels", dist2d, mVi->xybin * mVi->zbin > 1 ? "unbinned " : "");
+    utilWprintMeasure(str, imod, dist2d);
     break;
 
   default:
@@ -2671,7 +2801,7 @@ void XyzGL::mousePressEvent(QMouseEvent * event )
 
   if (event->button() == ImodPrefs->actualButton(1) && !button2 && !button3) {
     but1downt.start();
-    mWin->mWhichbox = mWin->Getxyz(event->x(), event->y(), &mx, &my, &mz);
+    mWin->mWhichbox = mWin->Getxyz(event->x(), event->y(), mx, my, mz);
 
   } else if (event->button() == ImodPrefs->actualButton(2) &&
              !button1 && !button3) {
@@ -2723,7 +2853,7 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   }
 
   if (pixelViewOpen) {
-    whichbox = mWin->Getxyz(ex, ey, &mx, &my, &mz);
+    whichbox = mWin->Getxyz(ex, ey, mx, my, mz);
     if (whichbox != NOT_IN_BOX && whichbox <= Z_SLICE_BOX)
       pvNewMousePosition(mWin->mVi, mx, my, mz);
   }
@@ -2756,4 +2886,10 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   
   mWin->mLmx = ex;
   mWin->mLmy = ey;
+}
+
+void XyzGL::wheelEvent (QWheelEvent *e)
+{
+  if (iceGetWheelForSize())
+    utilWheelChangePointSize(mWin->mVi, mWin->mZoom, e->delta());
 }
