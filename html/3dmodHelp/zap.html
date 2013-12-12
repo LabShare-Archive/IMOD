@@ -123,10 +123,12 @@ command used by the Extract File entry in the File menu.
 This key also brings the Information 
 Window to the front of the display.
 <LI><B>q</B> reports the distance between the current image or model point and
-the position of the mouse.  The two positions and 2D distance between them (in
-the plane of the image) are printed in the Information window. 
-Thus, to measure a distance between two points, click at the first point with
-the left mouse button, move the cursor to the second position, and press Q.
+the position of the mouse.  The current image point is used in Movie Mode or
+if there is no current model point.  The two positions and 2D distance
+between them (in the plane of the image) are printed in the Information
+window.  Thus, to measure a distance between two points, click at the first
+point with the left mouse button, move the cursor to the second position,
+and press Q.
 <LI><B>R</B> resizes the window.  With the rubber band off, the window 
 changes, 
 if possible, to match the size of the entire image at the 
@@ -235,7 +237,11 @@ than one object can be selected with this button.
 to the list of selected contours.  Contours from more
 than one object can be selected this way.
 
-<LI><B>Second Button Click</B>: Add one point to the current contour.
+<LI><B>Second Button Click</B>: Add one point to the current contour, or to
+  a new contour if modeling planar contours and the point is on a different
+  plane from the current contour.  The latter occurs when modeling a closed
+  contour object or an open contour object with <B>Start new contour at new
+  Z</B> selected in the Edit-Object-Type dialog.
 <LI><B>Second Button Drag</B>: Continually add points to the current 
 contour as the mouse is moved, or move the rubber band.
 <LI><B>Third Button Click</B>: Modify the current model point to be at the 
