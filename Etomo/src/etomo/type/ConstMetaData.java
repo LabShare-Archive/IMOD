@@ -560,4 +560,6 @@ public interface ConstMetaData {
   public boolean isTrackElongatedPointsAllowedNull(AxisID axisID);
 
   public ConstEtomoNumber getTrackElongatedPointsAllowed(AxisID axisID);
+
+  public boolean getWeightWholeTracks(AxisID axisID);
 }
