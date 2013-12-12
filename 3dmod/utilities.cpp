@@ -28,10 +28,12 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include "imod.h"
+#include "display.h"
 #include "imodv.h"
 #include "imodplug.h"
 #include "utilities.h"
 #include "b3dgfx.h"
+#include "undoredo.h"
 #include "preferences.h"
 #include "imod_input.h"
 #include "client_message.h"
@@ -532,6 +534,29 @@ float utilWheelToPointSizeScaling(float zoom)
   return wheelScale;
 }
 
+// Changes the size of the current point given the zoom and scroll wheel delta value
+void utilWheelChangePointSize(ImodView *vi, float zoom, int delta)
+{
+  int ix, iy, pt;
+  Iobj *obj;
+  Icont *cont;
+  float size;
+  imodGetIndex(vi->imod, &ix, &iy, &pt);
+  obj = imodObjectGet(vi->imod);
+  cont = imodContourGet(vi->imod);
+  if (!cont || pt < 0)
+    return;
+  size = imodPointGetSize(obj, cont, pt);
+  if (!size && (!cont->sizes || (cont->sizes && cont->sizes[pt] < 0)))
+    return;
+  size += delta * utilWheelToPointSizeScaling(zoom);
+  size = B3DMAX(0., size);
+  vi->undo->contourDataChg();
+  imodPointSetSize(cont, pt, size);
+  vi->undo->finishUnit();
+  imodDraw(vi, IMOD_DRAW_MOD);
+}
+
 /* Converts a flipped model to a rotated one if direction is FLIP_TO_ROTATION, or
  * a rotated model to a flipped one if direction is ROTATION_TO_FLIP, otherwise
  * does nothing */
@@ -543,6 +568,47 @@ void utilExchangeFlipRotation(Imod *imod, int direction)
   imodInvertZ(imod);
   setOrClearFlags(&imod->flags, IMODF_ROT90X, direction == FLIP_TO_ROTATION ? 1 : 0);
   setOrClearFlags(&imod->flags, IMODF_FLIPYZ, direction == ROTATION_TO_FLIP ? 1 : 0);
+}
+
+
+Icont *utilAutoNewContour(ImodView *vi, Icont *cont, bool notInPlane, bool timeMismatch,
+                          int timeLock, int setSurface, const char *planeText,
+                          const char *surfText)
+{
+  Iobj *obj = imodObjectGet(vi->imod);
+  const char *baseMess = "Started a new contour even though last contour had only 1 pt. ";
+  if (cont->psize == 1) {
+    if (notInPlane && iobjClose(obj->flags))
+      wprint("\a%s Use open contours to model across %s.\n", baseMess, planeText);
+    else if (notInPlane)
+      wprint("\a%s Turn off \"Start new contour at new Z\" to model "
+             "across %s.\n", baseMess, planeText);
+    else
+      wprint("\a%s Set contour time to 0 to model across times.\n", baseMess);
+  }
+  inputNewContourOrSurface(vi, setSurface, timeLock);
+  cont = imodContourGet(vi->imod);
+  if (!cont)
+    return NULL;
+  if (setSurface == INCOS_NEW_SURF)
+    wprint("Started new surface # %d due to change in %s\n", cont->surf, surfText);
+  return cont;
+}
+
+// If a new surface is required, get one; in any case assign newSurf to cont
+void utilAssignSurfToCont(ImodView *vi, Iobj *obj, Icont *cont, int newSurf)
+{
+  if (newSurf != cont->surf) {
+    if (newSurf < 0) {
+      vi->undo->objectPropChg();
+      newSurf = imodel_unused_surface(obj);
+      obj->surfsize = B3DMAX(newSurf, obj->surfsize);
+      if (newSurf)
+        wprint("Started new surface # %d for modeling in this plane\n", newSurf);
+    }
+    vi->undo->contourPropChg();
+    cont->surf = newSurf;
+  }
 }
 
 static GLUtesselator *sTessel = NULL;
