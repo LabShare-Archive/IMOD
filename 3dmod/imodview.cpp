@@ -3574,6 +3574,11 @@ bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont)
           (time != cont->time));
 }
 
+int ivwWindowTime(ImodView *vi, int timelock)
+{
+  return timelock ? timelock : vi->curTime;
+}
+
 /* Inserts a point in the current contour after checking whether it makes it
    wild, registers contour change if needed and point addition, then closes
    the open unit */

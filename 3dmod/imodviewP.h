@@ -71,6 +71,7 @@ void memLineCpy
  int fxsize, int fox, int foy);  /* from buffer X size and offsets */
 
 bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
+int ivwWindowTime(ImodView *vi, int timelock);
 int ivwRegisterInsertPoint(ImodView *vi, Icont *cont, Ipoint *pt, int index);
 void startExtraObjectIfNone(ImodView *vi);
 void ivwSetBlackWhiteFromModel(ImodView *vi);
