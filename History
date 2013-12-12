@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/13: Enabled modeling in XZ and YZ planes of XYZ window.  New
+closed/planar contours are started automatically on a new slice in all three
+planes.  Surface numbers are assigned automatically so that such contours
+drawn in XZ or YZ planes can be meshed.  Made arrows and PageUp/PageDown work
+relative the plane where the mouse is located and added keypad keys to
+move the current model point.
+
+12/12/13: Made scroll wheel change point size in XYZ and Slicer windows.
+
+12/12/13: Made XYZ window report distance from current point to mouse with q
+hot key, fixed use of current model point for q report from Zap window.
+
+12/12/13: Fixed position tracking in pixel view window from XYZ window.
+
 12/12/13: Updated the eTomo manpage.  Improved the eTomo help statement.
 (Bug# 1764)
 
