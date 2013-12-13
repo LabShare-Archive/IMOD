@@ -385,7 +385,7 @@ set sourcedoc_exe = `echo $send_target | sed '/imod/s/imodsendevent/sourcedoc/g'
 
 set dyldLibrary = 'export DYLD_LIBRARY_PATH="${IMOD_QTLIBDIR}:${IMOD_DIR}/lib:$DYLD_LIBRARY_PATH"'
 set dyldFrame = 'export DYLD_FRAMEWORK_PATH="${IMOD_QTLIBDIR}:$DYLD_FRAMEWORK_PATH"'
-set errFilter = '2>&1 1>&3 | grep -v "CoreText performance\|modalSession has been exited" 1>&2; } 3>&1'
+set errFilter = '2>&1 1>&3 | grep --line-buffered -v "CoreText performance\|modalSession has been exited" 1>&2; } 3>&1'
 
 # Make some more lists for looping
 #
