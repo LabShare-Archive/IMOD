@@ -5,7 +5,6 @@
  *   Colorado.  See implementation file for full copyright notice.
  *
  *  $Id$
- *  Log at end of file
  */                                                                           
 
 #ifndef DIALOG_FRAME_H
@@ -31,7 +30,6 @@ class DLL_IM_EX DialogFrame : public QWidget
               const char *fallback, const char *name = 0,
               Qt::WFlags fl = Qt::Window);
   ~DialogFrame() {};
-  void setFontDependentWidths();
 
  signals:
   void actionPressed(int which);
@@ -42,13 +40,14 @@ class DLL_IM_EX DialogFrame : public QWidget
     void actionButtonClicked(int which);
 
  protected:
-  virtual void fontChange(const QFont &oldFont);
+  virtual void changeEvent(QEvent *e);
   QVBoxLayout *mLayout;
   QPushButton *mButtons[BUTTON_ARRAY_MAX];
   int mNumButtons;
   bool mRoundedStyle;
 
  private:
+  void dfSetFontDependentWidths();
   void makeDialogFrame(QWidget *parent, int numButtons, int numRows,
                        const char *labels[], const char *tips[], bool equalSized,
                        bool rounded, const char *caption, const char *fallback,
@@ -57,43 +56,3 @@ class DLL_IM_EX DialogFrame : public QWidget
 };
 #endif
 
-/*
-
-$Log$
-Revision 3.7  2004/11/04 23:31:07  mast
-Changes for rounded button style
-
-Revision 3.6  2004/06/23 03:35:15  mast
-Changed to allow multiple rows of buttons
-
-Revision 3.5  2004/06/04 02:57:28  mast
-Implement export/import macro for making libdiaqt be a DLL
-
-Revision 3.4  2004/01/22 19:06:35  mast
-Added actionClicked signal
-
-Revision 3.3  2003/03/26 06:23:15  mast
-Make fontChange virtual
-
-Revision 3.2  2003/03/24 17:43:48  mast
-Accommodate font changes
-
-Revision 3.1  2003/02/10 20:57:02  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:36:52  mast
-includes for library
-
-Revision 1.1.2.4  2003/01/23 19:55:42  mast
-switch from button pressed to clicked
-
-Revision 1.1.2.3  2003/01/18 01:08:10  mast
-add tooltips
-
-Revision 1.1.2.2  2003/01/01 05:45:15  mast
-rationalizing toplevel versus dialog style
-
-Revision 1.1.2.1  2002/12/29 04:15:04  mast
-Initial creation
-
-*/

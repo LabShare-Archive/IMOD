@@ -202,11 +202,13 @@ void ContourBreak::setFontDependentWidths()
   diaSetButtonWidth(mUnsetBut, mRoundedStyle, 1.2, "Unset");
 }
 
-void ContourBreak::fontChange( const QFont & oldFont )
+void ContourBreak::changeEvent(QEvent *e)
 {
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
   mRoundedStyle = ImodPrefs->getRoundedStyle();
   setFontDependentWidths();
-  DialogFrame::fontChange(oldFont);
 }
 
 // Set the labels based on current indexes

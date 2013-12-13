@@ -128,7 +128,7 @@ class ContourBreak : public ContourFrame
 
  protected:
   void closeEvent ( QCloseEvent * e );
-  void fontChange( const QFont & oldFont );
+  void changeEvent(QEvent *e);
 
  private:
   QLabel *mObjContLabel;
