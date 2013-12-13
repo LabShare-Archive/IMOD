@@ -43,17 +43,17 @@ usage=Do automation based on the directive_file.adoc.
 manpage=Causes automation to be performed based on a file called
 \fIdirective_file\fB.adoc\fR.  No interface will come up and most
 command-line automation options will have no effect.
-^   Command-line automation options\fR that can be used with these
+^Command-line automation options\fR that can be used with these
 options:
-^      \fB--cpus\fR
-^      \fB--gpus\fR
-^   These options are automatically set to true when \fB--directive\fR is
+^   \fB--cpus\fR
+^   \fB--gpus\fR
+^These options are automatically set to true when \fB--directive\fR is
 used:
-^      \fB--fg\fR
-^      \fB--headless\fR
-^      \fB--create\fR
-^      \fB--exit\fR
-^   The directive file must end in ".adoc" and conform to autodoc syntax.
+^   \fB--fg\fR
+^   \fB--headless\fR
+^   \fB--create\fR
+^   \fB--exit\fR
+^The directive file must end in ".adoc" and conform to autodoc syntax.
 
 
 [SectionHeader = CommandAutomationOptions]
@@ -139,7 +139,7 @@ format=\fR[\fB-1\fR|\fB0\fR|\fB1\fR|\fB2\fR|\fB3\fR|\fB4\fR]
 usage=Send extra information to eTomo's _err.log.
 manpage=Send extra information to eTomo's \fB_err.log\fR.
 ^The optional parameter has the following meaning:
-^   \fB-1\fR - limited output
+^  \fB-1\fR - limited output
 ^   \fB0\fR - no debug output
 ^   \fB1\fR - default debug output
 ^   \fB2\fR - more information
