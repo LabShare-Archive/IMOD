@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/13/13: Fixed 3dmod button resizing in Windows when change font size.
+
 12/13/13: In eTomo - Fine Alignment, exposed tiltalign - weightWholeTracks.
 (Bug# 1766)
 
