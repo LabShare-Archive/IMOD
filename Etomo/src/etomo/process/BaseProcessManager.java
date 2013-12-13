@@ -1266,6 +1266,9 @@ public abstract class BaseProcessManager {
   }
 
   private void kill(final String processID, final AxisID axisID) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println("killing " + processID);
+    }
     boolean windows = Utilities.isWindowsOS();
     String[] command;
     if (!windows) {
