@@ -148,6 +148,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
       beamTiltOption.parse(scriptCommand);
       fixedOrInitialBeamTilt.parse(scriptCommand);
       robustFitting.parse(scriptCommand);
+      weightWholeTracks.parse(scriptCommand);
       kFactorScaling.parse(scriptCommand);
       String param = scriptCommand.getValue(OUTPUT_X_AXIS_TILT_FILE_KEY);
       if (param == null || param.matches("\\s*")) {
@@ -437,6 +438,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
         localSkewNondefaultGroup);
     beamTiltOption.updateComScript(scriptCommand, true);
     robustFitting.updateComScript(scriptCommand);
+    weightWholeTracks.updateComScript(scriptCommand);
     kFactorScaling.updateComScript(scriptCommand);
     //Only using FixedOrInitialBeamTilt for fixed beam tilt
     if (beamTiltOption.equals(FIXED_OPTION) && !fixedOrInitialBeamTilt.isDefault()) {
@@ -492,6 +494,10 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
 
   public void resetFixedOrInitialBeamTilt() {
     fixedOrInitialBeamTilt.reset();
+  }
+  
+  public void resetWeightWholeTracks() {
+    weightWholeTracks.reset();
   }
 
   /**
@@ -860,6 +866,10 @@ public final class TiltalignParam extends ConstTiltalignParam implements Command
   
   public void setRobustFitting(boolean input) {
     robustFitting.set(input);
+  }
+  
+  public void setWeightWholeTracks(boolean input) {
+    weightWholeTracks.set(input);
   }
   
   public void setKFactorScaling(String input) {
