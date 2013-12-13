@@ -385,13 +385,13 @@ set sourcedoc_exe = `echo $send_target | sed '/imod/s/imodsendevent/sourcedoc/g'
 
 set dyldLibrary = 'export DYLD_LIBRARY_PATH="${IMOD_QTLIBDIR}:${IMOD_DIR}/lib:$DYLD_LIBRARY_PATH"'
 set dyldFrame = 'export DYLD_FRAMEWORK_PATH="${IMOD_QTLIBDIR}:$DYLD_FRAMEWORK_PATH"'
-set errFilter = '2>&1 | grep -v "CoreText performance\|modalSession has been exited"'
+set errFilter = '2>&1 1>&3 | grep -v "CoreText performance\|modalSession has been exited" 1>&2; } 3>&1'
 
 # Make some more lists for looping
 #
 set qrun = (runsendevent runqtassist runctfplotter runprocesschunks runmrc2tif runmidas)
 set qtarget = ($send_target $assist_target $ctf_target $prochunk_target $mrc2tif_target)
-set qfilter = (' ' ' ' "$errFilter" ' ' ' ')
+set qfilter = ('; }' '; }' "$errFilter" '; }' '; }')
 
 # make script files to run programs
 # Set DYLD_LIBRARY_PATH with qtlib before running program
@@ -400,10 +400,10 @@ set qfilter = (' ' ' ' "$errFilter" ' ' ' ')
 while ($i < 5)
     @ i++
 cat <<EOF >! $qdir[$i]/$qrun[$i]
-#!/bin/sh
+#!/bin/bash
 $dyldLibrary
 $dyldFrame
-\$IMOD_DIR/bin/${qtarget[$i]} "\$@" $qfilter
+{ \$IMOD_DIR/bin/${qtarget[$i]} "\$@" ${qfilter[$i]}
 EOF
 chmod a+x $qdir[$i]/$qrun[$i]
 end
@@ -419,7 +419,7 @@ set bkgTest = ("$bkg3dmod" "$bkg3dmod" '"$i" == "-D"')
 while ($i < 3)
     @ i++
 cat <<EOF >! $qbdir[$i]/$qbrun[$i]
-#!/bin/sh
+#!/bin/bash
 $dyldLibrary
 $dyldFrame
 background=1
@@ -430,9 +430,9 @@ do
     fi
 done
 if [[ \$background == "0" ]] ; then
-    \$IMOD_DIR/bin/${qtarget[$i]} "\$@" $errFilter
+    { \$IMOD_DIR/bin/${qtarget[$i]} "\$@" $errFilter
 else
-    \$IMOD_DIR/bin/${qtarget[$i]} "\$@" $errFilter &
+    { \$IMOD_DIR/bin/${qtarget[$i]} "\$@" $errFilter &
 fi
 EOF
 chmod a+x $qbdir[$i]/$qbrun[$i]
