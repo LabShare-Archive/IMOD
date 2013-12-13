@@ -95,6 +95,7 @@ public class ConstTiltalignParam implements CommandDetails {
   public static final String FIXED_OR_INITIAL_BEAM_TILT = "FixedOrInitialBeamTilt";
   public static final String ROBUST_FITTING_KEY = "RobustFitting";
   public static final String K_FACTOR_SCALING_KEY = "KFactorScaling";
+  public static final String WEIGHT_WHOLE_TRACKS_KEY = "WeightWholeTracks";
 
   static final String modelFileString = "ModelFile";
   static final String imageFileString = "ImageFile";
@@ -203,6 +204,7 @@ public class ConstTiltalignParam implements CommandDetails {
       EtomoNumber.Type.DOUBLE, "FixedOrInitialBeamTilt");
   String outputXAxisTiltFile = "";
   final EtomoBoolean2 robustFitting = new EtomoBoolean2(ROBUST_FITTING_KEY);
+  final EtomoBoolean2 weightWholeTracks= new EtomoBoolean2(WEIGHT_WHOLE_TRACKS_KEY);
   ScriptParameter kFactorScaling = new ScriptParameter(EtomoNumber.Type.DOUBLE,
       K_FACTOR_SCALING_KEY);
 
@@ -297,7 +299,7 @@ public class ConstTiltalignParam implements CommandDetails {
     fixXYZCoordinates = new EtomoBoolean2(FIX_XYZ_COORDINATES_KEY);
     fixXYZCoordinates.setDisplayAsInteger(true);
     // do not default imagesAreBinnned
-    imagesAreBinned = new ScriptParameter( "ImagesAreBinned");
+    imagesAreBinned = new ScriptParameter("ImagesAreBinned");
     imagesAreBinned.setFloor(1);
     beamTiltOption = new ScriptParameter(BEAM_TILT_OPTION_KEY);
     beamTiltOption.setDefault(FIXED_OPTION);
@@ -383,6 +385,7 @@ public class ConstTiltalignParam implements CommandDetails {
     fixedOrInitialBeamTilt.reset();
     outputXAxisTiltFile = "";
     robustFitting.reset();
+    weightWholeTracks.reset();
     kFactorScaling.reset();
   }
 
@@ -902,6 +905,10 @@ public class ConstTiltalignParam implements CommandDetails {
 
   public boolean isRobustFitting() {
     return robustFitting.is();
+  }
+
+  public boolean isWeightWholeTracks() {
+    return weightWholeTracks.is();
   }
 
   public String getKFactorScaling() {

@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/13: In eTomo - Fine Alignment, exposed tiltalign - weightWholeTracks.
+(Bug# 1766)
+
 12/12/13: Enabled modeling in XZ and YZ planes of XYZ window.  New
 closed/planar contours are started automatically on a new slice in all three
 planes.  Surface numbers are assigned automatically so that such contours
