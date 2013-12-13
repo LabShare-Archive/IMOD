@@ -657,10 +657,12 @@ void ImodCacheFill::autoToggled(bool state)
   //mOverlapRadio[i]->setEnabled(state);
 }
 
-void ImodCacheFill::fontChange( const QFont & oldFont )
+void ImodCacheFill::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // The dialog is closing: remove from manager

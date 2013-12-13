@@ -71,7 +71,7 @@ class imodvControlForm : public QWidget, public Ui::imodvControlForm
   virtual void rateReleased();
   virtual void keyPressEvent( QKeyEvent * e );
   virtual void keyReleaseEvent( QKeyEvent * e );
-  virtual void fontChange( const QFont & oldFont );
+  virtual void changeEvent(QEvent *e);
 
  protected:
   int mRateDisplayed;

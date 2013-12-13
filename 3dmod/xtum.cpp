@@ -289,6 +289,13 @@ void TumblerWindow::setFontDependentWidths()
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
+void TumblerWindow::changeEvent(QEvent *e)
+{
+  QMainWindow::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
+}
+
 // Respond to change in zoom spin box
 void TumblerWindow::zoomChanged(int value)
 {

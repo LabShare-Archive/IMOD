@@ -66,7 +66,7 @@ class FineGrainForm : public QWidget, public Ui::FineGrainForm
   virtual void closeEvent( QCloseEvent * e );
   virtual void keyPressEvent( QKeyEvent * e );
   virtual void keyReleaseEvent( QKeyEvent * e );
-  virtual void fontChange( const QFont & oldFont );
+  virtual void changeEvent(QEvent *e);
 
  protected:
   int mCurFillBlue;

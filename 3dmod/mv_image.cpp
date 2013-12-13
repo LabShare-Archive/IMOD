@@ -1249,10 +1249,12 @@ void ImodvImage::buttonPressed(int which)
     close();
 }
   
-void ImodvImage::fontChange( const QFont & oldFont )
+void ImodvImage::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // Accept a close event and set dia to null

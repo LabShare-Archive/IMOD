@@ -484,10 +484,12 @@ void ImodvStereo::update()
   }
 }
 
-void ImodvStereo::fontChange( const QFont & oldFont )
+void ImodvStereo::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
   
 // Accept a close event and set dia to null

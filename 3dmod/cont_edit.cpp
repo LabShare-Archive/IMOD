@@ -204,11 +204,10 @@ void ContourBreak::setFontDependentWidths()
 
 void ContourBreak::changeEvent(QEvent *e)
 {
-  DialogFrame::changeEvent(e);
-  if (e->type() != QEvent::FontChange)
-    return;
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  setFontDependentWidths();
+  DialogFrame::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 
 // Set the labels based on current indexes
@@ -554,11 +553,12 @@ void ContourJoin::setFontDependentWidths()
   mButton2->setFixedWidth(width);
 }
 
-void ContourJoin::fontChange( const QFont & oldFont )
+void ContourJoin::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  setFontDependentWidths();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 
 // Set the current index for either set, but if the objects don't
@@ -1620,10 +1620,12 @@ void ContourMove::buttonPressed(int which)
   }
 }
 
-void ContourMove::fontChange( const QFont & oldFont )
+void ContourMove::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // The window is closing, clean up and remove from manager

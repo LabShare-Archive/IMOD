@@ -63,7 +63,7 @@ class ContourMove : public ContourFrame
 
  protected:
   void closeEvent ( QCloseEvent * e );
-  void fontChange( const QFont & oldFont );
+  void changeEvent(QEvent *e);
 
  private:
   QLabel *mObjSurfLabel;
@@ -100,7 +100,7 @@ class ContourJoin : public ContourFrame
 
  protected:
   void closeEvent ( QCloseEvent * e );
-  void fontChange( const QFont & oldFont );
+  void changeEvent(QEvent *e);
 
  private:
   void setFontDependentWidths();

@@ -276,10 +276,12 @@ void ModelHeaderWindow::update()
   mEditBox[3]->setText(str);
 }
 
-void ModelHeaderWindow::fontChange( const QFont & oldFont )
+void ModelHeaderWindow::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // Window is closing - unload values and remove dialog
@@ -492,10 +494,12 @@ void ModelOffsetWindow::updateLabels()
   mAppliedLabel->setText(str);
 }
 
-void ModelOffsetWindow::fontChange( const QFont & oldFont )
+void ModelOffsetWindow::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // The window is closing, remove from manager

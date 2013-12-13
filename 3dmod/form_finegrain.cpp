@@ -506,27 +506,9 @@ void FineGrainForm::keyReleaseEvent( QKeyEvent *e )
   ivwControlKey(1, e);
 }
 
-void FineGrainForm::fontChange( const QFont & oldFont )
+void FineGrainForm::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
-  QWidget::fontChange(oldFont);
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
-
-/*
-
-$Log$
-Revision 4.4  2010/04/01 02:41:48  mast
-Called function to test for closing keys, or warning cleanup
-
-Revision 4.3  2009/03/22 19:54:25  mast
-Show with new geometry adjust routine for Mac OS X 10.5/cocoa
-
-Revision 4.2  2009/03/10 04:37:19  mast
-Added options to change all contours, draw symbols at connections, and
-output for general values
-
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

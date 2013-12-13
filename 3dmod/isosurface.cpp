@@ -2665,10 +2665,12 @@ void ImodvIsosurface::setFontDependentWidths()
   diaSetButtonWidth(mSizeContours, ImodPrefs->getRoundedStyle(), 1.2, "Contour");
 }
 
-void ImodvIsosurface::fontChange( const QFont & oldFont )
+void ImodvIsosurface::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
-  DialogFrame::fontChange(oldFont);
+  mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 
 // Accept a close event and set dia to null

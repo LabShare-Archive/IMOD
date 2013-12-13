@@ -25,7 +25,7 @@ class MovieSequenceForm : public QWidget, public Ui::MovieSequenceForm
 
   public slots:
   virtual void init();
-  virtual void fontChange( const QFont & oldFont );
+  virtual void changeEvent(QEvent *e);
   virtual void addAfterClicked();
   virtual void addBeforeClicked();
   virtual void replaceClicked();

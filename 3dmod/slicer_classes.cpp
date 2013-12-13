@@ -357,6 +357,13 @@ void SlicerWindow::setFontDependentWidths()
   diaSetButtonWidth(mSetAngBut, ImodPrefs->getRoundedStyle(), 1.35, "Set");
 }
 
+void SlicerWindow::changeEvent(QEvent *e)
+{
+  QMainWindow::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
+}
+
 // Show the save angle toolbar after deciding whether a break is needed
 // from the toolbar before it by comparing sum of their lengths with window
 // width.  But have to use hints - the actual size can be stretched

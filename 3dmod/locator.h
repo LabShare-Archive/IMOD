@@ -44,7 +44,7 @@ class LocatorWindow : public QMainWindow
  protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
-  void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
+  void changeEvent(QEvent *e);
 
  private:
   void setFontDependentWidths();

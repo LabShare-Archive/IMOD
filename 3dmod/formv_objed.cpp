@@ -136,11 +136,14 @@ void imodvObjedForm::setFontDependentSizes(int width, int height)
 }
 
 // Need to adjust and measure sizes of widgets on font change
-void imodvObjedForm::fontChange( const QFont & oldFont )
+void imodvObjedForm::changeEvent(QEvent *e)
 {
   int i;
   int width = 0, height = 0;
   ObjectEditField *oef;
+  QWidget::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
   for  (i = 0; (objectEditFieldData[i].label); i++) {
     oef = &objectEditFieldData[i];
     if (oef->fixwidget)

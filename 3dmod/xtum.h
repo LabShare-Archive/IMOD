@@ -104,7 +104,7 @@ class TumblerWindow : public QMainWindow
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
-  void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
+  void changeEvent(QEvent *e);
   
  private:
   void fillSlice(TumblerStruct *xtum);

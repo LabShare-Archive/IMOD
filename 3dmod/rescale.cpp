@@ -304,10 +304,12 @@ void ImageScaleWindow::applyLimits()
   imodDraw(vi, IMOD_DRAW_IMAGE);
 }
 
-void ImageScaleWindow::fontChange( const QFont & oldFont )
+void ImageScaleWindow::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // The window is closing, remove from manager

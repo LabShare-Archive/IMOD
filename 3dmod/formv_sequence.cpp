@@ -74,10 +74,11 @@ void MovieSequenceForm::languageChange()
 }
 
 // Slot called when font changes
-void MovieSequenceForm::fontChange( const QFont &oldFont )
+void MovieSequenceForm::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
-  QWidget::fontChange(oldFont);
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 
 /*

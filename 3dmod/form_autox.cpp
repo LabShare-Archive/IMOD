@@ -8,7 +8,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  * $Id$
- * Log at end
  */
 
 #include "form_autox.h"
@@ -209,17 +208,9 @@ void AutoxWindow::keyReleaseEvent( QKeyEvent * e )
 }
 
 
-void AutoxWindow::fontChange( const QFont & oldFont )
+void AutoxWindow::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
-  QWidget::fontChange(oldFont);
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
-
-/*
-
-$Log$
-Revision 4.1  2009/01/15 16:33:17  mast
-Qt 4 port
-
-
-*/

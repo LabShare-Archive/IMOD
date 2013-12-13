@@ -326,8 +326,11 @@ void InfoWindow::setFontDependentWidths()
 {
 }
 
-void InfoWindow::fontChange( const QFont & oldFont )
+void InfoWindow::changeEvent(QEvent *e)
 {
+  QMainWindow::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
   ImodInfoWidget->setFontDependentWidths();
   setFontDependentWidths();
   imod_info_input();

@@ -144,8 +144,7 @@ void DialogFrame::dfSetFontDependentWidths()
     ? mNumButtons : BUTTON_ARRAY_MAX;
   int width = 0;
   int twidth, i;
-  printf("In  DialogFrame::setFontDependentWidths\n");
-  fflush(stdout);
+
   // If equalsized buttons, find maximum width
   if (mEqualSized) {
     for (i = 0; i < numButtons; i++) {
@@ -167,8 +166,9 @@ void DialogFrame::dfSetFontDependentWidths()
 
 /*!
  * A virtual protected function that maintains the size of the buttons upon
- * font change.  If the inheriting class reimplements this, it should first call 
- * DialogFrame::changeEvent(e) then set its font-dependent sizes.
+ * font change.  If the inheriting class reimplements this, it should first update
+ * the mRoundedStyle variable, then call DialogFrame::changeEvent(e), then set its 
+ * font-dependent sizes
  */
 void DialogFrame::changeEvent(QEvent *e)
 {

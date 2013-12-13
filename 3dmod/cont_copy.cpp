@@ -561,10 +561,12 @@ void ContourCopy::buttonPressed(int which)
   }
 }
 
-void ContourCopy::fontChange( const QFont & oldFont )
+void ContourCopy::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // The window is closing, remove from manager

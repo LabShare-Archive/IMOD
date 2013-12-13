@@ -1227,11 +1227,12 @@ void IProcWindow::manageListSize()
   mListBox->setFixedHeight(height);
 }
 
-void IProcWindow::fontChange( const QFont & oldFont )
+void IProcWindow::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
-  manageListSize();
+  DialogFrame::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    manageListSize();
 }
 
 // The window is closing, clean up and remove from manager

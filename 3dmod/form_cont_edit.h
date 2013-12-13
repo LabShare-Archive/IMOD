@@ -62,7 +62,7 @@ protected:
 protected slots:
     virtual void languageChange();
 
-    virtual void fontChange( const QFont & oldFont );
+    virtual void changeEvent(QEvent *e);
 
 
 };

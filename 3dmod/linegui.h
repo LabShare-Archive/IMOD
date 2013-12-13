@@ -36,7 +36,7 @@ class LineTrack : public DialogFrame
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
-  void fontChange( const QFont & oldFont );
+  void changeEvent(QEvent *e);
 
  private:
   void help();

@@ -39,7 +39,7 @@ class ImageScaleWindow : public DialogFrame
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void timerEvent(QTimerEvent *e);
-  void fontChange( const QFont & oldFont );
+  void changeEvent(QEvent *e);
 
  private:
   QLineEdit *mEditBox[2];

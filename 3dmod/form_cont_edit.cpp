@@ -337,8 +337,10 @@ void ContSurfPoint::keyReleaseEvent( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
-void ContSurfPoint::fontChange( const QFont & oldFont )
+void ContSurfPoint::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 
