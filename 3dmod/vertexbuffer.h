@@ -1,6 +1,9 @@
 /*   vertexbuffer.h  -  declarations for vertexbuffer.cpp and definition of VertBufData
  *  $Id$
  */
+#ifndef VERTEXBUFFER_H
+#define VERTEXBUFFER_H
+
 #include "b3dgfx.h"
 #include <map>
 using namespace std;
@@ -119,3 +122,4 @@ class VertBufManager {
   int mNormOffset;
 
 };
+#endif
