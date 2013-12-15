@@ -70,6 +70,7 @@ class SlicerFuncs {
   void getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
   int namedSnapshot(QString &fname, int format, bool checkConvert);
   void toggleArrow(bool drawWin = true);
+  void rotateOnViewAxis(int deltaX, int deltaY, int deltaZ);
   void setCursor(int mode, bool setAnyway = false);
 
  private:
@@ -196,5 +197,6 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw);
 int setTopSlicerFromModelView(Ipoint *rot);
 int getTopSlicerTime(bool &continuous);
 void slicerNewTime(bool refresh);
+void slicerViewAxisStepChange(int delta);
 int getSlicerThicknessScaling();
 #endif

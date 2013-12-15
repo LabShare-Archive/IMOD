@@ -35,5 +35,13 @@
 <file>images/zscaleOn.png</file>
 <file>images/arrowBlack.png</file>
 <file>images/arrowRed.png</file>
+<file>images/rightRotArrow.png</file>
+<file>images/downRotArrow.png</file>
+<file>images/upRotArrow.png</file>
+<file>images/leftRotArrow.png</file>
+<file>images/rotCCWarrow.png</file>
+<file>images/rotCWarrow.png</file>
+<file>images/plusSign.png</file>
+<file>images/minusSign.png</file>
 </qresource>
 </RCC>
