@@ -25,6 +25,7 @@
 #include <QKeyEvent>
 
 #include "slicer_classes.h"
+#include "rotationtool.h"
 #include "hottoolbar.h"
 #include "imod.h"
 #include "display.h"
@@ -58,20 +59,20 @@ static void notifySlicersOfAngDia(bool open);
 static void setAngleToolbarState(SlicerWindow *slicer, bool open);
 
 /* DNM: maximum angles for sliders */
-static float maxAngle[3] = {90.0, 180.0, 180.0};
-static int ctrlPressed = 0;
-static bool pixelViewOpen = false;
-static SlicerAngleForm *sliceAngDia = NULL;
-static int sliderDragging = 0; 
-static QTime but1downt;
-static int firstmx, firstmy, lastmx, lastmy;
-static int mousePanning = 0;
-static int mouseRotating = 0;
-static bool mousePressed = false;
-static float viewAxisSteps[] = {0.1f, 0.3f, 1., 3., 10., 0.};
-static int viewAxisIndex = 2;
-static bool doingMontage = false;
-static int scaleThick = 1;
+static float sMaxAngle[3] = {90.0, 180.0, 180.0};
+static int sCtrlPressed = 0;
+static bool sPixelViewOpen = false;
+static SlicerAngleForm *sSliceAngDia = NULL;
+static int sSliderDragging = 0; 
+static QTime sBut1downt;
+static int firstMouseX, firstMouseY, lastMouseX, lastMouseY;
+static int sMousePanning = 0;
+static int sMouseRotating = 0;
+static bool sMousePressed = false;
+static float sViewAxisSteps[] = {0.1f, 0.3f, 1., 3., 10., 30., 90., 0.};
+static int sViewAxisIndex = 2;
+static bool sDoingMontage = false;
+static int sScaleThick = 1;
 
 /*
  * Open new slicer.
@@ -92,16 +93,16 @@ int sslice_open(ImodView *vi)
 // Open or raise the slicer angle window
 int slicerAnglesOpen()
 {
-  if (sliceAngDia) {
-    sliceAngDia->raise();
+  if (sSliceAngDia) {
+    sSliceAngDia->raise();
     return 0;
   }
-  sliceAngDia = new SlicerAngleForm(imodDialogManager.parent(IMOD_DIALOG), 
+  sSliceAngDia = new SlicerAngleForm(imodDialogManager.parent(IMOD_DIALOG), 
                                     Qt::Window);
-  if (!sliceAngDia)
+  if (!sSliceAngDia)
     return -1;
-  imodDialogManager.add((QWidget *)sliceAngDia, IMOD_DIALOG);
-  adjustGeometryAndShow((QWidget *)sliceAngDia, IMOD_DIALOG);
+  imodDialogManager.add((QWidget *)sSliceAngDia, IMOD_DIALOG);
+  adjustGeometryAndShow((QWidget *)sSliceAngDia, IMOD_DIALOG);
   notifySlicersOfAngDia(true);
   return 0;
 }
@@ -109,8 +110,8 @@ int slicerAnglesOpen()
 // The slicer angle window is closing
 void slicerAnglesClosing()
 {
-  imodDialogManager.remove((QWidget *)sliceAngDia);
-  sliceAngDia = NULL;
+  imodDialogManager.remove((QWidget *)sSliceAngDia);
+  sSliceAngDia = NULL;
   notifySlicersOfAngDia(false);
 }
 
@@ -148,12 +149,12 @@ static void setAngleToolbarState(SlicerWindow *slicer, bool open)
 // The pixel view window has opened or closed, set mouse tracking for all
 void slicerPixelViewState(bool state)
 {
-  pixelViewOpen = state;
+  sPixelViewOpen = state;
   QObjectList objList;
   SlicerWindow *slicer;
   int i;
 
-  pixelViewOpen = state;
+  sPixelViewOpen = state;
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
 
   for (i = 0; i < objList.count(); i++) {
@@ -266,15 +267,37 @@ int getTopSlicerTime(bool &continuous)
 // Notify the slicer angle dialog of a new time or general need to refresh
 void slicerNewTime(bool refresh)
 {
-  if (sliceAngDia)
-    sliceAngDia->newTime(refresh);
+  if (sSliceAngDia)
+    sSliceAngDia->newTime(refresh);
   if (imodvLinkedToSlicer())
     imodv_draw();
 }
 
 int getSlicerThicknessScaling()
 {
-  return scaleThick;
+  return sScaleThick;
+}
+
+/*
+ * Change the step size for view axis rotation, which is a static value
+ */
+void slicerViewAxisStepChange(int delta)
+{
+  QObjectList objList;
+  SlicerWindow *slicer;
+  int i = sViewAxisIndex;
+  if (delta > 0 && sViewAxisSteps[sViewAxisIndex + 1])
+    sViewAxisIndex++;
+  else if (delta < 0) 
+    sViewAxisIndex = B3DMAX(0, sViewAxisIndex - 1);
+  if (i == sViewAxisIndex)
+    return;
+
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+  for (i = 0; i < objList.count(); i++) {
+    slicer = (SlicerWindow *)objList.at(i);
+    slicer->mRotationTool->setStepLabel(sViewAxisSteps[sViewAxisIndex]);
+  }
 }
 
 /*
@@ -385,8 +408,9 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
 
   transStep();
   utilGetLongestTimeString(vi, &str);
-  mQtWindow = new SlicerWindow(this, maxAngle,  str, App->rgba, App->doublebuffer,
-                               App->qtEnableDepth, imodDialogManager.parent(IMOD_IMAGE));
+  mQtWindow = new SlicerWindow(this, sMaxAngle,  str, App->rgba, App->doublebuffer,
+                               App->qtEnableDepth, sViewAxisSteps[sViewAxisIndex],
+                               imodDialogManager.parent(IMOD_IMAGE));
   if (!mQtWindow)
     return;
 
@@ -396,11 +420,6 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
     mGlw->setColormap(*(App->qColormap));
 
   mQtWindow->setWindowTitle(imodCaption("3dmod Slicer"));
-  mQtWindow->mToolBar->setWindowTitle(imodCaption("Slicer Toolbar 1"));
-  mQtWindow->mToolBar2->setWindowTitle(imodCaption("Slicer Toolbar 2"));
-  mQtWindow->mSaveAngBar->setWindowTitle(imodCaption("Slicer Toolbar 3"));
-  if (mQtWindow->mTimeBar)
-    mQtWindow->mTimeBar->setWindowTitle(imodCaption("Slicer Time Toolbar"));
 	
   mCtrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb, (void *)this);
   imodDialogManager.add((QWidget *)mQtWindow, IMOD_IMAGE, SLICER_WINDOW_TYPE, mCtrl);
@@ -441,10 +460,10 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
     }
   }
   
-  setAngleToolbarState(mQtWindow, sliceAngDia != NULL);
+  setAngleToolbarState(mQtWindow, sSliceAngDia != NULL);
 
   adjustGeometryAndShow((QWidget *)mQtWindow, IMOD_IMAGE, false);
-  mGlw->setMouseTracking(pixelViewOpen);
+  mGlw->setMouseTracking(sPixelViewOpen);
 }
 
 void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
@@ -814,11 +833,11 @@ void SlicerFuncs::angleChanged(int axis, int value,
   setForwardMatrix();
   mTang[axis] = value * 0.1f;
   mLastangle = axis;
-  sliderDragging = dragging;
+  sSliderDragging = dragging;
   changeCenterIfLinked();
 
   // Do complete redraw if not dragging or hot slider enabled
-  if (!dragging || ImodPrefs->hotSliderActive(ctrlPressed)) {
+  if (!dragging || ImodPrefs->hotSliderActive(sCtrlPressed)) {
     mDrawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
     synchronizeSlicers();
     showSlice();
@@ -965,7 +984,7 @@ int SlicerFuncs::namedSnapshot(QString &fname, int format, bool checkConvert)
 void SlicerFuncs::setCurrentOrNewRow(bool newrow)
 {
   ivwControlPriority(mVi, mCtrl);
-  sliceAngDia->setCurrentOrNewRow(mTimeLock ? mTimeLock : mVi->curTime,
+  sSliceAngDia->setCurrentOrNewRow(mTimeLock ? mTimeLock : mVi->curTime,
                                   newrow);
 }
 
@@ -973,7 +992,7 @@ void SlicerFuncs::setCurrentOrNewRow(bool newrow)
 void SlicerFuncs::setAnglesFromRow()
 {
   ivwControlPriority(mVi, mCtrl);
-  sliceAngDia->setAnglesFromRow(mTimeLock ? mTimeLock : mVi->curTime);
+  sSliceAngDia->setAnglesFromRow(mTimeLock ? mTimeLock : mVi->curTime);
 }
 
 /* 
@@ -1076,7 +1095,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
 
   // These grabs may not work right if keys are passed from elsewhere
   if (keysym == hotSliderKey()) {
-    ctrlPressed = true;
+    sCtrlPressed = true;
     mQtWindow->grabKeyboard();
     return;
   }
@@ -1225,16 +1244,16 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
     if (keysym == Qt::Key_Comma && !mShiftLock)
       handled = 0;
     else
-      viewAxisIndex = B3DMAX(0, viewAxisIndex - 1);
+      slicerViewAxisStepChange(-1);
     break;
 
   case Qt::Key_Period:
   case Qt::Key_Greater:
     dodraw = 0;
-    if (keysym == Qt::Key_Comma && !mShiftLock)
+    if (keysym == Qt::Key_Period && !mShiftLock)
       handled = 0;
-    else if (viewAxisSteps[viewAxisIndex + 1])
-      viewAxisIndex++;
+    else
+      slicerViewAxisStepChange(1);
     break;
 
     /* DNM: add these to adjust last angle, now that input is properly
@@ -1316,7 +1335,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
 
     // Now handle keypad keys
     if (shift || mShiftLock) {
-      unit = viewAxisSteps[viewAxisIndex];
+      unit = sViewAxisSteps[sViewAxisIndex];
       if (keysym == Qt::Key_Down) 
         setViewAxisRotation(-unit, 0., 0.);
       if (keysym == Qt::Key_Left)
@@ -1346,10 +1365,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
       if (keysym == Qt::Key_Insert)
         mTang[lang] = 0.0;
 
-      if (mTang[lang] > maxAngle[lang])
-        mTang[lang] = maxAngle[lang];
-      if (mTang[lang] < -maxAngle[lang])
-        mTang[lang] = -maxAngle[lang];
+      B3DCLAMP(mTang[lang], -sMaxAngle[lang], sMaxAngle[lang]);
       changeCenterIfLinked();
     }
 
@@ -1382,9 +1398,22 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
 // On any key release, clear the ctrl pressed flag and release the keyboard
 void SlicerFuncs::keyRelease(QKeyEvent *event)
 {
-  if (ctrlPressed)
+  if (sCtrlPressed)
     mQtWindow->releaseKeyboard();
-  ctrlPressed = false;
+  sCtrlPressed = false;
+}
+
+// Do all the tasks for rotating on the view axis with the three delta values
+void SlicerFuncs::rotateOnViewAxis(int deltaX, int deltaY, int deltaZ)
+{
+  float unit = sViewAxisSteps[sViewAxisIndex];
+  setViewAxisRotation(deltaX * unit, deltaY * unit, deltaZ * unit);
+  mQtWindow->setAngles(mTang);
+  mDrawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
+  synchronizeSlicers();
+  showSlice();
+  drawSelfAndLinked();
+  checkMovieLimits();
 }
 
 // Process press of mouse buttons
@@ -1392,19 +1421,19 @@ void SlicerFuncs::mousePress(QMouseEvent *event)
 {
   int shift = (event->modifiers() & Qt::ShiftModifier) + mShiftLock;
   int ctrl = (event->modifiers() & Qt::ControlModifier);
-  mousePressed = true;
+  sMousePressed = true;
   ivwControlPriority(mVi, mCtrl);
 
   utilRaiseIfNeeded(mQtWindow, event);
   setCursor(mMousemode, utilNeedToSetCursor());
 
-  lastmx = firstmx = event->x();
-  lastmy = firstmy = event->y();
+  lastMouseX = firstMouseX = event->x();
+  lastMouseY = firstMouseY = event->y();
   if (event->buttons() & ImodPrefs->actualButton(1)) {
     if (mClassic || mDrawingArrow) {
       attachPoint(event->x(), event->y(), ctrl);
     } else {
-      but1downt.start();
+      sBut1downt.start();
     }
   }
 
@@ -1418,7 +1447,7 @@ void SlicerFuncs::mousePress(QMouseEvent *event)
 // Respond to mouse button up
 void SlicerFuncs::mouseRelease(QMouseEvent *event)
 {
-  mousePressed = false;
+  sMousePressed = false;
   ivwControlPriority(mVi, mCtrl);
 
   // For button 1 up, if not classic mode, either end panning or call attach
@@ -1426,14 +1455,14 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
     if (mDrawingArrow) {
       mDrawingArrow = false;
       setCursor(mMousemode);
-    } else if (mousePanning) {
-      mousePanning = 0;
+    } else if (sMousePanning) {
+      sMousePanning = 0;
       drawSelfAndLinked();
     } else
       attachPoint(event->x(), event->y(), event->modifiers() & Qt::ControlModifier);
   }
-  if (mouseRotating) {
-    mouseRotating = 0;
+  if (sMouseRotating) {
+    sMouseRotating = 0;
     drawSelfAndLinked();
   }
 }
@@ -1468,7 +1497,7 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
   }
 
   ivwControlPriority(mVi, mCtrl);
-  if (pixelViewOpen) {
+  if (sPixelViewOpen) {
     zmouse = getxyz(ex, ey, xm, ym, zm);
     pvNewMousePosition(mVi, xm, ym, zmouse);
   }
@@ -1485,7 +1514,7 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
     processing = 0;
     
     // If this processed a release, then turn off the buttons
-    if (!mousePressed)
+    if (!sMousePressed)
       button1 = button2 = button3 = 0;
   }
 
@@ -1496,14 +1525,14 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
 
     // Pan with button 1 if not classic mode
   } else if (button1 && !mClassic) {
-    cumdx = ex - firstmx;
-    cumdy = ey - firstmy;
-    if (mousePanning || but1downt.elapsed() > 250 || 
+    cumdx = ex - firstMouseX;
+    cumdy = ey - firstMouseY;
+    if (sMousePanning || sBut1downt.elapsed() > 250 || 
         cumdx * cumdx + cumdy * cumdy > cumthresh) {
-      vec.x = (lastmx - ex) * transFac;
-      vec.y = (ey - lastmy) * transFac;
+      vec.x = (lastMouseX - ex) * transFac;
+      vec.y = (ey - lastMouseY) * transFac;
       vec.z = 0.;
-      mousePanning = 1;
+      sMousePanning = 1;
       if (translateByRotatedVec(&vec))
         drawSelfAndLinked();
     }
@@ -1533,20 +1562,20 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
   // Button 2 shifted, rotate around view axis in X/Y plane
     if (button2) {
       angleScale = 180. / (3.142 * 0.4 * B3DMIN(mWinx, mWiny));
-      dy = (ex - lastmx) * angleScale;
-      dx = (ey - lastmy) * angleScale;
+      dy = (ex - lastMouseX) * angleScale;
+      dx = (ey - lastMouseY) * angleScale;
     } else {
 
       // Button 3 shifted, rotate around Z view axis
-      drot = utilMouseZaxisRotation(mWinx, ex, lastmx,
-                                    mWiny, ey, lastmy);
+      drot = utilMouseZaxisRotation(mWinx, ex, lastMouseX,
+                                    mWiny, ey, lastMouseY);
 
     }
     if (dx <= -0.1 || dx >= 0.1 || dy <= -0.1 || dy >= 0.1 || 
         fabs(drot) >= 0.1) {
       setViewAxisRotation(dx, dy, drot);
       mQtWindow->setAngles(mTang);
-      mouseRotating = 1;
+      sMouseRotating = 1;
       if (imodDebug('s'))
         imodPuts("Mouse rotating");
       mDrawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
@@ -1554,8 +1583,8 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
       showSlice();
     }
   }
-  lastmx = ex;
-  lastmy = ey;
+  lastMouseX = ex;
+  lastMouseY = ey;
 }
 
 // Process first mouse button - attach in model, set current point in movie
@@ -1918,15 +1947,15 @@ void SlicerFuncs::montageSnapshot(int snaptype)
 
   // Set up scaling
   if (imcGetScaleThicks()) {
-    scaleThick = imcGetThickScaling();
-    if (scaleThick == 1)
-      scaleThick = factor;
+    sScaleThick = imcGetThickScaling();
+    if (sScaleThick == 1)
+      sScaleThick = factor;
   }
 
   // Loop on frames, getting pixels and copying them
   mZoom *= scaleFactor;
   mHq = 1;
-  doingMontage = true;
+  sDoingMontage = true;
   for (iy = 0; iy < factor; iy++) {
     for (ix = 0; ix < factor; ix++) {
 
@@ -1999,8 +2028,8 @@ void SlicerFuncs::montageSnapshot(int snaptype)
   mCx = cxSave;
   mCy = cySave;
   mCz = czSave;
-  doingMontage = false;
-  scaleThick = 1;
+  sDoingMontage = false;
+  sScaleThick = 1;
   draw();
   utilFreeMontSnapArrays(fullPix, numChunks, framePix, linePtrs);
 }
@@ -2705,8 +2734,8 @@ void SlicerFuncs::paint()
 {
   int i, ival, sliceScaleThresh = 4;
   int ixStart, iyStart, nxUse, nyUse, xim1, xim2, yim1, yim2;
-  int mousing = mousePanning + mouseRotating +
-    (ImodPrefs->speedupSlider() ? sliderDragging : 0);
+  int mousing = sMousePanning + sMouseRotating +
+    (ImodPrefs->speedupSlider() ? sSliderDragging : 0);
   if (!mImage)
     return;
 
@@ -2764,10 +2793,10 @@ void SlicerFuncs::paint()
     mDrawnXmouse = mVi->xmouse;
     mDrawnYmouse = mVi->ymouse;
     mDrawnZmouse = mVi->zmouse;
-    if (sliceAngDia && (getTopSlicer() == this))
-      sliceAngDia->topSlicerDrawing(mTang, mCx, mCy, mCz, 
+    if (sSliceAngDia && (getTopSlicer() == this))
+      sSliceAngDia->topSlicerDrawing(mTang, mCx, mCy, mCz, 
                                     mTimeLock ? mTimeLock : mVi->curTime, 
-                                    sliderDragging + mousing, mContinuous);
+                                    sSliderDragging + mousing, mContinuous);
   }
 
   b3dSetCurSize(mWinx, mWiny);
@@ -2842,7 +2871,7 @@ void SlicerFuncs::drawCurrentPoint()
   // Draw crosshairs in center regardless; and draw current
   // point in movie mode non-classic.  Draw it dimmer if it is off plane
   b3dColorIndex(App->endpoint);
-  if (!doingMontage)
+  if (!sDoingMontage)
     b3dDrawPlus((int)(mWinx * 0.5f), (int)(mWiny * 0.5f), 5);
   if (mMousemode == IMOD_MMOVIE || !pnt || !cont) {
     if (!mClassic) {
