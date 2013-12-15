@@ -1,9 +1,3 @@
-//Added by qt3to4:
-#include <QCloseEvent>
-#include <QTimerEvent>
-#include <QLabel>
-#include <QMouseEvent>
-#include <QKeyEvent>
 /*   slicer_classes.h  -  declarations for slicer_classes.cpp
  *
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
@@ -19,8 +13,15 @@
 #define MAX_SLICER_TOGGLES 7
 
 enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_CENTER, 
-      SLICER_TOGGLE_SHIFTLOCK, SLICER_TOGGLE_FFT, SLICER_TOGGLE_ARROW, 
-      SLICER_TOGGLE_TIMELOCK};
+      SLICER_TOGGLE_FFT, SLICER_TOGGLE_ARROW, SLICER_TOGGLE_TIMELOCK,
+      SLICER_TOGGLE_SHIFTLOCK};
+
+//Added by qt3to4:
+#include <QCloseEvent>
+#include <QTimerEvent>
+#include <QLabel>
+#include <QMouseEvent>
+#include <QKeyEvent>
 
 #include <qmainwindow.h>
 #include <qspinbox.h>
@@ -43,6 +44,7 @@ class SlicerGL;
 class SlicerCube;
 class QDoubleSpinBox;
 class HotToolBar;
+class RotationTool;
 
 class SlicerWindow : public QMainWindow
 {
@@ -50,7 +52,7 @@ class SlicerWindow : public QMainWindow
 
  public:
   SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
-               bool rgba, bool doubleBuffer, bool enableDepth, 
+               bool rgba, bool doubleBuffer, bool enableDepth, float stepSize,
                QWidget * parent = 0, Qt::WFlags f = Qt::Window) ;
   ~SlicerWindow() {};
   void setToggleState(int index, int state);
@@ -71,6 +73,7 @@ class SlicerWindow : public QMainWindow
   QCheckBox *mAutoBox;
   QPushButton *mNewRowBut;
   QPushButton *mSaveAngBut;
+  RotationTool *mRotationTool;
 
   public slots:
     void zoomUp();
@@ -95,6 +98,9 @@ class SlicerWindow : public QMainWindow
   void newRowClicked();
   void continuousToggled(bool state);
   void linkToggled(bool state);
+  void rotationClicked(int deltaX, int deltaY, int deltaZ);
+  void stepSizeChanged(int delta);
+  void shiftToggled(bool state);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -104,6 +110,7 @@ class SlicerWindow : public QMainWindow
   
  private:
   void setFontDependentWidths();
+  HotToolBar *makeToolBar(bool addBreak, int spacing, const char *caption);
   
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
   int mToggleStates[MAX_SLICER_TOGGLES];
