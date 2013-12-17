@@ -250,7 +250,7 @@ public final class ProcessData implements Storable {
    * @return
    */
   private PsParam runPs(String pid) {
-    if (debug.isExtraVerbose()) {
+    if (debug.isVerbose()) {
       System.err.println("ProcessData.runPs");
     }
     PsParam param = new PsParam(manager, axisID, pid, osType, hostName.toString(), false);
