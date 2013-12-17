@@ -191,7 +191,7 @@ public final class PsParam {
       return;
     }
     for (int i = 1; i < output.length; i++) {
-      if (debug.isExtraVerbose()) {
+      if (debug.isVerbose()) {
         System.err.println(output[i]);
       }
       if (output[i] != null)
@@ -222,7 +222,7 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
-    if (debug.isExtraVerbose()) {
+    if (debug.isVerbose()) {
       System.err.println("Looking for a ps row with pid=" + pid + ",groupPid=" + groupPid
           + ",startTime=" + startTime);
     }
