@@ -53,7 +53,7 @@ public slots:
     virtual void closeEvent( QCloseEvent * e );
     virtual void keyPressEvent( QKeyEvent * e );
     virtual void keyReleaseEvent( QKeyEvent * e );
-    virtual void fontChange( const QFont & oldFont );
+    virtual void changeEvent(QEvent *e);
     virtual void scaleThickChanged( int value );
     virtual void scaleSlicerThickToggled( bool state );
     virtual void newSlicerMontValue( int value );

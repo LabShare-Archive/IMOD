@@ -329,8 +329,10 @@ void MovieController::keyReleaseEvent( QKeyEvent * e )
   ivwControlKey(1, e);
 }
 
-void MovieController::fontChange( const QFont & oldFont )
+void MovieController::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 

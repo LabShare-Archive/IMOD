@@ -130,10 +130,10 @@
    <item>
     <widget class="QCheckBox" name="slicerNewSurfBox">
      <property name="toolTip">
-      <string>When modeling closed contours in slicer, start a new surface when the angle changes</string>
+      <string>When modeling closed contours, start a new surface when the angle changes in Slicer or plane changes in XYZ</string>
      </property>
      <property name="text">
-      <string>Start new surfaces upon angle change in Slicer</string>
+      <string>Start new surface for new orientation in Slicer or XYZ</string>
      </property>
     </widget>
    </item>

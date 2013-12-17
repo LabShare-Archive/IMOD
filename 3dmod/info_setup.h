@@ -100,7 +100,7 @@ class InfoWindow : public QMainWindow
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
     void timerEvent(QTimerEvent *e);
-    void fontChange( const QFont & oldFont );
+    void changeEvent(QEvent *e);
     bool event(QEvent *e);
 
  private:

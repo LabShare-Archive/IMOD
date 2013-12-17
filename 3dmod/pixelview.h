@@ -52,7 +52,7 @@ class PixelView: public QWidget
     void closeEvent ( QCloseEvent * e );
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
-    void fontChange(const QFont &oldFont) {setButtonWidths();};
+    void changeEvent(QEvent *e);
 
  private:
     QLabel *mBotLabels[PV_COLS];

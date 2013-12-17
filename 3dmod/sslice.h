@@ -114,6 +114,7 @@ class SlicerFuncs {
   bool mLinked;         /* Flag for linked to other slicers */
   int mClassic;
   int   mCtrl;
+  float  mZoom;
   float mScaleBarSize;     /* Actual size of draw scale bar in model units */
 
  private:
@@ -129,7 +130,6 @@ class SlicerFuncs {
   
   int    mWinx, mWiny;
   float  mLx, mLy, mLz;  /* last set point for x, y, z */
-  float  mZoom;
   float  mDepth;
   int    mLastangle;   /* Last angle slider that was used */
   

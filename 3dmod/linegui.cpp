@@ -725,10 +725,12 @@ void LineTrack::closeEvent ( QCloseEvent * e )
   e->accept();
 }
 
-void LineTrack::fontChange( const QFont & oldFont )
+void LineTrack::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
-  DialogFrame::fontChange(oldFont);
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
 }
 
 // Close on escape, pass on keys

@@ -280,8 +280,10 @@ void imodvViewsForm::keyReleaseEvent( QKeyEvent * e )
   imodvKeyRelease(e);
 }
 
-void imodvViewsForm::fontChange( const QFont & oldFont )
+void imodvViewsForm::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 

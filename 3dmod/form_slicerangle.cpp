@@ -147,10 +147,11 @@ void SlicerAngleForm::updateEnables()
 }
 
 // Slot called when font changes
-void SlicerAngleForm::fontChange( const QFont &oldFont )
+void SlicerAngleForm::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
-  QWidget::fontChange(oldFont);
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
 }
 
 // Handles width settings with font size changes

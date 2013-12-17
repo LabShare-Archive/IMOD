@@ -69,7 +69,12 @@ void utilFinishMontSnap(unsigned char **linePtrs,
 void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks, 
                             unsigned char *framePix, unsigned char **linePtrs);
 float utilWheelToPointSizeScaling(float zoom);
+void utilWheelChangePointSize(ImodView *vi, float zoom, int delta);
 void utilExchangeFlipRotation(Imod *imod, int direction);
+Icont *utilAutoNewContour(ImodView *vi, Icont *cont, bool notPlanar, bool timeMismatch,
+                          int timeLock, int setSurface, const char *planeText,
+                          const char *surfText);
+void utilAssignSurfToCont(ImodView *vi, Iobj *obj, Icont *cont, int newSurf);
 void setupFilledContTesselator();
 void drawFilledPolygon(Icont *cont);
 void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area = false);

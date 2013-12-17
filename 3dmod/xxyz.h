@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef XXYZ_H
@@ -45,6 +44,9 @@ class QPushButton;
 
 #define MAX_XYZ_TOGGLES  3
 #define NUM_AXIS 3
+
+enum {NOT_IN_BOX = 0, X_SLICE_BOX, Y_SLICE_BOX, Z_SLICE_BOX, Y_GADGET_BOX,
+      X_GADGET_BOX, Z_GADGET_BOX, FRACTION_BOX};
 
 class XyzWindow : public QMainWindow
 {
@@ -86,7 +88,7 @@ class XyzWindow : public QMainWindow
   float mToolZoom;
 
   void Draw();
-  int Getxyz(int x, int y, float *mx, float *my, int *mz);
+  int Getxyz(int x, int y, float &mx, float &my, int &mz);
   void B1Press(int x, int y);
   void B2Press(int x, int y);
   void B3Press(int x, int y);
@@ -185,6 +187,7 @@ class XyzWindow : public QMainWindow
                           std::vector<FastSegment> &segments, 
                           std::vector<int> &startInds, int ushort, bool doingYZ,
                           int istart, int iend, int jstart, int jend);
+  bool newPointOutOfPlane(Icont *cont, int plane, int mx, int my, int mz);
   void setFontDependentWidths();
 };
 
@@ -204,6 +207,7 @@ class XyzGL : public QGLWidget
   void mouseReleaseEvent ( QMouseEvent * e );
   void mouseMoveEvent ( QMouseEvent * e );
   void timerEvent(QTimerEvent *e);
+  void wheelEvent (QWheelEvent *e);
 
  private:
   XyzWindow *mWin;

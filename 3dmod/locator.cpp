@@ -166,6 +166,13 @@ void LocatorWindow::setFontDependentWidths()
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
+void LocatorWindow::changeEvent(QEvent *e)
+{
+  QMainWindow::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
+}
+
 void LocatorWindow::closeEvent ( QCloseEvent * e )
 {
   ivwRemoveControl(GLw->mVi, mCtrl);

@@ -312,6 +312,13 @@ void ZapWindow::setFontDependentWidths()
   // Unable to affect sizes of panel bar spin boxes in Windows...
 }
 
+void ZapWindow::changeEvent(QEvent *e)
+{
+  QMainWindow::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setFontDependentWidths();
+}
+
 void ZapWindow::zoomUp()
 {
   mZap->stepZoom(1);

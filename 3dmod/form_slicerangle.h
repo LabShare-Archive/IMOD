@@ -27,7 +27,7 @@ class SlicerAngleForm : public QWidget, public Ui::SlicerAngleForm
 
   public slots:
     virtual void updateEnables();
-  virtual void fontChange( const QFont & oldFont );
+  virtual void changeEvent(QEvent *e);
   virtual void setFontDependentWidths();
   virtual void setTimeLabel();
   virtual void setCurrentOrNewRow( int time, bool newrow );

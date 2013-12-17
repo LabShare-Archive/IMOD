@@ -12,6 +12,7 @@
 
 #include <qlayout.h>
 #include <qframe.h>
+#include <qevent.h>
 #include <qtooltip.h>
 #include <qpushbutton.h>
 #include <qsignalmapper.h>
@@ -127,7 +128,7 @@ void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
     if (tips != NULL)
       button->setToolTip(tips[i]);
   }
-  setFontDependentWidths();
+  dfSetFontDependentWidths();
 
   setFocusPolicy(Qt::StrongFocus);
 
@@ -137,7 +138,7 @@ void DialogFrame::makeDialogFrame(QWidget *parent, int numButtons, int numRows,
   setWindowTitle(str);
 }
 
-void DialogFrame::setFontDependentWidths()
+void DialogFrame::dfSetFontDependentWidths()
 {
   int numButtons = mNumButtons < BUTTON_ARRAY_MAX 
     ? mNumButtons : BUTTON_ARRAY_MAX;
@@ -165,13 +166,15 @@ void DialogFrame::setFontDependentWidths()
 
 /*!
  * A virtual protected function that maintains the size of the buttons upon
- * font change.  Note that the class has a non-virtual {setFontDependentWidths}
- * member function so a different name would be needed in the inheriting class.
+ * font change.  If the inheriting class reimplements this, it should first update
+ * the mRoundedStyle variable, then call DialogFrame::changeEvent(e), then set its 
+ * font-dependent sizes
  */
-void DialogFrame::fontChange(const QFont &oldFont)
+void DialogFrame::changeEvent(QEvent *e)
 {
-  setFontDependentWidths();
-  QWidget::fontChange(oldFont);
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    dfSetFontDependentWidths();
 }
 
 void DialogFrame::actionButtonPressed(int which)

@@ -104,7 +104,7 @@ class ZapWindow : public QMainWindow
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
-    void fontChange(const QFont &oldFont) {setFontDependentWidths();};
+    void changeEvent(QEvent *e);
     void wheelEvent ( QWheelEvent * e);
 
  private:

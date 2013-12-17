@@ -138,7 +138,7 @@ class BeadFixer : public DialogFrame
   void keyReleaseEvent ( QKeyEvent * e );
   void timerEvent(QTimerEvent *e);
   void mouseMoveEvent ( QMouseEvent * e );
-  void fontChange( const QFont & oldFont );
+  void changeEvent(QEvent *e);
 
  private:
   int foundgap(int obj, int cont, int ipt, int before);

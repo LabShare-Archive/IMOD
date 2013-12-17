@@ -307,7 +307,8 @@ Align first and last points of contour along X, Y or Z axis
 Change X and Y angles so that the current contour is flat in the slice.
 <BR><B>q</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Report distance in 3D between the current model or image point and the point under
-the mouse cursor.  If the current point appears in a
+the mouse cursor.  The current image point is used in Movie Mode or if there
+is no current model point.  If the current point appears in a
 bright color, it is on the plane being displayed, and the distance corresponds
 to a line length in the plane of the image.
 <P>
@@ -344,7 +345,7 @@ By default, the slicer will automatically start a new surface at the same
 time as it starts a new contour when it detects that the slicer
 angles have changed enough from the angles at which the current contour was
 drawn.  This behavior can be turned off with an option in the 3dmod
-preferences dialog (menu entry Edit - Options).  If you are going to model at
+Preferences dialog (menu entry Edit - Options).  If you are going to model at
 multiple angles, it is advisable to open the Surface-Contour-Point dialog to
 monitor the surface number (menu entry Edit - Surface - Go to).
 <P>
@@ -370,6 +371,11 @@ Using <B>W</B> is very important, not just for getting the same angles, but
 also for getting back to the exact coordinates to preserve the spacing between
 slices.  An alternative is to store the angles and position of one slice
 with the Slicer Angles dialog.
+<LI>If you go back to modeling in a Zap or XYZ window after modeling tilted
+  slices, be sure to select an existing planar contour in that window before
+  making a new contour or starting to draw.  This will keep you from appending
+  to a tilted contour or from getting an inappropriate surface number for the
+  new contour.
 </OL>
 Note that if you model at intervals of more than one pixel, it is not so
 important to preserve the spacing between slices as just described.

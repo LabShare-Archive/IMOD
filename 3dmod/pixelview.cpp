@@ -280,6 +280,13 @@ void PixelView::setButtonWidths()
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
+void PixelView::changeEvent(QEvent *e)
+{
+  QWidget::changeEvent(e);
+  if (e->type() == QEvent::FontChange)
+    setButtonWidths();
+}
+
 /*
  * Routine to update the buttons with values
  */

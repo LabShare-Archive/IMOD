@@ -35,6 +35,7 @@
 #include "b3dgfx.h"
 #include "xcramp.h"
 #include "xzap.h"
+#include "xxyz.h"
 #include "pixelview.h"
 #include "xgraph.h"
 #include "locator.h"
@@ -1331,7 +1332,8 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   Iindex *indp;
   Ipoint selmin, selmax;
   Icont *lasso;
-  float dist2d, cx, cy, dx, dy;
+  float dist2d, cx, cy, dx, dy, refx, refy;
+  Ipoint *curPnt;
   Iobj *obj;
   /* downtime.start(); */
 
@@ -1396,14 +1398,7 @@ void ZapFuncs::keyInput(QKeyEvent *event)
 
       // Move point with keypad in model mode
     } else if (keypad && imod->mousemode != IMOD_MMOVIE) {
-      if (keysym == Qt::Key_Left)
-        inputPointMove(vi, -1, 0, 0);
-      if (keysym == Qt::Key_Right)
-        inputPointMove(vi, 1, 0, 0);
-      if (keysym == Qt::Key_Down)
-        inputPointMove(vi, 0, -1, 0);
-      if (keysym == Qt::Key_Up)
-        inputPointMove(vi, 0, 1, 0);
+      inputKeyPointMove(vi, keysym);
       handled = 1;
 
     }
@@ -1413,17 +1408,10 @@ void ZapFuncs::keyInput(QKeyEvent *event)
   case Qt::Key_PageDown:
     // With keypad, translate in movie mode or move point in model mode
     if (keypad) {
-      if (keysym == Qt::Key_PageDown) {
-        if (imod->mousemode == IMOD_MMOVIE)
-          translate(trans, -trans);
-        else
-          inputPointMove(vi, 0, 0, -1);
-      } else {
-        if (imod->mousemode == IMOD_MMOVIE)
-          translate(trans, trans);
-        else
-          inputPointMove(vi, 0, 0, 1);
-      }
+      if (imod->mousemode == IMOD_MMOVIE)
+        translate(trans, keysym == Qt::Key_PageDown ? -trans : trans);
+      else
+        inputKeyPointMove(vi, keysym);
       handled = 1;
 
       // with regular keys, handle specially if locked
@@ -1667,11 +1655,17 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
     iy = (mGfx->mapFromGlobal(QCursor::pos())).y();
     getixy(ix, iy, cx, cy, i);
-    dx = cx - vi->xmouse;
-    dy = cy - vi->ymouse;
+    refx = vi->xmouse;
+    refy = vi->ymouse;
+    curPnt = imodPointGet(imod);
+    if (curPnt && imod->mousemode == IMOD_MMODEL) {
+      refx = curPnt->x;
+      refy = curPnt->y;
+    }
+    dx = cx - refx;
+    dy = cy - refy;
     dist2d  = (float)(vi->xybin * sqrt(dx * dx + dy * dy));
-    wprint("From (%.1f, %.1f) to (%.1f, %.1f) =\n", vi->xmouse+1,
-           vi->ymouse+1., cx+1., cy+1.);
+    wprint("From (%.1f, %.1f) to (%.1f, %.1f) =\n", refx + 1., refy + 1., cx+1., cy+1.);
     str.sprintf("  %.1f %spixels", dist2d, vi->xybin > 1 ? "unbinned " : "");
     utilWprintMeasure(str, imod, dist2d);
     break;
@@ -1763,7 +1757,6 @@ void ZapFuncs::generalEvent(QEvent *e)
   float imx, imy;
   Iobj *obj;
   Icont *cont;
-  float wheelScale = utilWheelToPointSizeScaling(mZoom);
   if (mNumXpanels || !mPopup || App->closing)
     return;
   ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
@@ -1775,20 +1768,7 @@ void ZapFuncs::generalEvent(QEvent *e)
   if (ifdraw)
     return;
   if (e->type() == QEvent::Wheel && iceGetWheelForSize()) {
-    imodGetIndex(mVi->imod, &ix, &iy, &pt);
-    obj = imodObjectGet(mVi->imod);
-    cont = imodContourGet(mVi->imod);
-    if (!cont || pt < 0)
-      return;
-    imx = imodPointGetSize(obj, cont, pt);
-    if (!imx && (!cont->sizes || (cont->sizes && cont->sizes[pt] < 0)))
-      return;
-    imx += ((QWheelEvent *)e)->delta() * wheelScale;
-    imx = B3DMAX(0., imx);
-    mVi->undo->contourDataChg();
-    imodPointSetSize(cont, pt, imx);
-    mVi->undo->finishUnit();
-    imodDraw(mVi, IMOD_DRAW_MOD);
+    utilWheelChangePointSize(mVi, mZoom, ((QWheelEvent *)e)->delta());
   }
 }
 
@@ -2313,7 +2293,7 @@ int ZapFuncs::b1Click(int x, int y, int controlDown)
     pnt.z = iz;
     indSave = vi->imod->cindex;
 
-    distance = imodAllObjNearest(vi, &index , &pnt, selsize);
+    distance = imodAllObjNearest(vi, &index , &pnt, selsize, ivwWindowTime(vi,mTimeLock));
 
     // If point found, manage selection list and even toggle this contour off 
     // if appropriate
@@ -2342,7 +2322,9 @@ int ZapFuncs::b2Click(int x, int y, int controlDown)
   int   pt;
   float ix, iy;
   float lastz;
-  int cz, pz, iz;
+  int iz, newSurf;
+  bool timeMismatch, notInPlane;
+  int time = ivwWindowTime(vi, mTimeLock);
 
   getixy(x, y, ix, iy, iz);
 
@@ -2410,37 +2392,30 @@ int ZapFuncs::b2Click(int x, int y, int controlDown)
 
     } else {
 
+      // Get a new surface for planar modeling if the current surface is planar in X or Y
+      newSurf = INCOS_NEW_CONT;
+      if (iobjPlanar(obj->flags) && (!cont->psize || (cont->flags & ICONT_WILD)) &&
+          cont->surf && (imodSurfaceIsPlanar(obj, cont->surf, time, X_SLICE_BOX) ||
+                         imodSurfaceIsPlanar(obj, cont->surf, time, Y_SLICE_BOX)))
+        newSurf = imodCheckSurfForNewCont(obj, cont, time, Z_SLICE_BOX);
+                         
       /* If contours are closed and Z has changed, start a new contour */
       /* Also check for a change in time, if time data are being modeled  */
       /* and start new contour for any kind of contour */
       // DNM 7/10/04: just use first point instead of current point which is
       // not always defined
       if (cont->psize > 0) {
-        cz = (int)floor(cont->pts->z + 0.5); 
-        pz = (int)point.z;
-        if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) 
-            || ivwTimeMismatch(vi, mTimeLock, obj, cont)) {
-          if (cont->psize == 1) {
-            wprint("Started a new contour even though last "
-                   "contour had only 1 pt.  ");
-            if (cz != pz && iobjClose(obj->flags))
-              wprint("\aUse open contours to model across sections.\n");
-            else if (cz != pz)
-              wprint("\aTurn off \"Start new contour at new Z\" to model "
-                     "across sections.\n");
-            else
-              wprint("\aSet contour time to 0 to model across times.\n");
-          }
-        
-          vi->undo->contourAddition(obj->contsize);
-          imodNewContour(vi->imod);
-          cont = imodContourGet(vi->imod);
-          if (!cont) {
-            vi->undo->flushUnit();
+        timeMismatch = ivwTimeMismatch(vi, mTimeLock, obj, cont);
+        notInPlane = iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) &&
+          B3DNINT(cont->pts->z) != (int)point.z;
+        if (notInPlane || timeMismatch || newSurf != INCOS_NEW_CONT) {
+          cont = utilAutoNewContour(vi, cont, notInPlane, timeMismatch, mTimeLock, 
+                                    newSurf, "sections", "Z plane");
+          if (!cont)
             return 0;
-          }
-          ivwSetNewContourTime(vi, obj, cont);
         }
+      } else if (newSurf != INCOS_NEW_CONT) {
+        utilAssignSurfToCont(vi, obj, cont, newSurf);
       }
 
       /* Now if times still don't match refuse the point */
@@ -2537,6 +2512,7 @@ int ZapFuncs::b3Click(int x, int y, int controlDown)
   Iobj *obj;
   int   pt, iz;
   float ix, iy;
+  int time = ivwWindowTime(vi, mTimeLock);
 
   getixy(x, y, ix, iy, iz);
 
@@ -3989,10 +3965,7 @@ B3dCIImage *ZapFuncs::zoomedDownImage(int subset, int &nxim, int &nyim, int &ixS
   int time, llX, leftXpad, rightXpad, llY, leftYpad, rightYpad, llZ, leftZpad, rightZpad;
   int uzXend, uzYend;
   float xl, xr, yb, yt;
-  if (mTimeLock)
-    time = mTimeLock;
-  else
-    ivwGetTime(mVi, &time);
+  time = ivwWindowTime(mVi, mTimeLock);
 
   if (!mHqgfx || mZoom > b3dZoomDownCrit() || !App->rgba || !mImage || 
       mVi->cramp->falsecolor)
@@ -4400,10 +4373,7 @@ void ZapFuncs::drawGraphics()
   mYposStart = mYstart;
 
   /* Get the time to display and flush if time is different. */
-  if (mTimeLock)
-    time = mTimeLock;
-  else
-    ivwGetTime(vi, &time);
+  time = ivwWindowTime(vi, mTimeLock);
   if (time != mTime)
     flushImage();
 
@@ -5269,7 +5239,7 @@ void ZapFuncs::drawTools()
   }
 
   if (mVi->numTimes) {
-    int time = mTimeLock ? mTimeLock : mVi->curTime;
+    int time = ivwWindowTime(mVi, mTimeLock);
     if (mToolTime != time){
       mToolTime = time;
       mQtWindow->setTimeLabel(time, QString(ivwGetTimeIndexLabel(mVi, time)));

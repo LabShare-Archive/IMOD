@@ -28,7 +28,7 @@ class imodvObjedForm : public QWidget, public Ui::imodvObjedForm
   public slots:
     virtual void init();
   virtual void setFontDependentSizes( int width, int height );
-  virtual void fontChange( const QFont & oldFont );
+  virtual void changeEvent(QEvent *e);
   virtual void objectSelected( int which );
   virtual void editSelected( int item );
   virtual void objSliderChanged( int value );

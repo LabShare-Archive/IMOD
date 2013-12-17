@@ -2914,12 +2914,14 @@ void BeadFixer::setFontDependentWidths()
   weightHbox->setFixedWidth(width);
 }
 
-void BeadFixer::fontChange( const QFont & oldFont )
+void BeadFixer::changeEvent(QEvent *e)
 {
   mRoundedStyle = ImodPrefs->getRoundedStyle();
+  DialogFrame::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
   setFontDependentWidths();
   fixSize();
-  DialogFrame::fontChange(oldFont);
 }
 
 // Close on escape, pass on keys

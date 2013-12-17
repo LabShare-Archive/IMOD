@@ -591,10 +591,12 @@ void ImodvOlist::setFontDependentWidths()
   mDoneButton->setFixedWidth(width);
 }
 
-void ImodvOlist::fontChange(const QFont &oldFont)
+void ImodvOlist::changeEvent(QEvent *e)
 {
+  QWidget::changeEvent(e);
+  if (e->type() != QEvent::FontChange)
+    return;
   setFontDependentWidths();
-  QWidget::fontChange(oldFont);
   adjustFrameSize();
 }
 
