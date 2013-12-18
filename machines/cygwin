@@ -42,7 +42,7 @@ if ($compiler == intel) then
         set fftw_cfshr = "../buildlib/libcfshr.lib"
     endif
 
-    set qt_flags = '-I"$(QTDIR)\include" -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include\QtOpenGL"'
+    set qt_flags = '-I"$(QTDIR)\include" -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include\QtOpenGL" -I"$(QTDIR)\include\QtSql"'
     set qt3_flags = '-DQT3_SUPPORT -I"$(QTDIR)\include\Qt3Support"'
     set cyg_lib = `cygpath -w $lib_dir`
     set xplax = (qtplax.obj moc_qtplax.obj)

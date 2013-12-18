@@ -126,7 +126,7 @@ set class_sep       = ':'
 set strip           = strip
 set rmcmd           = '/bin/rm -f'
 set qtincdir        = '$(QTDIR)/include'
-set qt_flags        = '-I$(QTINCDIR) -I$(QTINCDIR)/QtCore -I$(QTINCDIR)/QtOpenGL -I$(QTINCDIR)/QtGui'
+set qt_flags        = '-I$(QTINCDIR) -I$(QTINCDIR)/QtCore -I$(QTINCDIR)/QtOpenGL -I$(QTINCDIR)/QtGui -I$(QTINCDIR)/QtSql'
 set qt3_flags       = '-DQT3_SUPPORT -I$(QTINCDIR)/Qt3Support'
 # rhlinux uses ldd on assistant to get this list and adds OpenGL
 set qt4libstocopy   = 'QtOpenGL QtNetwork QtCore QtGui QtXml QtHelp QtSql QtCLucene'
