@@ -446,7 +446,16 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
             || line.startsWith("Windows PID:") || line.startsWith("Cygwin PID:")) {
           String[] tokens = line.split("\\s+");
           if (tokens.length > 2) {
-            PID.append(tokens[2]);
+            boolean found = false;
+            for (int index = 0; index < tokens.length; index++) {
+              if (found) {
+                PID.append(tokens[index]);
+                break;
+              }
+              else if (tokens[index].endsWith("PID:")) {
+                found = true;
+              }
+            }
           }
         }
       }
