@@ -183,6 +183,9 @@ public class CpuAdoc {
     }
     // Search for the computer name:
     String localHostName = Network.getLocalHostName(manager, axisID, propertyUserDir);
+    if (localHostName == null) {
+      return null;
+    }
     localHost = getComputer(manager, localHostName, axisID, propertyUserDir);
     if (localHost != null) {
       return localHost;
@@ -225,7 +228,10 @@ public class CpuAdoc {
    */
   Node getComputer(BaseManager manager, String name, AxisID axisID, String propertyUserDir) {
     load(manager, axisID, propertyUserDir);
-    return (Node) computerMap.get(name);
+    if (name != null) {
+      return (Node) computerMap.get(name);
+    }
+    return null;
   }
 
   int getComputerListSize(BaseManager manager, AxisID axisID, String propertyUserDir) {
