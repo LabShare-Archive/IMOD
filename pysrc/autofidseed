@@ -173,23 +173,23 @@ def selectSeedViews(numNeeded):
 
       # If nothing picked yet, find biggest gap in range
       if viewTry < trackStart or viewTry > trackEnd:
-         fillInd = (endInd + midInd) / 2
+         fillInd = (endInd + midInd) // 2
 
          # There must be a gap in range
          if midZ + 2 * checkDir != endView:
 
             # If there is no gap on one side or other of filled value, use the other side
             if midZ + checkDir == seedViews[fillInd]:
-               viewTry = (seedViews[fillInd] + endView) / 2
+               viewTry = (seedViews[fillInd] + endView) // 2
             elif seedViews[fillInd] + checkDir == endView:
-               viewTry = (midZ + seedViews[fillInd]) / 2
+               viewTry = (midZ + seedViews[fillInd]) // 2
 
                # Otherwise pick the biggest angle gap
             elif fabs(tiltIncluded[midZ] - tiltIncluded[seedViews[fillInd]]) > \
                    fabs(tiltIncluded[endView] - tiltIncluded[seedViews[fillInd]]):
-               viewTry = (midZ + seedViews[fillInd]) / 2
+               viewTry = (midZ + seedViews[fillInd]) // 2
             else:
-               viewTry = (seedViews[fillInd] + endView) / 2
+               viewTry = (seedViews[fillInd] + endView) // 2
 
       # And if there is still nothing valid, just fill first gap from this direction
       if viewTry < trackStart or viewTry > trackEnd:
@@ -269,7 +269,7 @@ def runFindBeads():
 
 # Find out if a higher number of seed views is needed to try to reach target
 def reviseNumSeedViews(peaksTot, nsViews):
-   numPerView = peaksTot / nsViews
+   numPerView = peaksTot // nsViews
    targNum = targetNumber
    needed = 3
    if targetDensity > 0.:
@@ -589,7 +589,7 @@ for incl in range(numIncluded):
 # Get view range for tracking: do 11 views unless range is > 20 deg, or 9 views unless
 # range is still > 20 deg; or 7 views
 for viewInc in (10, 8, 6):
-   trackStart = max(0, minTiltInd - viewInc / 2)
+   trackStart = max(0, minTiltInd - viewInc // 2)
    trackEnd = min(numIncluded - 1, trackStart + viewInc)
    trackStart = max(0, trackEnd - viewInc)
    if fabs(tiltIncluded[trackStart] - tiltIncluded[trackEnd]) <= 20.1:
@@ -597,7 +597,7 @@ for viewInc in (10, 8, 6):
 
 # midView, trackStart, trackEnd and seed lists will all be included view indexes
 # so need to take includedViews[view] to get true Z
-midView = (trackEnd + trackStart) / 2
+midView = (trackEnd + trackStart) // 2
 
 # Convert a density to a target number
 # If there is a boundary model, find out the total area from imodfindbeads
