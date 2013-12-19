@@ -131,53 +131,14 @@ void zapReportBiggestMultiZ()
 /*
  * Find the first zap window of the given type (default regular zap), with a rubberband 
  * if flag is set, or with a lasso if that flag is set (default false) or with either one
- * if both flags are set.
+ * if both flags are set.  Return the window list index in *index if index is nonNULL.
  */
-ZapFuncs *getTopZapWindow(bool withBand, bool withLasso, int type)
+ZapFuncs *getTopZapWindow(bool withBand, bool withLasso, int type, int *index)
 {
-  QObjectList objList;
-  ZapFuncs *zap;
-  ImodControl *ctrlPtr;
-  int ixl, ixr, iyb, iyt;
-  int i, j, curSave, topOne;
-
-  imodDialogManager.windowList(&objList, -1, type);
-  if (!objList.count())
+  QObject *object = imodDialogManager.getTopWindow(withBand, withLasso, type, index);
+  if (!object)
     return NULL;
-
-  // Loop through the control list and find the first window that is a zap with a viable
-  // rubberband if required, which is either a drawn band or Z limits set & starting band
-  // It is best to save and restore ctrlist current item
-  topOne = -1;
-  curSave = App->cvi->ctrlist->list->current;
-  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
-    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
-    for (i = 0; i < objList.count(); i++) {
-      zap = ((ZapWindow *)objList.at(i))->mZap;
-      if (ctrlPtr->id == zap->mCtrl && 
-          ((!withLasso || (zap->mLassoOn && !zap->mDrawingLasso)) ||
-           (!withBand || zap->mRubberband || 
-            (zap->mStartingBand && zap->getLowHighSection(ixl, ixr))))) {
-        if (zap->mRubberband) {
-          ixl = (int)floor(zap->mRbImageX0 + 0.5);
-          ixr = (int)floor(zap->mRbImageX1 - 0.5);
-          iyb = (int)floor(zap->mRbImageY0 + 0.5);
-          iyt = (int)floor(zap->mRbImageY1 - 0.5);
-          if (ixr < 1 || iyt < 1 || ixl > zap->mVi->xsize - 2 || 
-              iyb > zap->mVi->ysize - 2)
-            continue;
-        }
-        topOne = i;
-        break;
-      }
-    }
-  }
-  App->cvi->ctrlist->list->current = curSave;
-  if (topOne < 0 && (withBand || withLasso))
-    return NULL;
-  if (topOne < 0)
-    topOne = 0;
-  return ((ZapWindow *)objList.at(topOne))->mZap;
+  return ((ZapWindow *)object)->mZap;
 }
 
 /*
@@ -1753,10 +1714,8 @@ void ZapFuncs::keyRelease(QKeyEvent *event)
 // Pass on various events to plugins
 void ZapFuncs::generalEvent(QEvent *e)
 {
-  int ix, iy, ifdraw, iz, pt;
+  int ix, iy, ifdraw, iz;
   float imx, imy;
-  Iobj *obj;
-  Icont *cont;
   if (mNumXpanels || !mPopup || App->closing)
     return;
   ix = (mGfx->mapFromGlobal(QCursor::pos())).x();
@@ -1811,14 +1770,7 @@ void ZapFuncs::mousePress(QMouseEvent *event)
        flag to move whole band and return */
     if (mRubberband) {
       bandImageToMouse(0);
-      dxll = x - mRbMouseX0;
-      dxur = x - mRbMouseX1;
-      dyll = y - mRbMouseY0;
-      dyur = y - mRbMouseY1;
-      if ((dyll > 0 && dyur < 0 && ((dxll < rcrit && dxll > -rcrit) ||
-                                    (dxur < rcrit && dxur > -rcrit))) ||
-          (dxll > 0 && dxur < 0 && ((dyll < rcrit && dyll > -rcrit) ||
-                                    (dyur < rcrit && dyur > -rcrit)))) {
+      if (utilTestBandMove(x, y, mRbMouseX0, mRbMouseX1, mRbMouseY0, mRbMouseY1)) {
         sMoveBandLasso = 1;
         setCursor(mMousemode);
         return;
@@ -2049,7 +2001,7 @@ void ZapFuncs::mouseMove(QMouseEvent *event)
         draw();
       return;
     }
-  } else
+  } else if (sMousePressed || sInsertDown)
     setControlAndLimits();
 
   if (!(sMousePressed || sInsertDown)) {
@@ -2119,16 +2071,19 @@ int ZapFuncs::checkPlugUseMouse(QMouseEvent *event, int but1,
 {
   float imx, imy;
   int ifdraw, imz;
-  setControlAndLimits();
+  bool setControl = sMousePressed || sInsertDown || but1 || but2 || but3;
+  if (setControl)
+    setControlAndLimits();
   if (mNumXpanels)
     return 0;
-  ivwControlActive(mVi, 0);
+  if (setControl)
+    ivwControlActive(mVi, 0);
   getixy(event->x(), event->y(), imx, imy, imz);
   ifdraw = imodPlugHandleMouse(mVi, event, imx, imy, but1, but2, but3);
   if (ifdraw & 1) {
     if (ifdraw & 2) 
       draw();
-  } else
+  } else if (setControl)
     ivwControlActive(mVi, 1);
   return ifdraw;
 }
@@ -2140,15 +2095,12 @@ int ZapFuncs::checkPlugUseMouse(QMouseEvent *event, int but1,
 void ZapFuncs::analyzeBandEdge(int ix, int iy)
 {
   int rubbercrit = 10;  /* Criterion distance for grabbing the band */
-  int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
-  int minedgex, minedgey;
+  int i, dxll;
   Icont *cont;
   Ipoint mpt;
 
   bandImageToMouse(0);    
-  dminsq = rubbercrit * rubbercrit;
   sDragBandLasso = 0;
-  minedgex = -1;
   for (i = 0; i < 4; i++)
     sDragging[i] = 0;
 
@@ -2160,72 +2112,8 @@ void ZapFuncs::analyzeBandEdge(int ix, int iy)
       sDragBandLasso = 1;
   } else {
 
-    dxll = ix - mRbMouseX0;
-    dxur = ix - mRbMouseX1;
-    dyll = iy - mRbMouseY0;
-    dyur = iy - mRbMouseY1;
-
-    /* Find distance from each corner, keep track of a min */
-    distsq = dxll * dxll + dyll * dyll;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 0;
-      minedgey = 2;
-    }
-    distsq = dxur * dxur + dyll * dyll;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 1;
-      minedgey = 2;
-    }
-    distsq = dxll * dxll + dyur * dyur;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 0;
-      minedgey = 3;
-    }
-    distsq = dxur * dxur + dyur * dyur;
-    if (distsq < dminsq) {
-      dminsq = distsq;
-      minedgex = 1;
-      minedgey = 3;
-    }
-
-    /* If we are close to a corner, set up to drag the band */
-    if (minedgex >= 0) {
-      sDragBandLasso = 1;
-      sDragging[minedgex] = 1;
-      sDragging[minedgey] = 1;
-    } else {
-      /* Otherwise look at each edge in turn */
-      dmin = rubbercrit;
-      dist = dxll > 0 ? dxll : -dxll;
-      if (dyll > 0 && dyur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 0;
-      }
-      dist = dxur > 0 ? dxur : -dxur;
-      if (dyll > 0 && dyur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 1;
-      }
-      dist = dyll > 0 ? dyll : -dyll;
-      if (dxll > 0 && dxur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 2;
-      }
-      dist = dyur > 0 ? dyur : -dyur;
-      if (dxll > 0 && dxur < 0 && dist < dmin){
-        dmin = dist;
-        minedgex = 3;
-      }
-      if (minedgex < 0)
-        sDragBandLasso = 0;
-      else {
-        sDragging[minedgex] = 1;
-        sDragBandLasso = 1;
-      }
-    }
+    utilAnalyzeBandEdge(ix, iy, mRbMouseX0, mRbMouseX1, mRbMouseY0, mRbMouseY1, 
+                        sDragBandLasso, sDragging);
   }
   setCursor(mMousemode);
 }
@@ -2512,7 +2400,6 @@ int ZapFuncs::b3Click(int x, int y, int controlDown)
   Iobj *obj;
   int   pt, iz;
   float ix, iy;
-  int time = ivwWindowTime(vi, mTimeLock);
 
   getixy(x, y, ix, iy, iz);
 
@@ -2571,10 +2458,7 @@ int ZapFuncs::b1Drag(int x, int y)
   double transFac = mZoom < 1. ? 1. / mZoom : 1.;
   bool cancelHQ = mLastHqDrawTime > sHqDrawTimeCrit;
   int bandmin = bandMinimum();
-  int bandCrit1 = 3 * bandmin;
-  int bandCrit2 = 6 * bandmin;
   float dx, dy;
-  int diffX, diffY, absDiffX, absDiffY, i;
 
   if (mShiftingCont) {
     shiftContour(x, y, 1, 0);
@@ -2585,54 +2469,10 @@ int ZapFuncs::b1Drag(int x, int y)
   // to commit to a direction
   if (mStartingBand) {
 
-    // get differences and absolute differences
-    diffX = x - mRbMouseX0;
-    diffY = y - mRbMouseY0;
-    absDiffX = diffX < 0 ? -diffX : diffX;
-    absDiffY = diffY < 0 ? -diffY : diffY;
-
-    // If one axis change is still zero but the other is big enough, commit to the 
-    // direction toward middle of window; revise differences
-    if (!diffY && absDiffX >= bandCrit2) {
-      if (y < mWiny / 2)
-        y = mRbMouseY0 + bandmin;
-      else 
-        y = mRbMouseY0 - bandmin;
-      absDiffY = bandmin;
-    } else if (!diffX && absDiffY >= bandCrit2) {
-      if (x < mWinx / 2)
-        x = mRbMouseX0 + bandmin;
-      else 
-        x = mRbMouseX0 - bandmin;
-      absDiffX = bandmin;
-    }
-
-    // Ready to start if both directions are bigger than the minimum, or one is
-    // bigger than a criterion and the other is nonzero
-    if (!((absDiffX >= bandmin && absDiffY >= bandmin) || 
-          (absDiffX >= bandCrit1 && absDiffY) || (absDiffY >= bandCrit1 && absDiffX)))
+    if (!utilIsBandCommitted(x, y, mWinx, mWiny, bandmin, mRbMouseX0, mRbMouseX1, 
+                             mRbMouseY0, mRbMouseY1, sDragging))
       return 0;
 
-    for (i = 0; i < 4; i++)
-      sDragging[i] = 0;
-
-    // Put the two coords in order on each axis and set the dragging flags
-    if (x > mRbMouseX0) {
-      sDragging[1] = 1;
-      mRbMouseX1 = x;
-    } else {
-      sDragging[0] = 1;
-      mRbMouseX1 = mRbMouseX0;
-      mRbMouseX0 = x;
-    }
-    if (y > mRbMouseY0) {
-      sDragging[3] = 1;
-      mRbMouseY1 = y;
-    } else {
-      sDragging[2] = 1;
-      mRbMouseY1 = mRbMouseY0;
-      mRbMouseY0 = y;
-    }
     bandMouseToImage(0);
 
     // Does image coord need to be moved?  Do so and move mouse coords and mouse
@@ -2680,31 +2520,19 @@ int ZapFuncs::b1Drag(int x, int y)
     /* Move the rubber band */
     if (sDragging[0]) {
       mRbImageX0 += (x - mLmx) / mXzoom;
-      if (mRbImageX0 < 0)
-        mRbImageX0 = 0;
-      if (mRbImageX0 >= mRbImageX1)
-        mRbImageX0 = mRbImageX1 - 1;
+      B3DCLAMP(mRbImageX0, 0, mRbImageX1 - 1);
     }
     if (sDragging[1]) {
       mRbImageX1 += (x - mLmx) / mXzoom;
-      if (mRbImageX1 > mVi->xsize)
-        mRbImageX1 = mVi->xsize;
-      if (mRbImageX1 <= mRbImageX0)
-        mRbImageX1 = mRbImageX0 + 1;
+      B3DCLAMP(mRbImageX1, mRbImageX0 + 1, mVi->xsize);
     }
     if (sDragging[3]) {
       mRbImageY0 += (mLmy - y) / mXzoom;
-      if (mRbImageY0 < 0)
-        mRbImageY0 = 0;
-      if (mRbImageY0 >= mRbImageY1)
-        mRbImageY0 = mRbImageY1 - 1;
+      B3DCLAMP(mRbImageY0, 0, mRbImageY1 - 1);
     }
     if (sDragging[2]) {
       mRbImageY1 += (mLmy - y) / mXzoom;
-      if (mRbImageY1 > mVi->ysize)
-        mRbImageY1 = mVi->ysize;
-      if (mRbImageY1 <= mRbImageY0)
-        mRbImageY1 = mRbImageY0 + 1;
+      B3DCLAMP(mRbImageY1, mRbImageY0 + 1, mVi->ysize);
     }
     mBandChanged = 1;
     setCursor(mMousemode, utilNeedToSetCursor());
@@ -3775,6 +3603,7 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
 {
   float xl, xr, yb, yt;
   int ixl, ixr, iyb, iyt, iz;
+  int fx, fy, fz, llx, lly, llz, xpad, ypad, zpad;
   int ixcen, iycen, ixofs, iyofs, imx, imy, itmp;
   int bin = mVi->xybin;
   bool ifpad, flipped = mVi->li->axis == 2;
@@ -3805,10 +3634,7 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
   iyb = B3DMAX(0, iyb);
   ixr = B3DMIN(ixr, mVi->xsize - 1);
   iyt = B3DMIN(iyt, mVi->ysize - 1);
-  ixl *= bin;
-  iyb *= bin;
-  ixr = ixr * bin + bin - 1;
-  iyt = iyt * bin + bin - 1;
+
   int lowSection, highSection;
   getLowHighSection(lowSection, highSection);
   if (lowSection < 1 || highSection < 1 || highSection > mVi->zsize) {
@@ -3816,11 +3642,36 @@ QString ZapFuncs::printInfo(bool toInfoWindow)
     if (!toInfoWindow)
       return "";
   }
+
+  // Get load offsets and padding
+  if (ivwGetImagePadding(mVi, (iyb + iyt) / 2, (lowSection + highSection) / 2,
+                         ivwWindowTime(mVi, mTimeLock), llx, xpad, fx, lly, ypad, fy,
+                         llz, zpad, fz) < 0)
+    llx = lly = llz = xpad = ypad = zpad = 0;
+
+  // If flipped, adjust the section numbers and swap the load offsets, not the pads
   if (flipped) {
     itmp =  mVi->zsize + 1 - lowSection;
     lowSection = mVi->zsize + 1 - highSection;
     highSection = itmp;
+    itmp = llz;
+    llz = lly;
+    lly = itmp;
   }
+
+  // Adjust for load offsets/padding
+  ixl += llx - xpad;
+  ixr += llx - xpad;
+  iyb += lly - ypad;
+  iyt += lly - ypad;
+  lowSection += llz - zpad;
+  highSection += llz - zpad;
+
+  // Adjust for binning
+  ixl *= bin;
+  iyb *= bin;
+  ixr = ixr * bin + bin - 1;
+  iyt = iyt * bin + bin - 1;
   lowSection = mVi->zbin * (lowSection - 1) + 1;
   highSection *= mVi->zbin;
   
@@ -4025,7 +3876,6 @@ void ZapFuncs::toggleRubberband(bool drawWin)
     mStartingBand = 0;
     mBandChanged = 1;
     setControlAndLimits();
-    setMouseTracking();
   } else {
     if (mLassoOn)
       toggleLasso(false);
@@ -4036,6 +3886,7 @@ void ZapFuncs::toggleRubberband(bool drawWin)
     /* Eliminated old code for making initial band */
   }
 
+  setMouseTracking();
   mQtWindow->setLowHighSectionState(mRubberband + mStartingBand);
  
   // 3/6/05: synchronize the toolbar button
@@ -5247,48 +5098,17 @@ void ZapFuncs::drawTools()
   }
 }
 
+// Set the cursor as appropriate for what is being drawn
 void ZapFuncs::setCursor(int mode, bool setAnyway)
 {
-  Qt::CursorShape shape;
-
-  // Set up a special cursor for the rubber band
-  if (mStartingBand || ((mRubberband || mLassoOn) && (sMoveBandLasso || sDragBandLasso))
-      || mShiftingCont || mDrawingArrow) {
-    if (mStartingBand || sMoveBandLasso || mShiftingCont || (mLassoOn && sDragBandLasso)
-        || mDrawingArrow)
-      shape = Qt::SizeAllCursor;
-    else if ((sDragging[0] && sDragging[2]) || (sDragging[1] && sDragging[3]))
-      shape = Qt::SizeFDiagCursor;
-    else if ((sDragging[1] && sDragging[2]) || (sDragging[0] && sDragging[3]))
-      shape = Qt::SizeBDiagCursor;
-    else if (sDragging[0] || sDragging[1])
-      shape = Qt::SizeHorCursor;
-    else if (sDragging[2] || sDragging[3])
-      shape = Qt::SizeVerCursor;
-    if (shape != mLastShape || setAnyway) {
-
-      // This one makes the cursor show up a little better on starting/MAC
-      imod_info_input();
-      mGfx->setCursor(QCursor(shape));
-    }
-    mLastShape = shape;
-    return;
-  }
-
-  // Or restore cursor from rubber band or change cursor due to mode change
-  if (mMousemode != mode || mLastShape >= 0 || setAnyway) {
-    if (mode == IMOD_MMODEL || mDrawingLasso) {
-      mGfx->setCursor(*App->modelCursor);
-    } else {
-      mGfx->unsetCursor();
-    }
-    mMousemode = mode;
-    mLastShape = -1;
-    imod_info_input();
-  }
-  return;
+  bool needSpecial = ((mRubberband || mLassoOn) && (sMoveBandLasso || sDragBandLasso))
+    || mStartingBand || mShiftingCont || mDrawingArrow;
+  bool needSizeAll = mStartingBand || sMoveBandLasso || mShiftingCont || 
+    (mLassoOn && sDragBandLasso) || mDrawingArrow;
+  bool needModel = mDrawingLasso;
+  utilSetCursor(mode, setAnyway, needSpecial, needSizeAll, sDragging, needModel, 
+                mMousemode, mLastShape, mGfx);
 }
-
 
 int ZapFuncs::pointVisable(Ipoint *pnt)
 {
