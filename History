@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/19/13: Rubberband, arrows for view-axis based rotation, and slider for
+moving along view axis added to slicer; with band on, limits can be set and
+File-Extract File can be used extract selected region with Rotatevol.
+
+12/19/13: Fixed File-Extract File when subarea of volume or volumes of
+different size are loaded or when the time lock is on.
+
+12/19/13: Allowed X, Y, and Z limits out of range for Trimvol.
+
 12/13/13: Fixed 3dmod button resizing in Windows when change font size.
 
 12/13/13: In eTomo - Fine Alignment, exposed tiltalign - weightWholeTracks.
