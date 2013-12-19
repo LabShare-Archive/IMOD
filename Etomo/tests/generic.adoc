@@ -28,4 +28,4 @@ copy.file=BBalocal.xf
 bn.process-name=
 wait.file-chooser.open=%{dataset}-001.com
 bn.run-parallel-process=
-wait.process.processchunks-tilt=done
+wait.done.process.processchunks-tilt=done

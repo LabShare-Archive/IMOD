@@ -65,19 +65,19 @@ bn.done=
 
 [function = tiltxcorr]
 bn.calculate-cross-correlation=
-wait.process.cross-correlating-stack=done
+wait.done.process.cross-correlating-stack=done
 
 [function = tiltxcorr-blendmont]
 bn.calculate-cross-correlation=
-wait.process.cross-correlation=done
+wait.done.process.cross-correlation=done
 
 [function = newstack]
 bn.generate-coarse-aligned-stack=
-wait.process.creating-coarse-stack=done
+wait.done.process.creating-coarse-stack=done
 
 [function = blendmont]
 bn.generate-coarse-aligned-stack=
-wait.process.coarse-alignment=done
+wait.done.process.coarse-alignment=done
 
 [function = test1]
 #

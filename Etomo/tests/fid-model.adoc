@@ -17,7 +17,7 @@ if.equals.var.axis.return=b
 [[ifnot = patch-tracking]]
   copy.file=%{dataset}%{axis}.seed
   bn.track-seed-model=
-  wait.process.tracking-fiducials=done
+  wait.done.process.tracking-fiducials=done
   copy.file=%{dataset}%{axis}.fid
 [[]]
 [[if = patch-tracking]]
@@ -25,7 +25,7 @@ if.equals.var.axis.return=b
   cb.use-boundary-model=
   copy.file=%{dataset}%{axis}_ptbound.mod
   bn.track-patches=
-  wait.process.cross-correlating-stack=done
+  wait.done.process.cross-correlating-stack=done
 [[]]
 bn.done=
 
@@ -34,7 +34,7 @@ bn.done=
 if.not-equals.var.axis.return = b
 rb.transfer-seed-model-from-the-other-axis=
 bn.transfer-fiducials-from-other-axis =
-wait.process.transferring-fiducials = done
+wait.done.process.transferring-fiducials = done
 bn.done=
 
 
@@ -156,7 +156,7 @@ rb.generate-seed-model-automatically=
 [[]]
 tf.total-number=40
 bn.generate-seed-model=
-wait.process.autofidseed=done
+wait.done.process.autofidseed=done
 [[if = test-gui]]
   #test values
   assert.bn.generate-seed-model=on
@@ -173,7 +173,7 @@ wait.process.autofidseed=done
 [[]]
 cb.select-beads-on-two-surfaces=on
 bn.generate-seed-model=
-wait.process.autofidseed=done
+wait.done.process.autofidseed=done
 [[if = test-gui]]
   #test enabled/disabled
   assert.enabled.bn.open-sorted-3d-models=
@@ -194,7 +194,7 @@ wait.process.autofidseed=done
 [[]]
 # clean up
 bn.clean-up-temporary-files=
-wait.process.deleting-temporary-directory=done
+wait.done.process.deleting-temporary-directory=done
 [[if = test-gui]]
   #test enabled/disabled
   assert.disabled.bn.open-initial-bead-model=
@@ -241,7 +241,7 @@ mb.transfer-fiducials=+
 	mb.transfer-fiducials.1=B
 [[]]
 bn.transfer-fiducials-from-other-axis =
-wait.process.transferring-fiducials = done
+wait.done.process.transferring-fiducials = done
 [[if = test-gui]]
 assert.rb.transfer-seed-model-from-the-other-axis=on
 assert.exists.file=transferfid.log
@@ -334,22 +334,22 @@ cb.local-tracking=off
 run.function.expert-parameters=
 cb.refine-center-with-sobel-filter=on
 bn.track-seed-model=
-wait.process.tracking-fiducials=done
+wait.done.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.com
 assert.exists.file=track%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
 cb.refine-center-with-sobel-filter=off
 bn.track-seed-model=
-wait.process.tracking-fiducials=done
+wait.done.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.log~
 assert.exists.file=%{dataset}%{axis}.fid~
 bn.track-with-fiducial-model-as-seed=
-wait.process.tracking-fiducials=done
+wait.done.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.com
 assert.exists.file=track%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
 bn.track-with-fiducial-model-as-seed=
-wait.process.tracking-fiducials=done
+wait.done.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.log~
 bn.fix-fiducial-model=
 sleep=
@@ -466,14 +466,14 @@ cb.use-boundary-model=
 copy.file=%{dataset}%{axis}_ptbound.mod
 bn.create-boundary-model=
 bn.track-patches=
-wait.process.cross-correlating-stack=done
+wait.done.process.cross-correlating-stack=done
 assert.exists.file=xcorr_pt%{axis}.com
 assert.exists.file=xcorr%{axis}.com
 assert.exists.file=xcorr_pt%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
 sp.iterations-to-increase-subpixel-accuracy=2
 bn.track-patches=
-wait.process.cross-correlating-stack=done
+wait.done.process.cross-correlating-stack=done
 assert.exists.file=xcorr_pt%{axis}.log~
 assert.exists.file=%{dataset}%{axis}.fid~
 #don't break contours for midzone2b (doesn't need it)
@@ -488,7 +488,7 @@ cb.break-contours-into-pieces=on
   tf.break-contours-into-pieces=16,4
 [[]]
 bn.track-patches=
-wait.process.cross-correlating-stack=done
+wait.done.process.cross-correlating-stack=done
 
 
 [function = patch-layout]
@@ -559,7 +559,7 @@ tf.#-of-beads-to-choose=%{#-of-beads-to-choose}
   rb.run-against-the-raw-stack=
 [[]]
 bn.run-raptor=
-wait.process.running-runraptor=done
+wait.done.process.running-runraptor=done
 assert.exists.file=%{dataset}%{axis}_raptor.fid
 assert.exists.file=raptor1
 assert.exists.file=raptor1/align
@@ -570,7 +570,7 @@ assert.exists.file=raptor1/IMOD/%{dataset}%{axis}.fid.txt
 assert.exists.file=raptor1/IMOD/%{dataset}%{axis}.rawtlt
 #run raptor against the coarse aligned stack
 bn.run-raptor=
-wait.process.running-runraptor=done
+wait.done.process.running-runraptor=done
 assert.exists.file=%{dataset}%{axis}_raptor.fid~
 assert.exists.file=raptor2
 assert.exists.file=raptor2/align

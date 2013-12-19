@@ -84,7 +84,7 @@ bn.open-raw-stack=
   cb.robust-fitting-with-criterion=off
 [[]]
 bn.make-blended-stack=
-wait.process.initial-blend=done
+wait.done.process.initial-blend=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}_preblend.mrc
   assert.exists.file=%{dataset}.ecd
@@ -99,7 +99,7 @@ wait.process.initial-blend=done
   tb.initial-blend=
 [[]]
 bn.make-blended-stack=
-wait.process.initial-blend=done
+wait.done.process.initial-blend=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}_preblend.mrc~
   assert.exists.file=%{dataset}.xef~
@@ -192,7 +192,7 @@ tb.initial-blend.1=
   tf.sections-to-skip=
 [[]]
 bn.initial-auto-alignment=
-wait.process.initial-xfalign=done
+wait.done.process.initial-xfalign=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}_auto.xcxf
   assert.exists.file=%{dataset}_auto.xf
@@ -201,12 +201,12 @@ wait.process.initial-xfalign=done
 [[]]
 bn.midas=
 bn.refine-with-auto-alignment=
-wait.process.refine-xfalign=done
+wait.done.process.refine-xfalign=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}_auto.xf~
 [[]]
 bn.initial-auto-alignment=
-wait.process.initial-xfalign=done
+wait.done.process.initial-xfalign=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}_auto.xcxf~
 [[]]
@@ -271,7 +271,7 @@ if.var.montage.rb.remove-trends-in-translation-&-rotation=
 if.var.montage.set.var.descr=blend-serial-sections
 if.not.var.montage.set.var.descr=creating-aligned-stack
 bn.make-aligned-stack=
-wait.process.%{descr}=done
+wait.done.process.%{descr}=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}.xg
   assert.exists.file=%{dataset}_ali.mrc
@@ -279,7 +279,7 @@ wait.process.%{descr}=done
   assert.same.file=%{cmd}.com
 [[]]
 bn.make-aligned-stack=
-wait.process.%{descr}=done
+wait.done.process.%{descr}=done
 [[if = test-gui]]
   assert.exists.file=%{dataset}.xg~
   assert.exists.file=%{dataset}_ali.mrc~

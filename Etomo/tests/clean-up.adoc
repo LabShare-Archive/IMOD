@@ -6,14 +6,14 @@ Version = 2.1
 	if.disabled.bn.archive-original-stack.return = 
 	bn.archive-original-stack =
 	wait.popup.delete-file? = Delete
-	wait.process.archiving-only-stack = done
+	wait.done.process.archiving-only-stack = done
 [[]]
 [[if = dual]]
 	if.disabled.bn.archive-original-stacks.return = 
 	bn.archive-original-stacks =
 	wait.popup.delete-file? = Delete
 	wait.popup.delete-file? = Delete
-	wait.process.archiving-second-stack = done
+	wait.done.process.archiving-second-stack = done
 [[]]
 bn.done=
 sleep=
