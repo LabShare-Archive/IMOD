@@ -36,6 +36,7 @@
 #include "undoredo.h"
 #include "preferences.h"
 #include "imod_input.h"
+#include "info_cb.h"
 #include "client_message.h"
 #include "imod_assistant.h"
 #include "dia_qtutils.h"  
@@ -555,6 +556,218 @@ void utilWheelChangePointSize(ImodView *vi, float zoom, int delta)
   imodPointSetSize(cont, pt, size);
   vi->undo->finishUnit();
   imodDraw(vi, IMOD_DRAW_MOD);
+}
+
+/*
+ * Determines whether the mouse has moved enough from the mouse press point to commit
+ * the rubber band to a certain direction.  If so it assigns the corners in the correct
+ * order and sets dragging flags.
+ */
+int utilIsBandCommitted(int x, int y, int winX, int winY, int bandmin, int &rbMouseX0,
+                        int &rbMouseX1, int &rbMouseY0, int &rbMouseY1, int *dragging)
+{
+  int bandCrit1 = 3 * bandmin;
+  int bandCrit2 = 6 * bandmin;
+  int bandMin2 = B3DMAX(1, bandmin / 2);
+  int diffX, diffY, absDiffX, absDiffY, i, longc = 0;
+
+  // get differences and absolute differences
+  diffX = x - rbMouseX0;
+  diffY = y - rbMouseY0;
+  absDiffX = diffX < 0 ? -diffX : diffX;
+  absDiffY = diffY < 0 ? -diffY : diffY;
+
+  // If one axis change is still zero but the other is big enough, commit to the 
+  // direction toward middle of window; revise differences
+  if (!diffY && absDiffX >= bandCrit2) {
+    if (y < winY / 2)
+      y = rbMouseY0 + bandmin;
+    else 
+      y = rbMouseY0 - bandmin;
+    absDiffY = bandmin;
+    longc = 1;
+  } else if (!diffX && absDiffY >= bandCrit2) {
+    if (x < winX / 2)
+      x = rbMouseX0 + bandmin;
+    else 
+      x = rbMouseX0 - bandmin;
+    absDiffX = bandmin;
+    longc = 2;
+  }
+
+  // Ready to start if both directions are bigger than the minimum, or one is
+  // bigger than a criterion and the other is big enough
+  if (!((absDiffX >= bandmin && absDiffY >= bandmin) || 
+        (absDiffX >= bandCrit1 && absDiffY >= bandMin2 ) || 
+        (absDiffY >= bandCrit1 && absDiffX >= bandMin2)))
+    return 0;
+
+  //imodPrintStderr("COMMIT rb0 %d %d x,y %d %d diffX %d  diffY %d longc %d\n",
+  //                rbMouseX0,rbMouseY0 , x, y, absDiffX, absDiffY , longc);
+  for (i = 0; i < 4; i++)
+    dragging[i] = 0;
+
+  // Put the two coords in order on each axis and set the dragging flags
+  if (x > rbMouseX0) {
+    dragging[1] = 1;
+    rbMouseX1 = x;
+  } else {
+    dragging[0] = 1;
+    rbMouseX1 = rbMouseX0;
+    rbMouseX0 = x;
+  }
+  if (y > rbMouseY0) {
+    dragging[3] = 1;
+    rbMouseY1 = y;
+  } else {
+    dragging[2] = 1;
+    rbMouseY1 = rbMouseY0;
+    rbMouseY0 = y;
+  }
+  return 1;
+}
+
+void utilAnalyzeBandEdge(int ix, int iy, int rbMouseX0, int rbMouseX1, int rbMouseY0,
+                         int rbMouseY1, int &dragBand, int *dragging)
+{
+  int rubbercrit = 10;  /* Criterion distance for grabbing the band */
+  int i, dminsq, dist, distsq, dmin, dxll, dyll, dxur, dyur;
+  int minedgex, minedgey;
+
+  dminsq = rubbercrit * rubbercrit;
+  dragBand = 0;
+  minedgex = -1;
+  for (i = 0; i < 4; i++)
+    dragging[i] = 0;
+  dxll = ix - rbMouseX0;
+  dxur = ix - rbMouseX1;
+  dyll = iy - rbMouseY0;
+  dyur = iy - rbMouseY1;
+
+  /* Find distance from each corner, keep track of a min */
+  distsq = dxll * dxll + dyll * dyll;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 0;
+    minedgey = 2;
+  }
+  distsq = dxur * dxur + dyll * dyll;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 1;
+    minedgey = 2;
+  }
+  distsq = dxll * dxll + dyur * dyur;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 0;
+    minedgey = 3;
+  }
+  distsq = dxur * dxur + dyur * dyur;
+  if (distsq < dminsq) {
+    dminsq = distsq;
+    minedgex = 1;
+    minedgey = 3;
+  }
+
+  /* If we are close to a corner, set up to drag the band */
+  if (minedgex >= 0) {
+    dragBand = 1;
+    dragging[minedgex] = 1;
+    dragging[minedgey] = 1;
+  } else {
+    /* Otherwise look at each edge in turn */
+    dmin = rubbercrit;
+    dist = dxll > 0 ? dxll : -dxll;
+    if (dyll > 0 && dyur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 0;
+    }
+    dist = dxur > 0 ? dxur : -dxur;
+    if (dyll > 0 && dyur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 1;
+    }
+    dist = dyll > 0 ? dyll : -dyll;
+    if (dxll > 0 && dxur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 2;
+    }
+    dist = dyur > 0 ? dyur : -dyur;
+    if (dxll > 0 && dxur < 0 && dist < dmin){
+      dmin = dist;
+      minedgex = 3;
+    }
+    if (minedgex < 0)
+      dragBand = 0;
+    else {
+      dragging[minedgex] = 1;
+      dragBand = 1;
+    }
+  }
+}
+
+// Test whether the cursor is within criterion distance of band edge for moving it
+int utilTestBandMove(int x, int y, int rbMouseX0, int rbMouseX1, int rbMouseY0,
+                     int rbMouseY1)
+{
+  int dxll, dxur,dyll, dyur;
+  int rcrit = 10;   /* Criterion for moving the whole band */
+  dxll = x - rbMouseX0;
+  dxur = x - rbMouseX1;
+  dyll = y - rbMouseY0;
+  dyur = y - rbMouseY1;
+  if ((dyll > 0 && dyur < 0 && ((dxll < rcrit && dxll > -rcrit) ||
+                                (dxur < rcrit && dxur > -rcrit))) ||
+      (dxll > 0 && dxur < 0 && ((dyll < rcrit && dyll > -rcrit) ||
+                                (dyur < rcrit && dyur > -rcrit))))
+    return 1;
+  return 0;
+}
+
+/*
+ * Set a cursor based on movie/model mode or need for special drawing cursor; maintain
+ * the last state set and mode for which is was set
+ */
+void utilSetCursor(int mode, bool setAnyway, bool needSpecial, bool needSizeAll,
+                   int *dragging, bool needModel, int &mouseMode, int &lastShape, 
+                   QGLWidget *GLw)
+{
+  Qt::CursorShape shape;
+
+  // Set up a special cursor for the rubber band, lasso, etc
+  if (needSpecial) {
+    if (needSizeAll)
+      shape = Qt::SizeAllCursor;
+    else if ((dragging[0] && dragging[2]) || (dragging[1] && dragging[3]))
+      shape = Qt::SizeFDiagCursor;
+    else if ((dragging[1] && dragging[2]) || (dragging[0] && dragging[3]))
+      shape = Qt::SizeBDiagCursor;
+    else if (dragging[0] || dragging[1])
+      shape = Qt::SizeHorCursor;
+    else if (dragging[2] || dragging[3])
+      shape = Qt::SizeVerCursor;
+    if (shape != lastShape || setAnyway) {
+
+      // This one makes the cursor show up a little better on starting/MAC
+      imod_info_input();
+      GLw->setCursor(QCursor(shape));
+    }
+    lastShape = shape;
+    return;
+  }
+
+  // Or restore cursor from special state or change cursor due to mode change
+  if (mouseMode != mode || lastShape >= 0 || setAnyway) {
+    if (mode == IMOD_MMODEL || needModel) {
+      GLw->setCursor(*App->modelCursor);
+    } else {
+      GLw->unsetCursor();
+    }
+    mouseMode = mode;
+    lastShape = -1;
+    imod_info_input();
+  }
 }
 
 /* Converts a flipped model to a rotated one if direction is FLIP_TO_ROTATION, or

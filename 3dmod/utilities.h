@@ -23,6 +23,7 @@ class QIcon;
 class QSignalMapper;
 class QMouseEvent;
 class QKeyEvent;
+class QGLWidget;
 
 typedef struct ViewInfo ImodView;
 typedef struct scale_bar ScaleBar;
@@ -70,6 +71,15 @@ void utilFreeMontSnapArrays(unsigned char **fullPix, int numChunks,
                             unsigned char *framePix, unsigned char **linePtrs);
 float utilWheelToPointSizeScaling(float zoom);
 void utilWheelChangePointSize(ImodView *vi, float zoom, int delta);
+int utilIsBandCommitted(int x, int y, int winX, int winY, int bandmin, int &rbMouseX0,
+                        int &rbMouseX1, int &rbMouseY0, int &rbMouseY1, int *dragging);
+void utilAnalyzeBandEdge(int ix, int iy, int rbMouseX0, int rbMouseX1, int rbMouseY0,
+                         int rbMouseY1, int &dragBand, int *dragging);
+void utilSetCursor(int mode, bool setAnyway, bool needSpecial, bool needSizeAll,
+                   int *dragging, bool needModel, int &mouseMode, int &lastShape, 
+                   QGLWidget *GLw);
+int utilTestBandMove(int x, int y, int rbMouseX0, int rbMouseX1, int rbMouseY0,
+                     int rbMouseY1);
 void utilExchangeFlipRotation(Imod *imod, int direction);
 Icont *utilAutoNewContour(ImodView *vi, Icont *cont, bool notPlanar, bool timeMismatch,
                           int timeLock, int setSurface, const char *planeText,
