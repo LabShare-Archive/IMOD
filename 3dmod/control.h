@@ -163,6 +163,7 @@ class DLL_EX_IM DialogManager
   void windowList(QObjectList *objList, int dlgClass, int dlgType);
   QObject *getTopWindow(int dlgType);
   QObject *getTopWindow(int dlgType, int dlgType2, int &typeFound);
+  QObject *getTopWindow(bool withBand, bool withLasso, int type, int *index);
 
  private:
   Ilist *mDialogList;

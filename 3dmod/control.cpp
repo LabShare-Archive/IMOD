@@ -549,6 +549,83 @@ QObject *DialogManager::getTopWindow(int dlgType, int dlgType2, int &typeFound)
   return dia->widget;
 }
 
+/*
+ * Find either the first Zap window of the given type (default regular zap) or the first 
+ * slicer window.  If seeking a Zap window, it looks for one with a rubberband 
+ * if flag is set, or with a lasso if that flag is set (default false) or with either one
+ * if both flags are set.  It tests that the band is usable for file extraction (either
+ * starting with low-high set, or big enough).  If seeking a slicer, it looks for one
+ * with a rubberband starting or present, with no tests for extraction validity.
+ * Returns the window list index in *index if index is nonNULL.
+ */
+QObject *DialogManager::getTopWindow(bool withBand, bool withLasso, int type, int *index)
+{
+  QObjectList objList;
+  ZapFuncs *zap;
+  SlicerFuncs *slicer;
+  ImodControl *ctrlPtr;
+  int ixl, ixr, iyb, iyt;
+  int i, j, curSave, topOne;
+
+  if (index)
+    *index = -1;
+  imodDialogManager.windowList(&objList, -1, type);
+  if (!objList.count())
+    return NULL;
+
+  // Loop through the control list and find the first window that is a zap with a viable
+  // rubberband if required, which is either a drawn band or Z limits set & starting band
+  // It is best to save and restore ctrlist current item
+  topOne = -1;
+  curSave = App->cvi->ctrlist->list->current;
+  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
+    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
+    for (i = 0; i < objList.count(); i++) {
+      if (type == SLICER_WINDOW_TYPE) {
+
+        // Check a slicer
+        slicer = ((SlicerWindow *)objList.at(i))->mFuncs;
+        if (ctrlPtr->id == slicer->mCtrl && 
+            (!withBand || slicer->mRubberband || slicer->mStartingBand)) {
+          if (index)
+            *index = j;
+          topOne = i;
+          break;
+        }
+      } else {
+
+        // Or check a zap
+        zap = ((ZapWindow *)objList.at(i))->mZap;
+        if (ctrlPtr->id == zap->mCtrl && 
+            ((!withLasso || (zap->mLassoOn && !zap->mDrawingLasso)) ||
+             (!withBand || zap->mRubberband || 
+              (zap->mStartingBand && zap->getLowHighSection(ixl, ixr))))) {
+          if (zap->mRubberband) {
+            ixl = (int)floor(zap->mRbImageX0 + 0.5);
+            ixr = (int)floor(zap->mRbImageX1 - 0.5);
+            iyb = (int)floor(zap->mRbImageY0 + 0.5);
+            iyt = (int)floor(zap->mRbImageY1 - 0.5);
+            if (ixr < 1 || iyt < 1 || ixl > zap->mVi->xsize - 2 || 
+                iyb > zap->mVi->ysize - 2)
+              continue;
+          }
+          topOne = i;
+          if (index)
+            *index = j;
+          break;
+        }
+      }
+    }
+  }
+  App->cvi->ctrlist->list->current = curSave;
+  if (topOne < 0 && (withBand || withLasso))
+    return NULL;
+  if (topOne < 0)
+    topOne = 0;
+  return objList.at(topOne);
+}
+
+
 // Adjust size 
 void adjustGeometryAndShow(QWidget *widget, int dlgClass, bool doSize)
 {
