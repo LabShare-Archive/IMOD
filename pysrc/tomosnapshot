@@ -186,7 +186,7 @@ def removeWarn(rfile):
 #### MAIN PROGRAM  ####
 #
 # load System Libraries
-import os, sys, glob, shutil, tempfile, tarfile, stat
+import os, sys, glob, shutil, tempfile, tarfile, stat, math
 
 #
 # Setup runtime environment

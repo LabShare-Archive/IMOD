@@ -9,6 +9,8 @@ different size are loaded or when the time lock is on.
 
 12/19/13: Allowed X, Y, and Z limits out of range for Trimvol.
 
+12/19/13: Fixed autofidseed and findsirtdiffs for Python 3.
+
 12/13/13: Fixed 3dmod button resizing in Windows when change font size.
 
 12/13/13: In eTomo - Fine Alignment, exposed tiltalign - weightWholeTracks.
