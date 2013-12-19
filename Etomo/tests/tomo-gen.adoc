@@ -118,7 +118,13 @@ run.function.setup-patch-tracking=
 [[]]
 cb.parallel-processing=on
 bn.generate-tomogram=
-wait.process.processchunks-tilt%{axis}=done
+[[if = test-gui]]
+  wait.process.processchunks-tilt%{axis}=ETC
+  bn.kill-process=
+  wait.done.process.processchunks-tilt%{axis}=killed
+  bn.generate-tomogram=
+[[]]
+wait.done.process.processchunks-tilt%{axis}=done
 if.var.build.return=
 # check files
 assert.exists.file=tilt%{axis}.com
@@ -136,7 +142,13 @@ assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 # run again without parallel processing
 cb.parallel-processing=off
 bn.generate-tomogram=
-wait.process.calculating-tomogram=done
+[[if = test-gui]]
+  wait.process.processchunks-tilt%{axis}=1 of
+  bn.kill-process=
+  wait.done.process.processchunks-tilt%{axis}=killed
+  bn.generate-tomogram=
+[[]]
+wait.done.process.calculating-tomogram=done
 # check files
 assert.exists.file=tilt%{axis}.log~
 assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec~
@@ -145,7 +157,7 @@ assert.exists.file=tilt%{axis}.log
 assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 # run again without parallel processing
 bn.generate-tomogram=
-wait.process.calculating-tomogram=done
+wait.done.process.calculating-tomogram=done
 # check files
 assert.exists.file=tilt%{axis}.log~
 assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec~
@@ -155,7 +167,7 @@ assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 # run agains with parallel processing
 cb.parallel-processing=on
 bn.generate-tomogram=
-wait.process.processchunks-tilt%{axis}=done
+wait.done.process.processchunks-tilt%{axis}=done
 # check files
 assert.exists.file=tilt%{axis}.log~
 assert.exists.file=processchunks%{axis}.out~
@@ -205,7 +217,7 @@ cb.parallel-processing=on
 mb.parallel-processing=-
 cbb.trial-tomogram-filename=trial%{axis}
 bn.generate-trial-tomogram=
-wait.process.processchunks-tilt%{axis}=done
+wait.done.process.processchunks-tilt%{axis}=done
 # check files
 assert.exists.file=tilt%{axis}.com
 assert.exists.file=tilt%{axis}-start.com
@@ -218,7 +230,7 @@ assert.exists.file=trial%{axis}
 # run again without parallel processing
 cb.parallel-processing=off
 bn.generate-trial-tomogram=
-wait.process.calculating-tomogram=done
+wait.done.process.calculating-tomogram=done
 # check files
 assert.exists.file=tilt%{axis}.log~
 assert.exists.file=trial%{axis}~
@@ -227,7 +239,7 @@ assert.exists.file=tilt%{axis}.log
 assert.exists.file=trial%{axis}
 # run again without parallel processing
 bn.generate-trial-tomogram=
-wait.process.calculating-tomogram=done
+wait.done.process.calculating-tomogram=done
 # check files
 assert.exists.file=tilt%{axis}.log~
 assert.exists.file=trial%{axis}~
@@ -237,7 +249,7 @@ assert.exists.file=trial%{axis}
 # run again with parallel processing
 cb.parallel-processing=on
 bn.generate-trial-tomogram=
-wait.process.processchunks-tilt%{axis}=done
+wait.done.process.processchunks-tilt%{axis}=done
 # check files
 assert.exists.file=tilt%{axis}.log~
 assert.exists.file=processchunks%{axis}.out~
@@ -342,7 +354,7 @@ mb.tilt=-
   # create the single rec to be opened, etc
   cb.reconstruct-subarea=off
   bn.run-sirt=
-  wait.process.processchunks-tilt%{axis}_sirt=done
+  wait.done.process.processchunks-tilt%{axis}_sirt=done
   bn.view-tomogram-in-3dmod=
   bn.use-sirt-output-file=
   wait.popup.etomo-question=Yes
@@ -364,7 +376,7 @@ cb.scale-retained-volumes-to-integers=on
 cb.delete-existing-reconstructions-after-starting-point=on
 tf.iteration-#'s-to-retain=1,2
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=2
   assert.enabled.rb.resume-from-last-iteration=
@@ -386,7 +398,7 @@ cb.delete-existing-reconstructions-after-starting-point=off
 tf.iteration-#'s-to-retain=3
 rb.resume-from-last-iteration=
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
@@ -404,7 +416,7 @@ cb.scale-retained-volumes-to-integers=off
 tf.iteration-#'s-to-retain=4
 rb.go-back,-resume-from-iteration=
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
@@ -443,7 +455,7 @@ cb.scale-retained-volumes-to-integers=on
 cb.delete-existing-reconstructions-after-starting-point=on
 tf.iteration-#'s-to-retain=1,2
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=2
   assert.enabled.rb.resume-from-last-iteration=
@@ -465,7 +477,7 @@ cb.delete-existing-reconstructions-after-starting-point=off
 tf.iteration-#'s-to-retain=3
 rb.resume-from-last-iteration=
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
@@ -483,7 +495,7 @@ cb.scale-retained-volumes-to-integers=off
 tf.iteration-#'s-to-retain=4
 rb.go-back,-resume-from-iteration=
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
@@ -508,7 +520,7 @@ cb.scale-retained-volumes-to-integers=on
 cb.delete-existing-reconstructions-after-starting-point=on
 tf.iteration-#'s-to-retain=1,3
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
@@ -536,7 +548,7 @@ tf.size-in-x-and-y=250,250
 tf.iteration-#'s-to-retain=2
 rb.resume-from-last-iteration=
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.enabled.rb.resume-from-last-iteration=
   assert.enabled.rb.go-back,-resume-from-iteration=
@@ -564,7 +576,7 @@ cb.delete-existing-reconstructions-after-starting-point=off
 tf.iteration-#'s-to-retain=4
 rb.go-back,-resume-from-iteration=
 bn.run-sirt=
-wait.process.processchunks-tilt%{axis}_sirt=done
+wait.done.process.processchunks-tilt%{axis}_sirt=done
 [[if = test-gui]]
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
