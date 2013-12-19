@@ -30,9 +30,10 @@ package etomo.uitest;
 final class UITestModifierType {
   public static final String rcsid = "$Id$";
 
-  //Cannot be the same as AxisID ("a" or "b")
+  // Cannot be the same as AxisID ("a" or "b")
   static final UITestModifierType ALWAYS = new UITestModifierType("always");
   static final UITestModifierType CONTAINS = new UITestModifierType("contains");
+  static final UITestModifierType DONE = new UITestModifierType("done");
   static final UITestModifierType ENABLED = new UITestModifierType("enabled");
   static final UITestModifierType EQUALS = new UITestModifierType("equals");
   static final UITestModifierType EXISTS = new UITestModifierType("exists");
@@ -43,8 +44,10 @@ final class UITestModifierType {
   static final UITestModifierType NOT_EXISTS = new UITestModifierType("not-exists");
   static final UITestModifierType SAME = new UITestModifierType("same");
   static final UITestModifierType SINGLE = new UITestModifierType("single");
-  static final UITestModifierType GE = new UITestModifierType("ge");//greater then or equal to
-  static final UITestModifierType LE = new UITestModifierType("le");//less then or equal to
+  static final UITestModifierType GE = new UITestModifierType("ge");// greater then or
+                                                                    // equal to
+  static final UITestModifierType LE = new UITestModifierType("le");// less then or equal
+                                                                    // to
 
   private final String string;
 
@@ -61,6 +64,9 @@ final class UITestModifierType {
     }
     if (CONTAINS.equals(string)) {
       return CONTAINS;
+    }
+    if (DONE.equals(string)) {
+      return DONE;
     }
     if (ENABLED.equals(string)) {
       return ENABLED;

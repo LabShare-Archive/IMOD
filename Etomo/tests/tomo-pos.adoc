@@ -21,7 +21,7 @@ bn.done=
 
 [function = quick]
 bn.create-sample-tomograms =
-wait.process.creating-sample-tomogram = done
+wait.done.process.creating-sample-tomogram = done
 run.function.copy=
 run.function.compute-z-shift-&-pitch-angles=
 run.function.create-final-alignment=
@@ -32,7 +32,7 @@ bn.done=
 cb.use-whole-tomogram = off
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 bn.create-sample-tomograms =
-wait.process.creating-sample-tomogram = done
+wait.done.process.creating-sample-tomogram = done
 
 
 [function = copy]
@@ -60,19 +60,19 @@ assert.contains.file=tilt%{axis}.com|EXCLUDELIST*1
 
 [function = compute-z-shift-&-pitch-angles]
 bn.compute-z-shift-&-pitch-angles =
-wait.process.finding-sample-position = done
+wait.done.process.finding-sample-position = done
 
 
 [function = create-final-alignment]
 bn.create-final-alignment =
-wait.process.calculating-final-alignment = done
+wait.done.process.calculating-final-alignment = done
 
 
 [function = test-create-sample-tomograms]
 # check whole tomogram
 cb.use-whole-tomogram = on
 bn.create-whole-tomogram =
-wait.process.calculating-tomogram = done
+wait.done.process.calculating-tomogram = done
 if.not.var.single.assert.exists.file = %{dataset}%{axis}.rec
 if.var.single.assert.exists.file = %{dataset}_full.rec
 cb.use-whole-tomogram = off

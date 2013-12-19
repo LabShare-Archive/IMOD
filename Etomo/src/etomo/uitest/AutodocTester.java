@@ -1161,10 +1161,11 @@ final class AutodocTester extends Assert implements VariableList {
       }
       catch (InterruptedException e) {
       }
-      assertNull("modifier not used with this actionType (" + command + ")", modifierType);
       assertNotNull("value is required (" + command + ")", value);
       // wait.file-chooser.file_chooser_title = chosen_file
       if (subjectType == UITestSubjectType.FILE_CHOOSER) {
+        assertNull("modifier not used with this actionType (" + command + ")",
+            modifierType);
         setupComponentFinder(JFileChooser.class);
         JFileChooser fileChooser = (JFileChooser) finder.find();
         if (fileChooser == null) {
@@ -1200,6 +1201,8 @@ final class AutodocTester extends Assert implements VariableList {
       }
       // wait.popup.popup_title = dismiss_button_label
       else if (subjectType == UITestSubjectType.POPUP) {
+        assertNull("modifier not used with this actionType (" + command + ")",
+            modifierType);
         assertNotNull("popup name is required (" + command + ")", subjectName);
         assertNotNull("button to close popup is required (" + command + ")", value);
         if (!wait) {
@@ -1260,35 +1263,40 @@ final class AutodocTester extends Assert implements VariableList {
         setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
         JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
         assertNotNull("can't find progress bar label (" + command + ")", progressBar);
-        // Decide if the process is still running
-        if (killButton.isEnabled()) {
-          return;
+        if (modifierType == UITestModifierType.DONE) {
+          // Decide if the process is still running
+          if (killButton.isEnabled()) {
+            return;
+          }
+          // The killButton turns on and off in between processes. Avoid exiting
+          // in that case.
+          try {
+            Thread.sleep(500);
+          }
+          catch (InterruptedException e) {
+          }
+          if (killButton.isEnabled()) {
+            return;
+          }
+          try {
+            Thread.sleep(500);
+          }
+          catch (InterruptedException e) {
+          }
+          if (killButton.isEnabled()) {
+            return;
+          }
+          try {
+            Thread.sleep(500);
+          }
+          catch (InterruptedException e) {
+          }
+          if (killButton.isEnabled()) {
+            return;
+          }
         }
-        // The killButton turns on and off in between processes. Avoid exiting
-        // in that case.
-        try {
-          Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
-        }
-        if (killButton.isEnabled()) {
-          return;
-        }
-        try {
-          Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
-        }
-        if (killButton.isEnabled()) {
-          return;
-        }
-        try {
-          Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
-        }
-        if (killButton.isEnabled()) {
-          return;
+        else if (modifierType != null) {
+          fail("unexpected command (" + command.toString() + ")");
         }
         // Decide if this is the right process
         String progressBarName = Utilities.convertLabelToName(progressBarLabel.getText());
@@ -1350,7 +1358,10 @@ final class AutodocTester extends Assert implements VariableList {
     if (progressString == null) {
       return false;
     }
-    return progressString.equals(expectedString);
+    if (progressString.equals(expectedString)) {
+      return true;
+    }
+    return progressString.startsWith(expectedString);
   }
 
   /**
@@ -1383,7 +1394,8 @@ final class AutodocTester extends Assert implements VariableList {
 
   private void touch(final File file) {
     SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
-        new String[] { "touch", file.getAbsolutePath() }, AxisID.ONLY);
+        new String[] { "python", BaseManager.getIMODBinPath() + "b3dtouch",
+            file.getAbsolutePath() }, AxisID.ONLY);
     copy.run();
   }
 
@@ -2034,7 +2046,7 @@ final class AutodocTester extends Assert implements VariableList {
         else {
           tryAgain = true;
           frameWait++;
-          System.err.println("Wait "+ frameWait+" for "+name);
+          System.err.println("Wait " + frameWait + " for " + name);
         }
       }
       else {

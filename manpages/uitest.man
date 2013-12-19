@@ -167,9 +167,9 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I modifier
-.B always\fR, \fBcontains\fR, \fBdisabled\fR, \fBenabled\fR, \fBequals\fR, \fBexists\fR,
-\fBge\fR, \fBkeep\fR, \fBle\fR, \fBnot\fR, \fBnot-equals\fR, \fBnot-exists\fR,
-\fBsame\fR, \fBsingle
+.B always\fR, \fBcontains\fR, \fBdisabled\fR, \fBdone\fR, \fBenabled\fR,
+\fBequals\fR, \fBexists\fR, \fBge\fR, \fBkeep\fR, \fBle\fR, \fBnot\fR,
+\fBnot-equals\fR, \fBnot-exists\fR, \fBsame\fR, \fBsingle\fR
 
 .TP 4
 .I subject
@@ -757,7 +757,7 @@ selected.
 .B assert.contains.file = \fR(\fIfile_name\fR|\fIrelative_path\fR)\fB|\fIliteral_string
 Tests whether a file in the \fItest_directory\fR called \fIfile_name\fR contains
 \fIliteral_string\fR.  All or part of the \fIliteral_string\fR can be quoted with
-double quotes (\fB"\fR) to prevent variable substitution.  The wildcard (\fB*\fR)
+double quotes (\fB" "\fR) to prevent variable substitution.  The wildcard (\fB*\fR)
 will work in \fIliteral_string\fR.  The \fIliteral_string\fR can only contain one
 line.  \fILiteral_string\fR doesn't have to start at the beginning of the line, 
 or go on until the end of the line.
@@ -1118,14 +1118,16 @@ converted to a name (see Naming).  Presses the button on the popup identified by
 \fIpopup_button_name\fR.
 
 .TP 4
-.B wait.process.\fIprocess_name\fB = \fIend_state
-Waits for a process to end.  Can be used to wait for a single process or the
-last process in a sequence.  It will not be reliable for waiting for a process
-that is not the last process or a single process.  The \fIprocess_name\fR comes
+.B wait.\fR[\fBdone.\fR]\fBprocess.\fIprocess_name\fB = \fIprogress_state
+Waits for a process to reach a specified state.  The \fIprocess_name\fR comes
 from the string describing the process which appears at the top of the window
-when a process is running (see Naming).  The \fIend_state\fR is the text on the
-process bar when the process is done.  The Autodoc Tester checks for the Kill
-Process button to be disabled as a way to see if a process is done.
+when a process is running (see Naming).  The \fIprogress_state\fR is all or
+part of the text expected in the progress bar.  If \fBdone\fR is used, then the
+Autodoc Tester will check the Kill Process button several times to make sure
+that it remains disabled before doing the \fIprogress_state\fR comparison.  The
+progress bar is not watched continuously, so a state that doesn't last long,
+such as the end of the first process in a sequence, will probably be ignored.
+
 
 .TP 4
 .B wait.test.\fR(\fBa\fR|\fBb\fR)\fB = \fIdialog_section_name

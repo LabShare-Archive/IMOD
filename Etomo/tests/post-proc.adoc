@@ -45,12 +45,12 @@ if.var.test-gui.run.function.volume-range=
 	assert.enabled.bn.3dmod-trimmed-volume=
 [[]]
 bn.trim-volume=
-wait.process.trimming-volume = done
+wait.done.process.trimming-volume = done
 [[if = test-gui]]
 	#check files
 	assert.exists.file=%{dataset}.rec
 	bn.trim-volume=
-	wait.process.trimming-volume = done
+	wait.done.process.trimming-volume = done
 	assert.exists.file=%{dataset}.rec~
 	assert.exists.file=%{dataset}.rec
 	#run 3dmod
@@ -206,19 +206,19 @@ run.function.smoothing-asessment=
   tf.smoothing-factor=2.5
 [[]]
 bn.run-flattenwarp=
-wait.process.running-flattenwarp=done
+wait.done.process.running-flattenwarp=done
 assert.exists.file=%{dataset}_flat.xf
 bn.run-flattenwarp=
-wait.process.running-flattenwarp=done
+wait.done.process.running-flattenwarp=done
 assert.exists.file=%{dataset}_flat.xf~
 assert.exists.file=%{dataset}_flat.xf
 bn.flatten=
-wait.process.flatten=done
+wait.done.process.flatten=done
 assert.exists.file=flatten.com
 assert.exists.file=flatten.log
 assert.exists.file=%{dataset}_flat.rec
 bn.flatten=
-wait.process.flatten=done
+wait.done.process.flatten=done
 assert.exists.file=flatten.log~
 assert.exists.file=%{dataset}_flat.rec~
 assert.exists.file=flatten.com
@@ -263,7 +263,7 @@ assert.enabled.tf.smoothing-factors-to-try=
 assert.enabled.bn.run-flattenwarp-to-assess-smoothing=
 assert.enabled.bn.open-assessment-in-3dmod=
 bn.run-flattenwarp-to-assess-smoothing=
-wait.process.running-flattenwarp=done
+wait.done.process.running-flattenwarp=done
 bn.open-assessment-in-3dmod=
 
 
@@ -287,11 +287,11 @@ tb.trim-vol.2=
 	assert.enabled.bn.open-squeezed-volume-in-3dmod=
 [[]]
 bn.squeeze-volume=
-wait.process.squeezing-volume=done
+wait.done.process.squeezing-volume=done
 [[if = test-gui]]
 	assert.exists.file=%{dataset}.sqz
 	bn.squeeze-volume=
-	wait.process.squeezing-volume=done
+	wait.done.process.squeezing-volume=done
 	assert.exists.file=%{dataset}.sqz~
 	bn.open-squeezed-volume-in-3dmod=
 [[]]
