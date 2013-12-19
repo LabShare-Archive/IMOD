@@ -4,7 +4,6 @@
 # Author: David Mastronarde
 #
 # $Id$
-# Log at end
 
 progname = 'trimvol'
 prefix = 'ERROR: ' + progname + ' - '
@@ -155,7 +154,7 @@ if ifxse:
    if not index:
       xstart -= 1
       xend -= 1
-   if xstart < 0 or xend >= nx or xstart > xend:
+   if xend < 0 or xstart >= nx or xstart > xend:
       exitError(fmtstr('X coordinates out of range for file in -x {},{}', xstart + index,
                        xend + index))
    xsize = xend + 1 - xstart
@@ -172,7 +171,7 @@ if ifyse:
    if not index:
       ystart -= 1
       yend -= 1
-   if ystart < 0 or yend >= ny or ystart > yend:
+   if yend < 0 or ystart >= ny or ystart > yend:
       exitError(fmtstr('{} coordinates out of range for file in -{} {},{}', inlet, inlet,
                        ystart + index, yend + index))
    ysize = yend + 1 - ystart
@@ -191,10 +190,12 @@ if ifzse:
    if not index:
       zstart -= 1
       zend -= 1
-   if zstart < 0 or zend >= nz or zstart > zend:
+   if zend < 0 or zstart >= nz or zstart > zend:
       exitError(fmtstr('{} coordinates out of range for file in -{} {},{}', inlet, inlet,
                        zstart + index, zend + index))
    secout = fmtstr('-sec {}-{}', zstart, zend)
+   if zstart < 0 or zend >= nz:
+      secout += ' -blank'
 
 # Process the entries for X and Y limits in findcontrast
 if xsmin >= 0 and xsmax > 0:
@@ -281,8 +282,3 @@ if doflip:
       prnstr('WARNING: error trying to delete temporary file ' + newstout)
 
 sys.exit(0)
-
-#  $Log$
-#  Revision 1.1  2011/06/01 21:20:23  mast
-#  Translated
-#
