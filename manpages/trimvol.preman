@@ -65,6 +65,12 @@ You can also enter only one of
 and
 .B -rx.
 .P
+It is possible to enter limits for \fB-x\fR, \fB-y\fR, or \fB-z\fR that
+are outside the range of the volumes, provided that the specified
+volume includes some pixels within range for in each dimension.
+Regions in X and Y out of range will be filled with the mean value, and
+blank slices will be put for Z values out of range.
+.P
 Trimvol uses the PIP package for input (see the manual page for pip(1)).
 Options can be specified either as command line arguments (with the -)
 or one per line in a command file (without the -).  Options can be abbreviated
