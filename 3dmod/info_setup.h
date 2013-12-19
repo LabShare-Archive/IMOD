@@ -115,6 +115,7 @@ class InfoWindow : public QMainWindow
   int mOldFontHeight;
   QProcess *mTrimvolProcess;
   QString mTrimvolOutput;
+  int mTrimvolType;
   QProcess *mImodinfoProcess;
   int mResizedHeight;
   int mTargetHeight;
