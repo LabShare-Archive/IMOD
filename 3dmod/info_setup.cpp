@@ -44,6 +44,7 @@
 #include "preferences.h"
 #include "control.h"
 #include "xzap.h"
+#include "sslice.h"
 
 #define INFO_MIN_LINES 4.0
 #define INFO_STARTING_LINES 4.75
@@ -473,69 +474,101 @@ void InfoWindow::manageMenus()
 void InfoWindow::extract()
 {
   MrcHeader *mrchead = (MrcHeader *)App->cvi->image->header;
-  int i;
+  int i, zapIndex, slicerIndex, prin, timeLock;
   char *imodDir = getenv("IMOD_DIR");
-  const char *cshell = "python";
   QStringList arguments;
+  QString executable = "python";
+  QString commandString;
   delete mTrimvolProcess;
   mTrimvolProcess = NULL;
+
+  // Test conditions that make extraction impossible
   if (App->cvi->rgbStore != 0 || App->cvi->fakeImage != 0 ||
-      App->cvi->multiFileZ > 0||App->cvi->image->file != IIFILE_MRC ||
-      sliceModeIfReal(mrchead->mode) < 0) {
-	wprint("\aUnable to extract - not a real MRC file.\n");
-	return;
+      App->cvi->multiFileZ > 0 || App->cvi->image->file != IIFILE_MRC ||
+      sliceModeIfReal(mrchead->mode) < 0 || App->cvi->li->plist) {
+    wprint("\aUnable to extract - not a gray-scale, non-montaged MRC file.\n");
+    return;
   }
   if (!imodDir) {
     wprint("\aCannot run trimvol; IMOD_DIR not defined.\n");
     return;
   }
-  ZapFuncs *zap = getTopZapWindow(true);
-  if (!zap) {
-    zap = getTopZapWindow(false);
-    if (zap)
-      wprint("\aExtracting region visible in top Zap window.\n");
-    else {
-      wprint("\aThere is no Zap window with or without a rubberband.\n");
-      return;
-    }
-  } else if (zap->mStartingBand)
-    wprint("\aExtracting volume visible in Zap window with rubberband on but not "
-           "drawn.\n");
 
+  // Get the top zap and slicer with rubberbands
+  ZapFuncs *zap = getTopZapWindow(true, false, ZAP_WINDOW_TYPE, &zapIndex);
+  SlicerFuncs *slicer = getTopSlicer(true, &slicerIndex);
+  bool rotateVol = slicerIndex >= 0 && (zapIndex < 0 || slicerIndex < zapIndex);
+  //imodPrintStderr("%d %d %d %p %p\n", zapIndex, slicerIndex, rotateVol?1:0, zap,slicer);
+  if (!rotateVol) {
+    if (!zap) {
+
+      // Or fallback to top slicer
+      zap = getTopZapWindow(false);
+      if (zap)
+        wprint("\aExtracting region visible in top Zap window.\n");
+      else {
+        wprint("\aThere is no Zap window with or without a rubberband and "
+               "no Slicer with a rubberband.\n");
+        return;
+      }
+    } else if (zap->mStartingBand)
+      wprint("\aExtracting volume visible in Zap window with rubberband on but not "
+             "drawn.\n");
+  }
+
+  // Get the extraction command arguments in each case
+  if (rotateVol) {
+    commandString = slicer->rotateVolCommand();
+    prin = 0;
+    timeLock = slicer->mTimeLock;
+    executable = QDir::convertSeparators(QString(imodDir) + "/bin/rotatevol");
+  } else {
+    commandString = zap->printInfo(false);
+    timeLock = zap->getTimeLock();
+  }
+  if (commandString.isEmpty())
+    return;
+
+  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
+  mTrimvolType = rotateVol ? 1 : 0;
+
+  // Get the output and input file names
   mTrimvolOutput = imodPlugGetSaveName(this, "MRC File to extract to:");
   if (mTrimvolOutput.isEmpty())
     return;
-  QString commandString = zap->printInfo(false);
-  if (commandString.isEmpty()) {
-    return;
-  }
-  mActions[FILE_MENU_EXTRACT]->setEnabled(false);
-  QString filePath;
+
+  QString filePath = App->cvi->image->filename;
+  if (timeLock)
+    filePath = App->cvi->imageList[timeLock - 1].filename;
   if (!Imod_IFDpath.isEmpty()) {
     QDir dir = QDir(Imod_IFDpath);
-    filePath = dir.filePath(App->cvi->image->filename);
+    filePath = dir.filePath(filePath);
   }
-  else {
-    filePath = App->cvi->image->filename;
-  }
-  mTrimvolProcess = new QProcess();
-  arguments << "-u";
+
+  // Build the argument lists and print them
   QStringList command = commandString.split(" ", QString::SkipEmptyParts);
-  command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
+  if (!rotateVol) {
+    arguments << "-u";
+    command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
+    prin = 2;
+  }
   for (i = 0; i < command.count(); i++)
     arguments << command[i];
     
   arguments << QDir::convertSeparators(filePath);
   arguments << QDir::convertSeparators(mTrimvolOutput);
-  wprint("trimvol ");
-  for (i = 2; i < arguments.count(); i++)
+  wprint(rotateVol ? "rotatevol " : "trimvol ");
+  for (i = prin; i < arguments.count(); i++)
     wprint("%s ", LATIN1(arguments[i]));
   wprint("\n");
+
+  // Run the process
+  mTrimvolProcess = new QProcess();
   connect(mTrimvolProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this,
           SLOT(trimvolExited(int, QProcess::ExitStatus )));
   connect(mTrimvolProcess, SIGNAL(error(QProcess::ProcessError)), this,
           SLOT(trimvolError(QProcess::ProcessError )));
-  mTrimvolProcess->start(cshell, arguments);
+  mTrimvolProcess->start(executable, arguments);
 }
 
 // Reports result when trimvol finishes
@@ -553,7 +586,7 @@ void InfoWindow::trimvolExited(int exitCode, QProcess::ExitStatus exitStatus)
       } */
   } else {
     mTrimvolProcess->setReadChannel(QProcess::StandardOutput);
-    wprint("\aTrimvol failed.\n");
+    wprint(mTrimvolType ? "\aRotatevol failed.\n" : "\aTrimvol failed.\n");
     while (mTrimvolProcess->canReadLine()) {
       QString out = mTrimvolProcess->readLine();
       if (out.startsWith("ERROR:")) {
@@ -574,7 +607,8 @@ void InfoWindow::trimvolError(QProcess::ProcessError error)
 {
   if (error != QProcess::FailedToStart)
     return;
-  wprint("\aCould not start trimvol - is python on the PATH?\n");
+  wprint(mTrimvolType ? "\aCould not start rotatevol - is IMOD fully installed?\n" :
+         "\aCould not start trimvol - is python on the PATH?\n");
   mActions[FILE_MENU_EXTRACT]->setEnabled(true);
   
   // Cannot delete the qprocess from this slot; just delete it if it runs again
