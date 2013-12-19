@@ -96,8 +96,8 @@ RotationTool::RotationTool(QWidget *parent, QIcon *centerIcon, const char *cente
         connect(button, SIGNAL(clicked()), rotMapper, SLOT(map()));
         if (!sStepSign[ind]) {
           button->setAutoRepeat(true);
-          button->setAutoRepeatDelay(500);
-          button->setAutoRepeatInterval(200);
+          button->setAutoRepeatDelay(300);
+          button->setAutoRepeatInterval(100);
         }
         ind++;
       }
