@@ -64,6 +64,7 @@ class ZapFuncs
   void setSnapshotLimits(int **limits, int *limarr);
   bool getLowHighSection(int &low, int &high);
   Icont *getLassoContour();
+  getMember(int, TimeLock);
   B3dCIImage *zoomedDownImage(int subset, int &nxim, int &nyim, int &ixStart,
                               int &iyStart, int &nxUse, int &nyUse, int &uzXstart,
                               int &uzYstart, int &uzXuse, int &uzYuse);
@@ -234,7 +235,7 @@ class ZapFuncs
 
 void zapReportBiggestMultiZ();
 ZapFuncs *getTopZapWindow(bool withBand, bool withLasso = false, 
-                          int type = ZAP_WINDOW_TYPE);
+                          int type = ZAP_WINDOW_TYPE, int *index = NULL);
 Icont *getTopZapLassoContour(bool aboveBand);
 int getTopZapMouse(Ipoint *imagePt);
 int  imod_zap_open(ImodView *vi, int wintype);
