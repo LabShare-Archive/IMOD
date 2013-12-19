@@ -227,5 +227,5 @@ INSTALLS += target
 
 include (qconfigure)
 
-QT +=  opengl 
+QT +=  opengl sql
 

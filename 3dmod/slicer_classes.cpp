@@ -21,6 +21,7 @@
 #include <qcheckbox.h>
 #include <qcombobox.h>
 #include <qspinbox.h>
+#include <qaction.h>
 #include <QDoubleSpinBox>
 #include <qframe.h>
 #include <qdatetime.h>
@@ -69,6 +70,7 @@ static const char *fileList[MAX_SLICER_TOGGLES][2] =
     {":/images/unlock.png", ":/images/lock.png"},
     {":/images/smartCenter.png", ":/images/keepCenter.png"}, 
     {":/images/fft.png", ":/images/fftRed.png"},
+    {":/images/rubberband.png", ":/images/rubberband2.png"},
     {":/images/arrowBlack.png", ":/images/arrowRed.png"},
     {":/images/timeUnlock.png", ":/images/timeLock.png"},
     {":/images/shiftlockoff.png", ":/images/shiftlockon.png"}};
@@ -83,11 +85,13 @@ static const char *sToggleTips[] = {
   "Lock window at current position",
   "Keep current image or model point centered (classic mode, hot key k)",
   "Toggle between showing image and FFT",
+  "Toggle rubberband on or off (resize with first mouse, move with second)",
   "Toggle arrow on or off (draw with first mouse)",
   "Lock window at current time",
   "Use keypad and mouse as if Shift key were down to rotate slice"};
 
-static const char *sSliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
+static const char *sSliderLabels[] = {"X rotation", "Y rotation", "Z rotation", 
+                                      "View axis position"};
 
 SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
                            bool rgba, bool doubleBuffer, bool enableDepth, float stepSize,
@@ -100,6 +104,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   QGLFormat glFormat;
   QLabel *label;
   QCheckBox *check;
+
   mTimeBar = NULL;
   mBreakBeforeAngBar = 0;
 
@@ -156,6 +161,22 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
     connect(button, SIGNAL(clicked()), this, SLOT(fillCachePressed()));
   }
 
+  // The low-high buttons
+  QSignalMapper *lowHighMapper = new QSignalMapper(mToolBar);
+  connect(lowHighMapper, SIGNAL(mapped(int)), this, SLOT(lowHighClicked(int)));
+  mLowHighActions[0] = utilTBPushButton("Lo", this, mToolBar, &mLowHighButtons[0],
+                                        "Set low limit for range along viewing axis "
+                                        "(Shift-click to return to limit)"); 
+  mLowHighActions[1] = utilTBPushButton("Hi", this, mToolBar, &mLowHighButtons[1],
+                                        "Set high limit for range along viewing axis "
+                                        "(Shift-click to return to limit)"); 
+  for (j = 0; j < 2; j++) {
+    connect(mLowHighButtons[j], SIGNAL(clicked()), lowHighMapper, SLOT(map()));
+    lowHighMapper->setMapping(mLowHighButtons[j], j);
+    mLowHighActions[j]->setVisible(false);
+    mLowHighStates[j] = SLICER_LIMIT_INVALID - 1;
+  }
+
   // The Z scale combo box
   mZscaleCombo = new QComboBox(this);
   mToolBar->addWidget(mZscaleCombo);
@@ -182,8 +203,8 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
     check->setToolTip("Keep angles and positions same as for other linked "
                 "slicers");
 
-    utilSetupToggleButton(mTimeBar, mTimeBar, NULL, toggleMapper, sIcons, 
-                          sToggleTips, mToggleButs, mToggleStates, SLICER_TOGGLE_TIMELOCK);
+    utilSetupToggleButton(mTimeBar, mTimeBar, NULL, toggleMapper, sIcons, sToggleTips,
+                          mToggleButs, mToggleStates, SLICER_TOGGLE_TIMELOCK);
     connect(mToggleButs[SLICER_TOGGLE_TIMELOCK], SIGNAL(clicked()), toggleMapper, 
             SLOT(map()));
 
@@ -239,13 +260,15 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   mToolBar2->addWidget(sliderFrame);
   QVBoxLayout *sliderLayout = new QVBoxLayout(sliderFrame);
   sliderLayout->setContentsMargins(0, 0, 0, 0);
-  mSliders = new MultiSlider(sliderFrame, 3, sSliderLabels, -1800, 1800, 1);
-  for (j = 0; j < 3; j++) {
+  mSliders = new MultiSlider(sliderFrame, 4, sSliderLabels, -1800, 1800, 1);
+  for (j = 0; j < 4; j++) {
     int maxVal = (int)(10. * maxAngles[j] + 0.1);
     mSliders->setRange(j, -maxVal, maxVal);
     mSliders->getSlider(j)->setMinimumWidth(170);
-    mSliders->getSlider(j)->setPageStep(10);
+    mSliders->getSlider(j)->setPageStep(j < 3 ? 10 : 1);
   }
+  mSliders->setDecimals(3, 0);
+
   QBoxLayout *multiLayout = mSliders->getLayout();
   multiLayout->setSpacing(0);
   sliderLayout->addLayout(multiLayout);  
@@ -284,7 +307,6 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
 
   // Thickness of image spin box
   label = diaLabel("Image", thickBox, thickLay);
-  QSize labelSize = label->sizeHint();
   mImageBox = new QSpinBox(thickBox);
   thickLay->addWidget(mImageBox);
   mImageBox->setRange(1,1000);
@@ -351,6 +373,10 @@ void SlicerWindow::setFontDependentWidths()
   diaSetButtonWidth(mSaveAngBut, ImodPrefs->getRoundedStyle(), 1.2, "Save");
   diaSetButtonWidth(mNewRowBut, ImodPrefs->getRoundedStyle(), 1.3, "New");
   diaSetButtonWidth(mSetAngBut, ImodPrefs->getRoundedStyle(), 1.35, "Set");
+  for (width = 0; width < 2; width++) {
+    diaSetButtonWidth(mLowHighButtons[width], ImodPrefs->getRoundedStyle(), 1.5, "Lo");
+    mLowHighButtons[width]->setFixedHeight(fontMetrics().height() + 6);
+  }
 }
 
 void SlicerWindow::changeEvent(QEvent *e)
@@ -476,6 +502,11 @@ void SlicerWindow::fillCachePressed()
   mFuncs->fillCache();
 }
 
+void SlicerWindow::lowHighClicked(int which)
+{
+  mFuncs->setBandLowHighLimit(which);
+}
+
 void SlicerWindow::zScaleSelected(int item)
 {
   mFuncs->Zscale(item);
@@ -517,6 +548,11 @@ void SlicerWindow::setAngles(float *angles)
   }
 }
 
+void SlicerWindow::setViewAxisPosition(int amin, int amax, int current)
+{
+  mSliders->setMinMaxVal(3, amin, amax, current);
+}
+
 void SlicerWindow::setModelThickness(float depth)
 {
   diaSetDoubleSpinBox(mModelBox, depth);
@@ -552,6 +588,24 @@ void SlicerWindow::setTimeLabel(int time, QString label)
   str.sprintf(" (%3d)", time);
   mTimeNumLabel->setText(str);
   mTimeLabel->setText(label);
+}
+
+void SlicerWindow::setLowHighValidity(int which, int state)
+{
+  QColor stateColors[3] = {QColor(255, 80, 110), QColor(255, 255, 0), QColor(96, 255,96)};
+  if (state != mLowHighStates[which]) {
+    B3DCLAMP(state, 0, 2);
+    mLowHighStates[which] = state;
+    diaSetWidgetColor(mLowHighButtons[which], stateColors[state]);
+  }
+}
+
+void SlicerWindow::enableLowHighButtons(int enable)
+{
+  for (int ind = 0; ind < 2; ind++) {
+    setLowHighValidity(ind, SLICER_LIMIT_INVALID);
+    mLowHighActions[ind]->setVisible(enable != 0);
+  }
 }
 
 void SlicerWindow::keyPressEvent ( QKeyEvent * e )

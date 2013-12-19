@@ -60,12 +60,13 @@ static void setAngleToolbarState(SlicerWindow *slicer, bool open);
 
 /* DNM: maximum angles for sliders */
 static float sMaxAngle[3] = {90.0, 180.0, 180.0};
-static int sCtrlPressed = 0;
+static int sShiftPressed = 0;
+static int sHotControlPressed = 0;
 static bool sPixelViewOpen = false;
 static SlicerAngleForm *sSliceAngDia = NULL;
 static int sSliderDragging = 0; 
 static QTime sBut1downt;
-static int firstMouseX, firstMouseY, lastMouseX, lastMouseY;
+static int sFirstMouseX, sFirstMouseY, sLastMouseX, sLastMouseY;
 static int sMousePanning = 0;
 static int sMouseRotating = 0;
 static bool sMousePressed = false;
@@ -176,10 +177,13 @@ void slicerReportAngles()
                   ss->mTang[b3dY], ss->mTang[b3dZ]);
 }
 
-// Find the slicer window that is nearest to the top of the control list
-SlicerFuncs *getTopSlicer()
+// Find the slicer window that is nearest to the top of the control list; optionally
+// looking for one with a rubberband starting or set.  The control list index is returned
+// in *index if index is nonNULL.
+SlicerFuncs *getTopSlicer(bool withBand, int *index)
 {
-  QObject *obj = imodDialogManager.getTopWindow(SLICER_WINDOW_TYPE);
+  QObject *obj = imodDialogManager.getTopWindow(withBand, false, SLICER_WINDOW_TYPE,
+                                                index);
   return obj ? ((SlicerWindow *)obj)->mFuncs : NULL;
 }
 
@@ -250,7 +254,7 @@ int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
   center->x = ss->mCx;
   center->y = ss->mCy;
   center->z = ss->mCz;
-  time = ss->mTimeLock ? ss->mTimeLock : ss->mVi->curTime;
+  time = ivwWindowTime(ss->mVi, ss->mTimeLock);
   return 0;
 }
 
@@ -261,7 +265,7 @@ int getTopSlicerTime(bool &continuous)
   if (!ss)
     return -1;
   continuous = ss->mContinuous;
-  return ss->mTimeLock ? ss->mTimeLock : ss->mVi->curTime;
+  return ivwWindowTime(ss->mVi, ss->mTimeLock);
 }
 
 // Notify the slicer angle dialog of a new time or general need to refresh
@@ -405,6 +409,10 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   mNeedDraw = false;
   mDrawingArrow = false;
   mArrowOn = false;
+  mRubberband = 0;
+  mStartingBand = 0;
+  mMoveBand = 0;
+  mFirstDrag = 0;
 
   transStep();
   utilGetLongestTimeString(vi, &str);
@@ -431,6 +439,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   mQtWindow->setZoomText(mZoom);
   drawThickControls();
   mQtWindow->setAngles(mTang);
+  updateViewAxisPos();
 
   // Include this to get toolbar sizes right
   imod_info_input();
@@ -470,6 +479,10 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
 {
   float usex, usey, usez, factor = 0.;
   int ignoreChg = mIgnoreCurPtChg;
+  int *limits;
+  int limarr[4];
+  float zStep[3];
+  getNormalToPlane(zStep);
 
   // Clear ignore flag before any possible returns
   // Skip out if already drawn
@@ -507,12 +520,12 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
       imcGetStarterID() == mCtrl) {
 
     // Then determine factor for moving in one step on dominant axis
-    if (vi->xmovie && fabs((double)mZstep[b3dX]) > 1.e-6)
-      factor = (vi->xmouse - mCx) / mZstep[b3dX];
-    else if (vi->ymovie && fabs((double)mZstep[b3dY]) > 1.e-6)
-      factor = (vi->ymouse - mCy) / mZstep[b3dY];
-    else if (vi->zmovie && fabs((double)mZstep[b3dZ]) > 1.e-6)
-      factor = (vi->zmouse - mCz) / mZstep[b3dZ];
+    if (vi->xmovie && fabs((double)zStep[b3dX]) > 1.e-6)
+      factor = (vi->xmouse - mCx) / zStep[b3dX];
+    else if (vi->ymovie && fabs((double)zStep[b3dY]) > 1.e-6)
+      factor = (vi->ymouse - mCy) / zStep[b3dY];
+    else if (vi->zmovie && fabs((double)zStep[b3dZ]) > 1.e-6)
+      factor = (vi->zmouse - mCz) / zStep[b3dZ];
 
     /*imodPrintStderr("%d %d %d factor %f mouse %.1f %.1f %.1f  "
             "cur %.1f %.1f %.1f\n", vi->xmovie, 
@@ -522,9 +535,9 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
     // Compute new position and bound it (may not be needed unless user
     // clicks a new position during movie)
     if (factor != 0.) {
-      vi->xmouse = mCx + factor * mZstep[b3dX];
-      vi->ymouse = mCy + factor * mZstep[b3dY];
-      mCz += factor * mZstep[b3dZ];
+      vi->xmouse = mCx + factor * zStep[b3dX];
+      vi->ymouse = mCy + factor * zStep[b3dY];
+      mCz += factor * zStep[b3dZ];
       if (mCz < 0.)
         mCz = 0.;
       if (mCz > vi->zsize - 1.)
@@ -539,11 +552,13 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
 
       // Get snapshots if there is a count for doing so
       if (imcGetSnapshot(vi) && mMovieSnapCount) {
-        if (imcGetSlicerMontage(true))
+        if (imcGetSlicerMontage(true)) {
           montageSnapshot(imcGetSnapshot(vi));
-        else
-          b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, 
-                         imcGetSnapshot(vi) % 2, NULL);
+        } else {
+          setSnapshotLimits(&limits, limarr);
+          b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, imcGetSnapshot(vi) % 2, 
+                         limits);
+        }
         mMovieSnapCount--;
 
         /* When count expires, stop movie */
@@ -767,6 +782,10 @@ void SlicerFuncs::stateToggled(int index, int state)
     draw();
     break;
 
+  case SLICER_TOGGLE_BAND:
+    toggleRubberband();
+    break;
+
   case SLICER_TOGGLE_ARROW:
     toggleArrow();
     break;
@@ -789,6 +808,8 @@ void SlicerFuncs::toggleArrow(bool drawWin)
   mQtWindow->setToggleState(SLICER_TOGGLE_ARROW, mArrowOn ? 1 : 0);
   mArrowHead.x = mArrowHead.y = mArrowHead.z = 0.;
   mArrowTail = mArrowHead;
+  if (mArrowOn && mStartingBand)
+    toggleRubberband(false);
 
   setCursor(mMousemode, true);
   if (drawWin)
@@ -826,21 +847,40 @@ void SlicerFuncs::Zscale(int item)
 /* 
  * Tilt angle controls.
  */
-void SlicerFuncs::angleChanged(int axis, int value, 
-			int dragging)
+void SlicerFuncs::angleChanged(int axis, int value, int dragging)
 {
+  Ipoint vec;
+  float zmove;
+
   ivwControlPriority(mVi, mCtrl);
-  setForwardMatrix();
-  mTang[axis] = value * 0.1f;
-  mLastangle = axis;
+  if (axis < 3) {
+
+    // Normal angle slider
+    setForwardMatrix();
+    mTang[axis] = value * 0.1f;
+    mLastangle = axis;
+  } else {
+
+    // view axis position slider
+    getNormalToPlane(&vec);
+    mCx += (value - mLastAxisPos) * vec.x;
+    mCy += (value - mLastAxisPos) * vec.y;
+    zmove = (value - mLastAxisPos) * vec.z;
+    mCz += zmove;
+    if (!mLocked)
+      setZmouseForAxisMove(zmove);
+  }
   sSliderDragging = dragging;
   changeCenterIfLinked();
 
   // Do complete redraw if not dragging or hot slider enabled
-  if (!dragging || ImodPrefs->hotSliderActive(sCtrlPressed)) {
+  if (!dragging || ImodPrefs->hotSliderActive(sHotControlPressed)) {
     mDrawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
     synchronizeSlicers();
-    showSlice();
+    if (axis == 3 && !mLocked)
+      imodDraw(mVi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | mDrawModView);
+    else
+      showSlice();
     checkMovieLimits();
   } else {
 
@@ -848,6 +888,34 @@ void SlicerFuncs::angleChanged(int axis, int value,
     transStep();
     cubeDraw();
   }
+}
+
+// Compute and update the view axis position slider setting and maximum
+void SlicerFuncs::updateViewAxisPos()
+{
+  int numSteps[2], idir, ind, i;
+  float vec[3], cx, cy, cz;
+  getNormalToPlane(vec);
+
+  // This could be done quicker but more messily
+  for (ind = 0; ind < 2; ind++) {
+    idir = 2 * ind - 1;
+    for (i = 1; ;i++) {
+      cx = mCx + idir * i * vec[0];
+      cy = mCy + idir * i * vec[1];
+      cz = mCz + idir * i * vec[2];
+      
+      // The test here matches translateByRotatedVec.  Note that setting angles from
+      // slicer angle dialog clamps at [xyz]size - 1.
+      if (cx < 0. || cx >= mVi->xsize || cy < 0. || cy >= mVi->ysize ||
+          cz < 0. || cz >= mVi->zsize - 0.5) {
+        numSteps[ind] = i - 1;
+        break;
+      }
+    }
+  }
+  mLastAxisPos = 1 + numSteps[0];
+  mQtWindow->setViewAxisPosition(1, mLastAxisPos + numSteps[1], mLastAxisPos);
 }
 
 /****************************************************************************/
@@ -975,8 +1043,11 @@ void SlicerFuncs::getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &n
 // Take snapshot with the given name or automatically generated name and given format
 int SlicerFuncs::namedSnapshot(QString &fname, int format, bool checkConvert)
 {
+  int *limits;
+  int limarr[4];
   mGlw->updateGL();
-  return b3dNamedSnapshot(fname, "slicer", format, NULL, checkConvert);
+  setSnapshotLimits(&limits, limarr);
+  return b3dNamedSnapshot(fname, "slicer", format, limits, checkConvert);
 }
 
 // Tell the slicer angle dialog to set current angles into current row, or
@@ -984,15 +1055,14 @@ int SlicerFuncs::namedSnapshot(QString &fname, int format, bool checkConvert)
 void SlicerFuncs::setCurrentOrNewRow(bool newrow)
 {
   ivwControlPriority(mVi, mCtrl);
-  sSliceAngDia->setCurrentOrNewRow(mTimeLock ? mTimeLock : mVi->curTime,
-                                  newrow);
+  sSliceAngDia->setCurrentOrNewRow(ivwWindowTime(mVi, mTimeLock), newrow);
 }
 
 // Tell the slicer angle dialog to set the current row into the top slicer
 void SlicerFuncs::setAnglesFromRow()
 {
   ivwControlPriority(mVi, mCtrl);
-  sSliceAngDia->setAnglesFromRow(mTimeLock ? mTimeLock : mVi->curTime);
+  sSliceAngDia->setAnglesFromRow(ivwWindowTime(mVi, mTimeLock));
 }
 
 /* 
@@ -1070,6 +1140,8 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
   int handled = 1;
   int docheck = 0;
   int keypad = event->modifiers() & Qt::KeypadModifier;
+  int *limits;
+  int limarr[4];
   float unit, dist3d;
   QString str;
   Ipoint *p1, *p2, *pnt;
@@ -1094,8 +1166,9 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
     return;
 
   // These grabs may not work right if keys are passed from elsewhere
-  if (keysym == hotSliderKey()) {
-    sCtrlPressed = true;
+  if (keysym == hotSliderKey() || keysym == Qt::Key_Shift) {
+    sHotControlPressed = keysym == hotSliderKey() ? 1 : 0;
+    sShiftPressed = keysym == Qt::Key_Shift ? 1 : 0;
     mQtWindow->grabKeyboard();
     return;
   }
@@ -1181,7 +1254,8 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
 
         // Snapshots: need to update just the image window
         mGlw->updateGL();
-        b3dKeySnapshot("slicer", shift, ctrl, NULL);
+        setSnapshotLimits(&limits, limarr);
+        b3dKeySnapshot("slicer", shift, ctrl, limits);
       }
     }else
       inputSaveModel(vi);
@@ -1297,34 +1371,7 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
       if (translateByRotatedVec(&vec)) {
         dodraw = 1;
         if (!mLocked && vec.z) {
-          
-          // For a move in Z, try to move current image point normal to the
-          // plane.  First test if this move is a continuation of a sequence
-          // and if so just increment the cumulative move; otherwise set this
-          // up as the first move of a potential sequence
-          if (mTang[0] == mOrigAngles[0] && 
-              mTang[1] == mOrigAngles[1] && 
-              mTang[2] == mOrigAngles[2] && 
-              vi->xmouse == mLastXmouse && 
-              vi->ymouse == mLastYmouse && 
-              vi->zmouse == mLastZmouse) {
-            mCumPageMoves += vec.z;
-          } else {
-            mOrigAngles[0] = mTang[0];
-            mOrigAngles[1] = mTang[1];
-            mOrigAngles[2] = mTang[2];
-            mOrigZmouse = vi->zmouse;
-            mCumPageMoves = vec.z;
-          }
-          getNormalToPlane(&norm);
-
-          // Now move the zmouse by cumulative move from original position
-          // and round z to integer (decided not to move in X/Y)
-          vi->zmouse = B3DNINT(mOrigZmouse + mCumPageMoves * norm.z);
-          mLastXmouse = vi->xmouse;
-          mLastYmouse = vi->ymouse;
-          mLastZmouse = vi->zmouse;
-          ivwBindMouse(vi);
+          setZmouseForAxisMove(vec.z);
           synchronizeSlicers();
           imodDraw(vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE);
           dodraw = 0;        
@@ -1377,6 +1424,20 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
     docheck = 1;
     break;
 
+  case Qt::Key_B:
+    if (shift)
+      toggleRubberband();
+    else
+      handled = 0;
+
+  case Qt::Key_R:
+    if (shift) {
+      if (mRubberband)
+        resizeToFit();
+      dodraw = 0;
+    } else
+      handled = 0;
+
   default:
     handled = 0;
     break;
@@ -1398,9 +1459,51 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
 // On any key release, clear the ctrl pressed flag and release the keyboard
 void SlicerFuncs::keyRelease(QKeyEvent *event)
 {
-  if (sCtrlPressed)
+  bool needRelease = sHotControlPressed || sShiftPressed;
+  if (event->key() == hotSliderKey())
+    sHotControlPressed = 0;
+  if (event->key() == Qt::Key_Shift)
+    sShiftPressed = 0;
+  if (needRelease && !sHotControlPressed && !sShiftPressed)
     mQtWindow->releaseKeyboard();
-  sCtrlPressed = false;
+}
+
+/*
+ * When doing axis moves that affect the global Z position, keep track of cumulative
+ * moves and adjust global Z mouse to an integer consistent with the precise Z
+ */
+void SlicerFuncs::setZmouseForAxisMove(float zmove)
+{
+  Ipoint norm;
+
+  // For a move in Z, try to move current image point normal to the
+  // plane.  First test if this move is a continuation of a sequence
+  // and if so just increment the cumulative move; otherwise set this
+  // up as the first move of a potential sequence
+  if (mTang[0] == mOrigAngles[0] && 
+      mTang[1] == mOrigAngles[1] && 
+      mTang[2] == mOrigAngles[2] && 
+      mVi->xmouse == mLastXmouse && 
+      mVi->ymouse == mLastYmouse && 
+      mVi->zmouse == mLastZmouse) {
+    mCumPageMoves += zmove;
+  } else {
+    mOrigAngles[0] = mTang[0];
+    mOrigAngles[1] = mTang[1];
+    mOrigAngles[2] = mTang[2];
+    mOrigZmouse = mVi->zmouse;
+    mCumPageMoves = zmove;
+  }
+
+  getNormalToPlane(&norm);
+
+  // Now move the zmouse by cumulative move from original position
+  // and round z to integer (decided not to move in X/Y)
+  mVi->zmouse = B3DNINT(mOrigZmouse + mCumPageMoves * norm.z);
+  mLastXmouse = mVi->xmouse;
+  mLastYmouse = mVi->ymouse;
+  mLastZmouse = mVi->zmouse;
+  ivwBindMouse(mVi);
 }
 
 // Do all the tasks for rotating on the view axis with the three delta values
@@ -1421,26 +1524,46 @@ void SlicerFuncs::mousePress(QMouseEvent *event)
 {
   int shift = (event->modifiers() & Qt::ShiftModifier) + mShiftLock;
   int ctrl = (event->modifiers() & Qt::ControlModifier);
+  int button1 = event->buttons() & ImodPrefs->actualButton(1) ? 1 : 0;
+  int button2 = event->buttons() & ImodPrefs->actualButton(2) ? 1 : 0;
+  int button3 = event->buttons() & ImodPrefs->actualButton(3) ? 1 : 0;
   sMousePressed = true;
   ivwControlPriority(mVi, mCtrl);
 
   utilRaiseIfNeeded(mQtWindow, event);
   setCursor(mMousemode, utilNeedToSetCursor());
 
-  lastMouseX = firstMouseX = event->x();
-  lastMouseY = firstMouseY = event->y();
-  if (event->buttons() & ImodPrefs->actualButton(1)) {
-    if (mClassic || mDrawingArrow) {
-      attachPoint(event->x(), event->y(), ctrl);
-    } else {
-      sBut1downt.start();
+  sLastMouseX = sFirstMouseX = event->x();
+  sLastMouseY = sFirstMouseY = event->y();
+
+  // First see if it is this is a hit to move the band
+  if (event->button() == ImodPrefs->actualButton(2) && !button1 && !button3) {
+    mMoveBand = 0;
+    if (mRubberband) {
+      bandImageToMouse();
+      if (utilTestBandMove(sLastMouseX, sLastMouseY, mRbMouseX0, mRbMouseX1, mRbMouseY0,
+                           mRbMouseY1)) {
+        mMoveBand = 1;
+        setCursor(mMousemode);
+        setBandMouseStart();
+        return;
+      }
     }
   }
 
-  if ((event->buttons() & ImodPrefs->actualButton(2)) && (ctrl || !shift))
+  if (button1) {
+    if (mClassic || mStartingBand || mDrawingArrow) {
+      attachPoint(event->x(), event->y(), ctrl);
+    } else {
+      sBut1downt.start();
+      mFirstDrag = 1;
+    } 
+  }
+
+  if (button2 && (ctrl || !shift))
     insertPoint(event->x(), event->y(), ctrl);
   
-  if ((event->buttons() & ImodPrefs->actualButton(3)) && (ctrl || !shift))
+  if (button3 && (ctrl || !shift))
     modifyPoint(event->x(), event->y(), ctrl);
 }
 
@@ -1451,8 +1574,10 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
   ivwControlPriority(mVi, mCtrl);
 
   // For button 1 up, if not classic mode, either end panning or call attach
-  if (event->button() == ImodPrefs->actualButton(1) && (!mClassic || mDrawingArrow)) {
-    if (mDrawingArrow) {
+  if (event->button() == ImodPrefs->actualButton(1) && 
+      (!mClassic || mDrawingArrow || mDragBand)) {
+    if (mDragBand || mDrawingArrow) {
+      mDragBand = 0;
       mDrawingArrow = false;
       setCursor(mMousemode);
     } else if (sMousePanning) {
@@ -1460,6 +1585,11 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
       drawSelfAndLinked();
     } else
       attachPoint(event->x(), event->y(), event->modifiers() & Qt::ControlModifier);
+    mFirstDrag = 0;
+  }
+  if (event->button() == ImodPrefs->actualButton(2) && mMoveBand) {
+    mMoveBand = 0;
+    setCursor(mMousemode);
   }
   if (sMouseRotating) {
     sMouseRotating = 0;
@@ -1472,15 +1602,18 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
 {
   static int button1, button2, button3, ex, ey, shift, processing = 0;
   int zmouse;
-  float xm, ym, zm, angleScale, dx = 0., dy = 0., drot = 0.;
+  float xm, ym, zm, current, angleScale, trueLimits[2], dx = 0., dy = 0., drot = 0.;
+  float axisStart, axisEnd;
   Ipoint cpt;
   Icont *cont;
   Imod *imod = mVi->imod;
   Ipoint scale = {1., 1., 1.};
   int cumdx, cumdy;
   int cumthresh = 6 * 6;
-  bool addingPoints;
+  bool addingPoints, checkNewPos;
   double transFac = mZoom < 4. ? 1. / mZoom : 0.25;
+  int bandmin = b3dIMin(3, 4, (int)(mVi->xsize * mXzoom) + 2, 
+                        (int)(mVi->ysize * mYzoom) + 2);
   Ipoint vec;
  
   // Record state of event and return if processing
@@ -1496,7 +1629,6 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
     return;
   }
 
-  ivwControlPriority(mVi, mCtrl);
   if (sPixelViewOpen) {
     zmouse = getxyz(ex, ey, xm, ym, zm);
     pvNewMousePosition(mVi, xm, ym, zmouse);
@@ -1504,7 +1636,7 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
 
   // For anything but modeling points, eat any pending move events and use
   // latest position
-  addingPoints = button2 && !shift &&
+  addingPoints = button2 && !shift && !mMoveBand &&
     (mLocked || !mClassic) && imod->mousemode == IMOD_MMODEL;
   if (!addingPoints) {
     processing = 1;
@@ -1518,25 +1650,93 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
       button1 = button2 = button3 = 0;
   }
 
-  // Button 1 when drawing arrow: update the arrowhead position
-  if (button1 && mDrawingArrow) {
-    getxyz(ex, ey, mArrowHead.x, mArrowHead.y, mArrowHead.z);
-    draw();
+  // If mouse not pressed and rubber band is on, analyze for setting mouse for move/drag
+  // Or, first time mouse moves on button 1, lock in the band drag position
+  if (mRubberband && (!sMousePressed || (button1 && mFirstDrag))) {
+    bandImageToMouse();
+    utilAnalyzeBandEdge(ex, ey, mRbMouseX0, mRbMouseX1, mRbMouseY0, mRbMouseY1,
+                        mDragBand, mDragging);
+    setCursor(mMousemode);
+    if (!sMousePressed)
+      return;
+    mFirstDrag = 0;
+    setBandMouseStart();
+  }
 
-    // Pan with button 1 if not classic mode
-  } else if (button1 && !mClassic) {
-    cumdx = ex - firstMouseX;
-    cumdy = ey - firstMouseY;
-    if (sMousePanning || sBut1downt.elapsed() > 250 || 
-        cumdx * cumdx + cumdy * cumdy > cumthresh) {
-      vec.x = (lastMouseX - ex) * transFac;
-      vec.y = (ey - lastMouseY) * transFac;
-      vec.z = 0.;
-      sMousePanning = 1;
-      if (translateByRotatedVec(&vec))
-        drawSelfAndLinked();
+  ivwControlPriority(mVi, mCtrl);
+  cumdx = ex - sFirstMouseX;
+  cumdy = ey - sFirstMouseY;
+
+  // Button 1 
+  if (button1) {
+
+    // when drawing arrow: update the arrowhead position
+    if (mDrawingArrow) {
+      getxyz(ex, ey, mArrowHead.x, mArrowHead.y, mArrowHead.z);
+      draw();
+
+      // Button one when starting band, see if mouse has moved far enough to commit to
+      // a direction and start dragging
+    } else if (mStartingBand) {
+      if (!utilIsBandCommitted(ex, ey, mWinx, mWiny, bandmin, mRbMouseX0, mRbMouseX1, 
+                               mRbMouseY0, mRbMouseY1, mDragging))
+        return;
+
+      // Set flags for the band being on and being dragged
+      setBandMouseStart();
+      bandMouseToImage();
+      mStartingBand = 0;
+      mRubberband = 1;
+      mGlw->setMouseTracking(true);
+      mDragBand = 1;
+      mBandChanged = 1;
+      setCursor(mMousemode);
+      draw();
+      return;
+
+      // Dragging the band edge or corner
+    } else if (mRubberband && mDragBand) {
+      checkNewPos = !findBandAxisRange(current, axisStart, axisEnd);
+      saveBandForChecking();
+      bandImageToMouse();
+      if (mDragging[0]) {
+        mRbMouseX0 = mRbStartX0 + cumdx;
+        mRbMouseX0 = B3DMIN(mRbMouseX0, mRbMouseX1 - 2);
+      }
+      if (mDragging[1]) {
+        mRbMouseX1 = mRbStartX1 + cumdx;
+        mRbMouseX1 = B3DMAX(mRbMouseX1, mRbMouseX0 + 2);
+      }
+      if (mDragging[2]) {
+        mRbMouseY0 = mRbStartY0 + cumdy;
+        mRbMouseY0 = B3DMIN(mRbMouseY0, mRbMouseY1 - 2);
+      }
+      if (mDragging[3]) {
+        mRbMouseY1 = mRbStartY1 + cumdy;
+        mRbMouseY1 = B3DMAX(mRbMouseY1, mRbMouseY0 + 2);
+      }
+      bandMouseToImage();
+      if (checkNewPos && findBandAxisRange(current, axisStart, axisEnd)) {
+        restoreSavedBand();
+        bandImageToMouse();
+      } else {
+        mBandChanged = 1;
+        checkBandLowHighLimits(trueLimits);
+      }
+      draw();
+
+      // Pan with button 1 if not classic mode
+    } else if (!mClassic) {
+      if (sMousePanning || sBut1downt.elapsed() > 250 || 
+          cumdx * cumdx + cumdy * cumdy > cumthresh) {
+        vec.x = (sLastMouseX - ex) * transFac;
+        vec.y = (ey - sLastMouseY) * transFac;
+        vec.z = 0.;
+        sMousePanning = 1;
+        if (translateByRotatedVec(&vec))
+          drawSelfAndLinked();
+      }
     }
-
   }
 
   // Button 2 in model mode, locked or new mode, add points
@@ -1557,18 +1757,37 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
     }
   }
 
-  if (shift && (button2 || button3)) {
+  // Moving the band
+  if (button2 && mMoveBand) {
+    checkNewPos = !findBandAxisRange(current, axisStart, axisEnd);
+    saveBandForChecking();
+    bandImageToMouse();
+    mRbMouseX0 = mRbStartX0 + cumdx;
+    mRbMouseX1 = mRbStartX1 + cumdx;
+    mRbMouseY0 = mRbStartY0 + cumdy;
+    mRbMouseY1 = mRbStartY1 + cumdy;
+    bandMouseToImage();
+    if (checkNewPos && findBandAxisRange(current, axisStart, axisEnd)) {
+      restoreSavedBand();
+      bandImageToMouse();
+    } else {
+      mBandChanged = 1;
+      checkBandLowHighLimits(trueLimits);
+    }
+    draw();
+    
+  } else if (shift && (button2 || button3)) {
 
   // Button 2 shifted, rotate around view axis in X/Y plane
     if (button2) {
       angleScale = 180. / (3.142 * 0.4 * B3DMIN(mWinx, mWiny));
-      dy = (ex - lastMouseX) * angleScale;
-      dx = (ey - lastMouseY) * angleScale;
+      dy = (ex - sLastMouseX) * angleScale;
+      dx = (ey - sLastMouseY) * angleScale;
     } else {
 
       // Button 3 shifted, rotate around Z view axis
-      drot = utilMouseZaxisRotation(mWinx, ex, lastMouseX,
-                                    mWiny, ey, lastMouseY);
+      drot = utilMouseZaxisRotation(mWinx, ex, sLastMouseX,
+                                    mWiny, ey, sLastMouseY);
 
     }
     if (dx <= -0.1 || dx >= 0.1 || dy <= -0.1 || dy >= 0.1 || 
@@ -1583,8 +1802,8 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
       showSlice();
     }
   }
-  lastMouseX = ex;
-  lastMouseY = ey;
+  sLastMouseX = ex;
+  sLastMouseY = ey;
 }
 
 // Process first mouse button - attach in model, set current point in movie
@@ -1597,7 +1816,7 @@ void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
   Imod *imod = vi->imod;
   Iindex index, indSave;
   float selsize = IMOD_SELSIZE / mZoom;
-  int drawflag = IMOD_DRAW_XYZ;
+  int ind, drawflag = IMOD_DRAW_XYZ;
 
   vi->zmouse = setxyz(x, y);
 
@@ -1605,9 +1824,16 @@ void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
   if (mDrawingArrow) {
     getxyz(x, y, mArrowTail.x, mArrowTail.y, mArrowTail.z);
     mArrowHead = mArrowTail;
-    for (int ind = 0; ind < 3; ind++)
+    for (ind = 0; ind < 3; ind++)
       mArrowAngle[ind] = mTang[ind];
 
+    // If starting band, record position and angles
+  } else if (mStartingBand) {
+    mRbMouseX0 = x;
+    mRbMouseY0 = y;
+    for (ind = 0; ind < 3; ind++)
+      mBandAngle[ind] = mTang[ind];
+    
   } else if (imod->mousemode == IMOD_MMODEL) {
     pnt.x = vi->xmouse;
     pnt.y = vi->ymouse;
@@ -1657,6 +1883,7 @@ void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
   imodDraw(mVi, drawflag);
 }
 
+// Second button, insert a point
 void SlicerFuncs::insertPoint(int x, int y, int ctrl)
 {
   int zmouse, pt;
@@ -1724,6 +1951,7 @@ void SlicerFuncs::insertPoint(int x, int y, int ctrl)
     wprint("\aUse "CTRL_STRING"-middle button to start movie\n");
 }
 
+// Third button: modify a point or start/stop movie
 void SlicerFuncs::modifyPoint(int x, int y, int ctrl)
 {
   int zmouse;
@@ -1737,55 +1965,84 @@ void SlicerFuncs::modifyPoint(int x, int y, int ctrl)
     startMovieCheckSnap(-1);
 }
 
+// Sets the cursor for the given mode if necessary, or regardless if setAnyway is true
+void SlicerFuncs::setCursor(int mode, bool setAnyway)
+{
+  bool needSpecial = (mRubberband && (mMoveBand || mDragBand)) || mStartingBand ||
+    mDrawingArrow;
+  bool needSizeAll = mStartingBand || mMoveBand || mDrawingArrow;
+  bool needModel = false;
+  //imodPrintStderr("sa %d special %d sizeall %d sb %d mb %d\n", setAnyway?1:0, needSpecial?1:0, needSizeAll?1:0, mStartingBand?1:0, mMoveBand?1:0);
+  utilSetCursor(mode, setAnyway, needSpecial, needSizeAll, mDragging, needModel, 
+                mMousemode, mLastShape, mGlw);
+}
+
 /*
  * MOVIE RELATED ROUTINES
  */
 
 // Find dominant axis of this slicer window and set movie arguments to match
-void SlicerFuncs::findMovieAxis(int *xmovie, int *ymovie, 
-                                int *zmovie, int dir, int *axis)
+void SlicerFuncs::findMovieAxis(int &xmovie, int &ymovie, int &zmovie, int dir,
+                                int &axis)
 {
-  *xmovie = *ymovie = *zmovie = 0;
-  double xcomp = fabs((double)mZstep[b3dX]);
-  double ycomp = fabs((double)mZstep[b3dY]);
-  double zcomp = fabs((double)mZstep[b3dZ]);
+  Ipoint vec;
+  xmovie = ymovie = zmovie = 0;
+  getNormalToPlane(&vec);
+  double xcomp = fabs((double)vec.x);
+  double ycomp = fabs((double)vec.y);
+  double zcomp = fabs((double)vec.z);
 
   if (xcomp >= ycomp && xcomp >= zcomp) {
-    *xmovie = dir;
-    *axis = 0;
+    xmovie = dir;
+    axis = 0;
   } else if (ycomp >= zcomp) {
-    *ymovie = dir;
-    *axis = 1;
+    ymovie = dir;
+    axis = 1;
   } else {
-    *zmovie = dir;
-    *axis = 2;
+    zmovie = dir;
+    axis = 2;
   }
 }
 
-// Set special movie limits on the dominant axis that will keep the other two
-// axes within bounds
-void SlicerFuncs::setMovieLimits(int axis)
+/*
+ * Returns the dominant axis, the normal to plane, and the absolute value of the normal
+ * component on the main axis
+ */
+void SlicerFuncs::getNormalAndMainComponent(int &axis, Ipoint *norm, float &axisComp)
 {
-  int i, size, end, start = -1;
-  float cur, cx, cy, cz;
+  int xmovie, ymovie, zmovie;
+  findMovieAxis(xmovie, ymovie, zmovie, 1, axis);
+  getNormalToPlane(norm);
+  axisComp = xmovie * norm->x + ymovie * norm->y + zmovie * norm->z;
+}
+
+// Find the limits on the dominant axis that will keep the other two axis positions 
+// within bounds; also returns current position on that axis in "current"
+void SlicerFuncs::findAxisLimits(int axis, float &current, int &start, int &end)
+{
+  int i, size;
+  float cx, cy, cz;
+  float zStep[3];
+  getNormalToPlane(zStep);
+  start = -1;
 
   // Get the size and current value for the dominant axis
   if (axis == 0) {
     size = mVi->xsize;
-    cur = mCx;
+    current = mCx;
   } else if (axis == 1) {
     size = mVi->ysize;
-    cur = mCy;
+    current = mCy;
   } else {
     size = mVi->zsize;
-    cur = mCz;
+    current = mCz;
   }
 
   // Loop on positions on dominant axis and find position on each axis
   for (i = 0; i < size; i++) {
-    cx = mCx + (i - cur) * mZstep[0] / mZstep[axis];
-    cy = mCy + (i - cur) * mZstep[1] / mZstep[axis];
-    cz = mCz + (i - cur) * mZstep[2] / mZstep[axis];
+    cx = mCx + (i - current) * zStep[0] / zStep[axis];
+    cy = mCy + (i - current) * zStep[1] / zStep[axis];
+    cz = mCz + (i - current) * zStep[2] / zStep[axis];
     if (cx >= 0. && cx <= mVi->xsize - 1 && 
         cy >= 0. && cy <= mVi->ysize - 1 &&
         cz >= 0. && cz <= mVi->zsize - 1) {
@@ -1796,7 +2053,15 @@ void SlicerFuncs::setMovieLimits(int axis)
         start = i;
     }
   }
+}
 
+// Set special movie limits on the dominant axis that will keep the other two
+// axes within bounds
+void SlicerFuncs::setMovieLimits(int axis)
+{
+  int end, start;
+  float cur;
+  findAxisLimits(axis, cur, start, end);
   imcSetSpecialLimits(axis, start, end);
 }
 
@@ -1806,6 +2071,8 @@ void SlicerFuncs::checkMovieLimits()
   int xmovie, ymovie, zmovie;
   int axis;
   ImodView *vi = mVi;
+  float zStep[3];
+  getNormalToPlane(zStep);
 
   // If no movie or it was not started by this slicer, done
   if (!(vi->xmovie || vi->ymovie || vi->zmovie) || 
@@ -1813,16 +2080,16 @@ void SlicerFuncs::checkMovieLimits()
     return;
 
   // See if dominant axis has changed and restart movie
-  findMovieAxis(&xmovie, &ymovie, &zmovie, 1, &axis);
+  findMovieAxis(xmovie, ymovie, zmovie, 1, axis);
   if ((vi->xmovie && axis != 0) || (vi->ymovie && axis != 1) || 
       (vi->zmovie && axis != 2)) {
 
     // If sign of new motion along old axis (xstep[old]/xstep[axis]) is 
     // opposite to sign of old motion (oldmovie), then need to restart
     // with negative direction.  Only one term of old sum counts.
-    if ((vi->xmovie * mZstep[b3dX] + vi->ymovie * mZstep[b3dY] + 
-         vi->zmovie * mZstep[b3dZ]) / mZstep[axis] < 0.)
-      findMovieAxis(&xmovie, &ymovie, &zmovie, -1, &axis);
+    if ((vi->xmovie * zStep[b3dX] + vi->ymovie * zStep[b3dY] + 
+         vi->zmovie * zStep[b3dZ]) / zStep[axis] < 0.)
+      findMovieAxis(xmovie, ymovie, zmovie, -1, axis);
     imodMovieXYZT(vi, xmovie, ymovie, zmovie, 0);
   }
 
@@ -1838,7 +2105,7 @@ void SlicerFuncs::startMovieCheckSnap(int dir)
   ImodView *vi = mVi;
 
   // Find dominant axis and start/stop movie along that axis
-  findMovieAxis(&xmovie, &ymovie, &zmovie, dir, &axis);
+  findMovieAxis(xmovie, ymovie, zmovie, dir, axis);
   imodMovieXYZT(vi, xmovie, ymovie, zmovie, 0);
   imcSetStarterID(mCtrl);
 
@@ -2086,9 +2353,14 @@ int SlicerFuncs::setxyz(int x, int y)
   return zmouse;
 }
 
-// Compute the x, y, z coordinates corresponding to a point in window
-int SlicerFuncs::getxyz(int x, int y, float &xm, float &ym,
-                         float &zm)
+// Compute the x, y, z coordinates corresponding to a point in window, by default,
+// clamp it to legal range for window coords
+int SlicerFuncs::getxyz(int x, int y, float &xm, float &ym, float &zm, bool clamp)
+{
+  return getxyz((float)x, (float)y, xm, ym, zm, clamp);
+}
+
+int SlicerFuncs::getxyz(float x, float y, float &xm, float &ym, float &zm, bool clamp)
 {
   float xoffset, yoffset;
   float zs;
@@ -2127,18 +2399,29 @@ int SlicerFuncs::getxyz(int x, int y, float &xm, float &ym,
   ym -= delpt.y;
   zm -= delpt.z;
 
-  xm = B3DMIN(mVi->xsize - 1, B3DMAX(0, xm));
-  ym = B3DMIN(mVi->ysize - 1, B3DMAX(0, ym));
-  zm = B3DMIN(mVi->zsize - 0.51, B3DMAX(-0.49, zm));
-
-  return((int)floor(zm + 0.5));
+  if (clamp) {
+    B3DCLAMP(xm, 0, mVi->xsize - 1);
+    B3DCLAMP(ym, 0, mVi->ysize - 1);
+    B3DCLAMP(zm, 0, mVi->zsize - 1);
+  }
+  return(B3DNINT(zm));
 }
 
 // Get the window coordinates corresponding to the given image point 
 // coordinates as integer values; zim should be 0 if the point is in the 
 // current plane
-void SlicerFuncs::getWindowCoords(float xcur, float ycur, 
-                            float zcur, int &xim, int &yim, int &zim)
+void SlicerFuncs::getWindowCoords(float xcur, float ycur, float zcur, int &xim,
+                                  int &yim, int &zim)
+{
+  float xwin, ywin, zwin;
+  getWindowCoords(xcur, ycur, zcur, xwin, ywin, zwin);
+  zim = B3DNINT(zwin);
+  xim = B3DNINT(xwin);
+  yim = B3DNINT(ywin);
+}
+
+void SlicerFuncs::getWindowCoords(float xcur, float ycur, float zcur, float &xim,
+                                  float &yim, float &zim)
 {
   Ipoint pnt, xn, yn, zn;
   Imat *mat = mMat;
@@ -2162,9 +2445,361 @@ void SlicerFuncs::getWindowCoords(float xcur, float ycur,
   zcur = (zcur - mCz) / zs;
   xoffset = xn.x * xcur + yn.x * ycur + zn.x * zcur;
   yoffset = xn.y * xcur + yn.y * ycur + zn.y * zcur;
-  zim = B3DNINT(xn.z * xcur + yn.z * ycur + zn.z * zcur);
-  xim = B3DNINT(xoffset * mXzoom + mWinx / 2);
-  yim = B3DNINT(yoffset * mYzoom + mWiny / 2);
+  zim = xn.z * xcur + yn.z * ycur + zn.z * zcur;
+  xim = xoffset * mXzoom + mWinx / 2;
+  yim = yoffset * mYzoom + mWiny / 2;
+}
+
+/* 
+ * Convert rubber band mouse coordinates to 3-D image coordinates
+ */
+void SlicerFuncs::bandMouseToImage()
+{
+  float xim0, yim0, zim0, xwin0, ywin0, zwin0, xim1, yim1, zim1, xwin1, ywin1, zwin1;
+
+  // Get the image coordinates of the clicked points in the current plane 
+  getxyz(mRbMouseX0, mRbMouseY0, xim0, yim0, zim0, false);
+  getxyz(mRbMouseX1, mRbMouseY1, xim1, yim1, zim1, false);
+
+  // Get window coordinates of these points on a plane through volume center by switching
+  // the current position to the center
+  swapCenterXYZ(mVi->xsize / 2., mVi->ysize / 2., mVi->zsize / 2.);
+  getWindowCoords(xim0, yim0, zim0, xwin0, ywin0, zwin0);
+  getWindowCoords(xim1, yim1, zim1, xwin1, ywin1, zwin1);
+
+  // Get the image coordinates of the points on the center plane
+  getxyz(xwin0, mWiny - 1 - ywin0, mRbImageX0, mRbImageY0, mRbImageZ0, false); 
+  getxyz(xwin1, mWiny - 1 - ywin1, mRbImageX1, mRbImageY1, mRbImageZ1, false);
+  restoreCenterXYZ();
+}
+
+/* 
+ * Convert rubber band 3-D image coordinates to mouse coordinates in the current plane
+ */
+void SlicerFuncs::bandImageToMouse()
+{
+  int zwin, ywin;
+  getWindowCoords(mRbImageX0, mRbImageY0, mRbImageZ0, mRbMouseX0, ywin, zwin);
+  mRbMouseY0 = mWiny - 1 - ywin;
+  getWindowCoords(mRbImageX1, mRbImageY1, mRbImageZ1, mRbMouseX1, ywin, zwin);
+  mRbMouseY1 = mWiny - 1 - ywin;
+}
+
+/*
+ * Set the limits for a snapshot
+ * Have to set both rubberband corners within legal limits then take difference
+ */
+void SlicerFuncs::setSnapshotLimits(int **limits, int *limarr)
+{
+  *limits = NULL;
+  if (mRubberband) {
+    *limits = limarr;
+    bandImageToMouse();
+    limarr[0] = mRbMouseX0 + 1;
+    limarr[1] = mWiny - mRbMouseY1;
+    B3DCLAMP(limarr[0], 0, mWinx - 2);
+    B3DCLAMP(limarr[1], 0, mWiny - 2);
+    limarr[2] = mRbMouseX1 - 1;
+    limarr[3] = mWiny - mRbMouseY0 - 2;
+    B3DCLAMP(limarr[2], limarr[0], mWinx - 1);
+    B3DCLAMP(limarr[3], limarr[1], mWiny - 1);
+    limarr[2] += 1 - limarr[0];
+    limarr[3] += 1 - limarr[1];
+  }
+}
+
+/*
+ * Turn the rubberband on or off; toggle arrow if necessary
+ */
+void SlicerFuncs::toggleRubberband(bool drawWin)
+{
+  if (mRubberband || mStartingBand) {
+    mRubberband = 0;
+    mStartingBand = 0;
+    mBandChanged = 1;
+  } else {
+    if (mDrawingArrow)
+      toggleArrow(false);
+    mStartingBand = 1;
+    mLimitNoValue = b3dIMax(3, mVi->xsize, mVi->ysize, mVi->zsize);
+    mBandLowHighLimits[0] = mBandLowHighLimits[1] = 2 * mLimitNoValue;
+  }
+  mGlw->setMouseTracking(sPixelViewOpen || mRubberband);
+  mQtWindow->setToggleState(SLICER_TOGGLE_BAND, mRubberband + mStartingBand);
+  mQtWindow->enableLowHighButtons(mRubberband + mStartingBand);
+  setCursor(mMousemode, true);
+  if (drawWin)
+    draw();
+  setCursor(mMousemode, true);
+}
+
+/*
+ * Set one of the limits for extraction as a shift-independent position relative to the
+ * central plane
+ */
+void SlicerFuncs::setBandLowHighLimit(int which)
+{
+  int axis;
+  float trueLimits[2];
+  float current, start, end, axisComp, delta;
+  Ipoint norm;
+
+  // If shift is pressed, then go to the limit instead of setting it
+  getNormalAndMainComponent(axis, &norm, axisComp);
+  if (sShiftPressed) {
+    if (mBandLowHighLimits[which] > mLimitNoValue || 
+        findBandAxisRange(current, start, end))
+      return;
+    ivwControlPriority(mVi, mCtrl);
+    checkBandLowHighLimits(trueLimits);
+    delta = (trueLimits[which] - current) / axisComp;
+    mCx = (mRbImageX0 + mRbImageX1) / 2. + delta * norm.x;
+    mCy = (mRbImageY0 + mRbImageY1) / 2. + delta * norm.y;
+    mCz = (mRbImageZ0 + mRbImageZ1) / 2. + delta * norm.z;
+    if (!mLocked) {
+      mVi->zmouse = mCz;
+      ivwBindMouse(mVi);
+    }
+    changeCenterIfLinked();
+    synchronizeSlicers();
+    showSlice();
+    return;
+  }
+
+  // The canonical limit is the position along dominant axis of the current center 
+  // relative to its position on the central plane
+  mBandLowHighLimits[which] = currentMainAxisDistance(axis);
+  checkBandLowHighLimits(trueLimits);
+}
+
+/*
+ * Given the dominant axis, find position along this axis of the current point relative
+ * to the projection of that point on the central plane
+ */
+float SlicerFuncs::currentMainAxisDistance(int axis)
+{
+  float xwin, ywin, zwin, xim, yim, zim, trueLimits[2];
+
+  // Swap in the volume center and find position of current point relative to that plane
+  swapCenterXYZ(mVi->xsize / 2., mVi->ysize / 2., mVi->zsize / 2.);
+  getWindowCoords(mSaveCx, mSaveCy, mSaveCz, xwin, ywin, zwin);
+  getxyz(xwin, mWiny - 1 - ywin, xim, yim, zim, false);
+  restoreCenterXYZ();
+  //imodPrintStderr("cz  %1.f  zim %.1f  limit %.1f\n",mCz,zim,mCz - zim);
+  if (axis == 0)
+    return mCx - xim;
+  else if (axis == 1)
+    return mCy - yim;
+  else
+    return mCz - zim;
+}
+
+/*
+ * Check the extraction limits for the band; return 2 if the band cannot be extracted 
+ * from at all at its current position, 1 if either limit is hasn't been set yet.
+ * Return the true limits, which are relative to the current position of the band
+ * along the axis
+ */
+int SlicerFuncs::checkBandLowHighLimits(float trueLimits[2])
+{
+  int ind;
+  float current, start, end;;
+  int invalid = 0;
+  
+  if (findBandAxisRange(current, start, end))
+    return 2;
+  for (ind = 0; ind < 2; ind++) {
+    //imodPrintStderr("%d blhl %.1f\n", ind, mBandLowHighLimits[ind]);
+    if (mBandLowHighLimits[ind] > b3dIMax(3, mVi->xsize, mVi->ysize, mVi->zsize)) {
+      invalid = 1;
+      mQtWindow->setLowHighValidity(ind, SLICER_LIMIT_INVALID);
+    } else {
+      trueLimits[ind] = current + mBandLowHighLimits[ind];
+      //imodPrintStderr("%d true %.1f\n", ind, trueLimits[ind]);
+      mQtWindow->setLowHighValidity(ind, 
+                                    (trueLimits[ind] < start || trueLimits[ind] > end) ?
+                                    SLICER_LIMIT_TRUNCATE : SLICER_LIMIT_VALID);
+      B3DCLAMP(trueLimits[ind], start, end);
+    }
+  }
+  return invalid;
+}
+
+/*
+ * Find the range for movement of the rubber band along the axis, and its current 
+ * canonical position.  These are all relative to the middle of the volume on the 
+ * dominant axis.
+ */
+bool SlicerFuncs::findBandAxisRange(float &current, float &start, float &end)
+{
+  int xmovie, ymovie, zmovie, axis, iStart, iEnd;
+  float delta;
+  if (!mRubberband)
+    return true;
+
+  // Set the center to the middle of the rubberband area and find the limits along the 
+  // axis
+  swapCenterXYZ((mRbImageX0 + mRbImageX1) / 2., (mRbImageY0 + mRbImageY1) / 2.,
+                (mRbImageZ0 + mRbImageZ1) / 2.);
+  findMovieAxis(xmovie, ymovie, zmovie, 1, axis);
+  findAxisLimits(axis, current, iStart, iEnd);
+  delta = (xmovie * mVi->xsize + ymovie * mVi->ysize + zmovie * mVi->zsize) / 2.;
+  start = iStart - delta;
+  end = iEnd - delta;
+  current -= delta;
+  //imodPrintStderr("BAL %.1f, %.1f %.1f\n", current, start, end);
+  restoreCenterXYZ();
+  return iStart < 0;
+}
+
+/*
+ * Compose a command for running rotatevol
+ */
+QString SlicerFuncs::rotateVolCommand()
+{
+  float trueLimits[2];
+  int axis, xsize, ysize, zsize;
+  float xcen, ycen, zcen, axisComp, lowDelta, highDelta, midDelta, current, start, end;
+  float temp;
+  int fx, fy, fz, llx, lly, llz, xpad, ypad, zpad;
+  double alpha, beta, gamma;
+  int bin = mVi->xybin;
+  Ipoint norm;
+  QString str = "";
+
+  // Check all conditions
+  int invalid = checkBandLowHighLimits(trueLimits);
+  if (mStartingBand) {
+    wprint("\aYou must draw a rubber band and set Lo/Hi limits or turn off the "
+           "rubber band in the Slicer window.\n");
+    return str;
+  }
+  if (invalid == 2) {
+    wprint("\aThe rubber band in the Slicer is not in a valid position that overlaps "
+           "the volume sufficiently.\n");
+    return str;
+  }
+  if (invalid == 1) {
+    wprint("\aYou must set both Li/Hi limits to extract with the rubber band in the "
+           "Slicer.\n");
+    return str;
+  }
+  if (getZScaleBefore() != 1.) {
+    wprint("\aYou cannot extract from the slicer with unequal binning in X and Y "
+           "or \"Z-Scale Before\" selected.\n");
+    return str;
+  }
+
+  // The "current" value is offset of rubberband on central plane from middle of volume,
+  // and the true limits are also relative to the middle of the volume
+  // Their difference from current indicates how far they are from stored RB position
+  // along the main axis, and to move that distance on the main axis as part of a
+  // move along the normal, we need to divide by normal component on that axis
+  findBandAxisRange(current, start, end);
+  getNormalAndMainComponent(axis, &norm, axisComp);
+  temp = (trueLimits[0] - current) / axisComp;
+  highDelta = (trueLimits[1] - current) / axisComp;
+  lowDelta = B3DMIN(temp, highDelta);
+  highDelta = B3DMAX(temp, highDelta);
+  zsize = bin * (B3DNINT(highDelta - lowDelta) + 1);
+  midDelta = 0.5 * (lowDelta + highDelta);
+  xcen = 0.5 * (mRbImageX0 + mRbImageX1) + midDelta * norm.x;
+  ycen = 0.5 * (mRbImageY0 + mRbImageY1) + midDelta * norm.y;
+  zcen = 0.5 * (mRbImageZ0 + mRbImageZ1) + midDelta * norm.z;
+  if (ivwGetImagePadding(mVi, B3DNINT(ycen), B3DNINT(zcen), ivwWindowTime(mVi, mTimeLock),
+                         llx, xpad, fx, lly, ypad, fy, llz, zpad, fz) < 0)
+    return str;
+
+  // Get the angles and center in case of no flip
+  xcen = bin * (xcen + llx - xpad);
+  alpha = mTang[b3dX];
+  beta = mTang[b3dY];
+  gamma = mTang[b3dZ];
+  if (mVi->li->axis == 3) {
+    ycen = bin * (ycen + lly - ypad);
+    zcen = bin * (zcen + llz - zpad) + 0.5;
+  } else {
+
+    // In case of flip, swap the Y and Z centers appropriately and get new angles
+    temp = bin * ((mVi->zsize - 1 - zcen) + lly - zpad) + 0.5;
+    zcen = bin * (ycen + llz - ypad);
+    ycen = temp;
+
+    // Premultiply the rotation matrix by -90 X rotation
+    Imat *rmat = imodMatNew(3);
+    Imat *pmat = imodMatNew(3);
+    if (!rmat || !pmat)
+      return;
+    setForwardMatrix();
+    imodMatRot(rmat, -90., b3dX);
+    imodMatMult(rmat, mMat, pmat);
+    imodMatGetNatAngles(pmat, &alpha, &beta, &gamma);
+    free(rmat);
+    free(pmat);
+  }
+
+  // Use size of band adjusted for bin and zoom as size of image
+  bandImageToMouse();
+  xsize = bin * b3dIMax(2, 2, B3DNINT((mRbMouseX1 + 1 - mRbMouseX0) / mXzoom));
+  ysize = bin * b3dIMax(2, 2, B3DNINT((mRbMouseY1 + 1 - mRbMouseY0) / mYzoom));
+  str.sprintf("-siz %d,%d,%d -cen %.2f,%.2f,%.2f -ang %.2f,%.2f,%.2f", xsize, ysize, 
+              zsize, xcen, ycen, zcen, gamma, beta, alpha);
+  return str;
+}
+
+/*
+* Resize the image to fit the rubberband and center it on the band if possible
+*/
+void SlicerFuncs::resizeToFit()
+{
+  int width, height, neww, newh;
+  int dx, dy, newdx, newdy, axis;
+  float xl, xr, yb, yt;
+  float current, start, end, axisComp;
+  Ipoint norm;
+
+  width = mQtWindow->width();
+  height = mQtWindow->height();
+  QRect pos = ivwRestorableGeometry(mQtWindow);
+  dx = pos.x();
+  dy = pos.y();
+  /* imodPrintStderr("dx %d dy %d\n", dx, dy); */
+
+  // set size to size of band
+  bandImageToMouse();
+  xl = mRbImageX0;
+  yb = mRbImageY0;
+  xr = mRbImageX1;
+  yt = mRbImageY1;
+  neww = mRbMouseX1 -1 - mRbMouseX0 + width - mWinx;
+  newh = mRbMouseY1 -1 - mRbMouseY0 + height - mWiny;
+
+  // distance of current point from midplane (where RB is located) along the dominant
+  // axis, divide by normal component on that axis to get the move to make along the
+  // normal to move that distance on main axis, then move there from RB position
+  getNormalAndMainComponent(axis, &norm, axisComp);
+  current = currentMainAxisDistance(axis) / axisComp;
+  mCx = 0.5 * (mRbImageX0 + mRbImageX1) + current * norm.x;
+  mCy = 0.5 * (mRbImageY0 + mRbImageY1) + current * norm.y;
+  mCz = 0.5 * (mRbImageZ0 + mRbImageZ1) + current * norm.z;
+  B3DCLAMP(mCx, 0, mVi->xsize);
+  B3DCLAMP(mCy, 0, mVi->ysize);
+  B3DCLAMP(mCz, 0, mVi->zsize - 0.5);
+  if (!mLocked)
+    mVi->zmouse = mCz;
+  toggleRubberband(false);
+  
+  diaLimitWindowSize(neww, newh);
+  newdx = dx + width / 2 - neww / 2;
+  newdy = dy + height / 2 - newh / 2;
+  diaLimitWindowPos(neww, newh, newdx, newdy);
+
+  /* imodPrintStderr("newdx %d newdy %d\n", newdx, newdy); */
+  mQtWindow->resize(neww, newh);
+  mQtWindow->move(newdx, newdy);
+  changeCenterIfLinked();
+  synchronizeSlicers();
+  showSlice();
 }
 
 #ifndef NDEBUG
@@ -2209,7 +2844,7 @@ void SlicerFuncs::setInverseMatrix()
 
 /* Translates the center position within or normal to plane, returns 1 if the
    position is changed.  The vector is in Z-scaled space; so after 
-   back-rotating it is sclaed downinto original pixel space.  Lateral moves
+   back-rotating it is scaled down into original pixel space.  Lateral moves
    are correct for the panning motion in the window, but vertical moves need
    to be normalized */
  int SlicerFuncs::translateByRotatedVec(Ipoint *vec, 
@@ -2237,15 +2872,24 @@ void SlicerFuncs::setInverseMatrix()
   return 0;
 }
 
-// Return the normal to the current plane.  Multiply the inverse transformation
-// of a Z vector by the Z scaling before
+// Return the normal to the current plane.  In order for this to be a vector for movement
+// on the view axis, DIVIDE the inverse transformation of Z vector by the Z scaling before
 void SlicerFuncs::getNormalToPlane(Ipoint *norm)
 {
   Ipoint vec = {0., 0., 1.};
   setInverseMatrix();
   imodMatTransform3D(mMat, &vec, norm);
-  norm->z *= getZScaleBefore();
+  norm->z /= getZScaleBefore();
   imodPointNormalize(norm);
+}
+
+void SlicerFuncs::getNormalToPlane(float vec[3])
+{
+  Ipoint vrot;
+  getNormalToPlane(&vrot);
+  vec[0] = vrot.x;
+  vec[1] = vrot.y;
+  vec[2] = vrot.z;
 }
 
 /*
@@ -2697,12 +3341,17 @@ void SlicerFuncs::draw()
   if (imodDebug('c'))
     imodPrintStderr("Slicer ID %d in sslice_draw\n", mCtrl);
 
-  // Turn off arrow now if angles don't match
+  // Turn off arrow or rubberband now if angles don't match
   if (mArrowOn && (mArrowHead.x || mArrowHead.y || mArrowHead.z) &&
       (fabs(mArrowAngle[0] - mTang[0]) > 1.e-3 ||
        fabs(mArrowAngle[1] - mTang[1]) > 1.e-3 ||
        fabs(mArrowAngle[2] - mTang[2]) > 1.e-3))
     toggleArrow(false);
+  if ((mRubberband || (mStartingBand && sMousePressed)) &&
+      (fabs(mBandAngle[0] - mTang[0]) > 1.e-3 ||
+       fabs(mBandAngle[1] - mTang[1]) > 1.e-3 ||
+       fabs(mBandAngle[2] - mTang[2]) > 1.e-3))
+    toggleRubberband(false);
   mGlw->updateGL();
   cubeDraw();
   mNeedDraw = false;
@@ -2794,9 +3443,8 @@ void SlicerFuncs::paint()
     mDrawnYmouse = mVi->ymouse;
     mDrawnZmouse = mVi->zmouse;
     if (sSliceAngDia && (getTopSlicer() == this))
-      sSliceAngDia->topSlicerDrawing(mTang, mCx, mCy, mCz, 
-                                    mTimeLock ? mTimeLock : mVi->curTime, 
-                                    sSliderDragging + mousing, mContinuous);
+      sSliceAngDia->topSlicerDrawing(mTang, mCx, mCy, mCz, ivwWindowTime(mVi, mTimeLock), 
+                                     sSliderDragging + mousing, mContinuous);
   }
 
   b3dSetCurSize(mWinx, mWiny);
@@ -2835,9 +3483,18 @@ void SlicerFuncs::paint()
     }
   }
 
+  if (mRubberband) {
+    b3dLineWidth(1);
+    b3dColorIndex(App->endpoint);
+    bandImageToMouse();
+    b3dDrawRectangle(mRbMouseX0, mWiny - 1 - mRbMouseY1, 
+                     mRbMouseX1 - mRbMouseX0, 
+                     mRbMouseY1 - mRbMouseY0);
+  } 
+
   // Update toolbar for time
   if (mVi->numTimes) {
-    int time = mTimeLock ? mTimeLock : mVi->curTime;
+    int time = ivwWindowTime(mVi, mTimeLock);
     if (mToolTime != time){
       mToolTime = time;
       mQtWindow->setTimeLabel(time, QString(ivwGetTimeIndexLabel(mVi, time)));
@@ -2969,9 +3626,10 @@ void SlicerFuncs::drawModel()
   return;
 }
 
-/* cube drawing function call */
+/* cube drawing function call, also a good place to update the view axis slider */
 void SlicerFuncs::cubeDraw()
 {
+  updateViewAxisPos();
   mCube->updateGL();
 }
 
@@ -3112,35 +3770,4 @@ void SlicerFuncs::cubePaint()
 
   glFlush();
 
-}
-
-// Sets the cursor for the given mode if necessary, or regardless if setAnyway is true
-void SlicerFuncs::setCursor(int mode, bool setAnyway)
-{
-  Qt::CursorShape shape;
-
-  // Set up a special cursor for the arrow
-  if (mDrawingArrow) {
-    shape = Qt::SizeAllCursor;
-    if (shape != mLastShape || setAnyway) {
-
-      // This one makes the cursor show up a little better on starting/MAC
-      imod_info_input();
-      mGlw->setCursor(QCursor(shape));
-    }
-    mLastShape = shape;
-    return;
-  }
-
-  // Or restore cursor from rubber band or change cursor due to mode change
-  if (mMousemode != mode || mLastShape >= 0 || setAnyway) {
-    if (mode == IMOD_MMODEL) {
-      mGlw->setCursor(*App->modelCursor);
-    } else {
-      mGlw->unsetCursor();
-    }
-    mMousemode = mode;
-    mLastShape = -1;
-    imod_info_input();
-  }
 }

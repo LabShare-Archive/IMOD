@@ -44,6 +44,7 @@ class SlicerFuncs {
   void stateToggled(int index, int state);
   void angleChanged(int axis, int value, int dragging);
   void Zscale(int item);
+  void updateViewAxisPos();
   void imageThickness(int sno);
   void modelThickness(float mDepth);
   void resize(int mWinx, int mWiny);
@@ -72,12 +73,15 @@ class SlicerFuncs {
   void toggleArrow(bool drawWin = true);
   void rotateOnViewAxis(int deltaX, int deltaY, int deltaZ);
   void setCursor(int mode, bool setAnyway = false);
+  void setBandLowHighLimit(int which);
+  QString rotateVolCommand();
 
  private:
   void cubeDraw();
   void drawSelfAndLinked();
   int setxyz(int x, int y);
-  int getxyz(int x, int y, float &xm, float &ym, float &zm);
+  int getxyz(int x, int y, float &xm, float &ym, float &zm, bool clamp = true);
+  int getxyz(float x, float y, float &xm, float &ym, float &zm, bool clamp = true);
   void attachPoint(int x, int y, int ctrlDown);
   void insertPoint(int x, int y, int ctrl);
   void modifyPoint(int x, int y, int ctrl);
@@ -89,18 +93,43 @@ class SlicerFuncs {
   double fixangle(double angle);
   void startMovieCheckSnap(int dir);
   void setMovieLimits(int axis);
-  void findMovieAxis(int *xmovie, int *ymovie, int *zmovie, int dir, int *axis);
+  void findAxisLimits(int axis, float &current, int &start, int &end);
+  void findMovieAxis(int &xmovie, int &ymovie, int &zmovie, int dir, int &axis);
   void setInverseMatrix();
   int translateByRotatedVec(Ipoint *vec, bool outsideOK = false);
   void setClassicMode(int state);
   void getNormalToPlane(Ipoint *norm);
+  void getNormalToPlane(float vec[3]);
+  void getNormalAndMainComponent(int &axis, Ipoint *norm, float &axisComp);
   void getWindowCoords(float xcur, float ycur, float zcur, int &xim, int &yim, int &zim);
+  void getWindowCoords(float xcur, float ycur, float zcur, float &xim, float &yim, 
+                       float &zim);
   void setViewAxisRotation(float x, float y, float z);
   void getMontageShifts(int factor, float scaleFactor, int win, int &overlap,
                         float &transStart, float &transDelta, int &copyDelta,
                         int &fullSize);
   void montageSnapshot(int snaptype);
   void fillImageArray(int panning, int meanOnly, int rgbChannel);
+  void setZmouseForAxisMove(float zmove);
+  void swapCenterXYZ(float inX, float inY, float inZ) {mSaveCx = mCx; mSaveCy = mCy; 
+    mSaveCz = mCz; mCx = inX; mCy = inY; mCz = inZ;};
+  void restoreCenterXYZ() {mCx = mSaveCx; mCy = mSaveCy; mCz = mSaveCz; };
+  void setBandMouseStart() {mRbStartX0 = mRbMouseX0; mRbStartX1 = mRbMouseX1;
+    mRbStartY0 = mRbMouseY0; mRbStartY1 = mRbMouseY1;};
+  void bandMouseToImage();
+  void bandImageToMouse();
+  void setSnapshotLimits(int **limits, int *limarr);
+  void toggleRubberband(bool drawWin = true);
+  int checkBandLowHighLimits(float trueLimits[2]);
+  bool findBandAxisRange(float &current, float &start, float &end);
+  void saveBandForChecking() {mRbSaveX0 = mRbImageX0; mRbSaveX1 = mRbImageX1;
+    mRbSaveY0 = mRbImageY0; mRbSaveY1 = mRbImageY1;
+    mRbSaveZ0 = mRbImageZ0; mRbSaveZ1 = mRbImageZ1;};
+  void restoreSavedBand() {mRbImageX0 = mRbSaveX0; mRbImageX1 = mRbSaveX1;
+    mRbImageY0 = mRbSaveY0; mRbImageY1 = mRbSaveY1; mRbImageZ0 = mRbSaveZ0;
+    mRbImageZ1 = mRbSaveZ1;};
+  void resizeToFit();
+  float currentMainAxisDistance(int axis);
 
  public:
   SlicerWindow *mQtWindow;
@@ -117,6 +146,8 @@ class SlicerFuncs {
   int   mCtrl;
   float  mZoom;
   float mScaleBarSize;     /* Actual size of draw scale bar in model units */
+  int    mRubberband;    /* Rubber banding flag */
+  int    mStartingBand;
 
  private:
   SlicerGL     *mGlw;
@@ -159,6 +190,7 @@ class SlicerFuncs {
   float mZslast;           /* Value of zscale on last draw_cb */
   int mPending;            /* Flag that there are pending coords from hit */
   float mPendx, mPendy, mPendz;   /* pending coords */
+  float mSaveCx, mSaveCy, mSaveCz;  /* Saved values of mCx, etc. */
   int mMovieSnapCount;     /* Counter for doing movie snapshots */
   float mOrigZmouse;       /* Original zxmouse when page up/down started */
   float mOrigAngles[3];    /* Original angles at that time */
@@ -176,6 +208,36 @@ class SlicerFuncs {
   Ipoint mArrowHead;
   float mArrowAngle[3];    // Angle at which arrow is valid
   int mLastShape;          // Last shape for cursor
+  int mLastAxisPos;        // Last position sent to view axis slider
+
+  float  mRbImageX0;    /* Rubber band image coordinates */
+  float  mRbImageX1;
+  float  mRbImageY0;
+  float  mRbImageY1;
+  float  mRbImageZ0;
+  float  mRbImageZ1;
+  int    mRbMouseX0;    /* mouse coords */
+  int    mRbMouseX1;
+  int    mRbMouseY0;
+  int    mRbMouseY1;
+  int    mRbStartX0;    /* mouse coords at start of drag or move */
+  int    mRbStartX1;
+  int    mRbStartY0;
+  int    mRbStartY1;
+  int    mRbSaveX0;     /* image coords before one stpe of move */
+  int    mRbSaveX1;
+  int    mRbSaveY0;
+  int    mRbSaveY1;
+  int    mRbSaveZ0;
+  int    mRbSaveZ1;
+  int    mBandChanged;    /* Flag that band changed */
+  int    mDragging[4];
+  float  mBandAngle[3];    // Angle at which band is valid
+  int    mMoveBand;
+  int    mDragBand;
+  int    mFirstDrag;
+  float  mBandLowHighLimits[2];
+  int    mLimitNoValue;
 
   short mNslice;       /* Number of slices to draw */
   Imat  *mMat;
@@ -185,6 +247,9 @@ class SlicerFuncs {
   int   mClosing;      /* Flag for window closing */
 };     
 
+/*
+ * Global slicer functions
+ */
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
                        int ilimshort, int jlimshort, int minval, int maxval, int intData);
 int sslice_open(ImodView *vi);
@@ -192,7 +257,7 @@ int slicerAnglesOpen();
 void slicerAnglesClosing();
 void slicerPixelViewState(bool state);
 void slicerReportAngles();
-SlicerFuncs *getTopSlicer();
+SlicerFuncs *getTopSlicer(bool withBand = false, int *index = NULL);
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw);
 int setTopSlicerFromModelView(Ipoint *rot);
 int getTopSlicerTime(bool &continuous);

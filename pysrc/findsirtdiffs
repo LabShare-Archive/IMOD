@@ -8,13 +8,8 @@
 progname = 'findsirtdiffs'
 prefix = 'ERROR: ' + progname + ' - '
 
-def compareDiffs(l1, l2):
-   if l1[0] < l2[0]:
-      return -1
-   elif l1[0]== l2[0]:
-      return 0
-   return 1
-
+def diffKey(item):
+   return item[0]
 
 # load System Libraries
 import sys, os, glob, math
@@ -52,7 +47,7 @@ for log in logfiles:
             exitError('Converting a line of difference statistics')
 
 # Sort by iteration
-diffs.sort(compareDiffs)
+diffs.sort(key = diffKey)
 
 ind = 0
 while ind < len(diffs):

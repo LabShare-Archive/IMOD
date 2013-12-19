@@ -10,11 +10,12 @@
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
 
-#define MAX_SLICER_TOGGLES 7
+#define MAX_SLICER_TOGGLES 8
 
 enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_CENTER, 
-      SLICER_TOGGLE_FFT, SLICER_TOGGLE_ARROW, SLICER_TOGGLE_TIMELOCK,
+      SLICER_TOGGLE_FFT, SLICER_TOGGLE_BAND, SLICER_TOGGLE_ARROW, SLICER_TOGGLE_TIMELOCK,
       SLICER_TOGGLE_SHIFTLOCK};
+enum {SLICER_LIMIT_INVALID = 0, SLICER_LIMIT_TRUNCATE, SLICER_LIMIT_VALID};
 
 //Added by qt3to4:
 #include <QCloseEvent>
@@ -38,6 +39,7 @@ class QSlider;
 class MultiSlider;
 class QComboBox;
 class QCheckBox;
+class QAction;
 
 class SlicerFuncs;
 class SlicerGL;
@@ -60,7 +62,10 @@ class SlicerWindow : public QMainWindow
   void setModelThickness(float depth);
   void setImageThickness(int depth);
   void setAngles(float *angles);
+  void setViewAxisPosition(int amin, int amax, int current);
   void showSaveAngleToolbar();
+  void setLowHighValidity(int which, int state);
+  void enableLowHighButtons(int enable);
 
   SlicerGL *mGLw;
   SlicerCube *mCube;
@@ -101,6 +106,7 @@ class SlicerWindow : public QMainWindow
   void rotationClicked(int deltaX, int deltaY, int deltaZ);
   void stepSizeChanged(int delta);
   void shiftToggled(bool state);
+  void lowHighClicked(int which);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -122,6 +128,9 @@ class SlicerWindow : public QMainWindow
   QLabel *mTimeNumLabel;
   QLabel *mTimeLabel;
   QPushButton *mHelpButton;
+  QPushButton *mLowHighButtons[2];
+  int mLowHighStates[2];
+  QAction *mLowHighActions[2];
   int mBreakBeforeAngBar;
 };
 
