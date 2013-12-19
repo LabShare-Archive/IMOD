@@ -19,7 +19,6 @@ c
 c       See man page for more details
 c       
 c       $Id$
-c       Log and other history at end
 c       
       use rotmatwarp
       implicit none
@@ -126,6 +125,8 @@ c
       endif
 c       
       call PipDone()
+      if (nxout < 1 .or. nyout < 1 .or. nzout < 1) call exitError(
+     &    'A POSITIVE OUTPUT SIZE MUST BE ENTERED ON ALL AXES')
 c       
 c       get matrices for forward and inverse rotations
 c       
@@ -215,45 +216,3 @@ c       Do all the work and exit
       call transform_cubes(interpOrder)
       end
 
-c
-c       $Log$
-c       Revision 3.12  2007/11/18 04:53:46  mast
-c       Increased filename limits to 320
-c
-c       Revision 3.11  2007/01/31 16:24:05  mast
-c       Added option to set fill value
-c
-c       Revision 3.10  2006/06/23 17:13:48  mast
-c       Modified origin computation so it works with a 90 degree rotation
-c
-c       Revision 3.9  2006/06/01 14:17:08  mast
-c       Swirched to exiterror
-c
-c       Revision 3.8  2005/12/01 06:38:42  mast
-c       Added query option to determine maximum needed size for rotated vol
-c	
-c       Revision 3.7  2005/10/14 21:46:06  mast
-c       Set header origin correctly if pixel size not = 1
-c	
-c       Revision 3.6  2004/11/10 02:06:27  mast
-c       Added argument to call to setup cubes
-c	
-c       Revision 3.5  2004/10/29 20:00:07  mast
-c       Added and allowed defaults for output size and angles
-c	
-c       Revision 3.4  2003/10/10 20:38:04  mast
-c       Changed to use subroutines in rotmatwarpsubs.f and include file.
-c       Converted to PIP/autodoc input and added linear interpolation option.
-c	
-c       Revision 3.3  2003/10/02 19:41:21  mast
-c       Changed method of writing sections to avoid having to fit output
-c       section into array all at once.
-c       Increased array size and put big array in common
-c	
-c       Revision 3.2  2003/03/15 01:04:15  mast
-c       Standardize error output
-c	
-c       David Mastronarde 7/25/91
-c       1995: switch to tri-quadratic interpolation, allow real center coords
-c       DNM 2/26/01: add temporary directory entry and semi-unique filenames
-c       DNM 11/6/01: fixed problem with output array size not being respected
