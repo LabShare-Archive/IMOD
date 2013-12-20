@@ -777,17 +777,22 @@ void SlicerFuncs::stateToggled(int index, int state)
     mShiftLock = state;
     break;
 
-  case SLICER_TOGGLE_FFT:
-    mFftMode = state;
-    draw();
-    break;
-
   case SLICER_TOGGLE_BAND:
     toggleRubberband();
     break;
 
   case SLICER_TOGGLE_ARROW:
     toggleArrow();
+    break;
+
+  case SLICER_TOGGLE_FFT:
+    mFftMode = state;
+    draw();
+    break;
+
+  case SLICER_TOGGLE_ZSCALE:
+    mScalez = state;
+    draw();
     break;
 
   case SLICER_TOGGLE_TIMELOCK:
@@ -833,14 +838,6 @@ void SlicerFuncs::setClassicMode(int state)
   synchronizeSlicers();
   
   imodDraw(mVi, IMOD_DRAW_XYZ);
-}
-
-// Selection of a new zscaling option
-void SlicerFuncs::Zscale(int item)
-{
-  ivwControlPriority(mVi, mCtrl);
-  mScalez = item;
-  draw();
 }
 
 
@@ -2729,7 +2726,7 @@ QString SlicerFuncs::rotateVolCommand()
     Imat *rmat = imodMatNew(3);
     Imat *pmat = imodMatNew(3);
     if (!rmat || !pmat)
-      return;
+      return str;
     setForwardMatrix();
     imodMatRot(rmat, -90., b3dX);
     imodMatMult(rmat, mMat, pmat);

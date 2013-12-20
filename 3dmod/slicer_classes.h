@@ -10,11 +10,11 @@
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
 
-#define MAX_SLICER_TOGGLES 8
+#define MAX_SLICER_TOGGLES 9
 
 enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_CENTER, 
-      SLICER_TOGGLE_FFT, SLICER_TOGGLE_BAND, SLICER_TOGGLE_ARROW, SLICER_TOGGLE_TIMELOCK,
-      SLICER_TOGGLE_SHIFTLOCK};
+      SLICER_TOGGLE_BAND, SLICER_TOGGLE_ARROW, SLICER_TOGGLE_FFT, SLICER_TOGGLE_ZSCALE,
+      SLICER_TOGGLE_TIMELOCK, SLICER_TOGGLE_SHIFTLOCK};
 enum {SLICER_LIMIT_INVALID = 0, SLICER_LIMIT_TRUNCATE, SLICER_LIMIT_VALID};
 
 //Added by qt3to4:
@@ -37,7 +37,6 @@ class QLabel;
 class QSignalMapper;
 class QSlider;
 class MultiSlider;
-class QComboBox;
 class QCheckBox;
 class QAction;
 
@@ -93,7 +92,6 @@ class SlicerWindow : public QMainWindow
   void contourPressed();
   void fillCachePressed();
   void setTimeLabel(int time, QString label);
-  void zScaleSelected(int item);
   void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
   void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
   void timeBack();
@@ -124,7 +122,6 @@ class SlicerWindow : public QMainWindow
   QSpinBox *mImageBox;
   QDoubleSpinBox *mModelBox;
   MultiSlider *mSliders;
-  QComboBox *mZscaleCombo;
   QLabel *mTimeNumLabel;
   QLabel *mTimeLabel;
   QPushButton *mHelpButton;

@@ -9,7 +9,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
- *  No more Log
  */
 
 #ifndef SSLICE_H
@@ -43,7 +42,6 @@ class SlicerFuncs {
   void fillCache();
   void stateToggled(int index, int state);
   void angleChanged(int axis, int value, int dragging);
-  void Zscale(int item);
   void updateViewAxisPos();
   void imageThickness(int sno);
   void modelThickness(float mDepth);
