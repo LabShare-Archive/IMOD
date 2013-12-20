@@ -17,10 +17,14 @@ MODULES = imodpy.py pysed.py supermont.py pip.py comchanger.py
 
 all:
 
-install:  $(CMDWRAPPERS)
+install:  $(CMDWRAPPERS) $(COPYPYSCRIPTS)
 	mkdir -p $(INSTDIR)/pylib
-	$(CP) $(SCRIPTS) $(INSTBINDIR)
 	$(CP) $(MODULES) $(INSTDIR)/pylib
+
+# For Mac/Linux, scripts are just copied, for Windows, copywrappers copies them and
+# changes /usr/bin/env python to /usr/bin/python -u
+copyscripts:
+	$(CP) $(SCRIPTS) $(INSTBINDIR)
 
 cmdwrappers:
 	../scripts/copywrappers $(INSTBINDIR) . $(SCRIPTS)

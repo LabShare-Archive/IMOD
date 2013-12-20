@@ -69,9 +69,10 @@ static const char *fileList[MAX_SLICER_TOGGLES][2] =
   { {":/images/lowres.png", ":/images/highres.png"},
     {":/images/unlock.png", ":/images/lock.png"},
     {":/images/smartCenter.png", ":/images/keepCenter.png"}, 
-    {":/images/fft.png", ":/images/fftRed.png"},
     {":/images/rubberband.png", ":/images/rubberband2.png"},
     {":/images/arrowBlack.png", ":/images/arrowRed.png"},
+    {":/images/fft.png", ":/images/fftRed.png"},
+    {":/images/zscale.png", ":/images/zscaleOn.png"},
     {":/images/timeUnlock.png", ":/images/timeLock.png"},
     {":/images/shiftlockoff.png", ":/images/shiftlockon.png"}};
 
@@ -84,9 +85,10 @@ static const char *sToggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image",
   "Lock window at current position",
   "Keep current image or model point centered (classic mode, hot key k)",
-  "Toggle between showing image and FFT",
-  "Toggle rubberband on or off (resize with first mouse, move with second)",
+  "Toggle rubberband on or off (resize with first mouse, move with second, hot key B)",
   "Toggle arrow on or off (draw with first mouse)",
+  "Toggle between showing image and FFT",
+  "Toggle applying model Z-scale to image",
   "Lock window at current time",
   "Use keypad and mouse as if Shift key were down to rotate slice"};
 
@@ -177,21 +179,9 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
     mLowHighStates[j] = SLICER_LIMIT_INVALID - 1;
   }
 
-  // The Z scale combo box
-  mZscaleCombo = new QComboBox(this);
-  mToolBar->addWidget(mZscaleCombo);
-  QStringList scaleList;
-  mZscaleCombo->addItem("Z-Scale Off");
-  mZscaleCombo->addItem("Z-Scale Before");
+  utilTBPushButton("Help", this, mToolBar, &mHelpButton, "Open help window");
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
 
-  // Only allow scale after if there is no implicit scale from binning
-  if (funcs->mVi->xybin == funcs->mVi->zbin)
-    mZscaleCombo->addItem("Z-Scale After");
-  mZscaleCombo->setFocusPolicy(Qt::NoFocus);
-  connect(mZscaleCombo, SIGNAL(activated(int)), this, 
-	  SLOT(zScaleSelected(int)));
-  mZscaleCombo->setToolTip("Select whether to ignore Z scale, or apply it"
-                " before or after rotation");
 
   // THE TIME TOOLBAR
   if (!timeLabel.isEmpty()) {
@@ -252,7 +242,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
                 "from table");
 
   // SECOND TOOLBAR
-  mToolBar2 = makeToolBar(true, 4, "Slicer Toolbar 2");
+  mToolBar2 = makeToolBar(true, 2, "Slicer Toolbar 2");
 
   // Make a frame, put a layout in it, and then put multisliders in the layout
   QWidget *sliderFrame = new QWidget(this);
@@ -264,7 +254,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   for (j = 0; j < 4; j++) {
     int maxVal = (int)(10. * maxAngles[j] + 0.1);
     mSliders->setRange(j, -maxVal, maxVal);
-    mSliders->getSlider(j)->setMinimumWidth(170);
+    mSliders->getSlider(j)->setMinimumWidth(200);
     mSliders->getSlider(j)->setPageStep(j < 3 ? 10 : 1);
   }
   mSliders->setDecimals(3, 0);
@@ -275,18 +265,38 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
 	  SLOT(angleChanged(int, int, bool)));
 
+  QFrame *line = new QFrame(this);
+  line->setFrameShape( QFrame::VLine );
+  line->setFrameShadow( QFrame::Sunken );
+  mToolBar2->addWidget(line);
+
+  QWidget *rightBox = new QWidget(this);
+  mToolBar2->addWidget(rightBox);
+  QVBoxLayout *rightVLay = new QVBoxLayout(rightBox);
+  QHBoxLayout *topHLay = new QHBoxLayout();
+  QHBoxLayout *spinHLay = new QHBoxLayout();
+  rightVLay->addLayout(topHLay);
+  diaLabel("Thickness:", rightBox, rightVLay);
+  rightVLay->addLayout(spinHLay);
+  rightVLay->setContentsMargins(0, 0, 0, 0);
+  rightVLay->setSpacing(0);
+  topHLay->setContentsMargins(0, 0, 0, 0);
+  topHLay->setSpacing(0);
+  spinHLay->setContentsMargins(0, 0, 0, 0);
+  spinHLay->setSpacing(0);
+
   mRotationTool = new RotationTool(this, sIcons[SLICER_TOGGLE_SHIFTLOCK], 
                                    sToggleTips[SLICER_TOGGLE_SHIFTLOCK], TOOLBUT_SIZE,
                                    true, stepSize);
-  mToolBar2->addWidget(mRotationTool);
+  topHLay->addWidget(mRotationTool);
   connect(mRotationTool, SIGNAL(stepChanged(int)), this, SLOT(stepSizeChanged(int)));
   connect(mRotationTool, SIGNAL(centerButToggled(bool)), this, SLOT(shiftToggled(bool)));
   connect(mRotationTool, SIGNAL(rotate(int, int, int)), this,
           SLOT(rotationClicked(int, int, int)));
 
   // A frame for the cube widget; and the cube with the default GL format
-  QFrame *cubeFrame = new QFrame(this);
-  mToolBar2->addWidget(cubeFrame);
+  QFrame *cubeFrame = new QFrame(rightBox);
+  topHLay->addWidget(cubeFrame);
   cubeFrame->setFixedWidth(85);
   cubeFrame->setFrameShadow(QFrame::Sunken);
   cubeFrame->setFrameShape(QFrame::StyledPanel);
@@ -295,20 +305,11 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   mCube = new SlicerCube(funcs, glFormat, cubeFrame);
   cubeLayout->addWidget(mCube);
 
-  // Thickness box and help button
-  QWidget *thickBox = new QWidget(this);
-  mToolBar2->addWidget(thickBox);
-  QVBoxLayout *thickLay = new QVBoxLayout(thickBox);
-  thickLay->setContentsMargins(0, 0, 0, 0);
-  thickLay->setSpacing(0);
-  mHelpButton = diaPushButton("Help", thickBox, thickLay);
-  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
-  mHelpButton->setToolTip("Open help window");
-
   // Thickness of image spin box
-  label = diaLabel("Image", thickBox, thickLay);
-  mImageBox = new QSpinBox(thickBox);
-  thickLay->addWidget(mImageBox);
+  label = diaLabel("Img", rightBox, spinHLay);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  mImageBox = new QSpinBox(rightBox);
+  spinHLay->addWidget(mImageBox);
   mImageBox->setRange(1,1000);
   mImageBox->setSingleStep(1);
   mImageBox->setFocusPolicy(Qt::ClickFocus);
@@ -318,9 +319,10 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   mImageBox->setToolTip("Set number of slices to average (hot keys _  and +)");
 
   // Thickness of model spin box
-  label = diaLabel("Model", thickBox, thickLay);
-  mModelBox = new QDoubleSpinBox(thickBox);
-  thickLay->addWidget(mModelBox);  
+  label = diaLabel("Mod", rightBox, spinHLay);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  mModelBox = new QDoubleSpinBox(rightBox);
+  spinHLay->addWidget(mModelBox);  
   mModelBox->setDecimals(1);
   mModelBox->setRange(0.1, 1000.);
   mModelBox->setSingleStep(1.0);
@@ -366,6 +368,7 @@ HotToolBar *SlicerWindow::makeToolBar(bool addBreak, int spacing, const char *ca
 void SlicerWindow::setFontDependentWidths()
 {
   int width = fontMetrics().width("99.9") + 24;
+  int height = fontMetrics().height() + 6;
   mModelBox->setFixedWidth(width);
   //width = fontMetrics().width("999") + 24;
   mImageBox->setFixedWidth(width);
@@ -373,9 +376,10 @@ void SlicerWindow::setFontDependentWidths()
   diaSetButtonWidth(mSaveAngBut, ImodPrefs->getRoundedStyle(), 1.2, "Save");
   diaSetButtonWidth(mNewRowBut, ImodPrefs->getRoundedStyle(), 1.3, "New");
   diaSetButtonWidth(mSetAngBut, ImodPrefs->getRoundedStyle(), 1.35, "Set");
+  mHelpButton->setFixedHeight(height);
   for (width = 0; width < 2; width++) {
     diaSetButtonWidth(mLowHighButtons[width], ImodPrefs->getRoundedStyle(), 1.5, "Lo");
-    mLowHighButtons[width]->setFixedHeight(fontMetrics().height() + 6);
+    mLowHighButtons[width]->setFixedHeight(height);
   }
 }
 
@@ -505,11 +509,6 @@ void SlicerWindow::fillCachePressed()
 void SlicerWindow::lowHighClicked(int which)
 {
   mFuncs->setBandLowHighLimit(which);
-}
-
-void SlicerWindow::zScaleSelected(int item)
-{
-  mFuncs->Zscale(item);
 }
 
 void SlicerWindow::saveAngClicked()

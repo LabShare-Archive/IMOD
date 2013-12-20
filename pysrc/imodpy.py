@@ -913,7 +913,33 @@ def setLibPath():
       if os.getenv(mainvar) != None:
          suffix = os.pathsep + os.environ[mainvar]
       os.environ[mainvar] = os.environ['IMOD_QTLIBDIR'] + suffix
-      
+
+
+# Function for vmstopy to avoid running a .com file in current directory on Windows
+def avoidLocalComFile(command):
+   if 'win32' not in sys.platform:
+      return command
+
+   def isExecutable(fpath):
+      return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+   # There is no problem if this command has a path in front of it or if there is no
+   # com file in the current directory
+   comstr = command.split()[0]
+   (comPath, comName) = os.path.split(comstr)
+   if comPath:
+      return command
+   if not os.path.isfile(comstr + '.com'):
+      return command
+
+   # Problem.  Look on the path to find program.  IMOD is already on front...
+   for path in os.environ["PATH"].split(os.pathsep):
+      path = path.strip('"')
+      fullPath = os.path.join(path, comstr)
+      if isExecutable(fullPath) or isExecutable(fullPath + '.exe') or \
+          isExecutable(fullPath + '.cmd'):
+         return os.path.join(path, command)
+   
 
 # Function to format a string in new format for earlier versions of python
 def fmtstr(stringIn, *args):

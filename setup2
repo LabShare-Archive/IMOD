@@ -881,6 +881,9 @@ EOF
 
     echo "GENERATED_SCRIPTS = setlibpath $gen_scripts" >> $configure
 
+    # Make sure python scripts are copied in install
+    echo "COPYPYSCRIPTS = copyscripts" >> $configure
+
 endif
 
 # After qmake: remove empty imodhelp and take care of dependencies on version

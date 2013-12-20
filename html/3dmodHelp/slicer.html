@@ -12,13 +12,14 @@ windows so that the image will fill the entire window area.  When they
 are floated, they will still pass hot keys on to the slicer window.
 <P>
 <A HREF = "#Behavior">Angles, Window Behavior and Classic Centering Mode</A>
-<BR><A HREF = "#The First Toolbar">The First Toolbar</A>
-<BR><A HREF = "#The Second Toolbar">The Second Toolbar</A>
-<BR><A HREF = "#Time Toolbar">The Time Toolbar</A>
-<BR><A HREF = "#Angle Saving Toolbar">The Angle Saving Toolbar</A>
-<BR><A HREF = "#Mouse Actions and Movies">Mouse Actions and Movies</A>
-<BR><A HREF = "#Hot Keys">Hot Keys</A>
-<BR><A HREF = "#Modeling Tilted">Modeling Tilted Contours to be Meshed</A>
+<BR><A HREF = "#FirstToolbar">The General Toolbar</A>
+<BR><A HREF = "#SecondToolbar">The Slice Control Toolbar</A>
+<BR><A HREF = "#TimeToolbar">The Time Toolbar</A>
+<BR><A HREF = "#AngleSavingToolbar">The Angle Saving Toolbar</A>
+<BR><A HREF = "#MouseActionsMovies">Mouse Actions and Movies</A>
+<BR><A HREF = "#HotKeys">HotKeys</A>
+<BR><A HREF = "#RubberBand">Using the Rubber Band</A>
+<BR><A HREF = "#ModelingTilted">Modeling Tilted Contours to be Meshed</A>
 <BR><A HREF = "#Performance">Managing Slicer Performance</A>
 
 <A NAME = "Behavior"><H3>Angles, Window Behavior and Classic Centering Mode</H3></A>
@@ -70,15 +71,15 @@ visible while stepping through a contour.  In addition, if one wants to see
 the current point and it is not visible in the slicer, one can simply toggle
 the mode on and off again to center the current point.
 <P>
-<A NAME = "The First Toolbar"><H3>The First Toolbar</H3></A>
+<A NAME = "FirstToolbar"><H3>The General Toolbar</H3></A>
 <UL>
 <LI>The <B>Up</B> and <B>Down Arrows</B> step the zoom factor up or down.
-<LI>The <B>zoom</B> text box shows the current zoom and allows you to type in 
+<LI>The <B>Zoom</B> text box shows the current zoom and allows you to type in 
 intermediate zoom factors.
-<LI>The <B>checkerboard</B> button toggles between fast rendering
+<LI>The <B>Checkerboard</B> button toggles between fast rendering
 (nearest neighbor interpolation) and 
 slower but higher quality image rendering (cubic interpolation).
-<LI>The <B>lock</B> button will keep the image on the same slice even when
+<LI>The <B>Lock</B> button will keep the image on the same slice even when
 the current Z value is changed in another window; and conversely, a locked
 slicer can be moved perpendicular to the slice without affecting the current Z
 value for other windows.  In classic mode, the image is also 
@@ -88,12 +89,23 @@ In addition, a locked slicer in classic mode responds to the image movement
 keys (arrows and PageUp/PageDown) by moving the current point by one pixel in
 directions parallel or perpendicular to the plane of the slice - the same
 behavior as in the new mode.
-<LI>The <B>centering</B> button toggles between the new mode of window
+<LI>The <B>Centering</B> button toggles between the new mode of window
 behavior and having the image always 
 centered on the current model point unless locked (classic mode).
-<LI>The <B>Shift lock</B> button (<B>Sh</B>) toggles a mode in which the second
-and third mouse buttons and numeric keypad keys operate as if the Shift key
-were held down.
+<LI> The <B>Rubber band</B> button allows you to draw a rectangular box that
+  can be used for extracting a rotated subvolume from the file, defining the
+  area for a snapshot, or resizing the window to a selected area.  See the
+  section on <A HREF ="#RubberBand">Using the Rubber Band</A> below.
+<LI>The <B>Arrow</B> button allows you to draw an arrow quickly for pointing
+  out a feature in the image.  Press the button, then move the mouse to the
+  desired position for the tail of the arrow, press the first mouse button,
+  and hold it down while positioning the head of the arrow.  The arrow can be drawn
+  only at the current rotation angles, so it is turned off if you change the
+  angles.  The arrow will stay at the same image position if you pan the
+  image.  It will also stay in the same position in the window if you step
+  through planes parallel to the slice with <B>PageUp</B> and <B>PageDown</B> 
+  in this slicer window, but not if you step through Z elsewhere.
+  Turn off the button to remove the arrow.
 <LI>The <B>FT</B> button toggles between displaying the image slice or
 its Fourier transform.  The entire image in the whole window, including any
 gray borders, is padded into a square array, then the boundaries of the
@@ -110,41 +122,26 @@ transform is based on.  To see the transform at a higher zoom,
 increase the zoom and increase the window size by the same amount.
 High-resolution mode will sample pixels with accurate interpolation
 without changing the number of pixels that the transform is based on.
-<LI>The <B>Arrow</B> button allows you to draw an arrow quickly for pointing
-  out a feature in the image.  Press the button, then move the mouse to the
-  desired position for the tail of the arrow, press the first mouse button,
-  and hold it down while positioning the head of the arrow.  The arrow can be drawn
-  only at the current rotation angles, so it is turned off if you change the
-  angles.  The arrow will stay at the same image position if you pan the
-  image.  It will also stay in the same position in the window if you step
-  through planes parallel to the slice with <B>PageUp</B> and <B>PageDown</B> 
-  in this slicer window, but not if you step through Z elsewhere.
-  Turn off the button to remove the arrow.
-<LI>The <B>show slice</b> button will cause lines to be drawn in the 
+<LI>The <B>Z-Scale</B> button lets you 
+control whether the volume will be displayed with Z-scaling.  If you turn
+  Z-scaling on, then the volume will be 
+scaled before it is rotated and sliced, and thus the rotation 
+angles will not select the same slice as with no Z-scaling.  These 
+angles will be correct in a Z-scaled volume, but would not be correct 
+for using Rotatevol to achieve the same rotation of the original volume.
+<P>
+When images are loaded in with a different binning in Z versus X and
+Y, the angles are correct for the original, unbinned volume.  This is 
+accomplished by applying an implicit Z scaling.
+<LI>The <B>Show slice</b> button will cause lines to be drawn in the 
 XYZ and ZaP windows to show the intersection of the current 
 slice.
 <LI>The <B>Contour</b> button (<B>C</B>) will find the plane that best fits
 the current contour and set the X and Y angles and center position to show
 that plane.
-<LI>The <B>Z-Scale</B> box lets you 
-control whether the volume will be displayed with Z-
-scaling.  If you choose <B>Z-Scale Before</B> then the volume will be 
-scaled before it is rotated and sliced, and thus the rotation 
-angles will not select the same slice as with no Z-scaling.  These 
-angles will be correct in a Z-scaled volume, but would not be correct 
-for using Rotatevol to achieve the same rotation of the original volume.
-If you choose <B>Z-Scale After</B> the volume is scaled after being 
-rotated, and the same slice is selected as with no Z-scaling.  If you 
-plan to use angles in Rotatevol, use <B>Z-Scale After</B> or no Z-scaling.
-<P>
-When images are loaded in with a different binning in Z versus X and
-Y, the angles are correct for the original, unbinned volume.  This is 
-accomplished by applying an implicit Z scaling before rotation.  In 
-this case, you can select <B>Z-Scale Before</B> to apply an additional 
-Z-scaling, but <B>Z-Scale After</B> will be unavailable.
 </UL>
 
-<A NAME = "The Second Toolbar"><H3>The Second Toolbar</H3></A>
+<A NAME = "SecondToolbar"><H3>The Slice Control Toolbar</H3></A>
 On the left are three sliders 
 with which you can adjust the rotations about the 
 X, Y, and Z axes.  The rotation angles are applied to the volume, 
@@ -161,18 +158,31 @@ will not be updated until you release the slider.  Typically the
 sliders will be continuously active unless you press the Ctrl
 key, although you can change this default behavior in the 3dmod 
 Preferences dialog, accessed through the Edit-Options menu entry.
+<P> A fourth slider at the bottom, <B>View axis position</B> shows the
+  position of the slice along the axis perpendicular to the current plane, and
+  allows you to riffle through the planes along that axis.
 <P>
-In the middle is a representation of the slice that is being cut 
+In the middle is a cluster of buttons for rotating the volume around the
+viewer's X, Y, and Z axes.  The arrow buttons provide a substitute for using
+the numeric keypad with the Shift key held down.  If one of these buttons is
+held down, repeated steps are taken.
+The <B>Shift lock</B> button in the middle of the arrows (<B>Sh</B>) toggles a
+mode in which the second and third mouse buttons and numeric keypad keys
+operate as if the Shift key were held down.  The <B>+</B> and <B>-</B> buttons
+increase and decrease the angular step when using the rotation buttons here or
+the numeric keypad in shifted mode.
+<P>
+In the upper right is a representation of the slice that is being cut 
 from the data volume.
 <P>
-On the right are controls for adjusting the thickness of 
+In the bottom right are controls for adjusting the thickness of 
 the image slice and the thickness of model that is shown on the slice.
 
-<A NAME = "Time Toolbar"><H3>The Time Toolbar</H3></A>
+<A NAME = "TimeToolbar"><H3>The Time Toolbar</H3></A>
 If multiple image files have been loaded into 3dmod, an 
 additional toolbar appears, with the same controls as the toolbar in the Zap
 window.
-The <B>time lock</B> button will prevent 
+The <B>Time lock</B> button will prevent 
 changes in other windows from changing the time (image file) 
 displayed in this slicer; and conversely this slicer's time can be changed
 without affecting other windows.  The <B>left</B> and <B>right arrows</B> will 
@@ -181,11 +191,11 @@ step backward and forward in time.
 In addition, the time toolbar has a <B>Link</B> checkbox that will make all
 the Slicers with this option checked have the same angles, zoom, and image
 thickness.  They will also have the same position unless one of their position
-<B>lock</b> buttons is on.  This option can be used together with the 
-<B>time lock</B> button to get synchronized displays of several volumes in
+<B>Lock</b> buttons is on.  This option can be used together with the 
+<B>Time lock</B> button to get synchronized displays of several volumes in
 separate Slicers.
 
-<A NAME = "Angle Saving Toolbar"><H3>The Angle Saving Toolbar</H3></A>
+<A NAME = "AngleSavingToolbar"><H3>The Angle Saving Toolbar</H3></A>
 Slicer angles and center positions can be saved in the IMOD model by opening
 the Slicer Angles dialog box, using the Edit-Angles menu entry.  When this
 dialog box is opened, all slicers will acquire an additional toolbar with the
@@ -213,7 +223,7 @@ window one way or the other.
 </UL>
 <P>
 
-<A NAME = "Mouse Actions and Movies"><H3>Mouse Actions and Movies</H3></A>
+<A NAME = "MouseActionsMovies"><H3>Mouse Actions and Movies</H3></A>
 The actions of the mouse buttons are similar but not identical to those
 in the Zap and XYZ windows. 
 In classic mode, unless the image position is locked by the lock button, 
@@ -279,7 +289,7 @@ are set in the 3dmod Movie Controller (opened with Edit - Movies...).
 The slice angles can be changed while movieing and these limits will 
 be adjusted dynamically.
 
-<A NAME = "Hot Keys"><H3>Hot Keys</H3></A>
+<A NAME = "HotKeys"><H3>Hot Keys</H3></A>
 <UL>
 <BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase zoom (also, <B>Keypad +</B> increases zoom)
@@ -291,6 +301,10 @@ Decrease/Increase displayed model thickness
 (Letter L) Show slice in ZaP and XYZ windows
 <BR><B>k</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Toggle keeping slice centered on current point (classic mode)
+<BR><B>B</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Toggle the rubber band on or off
+<BR><B>R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Resize the window to the area enclosed in the rubber band and turn off the band
 <BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Save model to file
 <BR><B>Ctrl-S</B> &nbsp;&nbsp;&nbsp;
@@ -337,7 +351,40 @@ Decrease/Increase increment for these rotations; the increment can be 0.1,
 0.3, 1, 3, or 10 degrees and it starts at 1 degree.  With <B>Sh</B> on,
 <B>,/.</B> also change the increment.
 
-<A NAME = "Modeling Tilted"><H3>Modeling Tilted Contours to be Meshed</H3></A>
+<A NAME = "RubberBand"><H3>Using the Rubber Band</H3></A>
+The rubber band is used to enclse a rectangular area just as in the Zap
+window, although it has fewer uses in the Slicer.
+<UL>
+<LI>To start the rubber band, press the toggle button or use the <B>B</B> hot
+  key.  Press the first mouse button at any corner of the desired box and hold
+  the mouse down while dragging to the opposite corner.
+<LI> After you draw it initially, you can resize or move the rubber band by
+  bringing the mouse near an edge or corner.  The cursor will change to a
+  horizontal or vertical double arrow to indicate that you can move one side,
+  or to a diagonal double arrow to indicate that you can move one corner.
+  Press the first mouse button and drag to adjust the size, or press the
+  second mouse button and drag to shift the band without changing its size.
+<LI> A non-montaged snapshot will capture the area inside the rubber band.
+<LI> The hot key <B>R</B> will resize the window to show the area enclosed by
+  the rubber band, and turn off the band. 
+<LI> "Extract File" in the Edit menu will run 
+  <A HREF = "../man/rotatevol.html#TOP">Rotatevol</A> to extract the region
+  defined by the rubber band, after limits in the third dimension have been
+  set with the <B>Lo</B> and <B>Hi</B> buttons in the General toolbar.  
+  Go to one end of the desired range with <B>PageUp/PageDown</B> or
+  the <B>View axis position</B> slider, and press one of the buttons.  Go to
+  the other end of the range and press the other button.  These
+  buttons initially appear as red to indicate that no limits have been set and
+  turn green when a limit is set.  However, it is possible to adjustthe band
+  size or position after setting limits.  A button turns yellow if a set
+  limit can no longer be reached, in which case extracting will include fewer
+  slices.  If you hold down the Shift key and click on a button, it will
+  return to the limiting slice or go to the last slice that can be reached.
+<P> If there are multiple Slicers with rubber bands, the volume is extracted
+  based on the area defined in the most recently active window.  If
+  there is both a Zap and a Slicer with rubber bands, File - Extract File runs
+  an operation as specified by the band in the most recently active window.
+<A NAME = "ModelingTilted"><H3>Modeling Tilted Contours to be Meshed</H3></A>
 It is possible to mesh contours that have been modeled at an oblique
 orientation in the slicer, provided that all of the contours in a surface are
 at the same orientation, and that the contours are properly spaced apart.
