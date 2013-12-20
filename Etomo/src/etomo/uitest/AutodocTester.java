@@ -1155,15 +1155,15 @@ final class AutodocTester extends Assert implements VariableList {
     }
     // WAIT
     else if (actionType == UITestActionType.WAIT) {
-      // Take naps during the wait to avoid driving the load up
-      try {
-        Thread.sleep(5);
-      }
-      catch (InterruptedException e) {
-      }
       assertNotNull("value is required (" + command + ")", value);
       // wait.file-chooser.file_chooser_title = chosen_file
       if (subjectType == UITestSubjectType.FILE_CHOOSER) {
+        // Take naps during the wait to avoid driving the load up
+        try {
+          Thread.sleep(5);
+        }
+        catch (InterruptedException e) {
+        }
         assertNull("modifier not used with this actionType (" + command + ")",
             modifierType);
         setupComponentFinder(JFileChooser.class);
@@ -1201,6 +1201,12 @@ final class AutodocTester extends Assert implements VariableList {
       }
       // wait.popup.popup_title = dismiss_button_label
       else if (subjectType == UITestSubjectType.POPUP) {
+        // Take naps during the wait to avoid driving the load up
+        try {
+          Thread.sleep(1);
+        }
+        catch (InterruptedException e) {
+        }
         assertNull("modifier not used with this actionType (" + command + ")",
             modifierType);
         assertNotNull("popup name is required (" + command + ")", subjectName);
@@ -1242,14 +1248,18 @@ final class AutodocTester extends Assert implements VariableList {
       else if (subjectType == UITestSubjectType.PROCESS) {
         assertNotNull("process name is required (" + command + ")", subjectName);
         assertNotNull("end state is required (" + command + ")", value);
-        if (!wait) {
-          wait = true;
-          if (modifierType == UITestModifierType.DONE) {
+        // wait.done.process.process_title = process_bar_end_text
+        if (modifierType == UITestModifierType.DONE) {
+          // Take naps during the wait to avoid driving the load up
+          try {
+            Thread.sleep(1);
+          }
+          catch (InterruptedException e) {
+          }
+          if (!wait) {
+            wait = true;
             return;
           }
-        }
-        // wait.done.process
-        if (modifierType == UITestModifierType.DONE) {
           // Already waited at least once - now see whether the process is done.
           // Waiting for anything but a single process or the last process in a
           // series will not work.
@@ -1259,6 +1269,15 @@ final class AutodocTester extends Assert implements VariableList {
                   + Utilities.convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL));
           JButton killButton = (JButton) namedFinder.find(currentPanel, 0);
           assertNotNull("can't find kill button (" + command + ")", killButton);
+          // Get the progress bar label
+          setupNamedComponentFinder(JLabel.class, ProgressPanel.LABEL_NAME);
+          JLabel progressBarLabel = (JLabel) namedFinder.find(currentPanel, 0);
+          assertNotNull("can't find progress bar label (" + command + ")",
+              progressBarLabel);
+          // Get the progress bar
+          setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
+          JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
+          assertNotNull("can't find progress bar label (" + command + ")", progressBar);
           // Decide if the process is still running
           if (killButton.isEnabled()) {
             return;
@@ -1289,34 +1308,48 @@ final class AutodocTester extends Assert implements VariableList {
           if (killButton.isEnabled()) {
             return;
           }
-        }
-        else if (modifierType != null) {
-          fail("unexpected command (" + command.toString() + ")");
-        }
-        // Get the progress bar label
-        setupNamedComponentFinder(JLabel.class, ProgressPanel.LABEL_NAME);
-        JLabel progressBarLabel = (JLabel) namedFinder.find(currentPanel, 0);
-        assertNotNull("can't find progress bar label (" + command + ")", progressBarLabel);
-        // Get the progress bar
-        setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
-        JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
-        assertNotNull("can't find progress bar label (" + command + ")", progressBar);
-        // Decide if this is the right process
-        String progressBarName = Utilities.convertLabelToName(progressBarLabel.getText());
-        if (!progressBarName.equals(subjectName)) {
-          return;
-        }
-        String progressString = progressBar.getString();
-        if (!isProgressString(progressString, value, modifierType)) {
-          // A final progress string is either the command, or "killed", "paused", etc.
-          return;
-        }
-        // The right process is done
-        wait = false;
-        if (modifierType == UITestModifierType.DONE) {
+          // Decide if this is the right process
+          String progressBarName = Utilities.convertLabelToName(progressBarLabel
+              .getText());
+          if (!progressBarName.equals(subjectName)) {
+            return;
+          }
+          String progressString = progressBar.getString();
+          if (!isProgressString(progressString, value, modifierType)) {
+            // A final progress string is either the command, or "killed", "paused", etc.
+            return;
+          }
+          // The right process is done
+          wait = false;
           // Check the end_state
           assertEquals("process ended with the wrong state -" + value + " (" + command
               + ")", value, progressString);
+        }
+        else {
+          // wait.process
+          //wait for an unfinished process
+          wait = true;
+          assertNull("modifier must be 'done' or nothing (" + command + ")", modifierType);
+          // Get the progress bar label
+          setupNamedComponentFinder(JLabel.class, ProgressPanel.LABEL_NAME);
+          JLabel progressBarLabel = (JLabel) namedFinder.find(currentPanel, 0);
+          assertNotNull("can't find progress bar label (" + command + ")",
+              progressBarLabel);
+          // Get the progress bar
+          setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
+          JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
+          assertNotNull("can't find progress bar label (" + command + ")", progressBar);
+          // Decide if this is the right process
+          String progressBarName = Utilities.convertLabelToName(progressBarLabel
+              .getText());
+          if (!progressBarName.equals(subjectName)) {
+            return;
+          }
+          String progressString = progressBar.getString();
+          if (isProgressString(progressString, value, modifierType)) {
+            wait = false;
+          }
+          return;
         }
       }
       // wait.test
@@ -1366,10 +1399,7 @@ final class AutodocTester extends Assert implements VariableList {
     if (progressString == null) {
       return false;
     }
-    if (progressString.equals(expectedString)) {
-      return true;
-    }
-    return progressString.startsWith(expectedString);
+    return progressString.indexOf(expectedString) != -1;
   }
 
   /**
