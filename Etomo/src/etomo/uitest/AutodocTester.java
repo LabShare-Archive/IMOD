@@ -1238,32 +1238,27 @@ final class AutodocTester extends Assert implements VariableList {
           return;
         }
       }
-      // wait.process.process_title = process_bar_end_text
+      // wait.process
       else if (subjectType == UITestSubjectType.PROCESS) {
         assertNotNull("process name is required (" + command + ")", subjectName);
         assertNotNull("end state is required (" + command + ")", value);
         if (!wait) {
           wait = true;
-          return;
+          if (modifierType == UITestModifierType.DONE) {
+            return;
+          }
         }
-        // Already waited at least once - now see whether the process is done.
-        // Waiting for anything but a single process or the last process in a
-        // series will not work.
-        // Get the kill process button
-        setupNamedComponentFinder(JButton.class,
-            UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
-                + Utilities.convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL));
-        JButton killButton = (JButton) namedFinder.find(currentPanel, 0);
-        assertNotNull("can't find kill button (" + command + ")", killButton);
-        // Get the progress bar label
-        setupNamedComponentFinder(JLabel.class, ProgressPanel.LABEL_NAME);
-        JLabel progressBarLabel = (JLabel) namedFinder.find(currentPanel, 0);
-        assertNotNull("can't find progress bar label (" + command + ")", progressBarLabel);
-        // Get the progress bar
-        setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
-        JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
-        assertNotNull("can't find progress bar label (" + command + ")", progressBar);
+        // wait.done.process
         if (modifierType == UITestModifierType.DONE) {
+          // Already waited at least once - now see whether the process is done.
+          // Waiting for anything but a single process or the last process in a
+          // series will not work.
+          // Get the kill process button
+          setupNamedComponentFinder(JButton.class,
+              UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
+                  + Utilities.convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL));
+          JButton killButton = (JButton) namedFinder.find(currentPanel, 0);
+          assertNotNull("can't find kill button (" + command + ")", killButton);
           // Decide if the process is still running
           if (killButton.isEnabled()) {
             return;
@@ -1298,21 +1293,31 @@ final class AutodocTester extends Assert implements VariableList {
         else if (modifierType != null) {
           fail("unexpected command (" + command.toString() + ")");
         }
+        // Get the progress bar label
+        setupNamedComponentFinder(JLabel.class, ProgressPanel.LABEL_NAME);
+        JLabel progressBarLabel = (JLabel) namedFinder.find(currentPanel, 0);
+        assertNotNull("can't find progress bar label (" + command + ")", progressBarLabel);
+        // Get the progress bar
+        setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
+        JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
+        assertNotNull("can't find progress bar label (" + command + ")", progressBar);
         // Decide if this is the right process
         String progressBarName = Utilities.convertLabelToName(progressBarLabel.getText());
         if (!progressBarName.equals(subjectName)) {
           return;
         }
         String progressString = progressBar.getString();
-        if (!isFinalProgressString(progressString, value)) {
+        if (!isProgressString(progressString, value, modifierType)) {
           // A final progress string is either the command, or "killed", "paused", etc.
           return;
         }
         // The right process is done
         wait = false;
-        // Check the end_state
-        assertEquals("process ended with the wrong state -" + value + " (" + command
-            + ")", value, progressString);
+        if (modifierType == UITestModifierType.DONE) {
+          // Check the end_state
+          assertEquals("process ended with the wrong state -" + value + " (" + command
+              + ")", value, progressString);
+        }
       }
       // wait.test
       else if (subjectType == UITestSubjectType.TEST) {
@@ -1344,15 +1349,18 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
-   * Returns true if progressString is a end string like "done" or "killed".  Also returns
-   * true is progressString equals expectedString.
+   * Returns true if progressString is a end string like "done" or "killed" and the
+   * command is wait.done.process.  Also returns
+   * true if progressString equals expectedString.
    * @param progressString
    * @param expectedString
+   * @param modifierType
    * @return
    */
-  private boolean isFinalProgressString(final String progressString,
-      final String expectedString) {
-    if (ProcessEndState.isValid(progressString)) {
+  private boolean isProgressString(final String progressString,
+      final String expectedString, final UITestModifierType modifierType) {
+    if (modifierType == UITestModifierType.DONE
+        && ProcessEndState.isValid(progressString)) {
       return true;
     }
     if (progressString == null) {
