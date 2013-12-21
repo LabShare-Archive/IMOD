@@ -73,6 +73,10 @@ void imodvEditMenu(int item)
   case VEDIT_MENU_CONTROLS: /* controls */
     imodv_control(Imodv, 1);
     break;
+  case VEDIT_MENU_ROTATION: /* rotation tool */
+    Imodv->mainWin->openRotationTool(Imodv);
+      break;
+      
   case VEDIT_MENU_OBJLIST: /* object list */
     imodvObjectListDialog(Imodv, 1);
     break;
@@ -596,6 +600,8 @@ void imodvOpenSelectedWindows(const char *keys)
       imodvDepthCueEditDialog(Imodv, 1);
     if (strchr(keys, 'e') && Imodv->standalone)
       scaleBarOpen();
+    if (strchr(keys, 'R'))
+      Imodv->mainWin->openRotationTool(Imodv);
 }
 
 
