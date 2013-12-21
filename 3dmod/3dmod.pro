@@ -149,6 +149,7 @@ SOURCES	+= autox.cpp \
 	pixelview.cpp \
 	slicer.cpp \
 	slicer_classes.cpp \
+	slicerthreads.cpp \
 	wprint.cpp \
 	xgraph.cpp \
 	xtum.cpp \

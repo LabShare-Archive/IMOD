@@ -176,21 +176,4 @@ protected:
   SlicerFuncs *mFuncs;
 };
 
-#ifdef QT_THREAD_SUPPORT
-#include <qthread.h>
-
-class SlicerThread : public QThread
-{
- public:
-  SlicerThread(int jStart, int jLimit);
-  ~SlicerThread() {};
-
- protected:
-  void run();
-
- private:
-  int mJstart, mJlimit;
-};
-#endif
-
 #endif     // SLICER_CLASSES_H
