@@ -483,7 +483,6 @@ while ind < len(lines):
 
          # For windows, see if it is a script and try to run with the interpreter
          comstr = line.split()[0]
-         testLocalCom = windows
          if windows and os.path.exists(comstr):
             try:
                comfile = open(comstr, 'r')
@@ -499,7 +498,6 @@ while ind < len(lines):
                         else:
                            combase += ' ' + lsplit[1]
                      line = combase + ' ' + line
-                     testLocalCom = False
                except Exception:
                   pass
                comfile.close()
@@ -514,8 +512,6 @@ while ind < len(lines):
          line = quoteSubstitute(testDummyProg + line)
             
          prnstr("  " + indent + "command = " + line, file=out)
-         if testLocalCom:
-            prnstr("  " + indent + "command = avoidLocalComFile(command)", file=out)
 
          # gather input if any
          prnstr("  " + indent + 'input = [', end='', file=out)
