@@ -2575,7 +2575,7 @@ void SlicerFuncs::setBandLowHighLimit(int which)
  */
 float SlicerFuncs::currentMainAxisDistance(int axis)
 {
-  float xwin, ywin, zwin, xim, yim, zim, trueLimits[2];
+  float xwin, ywin, zwin, xim, yim, zim;
 
   // Swap in the volume center and find position of current point relative to that plane
   swapCenterXYZ(mVi->xsize / 2., mVi->ysize / 2., mVi->zsize / 2.);
@@ -2752,7 +2752,7 @@ void SlicerFuncs::resizeToFit()
   int width, height, neww, newh;
   int dx, dy, newdx, newdy, axis;
   float xl, xr, yb, yt;
-  float current, start, end, axisComp;
+  float current, axisComp;
   Ipoint norm;
 
   width = mQtWindow->width();
