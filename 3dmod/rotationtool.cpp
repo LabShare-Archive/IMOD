@@ -122,11 +122,8 @@ RotationTool::RotationTool(QWidget *parent, QIcon *centerIcon, const char *cente
 // Set the state of the center toggle button
 void RotationTool::setCenterState(bool state)
 {
-  if (mCenterBut) {
-    mCenterBut->blockSignals(true);
-    mCenterBut->setChecked(state);
-    mCenterBut->blockSignals(false);
-  }
+  if (mCenterBut)
+    diaSetChecked(mCenterBut, state);
 }
 
 // Set the label for step size
