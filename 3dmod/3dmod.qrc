@@ -41,6 +41,8 @@
 <file>images/leftRotArrow.png</file>
 <file>images/rotCCWarrow.png</file>
 <file>images/rotCWarrow.png</file>
+<file>images/movieArrow.png</file>
+<file>images/movieArrowOn.png</file>
 <file>images/plusSign.png</file>
 <file>images/minusSign.png</file>
 </qresource>
