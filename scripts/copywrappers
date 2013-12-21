@@ -41,6 +41,7 @@ while ($#argv > 0)
           case python:
             set wrapper = $pywrapper
             sed 's/\/usr\/bin\/env python/\/usr\/bin\/python -u/' $argv[1] >! $instdir/$argv[1]
+            chmod a+rx $instdir/$argv[1]
             breaksw
           default:
             echo "copywrappers: No command shell found in first line of $argv[1]"
