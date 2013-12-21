@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/21/13: Added a small rotation tool window to Model View with arrows for 
+rotating model.
+
 12/19/13: Rubberband, arrows for view-axis based rotation, and slider for
 moving along view axis added to slicer; with band on, limits can be set and
 File-Extract File can be used extract selected region with Rotatevol.
