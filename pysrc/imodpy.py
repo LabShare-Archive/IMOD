@@ -118,6 +118,8 @@ def runcmd(cmd, input=None, outfile=None, inStderr = None):
 
    global errStrings, errStatus
 
+   cmd = avoidLocalComFile(cmd)
+
    # Set up flags for whether to collect output or send to stderr
    errStatus = 0
    collect = 1
@@ -915,7 +917,7 @@ def setLibPath():
       os.environ[mainvar] = os.environ['IMOD_QTLIBDIR'] + suffix
 
 
-# Function for vmstopy to avoid running a .com file in current directory on Windows
+# Function for runcmd to avoid running a .com file in current directory on Windows
 def avoidLocalComFile(command):
    if 'win32' not in sys.platform:
       return command
