@@ -86,6 +86,8 @@ void MovieSequenceForm::changeEvent(QEvent *e)
  */
 void MovieSequenceForm::init()
 {
+  setAttribute(Qt::WA_DeleteOnClose);
+  setAttribute(Qt::WA_AlwaysShowToolTips);
   mSegments = mvMovieSegmentArray();
   connect(doneButton, SIGNAL(clicked()), this, SLOT(close()));
   connect(addAfterButton, SIGNAL(clicked()), this, SLOT(addAfterClicked()));
