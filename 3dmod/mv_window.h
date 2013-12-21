@@ -22,7 +22,7 @@
 enum {VFILE_MENU_LOAD, VFILE_MENU_SAVE, VFILE_MENU_SAVEAS, VFILE_MENU_SNAPRGB,
       VFILE_MENU_SNAPTIFF, VFILE_MENU_ZEROSNAP, VFILE_MENU_SNAPDIR, 
       VFILE_MENU_MOVIE, VFILE_MENU_SEQUENCE, VFILE_MENU_QUIT, VEDIT_MENU_OBJECTS,
-      VEDIT_MENU_CONTROLS, VEDIT_MENU_OBJLIST, VEDIT_MENU_BKG,
+      VEDIT_MENU_CONTROLS, VEDIT_MENU_ROTATION, VEDIT_MENU_OBJLIST, VEDIT_MENU_BKG,
       VEDIT_MENU_MODELS, VEDIT_MENU_VIEWS, VEDIT_MENU_IMAGE,
       VEDIT_MENU_ISOSURFACE, VVIEW_MENU_DB, VVIEW_MENU_BOUNDBOX, 
       VVIEW_MENU_CURPNT, VVIEW_MENU_INVERTZ, VVIEW_MENU_TRANSBKGD,
@@ -35,6 +35,7 @@ class ImodvGL;
 class QStackedWidget;
 class QAction;
 class QTimer;
+class RotationTool;
 typedef struct __imodv_struct ImodvApp;
 
 class ImodvWindow : public QMainWindow
@@ -50,6 +51,7 @@ class ImodvWindow : public QMainWindow
   int setGLWidget(ImodvApp *a, int db, int stereo, int alpha);
   ImodvGL *addGLWidgetToStack(QGLFormat *glFormat, bool db, int enableDepth,
                               bool stereo, bool alpha);
+  void openRotationTool(ImodvApp *a);
 
   ImodvGL *mDBw;    // Double buffer widget
   ImodvGL *mDBalw;    // Double buffer alpha widget
@@ -59,6 +61,7 @@ class ImodvWindow : public QMainWindow
   ImodvGL *mSBstw;    // Single buffer stereo widget
   ImodvGL *mCurGLw; // Current widget
   QTimer  *mTimer;  // Timer for movieing
+  RotationTool *mRotationTool;
 
 public slots:
   void fileMenuSlot(int which);
@@ -66,6 +69,10 @@ public slots:
   void viewMenuSlot(int which);
   void helpMenuSlot(int which);
   void timeoutSlot();
+  void rotateClicked(int deltaX, int deltaY, int deltaZ);
+  void rotStepChanged(int delta);
+  void movieButToggled(bool state);
+  void rotationClosing();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
