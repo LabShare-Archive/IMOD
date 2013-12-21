@@ -21,6 +21,8 @@
 #include "mv_input.h"
 #include "model_edit.h"
 #include "control.h"
+#include "mv_window.h"
+#include "rotationtool.h"
 
 static imodvControlForm *dialog = NULL;
 static float lastX = -999;
@@ -182,6 +184,7 @@ void imodvControlStart(void)
   Imodv->yrotMovie = 0;
   Imodv->zrotMovie = 0;
   imodvDraw(Imodv);
+  Imodv->mainWin->mRotationTool->setCenterState(Imodv->movie == 1);
 }
 
 /* Increase/decrease rotation angle using button */
@@ -253,6 +256,9 @@ void imodvControlRate(int value)
 {
   Imodv->deltaRot = value;
   /* DNM 11/3/03: do not change movie rates with new constant-speed scheme */
+
+  if (Imodv->mainWin->mRotationTool)
+    Imodv->mainWin->mRotationTool->setStepLabel(Imodv->deltaRot / 10.);
 }
 
 /* Change in the movie spped */
@@ -294,12 +300,27 @@ void imodvControlQuit(void)
 // Functions called from other parts of imodv
 //
 
+// Change both step size and rotation speed
+void imodvControlChangeSteps(ImodvApp *a, int delta)
+{
+  float newval;
+  if (delta > 0)
+    newval = B3DNINT(a->deltaRot * IMODV_ROTATION_FACTOR);
+  else
+    newval = B3DNINT(a->deltaRot / IMODV_ROTATION_FACTOR);
+  if (newval == a->deltaRot)
+    newval += delta;
+  newval = B3DMAX(1, newval);
+  imodvControlSetArot(a, newval);
+  imodvControlIncSpeed(delta);
+}
+
 /* Set a new rotation rate */
 void imodvControlSetArot(ImodvApp *a, int newval)
 {
   if (newval > ROTATION_MAX)
     newval = ROTATION_MAX;
-  a->deltaRot = newval;
+  imodvControlRate(newval);
   /* DNM 11/3/03: do not change movie rates with new constant-speed scheme */
 
   if (dialog)

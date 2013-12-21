@@ -41,6 +41,6 @@ int imodv_control(ImodvApp *a, int state);
 void imodvControlSetArot(ImodvApp *a, int newval);
 void imodvControlSetView(ImodvApp *a);
 void imodvControlUpdate(ImodvApp *a);
-
+void imodvControlChangeSteps(ImodvApp *a, int delta);
 
 #endif /* IMODV_CONTROL_H */
