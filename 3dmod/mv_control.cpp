@@ -184,7 +184,8 @@ void imodvControlStart(void)
   Imodv->yrotMovie = 0;
   Imodv->zrotMovie = 0;
   imodvDraw(Imodv);
-  Imodv->mainWin->mRotationTool->setCenterState(Imodv->movie == 1);
+  if (Imodv->mainWin->mRotationTool)
+    Imodv->mainWin->mRotationTool->setCenterState(Imodv->movie == 1);
 }
 
 /* Increase/decrease rotation angle using button */
