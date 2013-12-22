@@ -106,7 +106,8 @@ Open dialog to set background color.
 Open the Control editing dialog.
 .TP
 .B R
-Open the Rotation tool window, with arrows for rotating the model
+Open the Rotation tool window, with arrows for rotating the model or
+clipping plane.
 .TP
 .B I
 Open the Image overlay control dialog (only available when program is run as

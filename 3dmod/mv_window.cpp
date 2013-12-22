@@ -383,6 +383,16 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo, int alpha)
   return 0;
 }
 
+void ImodvWindow::rotationKeyPress(QKeyEvent *e)
+{
+  imodvKeyPress(e);
+}
+
+void ImodvWindow::rotationKeyRelease(QKeyEvent *e)
+{
+  imodvKeyRelease(e);
+}
+
 void ImodvWindow::keyPressEvent ( QKeyEvent * e )
 {
   imodvKeyPress(e);
@@ -461,6 +471,10 @@ void ImodvWindow::openRotationTool(ImodvApp *a)
           SLOT(movieButToggled(bool)));
   connect(mRotationTool, SIGNAL(rotate(int, int, int)), this, 
           SLOT(rotateClicked(int, int, int)));
+  connect(mRotationTool, SIGNAL(keyPress(QKeyEvent *)), this, 
+          SLOT(rotationKeyPress(QKeyEvent *)));
+  connect(mRotationTool, SIGNAL(keyRelease(QKeyEvent *)), this, 
+          SLOT(rotationKeyRelease(QKeyEvent *)));
   imodvDialogManager.add((QWidget *)mRotationTool, IMODV_DIALOG);
 
   // More than minimal width is needed on Linux to be able to drag the window by its 

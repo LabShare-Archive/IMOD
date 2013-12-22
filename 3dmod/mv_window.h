@@ -73,6 +73,8 @@ public slots:
   void rotStepChanged(int delta);
   void movieButToggled(bool state);
   void rotationClosing();
+  void rotationKeyPress(QKeyEvent *e);
+  void rotationKeyRelease(QKeyEvent *e);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
