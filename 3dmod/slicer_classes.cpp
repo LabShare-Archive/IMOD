@@ -80,11 +80,13 @@ static const char *sToggleTips[] = {
   "Lock window at current time",
   "Use keypad and mouse as if Shift key were down to rotate slice"};
 
+static float sMaxAngles[3];
+
 static const char *sSliderLabels[] = {"X rotation", "Y rotation", "Z rotation", 
                                       "View axis position"};
 
 SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
-                           bool rgba, bool doubleBuffer, bool enableDepth, float stepSize,
+                           bool rgba, bool doubleBuffer, bool enableDepth, 
                            QWidget * parent, Qt::WFlags f) 
   : QMainWindow(parent, f)
 {
@@ -96,7 +98,8 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
 
   mTimeBar = NULL;
   mBreakBeforeAngBar = 0;
-  mSavedToolFlags = -1;
+  for (j = 0; j < 3; j++)
+    sMaxAngles[j] = maxAngles[j];
 
   mFuncs = funcs;
   setAttribute(Qt::WA_DeleteOnClose);
@@ -232,17 +235,46 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
                 "from table");
 
   // SECOND TOOLBAR
+  buildToolBar2();
+
+  setToggleState(SLICER_TOGGLE_CENTER, funcs->mClassic);
+  setFontDependentWidths();
+  sFirstTime = false;
+
+  // Set up toolbar for master or hide it for slave
+  if (mFuncs->mAutoLink == 1)
+    manageAutoLink(1);
+  else if (mFuncs->mAutoLink)
+    mToolBar2->hide();
+
+  // Need GLwidget next - this gets the defined format
+  glFormat.setRgba(rgba);
+  glFormat.setDoubleBuffer(doubleBuffer);
+  glFormat.setDepth(enableDepth);
+  mGLw = new SlicerGL(funcs, glFormat, this);
+  
+  // Set it as main widget, set focus, dock on top and bottom only
+  setCentralWidget(mGLw);
+  setFocusPolicy(Qt::StrongFocus);
+}
+
+// Create the second toolbar, which may need rebuilding when unlinking from linked slicers
+void SlicerWindow::buildToolBar2()
+{
+  int j;
+  QGLFormat glFormat;
   mToolBar2 = makeToolBar(true, 2, "Slicer Toolbar 2");
 
+  // All widgets need to have the toolbar as parent so that they are deleted with it
   // Make a frame, put a layout in it, and then put multisliders in the layout
-  QWidget *sliderFrame = new QWidget(this);
+  QWidget *sliderFrame = new QWidget(mToolBar2);
   //  sliderFrame->setFrameStyle(QFrame::NoFrame);
   mToolBar2->addWidget(sliderFrame);
   QVBoxLayout *sliderLayout = new QVBoxLayout(sliderFrame);
   sliderLayout->setContentsMargins(0, 0, 0, 0);
   mSliders = new MultiSlider(sliderFrame, 4, sSliderLabels, -1800, 1800, 1);
   for (j = 0; j < 4; j++) {
-    int maxVal = (int)(10. * maxAngles[j] + 0.1);
+    int maxVal = (int)(10. * sMaxAngles[j] + 0.1);
     mSliders->setRange(j, -maxVal, maxVal);
     mSliders->getSlider(j)->setMinimumWidth(200);
     mSliders->getSlider(j)->setPageStep(j < 3 ? 10 : 1);
@@ -255,18 +287,18 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
 	  SLOT(angleChanged(int, int, bool)));
 
-  QFrame *line = new QFrame(this);
+  QFrame *line = new QFrame(mToolBar2);
   line->setFrameShape( QFrame::VLine );
   line->setFrameShadow( QFrame::Sunken );
   mToolBar2->addWidget(line);
 
-  QWidget *rightBox = new QWidget(this);
+  QWidget *rightBox = new QWidget(mToolBar2);
   mToolBar2->addWidget(rightBox);
   QVBoxLayout *rightVLay = new QVBoxLayout(rightBox);
   QHBoxLayout *topHLay = new QHBoxLayout();
   QHBoxLayout *spinHLay = new QHBoxLayout();
   rightVLay->addLayout(topHLay);
-  diaLabel("Thickness:", rightBox, rightVLay);
+  diaLabel("Thick:", rightBox, rightVLay);
   rightVLay->addLayout(spinHLay);
   rightVLay->setContentsMargins(0, 0, 0, 0);
   rightVLay->setSpacing(0);
@@ -275,9 +307,9 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   spinHLay->setContentsMargins(0, 0, 0, 0);
   spinHLay->setSpacing(0);
 
-  mRotationTool = new RotationTool(this, sIcons[SLICER_TOGGLE_SHIFTLOCK], 
+  mRotationTool = new RotationTool(mToolBar2, sIcons[SLICER_TOGGLE_SHIFTLOCK], 
                                    sToggleTips[SLICER_TOGGLE_SHIFTLOCK], TOOLBUT_SIZE,
-                                   true, stepSize);
+                                   true, mFuncs->viewAxisStepSize());
   topHLay->addWidget(mRotationTool);
   connect(mRotationTool, SIGNAL(stepChanged(int)), this, SLOT(stepSizeChanged(int)));
   connect(mRotationTool, SIGNAL(centerButToggled(bool)), this, SLOT(shiftToggled(bool)));
@@ -292,11 +324,11 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   cubeFrame->setFrameShape(QFrame::StyledPanel);
   QVBoxLayout *cubeLayout = new QVBoxLayout(cubeFrame);
   cubeLayout->setContentsMargins(2, 2, 2, 2);
-  mCube = new SlicerCube(funcs, glFormat, cubeFrame);
+  mCube = new SlicerCube(mFuncs, glFormat, cubeFrame);
   cubeLayout->addWidget(mCube);
 
   // Thickness of image spin box
-  label = diaLabel("Img", rightBox, spinHLay);
+  QLabel *label = diaLabel("Img", rightBox, spinHLay);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mImageBox = new QSpinBox(rightBox);
   spinHLay->addWidget(mImageBox);
@@ -322,26 +354,6 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
 	  SLOT(modelThicknessChanged(double)));
   mModelBox->setToolTip("Set thickness of model to project onto image "
                 "(hot keys 9 and 0");
-
-  setToggleState(SLICER_TOGGLE_CENTER, funcs->mClassic);
-  setFontDependentWidths();
-  sFirstTime = false;
-
-  // Set up toolbar for master or hide it for slave
-  if (mFuncs->mAutoLink == 1)
-    manageAutoLink(1);
-  else if (mFuncs->mAutoLink)
-    mToolBar2->hide();
-
-  // Need GLwidget next - this gets the defined format
-  glFormat.setRgba(rgba);
-  glFormat.setDoubleBuffer(doubleBuffer);
-  glFormat.setDepth(enableDepth);
-  mGLw = new SlicerGL(funcs, glFormat, this);
-  
-  // Set it as main widget, set focus, dock on top and bottom only
-  setCentralWidget(mGLw);
-  setFocusPolicy(Qt::StrongFocus);
 }
 
 // Does the boilerplate of adding a new toolbar
@@ -409,22 +421,34 @@ void SlicerWindow::showSaveAngleToolbar()
   mSaveAngBar->show();
 }
 
+/*
+ * Manage the toolbar for the desired new autolink state
+ */
 void SlicerWindow::manageAutoLink(int newState)
 {
-  if (newState == 1) {
-    mToolBar2->setParent(NULL);
-    mSavedToolFlags = (int)mToolBar2->windowFlags();
-    mToolBar2->setWindowFlags((Qt::WindowFlags)mSavedToolFlags & 
-                              ~(Qt::FramelessWindowHint));
-  } else if (mSavedToolFlags != -1) {
 
-    // To restore a toolbar, need to add it back as well as reparent
-    mToolBar2->setParent(this);
-    mToolBar2->setWindowFlags((Qt::WindowFlags)mSavedToolFlags);
-    addToolBarBreak();
-    addToolBar(mToolBar2);
+  // For a detached toolbar, remove the bar, reparent and fix the flags
+  // Defer showing the reparented toolbar until the window is done in slicer.cpp
+  if (newState == 1) {
+    Qt::WindowFlags flags = mToolBar2->windowFlags();
+    removeToolBarBreak(mToolBar2);
+    removeToolBar(mToolBar2);
+    mToolBar2->setParent(NULL);
+    mToolBar2->setWindowFlags((flags & ~(Qt::FramelessWindowHint)) | Qt::Window);
+  } else {
+
+    // For an existing master toolbar, delete and recreate it; otherwise show bar
+    // This was needed on a Mac where drawing was all messed up when trying to reparent
+    // back into the slicer
+    if (mFuncs->mAutoLink == 1) {
+      delete mToolBar2;
+      if (!mFuncs->getClosing()) {
+        buildToolBar2();
+        setFontDependentWidths();
+      }
+    } else
+      mToolBar2->show();
   }
-  mToolBar2->show();
 }
 
 void SlicerWindow::zoomUp()

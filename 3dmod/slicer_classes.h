@@ -53,7 +53,7 @@ class SlicerWindow : public QMainWindow
 
  public:
   SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
-               bool rgba, bool doubleBuffer, bool enableDepth, float stepSize,
+               bool rgba, bool doubleBuffer, bool enableDepth, 
                QWidget * parent = 0, Qt::WFlags f = Qt::Window) ;
   ~SlicerWindow() {};
   void setToggleState(int index, int state);
@@ -117,6 +117,7 @@ class SlicerWindow : public QMainWindow
  private:
   void setFontDependentWidths();
   HotToolBar *makeToolBar(bool addBreak, int spacing, const char *caption);
+  void buildToolBar2();
   
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
   int mToggleStates[MAX_SLICER_TOGGLES];
@@ -131,7 +132,6 @@ class SlicerWindow : public QMainWindow
   int mLowHighStates[2];
   QAction *mLowHighActions[2];
   int mBreakBeforeAngBar;
-  int mSavedToolFlags;
 };
 
 class SlicerGL : public QGLWidget

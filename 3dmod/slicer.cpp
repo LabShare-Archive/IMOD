@@ -330,18 +330,20 @@ void setupLinkedSlicers(ImodView *vi)
     return;
   diaMaximumWindowSize(deskWidth, deskHeight);
   deskWidth -= 20;
-  deskHeight -= 20;
+  deskHeight -= 30;
 
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
   slicer = (SlicerWindow *)objList.at(objList.count() - 1);
   imod_info_input();
+  slicer->mToolBar2->show();
   QRect toolGeom = slicer->mToolBar2->frameGeometry();
   QRect fullGeom = slicer->frameGeometry();
   QRect winGeom = ivwRestorableGeometry(slicer);
-  newWidth = winGeom.width();
+  newWidth = B3DMAX(winGeom.width(), toolGeom.width() + 20);
   newHeight = winGeom.height();
-  imodTrace('s', "frame geom %d  %d  geom %d h %d", fullGeom.width(), fullGeom.height(),
-            newWidth, newHeight);
+  imodTrace('s', "frame geom %d  %d  geom %d h %d  tool geom %d %d", 
+            fullGeom.width(), fullGeom.height(),
+            newWidth, newHeight, toolGeom.width(), toolGeom.height());
 
   // If there appear to be some plausible borders on the window already, take those;
   // otherwise take the fallback borders
@@ -355,13 +357,13 @@ void setupLinkedSlicers(ImodView *vi)
   // dropping the window size by 10,10 each time
   while (newWidth > winGeom.width() / 2 && newHeight > winGeom.height() / 2) {
     firstLeft = 10;
-    firstTop = 10 + toolGeom.height();
+    firstTop = 24 + toolGeom.height();
     numInX = B3DMAX(1, deskWidth / (newWidth + xBorder));
     numInY = B3DMAX(1, (deskHeight - toolGeom.height()) / (newHeight + yBorder));
     if (numInX * numInY >= vi->numTimes)
       break;
     firstLeft = 10 + toolGeom.width();
-    firstTop = 10;
+    firstTop = 24;
     numInX = B3DMAX(1, (deskWidth - toolGeom.width()) / (newWidth + xBorder));
     numInY = B3DMAX(1, deskHeight / (newHeight + yBorder));
     if (numInX * numInY >= vi->numTimes)
@@ -371,7 +373,7 @@ void setupLinkedSlicers(ImodView *vi)
   }
   
   // Open the windows and place them all
-  slicer->mToolBar2->move(10, 10);
+  slicer->mToolBar2->move(10, 24);
   ix = 0;
   iy = 0;
   for (i = 1; i <= B3DMIN(numInX * numInY, vi->numTimes); i++) {
@@ -499,8 +501,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi, int autoLink)
   transStep();
   utilGetLongestTimeString(vi, &str);
   mQtWindow = new SlicerWindow(this, sMaxAngle,  str, App->rgba, App->doublebuffer,
-                               App->qtEnableDepth, sViewAxisSteps[sViewAxisIndex],
-                               imodDialogManager.parent(IMOD_IMAGE));
+                               App->qtEnableDepth, imodDialogManager.parent(IMOD_IMAGE));
   if (!mQtWindow)
     return;
 
@@ -753,6 +754,11 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
 void SlicerFuncs::help()
 {
   imodShowHelpPage("slicer.html#TOP");
+}
+
+float SlicerFuncs::viewAxisStepSize()
+{
+  return sViewAxisSteps[sViewAxisIndex];
 }
 
 /*
@@ -1033,7 +1039,7 @@ void SlicerFuncs::modelThickness(float depth)
     mDepth = 0.1;
 
   drawThickControls();
-  draw();
+  drawSelfAndLinked();
 }
 
 // The link button is toggled; if autolinked, manage the toolbar, etc  
@@ -1066,6 +1072,7 @@ void SlicerFuncs::setLinkedState(bool state)
           slicer->mFuncs->mAutoLink = 1;
           QRect pos = ivwRestorableGeometry(mQtWindow->mToolBar2);
           slicer->mToolBar2->move(pos.left(), pos.top());
+          slicer->mToolBar2->show();
           break;
         } else {
           slicer->manageAutoLink(0);
@@ -1077,8 +1084,14 @@ void SlicerFuncs::setLinkedState(bool state)
   }
 
   // In any case, get the toolbar shown and turn off the autolink of this window
+  // Do not update a closing window; the toolbar is not recreated
   if (!state && mAutoLink) {
     mQtWindow->manageAutoLink(0);
+    if (!mClosing) {
+      drawThickControls();
+      mQtWindow->setAngles(mTang);
+      updateViewAxisPos();
+    }
     mAutoLink = 0;
   }
 }
@@ -1130,10 +1143,11 @@ int SlicerFuncs::synchronizeSlicers(bool draw)
       sso->mCx = mCx;
       sso->mCy = mCy;
       sso->mCz = mCz;
-      need = 1;
-    }
-    if (sso->mNslice != mNslice) {
+      need = 1; 
+   }
+    if (sso->mNslice != mNslice || sso->mDepth != mDepth) {
       sso->mNslice = mNslice;
+      sso->mDepth = mDepth;
       sso->drawThickControls();
       need = 1;
     }
@@ -3757,7 +3771,7 @@ void SlicerFuncs::drawModel()
 void SlicerFuncs::cubeDraw()
 {
   updateViewAxisPos();
-  mCube->updateGL();
+  mQtWindow->mCube->updateGL();
 }
 
 /* The paint routine called by the cube GL widget */
@@ -3775,6 +3789,7 @@ void SlicerFuncs::cubePaint()
   if (mClosing)
     return;
 
+  mCube = mQtWindow->mCube;
   b3dSetCurSize(mCube->width(), mCube->height());
 
   glClearColor(0, 0, 0, 0);

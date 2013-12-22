@@ -74,6 +74,8 @@ class SlicerFuncs {
   void setBandLowHighLimit(int which);
   QString rotateVolCommand();
   void setLinkedState(bool state);
+  float viewAxisStepSize();
+  getMember(int, Closing);
 
  private:
   void cubeDraw();
