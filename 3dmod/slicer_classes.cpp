@@ -417,10 +417,12 @@ void SlicerWindow::manageAutoLink(int newState)
     mToolBar2->setWindowFlags((Qt::WindowFlags)mSavedToolFlags & 
                               ~(Qt::FramelessWindowHint));
   } else if (mSavedToolFlags != -1) {
+
+    // To restore a toolbar, need to add it back as well as reparent
     mToolBar2->setParent(this);
     mToolBar2->setWindowFlags((Qt::WindowFlags)mSavedToolFlags);
-    QRect pos = ivwRestorableGeometry(this);
-    mToolBar2->move(pos.left(), pos.top() + 64);
+    addToolBarBreak();
+    addToolBar(mToolBar2);
   }
   mToolBar2->show();
 }
