@@ -65,6 +65,7 @@ class SlicerWindow : public QMainWindow
   void showSaveAngleToolbar();
   void setLowHighValidity(int which, int state);
   void enableLowHighButtons(int enable);
+  void manageAutoLink(int newState);
 
   SlicerGL *mGLw;
   SlicerCube *mCube;
@@ -75,6 +76,7 @@ class SlicerWindow : public QMainWindow
   HotToolBar *mSaveAngBar;
   QPushButton *mSetAngBut;
   QCheckBox *mAutoBox;
+  QCheckBox *mLinkBox;
   QPushButton *mNewRowBut;
   QPushButton *mSaveAngBut;
   RotationTool *mRotationTool;
@@ -129,6 +131,7 @@ class SlicerWindow : public QMainWindow
   int mLowHighStates[2];
   QAction *mLowHighActions[2];
   int mBreakBeforeAngBar;
+  int mSavedToolFlags;
 };
 
 class SlicerGL : public QGLWidget

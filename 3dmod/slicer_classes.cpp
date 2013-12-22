@@ -41,15 +41,12 @@
 #include "rotationtool.h"
 #include "sslice.h"
 #include "pyramidcache.h"
-#include "xcramp.h"
-#include "b3dgfx.h"
-#include "xcorr.h"
 #include "tooledit.h"
 #include "arrowbutton.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
-#include "sliceproc.h"
+#include "control.h"
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
@@ -96,10 +93,10 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   QToolButton *button;
   QGLFormat glFormat;
   QLabel *label;
-  QCheckBox *check;
 
   mTimeBar = NULL;
   mBreakBeforeAngBar = 0;
+  mSavedToolFlags = -1;
 
   mFuncs = funcs;
   setAttribute(Qt::WA_DeleteOnClose);
@@ -178,16 +175,18 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   if (!timeLabel.isEmpty()) {
     mTimeBar = makeToolBar(true, TB_AUTO_RAISE ? 0 : 4, "Slicer Time Toolbar");
 
-    check = diaCheckBox("Link", this, NULL);
-    mTimeBar->addWidget(check);
-    connect(check, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
-    check->setToolTip("Keep angles and positions same as for other linked "
+    mLinkBox = diaCheckBox("Link", this, NULL);
+    mTimeBar->addWidget(mLinkBox);
+    connect(mLinkBox, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
+    mLinkBox->setToolTip("Keep angles and positions same as for other linked "
                 "slicers");
+    diaSetChecked(mLinkBox, mFuncs->mAutoLink > 0);
 
     utilSetupToggleButton(mTimeBar, mTimeBar, NULL, toggleMapper, sIcons, sToggleTips,
                           mToggleButs, mToggleStates, SLICER_TOGGLE_TIMELOCK);
     connect(mToggleButs[SLICER_TOGGLE_TIMELOCK], SIGNAL(clicked()), toggleMapper, 
             SLOT(map()));
+    setToggleState(SLICER_TOGGLE_TIMELOCK, mFuncs->mTimeLock ? 1 : 0);
 
     label = new QLabel("4th D", this);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -328,6 +327,12 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   setFontDependentWidths();
   sFirstTime = false;
 
+  // Set up toolbar for master or hide it for slave
+  if (mFuncs->mAutoLink == 1)
+    manageAutoLink(1);
+  else if (mFuncs->mAutoLink)
+    mToolBar2->hide();
+
   // Need GLwidget next - this gets the defined format
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
@@ -361,7 +366,7 @@ void SlicerWindow::setFontDependentWidths()
   int width = fontMetrics().width("99.9") + 24;
   int height = fontMetrics().height() + 6;
   mModelBox->setFixedWidth(width);
-  //width = fontMetrics().width("999") + 24;
+  width = fontMetrics().width("999") + 24;
   mImageBox->setFixedWidth(width);
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
   diaSetButtonWidth(mSaveAngBut, ImodPrefs->getRoundedStyle(), 1.2, "Save");
@@ -402,6 +407,22 @@ void SlicerWindow::showSaveAngleToolbar()
   }
   mBreakBeforeAngBar = needBreak;
   mSaveAngBar->show();
+}
+
+void SlicerWindow::manageAutoLink(int newState)
+{
+  if (newState == 1) {
+    mToolBar2->setParent(NULL);
+    mSavedToolFlags = (int)mToolBar2->windowFlags();
+    mToolBar2->setWindowFlags((Qt::WindowFlags)mSavedToolFlags & 
+                              ~(Qt::FramelessWindowHint));
+  } else if (mSavedToolFlags != -1) {
+    mToolBar2->setParent(this);
+    mToolBar2->setWindowFlags((Qt::WindowFlags)mSavedToolFlags);
+    QRect pos = ivwRestorableGeometry(this);
+    mToolBar2->move(pos.left(), pos.top() + 64);
+  }
+  mToolBar2->show();
 }
 
 void SlicerWindow::zoomUp()
@@ -525,7 +546,7 @@ void SlicerWindow::continuousToggled(bool state)
 
 void SlicerWindow::linkToggled(bool state)
 {
-  mFuncs->mLinked = state;
+  mFuncs->setLinkedState(state);
 }
 
 // Functions for setting state of the controls

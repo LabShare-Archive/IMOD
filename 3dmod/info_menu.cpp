@@ -1182,7 +1182,11 @@ void InfoWindow::imageSlot(int item)
     break;
 
   case IMAGE_MENU_SLICER: /* slice */
-    sslice_open(App->cvi);
+    slicerOpen(App->cvi, 0);
+    break;
+          
+  case IMAGE_MENU_LINKSLICE: /* linked slicers */
+    setupLinkedSlicers(App->cvi);
     break;
           
   case IMAGE_MENU_TUMBLER: /* tumble */

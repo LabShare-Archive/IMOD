@@ -1164,7 +1164,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
 
   case Qt::Key_Backslash:
     if (!vi->doingInitialLoad)
-      sslice_open(vi);
+      slicerOpen(vi, 0);
     break; 
           
   case Qt::Key_A:
