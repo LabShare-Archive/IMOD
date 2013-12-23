@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/2/13: Added menu entry Image - Linked Slicers to open an array of slicers,
+12/22/13: Added a dialog to set the size of the Model View window without
+changing model zoom.
+ 
+12/22/13: Added menu entry Image - Linked Slicers to open an array of slicers,
 one per  image file, controlled by a single slice toolbar,
 
 12/21/13: Added a small rotation tool window to Model View with arrows for 
