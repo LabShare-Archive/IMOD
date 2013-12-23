@@ -315,6 +315,11 @@ void setupLinkedSlicers(ImodView *vi)
   int i, deskWidth, deskHeight, newWidth, newHeight, firstLeft, firstTop, numInX,  numInY;
   int ix = 0, iy = 0;
   int xBorder = 16, yBorder = 40;
+#ifdef Q_OS_MACX
+  int topIndent = 24;
+#else
+  int topIndent =10;
+#endif
 
   // First unlink any existing slicers
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
@@ -330,12 +335,16 @@ void setupLinkedSlicers(ImodView *vi)
     return;
   diaMaximumWindowSize(deskWidth, deskHeight);
   deskWidth -= 20;
-  deskHeight -= 30;
+  deskHeight -= 10 + topIndent;
 
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
   slicer = (SlicerWindow *)objList.at(objList.count() - 1);
   imod_info_input();
   slicer->mToolBar2->show();
+  imod_info_input();
+
+  // On Linux, the toolbar has the full size if we process events enough, but the 
+  // window frame geometry might not be right yet
   QRect toolGeom = slicer->mToolBar2->frameGeometry();
   QRect fullGeom = slicer->frameGeometry();
   QRect winGeom = ivwRestorableGeometry(slicer);
@@ -343,27 +352,29 @@ void setupLinkedSlicers(ImodView *vi)
   newHeight = winGeom.height();
   imodTrace('s', "frame geom %d  %d  geom %d h %d  tool geom %d %d", 
             fullGeom.width(), fullGeom.height(),
-            newWidth, newHeight, toolGeom.width(), toolGeom.height());
+            winGeom.width(), newHeight, toolGeom.width(), toolGeom.height());
 
   // If there appear to be some plausible borders on the window already, take those;
   // otherwise take the fallback borders
-  if (fullGeom.width() - newWidth > xBorder / 2)
-    xBorder = fullGeom.width() - newWidth;
-  if (fullGeom.height() - newHeight > yBorder / 2)
+  if (fullGeom.width() - winGeom.width() > xBorder / 2 || 
+      fullGeom.height() - newHeight > yBorder / 2) {
+    xBorder = fullGeom.width() - winGeom.width();
     yBorder = fullGeom.height() - newHeight;
+  }
+  imodTrace('s', "border %d %d", xBorder, yBorder);
 
   // Find an arrangement where as many windows as possible fit on the screen, looking
   // first at having the toolbar above them all, then to the left of them all, and
   // dropping the window size by 10,10 each time
   while (newWidth > winGeom.width() / 2 && newHeight > winGeom.height() / 2) {
     firstLeft = 10;
-    firstTop = 24 + toolGeom.height();
+    firstTop = topIndent + toolGeom.height();
     numInX = B3DMAX(1, deskWidth / (newWidth + xBorder));
     numInY = B3DMAX(1, (deskHeight - toolGeom.height()) / (newHeight + yBorder));
     if (numInX * numInY >= vi->numTimes)
       break;
     firstLeft = 10 + toolGeom.width();
-    firstTop = 24;
+    firstTop = topIndent;
     numInX = B3DMAX(1, (deskWidth - toolGeom.width()) / (newWidth + xBorder));
     numInY = B3DMAX(1, deskHeight / (newHeight + yBorder));
     if (numInX * numInY >= vi->numTimes)
@@ -373,7 +384,7 @@ void setupLinkedSlicers(ImodView *vi)
   }
   
   // Open the windows and place them all
-  slicer->mToolBar2->move(10, 24);
+  slicer->mToolBar2->move(10, topIndent);
   ix = 0;
   iy = 0;
   for (i = 1; i <= B3DMIN(numInX * numInY, vi->numTimes); i++) {
