@@ -35,6 +35,7 @@
 #include "control.h"
 #include "preferences.h"
 #include "rotationtool.h"
+#include "resizetool.h"
 #include "vertexbuffer.h"
 
 #define ADD_ACTION(a, b, c) mActions[c] = a##Menu->addAction(b); \
@@ -64,6 +65,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   int numVals = 0;
 
   mRotationTool = NULL;
+  mResizeTool = NULL;
   mDBw = mSBw = mDBstw = mSBstw = mDBalw = mDBstAlw = NULL;
   mMinimized = false;
   setAttribute(Qt::WA_DeleteOnClose);
@@ -128,6 +130,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   ADD_ACTION(view, "&Stereo...", VVIEW_MENU_STEREO);
   ADD_ACTION(view, "&Depth Cue...", VVIEW_MENU_DEPTH);
   ADD_ACTION(view, "Scale &Bar...", VVIEW_MENU_SCALEBAR);
+  ADD_ACTION(view, "Window Si&ze...", VVIEW_MENU_RESIZE);
 
   ADD_ACTION(view, "&Invert Z", VVIEW_MENU_INVERTZ);
   mActions[VVIEW_MENU_INVERTZ]->setCheckable(true);
@@ -521,6 +524,43 @@ void ImodvWindow::rotationClosing()
   mRotationTool = NULL;
 }
 
+/*
+ * The resize tool
+ */
+void ImodvWindow::openResizeTool(ImodvApp *a)
+{
+  if (mResizeTool) {
+    mResizeTool->raise();
+    return;
+  }
+  mResizeTool = new ResizeTool(this, a->winx, a->winy, 10);
+  connect(mResizeTool, SIGNAL(closing()), this, SLOT(resizerClosing()));
+  connect(mResizeTool, SIGNAL(resize(int, int)), this, SLOT(newResizerSize(int, int)));
+  connect(mResizeTool, SIGNAL(keyPress(QKeyEvent *)), this, 
+          SLOT(rotationKeyPress(QKeyEvent *)));
+  connect(mResizeTool, SIGNAL(keyRelease(QKeyEvent *)), this, 
+          SLOT(rotationKeyRelease(QKeyEvent *)));
+  imodvDialogManager.add((QWidget *)mResizeTool, IMODV_DIALOG);
+  adjustGeometryAndShow((QWidget *)mResizeTool, IMODV_DIALOG);
+}
+
+// A new size comes in.  Compute a new rad value to keep scale constant, set window size
+// accounting for the menu bar
+void ImodvWindow::newResizerSize(int sizeX, int sizeY)
+{
+  ImodvApp *a = Imodv;
+  a->imod->view->rad *= ((float)B3DMIN(sizeX, sizeY)) / B3DMIN(a->winx, a->winy);
+  a->mainWin->resize(sizeX, sizeY + a->mainWin->height() - a->winy);
+}
+
+// The window is closing, remove its pointers
+void ImodvWindow::resizerClosing()
+{
+  if (!mResizeTool)
+    return;
+  imodvDialogManager.remove((QWidget *)mResizeTool);
+  mResizeTool = NULL;
+}
 
 /* 
  * The GL class

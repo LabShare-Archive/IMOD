@@ -34,6 +34,7 @@
 #include "mv_light.h"
 #include "mv_stereo.h"
 #include "vertexbuffer.h"
+#include "resizetool.h"
 
 Ipoint ImodvCurModLight;
 
@@ -173,6 +174,8 @@ void imodvResizeGL(ImodvGL *GLw, int winx, int winy)
   a->winx = winx;
   a->winy = winy;
   glViewport(0, 0, a->winx, a->winy); 
+  if (a->mainWin->mResizeTool)
+    a->mainWin->mResizeTool->newSize(a->winx, a->winy);
 }  
 
 // The central draw entry: just call to update through the paint routine

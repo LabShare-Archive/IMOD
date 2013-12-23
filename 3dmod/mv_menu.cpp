@@ -425,6 +425,10 @@ void imodvViewMenu(int item)
     scaleBarOpen();
     break;
 
+  case VVIEW_MENU_RESIZE:
+    a->mainWin->openResizeTool(a);
+    break;
+
   case VVIEW_MENU_BOUNDBOX:
     freeXobj = true;
     if (a->boundBoxExtraObj <= 0) {
