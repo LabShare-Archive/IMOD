@@ -81,6 +81,7 @@ HEADERS	+= autox.h \
 	mappingtable.h \
         vertexbuffer.h \
         pyramidcache.h \
+        resizetool.h \
         rotationtool.h \
 	form_object_edit.h \
 	formv_control.h \
@@ -149,6 +150,7 @@ SOURCES	+= autox.cpp \
 	pixelview.cpp \
 	slicer.cpp \
 	slicer_classes.cpp \
+	slicerthreads.cpp \
 	wprint.cpp \
 	xgraph.cpp \
 	xtum.cpp \
@@ -175,6 +177,7 @@ SOURCES	+= autox.cpp \
         vertexbuffer.cpp \
         pyramidcache.cpp \
         rotationtool.cpp \
+        resizetool.cpp \
 	form_object_edit.cpp \
 	formv_control.cpp \
 	formv_movie.cpp \

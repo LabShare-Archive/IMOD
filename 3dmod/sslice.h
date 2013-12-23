@@ -32,7 +32,7 @@ typedef struct Mod_Point Ipoint;
 class SlicerFuncs {
 
  public:
-  SlicerFuncs(ImodView *vi);
+  SlicerFuncs(ImodView *vi, int autoLink);
   ~SlicerFuncs() {};
   void help();
   void stepZoom(int dir);
@@ -73,6 +73,9 @@ class SlicerFuncs {
   void setCursor(int mode, bool setAnyway = false);
   void setBandLowHighLimit(int which);
   QString rotateVolCommand();
+  void setLinkedState(bool state);
+  float viewAxisStepSize();
+  getMember(int, Closing);
 
  private:
   void cubeDraw();
@@ -140,6 +143,7 @@ class SlicerFuncs {
   int mTimeLock;        /* Time value if time is locked */
   bool mContinuous;     /* Flag for continuous mode in slicer angle update */
   bool mLinked;         /* Flag for linked to other slicers */
+  int  mAutoLink;       /* Flag for autolink, 1 = master, 2 = slave */
   int mClassic;
   int   mCtrl;
   float  mZoom;
@@ -250,7 +254,7 @@ class SlicerFuncs {
  */
 void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
                        int ilimshort, int jlimshort, int minval, int maxval, int intData);
-int sslice_open(ImodView *vi);
+int slicerOpen(ImodView *vi, int autoLink);
 int slicerAnglesOpen();
 void slicerAnglesClosing();
 void slicerPixelViewState(bool state);
@@ -262,4 +266,5 @@ int getTopSlicerTime(bool &continuous);
 void slicerNewTime(bool refresh);
 void slicerViewAxisStepChange(int delta);
 int getSlicerThicknessScaling();
+void setupLinkedSlicers(ImodView *vi);
 #endif

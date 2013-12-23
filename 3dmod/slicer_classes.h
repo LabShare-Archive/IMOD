@@ -53,7 +53,7 @@ class SlicerWindow : public QMainWindow
 
  public:
   SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
-               bool rgba, bool doubleBuffer, bool enableDepth, float stepSize,
+               bool rgba, bool doubleBuffer, bool enableDepth, 
                QWidget * parent = 0, Qt::WFlags f = Qt::Window) ;
   ~SlicerWindow() {};
   void setToggleState(int index, int state);
@@ -65,6 +65,7 @@ class SlicerWindow : public QMainWindow
   void showSaveAngleToolbar();
   void setLowHighValidity(int which, int state);
   void enableLowHighButtons(int enable);
+  void manageAutoLink(int newState);
 
   SlicerGL *mGLw;
   SlicerCube *mCube;
@@ -75,6 +76,7 @@ class SlicerWindow : public QMainWindow
   HotToolBar *mSaveAngBar;
   QPushButton *mSetAngBut;
   QCheckBox *mAutoBox;
+  QCheckBox *mLinkBox;
   QPushButton *mNewRowBut;
   QPushButton *mSaveAngBut;
   RotationTool *mRotationTool;
@@ -115,6 +117,7 @@ class SlicerWindow : public QMainWindow
  private:
   void setFontDependentWidths();
   HotToolBar *makeToolBar(bool addBreak, int spacing, const char *caption);
+  void buildToolBar2();
   
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
   int mToggleStates[MAX_SLICER_TOGGLES];
@@ -175,22 +178,5 @@ protected:
  private:
   SlicerFuncs *mFuncs;
 };
-
-#ifdef QT_THREAD_SUPPORT
-#include <qthread.h>
-
-class SlicerThread : public QThread
-{
- public:
-  SlicerThread(int jStart, int jLimit);
-  ~SlicerThread() {};
-
- protected:
-  void run();
-
- private:
-  int mJstart, mJlimit;
-};
-#endif
 
 #endif     // SLICER_CLASSES_H

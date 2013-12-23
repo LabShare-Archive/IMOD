@@ -973,7 +973,7 @@ int main( int argc, char *argv[])
   if (xyzwinopen)
     xxyz_open(&vi);
   if (sliceropen)
-    sslice_open(&vi);
+    slicerOpen(&vi, 0);
   if (modelViewOpen) {
     imodv_open();
     imodvOpenSelectedWindows(windowKeys);

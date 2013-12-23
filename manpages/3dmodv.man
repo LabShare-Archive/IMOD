@@ -33,7 +33,7 @@ you want to take snapshots at a specific size.
 .TP
 .B -E \fIkeys\fR
 Open the windows specified by the key letters, which are the same as the
-hot keys for opening windows (m, O, C, L, B, M, N, V, I, U), plus D for
+hot keys for opening windows (m, O, C, L, B, M, N, V, I, U, R), plus D for
 depth cue and S for stereo.
 .TP
 .B -L
@@ -47,10 +47,13 @@ process.
 .SS Hot key shortcuts for 3dmodv.
 .TP
 .B - =
-Zoom out/in with small steps.
+Decrease/increase zoom with small steps.
+.TP
+.B Keypad +
+Increase zoom by small steps
 .TP
 .B _ +
-Zoom out/in with large steps.
+Decrease/increase zoom with large steps.
 .TP
 .B 1 2
 Step back/forward in time.
@@ -63,7 +66,12 @@ Toggle displaying all models or one model.
 .TP
 .B Arrow Keys, Page Up, Page Down
 Translate model, or current clipping plane if Ctrl is held down, in X, Y, and
-Z.
+Z, or current point if Ctrl and Shift are held down and the current
+point is in a scattered point object.
+.TP
+.B Ctrl-Shift-Delete
+Delete the current point if it is in a scattered point object and 3dmod
+is in model mode. 
 .TP
 .B Numeric Keypad
 Rotate model, or current clipping plane if Ctrl key is held down:
@@ -71,6 +79,15 @@ Rotate model, or current clipping plane if Ctrl key is held down:
    The 8 and 2 keys rotate about the X view axis.
    The 9 and 3 keys rotate about the Z view axis.  
    The Enter Key toggles between movie and incremental motion.
+.TP
+.B Substitute Keypad
+The keys centered on U will also rotate the model or clipping plane:
+   The y and i keys rotate about the Y view axis (but Ctrl-U instead of
+      Ctrl-Y rotates the clipping plane).
+   The 7 and j keys rotate about the X view axis.
+   The 6 and h keys rotate about the Z view axis.  
+   The u key toggles between movie and incremental motion.
+       
 .TP
 .B t b l r f b
 Show top, bottom, left, right, front, or back face of model.
@@ -87,6 +104,10 @@ Open dialog to set background color.
 .TP
 .B C
 Open the Control editing dialog.
+.TP
+.B R
+Open the Rotation tool window, with arrows for rotating the model or
+clipping plane.
 .TP
 .B I
 Open the Image overlay control dialog (only available when program is run as
@@ -141,7 +162,11 @@ Invert the parallax angle.
 .B d
 Toggle single/double buffering.
 .TP
-.B R
+.B Ctrl-Shift-V
+Toggle use of vertex buffer objects; can fix display artifacts when
+there are problems with graphics card or drivers.
+.TP
+.B Ctrl-R
 Toggle low resolution drawing of mesh and spheres.
 .TP
 .B p

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>202</width>
+    <width>207</width>
     <height>590</height>
    </rect>
   </property>
@@ -74,7 +74,7 @@
            <enum>Qt::ClickFocus</enum>
           </property>
           <property name="toolTip">
-           <string>Current surface/Enter surface to go to</string>
+           <string>Current surface/Enter surface to go to (hot keys 7/8 for previous/next surface)</string>
           </property>
           <property name="keyboardTracking">
            <bool>false</bool>
@@ -128,7 +128,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="toolTip">
-           <string>Go to next contour in this surface</string>
+           <string>Go to next contour in this surface (hot key 6)</string>
           </property>
           <property name="text">
            <string/>
@@ -148,7 +148,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="toolTip">
-           <string>Go to previous contour in this surface</string>
+           <string>Go to previous contour in this surface (hot key 5)</string>
           </property>
           <property name="text">
            <string/>
@@ -225,7 +225,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="toolTip">
-           <string>Start new surface</string>
+           <string> (hot key N)</string>
           </property>
           <property name="text">
            <string>New</string>

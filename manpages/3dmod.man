@@ -479,7 +479,7 @@ Tracker, F for Bead Fixer, and P for all externally loaded plugins.
 If the 
 .B -V
 option is given, then model view dialog boxes can also be opened with key
-letters the same as their hot keys (m, O, C, L, B, M, V, I, U), or with D for
+letters the same as their hot keys (m, O, C, L, B, M, V, I, U, R), or with D for
 depth cue and S for stereo.  Key numbers are for other operations: 1 to start
 in model mode, 2 to suppress query to save model when exiting.
 .TP
@@ -714,8 +714,8 @@ Memory to TIFF... Write the whole section of a raw color image
                     to turn a montaged image bigger than the
                     screen into a single large image.
 Extract File...   Extract part of file selected by rubber band in
-                    top slicer window, with rotation around X if 
-                    image is loaded flipped.
+                    top Zap or Slicer window, with rotation around X if
+                    image is loaded flipped
 Save Info Text... Write the contents of the text panel to a file.
 Quit              Quit 3dmod.
 
@@ -825,17 +825,19 @@ Scale bar...  Open window to draw scale bars in windows.
 Options...    Open 3dmod preferences dialog to personalize settings
 
 .I Image Menu
-   ZaP         Open a ZaP window.  (z)
-   Multi-Z     Open a window to show array of successive slices
-   XYZ         Open an XYZ window.
-   Slicer      Open an image Slicer window.  (\\)
-   Model View  Open a 3dmod model view window.  (v)
-   Pixel View  Open window displaying pixel values.
-   Graph       Open an image Graph window.  (G)
-   Locator     Open a window to show the ZaP window subarea.
-   Isosurface  Open model view with an isosurface display display
-                  of the image data.  (U)
-   Tumbler     Open a 3-D Tumbler window.
+   ZaP            Open a ZaP window.  (z)
+   Multi-Z        Open a window to show array of successive slices
+   XYZ            Open an XYZ window.
+   Slicer         Open an image Slicer window.  (\\)
+   Linked Slicers Open an array of slicers, one per image file, with a
+                     single toolbar to control the slice
+   Model View     Open a 3dmod model view window.  (v)
+   Pixel View     Open window displaying pixel values.
+   Graph          Open an image Graph window.  (G)
+   Locator        Open a window to show the ZaP window subarea.
+   Isosurface     Open model view with an isosurface display display
+                     of the image data.  (U)
+   Tumbler        Open a 3-D Tumbler window.
 
 .I Special menu
 .fi
@@ -844,10 +846,12 @@ as internal modules that provide special features.  The latter
 include the Bead Fixer
 to assist with correcting models of fiducial markers for aligning tilt series,
 and the Line Tracker, which performs semi-automated modeling of linear
-features such as membranes.  Three plugins written by Andrew Noske are now
+features such as membranes.  Five plugins written by Andrew Noske are now
 included in the IMOD distribution: Bead Helper to help fixing large fiducial
-models; Drawing Tools with additional model tools, and Interpolator to
-generate contours automatically between ones that you draw.
+models; Drawing Tools with additional model tools; Interpolator to
+generate contours automatically between ones that you draw; Name Wizard
+to help with systematic naming of model structures; and Stereology to
+provide tools for making quantitative estimates by stereology.
 
 .I Help Menu 
 .br
@@ -942,15 +946,18 @@ E  -  Unselect current contour
 } or ) -  Go to last point in contour
 n  -  Create a new contour
 N  -  Create a new contour with a new surface number
-0  -  Create a new object
+0  -  (Zero) Create a new object
 Delete - Delete current model point
-D  -  Delete current contour
+D  -  Delete current contour or all selected contours
 Ctrl-D - Truncate current contour at current point
 Ctrl-Shift-D - Delete current surface
-M  -  Move contour to selected object
+M  -  Move contour to selected object or surface
 k  -  Copy contour (when Contour Copy dialog is open)
 J  -  Join two selected contours
 Ctrl-B - Break contour (when Contour Break dialog is open)
+O  -  (Shift o) Switch selected contour(s) between open and closed for
+        a closed-type object
+Ctrl-G - Toggle showing a gap between current and next point.
 Ctrl-Z - Undo a change in the model
 Ctrl-Y - Redo a change that was undone
 m  -  Toggle model edit mode and movie mode
@@ -964,7 +971,8 @@ F  -  Find the maximum pixel within 10 pixels and report its value
 ,  -  Decrease movie speed
 .  -  Increase movie speed
 -  -  Decrease Zoom
-=  -  Increase Zoom
+= or +  -  Increase Zoom (except in Slicer, where Keypad + works
+             instead of +)
 3  -  Start or stop a movie through time in the forward direction
 4  -  Start or stop a movie through time in the backward direction
 #  -  Start or stop a movie though Z in the forward direction
@@ -977,7 +985,9 @@ Ctrl-Shift-S - Snapshot to second type of non-TIFF file
         Other keys active in the ZaP window only
         ----------------------------------------
 Ctrl-A - Select all contours in current object on section or 
-           within the rubber band
+            within the rubber band
+Ctrl-Shift-A - Select all contours in any object on section or 
+                  within the rubber band
 b  -  Build a contour while in auto contour mode
 a  -  Advance to and fill next section when auto contouring
 u  -  Smooth a filled area when auto contouring
@@ -986,26 +996,39 @@ Z  -  Toggle auto section advance on and off
 B  -  Toggle rubber band on and off
 I  -  Print information about window, image size, and offsets,
          also bring the Information Window to the front
+q  -  Report the distance from the current image or model point to the
+         cursor 
 R  -  Resize window to size of image or rubber band
-P  -  Activate moving current contour with first mouse button
+P  -  Activate moving current contour with first mouse button, rotating
+         it with the second, or stretching it with the third.
 Keypad Ins - Add point(s) in model mode, like second mouse button
 Esc - Close ZaP window
 
         Keys to control position or move current viewing point
         ------------------------------------------------------
-Page Up       -  Increase Z
-Page Down     -  Decrease Z
+PageUp        -  Increase Z
+PageDown      -  Decrease Z
+Shift-PageUp  -  Increase Z to next section with contours in current
+                    object.
+Shift-PageDown - Decrease Z to previous section with contours in
+                    current object.
+Keypad-Star   -  Increase Z by the big paging step size, adjustable in
+                    Behavior tab of Options dialog with a default 10. 
+Keypad-Slash  -  Decrease Z by the big paging step size.
 Up Arrow      -  Increase Y
 Down Arrow    -  Decrease Y
 Right Arrow   -  Increase X
 Left Arrow    -  Decrease X
 End           -  Go to Z = 1
 Home          -  Go to Z = max
-Insert        -  Go to middle Z of stack
-Shift-Home    -  Go to middle Z of stack
+Insert        -  Go to middle Z of stack (this may be Help key on Mac
+                    keyboard)
+Shift-Home    -  Go to middle Z of stack - use this or Apple-Help on
+                    Mac if Help key opens Help
 1,2           -  Previous,Next Time Index
 !,@           -  Go to first or last time index, or to Start or
-                   End value for Time shown in Edit-Movies dialog
+                   End value for Time shown in File - Movie/Montage
+                   dialog 
 
 Keypad Arrows -  Move current model point in model mode,
               -  Pan in ZaP window in movie mode. 
@@ -1042,12 +1065,19 @@ Multiple Slicer Windows can be opened.  Each Slicer Window
 shows a different slice through a 3-D volume.  The Slicer window has
 two to four movable toolbars.  The large toolbar contains three sliders that
 are used to select the orientation of the slice by setting the angles of
-rotation of the data volume around the X, Y and Z axes.  A small
-display next to the sliders gives a visual cue to the slice
+rotation of the data volume around its original X, Y and Z axes.  A fourth
+slider can be used to scroll through slices at the same orientation.  A
+cluster of arrow keys provides a more intuitive way to rotate the volume,
+by steps around the current X, Y, and Z axes.  In the middle of this
+cluster is the Shift Lock (Sh) button, which toggles a mode in which
+mouse buttons and keypad keys can be used to rotate the volume in the
+same way, without holding down the Shift key.  The plus and minus
+buttons change the step size for these rotations. A small
+display on the right gives a visual cue to the slice
 location.  This toolbar also has two spin boxes, one to select the
 thickness of the slice being displayed, the other to select the
-thickness of model that will be projected onto the slice.  It also has a
-Help button to open up on-line help.
+thickness of model that will be projected onto the slice. 
+
 
 The narrow toolbar at the top of the Slicer has the following buttons, from
 left to right.
@@ -1059,21 +1089,26 @@ zoom factor.
 and slower, cubic interpolation.
    The Lock button will keep the Slicer from changing its
 current position when locked.
-   The Centering button toggles between the default mode in which the window
+   The Centering button toggles between the default mode in which the window 
 can be panned with the mouse, and a mode in which the current image point is
 kept at the center of the window (referred to as 'classic' mode).
-   The Shift Lock (Sh) button toggles a mode in which mouse buttons and keypad
-keys can be used to rotate the volume as if the Shift key were held down.
-   The IM/FFT button toggles between showing an image and an FFT of the image.
+   The Rubber band button allows one to draw a rectangle to define an
+area to be extracted from the image file, or captured in a snapshot.
+   The Arrow button allows one to draw a single, thick arrow for
+pointing out a feature in a snapshot
+   The FT button toggles between showing an image and an FFT of the
+image.
+   The Z-Scale button determines whether the model's Z-scale will be
+applied to stretch the volume in the Z dimension and compensate for
+thinning or anisotropic pixel size.
    The Show Slice button will draw where the slice
 intersects the X- Y- and Z-planes in the XYZ window, and the Z-plane in the
 ZaP window.  
    The Contour button sets the angles so that the current contour is flat in
 the slice.
-   The Z-Scale control determines whether the model's Z-scale will be
-applied to stretch the volume in the Z dimension and compensate for thinning.
+   The Help button opens up on-line help.
 
-The orientation of the slice can also be adjusted by rotating the volume
+The keyboard and mouse can also be used to rotate the volume
 relative to the current axes rather than the original axes.  With the Shift
 key held down (or with the Shift lock toolbar button on), the second mouse
 button will rotate the volume around an axis in the plane of the slice and
@@ -1094,11 +1129,13 @@ backward through the data, in a direction perpendicular to the slice.
 -/=  -  Decrease/Increase zoom
 _/+  -  Decrease/Increase displayed image thickness
 9/0  -  Decrease/Increase displayed model thickness
-s    -  Show slice in ZaP and XYZ windows
+B    -  Toggle rubber band on or off
+l    -  Show slice in ZaP and XYZ windows
 k    -  Toggle centering mode between new mode and classic mode
-S    -  Snapshot to file with primary non-TIFF format
-Ctrl-S - Snapshot to TIFF file
-Ctrl-Shift-S - Snapshot to second type of non-TIFF file
+q    -  Report 3-D distance from current image or model point to cursor
+           position.
+R    -  Resize window to area enclosed by rubber band.
+s    -  Save model to file
 W    -  Set angles so that current contour is flat in the slice
 x/y/z  - Align current and previous model points along X, Y or Z 
             axis
@@ -1128,24 +1165,32 @@ be drawn.  Marker lines and crosses indicate the position of the
 current point and of the slices within the volume.  Like the ZaP window,
 the XYZ window can be resized, and the images can be zoomed with hot
 keys and panned within their view boxes with the left mouse button.  Basic
-modeling capability is available in the XY plane.  One can movie through one
-or more of the planes simultaneously.  
-In addition, the marker lines have handles that can be dragged with the
-mouse to riffle through images in a plane.  Each marker
-line's color matches the color of the border around the plane that is
-controlled by its handle.
+modeling capability is available in all three planes; see the on-line
+help for details on modeling effectively in planes other than XY.  One
+can movie through one or more of the planes simultaneously.  The
+toolbar has sliders that allow one to set the X, Y, or Z
+coordinates. In addition, the marker lines have handles that can be
+dragged with the mouse to riffle through images in a plane.  Each
+marker line's color matches the color of the border around the plane
+that is controlled by its handle.
 .P
 .TP
 .I Hot Keys in the XYZ Window
 .nf
--/=  -  Decrease/Increase zoom
+k    -  Center images on the current point as closely as possible
 r    -  Toggle between low and high resolution display modes
 P    -  Toggle on or off showing a projection of the current 
           contour in the XZ and YZ planes, and of a current 
           contour that is open in the XY plane
-S    -  Snapshot to file with current non-TIFF format
-Ctrl-S - Snapshot to TIFF file
-Ctrl-Shift-S - Snapshot to second type of non-TIFF file
+q    -  Reports the distance between the current image or model point
+          and the mouse cursor
+PageUp/PageDown -  These keys move up or down by one XZ or YZ plane when the
+                      cursor is in the XZ or YZ panel; elsewhere they
+                      move by one XY plane.
+Arrows  -  These keys move the current point laterally in the panel
+              where the cursor is located
+Keypad-Ins - In model mode, provides a substitute for the second mouse
+                button.
 .fi
 .TP
 .I Mouse Buttons in the XYZ Window
@@ -1173,16 +1218,20 @@ or stop a movie in the forward direction in that panel.
 or stop a movie in the backward direction in that panel.
 
  Actions in Model Mode:
-    Clicking the first mouse button near a model point in the XY plane will
+    Clicking the first mouse button near a model point in any of the
+three planes will
 select that point as the current model point.  Clicking anywhere else will
 cause the same result as in movie mode.
     Dragging with the first mouse button is the same as in movie mode.
-    Clicking with the second mouse button in the XY plane will add a point 
-to the current contour and has no effect elsewhere.
+    Clicking with the second mouse button in any plane will add a point 
+to the current contour, provided it does not make a planar contour
+non-coplanar.
     Dragging with the second mouse button depressed will add a series of
 points to the current contour.
-    Clicking with the right mouse button in the XY plane will move the
+    Clicking with the third mouse button in any plane will move the
 current model point to that location.
+    Dragging with the third mouse button in any plane will continously
+modify existing points until the end of the contour is reached.
 
 .SH Multi-Z Window
 A Multi-Z Window is opened by selecting the Multi-Z item

@@ -3,14 +3,13 @@
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2013 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  *  $Id$
  */
 #include <stdlib.h>
-#include <stdio.h>
 #include <qtoolbutton.h>
 #include <qlabel.h>
 #include <qbitmap.h>
@@ -27,9 +26,7 @@
 #include <qdatetime.h>
 #include <qslider.h>
 #include <qvalidator.h>
-#ifdef QT_THREAD_SUPPORT
-#include <qmutex.h>
-#endif
+
 //Added by qt3to4:
 #include <QTimerEvent>
 #include <QBoxLayout>
@@ -44,26 +41,17 @@
 #include "rotationtool.h"
 #include "sslice.h"
 #include "pyramidcache.h"
-#include "xcramp.h"
-#include "b3dgfx.h"
-#include "xcorr.h"
 #include "tooledit.h"
 #include "arrowbutton.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
-#include "sliceproc.h"
+#include "control.h"
 
 #define BM_WIDTH 16
 #define BM_HEIGHT 16
 #define AUTO_RAISE true
 #define TOOLBUT_SIZE 20
-
-#define MAX_THREADS 16
-
-static void fillArraySegment(int jstart, int jlimit);
-static void findIndexLimits(int isize, int xsize, float xo, float xsx,
-                            float offset, float *fstart, float *fend);
 
 static const char *fileList[MAX_SLICER_TOGGLES][2] =
   { {":/images/lowres.png", ":/images/highres.png"},
@@ -92,11 +80,13 @@ static const char *sToggleTips[] = {
   "Lock window at current time",
   "Use keypad and mouse as if Shift key were down to rotate slice"};
 
+static float sMaxAngles[3];
+
 static const char *sSliderLabels[] = {"X rotation", "Y rotation", "Z rotation", 
                                       "View axis position"};
 
 SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
-                           bool rgba, bool doubleBuffer, bool enableDepth, float stepSize,
+                           bool rgba, bool doubleBuffer, bool enableDepth, 
                            QWidget * parent, Qt::WFlags f) 
   : QMainWindow(parent, f)
 {
@@ -105,10 +95,11 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   QToolButton *button;
   QGLFormat glFormat;
   QLabel *label;
-  QCheckBox *check;
 
   mTimeBar = NULL;
   mBreakBeforeAngBar = 0;
+  for (j = 0; j < 3; j++)
+    sMaxAngles[j] = maxAngles[j];
 
   mFuncs = funcs;
   setAttribute(Qt::WA_DeleteOnClose);
@@ -187,16 +178,18 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   if (!timeLabel.isEmpty()) {
     mTimeBar = makeToolBar(true, TB_AUTO_RAISE ? 0 : 4, "Slicer Time Toolbar");
 
-    check = diaCheckBox("Link", this, NULL);
-    mTimeBar->addWidget(check);
-    connect(check, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
-    check->setToolTip("Keep angles and positions same as for other linked "
+    mLinkBox = diaCheckBox("Link", this, NULL);
+    mTimeBar->addWidget(mLinkBox);
+    connect(mLinkBox, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
+    mLinkBox->setToolTip("Keep angles and positions same as for other linked "
                 "slicers");
+    diaSetChecked(mLinkBox, mFuncs->mAutoLink > 0);
 
     utilSetupToggleButton(mTimeBar, mTimeBar, NULL, toggleMapper, sIcons, sToggleTips,
                           mToggleButs, mToggleStates, SLICER_TOGGLE_TIMELOCK);
     connect(mToggleButs[SLICER_TOGGLE_TIMELOCK], SIGNAL(clicked()), toggleMapper, 
             SLOT(map()));
+    setToggleState(SLICER_TOGGLE_TIMELOCK, mFuncs->mTimeLock ? 1 : 0);
 
     label = new QLabel("4th D", this);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -242,17 +235,46 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
                 "from table");
 
   // SECOND TOOLBAR
+  buildToolBar2();
+
+  setToggleState(SLICER_TOGGLE_CENTER, funcs->mClassic);
+  setFontDependentWidths();
+  sFirstTime = false;
+
+  // Set up toolbar for master or hide it for slave
+  if (mFuncs->mAutoLink == 1)
+    manageAutoLink(1);
+  else if (mFuncs->mAutoLink)
+    mToolBar2->hide();
+
+  // Need GLwidget next - this gets the defined format
+  glFormat.setRgba(rgba);
+  glFormat.setDoubleBuffer(doubleBuffer);
+  glFormat.setDepth(enableDepth);
+  mGLw = new SlicerGL(funcs, glFormat, this);
+  
+  // Set it as main widget, set focus, dock on top and bottom only
+  setCentralWidget(mGLw);
+  setFocusPolicy(Qt::StrongFocus);
+}
+
+// Create the second toolbar, which may need rebuilding when unlinking from linked slicers
+void SlicerWindow::buildToolBar2()
+{
+  int j;
+  QGLFormat glFormat;
   mToolBar2 = makeToolBar(true, 2, "Slicer Toolbar 2");
 
+  // All widgets need to have the toolbar as parent so that they are deleted with it
   // Make a frame, put a layout in it, and then put multisliders in the layout
-  QWidget *sliderFrame = new QWidget(this);
+  QWidget *sliderFrame = new QWidget(mToolBar2);
   //  sliderFrame->setFrameStyle(QFrame::NoFrame);
   mToolBar2->addWidget(sliderFrame);
   QVBoxLayout *sliderLayout = new QVBoxLayout(sliderFrame);
   sliderLayout->setContentsMargins(0, 0, 0, 0);
   mSliders = new MultiSlider(sliderFrame, 4, sSliderLabels, -1800, 1800, 1);
   for (j = 0; j < 4; j++) {
-    int maxVal = (int)(10. * maxAngles[j] + 0.1);
+    int maxVal = (int)(10. * sMaxAngles[j] + 0.1);
     mSliders->setRange(j, -maxVal, maxVal);
     mSliders->getSlider(j)->setMinimumWidth(200);
     mSliders->getSlider(j)->setPageStep(j < 3 ? 10 : 1);
@@ -265,18 +287,18 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
 	  SLOT(angleChanged(int, int, bool)));
 
-  QFrame *line = new QFrame(this);
+  QFrame *line = new QFrame(mToolBar2);
   line->setFrameShape( QFrame::VLine );
   line->setFrameShadow( QFrame::Sunken );
   mToolBar2->addWidget(line);
 
-  QWidget *rightBox = new QWidget(this);
+  QWidget *rightBox = new QWidget(mToolBar2);
   mToolBar2->addWidget(rightBox);
   QVBoxLayout *rightVLay = new QVBoxLayout(rightBox);
   QHBoxLayout *topHLay = new QHBoxLayout();
   QHBoxLayout *spinHLay = new QHBoxLayout();
   rightVLay->addLayout(topHLay);
-  diaLabel("Thickness:", rightBox, rightVLay);
+  diaLabel("Thick:", rightBox, rightVLay);
   rightVLay->addLayout(spinHLay);
   rightVLay->setContentsMargins(0, 0, 0, 0);
   rightVLay->setSpacing(0);
@@ -285,9 +307,9 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   spinHLay->setContentsMargins(0, 0, 0, 0);
   spinHLay->setSpacing(0);
 
-  mRotationTool = new RotationTool(this, sIcons[SLICER_TOGGLE_SHIFTLOCK], 
+  mRotationTool = new RotationTool(mToolBar2, sIcons[SLICER_TOGGLE_SHIFTLOCK], 
                                    sToggleTips[SLICER_TOGGLE_SHIFTLOCK], TOOLBUT_SIZE,
-                                   true, stepSize);
+                                   true, mFuncs->viewAxisStepSize());
   topHLay->addWidget(mRotationTool);
   connect(mRotationTool, SIGNAL(stepChanged(int)), this, SLOT(stepSizeChanged(int)));
   connect(mRotationTool, SIGNAL(centerButToggled(bool)), this, SLOT(shiftToggled(bool)));
@@ -302,11 +324,11 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   cubeFrame->setFrameShape(QFrame::StyledPanel);
   QVBoxLayout *cubeLayout = new QVBoxLayout(cubeFrame);
   cubeLayout->setContentsMargins(2, 2, 2, 2);
-  mCube = new SlicerCube(funcs, glFormat, cubeFrame);
+  mCube = new SlicerCube(mFuncs, glFormat, cubeFrame);
   cubeLayout->addWidget(mCube);
 
   // Thickness of image spin box
-  label = diaLabel("Img", rightBox, spinHLay);
+  QLabel *label = diaLabel("Img", rightBox, spinHLay);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   mImageBox = new QSpinBox(rightBox);
   spinHLay->addWidget(mImageBox);
@@ -332,20 +354,6 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
 	  SLOT(modelThicknessChanged(double)));
   mModelBox->setToolTip("Set thickness of model to project onto image "
                 "(hot keys 9 and 0");
-
-  setToggleState(SLICER_TOGGLE_CENTER, funcs->mClassic);
-  setFontDependentWidths();
-  sFirstTime = false;
-
-  // Need GLwidget next - this gets the defined format
-  glFormat.setRgba(rgba);
-  glFormat.setDoubleBuffer(doubleBuffer);
-  glFormat.setDepth(enableDepth);
-  mGLw = new SlicerGL(funcs, glFormat, this);
-  
-  // Set it as main widget, set focus, dock on top and bottom only
-  setCentralWidget(mGLw);
-  setFocusPolicy(Qt::StrongFocus);
 }
 
 // Does the boilerplate of adding a new toolbar
@@ -370,7 +378,7 @@ void SlicerWindow::setFontDependentWidths()
   int width = fontMetrics().width("99.9") + 24;
   int height = fontMetrics().height() + 6;
   mModelBox->setFixedWidth(width);
-  //width = fontMetrics().width("999") + 24;
+  width = fontMetrics().width("999") + 24;
   mImageBox->setFixedWidth(width);
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
   diaSetButtonWidth(mSaveAngBut, ImodPrefs->getRoundedStyle(), 1.2, "Save");
@@ -411,6 +419,36 @@ void SlicerWindow::showSaveAngleToolbar()
   }
   mBreakBeforeAngBar = needBreak;
   mSaveAngBar->show();
+}
+
+/*
+ * Manage the toolbar for the desired new autolink state
+ */
+void SlicerWindow::manageAutoLink(int newState)
+{
+
+  // For a detached toolbar, remove the bar, reparent and fix the flags
+  // Defer showing the reparented toolbar until the window is done in slicer.cpp
+  if (newState == 1) {
+    Qt::WindowFlags flags = mToolBar2->windowFlags();
+    removeToolBarBreak(mToolBar2);
+    removeToolBar(mToolBar2);
+    mToolBar2->setParent(NULL);
+    mToolBar2->setWindowFlags((flags & ~(Qt::FramelessWindowHint)) | Qt::Window);
+  } else {
+
+    // For an existing master toolbar, delete and recreate it; otherwise show bar
+    // This was needed on a Mac where drawing was all messed up when trying to reparent
+    // back into the slicer
+    if (mFuncs->mAutoLink == 1) {
+      delete mToolBar2;
+      if (!mFuncs->getClosing()) {
+        buildToolBar2();
+        setFontDependentWidths();
+      }
+    } else
+      mToolBar2->show();
+  }
 }
 
 void SlicerWindow::zoomUp()
@@ -534,7 +572,7 @@ void SlicerWindow::continuousToggled(bool state)
 
 void SlicerWindow::linkToggled(bool state)
 {
-  mFuncs->mLinked = state;
+  mFuncs->setLinkedState(state);
 }
 
 // Functions for setting state of the controls
@@ -699,937 +737,4 @@ void SlicerCube::paintGL()
 void SlicerCube::resizeGL( int wdth, int hght )
 {
   mFuncs->cubeResize(wdth, hght);
-}
-
-////////////////////////////////////////////////
-// Array filling functions and threads.
-// Here so the statics won't interfere with the namespace in slicer.cpp
-
-// The thread class saves the limits in Y and run calls the fill with limits
-#ifdef QT_THREAD_SUPPORT
-SlicerThread::SlicerThread(int jStart, int jLimit)
-{
-  mJstart = jStart;
-  mJlimit = jLimit;
-}
-
-void SlicerThread::run()
-{
-  fillArraySegment(mJstart, mJlimit);
-}
-
-static QMutex fillMutex;
-#endif
-
-// Statics are read-only data for the threads to use
-static float xsx, ysx, zsx; /* steps for moving x in zap. */
-static float xsy, ysy, zsy; /* steps for moving y in zap. */
-static float xsz, ysz, zsz; /* steps for moving z in zap. */
-static int xsize;
-static int ysize;
-static int zsize;
-static float xzost, yzost, zzost;
-static int izoom, shortcut, ilimshort, jlimshort;
-static int isize, jsize, ksize;
-static int noDataVal;
-static b3dInt32 *cidata;
-static int maxval, minval;
-static int sshq, sswinx;
-
-
-// The top-level routine called to fill the image array
-void SlicerFuncs::fillImageArray(int panning, int meanOnly, int rgbChannel)
-{
-  float maxPanPixels = 1000. * ImodPrefs->slicerPanKb();
-  int i, j, k;
-  unsigned short rbase;
-  float xo, yo, zo;  /* coords of the lower left zap origin. */
-  float xs = 1.0f, ys = 1.0f, zs = 1.0f;  /* scale factors.  */
-  float zoffset, sample, scale, offset, sumSD, sumMean, edge, fftBaseScale;
-  float matt = 0.1;
-  int ixStart, iyStart, nxUse, nyUse, ntaper;
-  float numPosSD = 4., numNegSD = 3.;
-
-  float xzoom, yzoom, zzoom;
-  float zoom = mZoom;
-  int iz, maxSlice;
-  float extrashift, numpix;
-  int crossget, crosswant;
-  Ipoint pnt, tpnt;
-  Imat *mat = mMat;
-  int tval;
-
-  int cindex, pixsize;
-  unsigned int *cmap = App->cvi->cramp->ramp;
-  unsigned char *bmap = App->cvi->cramp->bramp;
-  b3dUByte **imdata;
-  b3dUByte *bdata;
-  b3dUInt32 *idata;
-  b3dUInt16 *usidata;
-  b3dUByte *ubidata;
-  Islice *slice;
-  //unsigned char *sclmap = NULL;
-  unsigned char *fftmap;
-  b3dUInt16 *usfftmap;
-  unsigned char **linePtrs;
-  int vmnullvalue;
-  int numThreads = 1;
-  char *procChar = NULL;
-#ifdef QT_THREAD_SUPPORT
-  SlicerThread *threads[MAX_THREADS];
-#endif  
-
-  QTime fillTime;
-  fillTime.start();
-  if (!mImage)
-      return;
-  cidata = (b3dInt32 *)mImage->id1;
-  idata = (b3dUInt32 *)cidata;
-  usidata = (b3dUInt16 *)cidata;
-  ubidata = (b3dUByte *)cidata;
-  pixsize  = b3dGetImageType(NULL, NULL);
-
-  xsize = mVi->xsize;
-  ysize = mVi->ysize;
-  zsize = mVi->zsize;
-  noDataVal = 0;
-  maxval = mVi->ushortStore ? 65535 : 255;
-  fftBaseScale = mVi->ushortStore ? 256. : 1.;
-  minval = 0;
-  sswinx = mWinx;
-  izoom = (int) zoom;
-
-  // Turn off hq drawing if mean only.
-  // Set flag for filling each window pixel if HQ or fractional zoom, unless
-  // it is FFT at higher zoom
-  // Set flag for doing shortcut HQ method
-  // Set number of slices to draw
-  sshq = meanOnly ? 0 : mHq;
-  mNoPixelZoom = (sshq || izoom != mZoom) &&
-    (!mFftMode || mZoom < 1.);
-
-  // 12/16/10: There seems to be nothing wrong with doing the shortcut for
-  // non-integer zooms!  And it looks a lot nicer
-  shortcut = (sshq && (zoom == izoom || zoom > 2.0) &&  (zoom > 1.0) && 
-              !mFftMode) ? 1 : 0;
-  ksize = (mVi->colormapImage || meanOnly) ? 1 : mNslice;
- 
-  // Set up number of threads early so pan limit can be modified
-  // Start with ideal number of threads and modify with environment variable
-  numThreads = QThread::idealThreadCount();
-#ifdef QT_THREAD_SUPPORT
-  procChar = getenv("IMOD_PROCESSORS");
-  if (procChar)
-    numThreads = atoi(procChar);
-  numThreads = B3DMIN(MAX_THREADS, B3DMAX(1, numThreads));
-  maxPanPixels *= numThreads;
-#endif
-
-  // When panning, drop HQ and/or reduce number of slices to maintain
-  // a maximum number of pixel have to be found
-  if (panning) {
-
-    // Get number of pixels to be computed: number in window, divided by
-    // zoom**2 if pixel zoom or shortcut
-    numpix = mWinx * mWiny;
-    if (!mNoPixelZoom || shortcut)
-      numpix /= mZoom * mZoom;
-
-    // If one slice and it is hq, it is 4 times slower unless shortcut, where
-    // it may still be 2 times slower.  Cancel hq if too many pixels
-    if (ksize == 1 && sshq) {
-      if (shortcut)
-        numpix *= 2;
-      else
-        numpix *= 4;
-      if (numpix > maxPanPixels) {
-        sshq = 0;
-        shortcut = 0;
-        mNoPixelZoom = izoom != mZoom && (!mFftMode || mZoom < 1.);
-      }
-    } else if (ksize > 1) {
-
-      // If multiple slices, assume shortcut is fully effective and increase
-      // work just for the HQ interpolation
-      if (sshq)
-        numpix *= 4;
-      maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
-
-      // Cancel HQ if too many pixels, or if the maximum slices is dropping
-      // by more than 25%
-      if (sshq && (maxPanPixels / numpix < 0.75 || 
-                   ((float)maxSlice / ksize < 0.75))) {
-        sshq = 0;
-        shortcut = 0;
-
-        // Re-evaluate flag and number of slices
-        mNoPixelZoom = izoom != mZoom && (!mFftMode || mZoom < 1.);
-        numpix = mWinx * mWiny;
-        if (!mNoPixelZoom)
-          numpix /= mZoom * mZoom;
-        maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
-      }
-      ksize = B3DMIN(ksize, maxSlice);
-    }
-    if (imodDebug('s'))
-      imodPrintStderr("panning HQ %d ksize %d\n", sshq, ksize);
-  }
-  zoffset = (float)(ksize - 1) * 0.5;
-
-  /* DNM 5/16/02: force a cache load of the current z slice at least */
-  iz = B3DNINT(mCz);
-  ivwGetZSection(mVi, iz);
-
-  /* Set up image pointer tables */
-  vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (mVi->pyrCache) {
-    if (ivwSetupFastTileAccess(mVi, mVi->pyrCache->getBaseIndex(), vmnullvalue, i))
-      return;
-  } else {
-    if (ivwSetupFastAccess(mVi, &imdata, vmnullvalue, &i, 
-                           mTimeLock ? mTimeLock : mVi->curTime))
-    return;
-  }
-
-  ivwSetRGBChannel(rgbChannel);
-  noDataVal = vmnullvalue;
-
-  transStep();
-  rbase = mVi->rampbase;
-  if (!App->rgba && App->depth == 8){
-    minval = mVi->rampbase;
-    maxval = minval + mVi->rampsize;
-    noDataVal = (unsigned char)minval;
-  }
-
-
-  /* DNM 5/5/03: set lx, ly, lz when cx, cy, cz used to fill array */
-  xzoom = yzoom = zzoom = mZoom;
-  xo = mLx = mCx;
-  yo = mLy = mCy;
-  zo = mLz = mCz;
-  mLang[0] = mTang[0];
-  mLang[1] = mTang[1];
-  mLang[2] = mTang[2];
-
-  xsx = mXstep[b3dX];
-  ysx = mXstep[b3dY];
-  zsx = mXstep[b3dZ];
-  xsy = mYstep[b3dX];
-  ysy = mYstep[b3dY];
-  zsy = mYstep[b3dZ];
-  xsz = mZstep[b3dX];
-  ysz = mZstep[b3dY];
-  zsz = mZstep[b3dZ];
-
-  zs = 1.0f / getZScaleBefore();
-  // if ((mScalez) && (mVi->imod->zscale > 0))
-  //  zs  = 1.0f/mVi->imod->zscale;
-
-  if (mScalez == SLICE_ZSCALE_AFTER){
-    if (mVi->imod->zscale > 0)
-      zs = mVi->imod->zscale;
-    xzoom = zoom * sqrt((double)
-                        ((xsx * xsx + ysx * ysx + zsx * zsx * zs * zs)/
-                         (xsx * xsx + ysx * ysx + zsx * zsx)));
-    yzoom = zoom * sqrt((double)
-                        ((xsy * xsy + ysy * ysy + zsy * zsy * zs * zs)/
-                         (xsy * xsy + ysy * ysy + zsy * zsy)));
-    zzoom = zoom * sqrt((double)
-                        ((xsz * xsz + ysz * ysz + zsz * zsz * zs * zs)/
-                         (xsz * xsz + ysz * ysz + zsz * zsz)));
-          
-    xs = zoom / xzoom;
-    ys = zoom / yzoom;
-    zs = 1.0;
-  }
-
-  /* size of 2-D loop for i, j */
-  /* DNM: don't use xzoom, yzoom; make pixels be zoom x zoom */
-  isize = (int)(mWinx / zoom + 0.9);
-  jsize = (int)(mWiny / zoom + 0.9);
-
-  if (mNoPixelZoom) {
-    /* high quality image or fractional zoom */
-    isize = mWinx; /* calculate each pixel for zoom unless FFT. */
-    jsize = mWiny;
-    xsx /= xzoom;
-    ysx /= xzoom;
-    zsx /= xzoom / zs; 
-    xsy /= yzoom;
-    ysy /= yzoom;
-    zsy /= yzoom / zs;
-    xo -= (isize / 2) * xsx;
-    yo -= (isize / 2) * ysx;
-    zo -= (isize / 2) * zsx;
-    xo -= (jsize / 2) * xsy;
-    yo -= (jsize / 2) * ysy;
-    zo -= (jsize / 2) * zsy;
-    mXshift = 0;
-    mYshift = 0;
-  }else{
-    xsx *= zoom / xzoom;
-    ysx *= zoom / xzoom;
-    zsx *= zs * zoom / xzoom;
-    xsy *= zoom / yzoom;
-    ysy *= zoom / yzoom;
-    zsy *= zs * zoom / yzoom;
-
-    /* Take fractional location of data point within a pixel and
-       rotate in 3D to find location in display pixel */
-
-    setForwardMatrix();
-
-    pnt.x = mCx - (int)mCx;
-    pnt.y = mCy - (int)mCy;
-    pnt.z = mCz - (int)mCz;
-    imodMatTransform3D(mat, &pnt, &tpnt);
-          
-    if (tpnt.x < 0.0)
-      tpnt.x += 1.0;
-    if (tpnt.y < 0.0)
-      tpnt.y += 1.0;
-
-    /* Compute where we want the crosshair to come out in the central
-       pixel, and where it will fall with no raster offset, use 
-       difference to set raster offset */
-
-    crosswant = (int)(zoom * tpnt.x);  /* don't take nearest int here! */
-    if (crosswant >= zoom)
-      crosswant -= (int)zoom;
-    crossget = (mWinx / 2) % (int)zoom;
-    mXshift = crossget - crosswant;
-    if (mXshift < 0)
-      mXshift += zoom;
-
-    crosswant = (int)(zoom * tpnt.y);
-    if (crosswant >= zoom)
-      crosswant -= (int)zoom;
-    crossget = (mWiny / 2) % (int)zoom;
-    mYshift = crossget - crosswant;
-    if (mYshift < 0)
-      mYshift += zoom;
-
-    extrashift = 0.5;      /* Needed for proper sampling */
-    if (zoom == 1.0)
-      extrashift = 0.0;
-
-    xo -= ((mWinx / 2 - mXshift) / zoom - extrashift) * xsx;
-    yo -= ((mWinx / 2 - mXshift) / zoom - extrashift) * ysx;
-    zo -= ((mWinx / 2 - mXshift) / zoom - extrashift) * zsx;
-    xo -= ((mWiny / 2 - mYshift) / zoom - extrashift) * xsy;
-    yo -= ((mWiny / 2 - mYshift) / zoom - extrashift) * ysy;
-    zo -= ((mWiny / 2 - mYshift) / zoom - extrashift) * zsy;
-  }
-
-  /* steps per step in Z are independent of HQ versus regular */
-  xsz *= zoom / zzoom;
-  ysz *= zoom / zzoom;
-  zsz *= zs * zoom / zzoom;
-
-  /* Save values of starting position */
-  mXo = xo;
-  mYo = yo;
-  mZo = zo;
-
-  /* Adjust for multiple slices */
-  xo -= zoffset * xsz;
-  yo -= zoffset * ysz;
-  zo -= zoffset * zsz;
-  xzost = xo; 
-  yzost = yo;
-  zzost = zo;
-
-  if (shortcut) {
-    ilimshort = izoom * ((isize - 1) / izoom - 1);
-    jlimshort = izoom * ((jsize - 1) / izoom - 1);
-  } else if (!izoom) {
-    /* DNM 11/22/01: workaround to Intel compiler bug - it insists on
-       doing j % izoom even when shortcut is 0 */ 
-    izoom = 1;
-  }
-
-  if (imodDebug('s'))
-    imodPrintStderr("winx %d winy %d isize %d jsize %d shortcut %d ilimshort"
-                    " %d jlimshort %d\n", mWinx, mWiny, isize, jsize, 
-                    shortcut, ilimshort, ilimshort);
-  //  int timeStart = imodv_sys_time();
-  /* DNM: don't need to clear array in advance */
-
-#ifdef QT_THREAD_SUPPORT
-
-  // Use threads if image is big enough
-  if (numThreads > 1 && jsize > 8 * numThreads && 
-      isize * ksize > 200000 / jsize) {
-    if (imodDebug('s'))
-      imodPrintStderr("%d threads - ", numThreads);
-    for (i = 0; i < numThreads; i++) {
-      threads[i] = new SlicerThread((i * jsize) / numThreads, 
-                                    ((i + 1) * jsize) / numThreads);
-      threads[i]->start();
-    }
-
-    // Wait for all threads to finish
-    for (i = 0; i < numThreads; i++)
-      threads[i]->wait();
-
-  } else
-    fillArraySegment(0, jsize);
-
-#else
-  fillArraySegment(0, jsize);
-#endif
-
-  if (shortcut) {
-
-    /* DNM 1/9/03: deleted quadratic interpolation code, turned cubic code
-       into a routine that can be used by tumbler */
-    slicerCubicFillin((b3dUInt16 *)cidata, mWinx, mWiny, izoom, ilimshort, jlimshort,
-		      minval * ksize, maxval * ksize, 1);
-  }
-
-  // If computing mean only or scaling to mean, get the mean and SD of the
-  // slice with some edges cut off
-  if (meanOnly || (mScaleToMeanSD && ksize > 1) || mFftMode) {
-    linePtrs = ivwMakeLinePointers(mVi, (unsigned char *)cidata, mWinx, 
-                                   jsize, MRC_MODE_FLOAT);
-    sumSD = 0.;
-    if (linePtrs) {
-      ixStart = matt * isize;
-      nxUse = isize - 2 * ixStart;
-      iyStart = matt * jsize;
-      nyUse = jsize - 2 * iyStart;
-      sample = 10000.0/(((double)nxUse) * nyUse);
-      if (sample > 1.0)
-        sample = 1.0;
-      if (sampleMeanSD(linePtrs, 7, isize, jsize, sample, ixStart, iyStart,
-                       nxUse, nyUse, &sumMean, &sumSD))
-        sumSD = 0.;
-      if (imodDebug('s'))
-        imodPrintStderr("Array %d x %d mean %f Sd %f\n", isize, jsize, 
-                        sumMean, sumSD);
-    }
-
-    // If getting mean only, set values and flag and return now
-    if (meanOnly) {
-      mOneSliceMean = sumMean;
-      mOneSliceSD = sumSD;
-      mScaleToMeanSD = true;
-      if (imodDebug('s'))
-        imodPrintStderr("Mean/SD time %d\n", fillTime.elapsed());
-      return;
-    }
-  }
-
-  // imodPrintStderr("%d msec\n", imodv_sys_time() - timeStart);
-  cindex = mImage->width * mImage->height;
-  k = ksize;
-
-  scale = 1. / k;
-  offset = 0.;
-  if (k > 1) {
-    // If scaling to match one slice, set the scaling and adjust the mean and
-    // SD to be after the scaling, for FFT scaling
-    if (mScaleToMeanSD && sumSD > 0.1 && mOneSliceSD > 0.1) {
-      scale = mOneSliceSD / sumSD;
-      offset  = mOneSliceMean - sumMean * scale;
-      sumMean = mOneSliceMean;
-      sumSD = mOneSliceSD;
-    } else if (mFftMode) {
-
-      // If just doing FFT, divide mean and SD by # of slices
-      sumMean /= k;
-      sumSD /= k;
-    }
-    /*sclmap = get_short_map(scale, offset, 0, 255, MRC_RAMP_LIN, 0, 0);
-    if (!sclmap) {
-      wprint("\aMemory error getting mapping array.\n");
-      return;
-      }*/
-  }
-
-  // Take FFT if flag is set
-  if (mFftMode) {
-    slice = sliceCreate(isize, jsize, SLICE_MODE_BYTE);
-    if (slice) {
-
-      // Pack data into a byte slice
-      bdata = slice->data.b;
-      if (mVi->ushortStore) {
-        scale /= 256.;
-        offset /= 256.;
-      }
-      for (j = 0; j < jsize; j++) {
-        for (i = j * mWinx; i < j * mWinx + isize; i++) {
-          tval = (int)(cidata[i] * scale + offset);
-          *bdata++ = (b3dUByte)B3DMAX(0, B3DMIN(255, tval));
-        }
-      }
-      slice->min = 0;
-      slice->max = 255;
-      if (imodDebug('s'))
-        imodPrintStderr("Fill time %d\n", fillTime.elapsed());
-      fillTime.start();
-
-      // Taper the edges 
-      ntaper = (int)(0.05 * B3DMAX(isize, jsize));
-      if (ntaper)
-        sliceTaperAtFill(slice, ntaper, 1);
-      if (imodDebug('s'))
-        imodPrintStderr("Taper time %d  extent %d\n", fillTime.elapsed(),
-                        ntaper);
-      fillTime.start();
-
-      // Take the FFT
-      if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1, &i, &j) > 0) {
-
-        if (imodDebug('s'))
-          imodPrintStderr("FFT time %d\n", fillTime.elapsed());
-        fillTime.start();
-
-        // Get the edge mean
-        bdata = slice->data.b;
-        edge = 0.;
-        for (i = 0; i < isize; i++)
-          edge += bdata[i] + bdata[i + isize * (jsize - 1)];
-        for (j = 0; j < jsize; j++)
-          edge += bdata[isize * j] + bdata[isize - 1 + isize * j];
-        edge /= 2. * (isize + jsize);
-
-        // Unpack the FFT data into the integer array
-        // Map edge to mean - numNeg SD's, 255 to mean + numPos SD's
-        scale = fftBaseScale;
-        offset = 0.;
-        if (sumSD > 0.1 && edge < 254.5) {
-          scale = (numPosSD + numNegSD) * sumSD / (255 - edge);
-          offset = (sumMean - numNegSD * sumSD) - scale * edge;
-        }
-        if (imodDebug('s'))
-          imodPrintStderr("FFT edge %f  scale %f  offset %f\n", edge, scale,
-                          offset);
-        fftmap = get_byte_map(scale, offset, 0, maxval, 0);
-        usfftmap = (b3dUInt16 *)fftmap;
-        for (j = 0; j < jsize; j++) {
-          if (!mVi->ushortStore)
-            for (i = j * mWinx; i < j * mWinx + isize; i++)
-              cidata[i] = fftmap[*bdata++];
-          else
-            for (i = j * mWinx; i < j * mWinx + isize; i++)
-              cidata[i] = usfftmap[*bdata++];
-        }
-
-      }
-      sliceFree(slice);
-      k = 1;
-    }
-  }
-
-  /* for 8-bit displays, range is less then 256 gray scales. */
-  if (!App->rgba && App->depth == 8){
-    if (k > 1)
-      for (j = 0; j < jsize; j++)
-        for(i = j * mWinx; i < j * mWinx + isize; i++){
-          tval = (int)(cidata[i] * scale + offset);
-          if (tval > maxval) tval = maxval;
-          if (tval < minval) tval = minval;
-          ubidata[i] = tval;
-        }
-    else
-      for (j = 0; j < jsize; j++)
-        for(i = j * mWinx; i < j * mWinx + isize; i++){
-          if (cidata[i] > maxval) cidata[i] = maxval;
-          if (cidata[i] < minval) cidata[i] = minval;
-          ubidata[i] = cidata[i];
-        }
-
-  }else{
-    switch (pixsize){
-    case 1:
-      if (k > 1)
-        for (j = 0; j < jsize; j++)
-          for(i = j * mWinx; i < j * mWinx + isize; i++){
-            tval = (int)(cidata[i] * scale + offset);
-            ubidata[i]= (b3dUByte)B3DMAX(0., B3DMIN(255., tval));
-          }
-      else
-        for (j = 0; j < jsize; j++)
-          for(i = j * mWinx; i < j * mWinx + isize; i++)
-            ubidata[i] = cidata[i];
-      break;
-    case 2:
-      if (k > 1)
-        for (j = 0; j < jsize; j++)
-          for(i = j * mWinx; i < j * mWinx + isize; i++){
-            tval = (int)(cidata[i] * scale + offset);
-            usidata[i]= (b3dUInt16)B3DMAX(0., B3DMIN(255., tval)) + rbase;
-          }
-      else
-        for (j = 0; j < jsize; j++)
-          for(i = j * mWinx; i < j * mWinx + isize; i++)
-            usidata[i] = cidata[i] + rbase;
-      break;
-    case 4:
-      if (mVi->rgbStore) {
-        if (k > 1)
-          for (j = jsize - 1; j >= 0; j--)
-            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
-              tval = (int)(cidata[i] * scale + offset);
-              cidata[i] = bmap[B3DMAX(0, B3DMIN(255, tval))];
-            }
-        else
-          for (j = jsize - 1; j >= 0; j--)
-            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--)
-              cidata[i] = bmap[cidata[i]];
-
-      } else {
-        if (k > 1)
-          for (j = jsize - 1; j >= 0; j--)
-            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--){
-              tval = (int)(cidata[i] * scale + offset);
-              idata[i] = cmap[B3DMAX(0, B3DMIN(maxval, tval))];
-            }
-        else
-          for (j = jsize - 1; j >= 0; j--)
-            for(i = j * mWinx + isize - 1; i >= j * mWinx; i--)
-              idata[i] = cmap[cidata[i]];
-      }
-    }
-  }
-  mXzoom = xzoom;
-  mYzoom = yzoom;
-  /*  if (sclmap)
-      free(sclmap); */
-  if (imodDebug('s'))
-    imodPrintStderr("Fill time %d\n", fillTime.elapsed());
-  return;
-}
-
-// Find the limits that need to be filled for a particular line
-static void findIndexLimits(int isize, int xsize, float xo, float xsx,
-                            float offset, float *fstart, float *fend)
-{
-  float flower, fupper, ftmp;
-  float endCoord = xo + (isize - 1) * xsx + offset;
-  float startCoord = xo + offset;
- 
-  /*if (imodDebug('s')) 
-    imodPrintStderr("xo = %f, xsx = %f, start = %f, end = %f\n", xo,xsx,startCoord, endCoord); */
-  /* If start and end is all to one side of data, set limits to middle to skip
-     the line.  3/17/10: it needs an epsilon because of errors at Z -180 deg */
-  if ((startCoord < 0.1 && endCoord < 0.1) || 
-      (startCoord >= xsize - 0.1 && endCoord >= xsize - 0.1)) {
-    *fstart = isize / 2.;
-    *fend = *fstart;
- 
-    /* Otherwise evaluate place where line cuts volume for this coordinate */
-  } else if (xsx > 1.e-6 || xsx < -1.e-6) {
-    flower = (0.1 - startCoord) / xsx;
-    fupper = (xsize - 0.1 - startCoord) / xsx;
-    if (xsx < 0) {
-      ftmp = flower;
-      flower = fupper;
-      fupper = ftmp;
-    }
-    /* if (imodDebug('s')) 
-       imodPrintStderr("lower = %f, upper = %f\n", flower, fupper); */
-    if (flower > *fstart)
-      *fstart = flower;
-    if (fupper < *fend)
-      *fend = fupper;
-  }
-}
-
-// Fill a portion of the array from jstart to jlimit - 1
-// This routine is called by the threads
-static void fillArraySegment(int jstart, int jlimit)
-{
-  int i, j, k, cindex, ishort;
-  int xi, yi, zi;
-  float xo, yo, zo;  /* coords of the lower left origin. */
-  float x, y, z; /* coords of pixel in 3-D image block. */
-  float xzo, yzo,zzo;
-  int innerStart, innerEnd, outerStart, outerEnd;
-  float fstart, fend;
-
-  /* for 3-D quadratic interpolation */
-  float dx, dy, dz;
-  float x1, x2, y1, y2, z1, z2;
-  float a, b, c, d, e, f;
-  float ival;
-  int pxi, nxi, pyi, nyi, pzi, nzi;
-  int val;
-
-  xzo = xzost;
-  yzo = yzost;
-  zzo = zzost;
-
-
-  for(k = 0; k < ksize; k++){
-    xo = xzo;
-    yo = yzo;
-    zo = zzo;
-
-    // advance coordinates to get to j start
-    for (j = 0; j < jstart; j++) {
-      xo += xsy;
-      yo += ysy;
-      zo += zsy;
-    }    
-          
-    /* (i,j) location in zap window data. */
-    for (j = jstart; j < jlimit; j++){
-
-#ifdef QT_THREAD_SUPPORT
-      // Take the lock for working on first or last line (superstition)
-      if (j == jstart || j == jlimit - 1)
-        fillMutex.lock();
-#endif
-
-      /* Compute starting and ending index that intersects data volume
-         for each dimension, and find smallest range of indexes */
-      fstart = 0;
-      fend = isize;
-      findIndexLimits(isize, xsize, xo, xsx, 0., &fstart, &fend);
-      findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend);
-      findIndexLimits(isize, zsize, zo, zsx, 0.5, &fstart, &fend);
-
-      /* If there is no range, set up for fills to cover the range */
-      if (fstart >= fend) {
-        outerStart = isize / 2;
-        innerStart = innerEnd = outerEnd = outerStart;
-      } else {
-
-        /* Otherwise, set outer region safely outside the index limits */
-        outerStart = fstart - 2.;
-        if (outerStart < 0)
-          outerStart = 0;
-        outerEnd = fend + 2.;
-        if (outerEnd > isize)
-          outerEnd = isize;
-
-        /* If not doing HQ, compute inner limits of region that needs no
-           testing */
-        if (!sshq) {
-          innerStart = outerStart + 4;
-          innerEnd = outerEnd - 4;
-          if (innerStart >= innerEnd)
-            innerStart = innerEnd = outerStart;
-          
-        } else if (shortcut) {
-          /* If doing shortcuts, set up for whole line if it is a line to skip
-             or make sure start is a multiple of the zoom */
-          if (j >= izoom && j < jlimshort && j % izoom) {
-            outerStart = 0;
-            outerEnd = isize;
-          } else
-            outerStart = izoom * (outerStart / izoom);
-        }
-
-      }
-
-      cindex = j * sswinx;
-      
-      /* Fill outer regions */
-      
-      if (k) {
-        for (i = 0; i < outerStart; i++)
-          cidata[i + cindex] += noDataVal;
-        for (i = outerEnd; i < isize; i++)
-          cidata[i + cindex] += noDataVal;
-      } else {
-        for (i = 0; i < outerStart; i++)
-          cidata[i + cindex] = noDataVal;
-        for (i = outerEnd; i < isize; i++)
-          cidata[i + cindex] = noDataVal;
-      }
-
-      x = xo + outerStart * xsx;
-      y = yo + outerStart * ysx;
-      z = zo + outerStart * zsx;
-
-      if (sshq) {
-        /* For HQ, do tests all the time since they are minor component */
-        // Also use the increments to step between points, because computing from 
-        // i * xsx etc is > 20% slower for some reason here
-        for (i = outerStart; i < outerEnd; i++) {
-
-          /* DNM & RJG 2/12/03: remove floor calls - they are dog-slow only
-             Pentium 4 below 2.6 GHz... */
-          xi = (int)x;
-          yi = (int)y;
-          zi = (int)(z + 0.5);
-                    
-          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
-              z > -0.5 && zi < zsize) {
-            val = (*ivwFastGetValue)(xi, yi, zi);
-
-            /* do quadratic interpolation. */
-            dx = x - xi - 0.5;
-            dy = y - yi - 0.5;
-            dz = z - zi;
-                              
-            pxi = xi - 1;
-            nxi = xi + 1;
-            pyi = yi - 1;
-            nyi = yi + 1;
-            pzi = zi - 1;
-            nzi = zi + 1;
-                              
-            if (pxi < 0) pxi = 0;
-            if (nxi >= xsize) nxi = xi;
-            if (pyi < 0) pyi = 0;
-            if (nyi >= ysize) nyi = yi;
-            if (pzi < 0) pzi = 0;
-            if (nzi >= zsize) nzi = zi;
-                            
-            x1 = (*ivwFastGetValue)(pxi,  yi,  zi);
-            x2 = (*ivwFastGetValue)(nxi,  yi,  zi);
-            y1 = (*ivwFastGetValue)( xi, pyi,  zi);
-            y2 = (*ivwFastGetValue)( xi, nyi,  zi);
-            z1 = (*ivwFastGetValue)( xi,  yi, pzi);
-            z2 = (*ivwFastGetValue)( xi,  yi, nzi);
-                              
-            a = (x1 + x2) * 0.5f - (float)val;
-            b = (y1 + y2) * 0.5f - (float)val;
-            c = (z1 + z2) * 0.5f - (float)val;
-            d = (x2 - x1) * 0.5f;
-            e = (y2 - y1) * 0.5f;
-            f = (z2 - z1) * 0.5f;
-            ival = (a * dx * dx) + 
-              (b * dy * dy) + 
-              (c * dz * dz) +
-              (d * dx) + (e * dy) + 
-              (f * dz) + (float)val;
-            if (ival > maxval)
-              ival = maxval;
-            if (ival < minval)
-              ival = minval;
-            val = (int)(ival + 0.5f);
-                              
-          } else
-            val = noDataVal;
-                    
-          if (k)
-            cidata[i + cindex] += val;
-          else
-            cidata[i + cindex] = val;
-                    
-          x += xsx;
-          y += ysx;
-          z += zsx;
-
-          if (shortcut != 0 && i >= izoom && i < ilimshort && 
-              j >= izoom && j < jlimshort) {
-            ishort = izoom - 1;
-            if (j % izoom)
-              ishort = ilimshort - izoom - 1;
-            x += xsx * ishort;
-            y += ysx * ishort;
-            z += zsx * ishort;
-            i += ishort;
-          }
-        }
-      } else {
-
-        /* Non HQ data */
-        // Here we should compute coordinates with multiplication since there is no
-        // testing, but it costs < 10% for some reason.
-        for (i = outerStart; i < innerStart; i++) {
-          x = xo + i * xsx;
-          y = yo + i * ysx;
-          z = zo + i * zsx;
-          xi = (int)x;
-          yi = (int)y;
-          zi = (int)(z + 0.5);
-                    
-          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
-              z > -0.5 && zi < zsize)
-            val = (*ivwFastGetValue)(xi, yi, zi);
-          else
-            val = noDataVal;
-                    
-          if (k)
-            cidata[i + cindex] += val;
-          else
-            cidata[i + cindex] = val;
-                    
-        }
-
-        if (k) {
-          for (i = innerStart; i < innerEnd; i++) {
-            x = xo + i * xsx;
-            y = yo + i * ysx;
-            z = zo + i * zsx;
-            xi = (int)x;
-            yi = (int)y;
-            zi = (int)(z + 0.5);
-            val = (*ivwFastGetValue)(xi, yi, zi);
-            cidata[i + cindex] += val;
-          }
-        } else {
-          for (i = innerStart; i < innerEnd; i++) {
-            x = xo + i * xsx;
-            y = yo + i * ysx;
-            z = zo + i * zsx;
-            xi = (int)x;
-            yi = (int)y;
-            zi = (int)(z + 0.5);
-            /*if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
-              zi >= 0 && zi < zsize) */
-            val = (*ivwFastGetValue)(xi, yi, zi);
-            /* else {
-              imodPrintStderr("BAD %d %d %d %d %d %f %f %d %d\n", i, j, xi, yi,
-                              zi, fstart, fend, innerStart, innerEnd);
-              fstart = 0;
-              fend = isize;
-              findIndexLimits(isize, xsize, xo, xsx, 0., &fstart, &fend);
-              imodPrintStderr("X %f %f %f\n", xsx, fstart, fend); 
-              fstart = 0;
-              fend = isize;
-              findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend);
-              imodPrintStderr("Y %f %f %f %f\n", yo, ysx, fstart, fend); 
-              fstart = 0;
-              fend = isize;
-              findIndexLimits(isize, zsize, zo, zsx, 0.5, &fstart, &fend);
-              imodPrintStderr("Z %f %f %f\n", zsx, fstart, fend); 
-              } */
-            cidata[i + cindex] = val;
-          }
-        }
-
-        for (i = innerEnd; i < outerEnd; i++) {
-          x = xo + i * xsx;
-          y = yo + i * ysx;
-          z = zo + i * zsx;
-          xi = (int)x;
-          yi = (int)y;
-          zi = (int)(z + 0.5);
-                    
-          if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
-              z > -0.5 && zi < zsize)
-            val = (*ivwFastGetValue)(xi, yi, zi);
-          else
-            val = noDataVal;
-                    
-          if (k)
-            cidata[i + cindex] += val;
-          else
-            cidata[i + cindex] = val;
-                    
-        }
-
-      }
-      xo += xsy;
-      yo += ysy;
-      zo += zsy;
-
-#ifdef QT_THREAD_SUPPORT
-      if (j == jstart || j == jlimit - 1)
-        fillMutex.unlock();
-#endif
-    }
-    xzo += xsz;
-    yzo += ysz;
-    zzo += zsz;
-  }
 }

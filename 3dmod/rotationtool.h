@@ -21,10 +21,18 @@ class RotationTool : public QWidget
   void setCenterState(bool state);
   void setStepLabel(float step);
 
+ protected:
+  void closeEvent(QCloseEvent *e);
+  void keyPressEvent(QKeyEvent *e) {emit keyPress(e);};
+  void keyReleaseEvent(QKeyEvent *e) {emit keyRelease(e);};
+
  signals:
   void rotate(int deltaX, int deltaY, int deltZ);
   void stepChanged(int delta);
   void centerButToggled(bool state);
+  void closing();
+  void keyPress(QKeyEvent *e);
+  void keyRelease(QKeyEvent *e);
 
   public slots:
   void centerToggled(bool state);

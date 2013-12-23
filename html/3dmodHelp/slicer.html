@@ -14,7 +14,7 @@ are floated, they will still pass hot keys on to the slicer window.
 <A HREF = "#Behavior">Angles, Window Behavior and Classic Centering Mode</A>
 <BR><A HREF = "#FirstToolbar">The General Toolbar</A>
 <BR><A HREF = "#SecondToolbar">The Slice Control Toolbar</A>
-<BR><A HREF = "#TimeToolbar">The Time Toolbar</A>
+<BR><A HREF = "#TimeToolbar">The Time Toolbar and Linked Slicers</A>
 <BR><A HREF = "#AngleSavingToolbar">The Angle Saving Toolbar</A>
 <BR><A HREF = "#MouseActionsMovies">Mouse Actions and Movies</A>
 <BR><A HREF = "#HotKeys">HotKeys</A>
@@ -178,7 +178,7 @@ from the data volume.
 In the bottom right are controls for adjusting the thickness of 
 the image slice and the thickness of model that is shown on the slice.
 
-<A NAME = "TimeToolbar"><H3>The Time Toolbar</H3></A>
+<A NAME = "TimeToolbar"><H3>The Time Toolbar and Linked Slicers</H3></A>
 If multiple image files have been loaded into 3dmod, an 
 additional toolbar appears, with the same controls as the toolbar in the Zap
 window.
@@ -194,6 +194,15 @@ thickness.  They will also have the same position unless one of their position
 <B>Lock</b> buttons is on.  This option can be used together with the 
 <B>Time lock</B> button to get synchronized displays of several volumes in
 separate Slicers.
+<P>
+The Image - Linked Slicers menu entry will open a complete array of
+linked slicers, one per image file and each one already locked to a time.  The
+slice control toolbar will be detached and moved to the upper left for the
+first window and hidden for the other windows.  The windows will be arranged
+in rows and shrunk by up to 50%, if necessary, to fit as many as possible.  If
+the <B>Link</B> box is turned off for a slicer, its toolbar will be restored.
+If the first window is closed or its <B>Link</B> is turned off, another
+window's toolbar will be moved to the upper left.
 
 <A NAME = "AngleSavingToolbar"><H3>The Angle Saving Toolbar</H3></A>
 Slicer angles and center positions can be saved in the IMOD model by opening
@@ -307,12 +316,9 @@ Toggle the rubber band on or off
 Resize the window to the area enclosed in the rubber band and turn off the band
 <BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Save model to file
-<BR><B>Ctrl-S</B> &nbsp;&nbsp;&nbsp;
-Snapshot to TIFF file
-<BR><B>Shift-S</B> &nbsp;&nbsp;
-Snapshot to primary type of non-TIFF file
-<BR><B>Ctrl-Shift-S</B> &nbsp;
-Snapshot to second type of non-TIFF file
+<LI><B>Ctrl-S</B>, <B>Shift-S</B> or <B>Ctrl-Shift-S</B> saves the Slicer window,
+or the area inside the rubber band, into a TIFF file, a file in the primary
+non-TIFF format, or a file in the second non-TIFF format
 <BR><B>x/y/z</B> &nbsp;&nbsp;&nbsp;&nbsp;
 Align current and previous model points along X, Y or Z axis
 <BR><B>X/Y/Z</B> &nbsp;&nbsp;&nbsp;
@@ -348,7 +354,7 @@ Rotate in plane of displayed slice
 <BR><B>&lt;/&gt;</B>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 &nbsp; &nbsp;
 Decrease/Increase increment for these rotations; the increment can be 0.1,
-0.3, 1, 3, or 10 degrees and it starts at 1 degree.  With <B>Sh</B> on,
+0.3, 1, 3, 10, 30 or 90 degrees and it starts at 1 degree.  With <B>Sh</B> on,
 <B>,/.</B> also change the increment.
 
 <A NAME = "RubberBand"><H3>Using the Rubber Band</H3></A>

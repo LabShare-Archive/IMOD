@@ -97,7 +97,7 @@ void imodvKeyPress(QKeyEvent *event)
   Iobj *obj;
   int keysym = event->key();
   int tstep = 1;
-  int newval, fastdraw, ip;
+  int fastdraw, ip;
   float elapsed;
   int state = event->modifiers();
   int keypad = event->modifiers() & Qt::KeypadModifier;
@@ -243,21 +243,11 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_Comma:
-    newval = (int)(a->deltaRot / IMODV_ROTATION_FACTOR + 0.5);
-    if (newval == a->deltaRot)
-      newval--;
-    if (!newval)
-      newval = 1;
-    imodvControlSetArot(a, newval);
-    imodvControlIncSpeed(-1);
+    imodvControlChangeSteps(a, -1);
     break;
 
   case Qt::Key_Period:
-    newval = (int)(a->deltaRot * IMODV_ROTATION_FACTOR + 0.5);
-    if (newval == a->deltaRot)
-      newval++;
-    imodvControlSetArot(a, newval);
-    imodvControlIncSpeed(1);
+    imodvControlChangeSteps(a, 1);
     break;
 
   case Qt::Key_M:
@@ -361,13 +351,7 @@ void imodvKeyPress(QKeyEvent *event)
       imodv_rotate_model(a, 0, -a->deltaRot, 0);
       break;
     }
-    if (!a->movie){
-      a->xrotMovie = a->yrotMovie = a->zrotMovie =0;
-      a->movie = 1;
-    } else {
-      a->movie = 0;
-      a->xrotMovie = a->yrotMovie = a->zrotMovie = 0;
-    }
+    imodvControlStart();
     break;
   case Qt::Key_7:
     imodv_rotate_model(a, -a->deltaRot, 0, 0);
@@ -458,10 +442,12 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_R:
-    if (shifted) {
+    if (ctrl) {
       imodvViewMenu(VVIEW_MENU_LOWRES);
       imodvMenuLowres(a->lowres);
-    } else
+    } else if (shifted)
+      a->mainWin->openRotationTool(a);
+    else
       imodvObjedMoveToAxis(11);
     break;
 
@@ -755,7 +741,6 @@ static void imodvTranslateByDelta(ImodvApp *a, int x, int y, int z)
   Imat *mat = a->mat;
   Ipoint ipt, opt, spt;
   int m, mstrt, mend;
-  float scrnscale;
   double alpha, beta;
 
   if (ctrl || !a->moveall) {

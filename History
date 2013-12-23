@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/22/13: Added a dialog to set the size of the Model View window without
+changing model zoom.
+ 
+12/22/13: Added menu entry Image - Linked Slicers to open an array of slicers,
+one per  image file, controlled by a single slice toolbar,
+
+12/21/13: Added a small rotation tool window to Model View with arrows for 
+rotating model.
+
 12/19/13: Rubberband, arrows for view-axis based rotation, and slider for
 moving along view axis added to slicer; with band on, limits can be set and
 File-Extract File can be used extract selected region with Rotatevol.

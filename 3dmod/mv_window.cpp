@@ -23,13 +23,19 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QEvent>
+#include "dia_qtutils.h"
 #include "imod.h"
 #include "mv_window.h"
 #include "imodv.h"
 #include "mv_menu.h"
 #include "mv_gfx.h"
 #include "mv_input.h"
+#include "mv_control.h"
+#include "info_cb.h"
 #include "control.h"
+#include "preferences.h"
+#include "rotationtool.h"
+#include "resizetool.h"
 #include "vertexbuffer.h"
 
 #define ADD_ACTION(a, b, c) mActions[c] = a##Menu->addAction(b); \
@@ -41,14 +47,25 @@ mActions[c]->setShortcut(QKeySequence(d)); \
 connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
 a##Mapper->setMapping(mActions[c], c);
 
+// Statics for rotation tool
+static QIcon *sMovieIcon = NULL;
+int sRToolLeftPos = -9999;
+int sRToolTopPos;
+int sRToolWithImodv = -1;
+
+// Constructor for window
 ImodvWindow::ImodvWindow(ImodvApp *a,
                          QWidget * parent, const char * name, Qt::WFlags f)
   : QMainWindow(parent, f)
 {
   int numWidg = 0;
   const char *helpStr = "&Help";
-  const char *altHelp = ".&Help.";
   const char *useHelp = helpStr;
+  double posValues[3];
+  int numVals = 0;
+
+  mRotationTool = NULL;
+  mResizeTool = NULL;
   mDBw = mSBw = mDBstw = mSBstw = mDBalw = mDBstAlw = NULL;
   mMinimized = false;
   setAttribute(Qt::WA_DeleteOnClose);
@@ -85,29 +102,22 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
 
   // Construct Edit menu
   QMenu *editMenu = menuBar()->addMenu("&Edit");
-  ADD_ACTION_KEY(edit, "&Objects...", VEDIT_MENU_OBJECTS, 
-                 Qt::SHIFT + Qt::Key_O);
-  ADD_ACTION_KEY(edit, "&Controls...", VEDIT_MENU_CONTROLS,
-                 Qt::SHIFT + Qt::Key_C);
-  ADD_ACTION_KEY(edit, "Object &List...", VEDIT_MENU_OBJLIST,
-                 Qt::SHIFT + Qt::Key_L);
-  ADD_ACTION_KEY(edit, "&Background...", VEDIT_MENU_BKG,
-                 Qt::SHIFT + Qt::Key_B);
-  ADD_ACTION_KEY(edit, "&Models...", VEDIT_MENU_MODELS,
-                 Qt::SHIFT + Qt::Key_M);
-  ADD_ACTION_KEY(edit, "&Views...", VEDIT_MENU_VIEWS,
-                 Qt::SHIFT + Qt::Key_V);
-  ADD_ACTION_KEY(edit, "&Image...", VEDIT_MENU_IMAGE,
-                 Qt::SHIFT + Qt::Key_I);
-  ADD_ACTION_KEY(edit, "Isos&urface...", VEDIT_MENU_ISOSURFACE, 
-                 Qt::SHIFT + Qt::Key_U);
+  ADD_ACTION_KEY(edit, "&Objects...", VEDIT_MENU_OBJECTS, Qt::SHIFT + Qt::Key_O);
+  ADD_ACTION_KEY(edit, "&Controls...", VEDIT_MENU_CONTROLS, Qt::SHIFT + Qt::Key_C);
+  ADD_ACTION_KEY(edit, "&Rotation...", VEDIT_MENU_ROTATION, Qt::SHIFT + Qt::Key_R);
+  ADD_ACTION_KEY(edit, "Object &List...", VEDIT_MENU_OBJLIST, Qt::SHIFT + Qt::Key_L);
+  ADD_ACTION_KEY(edit, "&Background...", VEDIT_MENU_BKG, Qt::SHIFT + Qt::Key_B);
+  ADD_ACTION_KEY(edit, "&Models...", VEDIT_MENU_MODELS, Qt::SHIFT + Qt::Key_M);
+  ADD_ACTION_KEY(edit, "&Views...", VEDIT_MENU_VIEWS, Qt::SHIFT + Qt::Key_V);
+  ADD_ACTION_KEY(edit, "&Image...", VEDIT_MENU_IMAGE, Qt::SHIFT + Qt::Key_I);
+  ADD_ACTION_KEY(edit, "Isos&urface...", VEDIT_MENU_ISOSURFACE, Qt::SHIFT + Qt::Key_U);
   mActions[VEDIT_MENU_IMAGE]->setEnabled(imodvByteImagesExist() != 0);
   mActions[VEDIT_MENU_ISOSURFACE]->setEnabled(imodvByteImagesExist() != 0);
   connect(editMapper, SIGNAL(mapped(int)), this, SLOT(editMenuSlot(int)));
 
   // View menu
   QMenu *viewMenu = menuBar()->addMenu("&View");
-  ADD_ACTION_KEY(view, "Low &Res", VVIEW_MENU_LOWRES, Qt::SHIFT + Qt::Key_R);
+  ADD_ACTION_KEY(view, "Low &Res", VVIEW_MENU_LOWRES, Qt::CTRL + Qt::Key_R);
   mActions[VVIEW_MENU_LOWRES]->setCheckable(true);
   mActions[VVIEW_MENU_LOWRES]->setChecked(a->lowres);
   if (!a->standalone) {
@@ -120,6 +130,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   ADD_ACTION(view, "&Stereo...", VVIEW_MENU_STEREO);
   ADD_ACTION(view, "&Depth Cue...", VVIEW_MENU_DEPTH);
   ADD_ACTION(view, "Scale &Bar...", VVIEW_MENU_SCALEBAR);
+  ADD_ACTION(view, "Window Si&ze...", VVIEW_MENU_RESIZE);
 
   ADD_ACTION(view, "&Invert Z", VVIEW_MENU_INVERTZ);
   mActions[VVIEW_MENU_INVERTZ]->setCheckable(true);
@@ -147,6 +158,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   // conditional on standalone did not work!  Qt 4.5+ Cocoa Mac. 3/1/10
   // Even this is not perfect, if there is a 3dmodv already up.
 #if defined(Q_OS_MACX) && QT_VERSION >= 0x040500
+  const char *altHelp = ".&Help.";
   if (!a->standalone)
     useHelp = altHelp;
 #endif
@@ -235,6 +247,23 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
 
   mTimer = new QTimer(this);
   connect(mTimer, SIGNAL(timeout()), this, SLOT(timeoutSlot()));
+
+  // First time, get the preferences for rotation tool and store in statics
+  if (sRToolWithImodv < 0) {
+    numVals = ImodPrefs->getGenericSettings("ModvRotationTool", posValues, 3);
+    if (numVals > 1) {
+      sRToolLeftPos = (int)posValues[0];
+      sRToolTopPos = (int)posValues[1];
+    }
+    if (numVals > 2) 
+      sRToolWithImodv = (int)posValues[2];
+    else
+      sRToolWithImodv = 0;
+  }
+
+  // Open tool if it closed with window before
+  if (sRToolWithImodv > 0)
+    openRotationTool(a);
 }
 
 ImodvWindow::~ImodvWindow()
@@ -357,6 +386,16 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo, int alpha)
   return 0;
 }
 
+void ImodvWindow::rotationKeyPress(QKeyEvent *e)
+{
+  imodvKeyPress(e);
+}
+
+void ImodvWindow::rotationKeyRelease(QKeyEvent *e)
+{
+  imodvKeyRelease(e);
+}
+
 void ImodvWindow::keyPressEvent ( QKeyEvent * e )
 {
   imodvKeyPress(e);
@@ -411,6 +450,121 @@ void ImodvWindow::timeoutSlot()
   imodvMovieTimeout();
 }
 
+/*
+ * Rotation tool creation and slots
+ */
+void ImodvWindow::openRotationTool(ImodvApp *a)
+{
+  int width = 90;
+  const char *fileList[1][2] =
+    {{":/images/movieArrow.png", ":/images/movieArrowOn.png"}};
+  if (mRotationTool)
+    return;
+  if (!sMovieIcon)
+    utilFileListsToIcons(fileList, &sMovieIcon, 1);
+
+  mRotationTool = new RotationTool(imodvDialogManager.parent(IMODV_DIALOG), sMovieIcon,
+                                   "Start or stop movie", 20, true, a->deltaRot / 10.);
+  mRotationTool->setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint);
+  mRotationTool->setAttribute(Qt::WA_DeleteOnClose);
+  mRotationTool->setAttribute(Qt::WA_AlwaysShowToolTips);
+  connect(mRotationTool, SIGNAL(closing()), this, SLOT(rotationClosing()));
+  connect(mRotationTool, SIGNAL(stepChanged(int)), this, SLOT(rotStepChanged(int)));
+  connect(mRotationTool, SIGNAL(centerButToggled(bool)), this, 
+          SLOT(movieButToggled(bool)));
+  connect(mRotationTool, SIGNAL(rotate(int, int, int)), this, 
+          SLOT(rotateClicked(int, int, int)));
+  connect(mRotationTool, SIGNAL(keyPress(QKeyEvent *)), this, 
+          SLOT(rotationKeyPress(QKeyEvent *)));
+  connect(mRotationTool, SIGNAL(keyRelease(QKeyEvent *)), this, 
+          SLOT(rotationKeyRelease(QKeyEvent *)));
+  imodvDialogManager.add((QWidget *)mRotationTool, IMODV_DIALOG);
+
+  // More than minimal width is needed on Linux to be able to drag the window by its 
+  // title bar: this needs to be checked elsewhere
+  // The resize to a height too small is a way to keep it from opening too tall, the
+  // usual adjustSize didn't work.
+  mRotationTool->setFixedWidth(width);
+  mRotationTool->resize(width, 50);
+  if (sRToolLeftPos >= 0) {
+    diaLimitWindowPos(mRotationTool->width(), mRotationTool->height(), sRToolLeftPos,
+                      sRToolTopPos);
+    mRotationTool->move(sRToolLeftPos, sRToolTopPos);
+  }
+  mRotationTool->show();
+}
+
+void ImodvWindow::rotateClicked(int deltaX, int deltaY, int deltaZ)
+{
+  imodv_rotate_model(Imodv, -Imodv->deltaRot * deltaX, Imodv->deltaRot * deltaY, 
+                     Imodv->deltaRot * deltaZ);
+}
+
+void ImodvWindow::rotStepChanged(int delta)
+{
+  imodvControlChangeSteps(Imodv, delta);
+}
+
+void ImodvWindow::movieButToggled(bool state)
+{
+  imodvControlStart();
+}
+
+// Window is closing: save the position and whether the model view it is closing with
+// model view in statics and preferences
+void ImodvWindow::rotationClosing()
+{
+  double posValues[3];
+  QRect pos = ivwRestorableGeometry(mRotationTool);
+  sRToolLeftPos = posValues[0] = pos.left();
+  sRToolTopPos = posValues[1] = pos.top();
+  sRToolWithImodv = posValues[2] = ImodvClosed;
+  ImodPrefs->saveGenericSettings("ModvRotationTool", 3, posValues);
+  imodvDialogManager.remove((QWidget *)mRotationTool);
+  mRotationTool = NULL;
+}
+
+/*
+ * The resize tool
+ */
+void ImodvWindow::openResizeTool(ImodvApp *a)
+{
+  if (mResizeTool) {
+    mResizeTool->raise();
+    return;
+  }
+  mResizeTool = new ResizeTool(this, a->winx, a->winy, 10);
+  connect(mResizeTool, SIGNAL(closing()), this, SLOT(resizerClosing()));
+  connect(mResizeTool, SIGNAL(resize(int, int)), this, SLOT(newResizerSize(int, int)));
+  connect(mResizeTool, SIGNAL(keyPress(QKeyEvent *)), this, 
+          SLOT(rotationKeyPress(QKeyEvent *)));
+  connect(mResizeTool, SIGNAL(keyRelease(QKeyEvent *)), this, 
+          SLOT(rotationKeyRelease(QKeyEvent *)));
+  imodvDialogManager.add((QWidget *)mResizeTool, IMODV_DIALOG);
+  adjustGeometryAndShow((QWidget *)mResizeTool, IMODV_DIALOG);
+}
+
+// A new size comes in.  Compute a new rad value to keep scale constant, set window size
+// accounting for the menu bar
+void ImodvWindow::newResizerSize(int sizeX, int sizeY)
+{
+  ImodvApp *a = Imodv;
+  a->imod->view->rad *= ((float)B3DMIN(sizeX, sizeY)) / B3DMIN(a->winx, a->winy);
+  a->mainWin->resize(sizeX, sizeY + a->mainWin->height() - a->winy);
+}
+
+// The window is closing, remove its pointers
+void ImodvWindow::resizerClosing()
+{
+  if (!mResizeTool)
+    return;
+  imodvDialogManager.remove((QWidget *)mResizeTool);
+  mResizeTool = NULL;
+}
+
+/* 
+ * The GL class
+ */
 ImodvGL::ImodvGL(QGLFormat inFormat, QWidget * parent)
   : QGLWidget(inFormat, parent)
 {

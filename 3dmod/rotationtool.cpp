@@ -15,6 +15,7 @@
 #include <qlayout.h>
 #include <qlabel.h>
 #include <qtoolbutton.h>
+#include <qevent.h>
 #include "rotationtool.h"
 #include "dia_qtutils.h"
 
@@ -55,9 +56,14 @@ RotationTool::RotationTool(QWidget *parent, QIcon *centerIcon, const char *cente
     }
   }
 
-  QVBoxLayout *vLayout = new QVBoxLayout(this);
+  QHBoxLayout *hLayout = new QHBoxLayout(this);
+  hLayout->setContentsMargins(0, 0, 0, 0);
+  hLayout->setSpacing(0);
+  QVBoxLayout *vLayout = new QVBoxLayout();
+  hLayout->addLayout(vLayout);
   vLayout->setContentsMargins(0, 0, 0, 0);
   vLayout->setSpacing(2);
+  hLayout->addStretch();
 
   // Make the grid and the signal mapper
   QGridLayout *grid = new QGridLayout();
@@ -85,7 +91,8 @@ RotationTool::RotationTool(QWidget *parent, QIcon *centerIcon, const char *cente
         mCenterBut = button;
         if (centerTip)
           button->setToolTip(centerTip);
-        button->setIcon(*centerIcon);
+        if (centerIcon) 
+          button->setIcon(*centerIcon);
         connect(mCenterBut, SIGNAL(toggled(bool)), this, SLOT(centerToggled(bool)));
       } else {
 
@@ -116,7 +123,7 @@ RotationTool::RotationTool(QWidget *parent, QIcon *centerIcon, const char *cente
 void RotationTool::setCenterState(bool state)
 {
   if (mCenterBut)
-    mCenterBut->setChecked(state);
+    diaSetChecked(mCenterBut, state);
 }
 
 // Set the label for step size
@@ -145,4 +152,10 @@ void RotationTool::buttonClicked(int which)
     emit(stepChanged(sStepSign[which]));
   else
     emit(rotate(rotSteps[which][0], rotSteps[which][1], rotSteps[which][2]));
+}
+
+void RotationTool::closeEvent(QCloseEvent *e)
+{
+  emit(closing());
+  e->accept();
 }

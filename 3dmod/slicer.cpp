@@ -33,6 +33,7 @@
 #include "sslice.h"
 #include "imod_input.h"
 #include "info_cb.h"
+#include "info_setup.h"
 #include "control.h"
 #include "imodplug.h"
 #include "dia_qtutils.h"
@@ -78,13 +79,12 @@ static int sScaleThick = 1;
 /*
  * Open new slicer.
  */
-int sslice_open(ImodView *vi)
+int slicerOpen(ImodView *vi, int autoLink)
 {
   SlicerFuncs *ss;
 
-  ss = new SlicerFuncs(vi);
+  ss = new SlicerFuncs(vi, autoLink);
   if (!ss) {
-    delete ss;
     wprint("Error opening slicer window.");
     return(-1);
   }
@@ -305,6 +305,108 @@ void slicerViewAxisStepChange(int delta)
 }
 
 /*
+ * Open a separate slicer locked to every time if possible, with one slice toolbar 
+ * floated, and arrange them in an array
+ */
+void setupLinkedSlicers(ImodView *vi)
+{
+  QObjectList objList;
+  SlicerWindow *slicer;
+  int i, deskWidth, deskHeight, newWidth, newHeight, firstLeft, firstTop, numInX,  numInY;
+  int ix = 0, iy = 0;
+  int xBorder = 16, yBorder = 40;
+#ifdef Q_OS_MACX
+  int topIndent = 24;
+#else
+  int topIndent =10;
+#endif
+
+  // First unlink any existing slicers
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+  for (i = 0; i < objList.count(); i++) {
+    slicer = (SlicerWindow *)objList.at(i);
+    if (slicer->mFuncs->mLinked)
+      diaSetChecked(slicer->mLinkBox, false);
+    slicer->mFuncs->mLinked = false;
+  }
+
+  // Create the first slicer and determine its size and that of the toolbar
+  if (slicerOpen(vi, 1))
+    return;
+  diaMaximumWindowSize(deskWidth, deskHeight);
+  deskWidth -= 20;
+  deskHeight -= 10 + topIndent;
+
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+  slicer = (SlicerWindow *)objList.at(objList.count() - 1);
+  imod_info_input();
+  slicer->mToolBar2->show();
+  imod_info_input();
+
+  // On Linux, the toolbar has the full size if we process events enough, but the 
+  // window frame geometry might not be right yet
+  QRect toolGeom = slicer->mToolBar2->frameGeometry();
+  QRect fullGeom = slicer->frameGeometry();
+  QRect winGeom = ivwRestorableGeometry(slicer);
+  newWidth = B3DMAX(winGeom.width(), toolGeom.width() + 20);
+  newHeight = winGeom.height();
+  imodTrace('s', "frame geom %d  %d  geom %d h %d  tool geom %d %d", 
+            fullGeom.width(), fullGeom.height(),
+            winGeom.width(), newHeight, toolGeom.width(), toolGeom.height());
+
+  // If there appear to be some plausible borders on the window already, take those;
+  // otherwise take the fallback borders
+  if (fullGeom.width() - winGeom.width() > xBorder / 2 || 
+      fullGeom.height() - newHeight > yBorder / 2) {
+    xBorder = fullGeom.width() - winGeom.width();
+    yBorder = fullGeom.height() - newHeight;
+  }
+  imodTrace('s', "border %d %d", xBorder, yBorder);
+
+  // Find an arrangement where as many windows as possible fit on the screen, looking
+  // first at having the toolbar above them all, then to the left of them all, and
+  // dropping the window size by 10,10 each time
+  while (newWidth > winGeom.width() / 2 && newHeight > winGeom.height() / 2) {
+    firstLeft = 10;
+    firstTop = topIndent + toolGeom.height();
+    numInX = B3DMAX(1, deskWidth / (newWidth + xBorder));
+    numInY = B3DMAX(1, (deskHeight - toolGeom.height()) / (newHeight + yBorder));
+    if (numInX * numInY >= vi->numTimes)
+      break;
+    firstLeft = 10 + toolGeom.width();
+    firstTop = topIndent;
+    numInX = B3DMAX(1, (deskWidth - toolGeom.width()) / (newWidth + xBorder));
+    numInY = B3DMAX(1, deskHeight / (newHeight + yBorder));
+    if (numInX * numInY >= vi->numTimes)
+      break;
+    newWidth -= 10;
+    newHeight -= 10;
+  }
+  
+  // Open the windows and place them all
+  slicer->mToolBar2->move(10, topIndent);
+  ix = 0;
+  iy = 0;
+  for (i = 1; i <= B3DMIN(numInX * numInY, vi->numTimes); i++) {
+    if (i > 1 && slicerOpen(vi, i))
+      return;
+    imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+    slicer = (SlicerWindow *)objList.at(objList.count() - 1);
+    slicer->resize(newWidth, newHeight);
+    slicer->move(firstLeft + ix * (newWidth + xBorder), 
+                 firstTop + iy * (newHeight + yBorder));
+    ix++;
+    if (ix == numInX) {
+      iy++;
+      ix = 0;
+    }
+  }
+
+  // raise the info window at the end so the user can put it somewhere
+  ImodInfoWin->raise();
+}
+
+/*
  *  The external draw command from the controller
  */
 static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
@@ -338,7 +440,7 @@ static void slicerClose_cb(ImodView *vi, void *client, int junk)
 //////////////////////////////////////////////////////////////////
 // The SlicerFuncs class
 //
-SlicerFuncs::SlicerFuncs(ImodView *vi)
+SlicerFuncs::SlicerFuncs(ImodView *vi, int autoLink)
 {
   int newZoom;
   QString str;
@@ -355,22 +457,16 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   }
 
   mClassic = ImodPrefs->classicSlicer();
-  if (!mClassic && !ImodPrefs->classicWarned())
-    dia_puts("Welcome to the new slicer mode, in which you can pan\n"
-             "with the mouse but clicking does not recenter the image.\n"
-             "You can switch to the classic mode with the centering\n"
-             "button (two concentric squares) on the first toolbar.\n"
-             "You can select classic mode as the default on the Behavior tab\n"
-             "in the 3dmod Preferences dialog, accessed with Edit-Options.\n\n"
-             "Also, the "CTRL_STRING" key is now needed to start or stop a "
-             "movie with\nthe second or third mouse button.");
+  // After 6 1/2 years, we can get rid of the Welcome to the new mode
 
   mCx = vi->xmouse;
   mCy = vi->ymouse;
   mCz = vi->zmouse;
   mVi     = vi;
   mLocked = 0;
-  mTimeLock = 0;
+  mTimeLock = autoLink;
+  mAutoLink = B3DMIN(2, autoLink);
+  mLinked = autoLink > 0;
   mShiftLock = 0;
   mZoom   = 1.0;
   mLx     = vi->xmouse;
@@ -402,7 +498,6 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   mFftMode = 0;
   mToolTime = 0;
   mContinuous = false;
-  mLinked = false;
   mClosing = 0;
   mIgnoreCurPtChg = 0;
   mAlreadyDrew = false;
@@ -417,8 +512,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   transStep();
   utilGetLongestTimeString(vi, &str);
   mQtWindow = new SlicerWindow(this, sMaxAngle,  str, App->rgba, App->doublebuffer,
-                               App->qtEnableDepth, sViewAxisSteps[sViewAxisIndex],
-                               imodDialogManager.parent(IMOD_IMAGE));
+                               App->qtEnableDepth, imodDialogManager.parent(IMOD_IMAGE));
   if (!mQtWindow)
     return;
 
@@ -449,7 +543,7 @@ SlicerFuncs::SlicerFuncs(ImodView *vi)
   mQtWindow->mToolBar2->setMaximumWidth(toolSize2.width() + 10);
   int newWidth = toolSize1.width() > toolSize2.width() ?
     toolSize1.width() : toolSize2.width();
-  int newHeight = newWidth + toolSize1.height() + toolSize2.height();
+  int newHeight = newWidth + toolSize1.height() + (mAutoLink ? 0 : toolSize2.height());
   mQtWindow->resize( newWidth, newHeight);
 
   // Adjust zoom to biggest one that fits image
@@ -671,6 +765,11 @@ void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)
 void SlicerFuncs::help()
 {
   imodShowHelpPage("slicer.html#TOP");
+}
+
+float SlicerFuncs::viewAxisStepSize()
+{
+  return sViewAxisSteps[sViewAxisIndex];
 }
 
 /*
@@ -951,14 +1050,69 @@ void SlicerFuncs::modelThickness(float depth)
     mDepth = 0.1;
 
   drawThickControls();
-  draw();
+  drawSelfAndLinked();
 }
 
+// The link button is toggled; if autolinked, manage the toolbar, etc  
+void SlicerFuncs::setLinkedState(bool state)
+{
+  QObjectList objList;
+  SlicerWindow *slicer;
+  int i, numLeft = 0;
 
-/* The window is closing now.  Clean up */
+  mLinked = state;
+
+  // If this is the master, find another slave and make it the master, move its toolbar
+  // to current position
+  if (!state && mAutoLink == 1) {
+    imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+
+    // Count number of linked windows left
+    for (i = 0; i < objList.count(); i++) {
+      slicer = (SlicerWindow *)objList.at(i);
+      if (slicer->mFuncs->mAutoLink > 1)
+        numLeft++;
+    }
+
+    // Then either make first one the new master, or unlink last one left
+    for (i = 0; i < objList.count(); i++) {
+      slicer = (SlicerWindow *)objList.at(i);
+      if (slicer->mFuncs->mAutoLink > 1) {
+        if (numLeft > 1) {
+          slicer->manageAutoLink(1);
+          slicer->mFuncs->mAutoLink = 1;
+          QRect pos = ivwRestorableGeometry(mQtWindow->mToolBar2);
+          slicer->mToolBar2->move(pos.left(), pos.top());
+          slicer->mToolBar2->show();
+          break;
+        } else {
+          slicer->manageAutoLink(0);
+          slicer->mFuncs->mAutoLink = 0;
+          diaSetChecked(slicer->mLinkBox, false);
+        }
+      }
+    }
+  }
+
+  // In any case, get the toolbar shown and turn off the autolink of this window
+  // Do not update a closing window; the toolbar is not recreated
+  if (!state && mAutoLink) {
+    mQtWindow->manageAutoLink(0);
+    if (!mClosing) {
+      drawThickControls();
+      mQtWindow->setAngles(mTang);
+      updateViewAxisPos();
+    }
+    mAutoLink = 0;
+  }
+}
+
+/* The window is closing now.  Clean up, start by unlinking from autolink */
 void SlicerFuncs::closing()
 {
   mClosing = 1;
+  if (mAutoLink > 0)
+    setLinkedState(false);
   ivwRemoveControl(mVi, mCtrl);      
   imodDialogManager.remove((QWidget *)mQtWindow);
   b3dFreeCIImage(mImage);
@@ -1000,10 +1154,11 @@ int SlicerFuncs::synchronizeSlicers(bool draw)
       sso->mCx = mCx;
       sso->mCy = mCy;
       sso->mCz = mCz;
-      need = 1;
-    }
-    if (sso->mNslice != mNslice) {
+      need = 1; 
+   }
+    if (sso->mNslice != mNslice || sso->mDepth != mDepth) {
       sso->mNslice = mNslice;
+      sso->mDepth = mDepth;
       sso->drawThickControls();
       need = 1;
     }
@@ -2575,7 +2730,7 @@ void SlicerFuncs::setBandLowHighLimit(int which)
  */
 float SlicerFuncs::currentMainAxisDistance(int axis)
 {
-  float xwin, ywin, zwin, xim, yim, zim, trueLimits[2];
+  float xwin, ywin, zwin, xim, yim, zim;
 
   // Swap in the volume center and find position of current point relative to that plane
   swapCenterXYZ(mVi->xsize / 2., mVi->ysize / 2., mVi->zsize / 2.);
@@ -2752,7 +2907,7 @@ void SlicerFuncs::resizeToFit()
   int width, height, neww, newh;
   int dx, dy, newdx, newdy, axis;
   float xl, xr, yb, yt;
-  float current, start, end, axisComp;
+  float current, axisComp;
   Ipoint norm;
 
   width = mQtWindow->width();
@@ -3627,7 +3782,7 @@ void SlicerFuncs::drawModel()
 void SlicerFuncs::cubeDraw()
 {
   updateViewAxisPos();
-  mCube->updateGL();
+  mQtWindow->mCube->updateGL();
 }
 
 /* The paint routine called by the cube GL widget */
@@ -3645,6 +3800,7 @@ void SlicerFuncs::cubePaint()
   if (mClosing)
     return;
 
+  mCube = mQtWindow->mCube;
   b3dSetCurSize(mCube->width(), mCube->height());
 
   glClearColor(0, 0, 0, 0);

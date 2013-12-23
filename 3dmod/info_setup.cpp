@@ -194,9 +194,10 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, Qt::WFlags f)
   // The image menu
   QMenu *imageMenu = menuBar()->addMenu("&Image");
   ADD_ACTION_KEY(image, "&ZaP", IMAGE_MENU_ZAP,  Qt::Key_Z);
-  ADD_ACTION(image, "Multi-&Z", IMAGE_MENU_MULTIZ);
+  ADD_ACTION(image, "M&ulti-Z", IMAGE_MENU_MULTIZ);
   ADD_ACTION(image, "&XYZ", IMAGE_MENU_XYZ);
   ADD_ACTION_KEY(image, "&Slicer", IMAGE_MENU_SLICER, Qt::Key_Backslash);
+  ADD_ACTION(image, "Lin&ked Slicers", IMAGE_MENU_LINKSLICE);
   ADD_ACTION_KEY(image, "&Model View", IMAGE_MENU_MODV, Qt::Key_V);
   ADD_ACTION(image, "&Pixel View", IMAGE_MENU_PIXEL);
   ADD_ACTION_KEY(image, "&Graph", IMAGE_MENU_GRAPH, Qt::SHIFT + Qt::Key_G);
@@ -444,7 +445,7 @@ void InfoWindow::manageMenus()
                                               vi->pyrCache != NULL);
   mActions[EIMAGE_MENU_FILLER]->setEnabled((vi->vmSize != 0 || vi->numTimes > 0) &&
                                            vi->pyrCache == NULL);
-  //mActions[IMAGE_MENU_SLICER]->setEnabled(vi->rawImageStore == 0);
+  mActions[IMAGE_MENU_LINKSLICE]->setEnabled(vi->numTimes > 0);
   mActions[IMAGE_MENU_ISOSURFACE]->setEnabled(imageOK);
   mActions[ECONTOUR_MENU_AUTO]->setEnabled(imageOK);
   if (!imageOK) {
