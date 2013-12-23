@@ -80,7 +80,7 @@ ImodAssistant::ImodAssistant(const char *path, const char *qhcFile,
     if (prefAbsolute)
       mPrefix = prefix;
     else
-      mPrefix = mPrefix + "/" + prefix;
+      mPrefix = mPrefix + prefix;
   }
 }
 
@@ -103,11 +103,14 @@ ImodAssistant::~ImodAssistant()
  */
 int ImodAssistant::showPage(const char *page)
 {
-  QString fullPath = mPrefix + "/" + page;
+  QString fullPath = mPrefix;
   QString fileOnly, assPath;
   bool sendTwice = false;
   int len;
   char sep = QDir::separator().toLatin1();
+  if (!mPrefix.endsWith('/'))
+    fullPath += '/';
+  fullPath += page;
 
   if (!QFile::exists(mQhc)) {
     fileOnly = QString("Cannot find help collection file: ") + mQhc;
