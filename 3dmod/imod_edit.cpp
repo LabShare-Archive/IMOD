@@ -602,7 +602,7 @@ bool imodContourIsPlanar(Icont *cont, int plane)
 int imodCheckSurfForNewCont(Iobj *obj, Icont *cont, int time, int plane)
 {
   std::set<int> checkedSurfs;
-  int coNum, retval = -1;
+  int coNum;
   int curSurf = cont ? cont->surf : -1;
   for (coNum = obj->contsize; coNum >= 0; coNum--) {
 

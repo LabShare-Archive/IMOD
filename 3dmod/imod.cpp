@@ -53,8 +53,6 @@
 #include "pyramidcache.h"
 #include "b3dicon.xpm"
 
-extern "C" int iiQImageCheck(ImodImageFile *inFile);
-
 /******************************* Globals *************************************/
 ImodApp *App;
 Imod    *Model = NULL;

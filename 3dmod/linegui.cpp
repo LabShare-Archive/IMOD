@@ -99,40 +99,7 @@ typedef struct
 
 static void setDefaults();
 
-#ifdef F77FUNCAP
-#define linetrack_ LINETRACK
-#define conttrack_ CONTTRACK
-#endif
 #define CONTOUR_POINT_MAX 1000
-extern "C" {
-void linetrack_(unsigned char *image, int *nx, int *ny,
-                float *points, int *csize, int *cpnt, int *cmax,
-                int   *ksize,
-                int   *knum,
-                float *sigma,
-                float *h,
-                int   *ifdark,
-                float *stepsize,
-                float *redtol,
-                int   *ifreplace,
-                float *offset,
-                int   *closecont,
-                int   *iffail);
-
-void conttrack_(unsigned char *image, int *nx, int *ny,
-                float *points, int *csize, int *cpnt, float *p_copy, int *cmax,
-                int   *ksize,
-                int   *knum,
-                float *sigma,
-                float *h,
-                int   *ifdark,
-                float *stepsize,
-                float *redtol,
-                float *offset,
-                int   *copytol,
-                int   *copypool,
-                int   *copyfit);
-}
 
 static PlugData thisPlug = { 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
