@@ -27,6 +27,11 @@ in addition to all of the values shown in the Movie dialog. They are:
   saved when a segment is saved.  When the segment is run, objects will be
   turned on or off as appropriate.  This occurs after the change in view (if
   any) and thus overrides the On/Off states stored in the view.
+<IL> <B>Object transparencies.</B> Transparencies are saved for each object
+  that changed transparency during the segment.  When the segment is run,
+  these objects will change transparency linearly between the two limits.  The
+  starting transparencies are set after the change in view (if
+  any) and thus override the object properties in the view.
 <LI> <B>Global clipping planes</B> The rotation angles and on/off states of all
   global clipping planes are recorded when a segment is saved, as well as the
   positions of the plane at the start and end of the segment.  Again, these

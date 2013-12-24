@@ -18,7 +18,9 @@ size divided by the display scale in image pixels per window pixel. In
 addition to the values shown, the positions of global clipping planes are
 recorded.  Thus, you can have any number of global clipping planes shift their
 positions from the starting to the ending display, but other changes in the
-planes will not be reproduced. 
+planes will not be reproduced.  The transparency of each object is also
+recorded at the start and the end, so it is possible for multiple objects to
+change transparency during the movie.
 <P>
 If the model view window is opened from 3dmod, then text boxes will 
 appear for starting and ending image slices in X, Y, and Z.  These 
