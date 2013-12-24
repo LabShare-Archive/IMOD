@@ -99,6 +99,7 @@ class ZapWindow : public QMainWindow
     void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
     void setLowSection();
     void setHighSection();
+    void contextMenuHit(int val);
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -106,6 +107,7 @@ class ZapWindow : public QMainWindow
     void closeEvent ( QCloseEvent * e );
     void changeEvent(QEvent *e);
     void wheelEvent ( QWheelEvent * e);
+    void contextMenuEvent(QContextMenuEvent *event);
 
  private:
     void setFontDependentWidths();

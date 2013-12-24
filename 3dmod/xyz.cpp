@@ -88,6 +88,13 @@ static QIcon *fillIcon = NULL;
 static const char *sliderLabels[] = {"X", "Y", "Z"};
 enum {X_COORD = 0, Y_COORD, Z_COORD};
 
+static PopupEntry sPopupTable[] = {
+  {"Toggle projection of current contour on planes", Qt::Key_P, 0, 1},
+  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
+  {"Move to previous image file", Qt::Key_1, 0, 0},
+  {"Move to next image file", Qt::Key_2, 0, 0},
+  {"", 0, 0, 0}};
+
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
 static void xyzClose_cb(ImodView *vi, void *client, int junk);
@@ -433,6 +440,23 @@ void XyzWindow::closeEvent (QCloseEvent * e )
 
   mGLw->mClosing = true;
   e->accept();
+}
+
+// Process a right click on the toolbar with a popup menu
+void XyzWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+  QSignalMapper mapper(this);
+  connect(&mapper, SIGNAL(mapped(int)), this, SLOT(contextMenuHit(int)));
+  utilBuildExecPopupMenu(this, &sPopupTable[0], true, &mapper, event);
+}
+
+void XyzWindow::contextMenuHit(int index)
+{
+  Qt::KeyboardModifiers modifiers;
+  int key = utilLookupPopupHit(index, &sPopupTable[0], -1, modifiers);
+  QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, modifiers);
+  keyPressEvent(event);
+  delete event;
 }
 
 void XyzWindow::SetCursor(int mode, bool setAnyway)

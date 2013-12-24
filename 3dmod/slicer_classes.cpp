@@ -23,6 +23,7 @@
 #include <qaction.h>
 #include <QDoubleSpinBox>
 #include <qframe.h>
+#include <qmenu.h>
 #include <qdatetime.h>
 #include <qslider.h>
 #include <qvalidator.h>
@@ -85,6 +86,21 @@ static float sMaxAngles[3];
 static const char *sSliderLabels[] = {"X rotation", "Y rotation", "Z rotation", 
                                       "View axis position"};
 
+static PopupEntry sPopupTable[] = {
+  {"Align current and previous points along X axis", Qt::Key_X, 0, 0},
+  {"Align current and previous points along Y axis", Qt::Key_Y, 0, 0},
+  {"Align current and previous points along Z axis", Qt::Key_Z, 0, 0},
+  {"Align first and last points along X axis", Qt::Key_X, 0, 1},
+  {"Align first and last points along Y axis", Qt::Key_Y, 0, 1},
+  {"Align first and last points along Z axis", Qt::Key_Z, 0, 1},
+  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
+  {"Resize window to rubber band area", Qt::Key_R, 0, 1},
+  //{"Resize area within rubber band to fit window", Qt::Key_R, 1, 1},
+  {"", 0, 0, 0}};
+
+/*
+ * The window
+ */
 SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLabel,
                            bool rgba, bool doubleBuffer, bool enableDepth, 
                            QWidget * parent, Qt::WFlags f) 
@@ -196,12 +212,12 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
     mTimeBar->addWidget(label);
 
     utilTBArrowButton(Qt::LeftArrow, this, mTimeBar, &downArrow, 
-                      "Move back in 4th dimension (time)");
+                      "Move to previous image file (hot key 1)");
     connect(downArrow, SIGNAL(clicked()), this, SLOT(timeBack()));
     downArrow->setAutoRepeat(true);
 
     utilTBArrowButton(Qt::RightArrow, this, mTimeBar, &upArrow, 
-                      "Move forward in 4th dimension (time)");
+                      "Move to next image file (hot key 2)");
     connect(upArrow, SIGNAL(clicked()), this, SLOT(timeForward()));
     upArrow->setAutoRepeat(true);
 
@@ -660,6 +676,23 @@ void SlicerWindow::closeEvent (QCloseEvent * e )
   mFuncs->closing();
   e->accept();
   delete mFuncs;
+}
+
+// Keyboard popup menu handlers
+void SlicerWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+  QSignalMapper mapper(this);
+  connect(&mapper, SIGNAL(mapped(int)), this, SLOT(contextMenuHit(int)));
+  utilBuildExecPopupMenu(this, &sPopupTable[0], true, &mapper, event);
+}
+
+void SlicerWindow::contextMenuHit(int index)
+{
+  Qt::KeyboardModifiers modifiers;
+  int key = utilLookupPopupHit(index, &sPopupTable[0], -1, modifiers);
+  QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, modifiers);
+  mFuncs->keyInput(event);
+  delete event;
 }
 
 ///////////////////////////////////////////////
