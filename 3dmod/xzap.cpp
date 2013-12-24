@@ -1578,7 +1578,15 @@ void ZapFuncs::keyInput(QKeyEvent *event)
     break;
           
   case Qt::Key_R:
-    if (shifted && !mNumXpanels) {
+    if (ctrl && shifted && !mNumXpanels && mRubberband) {
+      mZoom = B3DMIN(mWinx / (mRbImageX1 + 1. - mRbImageX0), 
+                     mWiny / (mRbImageY1 + 1. - mRbImageY0));
+      mXtrans = (int)(-(mRbImageX1 + mRbImageX0 - mVi->xsize) / 2);
+      mYtrans = (int)(-(mRbImageY1 + mRbImageY0 - mVi->ysize) / 2);
+      draw();
+      handled = 1;
+
+    } else if (shifted && !mNumXpanels) {
       resizeToFit();
       handled = 1;
     }
@@ -1738,7 +1746,7 @@ void ZapFuncs::mousePress(QMouseEvent *event)
 {
   int button1, button2, button3, ifdraw = 0, drew = 0;
   int ctrlDown = event->modifiers() & Qt::ControlModifier;
-  int dxll, dxur,dyll, dyur, x, y;
+  int dxll, x, y;
   Icont *cont;
   Ipoint mpt;
   int rcrit = 10;   /* Criterion for moving the whole band */
