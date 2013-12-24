@@ -70,6 +70,7 @@ public slots:
   void fileMenuSlot(int which);
   void editMenuSlot(int which);
   void viewMenuSlot(int which);
+  void keyMenuSlot(int which);
   void helpMenuSlot(int which);
   void timeoutSlot();
   void rotateClicked(int deltaX, int deltaY, int deltaZ);
@@ -91,6 +92,7 @@ public slots:
   QStackedWidget *mStack;    // The stack holding the two widgets
   QAction *mActions[LAST_VMENU_ID];
   bool mMinimized;
+  int mNumKeyEntries;
 };
 
 class ImodvGL : public QGLWidget
