@@ -32,10 +32,11 @@ N - Create a new contour with a new surface number.
 o - Go to previous object.
 O - Toggle contour open/closed
 p - Go to next object.
-q - Zap & Slicer - Report 2D distance from current point to cursor
+q - Zap & Slicer & XYZ - Report 2D distance from current point to cursor
 P - Zap - Toggles a mode in which you can shift, rotate, stretch, or scale
 R - Zap - resizes the window.  With the rubber band off, the window 
 Ctrl+R - Raise all 3dmod windows above other windows.
+Ctrl+Shift+R - resize image in rubber band to window
 s - Save model file.
 S - Make non-TIFF snapshot of image in window (Tumbler also).
 Ctrl+S - Make TIFF snapshot of image in window (Tumbler also).
