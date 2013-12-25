@@ -54,6 +54,7 @@
 #define AUTO_RAISE true
 #define TOOLBUT_SIZE 20
 
+// Toggle button icons and tooltips
 static const char *fileList[MAX_SLICER_TOGGLES][2] =
   { {":/images/lowres.png", ":/images/highres.png"},
     {":/images/unlock.png", ":/images/lock.png"},
@@ -86,16 +87,20 @@ static float sMaxAngles[3];
 static const char *sSliderLabels[] = {"X rotation", "Y rotation", "Z rotation", 
                                       "View axis position"};
 
+// Popup menu table
 static PopupEntry sPopupTable[] = {
+  {"Set Angles Based on Model Points", -1, 0, 0},
   {"Align current and previous points along X axis", Qt::Key_X, 0, 0},
   {"Align current and previous points along Y axis", Qt::Key_Y, 0, 0},
   {"Align current and previous points along Z axis", Qt::Key_Z, 0, 0},
   {"Align first and last points along X axis", Qt::Key_X, 0, 1},
   {"Align first and last points along Y axis", Qt::Key_Y, 0, 1},
   {"Align first and last points along Z axis", Qt::Key_Z, 0, 1},
+  {"Make current contour flat in slice", Qt::Key_W, 0, 1},
+  {"", -2, 0, 0},
   {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
   {"Resize window to rubber band area", Qt::Key_R, 0, 1},
-  //{"Resize area within rubber band to fit window", Qt::Key_R, 1, 1},
+  {"Resize area within rubber band to fit window", Qt::Key_R, 1, 1},
   {"", 0, 0, 0}};
 
 /*

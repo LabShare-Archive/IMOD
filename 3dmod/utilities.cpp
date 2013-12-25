@@ -51,6 +51,7 @@
 
 // For popup menus
 PopupEntry sDefaultActions[] = {
+  {"Go to next/previous item", -1, 0, 0},
   {"Go to previous object", Qt::Key_O, 0, 0},
   {"Go to next object", Qt::Key_P, 0, 0},
   {"Go to previous contour", Qt::Key_C, 0, 0},
@@ -61,6 +62,7 @@ PopupEntry sDefaultActions[] = {
   {"Go to next point", Qt::Key_BracketRight, 0, 0},
   {"Go to first point in contour", Qt::Key_BraceLeft, 0, 0},
   {"Go to last point in contour", Qt::Key_BraceRight, 0, 0},
+  {"Add/Delete/Change items", -1, 0, 0},
   {"Create a new object", Qt::Key_0, 0, 0},
   {"Delete current model point", Qt::Key_Delete, 0, 0},
   {"Truncate current contour at current point", Qt::Key_D, 1, 0},
@@ -71,16 +73,19 @@ PopupEntry sDefaultActions[] = {
   {"Break contour (when Contour Break is open)", Qt::Key_B, 1, 0},
   {"Toggle contour(s) between open and closed", Qt::Key_O, 0, 1},
   {"Toggle gap between current and next point", Qt::Key_G, 1, 0},
+  {"Display controls", -1, 0, 0},
   {"Toggle model edit mode and movie mode", Qt::Key_M, 0, 0},
   {"Toggle model drawing on/off", Qt::Key_T, 0, 0},
   {"Toggle current point markers on/off", Qt::Key_T, 0, 1},
   {"Toggle current object on/off", Qt::Key_T, 1, 0},
   {"Toggle nearby contour ghost drawing", Qt::Key_G, 0, 0},
-  {"Make TIFF snapshot of window", Qt::Key_S, 1, 0},
-  {"Make non-TIFF snapshot of window", Qt::Key_S, 0, 1},
-  {"Make 2nd nonTIFF format snapshot of window", Qt::Key_S, 1, 1},
-  {"Print current pixel value in Info window", Qt::Key_F, 0, 0},
-  {"Print maximum pixel within 10 pixels", Qt::Key_F, 0, 1},
+  {"Decrease contrast", Qt::Key_F5, 0, 0},
+  {"Increase contrast", Qt::Key_F6, 0, 0},
+  {"Decrease brightness", Qt::Key_F7, 0, 0},
+  {"Increase brightness", Qt::Key_F8, 0, 0},
+  {"Invert contrast", Qt::Key_F11, 0, 0},
+  {"Toggle false color", Qt::Key_F12, 0, 0},
+  {"Movies && Z/Time changes", -1, 0, 0},
   {"Toggle movie forward in Z", Qt::Key_NumberSign, 0, 0},
   {"Toggle movie forward in time", Qt::Key_3, 0, 0},
   {"Decrease movie speed", Qt::Key_Comma, 0, 0},
@@ -90,12 +95,14 @@ PopupEntry sDefaultActions[] = {
   {"Go to middle Z", Qt::Key_Insert, 0, 0},
   {"Go to first image file", Qt::Key_Exclam, 0, 0},
   {"Go to last image file", Qt::Key_At, 0, 0},
-  {"Decrease contrast", Qt::Key_F5, 0, 0},
-  {"Increase contrast", Qt::Key_F6, 0, 0},
-  {"Decrease brightness", Qt::Key_F7, 0, 0},
-  {"Increase brightness", Qt::Key_F8, 0, 0},
-  {"Invert contrast", Qt::Key_F11, 0, 0},
-  {"Toggle false color", Qt::Key_F12, 0, 0},
+  {"", -2, 0, 0},
+  {"", -3, 0, 0},
+  {"Make TIFF snapshot of window", Qt::Key_S, 1, 0},
+  {"Make non-TIFF snapshot of window", Qt::Key_S, 0, 1},
+  {"Make 2nd nonTIFF format snapshot of window", Qt::Key_S, 1, 1},
+  {"", -3, 0, 0},
+  {"Print current pixel value in Info window", Qt::Key_F, 0, 0},
+  {"Print maximum pixel within 10 pixels", Qt::Key_F, 0, 1},
   {"", 0, 0, 0}};
 
 /* Draw a symbol of the given type, size, and flags */
@@ -880,13 +887,15 @@ static int sNumSpecActions;
  * Builds a popup menu for a window with the given table specialized for that window
  * then with the default table is addDefault is true; allocates the necessary actions,
  * adds them to the given menu and mapper, and returns the array of actions
+ * Special key values: -1 to start submenu, -2 to end submenu, -3 for separator
  */
 QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
                              QSignalMapper *mapper, QMenu *menu, int &numSpecific)
 {
   QString text, format;
   PopupEntry *table = specTable;
-  int numActions = 0, tableInd = 0;
+  int key, numActions = 0, tableInd = 0;
+  QMenu *menuUse = menu;
 
   // Count actions, inflate the estimate a bit, and allocate
   while (specTable[tableInd].key)
@@ -901,27 +910,37 @@ QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
   // Loop on specialized then default actions
   for (int loop = 0; loop < (addDefault ? 2 : 1); loop++) {
     tableInd = 0;
-    while (table[tableInd].key) {
+    while ((key = table[tableInd].key) != 0) {
 
-      // Quick check for "Mak" prefix to snapshot entries then replace them if possible
-      if (table[tableInd].text[0] != 'M' || table[tableInd].text[1] != 'a' || 
-          table[tableInd].text[2] != 'k')  {
-        actions[numActions] = menu->addAction(table[tableInd].text);
+      if (key < 0) {
+        if (key == -1)
+          menuUse = menu->addMenu(table[tableInd].text);
+        else if (key == -2)
+          menuUse = menu;
+        else if (key == -3)
+          menuUse->addSeparator();
       } else {
-        text = table[tableInd].text;
-        text.replace(QString("non-TIFF"), ImodPrefs->snapFormat());
-        format = ImodPrefs->snapFormat2();
-        if (!format.isEmpty())
-        text.replace(QString("2nd nonTIFF format"), format);
-        actions[numActions] = menu->addAction(text);
-      }
 
-      // Set up shortcuts, connection and mapping
-      actions[numActions]->setShortcut(table[tableInd].key + 
-                                       (table[tableInd].ctrl ? Qt::CTRL : 0) +
-                                       (table[tableInd].shift ? Qt::SHIFT : 0));
-      QObject::connect(actions[numActions], SIGNAL(triggered()), mapper, SLOT(map()));
-      mapper->setMapping(actions[numActions], numActions);
+        // Quick check for "Mak" prefix to snapshot entries then replace them if possible
+        if (table[tableInd].text[0] != 'M' || table[tableInd].text[1] != 'a' || 
+            table[tableInd].text[2] != 'k')  {
+          actions[numActions] = menuUse->addAction(table[tableInd].text);
+        } else {
+          text = table[tableInd].text;
+          text.replace(QString("non-TIFF"), ImodPrefs->snapFormat());
+          format = ImodPrefs->snapFormat2();
+          if (!format.isEmpty())
+            text.replace(QString("2nd nonTIFF format"), format);
+          actions[numActions] = menuUse->addAction(text);
+        }
+        
+        // Set up shortcuts, connection and mapping
+        actions[numActions]->setShortcut(table[tableInd].key + 
+                                         (table[tableInd].ctrl ? Qt::CTRL : 0) +
+                                         (table[tableInd].shift ? Qt::SHIFT : 0));
+        QObject::connect(actions[numActions], SIGNAL(triggered()), mapper, SLOT(map()));
+        mapper->setMapping(actions[numActions], numActions);
+      }
       numActions++;
       tableInd++;
     }
