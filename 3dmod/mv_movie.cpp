@@ -49,6 +49,8 @@ static int sTrialFPS = 20;
 static IclipPlanes sStartClips;
 static IclipPlanes sEndClips;
 std::vector<MovieSegment> sSegments;
+std::vector<unsigned char> sStartObjTrans;
+std::vector<unsigned char> sEndObjTrans;
 
 /* Local functions */
 static void makeMontage(int frames, int overlap);
@@ -57,7 +59,7 @@ static void setstep(int index, int frame, int loLim, int hiLim, float *start,
                     float *step);
 static void xinput(void);
 static void setOneStartOrEnd(int startEnd, int index, float value);
-static void setAllStartOrEnd(int startEnd);
+static void setAllStartOrEnd(int startEnd, std::vector<unsigned char> &objTrans);
 static void readStartEndInts(int index, int &startVal, int &endVal);
 static void setSegmentState(MovieSegment &segment, MovieTerminus *term);
 
@@ -89,9 +91,10 @@ static void readStartEndInts(int index, int &startVal, int &endVal)
   endVal = B3DNINT(ev);
 }
 
-static void setAllStartOrEnd(int startEnd)
+static void setAllStartOrEnd(int startEnd, std::vector<unsigned char> &objTrans)
 {
   Iview *vw = &Imodv->imod->view[0];
+  int obNum, numObj = Imodv->imod->objsize;
   sFullaxis = 0;
 
   setOneStartOrEnd(startEnd, 0, vw->rot.x);
@@ -108,13 +111,16 @@ static void setAllStartOrEnd(int startEnd)
     setOneStartOrEnd(startEnd, 10, mvImageGetTransparency());
     setOneStartOrEnd(startEnd, 11, mvImageGetThickness());
   }
+  objTrans.resize(numObj);
+  for (obNum = 0; obNum < numObj; obNum++)
+    objTrans[obNum] = Imodv->imod->obj[obNum].trans;
 }
 
 // Set the starting values to the current display values
 void mvMovieSetStart()
 {
   Iview *vw = &Imodv->imod->view[0];
-  setAllStartOrEnd(IMODV_MOVIE_START_STATE);
+  setAllStartOrEnd(IMODV_MOVIE_START_STATE, sStartObjTrans);
   imodClipsCopy(&vw->clips, &sStartClips);
 }
 
@@ -122,7 +128,7 @@ void mvMovieSetStart()
 void mvMovieSetEnd()
 {
   Iview *vw = &Imodv->imod->view[0];
-  setAllStartOrEnd(IMODV_MOVIE_END_STATE);
+  setAllStartOrEnd(IMODV_MOVIE_END_STATE, sEndObjTrans);
   imodClipsCopy(&vw->clips, &sEndClips);
 }
 
@@ -264,7 +270,7 @@ void mvMovieSequenceClosing()
 // Get all the properties that define a movie segment
 void mvMovieGetSegment(MovieSegment &segment)
 {
-  int i, numObj;
+  int i, ind, numObj;
   sDia->getFrameBoxes(sFrames, sMontFrames);
   sDia->readStartEnd(0, segment.start.rotation.x, segment.end.rotation.x);
   sDia->readStartEnd(1, segment.start.rotation.y, segment.end.rotation.y);
@@ -299,6 +305,18 @@ void mvMovieGetSegment(MovieSegment &segment)
   for (i = 0; i < numObj; i++)
     segment.objStates[i] = iobjOff(Imodv->imod->obj[i].flags) ? 0 : 1;
 
+  // Build list of objects with changed trans
+  numObj = B3DMIN(sStartObjTrans.size(), sEndObjTrans.size());
+  segment.transChangeObjs.clear();
+  for (i = 0; i < numObj; i++) {
+    ind = segment.transChangeObjs.size();
+    if (sStartObjTrans[i] != sEndObjTrans[i] && ind < VMOVIE_MAX_TRANS_CHANGES) {
+      segment.start.objTrans[ind] = sStartObjTrans[i];
+      segment.end.objTrans[ind] = sEndObjTrans[i];
+      segment.transChangeObjs.push_back(i);
+    }
+  }
+
   if (sFullaxis && segment.label.isEmpty()) {
     segment.label = QString("Full 360 ") + 
       (sFullaxis == IMODV_MOVIE_FULLAXIS_X ? "X" : "Y");
@@ -309,7 +327,7 @@ void mvMovieGetSegment(MovieSegment &segment)
 // Set the movie drawing parameters completely for a segment
 void mvMovieSetSegment(MovieSegment &segment)
 {
-  int se, i;
+  int se, i, numObj, obNum;
   MovieTerminus *term = &segment.start;
 
   // Move each endpoint into the dialog
@@ -348,6 +366,23 @@ void mvMovieSetSegment(MovieSegment &segment)
     sStartClips.point[i] = segment.start.clipPoint[i];
     sEndClips.point[i] = segment.end.clipPoint[i];
   }
+
+  // And set the full list of object trans values on both ends
+  numObj = Imodv->imod->objsize;
+  sStartObjTrans.resize(numObj);
+  sEndObjTrans.resize(numObj);
+  
+  // First set the trans for all objects, then modify the ones in the segment
+  for (obNum = 0; obNum < numObj; obNum++)
+    sStartObjTrans[i] = sEndObjTrans[i] = Imodv->imod->obj[obNum].trans;
+  for (i = 0; i < segment.transChangeObjs.size(); i++) {
+    obNum = segment.transChangeObjs[i];
+    if (obNum < numObj) {
+      sStartObjTrans[obNum] = segment.start.objTrans[i];
+      sEndObjTrans[obNum] = segment.end.objTrans[i];
+    }
+  }
+
   imodvDraw(Imodv);
   imodvDrawImodImages();
   imodvObjedNewView();
@@ -385,7 +420,7 @@ void mvMovieSetTerminus(int startEnd, MovieSegment &segment)
 // Set the actual clip planes to the appropriate endpoint
 static void setSegmentState(MovieSegment &segment, MovieTerminus *term)
 {
-  int i;
+  int i, obNum;
   Iview *vw = &Imodv->imod->view[0];
   imodvAutoStoreView(Imodv);
   imodvViewsSetView(Imodv, B3DMIN(segment.viewNum, Imodv->imod->viewsize), false, true,
@@ -398,6 +433,13 @@ static void setSegmentState(MovieSegment &segment, MovieTerminus *term)
   for (i = 0; i < segment.numClips; i++) {
     vw->clips.normal[i] = segment.clipNormal[i];
     vw->clips.point[i] = term->clipPoint[i];
+  }
+
+  // set transparency directly from the terminus values
+  for (i = 0; i < segment.transChangeObjs.size(); i++) {
+    obNum = segment.transChangeObjs[i];
+    if (obNum < Imodv->imod->objsize)
+      Imodv->imod->obj[obNum].trans = term->objTrans[i];
   }
 }
 
@@ -449,7 +491,7 @@ static int makeMovie(int frames, bool fromSequence)
   ImodvApp *a = sApp;
   Iview *vw;
   static int lastMakeNothing = 0;
-  int frame, pl, nsteps, interval;
+  int frame, pl, nsteps, interval, obNum, numObj, objTransChange;
   float astart, astep;
   float bstart, bstep;
   float gstart, gstep;
@@ -517,8 +559,15 @@ static int makeMovie(int frames, bool fromSequence)
     mvImageSetThickTrans((int)(thickStart + 0.5), (int)(transpStart + 0.5));
   }
 
-  /* get incremental rotation matrix */
+  objTransChange = 0;
+  numObj = b3dIMin(Imodv->imod->objsize, sStartObjTrans.size(), sEndObjTrans.size());
+  for (obNum = 0; obNum < numObj; obNum++) {
+    Imodv->imod->obj[obNum].trans = sStartObjTrans[obNum];
+    if (sStartObjTrans[obNum] != sEndObjTrans[obNum])
+      objTransChange = 1;
+  }
 
+  /* get incremental rotation matrix */
   delangle = 360. / frames;
   if (sReverse)
     delangle *= -1.0;
@@ -556,7 +605,7 @@ static int makeMovie(int frames, bool fromSequence)
 
   if (fabs((double)delangle) < 1.e-3 && !frame && !zstep && !xtstep && !ytstep &&
       !ztstep && !xImStep && !yImStep && !zImStep && !thickStep && !transpStep && 
-      !fromSequence && lastMakeNothing < 2) {
+      !fromSequence && !objTransChange && lastMakeNothing < 2) {
     lastMakeNothing = dia_ask_forever("The display will not change.\nAre you sure you"
                                       " want to make a movie with duplicate pictures?");
     if (!lastMakeNothing)
@@ -621,6 +670,14 @@ static int makeMovie(int frames, bool fromSequence)
           frame * (sEndClips.point[pl].y - sStartClips.point[pl].y) / frames;
         vw->clips.point[pl].z = sStartClips.point[pl].z + 
           frame * (sEndClips.point[pl].z - sStartClips.point[pl].z) / frames;
+      }
+
+      for (obNum = 0; obNum < numObj; obNum++) {
+        if (sStartObjTrans[obNum] != sEndObjTrans[obNum]) {
+          Imodv->imod->obj[obNum].trans = 
+            (unsigned char)B3DNINT(sStartObjTrans[obNum] + frame * 
+                                   (sEndObjTrans[obNum] - sStartObjTrans[obNum]) /frames);
+        }
       }
     }
   }

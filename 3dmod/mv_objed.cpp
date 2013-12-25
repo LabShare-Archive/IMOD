@@ -60,9 +60,6 @@
  *  internal prototypes (first one was public but unused)
  */
 
-/* returns the current model being used for object editing. */
-static Imod *objedModel(void) { return(Imodv->imod); }
-
 static void objset(ImodvApp *a);
 static void setObjFlag(int flag, int state, int types = 0);
 static void setOnoffButtons(void);

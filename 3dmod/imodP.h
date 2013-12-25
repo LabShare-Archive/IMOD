@@ -236,6 +236,8 @@ extern ImodClipboard *ClipHandler;
 extern int Rampbase;
 extern int (*ivwFastGetValue)(int x, int y, int z);
 
+extern "C" int iiQImageCheck(ImodImageFile *inFile);
+
 /*****************************************************************************/
 
 #define IMOD_SELSIZE 15   /* Distance for selecting model points with mouse. */

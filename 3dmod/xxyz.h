@@ -136,11 +136,13 @@ class XyzWindow : public QMainWindow
     void fillCachePressed();
     void sliderChanged(int which, int value, bool dragging);
     void help();
+    void contextMenuHit(int val);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
+  void contextMenuEvent(QContextMenuEvent *event);
 
  private:
 

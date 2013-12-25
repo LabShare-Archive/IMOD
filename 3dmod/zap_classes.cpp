@@ -30,6 +30,7 @@
 #include <qslider.h>
 #include <qcheckbox.h>
 #include <qspinbox.h>
+#include <qmenu.h>
 
 #include "imod.h"
 #include "zap_classes.h"
@@ -61,12 +62,22 @@ static const char *toggleTips[] = {
   "Lock window at current section unless section is changed in this window",
   "Toggle between centering when model point nears edge and keeping model"
   " point centered\nIn movie mode, toggle on and off to center current image point",
-  "Toggle between inserting points after or before current point",
-  "Toggle rubberband on or off (resize with first mouse, move with second)",
+  "Toggle between inserting points after or before current point (hot key i)",
+  "Toggle rubberband on or off (resize with first mouse, move with second; hot key B)",
   "Toggle lasso tool on or off (draw and move with first or second mouse)",
   "Toggle arrow on or off (draw with first mouse)",
   "Lock window at current time unless time is changed in this window"};
 
+static PopupEntry sPopupTable[] = {
+  {"Toggle automatic section advance", Qt::Key_Z, 0, 1},
+  {"Print area information, raise Info window", Qt::Key_I, 0, 1},
+  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
+  {"Toggle adjusting contour with mouse", Qt::Key_P, 0, 1},
+  {"Add contours on section to selection list", Qt::Key_A, 1, 0},
+  {"Add contours from all objects to selection", Qt::Key_A, 1, 1},
+  {"Resize window to image or rubber band", Qt::Key_R, 0, 1},
+  {"Resize area within rubber band to fit window", Qt::Key_R, 1, 1},
+  {"", 0, 0, 0}};
 
 ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
                      bool rgba, bool doubleBuffer, bool enableDepth, 
@@ -205,12 +216,12 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
     mToolBar2->addWidget(label);
 
     utilTBArrowButton(Qt::LeftArrow, this, mToolBar2, &downArrow, 
-                      "Move back in 4th dimension (time)");
+                      "Move to previous image file, (hot key 1)");
     connect(downArrow, SIGNAL(clicked()), this, SLOT(timeBack()));
     downArrow->setAutoRepeat(true);
 
     utilTBArrowButton(Qt::RightArrow, this, mToolBar2, &upArrow, 
-                      "Move forward in 4th dimension (time)");
+                      "Move to next image file (hot key 2)");
     connect(upArrow, SIGNAL(clicked()), this, SLOT(timeForward()));
     upArrow->setAutoRepeat(true);
 
@@ -567,6 +578,26 @@ void ZapWindow::closeEvent (QCloseEvent * e )
   delete mZap;
 }
 
+// Process a right click on the toolbar with a popup menu
+void ZapWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+  QSignalMapper mapper(this);
+  connect(&mapper, SIGNAL(mapped(int)), this, SLOT(contextMenuHit(int)));
+  utilBuildExecPopupMenu(this, &sPopupTable[0], true, &mapper, event);
+}
+
+void ZapWindow::contextMenuHit(int index)
+{
+  Qt::KeyboardModifiers modifiers;
+  int key = utilLookupPopupHit(index, &sPopupTable[0], -1, modifiers);
+  QKeyEvent *event = new QKeyEvent(QEvent::KeyPress, key, modifiers);
+  mZap->keyInput(event);
+  delete event;
+}
+
+/*
+* The GL class
+*/
 ZapGL::ZapGL(ZapFuncs *zap, QGLFormat inFormat, QWidget * parent)
   : QGLWidget(inFormat, parent)
 {

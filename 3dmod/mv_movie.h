@@ -16,6 +16,7 @@
 #define IMODV_MOVIE_FULLAXIS_Y 1
 #define IMODV_MOVIE_START_STATE 0
 #define IMODV_MOVIE_END_STATE 1
+#define VMOVIE_MAX_TRANS_CHANGES 64
 
 typedef struct __imodv_struct ImodvApp;
 
@@ -28,6 +29,7 @@ typedef struct {
   int imgYcenter;
   int imgZcenter;
   int imgSlices;
+  unsigned char objTrans[VMOVIE_MAX_TRANS_CHANGES];
   int imgTransparency;
 } MovieTerminus;
 
@@ -39,6 +41,7 @@ typedef struct {
   int clipFlags;
   Ipoint clipNormal[IMOD_CLIPSIZE];
   std::vector<unsigned char> objStates;
+  std::vector<int> transChangeObjs;
   QString label;
   MovieTerminus start;
   MovieTerminus end;

@@ -107,12 +107,14 @@ class SlicerWindow : public QMainWindow
   void stepSizeChanged(int delta);
   void shiftToggled(bool state);
   void lowHighClicked(int which);
+  void contextMenuHit(int val);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
   void changeEvent(QEvent *e);
+  void contextMenuEvent(QContextMenuEvent *event);
   
  private:
   void setFontDependentWidths();

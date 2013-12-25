@@ -44,7 +44,7 @@ static struct{
 
 static void set_z_limits(ImodView *vi, int *zstart, int *zend, int nfill,
                          int cz, int ovbefore, int ovafter);
-static void report_cache(ImodView *vi, char *string);
+//static void report_cache(ImodView *vi, char *string);
 static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter, int source);
 static void clean_fill(int *zstart, int *zend, int *zstall, int *zndall,
                        int *loadtbl, unsigned char *buf);
@@ -98,6 +98,7 @@ static void set_z_limits(ImodView *vi, int *zstart, int *zend, int nfill,
   }
 }
 
+/*
 static void report_cache(ImodView *vi, char *string)
 {
   int sl;
@@ -109,6 +110,7 @@ static void report_cache(ImodView *vi, char *string)
       imodPrintStderr("\n");
   }
 }
+*/
 
 static int fill_cache(ImodView *vi, int cz, int ovbefore, int ovafter, int source)
 {
