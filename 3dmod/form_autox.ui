@@ -181,7 +181,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="toolTip" >
-        <string>Build contour around filled area (hot key b)</string>
+        <string>Build contour around filled area (hot key B)</string>
        </property>
        <property name="text" >
         <string>Build</string>
@@ -206,7 +206,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="toolTip" >
-        <string>Fill area on next section (hot key a)</string>
+        <string>Fill area on next section (hot key A)</string>
        </property>
        <property name="text" >
         <string>Next</string>
@@ -235,7 +235,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="toolTip" >
-        <string>Smooth by expanding then shrinking (hot key u)</string>
+        <string>Smooth by expanding then shrinking (hot key U)</string>
        </property>
        <property name="text" >
         <string>Smooth</string>

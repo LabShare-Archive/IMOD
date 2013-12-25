@@ -299,6 +299,8 @@ The slice angles can be changed while movieing and these limits will
 be adjusted dynamically.
 
 <A NAME = "HotKeys"><H3>Hot Keys</H3></A>
+Most of these hot keys, and many others, are available in a menu that pops up
+when you right-click over any of the Slicer toolbars.
 <UL>
 <BR><B>-/=</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase zoom (also, <B>Keypad +</B> increases zoom)
@@ -306,29 +308,29 @@ Decrease/Increase zoom (also, <B>Keypad +</B> increases zoom)
 Decrease/Increase displayed image thickness
 <BR><B>9/0</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase displayed model thickness
-<BR><B>l</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-(Letter L) Show slice in ZaP and XYZ windows
-<BR><B>k</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>L</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Show slice in ZaP and XYZ windows
+<BR><B>K</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Toggle keeping slice centered on current point (classic mode)
-<BR><B>B</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>Shift+B</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Toggle the rubber band on or off
-<BR><B>R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>Shift+R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Resize the window to the area enclosed in the rubber band and turn off the band
-<BR><B>Ctrl-Shift-R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>Ctrl+Shift+R</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Resize and center the area enclosed in the rubber band to fill the window in
 one dimension.
-<BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>S</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Save model to file
-<LI><B>Ctrl-S</B>, <B>Shift-S</B> or <B>Ctrl-Shift-S</B> saves the Slicer window,
+<LI><B>Ctrl+S</B>, <B>Shift+S</B> or <B>Ctrl+Shift+S</B> saves the Slicer window,
 or the area inside the rubber band, into a TIFF file, a file in the primary
 non-TIFF format, or a file in the second non-TIFF format
-<BR><B>x/y/z</B> &nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>X/Y/Z</B> &nbsp;&nbsp;&nbsp;&nbsp;
 Align current and previous model points along X, Y or Z axis
-<BR><B>X/Y/Z</B> &nbsp;&nbsp;&nbsp;
+<BR><B>Shift+X/Shift+Y/Shift+Z</B> &nbsp;&nbsp;&nbsp;
 Align first and last points of contour along X, Y or Z axis
-<BR><B>W</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>Shift+W</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Change X and Y angles so that the current contour is flat in the slice.
-<BR><B>q</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<BR><B>Q</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Report distance in 3D between the current model or image point and the point under
 the mouse cursor.  The current image point is used in Movie Mode or if there
 is no current model point.  If the current point appears in a
@@ -364,7 +366,7 @@ Decrease/Increase increment for these rotations; the increment can be 0.1,
 The rubber band is used to enclse a rectangular area just as in the Zap
 window, although it has fewer uses in the Slicer.
 <UL>
-<LI>To start the rubber band, press the toggle button or use the <B>B</B> hot
+<LI>To start the rubber band, press the toggle button or use the <B>Shift+B</B> hot
   key.  Press the first mouse button at any corner of the desired box and hold
   the mouse down while dragging to the opposite corner.
 <LI> After you draw it initially, you can resize or move the rubber band by
@@ -374,8 +376,10 @@ window, although it has fewer uses in the Slicer.
   Press the first mouse button and drag to adjust the size, or press the
   second mouse button and drag to shift the band without changing its size.
 <LI> A non-montaged snapshot will capture the area inside the rubber band.
-<LI> The hot key <B>R</B> will resize the window to show the area enclosed by
-  the rubber band, and turn off the band. 
+<LI> The hot key <B>Shift+R</B> will resize the window to show the area enclosed by
+  the rubber band, and turn off the band.  The hot key <B>Ctrl+Shift+R</B>
+  will zoom the area in the rubber band and shift it so that it fills the
+  window in one dimension.
 <LI> "Extract File" in the Edit menu will run 
   <A HREF = "../man/rotatevol.html#TOP">Rotatevol</A> to extract the region
   defined by the rubber band, after limits in the third dimension have been
@@ -417,13 +421,13 @@ this slicer.  Start new contours in the same surface with
 <B>n</B>, or rely on new contours starting automatically.
 <LI>If you start modeling another area at a different orientation, the
 slicer should start a new surface automatically.  Otherwise, you can start a
-new surface manually (use the <B>N</B> hot key instead of <B>n</B>). 
+new surface manually (use the <B>Shift+N</B> hot key instead of <B>N</B>). 
 <LI>To return to modeling a surface after changing the angles, or after the
 plane of the data has been changed by stepping in Z in another window,
 select one of the existing contours with the first
-mouse button.  Press the <B>W</B> hot key or the <B>C</B> button in the first
+mouse button.  Press the <B>Shift+W</B> hot key or the <B>C</B> button in the first
 toolbar to reorient to the contour, then step to the desired slice.
-Using <B>W</B> is very important, not just for getting the same angles, but
+Using <B>Shift+W</B> is very important, not just for getting the same angles, but
 also for getting back to the exact coordinates to preserve the spacing between
 slices.  An alternative is to store the angles and position of one slice
 with the Slicer Angles dialog.

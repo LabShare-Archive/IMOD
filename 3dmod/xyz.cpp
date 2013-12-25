@@ -91,8 +91,8 @@ enum {X_COORD = 0, Y_COORD, Z_COORD};
 static PopupEntry sPopupTable[] = {
   {"Toggle projection of current contour on planes", Qt::Key_P, 0, 1},
   {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
-  {"Move to previous image file", Qt::Key_1, 0, 0},
-  {"Move to next image file", Qt::Key_2, 0, 0},
+  {"Center current point in all panels", Qt::Key_K, 0, 0},
+  {"Toggle high-quality interpolation", Qt::Key_R, 0, 0},
   {"", 0, 0, 0}};
 
 /*************************** internal functions ***************************/
@@ -313,7 +313,7 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
 
   // Make simple pushbutton for centering
   utilTBToolButton(this, mToolBar, &button, "Center windows on current image"
-                   " or model point (hot key k)");
+                   " or model point (hot key K)");
   button->setIcon(*cenIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(centerClicked()));
 

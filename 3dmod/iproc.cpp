@@ -794,9 +794,9 @@ static void setUnscaledK()
 /* THE WINDOW CLASS CONSTRUCTOR */
 static const char *buttonLabels[] = {"Apply", "More", "Toggle", "Reset", "Save", 
                                "Done", "Help"};
-static const char *buttonTips[] = {"Operate on current section (hot key a)",
+static const char *buttonTips[] = {"Operate on current section (hot key A)",
                              "Reiterate operation on current section (hot key"
-                             " b)",
+                             " B)",
                              "Toggle between processed and original image",
                              "Reset section to unprocessed image",
                              "Replace section in memory with processed image",

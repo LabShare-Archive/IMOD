@@ -274,7 +274,7 @@ const char *buttonLabels[] = {"Track", "Copy", "Undo", "Reset", "Done", "Help"};
 const char *buttonTips[] = 
   {"Track from last to current model point - Hot key: Spacebar",
    "Copy and adjust contour from adjacent section - Hot key: Apostrophe",
-   "Undo last modeling operation - Hot key: Semicolon or U", 
+   "Undo last modeling operation - Hot key: Semicolon or Shift+U", 
    "Reset parameters to built-in default values", "Close line tracker",
    "Open help window"};
 

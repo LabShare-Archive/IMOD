@@ -1495,7 +1495,7 @@ ContourMove::ContourMove(QWidget *parent, const char *name)
                                      this, mLayout);
   connect(button, SIGNAL(clicked()), this, SLOT(shiftContClicked()));
   button->setToolTip("Toggle shifting, rotating, or scaling of current"
-                " contour with mouse in Zap window (hot key P)");
+                " contour with mouse in Zap window (hot key Shift+P)");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   setWindowTitle(imodCaption("3dmod Move Contour"));

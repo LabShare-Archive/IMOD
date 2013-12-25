@@ -74,8 +74,9 @@ static bool sFirstTime = true;
 static const char *sToggleTips[] = {
   "Toggle between regular and high-resolution (interpolated) image",
   "Lock window at current position",
-  "Keep current image or model point centered (classic mode, hot key k)",
-  "Toggle rubberband on or off (resize with first mouse, move with second, hot key B)",
+  "Keep current image or model point centered (classic mode, hot key K)",
+  "Toggle rubberband on or off (resize with first mouse, move with second, hot key "
+  "Shift+B)",
   "Toggle arrow on or off (draw with first mouse)",
   "Toggle between showing image and FFT",
   "Toggle applying model Z-scale to image",
@@ -98,6 +99,13 @@ static PopupEntry sPopupTable[] = {
   {"Align first and last points along Z axis", Qt::Key_Z, 0, 1},
   {"Make current contour flat in slice", Qt::Key_W, 0, 1},
   {"", -2, 0, 0},
+  {"Toggle keeping slice centered on current point", Qt::Key_K, 0, 0},
+  {"Toggle the rubber band on or off", Qt::Key_B, 0, 1},
+  {"Show slice lines in ZaP and XYZ windows", Qt::Key_L, 0, 0},
+  {"Decrease displayed image thickness", Qt::Key_Underscore, 0, 0},
+  {"Increase displayed image thickness", Qt::Key_Plus, 0, 0},
+  {"Decrease displayed model thickness", Qt::Key_9, 0, 0},
+  {"Increase displayed model thickness", Qt::Key_0, 0, 0},
   {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
   {"Resize window to rubber band area", Qt::Key_R, 0, 1},
   {"Resize area within rubber band to fit window", Qt::Key_R, 1, 1},
@@ -160,12 +168,12 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   }
  
   utilTBToolButton(this, mToolBar, &button, "Show slice cutting lines in"
-                   " Xyz and Zap windows (hot key l)");
+                   " Xyz and Zap windows (hot key L)");
   button->setIcon(*sShowIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(showslicePressed()));
 
   utilTBToolButton(this, mToolBar, &button, "Set angles and position to show"
-                   " plane of current contour (hot key W)");
+                   " plane of current contour (hot key Shift+W)");
   button->setIcon(*sContIcon);
   connect(button, SIGNAL(clicked()), this, SLOT(contourPressed()));
 

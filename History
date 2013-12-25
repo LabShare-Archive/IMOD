@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/25/13: Changed description of hot keys in help files and tooltips to show
+plain letter as upper instead of lower case (S not s) and shifted letter with
+Shift+ instead or just upper case (Shift+S not S).
+
 12/23/13: Added ability to change object transparency during Model View
 movies. 
 
@@ -7,8 +11,8 @@ movies.
 up when right-clicking over a toolbar, and added a HotKey menu to Model View.
 These menus allow most hot keys to be seen and selected.
 
-12/23/13: Added hot key for resizing image inside Zap rubber band to fill
-window. 
+12/23/13: Added hot key for resizing image inside Zap or Slicer rubber band to
+fill window.
 
 12/22/13: Added a dialog to set the size of the Model View window without
 changing model zoom.

@@ -225,7 +225,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="toolTip">
-           <string> (hot key N)</string>
+           <string> (hot key Shift+N)</string>
           </property>
           <property name="text">
            <string>New</string>
@@ -312,7 +312,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="toolTip">
-           <string>Make contour closed in closed-type object (hot key O to toggle)</string>
+           <string>Make contour closed in closed-type object (hot key Shift+O to toggle)</string>
           </property>
           <property name="text">
            <string>Closed</string>
@@ -325,7 +325,7 @@
            <enum>Qt::NoFocus</enum>
           </property>
           <property name="toolTip">
-           <string>Make contour open in closed-type object (hot key O to toggle)</string>
+           <string>Make contour open in closed-type object (hot key Shift+O to toggle)</string>
           </property>
           <property name="text">
            <string>Open</string>

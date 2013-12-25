@@ -24,7 +24,7 @@ i - Zap - toggles the modeling direction.
 I - Zap - prints information about the window and image size and 
 
 J - Join selected contours.
-k - Copy contour if contour copy dialog open
+k - Copy contour if contour copy dialog open; center in Slicer and XYZ
 m - Toggle model edit mode and movie mode.
 M - Move contour to selected object or surface.
 n - Create a new contour.

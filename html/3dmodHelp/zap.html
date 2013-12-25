@@ -47,7 +47,7 @@ the current point (when pointing down).
 <LI>The <B>rubber band</B> button turns the rubber band on or off.  The rubber
   band can be used to select an area, then snapshot the area, resize the
   window to that area, find its coordinates, or do some operations on all
-  contours within the area.  After pressing this button or the <B>B</B> hot
+  contours within the area.  After pressing this button or the <B>Shift+B</B> hot
   key to turn on the rubber band, position the mouse at any desired corner,
   click the first mouse button and hold it down while you move to the opposite
   corner. After initially defining the band, you can adjust its size by
@@ -65,7 +65,7 @@ is drawn, it can be moved by placing the mouse within 10 pixels of the
 contour (the cursor will change to indicate that moving is enabled), then
 pressing and holding either the first or second mouse button while shifting
 the contour.  The contour can also be shifted, rotated, or transformed if
-contour shifting is turned on with the <B>P</B> hot key (see below).
+contour shifting is turned on with the <B>Shift+P</B> hot key (see below).
 <LI>The <B>Arrow</B> button allows you to draw an arrow quickly for pointing
   out a feature in the image.  Press the button, then move the mouse to the
   desired position for the tail of the arrow, press the first mouse button,
@@ -83,7 +83,7 @@ particular section to display.
 to go directly to a section by typing in a number.
 <LI>The <B>I</B> button brings the Information Window to the 
 front and prints information about window and image size (see the 
-<B>I</B> hot key below).
+<B>Shift+I</B> hot key below).
 <LI>If multiple image files have been loaded into 3dmod, three 
 additional controls and the image file number and name appear on a separate
 tool bar.  The <B>time lock</B> button will prevent 
@@ -94,24 +94,26 @@ step backward and forward in time.
 </UL>
 
 <A NAME = "HotKeys"><H3>Hot Keys special to the Zap window</H3></A>
+Most of these hot keys, and many others, are available in a menu that pops up
+when you right-click over a Zap toolbar.
 <UL>
-<LI><B>i</B> toggles the modeling direction.
-<LI><B>Ctrl-S</B>, <B>Shift-S</B> or <B>Ctrl-Shift-S</B> saves the Zap window,
+<LI><B>I</B> toggles the modeling direction.
+<LI><B>Ctrl+S</B>, <B>Shift+S</B> or <B>Ctrl+Shift+S</B> saves the Zap window,
 or the area inside the rubber band, into a TIFF file, a file in the primary
 non-TIFF format, or a file in the second non-TIFF format.  (Use the menu entry 
 <B>Edit-Options</B> and go to the Behavior tab to select the primary non-TIFF
 file format.  The second non-TIFF format will be PNG if the primary one is not
 PNG, or JPEG if the primary one is PNG.)
-<LI><B>Z</B> toggles auto section advance on and off.  When this is on, 
+<LI><B>Shift+Z</B> toggles auto section advance on and off.  When this is on, 
 the section will change automatically after inserting a point if 
 there was a section change between that point and the previous 
 point.
-<LI><B>b</B> builds a contour when AutoContour window is open.
-<LI><B>a</B> advances to and fills next section when auto contouring.
-<LI><B>u</B> smooths a filled area when auto contouring.
-<LI><B>B</B> toggles the rubber band on and off.  See the description of the
+<LI><B>B</B> builds a contour when AutoContour window is open.
+<LI><B>A</B> advances to and fills next section when auto contouring.
+<LI><B>U</B> smooths a filled area when auto contouring.
+<LI><B>Shift+B</B> toggles the rubber band on and off.  See the description of the
  rubber band toolbar button above.
-<LI><B>I</B> prints information about the window and image size and 
+<LI><B>Shift+I</B> prints information about the window and image size and 
 the coordinates of the image in the window.  If the rubber band 
 is on, the sizes and coordinates are relative to the rubber band 
 rather than the window.  The image 
@@ -122,22 +124,22 @@ stack with <A HREF = "../man/trimvol.html#TOP">trimvol</A>; this is the same
 command used by the Extract File entry in the File menu. 
 This key also brings the Information 
 Window to the front of the display.
-<LI><B>q</B> reports the distance between the current image or model point and
+<LI><B>Q</B> reports the distance between the current image or model point and
 the position of the mouse.  The current image point is used in Movie Mode or
 if there is no current model point.  The two positions and 2D distance
 between them (in the plane of the image) are printed in the Information
 window.  Thus, to measure a distance between two points, click at the first
 point with the left mouse button, move the cursor to the second position,
 and press Q.
-<LI><B>R</B> resizes the window.  With the rubber band off, the window 
+<LI><B>Shift+R</B> resizes the window.  With the rubber band off, the window 
 changes, 
 if possible, to match the size of the entire image at the 
 current zoom.  With the rubber band on, it changes to the size 
 of the rubber band and the image is shifted to display the area 
 previously in the rubber band.
-<LI><B>Ctrl-Shift-R</B> resizes the image inside the rubber band to fill the
+<LI><B>Ctrl+Shift+R</B> resizes the image inside the rubber band to fill the
   window in one dimension.
-<LI><B>Ctrl-A</B> adds multiple contours on the current section to the 
+<LI><B>Ctrl+A</B> adds multiple contours on the current section to the 
 contour selection list.  Selected contours will be shown with a 
 distinguishable line thickness.  
 With the rubber band off, all eligible contours on the current section will be
@@ -150,10 +152,10 @@ points on the current section that are all within the selection area will be
 added.  Selected contours from other objects will be retained in the selection
 if they meet the same criteria; all contours on other sections will be removed
 from the selection.
-<LI><B>Ctrl-Shift-A</B> adds multiple contours on the current
+<LI><B>Ctrl+Shift+A</B> adds multiple contours on the current
 section to the contour selection list, taking contours from all objects rather
 than just from the current object.
-<LI><B>P</B> Toggles a mode in which you can shift, rotate, stretch, or scale
+<LI><B>Shift+P</B> Toggles a mode in which you can shift, rotate, stretch, or scale
 the whole current contour by dragging with a mouse button held down.  
 The first mouse button is used to shift; the second button is used to rotate;
 the third is used to stretch the contour along an axis, or to scale it

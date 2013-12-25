@@ -241,7 +241,7 @@ void FineGrainForm::update( int ptContSurf, bool enabled, DrawProps *props, int 
   gapCheckBox->setEnabled(enabled);
   gapCheckBox->setToolTip
     (QString(ptContSurf ? "Do not draw this contour or surface": 
-             "Do not draw line connecting to next point (hot key Ctrl-G)"));
+             "Do not draw line connecting to next point (hot key Ctrl+G)"));
   diaSetSpinBox(connectSpin, props->connect);
   connectSpin->setEnabled(ptContSurf < 2 && enabled);
   if (enabled && (stateFlags & CHANGED_VALUE1))

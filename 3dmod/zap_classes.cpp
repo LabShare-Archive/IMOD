@@ -62,15 +62,18 @@ static const char *toggleTips[] = {
   "Lock window at current section unless section is changed in this window",
   "Toggle between centering when model point nears edge and keeping model"
   " point centered\nIn movie mode, toggle on and off to center current image point",
-  "Toggle between inserting points after or before current point (hot key i)",
-  "Toggle rubberband on or off (resize with first mouse, move with second; hot key B)",
+  "Toggle between inserting points after or before current point (hot key I)",
+  "Toggle rubberband on or off (resize with first mouse, move with second; hot key "
+  "Shift+B)",
   "Toggle lasso tool on or off (draw and move with first or second mouse)",
   "Toggle arrow on or off (draw with first mouse)",
   "Lock window at current time unless time is changed in this window"};
 
 static PopupEntry sPopupTable[] = {
   {"Toggle automatic section advance", Qt::Key_Z, 0, 1},
+  {"Toggle modeling direction", Qt::Key_I, 0, 0},
   {"Print area information, raise Info window", Qt::Key_I, 0, 1},
+  {"Toggle rubber band", Qt::Key_B, 0, 1},
   {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
   {"Toggle adjusting contour with mouse", Qt::Key_P, 0, 1},
   {"Add contours on section to selection list", Qt::Key_A, 1, 0},
@@ -186,7 +189,7 @@ ZapWindow::ZapWindow(ZapFuncs *zap, QString timeLabel, bool panels,
   // Info and help buttons
   if (!panels) {
     utilTBPushButton("I", this, mToolBar, &mInfoButton,
-                  "Bring Info Window to top, get Zap window info");
+                  "Bring Info Window to top, get Zap window info (hot key Ctrl+I)");
     connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
   }
 

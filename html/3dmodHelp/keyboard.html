@@ -7,13 +7,11 @@
 <BR><A HREF = "#Contrast">Contrast functions</A>
 <BR><A HREF = "#Window">Window control</A>
 <BR><A HREF = "zap.html#HotKeys">Zap window hot keys</A>
-<BR><A HREF = "slicer.html#Hot Keys">Slicer window hot keys</A>
+<BR><A HREF = "slicer.html#HotKeys">Slicer window hot keys</A>
 <P>
 Many of these hot keys are available in menus that pop up when you right-click
 on the toolbars in the Zap, Slicer, and XYZ windows.  This gives you another way to
-look up the keys as well as execute the operation.  Those popup menus do not
-include functions available in other menus or in toolbar buttons, whose
-tooltips show the kot key if any.
+look up the keys as well as execute the operation.
 <A NAME = "Model"><H3>Model edit functions</H3>
 <TABLE BORDER COLS=2>
 <COLGROUP SPAN=1 WIDTH="*0">
@@ -21,45 +19,45 @@ tooltips show the kot key if any.
 <TR><TH>Keys<TH>Command
 </THEAD>
 <TBODY>
-<TR><TD>o<TD>Go to previous object.
-<TR><TD>p<TD>Go to next object.
-<TR><TD>C<TD>Go to next contour.
-<TR><TD>c<TD>Go to previous contour.
+<TR><TD>O<TD>Go to previous object.
+<TR><TD>P<TD>Go to next object.
+<TR><TD>Shift+C<TD>Go to next contour.
+<TR><TD>C<TD>Go to previous contour.
 <TR><TD>5/6<TD>Go to previous/next contour in same surface.
 <TR><TD>7/8<TD>Go to previous/next surface.
 <TR><TD>[ or &lt;<TD>Go to previous point.
 <TR><TD>] or &gt;<TD>Go to next point.
 <TR><TD>{ or (<TD>Go to first point in contour.
 <TR><TD>} or )<TD>Go to last point in contour.
-<TR><TD>e<TD>Unselect current point.
-<TR><TD>E<TD>Unselect current contour.
-<TR><TD>n<TD>Create a new contour.
-<TR><TD>N<TD>Create a new contour with a new surface number.
-<TR><TD>0<TD>Create a new object.
+<TR><TD>E<TD>Unselect current point.
+<TR><TD>Shift+E<TD>Unselect current contour.
+<TR><TD>N<TD>Create a new contour.
+<TR><TD>Shift+N<TD>Create a new contour with a new surface number.
+<TR><TD>Shift+0<TD>Create a new object.
 <TR><TD>Delete<TD>Delete current model point.
-<TR><TD>D<TD>Delete current contour or all selected contours.
+<TR><TD>Shift+D<TD>Delete current contour or all selected contours.
 <TR><TD>Ctrl+D<TD>Truncate current contour at current point.
 <TR><TD>Ctrl+Shift+D<TD>Delete current surface.
-<TR><TD>M<TD>Move contour to selected object or surface.
-<TR><TD>k<TD>Copy contour (when Edit-Contour-Copy dialog is open).
-<TR><TD>J<TD>Join selected contours.
+<TR><TD>Shift+M<TD>Move contour to selected object or surface.
+<TR><TD>K<TD>Copy contour (when Edit-Contour-Copy dialog is open).
+<TR><TD>Shift+J<TD>Join selected contours.
 <TR><TD>Ctrl+B<TD>Break contour (when Edit-Contour-Break dialog is open).
-<TR><TD>O<TD>Toggle selected contour(s) of closed-type objects between open
+<TR><TD>Shift+O<TD>Toggle selected contour(s) of closed-type objects between open
 and closed.
 <TR><TD>Ctrl+G<TD>Toggle making a gap between the current point and the next.
-<TR><TD>m<TD>Toggle model edit mode and movie mode.
-<TR><TD>Ctrl-Z<TD>Undo changes to the model.
-<TR><TD>Ctrl-Y<TD>Redo model changes that were undone.
-<TR><TD>t<TD>Toggle model drawing on/off.
-<TR><TD>T<TD>Toggle current point/contour markers on/off.
+<TR><TD>M<TD>Toggle model edit mode and movie mode.
+<TR><TD>Ctrl+Z<TD>Undo changes to the model.
+<TR><TD>Ctrl+Y<TD>Redo model changes that were undone.
+<TR><TD>T<TD>Toggle model drawing on/off.
+<TR><TD>Shift+T<TD>Toggle current point/contour markers on/off.
 <TR><TD>Ctrl+T<TD>Toggle current object on/off.
-<TR><TD>g<TD>Toggle previous contour ghost draw mode.
-<TR><TD>s<TD>Save model file.
+<TR><TD>G<TD>Toggle previous contour ghost draw mode.
+<TR><TD>S<TD>Save model file.
 <TR><TD>Ctrl+S<TD>Make TIFF snapshot of image in window (Tumbler also).
-<TR><TD>S<TD>Make non-TIFF snapshot of image in window (Tumbler also).
+<TR><TD>Shift+S<TD>Make non-TIFF snapshot of image in window (Tumbler also).
 <TR><TD>Ctrl+Shift+S<TD>Make snapshot with second non-TIFF format.
-<TR><TD>f<TD>Print current pixel value in information window.
-<TR><TD>F<TD>Find the maximum pixel within 10 pixels and report its value.
+<TR><TD>F<TD>Print current pixel value in information window.
+<TR><TD>Shift+F<TD>Find the maximum pixel within 10 pixels and report its value.
 <TR><TD>,<TD>Decrease movie speed.
 <TR><TD>.<TD>Increase movie speed.
 <TR><TD>-<TD>Decrease Zoom
@@ -75,11 +73,11 @@ and closed.
 <TR><TH>Keys<TH>Command
 </THEAD>
 <TBODY>
-<TR><TD>Page-Up<TD>Increase Z
-<TR><TD>Page-Down<TD>Decrease Z
-<TR><TD>Shift-Page-Up<TD>Increase Z to next section with contours in current
+<TR><TD>PageUp<TD>Increase Z
+<TR><TD>PageDown<TD>Decrease Z
+<TR><TD>Shift+PageUp<TD>Increase Z to next section with contours in current
 object.
-<TR><TD>Shift-Page-Down<TD>Decrease Z to previous section with contours in
+<TR><TD>Shift+PageDown<TD>Decrease Z to previous section with contours in
 current object.
 <TR><TD>Keypad-Star<TD>Increase Z by the big paging step size, adjustable in 
 Behavior tab of Options dialog with a default 10.
@@ -91,7 +89,7 @@ Behavior tab of Options dialog with a default 10.
 <TR><TD>End<TD>Go to Z = 1;
 <TR><TD>Home<TD>Go to Z = max;
 <TR><TD>Insert<TD>Go to middle Z of stack (use Help key next to Home on Mac)
-<TR><TD>Shift-Home<TD>Go to middle Z of stack (for Mac where Help brings up 
+<TR><TD>Shift+Home<TD>Go to middle Z of stack (for Mac where Help brings up 
 help)
 <TR><TD>1/2<TD>Previous/Next Time Index.
 <TR><TD>!/@<TD>Set time index to beginning/end (using Start or End for Time in
@@ -108,7 +106,7 @@ Edit-Movie dialog).
 <TR><TH>Keys<TH>Command
 </THEAD>
 <TBODY>
-<TR><TD>A<TD>Autocontrast - set to target mean and SD of intensity.
+<TR><TD>Shift+A<TD>Autocontrast - set to target mean and SD of intensity.
 <TR><TD>F1<TD>Decrease Black Level
 <TR><TD>F2<TD>Increase Black Level
 <TR><TD>F3<TD>Decrease White Level
@@ -131,10 +129,10 @@ Edit-Movie dialog).
 </THEAD>
 <TBODY>
 <TR><TD>\<TD>Open Slicer window.
-<TR><TD>v<TD>Open Model View window.
-<TR><TD>G<TD>Open Graph window.
-<TR><TD>z<TD>Open Zap window.
-<TR><TD>U<TD>Open Model View and Isosurface windows.
+<TR><TD>V<TD>Open Model View window.
+<TR><TD>Shift+G<TD>Open Graph window.
+<TR><TD>Z<TD>Open Zap window.
+<TR><TD>Shift+U<TD>Open Model View and Isosurface windows.
 <TR><TD>Ctrl+R<TD>Raise all 3dmod windows above other windows.
 </TBODY>
 </TABLE>

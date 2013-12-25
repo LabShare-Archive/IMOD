@@ -2592,7 +2592,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(undoMoveBut, SIGNAL(clicked()), this, SLOT(undoMove()));
   undoMoveBut->setEnabled(false);
   undoMoveBut->setToolTip(
-                "Move point back to previous position - Hot key: U");
+                "Move point back to previous position - Hot key: Shift+U");
 
   moveAllBut = diaPushButton("Move All in Local Area", this, mLayout);
   connect(moveAllBut, SIGNAL(clicked()), this, SLOT(moveAllSlot()));
@@ -2654,7 +2654,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   delContBut = diaPushButton("Delete Contour", this, mLayout);
   connect(delContBut, SIGNAL(clicked()), this, SLOT(delCont()));
   delContBut->setEnabled(false);
-  delContBut->setToolTip("Delete current contour - Hot key: D");
+  delContBut->setToolTip("Delete current contour - Hot key: Shift+D");
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
   modeSelected(sShowMode);
