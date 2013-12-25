@@ -1584,7 +1584,9 @@ void SlicerFuncs::keyInput(QKeyEvent *event)
 
   case Qt::Key_R:
     if (shift) {
-      if (mRubberband)
+      if (ctrl && mRubberband)
+        resizeBandToWindow();
+      else if (mRubberband)
         resizeToFit();
       dodraw = 0;
     } else
@@ -2906,7 +2908,6 @@ void SlicerFuncs::resizeToFit()
 {
   int width, height, neww, newh;
   int dx, dy, newdx, newdy, axis;
-  float xl, xr, yb, yt;
   float current, axisComp;
   Ipoint norm;
 
@@ -2919,10 +2920,6 @@ void SlicerFuncs::resizeToFit()
 
   // set size to size of band
   bandImageToMouse();
-  xl = mRbImageX0;
-  yb = mRbImageY0;
-  xr = mRbImageX1;
-  yt = mRbImageY1;
   neww = mRbMouseX1 -1 - mRbMouseX0 + width - mWinx;
   newh = mRbMouseY1 -1 - mRbMouseY0 + height - mWiny;
 
@@ -2949,6 +2946,39 @@ void SlicerFuncs::resizeToFit()
   /* imodPrintStderr("newdx %d newdy %d\n", newdx, newdy); */
   mQtWindow->resize(neww, newh);
   mQtWindow->move(newdx, newdy);
+  changeCenterIfLinked();
+  synchronizeSlicers();
+  showSlice();
+}
+
+/*
+ * Resize and center the region inside the rubber band to fill one dimension of the window
+ */
+void SlicerFuncs::resizeBandToWindow()
+{
+  int width, height, neww, newh;
+  int dx, dy, newdx, newdy, axis;
+  float current, axisComp;
+  Ipoint norm;
+
+  // set size to size of band
+  bandImageToMouse();
+  mZoom *= B3DMIN(mWinx / (mRbMouseX1 - 1. - mRbMouseX0), 
+                  mWinx / (mRbMouseY1 - 1. - mRbMouseY0));
+
+  // distance of current point from midplane (where RB is located) along the dominant
+  // axis, divide by normal component on that axis to get the move to make along the
+  // normal to move that distance on main axis, then move there from RB position
+  getNormalAndMainComponent(axis, &norm, axisComp);
+  current = currentMainAxisDistance(axis) / axisComp;
+  mCx = 0.5 * (mRbImageX0 + mRbImageX1) + current * norm.x;
+  mCy = 0.5 * (mRbImageY0 + mRbImageY1) + current * norm.y;
+  mCz = 0.5 * (mRbImageZ0 + mRbImageZ1) + current * norm.z;
+  B3DCLAMP(mCx, 0, mVi->xsize);
+  B3DCLAMP(mCy, 0, mVi->ysize);
+  B3DCLAMP(mCz, 0, mVi->zsize - 0.5);
+  if (!mLocked)
+    mVi->zmouse = mCz;
   changeCenterIfLinked();
   synchronizeSlicers();
   showSlice();

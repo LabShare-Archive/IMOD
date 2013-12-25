@@ -130,6 +130,7 @@ class SlicerFuncs {
     mRbImageY0 = mRbSaveY0; mRbImageY1 = mRbSaveY1; mRbImageZ0 = mRbSaveZ0;
     mRbImageZ1 = mRbSaveZ1;};
   void resizeToFit();
+  void resizeBandToWindow();
   float currentMainAxisDistance(int axis);
 
  public:
