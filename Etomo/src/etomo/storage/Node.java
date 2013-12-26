@@ -217,6 +217,9 @@ public final class Node {
   public boolean isLocalHost(final BaseManager manager, final AxisID axisID,
       final String propertyUserDir) {
     String localHostName = Network.getLocalHostName(manager, axisID, propertyUserDir);
+    if (localHostName ==null) {
+      return false;
+    }
     if (name.equals(localHostName)) {
       return true;
     }

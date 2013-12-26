@@ -43,18 +43,18 @@ Version = 1.2
 	# Axis B
 	mb.transfer-fiducials = +
 	bn.transfer-fiducials-from-other-axis =
-	wait.process.transferring-fiducials = done
+	wait.done.process.transferring-fiducials = done
 [[]]
 [[]]
 mb.beadtracker = +
 bn.track-seed-model =
-wait.process.tracking-fiducials = done
+wait.done.process.tracking-fiducials = done
 assert.exists.file = track%{axis}.log
 bn.track-with-fiducial-model-as-seed = 
 assert.exists.file = track%{axis}.log~
-wait.process.tracking-fiducials = done
+wait.done.process.tracking-fiducials = done
 bn.track-with-fiducial-model-as-seed =
-wait.process.tracking-fiducials = done
+wait.done.process.tracking-fiducials = done
 tf.view-skip-list = 1, 2
 bn.fix-fiducial-model=
 wait.popup.entry-error = OK
@@ -79,7 +79,7 @@ bn.open-stack-in-3dmod=
 tf.#-of-beads-to-choose=10
 assert.tf.unbinned-bead-diameter = %{int-unbinned-bead-diameter}
 bn.run-raptor=
-wait.process.running-runraptor=done
+wait.done.process.running-runraptor=done
 bn.open-raptor-model-in-3dmod=
 bn.use-raptor-result-as-fiducial-model=
 [[if.not.var.montage = ]]
@@ -88,7 +88,7 @@ bn.use-raptor-result-as-fiducial-model=
 	rb.run-against-the-raw-stack=
 [[]]
 bn.run-raptor=
-wait.process.running-runraptor=done
+wait.done.process.running-runraptor=done
 bn.open-raptor-model-in-3dmod=
 bn.use-raptor-result-as-fiducial-model=
 rb.make-seed-and-track=

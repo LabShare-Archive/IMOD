@@ -100,7 +100,13 @@ public final class PsParam {
     }
     // The calling function expects at least one line be returned even when the
     // pid is not found.
-    command.add("ps");
+    if (osType == OSType.WINDOWS) {
+      command.add("python");
+      command.add(BaseManager.getIMODBinPath() + "b3dwinps");
+    }
+    else {
+      command.add("ps");
+    }
     if (osType == OSType.WINDOWS) {
       parentPidColumn = true;
       windowPidColumn = true;
@@ -185,7 +191,7 @@ public final class PsParam {
       return;
     }
     for (int i = 1; i < output.length; i++) {
-      if (debug.isExtraVerbose()) {
+      if (debug.isVerbose()) {
         System.err.println(output[i]);
       }
       if (output[i] != null)
@@ -216,7 +222,7 @@ public final class PsParam {
    * @param startTime
    */
   public boolean findRow(String pid, String groupPid, Time startTime) {
-    if (debug.isExtraVerbose()) {
+    if (debug.isVerbose()) {
       System.err.println("Looking for a ps row with pid=" + pid + ",groupPid=" + groupPid
           + ",startTime=" + startTime);
     }

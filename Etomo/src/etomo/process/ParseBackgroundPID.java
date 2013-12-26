@@ -67,11 +67,20 @@ public final class ParseBackgroundPID extends ParsePID {
     String line;
     try {
       if ((line = bufferedReader.readLine()) != null) {
-        if (line.startsWith("Shell PID:") || line.startsWith("Python PID:")
+        if (line.startsWith("Shell PID:") || line.indexOf("Python PID:") != -1
             || line.startsWith("Windows PID:") || line.startsWith("Cygwin PID:")) {
           String[] tokens = line.split("\\s+");
           if (tokens.length > 2) {
-            appendPID(tokens[2]);
+            boolean found = false;
+            for (int index = 0; index < tokens.length; index++) {
+              if (found) {
+                appendPID(tokens[index]);
+                break;
+              }
+              else if (tokens[index].endsWith("PID:")) {
+                found = true;
+              }
+            }
           }
         }
       }
