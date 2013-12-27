@@ -834,37 +834,89 @@ each patch from one view to the next with
 </H4>
 <P>
 A seed model can be generated automatically by 
-<AH autofidseed>, which aims to select a well-distributed set of fiducials of a
-  desired number through a series of operations:
-<OL>
+<A HREF = "man/autofidseed.html#TOP">Autofidseed</A>, which aims to select a well-distributed set of fiducials of a
+  desired number.  If this procedure does not succeed in giving a
+  good seed model, for small data sets you would probably just proceed to make
+  or finish the seed model manually.  When larger numbers of fiducials are
+  needed, however, it is worth trying to get <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> to make a usable
+  seed model by accessing the various problem-solving features provided in
+  the interface.  Here is what you need to know about automatic seed-finding to use
+  it effectively in more difficult cases:
+<UL>
 <LI> All gold beads are found on a set of 3 views around zero tilt, separated
-  by about 2 degrees, using <AH imodfindbeads>.  
-  
+  by about 2 degrees, using <A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A>.  
 <LI> The beads are tracked with 3 separate runs of
-<AH beadtrack> through the 11 views nearest to zero tilt, starting each time
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> through the 11 views nearest to zero tilt, starting each time
     with a seed containing all points on one of the 3 views.
 <ILI> If you specify that gold is on two surfaces, information from the
   tracking runs on the 3D location
-  of the beads is used by <AH sortbeadsurfs> to sort the beads onto two
+  of the beads is used by <A HREF = "man/sortbeadsurfs.html#TOP">Sortbeadsurfs</A> to sort the beads onto two
   surfaces separately for each of the 3 tracking runs.
-<LI> <AH pickbestseed> selects the final seed model by combining all of the
+<LI> <A HREF = "man/pickbestseed.html#TOP">Pickbestseed</A> selects the final seed model by combining all of the
     information from the 3 tracking runs.  It assigns a score to each bead
     based on how well it tracked and fit an alignment model in
-    each <AH beadtrack> run.  It selects beads in a series of phases, first
+    each <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> run.  It selects beads in a series of phases, first
     adding the best-scoring beads, then filling in areas of low density with
     the best nearby beads.  If gold is to be selected on two surfaces, these
     operations are run separately for the two surfaces, then beads are added
     on the majority surface to make up for a deficiency on the minority
     surface.
-</OL>
-If there are not enough beads
-  on 3 views, <AH autofidseed> will rerun the first step with 5 or 7 views,
+<LI> If there are not enough beads
+  on 3 views, <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> will rerun the first step with 5 or 7 views,
   and the other steps will work with correspondingly more data.
-<P>
-Two kinds of beads are identified in <AH pickbestseed> and excluded from
+<LI> Two kinds of beads are identified in <A HREF = "man/pickbestseed.html#TOP">Pickbestseed</A> and excluded from
     selection by default: clustered beads, which are within 2 bead diameters
     or each other or would become so at the highest tilt; and elongated
     beads, which appear not to be round and could be two overlapping beads.
+<LI> <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> keeps track of parameters used on a run in a file
+    with extension ".info".  When it is rerun, it will skip
+    running <A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A>
+    and <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> if possible (e.g., if none
+    of their parameters are changed and the number of desired beads is not
+    increased). A rerun under these circumstances is quick.
+</UL>
+<P>
+The basic use of <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> involves a small number of parameter
+    choices:
+<UL>
+<LI> Since seed-finding runs <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>, the essential parameters for this
+    operation appear here and should be set if necessary.  They include the
+    list of views to skip and whether some views are in a separate group that may
+    have different alignment parameters.  You should also select <B>Refine
+    center with Sobel filter</B> if it is not already on, but for a cryo data
+    set, be sure to set the <B>Sigma for kernel filter</b> to 1.5.
+<LI> If there is a region of the images where gold particles should not be
+  chosen, you can select <B>Use boundary model</B> and then
+  press <B>Create/Edit Boundary Model</B> to draw a model with the appropriate
+  name on the prealigned stack.  For example, if the specimen is a cell
+  surrounded by empty resin, you may want to exclude the resin areas because
+  they tend to shrink differently.  The boundary model for this step is more
+  flexible than in some other situtaions where a single contour is required.
+  You can draw one or more contours either
+  around the area to be included, or around the area to be excluded from
+  gold-finding.  In the latter case, check <B>Exclude inside boundary
+  contours</B>.  Draw the contour(s) on one view, preferably the zero-degree
+  view. 
+<LI> The number of points that will be chosen can be controlled either by
+  selecting <B>Total number</B> and entering the desired number, or by
+  selecting <B>Density (per megapixel)</B> and entering the number per 1K x 1K
+  area.  The latter is provided as an option since it might be invariant for
+  data sets above a certain size.  
+<LI> If gold was deposited on two surfaces of a section, choose <B>Select beads
+    on two surfaces</B>.  You should not choose this option if beads are just
+    distributed in Z rather than on two well-defined.
+</UL>
+<P>
+ Press <B>Generate Seed Model</B> to run the operation.  If you have the
+ project log open, you will see the two most informative lines from the
+ Autofidseed log file, a line showing the number of beads available and how
+ many were considered clustered or elongated, and a line showing the total
+ number of beads chosen and their distribution on two surfaces, if any.
+<P>
+ Press <B>View Seed Model</B> to see the result.  If you chose to have
+ beads found on two surfaces, the ones on the bottom will appear as green,
+ and the ones on the top as magenta, although they are all in one model
+ object.
 </P>
 <H4><A NAME = "ProblemsAutoSeed"></A>
 6.2. Solving Problems with Automatic Seed Generation
