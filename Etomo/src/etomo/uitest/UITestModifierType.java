@@ -33,7 +33,6 @@ final class UITestModifierType {
   // Cannot be the same as AxisID ("a" or "b")
   static final UITestModifierType ALWAYS = new UITestModifierType("always");
   static final UITestModifierType CONTAINS = new UITestModifierType("contains");
-  static final UITestModifierType DONE = new UITestModifierType("done");
   static final UITestModifierType ENABLED = new UITestModifierType("enabled");
   static final UITestModifierType EQUALS = new UITestModifierType("equals");
   static final UITestModifierType EXISTS = new UITestModifierType("exists");
@@ -48,6 +47,7 @@ final class UITestModifierType {
                                                                     // equal to
   static final UITestModifierType LE = new UITestModifierType("le");// less then or equal
                                                                     // to
+  static final UITestModifierType WAIT = new UITestModifierType("wait");
 
   private final String string;
 
@@ -64,9 +64,6 @@ final class UITestModifierType {
     }
     if (CONTAINS.equals(string)) {
       return CONTAINS;
-    }
-    if (DONE.equals(string)) {
-      return DONE;
     }
     if (ENABLED.equals(string)) {
       return ENABLED;
@@ -103,6 +100,9 @@ final class UITestModifierType {
     }
     if (LE.equals(string)) {
       return LE;
+    }
+    if (WAIT.equals(string)) {
+      return WAIT;
     }
     return null;
   }
