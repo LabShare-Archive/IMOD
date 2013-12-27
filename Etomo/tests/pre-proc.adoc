@@ -23,7 +23,7 @@ if.var.quick.return=
 	wait.popup.entry-error = OK
 	# Run
 	bn.create-fixed-stack=
-	wait.done.process.ccd-eraser=done
+	wait.process.ccd-eraser=done
 	# Check files
 	assert.exists.file=eraser%{axis}.com
 	assert.exists.file=eraser%{axis}.log
@@ -43,7 +43,7 @@ if.var.quick.return=
 	bn.basic=
 	# Run again
 	bn.create-fixed-stack=
-	wait.done.process.ccd-eraser=done
+	wait.process.ccd-eraser=done
 	# Check files
 	assert.exists.file=eraser%{axis}.com
 	assert.exists.file=eraser%{axis}.log
@@ -58,11 +58,11 @@ if.var.quick.return=
 	run.function.manual-pixel-region-replacement=
 [[]]
 bn.show-min/max-for-raw-stack=
-wait.done.process.clip-stats=done
+wait.process.clip-stats=done
 bn.create-fixed-stack=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 bn.show-min/max-for-fixed-stack=
-wait.done.process.clip-stats=done
+wait.process.clip-stats=done
 run.function.use-fixed-stack=
 [[if = test-gui]]
 	# Check files after use fixed stack
@@ -84,7 +84,7 @@ wait.popup.entry-warning=OK
 if.not.var.needs-pre-proc.bn.done=
 if.not.var.needs-pre-proc.return=
 bn.create-fixed-stack=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 bn.use-fixed-stack=
 bn.done=
 
@@ -170,7 +170,7 @@ wait.popup.comscript-terminated=OK
 # Run with manual model
 copy.file=%{dataset}%{axis}.erase
 bn.find-x-rays=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 # Check files
 assert.exists.file=eraser%{axis}.com
 assert.exists.file=eraser%{axis}.log
@@ -178,7 +178,7 @@ assert.exists.file=%{dataset}%{axis}.erase
 assert.exists.file=%{dataset}%{axis}_peak.mod
 # Run again with manual model
 bn.find-x-rays=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 # Check files
 assert.exists.file=eraser%{axis}.com
 assert.exists.file=eraser%{axis}.log
@@ -191,7 +191,7 @@ cb.manual-replacement=off
 bn.basic=
 # Run without manual model
 bn.find-x-rays=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 # Check files
 assert.exists.file=eraser%{axis}.com
 assert.exists.file=eraser%{axis}.log
@@ -201,7 +201,7 @@ assert.exists.file=eraser%{axis}.log~
 assert.exists.file=%{dataset}%{axis}_peak.mod~
 # Run again without manual model
 bn.find-x-rays=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 # Check files
 assert.exists.file=eraser%{axis}.com
 assert.exists.file=eraser%{axis}.log

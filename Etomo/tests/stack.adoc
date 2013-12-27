@@ -16,8 +16,8 @@ run.function.2d-filter=
 tb.create=
 sp.aligned-image-stack-binning=1
 bn.create-full-aligned-stack=
-if.not.var.montage.wait.done.process.creating-aligned-stack=done
-if.var.montage.wait.done.process.full-alignment=done
+if.not.var.montage.wait.process.creating-aligned-stack=done
+if.var.montage.wait.process.full-alignment=done
 if.var.test-gui.run.function.test-files=
 bn.done=
 if.var.fidless.return=
@@ -27,8 +27,8 @@ if.var.fidless.return=
 mb.%{final-align-command}=A
 tf.size-to-output=%{size-to-output-x},%{size-to-output-y}
 bn.create-full-aligned-stack=
-if.not.var.montage.wait.done.process.creating-aligned-stack=done
-if.var.montage.wait.done.process.full-alignment=done
+if.not.var.montage.wait.process.creating-aligned-stack=done
+if.var.montage.wait.process.full-alignment=done
 bn.done=
 
 
@@ -83,8 +83,8 @@ run.function.final-align-command=
 	if.not.var.montage.assert.enabled.cb.reduce-size-with-antialiasing-filter=
 	if.not.var.montage.cb.reduce-size-with-antialiasing-filter=on
 	bn.create-full-aligned-stack=
-	if.not.var.montage.wait.done.process.creating-aligned-stack=done
-	if.var.montage.wait.done.process.full-alignment=done
+	if.not.var.montage.wait.process.creating-aligned-stack=done
+	if.var.montage.wait.process.full-alignment=done
 	# check files
 	assert.exists.file=%{final-align-comscript}%{axis}.com
 	assert.exists.file=%{final-align-comscript}%{axis}.log
@@ -95,8 +95,8 @@ run.function.final-align-command=
 sp.aligned-image-stack-binning=down
 if.not.var.montage.assert.disabled.cb.reduce-size-with-antialiasing-filter=
 bn.create-full-aligned-stack=
-if.not.var.montage.wait.done.process.creating-aligned-stack=done
-if.var.montage.wait.done.process.full-alignment=done
+if.not.var.montage.wait.process.creating-aligned-stack=done
+if.var.montage.wait.process.full-alignment=done
 if.var.build.return=
 # check files
 assert.exists.file=%{final-align-comscript}%{axis}.com
@@ -109,8 +109,8 @@ sp.aligned-image-stack-binning=1
 mb.%{final-align-command}=A
 tf.size-to-output=%{size-to-output-x},%{size-to-output-y}
 bn.create-full-aligned-stack=
-if.not.var.montage.wait.done.process.creating-aligned-stack=done
-if.var.montage.wait.done.process.full-alignment=done
+if.not.var.montage.wait.process.creating-aligned-stack=done
+if.var.montage.wait.process.full-alignment=done
 # check files
 assert.exists.file=%{final-align-comscript}%{axis}.com
 assert.exists.file=%{final-align-comscript}%{axis}.log
@@ -213,12 +213,12 @@ cb.use-expected-defocus-instead-of-ctfplotter-output=on
   tb.create=
   sp.aligned-image-stack-binning=2
   bn.create-full-aligned-stack=
-  if.not.var.montage.wait.done.process.creating-aligned-stack=done
-  if.var.montage.wait.done.process.full-alignment=done
+  if.not.var.montage.wait.process.creating-aligned-stack=done
+  if.var.montage.wait.process.full-alignment=done
   tb.create.1=
 [[]]
 bn.correct-ctf=
-wait.done.process.processchunks-ctfcorrection%{axis}=done
+wait.process.processchunks-ctfcorrection%{axis}=done
 [[if = test-gui]]
   #check binned pixel size
   assert.contains.file=ctfcorrection%{axis}.com|PixelSize*%{ctfcorrection-binned-pixel-size}
@@ -233,13 +233,13 @@ assert.exists.file=%{dataset}%{axis}_ctfcorr.ali
   wait.popup.entry-warning=OK
   sp.aligned-image-stack-binning=1
   bn.create-full-aligned-stack=
-  if.not.var.montage.wait.done.process.creating-aligned-stack=done
-  if.var.montage.wait.done.process.full-alignment=done
+  if.not.var.montage.wait.process.creating-aligned-stack=done
+  if.var.montage.wait.process.full-alignment=done
   tb.create.1=
 [[]]
 # run again with parallel processing
 bn.correct-ctf=
-wait.done.process.processchunks-ctfcorrection%{axis}=done
+wait.process.processchunks-ctfcorrection%{axis}=done
 [[if = test-gui]]
   #check unbinned pixel size
   assert.contains.file=ctfcorrection%{axis}.com|PixelSize*%{pixel-size}
@@ -252,10 +252,10 @@ assert.exists.file=%{dataset}%{axis}_ctfcorr.ali~
 # run without parallel processing
 cb.parallel-processing=off
 bn.correct-ctf=
-wait.done.process.running-ctf-correction=done
+wait.process.running-ctf-correction=done
 # run again without parallel processing
 bn.correct-ctf=
-wait.done.process.running-ctf-correction=done
+wait.process.running-ctf-correction=done
 # check files
 assert.exists.file=ctfcorrection%{axis}.log
 assert.exists.file=%{dataset}%{axis}_simple.defocus
@@ -303,12 +303,12 @@ rb.use-the-existing-fiducial-model=
 [[]]
 # run
 bn.transform-fiducial-model=
-wait.done.process.running-xfmodel=done
+wait.process.running-xfmodel=done
 # check files
 assert.exists.file=%{dataset}%{axis}_erase.fid
 # run again
 bn.transform-fiducial-model=
-wait.done.process.running-xfmodel=done
+wait.process.running-xfmodel=done
 # check files
 assert.exists.file=%{dataset}%{axis}_erase.fid
 assert.exists.file=%{dataset}%{axis}_erase.fid~
@@ -330,14 +330,14 @@ run.function.find-beads-3d=
 # run
 bn.reproject-model=
 assert.exists.file=%{dataset}%{axis}.xf
-wait.done.process.tilt_3dfind_reproject=done
+wait.process.tilt_3dfind_reproject=done
 # check files
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind_reproject%{axis}.log
 assert.exists.file=%{dataset}%{axis}_erase.fid
 # run again
 bn.reproject-model=
-wait.done.process.tilt_3dfind_reproject=done
+wait.process.tilt_3dfind_reproject=done
 # check files
 assert.exists.file=tilt_3dfind_reproject%{axis}.com
 assert.exists.file=tilt_3dfind_reproject%{axis}.log
@@ -399,7 +399,7 @@ cb.parallel-processing=on
 sp.aligned-image-stack-binning=3
 bn.align-and-build-tomogram=
 wait.popup.etomo-warning=Yes
-wait.done.process.processchunks-tilt_3dfind%{axis}=done
+wait.process.processchunks-tilt_3dfind%{axis}=done
 # check files
 assert.exists.file=tilt_3dfind%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}-start.com
@@ -415,7 +415,7 @@ assert.exists.file=tilt_3dfind_reproject%{axis}.com
 # run with unbinned with parallel processing
 sp.aligned-image-stack-binning=1
 bn.align-and-build-tomogram=
-wait.done.process.processchunks-tilt_3dfind%{axis}=done
+wait.process.processchunks-tilt_3dfind%{axis}=done
 # check files
 assert.exists.file=tilt_3dfind%{axis}.com
 assert.exists.file=tilt_3dfind%{axis}-start.com
@@ -431,7 +431,7 @@ assert.exists.file=%{dataset}%{axis}_3dfind.rec~
 cb.parallel-processing=off
 sp.aligned-image-stack-binning=%{findbeads3d-binning}
 bn.align-and-build-tomogram=
-wait.done.process.calculating-tomogram=done
+wait.process.calculating-tomogram=done
 # check files
 # newst or blend wasn't run because the binning is the same as the aligned stack
 assert.exists.file=tilt_3dfind%{axis}.com
@@ -508,14 +508,14 @@ mb.find-beads-3d=+
 [[]]
 # run
 bn.run-findbeads3d=
-wait.done.process.findbeads3d=done
+wait.process.findbeads3d=done
 # check files
 assert.exists.file=findbeads3d%{axis}.com
 assert.exists.file=findbeads3d%{axis}.log
 assert.exists.file=%{dataset}%{axis}_3dfind.mod
 # run again
 bn.run-findbeads3d=
-wait.done.process.findbeads3d=done
+wait.process.findbeads3d=done
 # check files
 assert.exists.file=findbeads3d%{axis}.com
 assert.exists.file=findbeads3d%{axis}.log
@@ -567,13 +567,13 @@ mb.find-beads-3d=-
 [[]]
 # run
 bn.erase-beads=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 # check files
 assert.exists.file=%{dataset}%{axis}_erase.ali
 assert.contains.file=golderaser%{axis}.com|BetterRadius*%{better-radius}
 # run again
 bn.erase-beads=
-wait.done.process.ccd-eraser=done
+wait.process.ccd-eraser=done
 # check files
 assert.exists.file=%{dataset}%{axis}_erase.ali
 assert.exists.file=%{dataset}%{axis}_erase.ali~
@@ -635,14 +635,14 @@ run.function.inverse-filtering-parameters=
 
 # run
 bn.filter =
-wait.done.process.running-mtf-filter=done
+wait.process.running-mtf-filter=done
 # check files
 assert.exists.file=mtffilter%{axis}.com
 assert.exists.file=mtffilter%{axis}.log
 assert.exists.file=%{dataset}%{axis}_filt.ali
 # run again
 bn.filter =
-wait.done.process.running-mtf-filter=done
+wait.process.running-mtf-filter=done
 # check files
 assert.exists.file=mtffilter%{axis}.com
 assert.exists.file=mtffilter%{axis}.log

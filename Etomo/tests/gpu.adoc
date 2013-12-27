@@ -24,10 +24,10 @@ run.function.gpu-test=
 tf.#-of-minutes=.5
 bn.run-gpu-test=
 wait.popup.gputilttest-succeeded=OK
-wait.done.process.running-gputilttest=done
+wait.process.running-gputilttest=done
 sp.gpu-#=8
 bn.run-gpu-test=
 wait.popup.gputilttest-terminated=OK
-wait.done.process.running-gputilttest=failed
+wait.process.running-gputilttest=failed
 assert.exists.file= gputest.log
 

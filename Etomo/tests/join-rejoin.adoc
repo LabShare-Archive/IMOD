@@ -4,14 +4,14 @@ Version = 1.2
 sp.boundary-table-2-&-3-adjusted=up
 [[if = test-gui]]
 	bn.trial-rejoin=
-	wait.done.process.finishjoin=done
+	wait.process.finishjoin=done
 [[]]
 bn.rejoin=
-wait.done.process.remapmodel=done
+wait.process.remapmodel=done
 [[if = test-gui]]
 	copy.file=%{dataset}_join.mod
 	tf.model-file=%{dataset}_join.mod
 	tf.output-file=%{dataset}_join-transformed.mod
 	bn.transform-model=
-	wait.done.process.remapmodel=done
+	wait.process.remapmodel=done
 [[]]

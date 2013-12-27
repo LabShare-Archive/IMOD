@@ -4,13 +4,13 @@ Version = 1.2
 open.dialog.align=
 [[if = test-gui]]
 	bn.initial-auto-alignment=
-	wait.done.process.initial-xfalign=done
+	wait.process.initial-xfalign=done
 	bn.midas=
 	assert.contains.file=../../etomo_%{testdir-name}_err.log|midas -cs 4,4,3,4 -b 0 -D -o %{dataset}_midas.xf %{dataset}.sample %{dataset}.xf
 	bn.refine-with-auto-alignment=
-	wait.done.process.refine-xfalign=done
+	wait.process.refine-xfalign=done
 	bn.revert-auto-alignment-to-midas=
 	bn.revert-to-no-transforms=
 [[]]
 bn.initial-auto-alignment=
-wait.done.process.initial-xfalign=done
+wait.process.initial-xfalign=done

@@ -15,8 +15,8 @@ copy.file = %{dataset}_refine.mod
   tf.boundaries-to-analyze=
 [[]]
 bn.find-transformations=
-wait.done.process.xfjointomo=done
+wait.process.xfjointomo=done
 [[if = test-gui]]
 	bn.transform-&-view-model=
-	wait.done.process.remapmodel=done
+	wait.process.remapmodel=done
 [[]]

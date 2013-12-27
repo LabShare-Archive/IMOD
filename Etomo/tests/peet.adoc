@@ -341,11 +341,11 @@ sp.particles-per-cpu=1
 #write.file = %{dataset}.prm|flgMeanFill = 1
 #
 bn.run=
-wait.done.process.processchunks-%{dataset}=done
+wait.process.processchunks-%{dataset}=done
 [[if = test-gui]]
 	#test remake averages
   bn.remake-averages=
-	wait.done.process.running-averageall=done
+	wait.process.running-averageall=done
 	bn.open-averages-in-3dmod=
 [[]]
 

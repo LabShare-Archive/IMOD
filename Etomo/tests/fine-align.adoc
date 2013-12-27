@@ -67,32 +67,32 @@ assert.exists.file=%{dataset}%{axis}_fid.xf~
 [[]]
 run.function.copy=
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 
 
 [function = compute-with-simple-align]
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 
 
 [function = compute-with-simple-align-quick]
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 
 
 [function = compute-with-patch-tracking]
 tb.general.1=
 rb.fixed-tilt-angles=
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 tb.general=
 cb.enable-local-alignments=on
 tb.general.2=
 cb.enable.2=off
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 
 
 [function = compute-with-patch-tracking-quick]
@@ -103,7 +103,7 @@ cb.enable-local-alignments=on
 tb.general.2=
 cb.enable.2=off
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 
 
 [function = compute]
@@ -117,16 +117,16 @@ cb.do-robust-fitting-with-tuning-factor=on
   tf.do-robust-fitting-with-tuning-factor=1.0
 [[]]
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 cb.do-robust-fitting-with-tuning-factor=off
 tb.general.1=
 rb.full-solution=
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 tb.general=
 cb.enable-local-alignments=on
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 
 
 [function = compute-quick]
@@ -135,7 +135,7 @@ rb.full-solution=
 tb.general=
 cb.enable-local-alignments=on
 bn.compute-alignment=
-wait.done.process.aligning-stack=done
+wait.process.aligning-stack=done
 
 
 [function = copy]
