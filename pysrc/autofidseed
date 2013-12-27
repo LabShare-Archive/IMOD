@@ -541,7 +541,8 @@ if tiltFile:
    tiltLines = readTextFile(tiltFile)
    try:
       for i in range(len(tiltLines)):
-         tiltAngles.append(float(tiltLines[i]))
+         if tiltLines[i].strip():
+            tiltAngles.append(float(tiltLines[i]))
    except ValueError:
       exitError('Converting lines in ' + tiltfile + ' to floating point values')
 

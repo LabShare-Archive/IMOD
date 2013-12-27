@@ -1,4 +1,4 @@
-Version = 1.0
+ersion = 1.0
 Pip = 1
 
 [Field = TrackCommandFile]
@@ -119,9 +119,9 @@ analysis rather than regions to include.
 [Field = BordersInXandY]
 short = border
 type = IP
-usage = Number of pixels to exclude on each side in X and in Y
+usage = Number of pixels to exclude near each edge in X and in Y
 tooltip = 
-manpage = Number of pixels to exclude from consideration on each side in X and
+manpage = Number of pixels to exclude from consideration near each edge in X and
 in Y.  The default is based on the average of the X and Y sizes of the image;
 it is 32 pixels per 1024 up to a size of 2048, plus 24 pixels per 1024 above
 2048 pixels.
