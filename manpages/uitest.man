@@ -167,9 +167,9 @@ button (\fBbn\fR) is to push it.
 
 .TP 4
 .I modifier
-.B always\fR, \fBcontains\fR, \fBdisabled\fR, \fBdone\fR, \fBenabled\fR,
+.B always\fR, \fBcontains\fR, \fBdisabled\fR, \fBenabled\fR,
 \fBequals\fR, \fBexists\fR, \fBge\fR, \fBkeep\fR, \fBle\fR, \fBnot\fR,
-\fBnot-equals\fR, \fBnot-exists\fR, \fBsame\fR, \fBsingle\fR
+\fBnot-equals\fR, \fBnot-exists\fR, \fBsame\fR, \fBsingle\fR, \fBwait
 
 .TP 4
 .I subject
@@ -886,6 +886,17 @@ been defined or not been defined, depending on whether \fBnot\fR is used.
 .TP 4
 .B if.not-exists.\fIfield\fB.\fIsubcommand = \fR[\fIsubcommand_value\fR]
 Execute a \fIsubcommand\fR if a field does not exist.
+  
+.TP 4
+.B if.wait.\fBprocess.\fIprocess_name\fB.\fIsubcommand\fB = \fIprogress_state
+A wait that returns a boolean value based on whether an intermediate
+\fIprogress_state\fR was detected.  If the \fIprogress_state\fR is not detected,
+this command will stop waiting and return false when the process ends.
+The \fIprocess_name\fR comes from the string describing the process, which
+appears at the top of the window when the process is running (see Naming).
+The \fIprogress_state\fR is all or part of the text expected in the progress
+bar.  This command may miss the \fIprogress_state\fR if it is displayed for a
+only short time.
 
 .TP 4
 .B mb.\fIassociated_name\fR[\fB.\fIindex\fR]\fB = \fR[\fImini-button_label\fR]
@@ -1118,15 +1129,13 @@ converted to a name (see Naming).  Presses the button on the popup identified by
 \fIpopup_button_name\fR.
 
 .TP 4
-.B wait.\fR[\fBdone.\fR]\fBprocess.\fIprocess_name\fB = \fIprogress_state
-Waits for a process to reach a specified state.  The \fIprocess_name\fR comes
-from the string describing the process which appears at the top of the window
-when a process is running (see Naming).  The \fIprogress_state\fR is all or
-part of the text expected in the progress bar.  If \fBdone\fR is used, then the
-Autodoc Tester will check the Kill Process button several times to make sure
-that it remains disabled before doing the \fIprogress_state\fR comparison.  The
-progress bar is not watched continuously, so a state that doesn't last long,
-such as the end of the first process in a sequence, will probably be ignored.
+.B wait.\fBprocess.\fIprocess_name\fB = done\fR|\fBfailed\fR|\fBkilled\fR|\fBpaused
+Waits for a process to reach the specified end state.  The \fIprocess_name\fR
+comes from the string describing the process, which appears at the top of the
+window when the process is running (see Naming).  The Autodoc Tester will wait
+until process is done before comparing the value of this command to the string
+in the progress bar.  This command should only be used for a single process, or
+the last process in a sequence.
 
 
 .TP 4
