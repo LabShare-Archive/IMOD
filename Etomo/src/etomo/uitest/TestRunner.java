@@ -14,6 +14,7 @@ import junit.extensions.jfcunit.JFCTestHelper;
 import etomo.Arguments;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.Arguments.DebugLevel;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -440,13 +441,19 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     else if (!keepDatasetDir) {
       // clean the test directory by deleting it
       SystemProgram remove = new SystemProgram(manager, System.getProperty("user.dir"),
-          new String[] { "rm", "-fr", testDir.getAbsolutePath() }, AxisID.ONLY);
+          new String[] { "python", getIMODBinPath() + "b3dremove", "-r",
+              testDir.getAbsolutePath() }, AxisID.ONLY);
       remove.run();
       // make the test directory
       testDir.mkdir();
     }
     // make the test directory the working directory
     System.setProperty("user.dir", testDir.getAbsolutePath());
+  }
+
+  private static String getIMODBinPath() {
+    return EnvironmentVariable.INSTANCE.getValue(null, null, "IMOD_DIR", AxisID.ONLY)
+        + File.separator + "bin" + File.separator;
   }
 
   /**
@@ -485,11 +492,9 @@ public final class TestRunner extends JFCTestCase implements VariableList {
         return;
       }
     }
-    SystemProgram copy = new SystemProgram(
-        null,
-        System.getProperty("user.dir"),
-        new String[] { "cp", file.getAbsolutePath(), toFileNameEmpty ? "." : toFileName },
-        AxisID.ONLY);
+    SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
+        new String[] { "python", getIMODBinPath() + "b3dcopy", file.getAbsolutePath(),
+            toFileNameEmpty ? file.getName() : toFileName }, AxisID.ONLY);
     copy.run();
   }
 
