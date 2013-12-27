@@ -21,7 +21,7 @@ Version = 1.2
 cb.parallel-processing = 1
 mb.parallel-processing = -
 bn.create-combine-scripts =
-wait.done.process.creating-combine-scripts = done
+wait.process.creating-combine-scripts = done
 assert.exists.file = combine.com
 assert.exists.file = matchorwarp.com
 assert.exists.file = matchvol1.com
@@ -32,12 +32,9 @@ assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
 bn.start-combine =
 [[if = test-gui]]
-  wait.process.processchunks-volcombine=1 of
-  bn.kill-process=
-  wait.done.process.processchunks-volcombine=killed
-  bn.start-combine =
+  if.wait.process.processchunks-volcombine.run.function.test-kill-pp=1 of
 [[]]
-wait.done.process.processchunks-volcombine = done
+wait.process.processchunks-volcombine = done
 assert.exists.file = volcombine-finish.com
 assert.exists.file = volcombine-start.com
 assert.exists.file = volcombine-finish.log
@@ -50,21 +47,18 @@ assert.exists.file = solvematch.log
 cb.parallel-processing = 0
 bn.restart-at-volcombine =
 [[if = test-gui]]
-  wait.process.combine=ETC
-  bn.kill-process=
-  wait.done.process.combine=killed
-  bn.restart-at-volcombine =
+  if.wait.process.combine.run.function.test-kill=ETC
 [[]]
-wait.done.process.combine = done
+wait.process.combine = done
 assert.exists.file = volcombine.log
 bn.restart-at-volcombine =
-wait.done.process.combine = done
+wait.process.combine = done
 sleep =
 assert.exists.file = volcombine.log~
 cb.parallel-processing = 1
 tb.setup = 
 bn.start-combine =
-wait.done.process.processchunks-volcombine = done
+wait.process.processchunks-volcombine = done
 assert.exists.file = combine.log~
 assert.exists.file = matchorwarp.log~
 assert.exists.file = matchvol1.log~
@@ -78,6 +72,16 @@ sleep =
 bn.replace-patch-vectors =
 bn.done =
 
+
+[function = test-kill]
+bn.kill-process=
+wait.process.combine=killed
+bn.restart-at-volcombine =
+
+[function = test-kill-pp
+bn.kill-process=
+wait.process.processchunks-volcombine=killed
+bn.start-combine =
 
 [function = test-final-match]
 tb.setup.2=
