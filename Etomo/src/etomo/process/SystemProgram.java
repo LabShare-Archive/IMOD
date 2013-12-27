@@ -374,6 +374,10 @@ public class SystemProgram implements Runnable {
     commandArray = cmdArray;
   }
 
+  public void setDebug(final DebugLevel debugLevel) {
+    debug = debugLevel;
+  }
+
   /**
    * Specify the standard input to the program
    * @param programInput A string array containing the standard input to the
