@@ -76,8 +76,8 @@ Currently, 3dmod will accept the following commands:
   18  Set the HQ (high-res) state of the top Zap window, or of the next
         Zap window opened if there is none.  Follow with 0 to turn HQ
         off or 1 to turn it on
-  19  Open a set of dialog windows.  Follow with one or more key letters
-        just as for the -E options to 3dmod and 3dmodv.
+  19  Open a set of dialog windows.  Follow with one or more key
+        letters just as for the -E options to 3dmod and 3dmodv.
 
 Bead Fixer accepts the following commands:
    1  Open a Tiltalign log file if one is not open yet, or reread 
