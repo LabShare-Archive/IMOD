@@ -868,12 +868,15 @@ A seed model can be generated automatically by
     selection by default: clustered beads, which are within 2 bead diameters
     or each other or would become so at the highest tilt; and elongated
     beads, which appear not to be round and could be two overlapping beads.
-<LI> <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> keeps track of parameters used on a run in a file
-    with extension ".info".  When it is rerun, it will skip
-    running <A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A>
-    and <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> if possible (e.g., if none
-    of their parameters are changed and the number of desired beads is not
-    increased). A rerun under these circumstances is quick.
+<LI> <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> keeps track of
+    parameters used on a run in a file with extension ".info".  When it is
+    rerun, it will skip running 
+   <A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A>
+    and <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> if possible (e.g., if
+    none of their parameters are changed and the number of desired beads is
+    not increased). A rerun under these circumstances is quick.  Temporary
+    files to allow this are kept in a directory named "autofidseed.dir"
+    (or "autofidseeda.dir" for the first axis of a dual-axis set).
 </UL>
 <P>
 The basic use of <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> involves a small number of parameter
@@ -904,7 +907,7 @@ The basic use of <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> involves a
   data sets above a certain size.  
 <LI> If gold was deposited on two surfaces of a section, choose <B>Select beads
     on two surfaces</B>.  You should not choose this option if beads are just
-    distributed in Z rather than on two well-defined.
+    distributed in Z rather than on two well-defined surfaces.
 </UL>
 <P>
  Press <B>Generate Seed Model</B> to run the operation.  If you have the
@@ -922,6 +925,75 @@ The basic use of <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> involves a
 6.2. Solving Problems with Automatic Seed Generation
 </H4>
 <P>
+You need to switch to Advanced mode to see the controls for problem-solving,
+but two buttons present in Basic mode can help you assess the problems
+first.  <B>Open Initial Bead Model </B> will show you whether 
+<A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A> succeeded in finding
+  gold beads and distinguishing them from
+  other features.  If not, you need to adjust some parameters for running that
+  first step.  If you chose to find beads on two surfaces, <B>Open Sorted 3D
+  Models</B> is available for opening the models of 3D
+  positions derived from all of the <A HREF =
+  "man/beadtrack.html#TOP">Beadtrack</A> runs in 3dmodv.  This
+  display will reveal whether the sorting into two surfaces failed for one or
+  more runs, or whether there are too few beads on one surface.  Use
+  the <B>9</B> and <B>0</B> hot keys to step between the models.
+<P>
+A variety of problems can be addressed by the Advanced controls:
+<UL>
+<LI> <B>Failure to find histogram dip</B>.  If
+<A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A> reports that
+    it cannot find a dip in the histogram of correlation peak strengths, it
+    may help to enter a value for the <B>Estimated number of beads in
+    sample</B>.  The value only needs to be a rough guess for the minimum
+    number of beads present, but it may help the program find a dip,
+    particularly if there are relatively few beads.
+<LI> <B>Incorrect bead size</B>.  If the initial bead-finding fails to identify a
+  substantial number of beads, first check the diameter of a few beads in
+  3dmod to make sure that it matches the nominal bead size entered when
+  starting the data set.  If the diameter is off by more than 10%, it could be
+  a source of problems.  For a cryo or other data set with underfocused
+  images, check <B>Find and adjust bead size</B> and run again.  This
+  procedure does not work for plastic-section data sets taken near focus; the
+  only recourse there is to restart the data set.
+<LI><B>Incorrect threshold for storing peaks</B>. If the initial bead model
+  includes many non-beads or excludes many beads, and the final seed selection
+  suffers as a result, you can try adjusting the <B>Fraction of peaks to
+  store</B>.  Enter a value above 1 to include more beads or below 1 to
+  exclude more non-beads, in either case estimated by the 
+  ratio of the total actual beads to the total of points picked. 
+<LI><B>Beads too near the edge</B> If beads have been picked too near the
+  edge of the image, you can enter a border size in pixels for X and Y in the
+  box <B>Borders in X & Y</B>.
+<LI><B>Too few beads selected because of clustering</B>. If you have too few
+  fiducials because many beads are in pairs or larger clusters, you may need to
+  include beads identified as clustered by checking <B>Allow clustered
+  beads</B>.  In this case, only one of a pair of beads will be picked.  These
+  beads may not track properly at high tilt.
+<LI><B>Beads inappropriately excluded as elongated</B>.  Elongated beads are
+  excluded because they can represent two overlapping beads, which
+  will become distinct at higher tilt.  However, if a small fraction of beads 
+  occur over dense, variable
+  material, they may be inappropriately identified as elongated.  If you are
+  getting too few beads picked for the seed, or too few over dense areas, you
+  can assess the situation by pressing <B>Open Clustered/Elongated Model</B>.
+  which will show all beads under consideration colored by their
+  identification as clustered and/or elongated.  The Surface/Contour/Point
+  dialog will open, and you can step through the surfaces or click on
+  individual points to see the surface labels.  If you find that the beads
+  identified as elongated are usable, 
+  you can turn on <B>Allow elongated beads of severity</B> and select an
+  appropriate severity level.
+<LI> <B>Poor tracking or sorting onto two sides in some runs</B>.  If you
+  chose to find beads on two surfaces, the display of 3D models may show that
+  the sorting onto two sides is flawed for one or more tarcking runs, but good
+  for the rest.  You can then exclude these models from consideration by
+  entering their numbers in the text box <B>Ignore sorting in tracked
+  models</B>.  It is also possible to drop some of the tracking runs
+  completely from consideration by entering their numbers in the text
+  box <B>Drop tracked models</B>.  To assess this you would have to open the
+  models named "afs*track" in the temporary file directory.
+</LI>
 </P>
 <H4><A NAME = "ManualSeed"></A>
 6.3. Making a Seed Model Manually in 3dmod
