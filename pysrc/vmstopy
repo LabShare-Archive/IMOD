@@ -193,13 +193,7 @@ if niceVal:
           "file=log)", file=out)
 
 # Output the PID, flush stderr needed for Windows Python
-prnstr("PID = 'Python PID: ' + str(os.getpid()) + '\\n'", file=out)
-prnstr("if sys.platform.find('win32') >= 0:", file=out)
-prnstr("  PID = 'Windows ' + PID", file=out)
-prnstr("elif sys.platform.find('cygwin') >= 0:", file=out)
-prnstr("  PID = 'Cygwin ' + PID", file=out)
-prnstr("sys.stderr.write(PID)", file=out)
-prnstr("sys.stderr.flush()", file=out)
+prnstr("printPID(True)", file=out)
 
 # Read the file, throwing away comments, labels, selected items, or all lines while
 # seeking a label.  Keep blank lines, they could be input lines
