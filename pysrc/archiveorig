@@ -93,10 +93,13 @@ from pip import *
 
 options = ['r::B:Restore setname_orig.st from setname.st and setname_xray.st.gz',
            'd::B:Delete setname_orig.st after computing difference',
-           'n::I:Number of levels of archives to restore']
+           'n::I:Number of levels of archives to restore', ":PID:B:"]
 
 PipExitOnError(False, prefix)
 (numOpts, numNonOpts) = PipParseInput(sys.argv, options)
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
 
 if numNonOpts < 1:
    PipPrintHelp(progname, 0, 1, 0)

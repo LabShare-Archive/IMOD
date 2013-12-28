@@ -133,3 +133,8 @@ manpage = For diagnosing problems, leave temporary files in the standard
 temporary directory (/usr/tmp, /tmp, or defined by IMOD_TMPDIR) or in the
 current directory if there is no temporary directory.
 
+[Field = PID]
+type = B
+usage = Print process ID
+tooltip =
+manpage = 
