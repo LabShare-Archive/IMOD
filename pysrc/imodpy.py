@@ -39,6 +39,7 @@ This module provides the following functions:
   cygwinPath(path)          - Returns path, or a Cygwin path if running in Cygwin
 
   addIMODbinIgnoreSIGHUP()  - Adds IMOD_DIR/bin to front of PATH and ignores SIGHUP
+  printPID(doPrint)   - Prints a PID with system-dependent prefix if doPrint is true
   imodIsAbsPath(path) - Tests whether the path is an absolute path (works in Cygwin)
   imodAbsPath(path) - Returns absolute path, converted to windows format if on Windows
   imodNice(niceInc) - Sets niceness of process, even on Windows
@@ -832,6 +833,19 @@ def addIMODbinIgnoreSIGHUP():
       except Exception:
          pass
    
+
+# Conditionally prints a PID with appropriate OS-dependent prefix
+def printPID(doPrint):
+   if not doPrint:
+      return
+   PID = 'Python PID: ' + str(os.getpid()) + '\n'
+   if 'win32' in sys.platform:
+      PID = 'Windows ' + PID
+   elif 'cygwin' in sys.platform:
+      PID = 'Cygwin ' + PID
+   sys.stderr.write(PID)
+   sys.stderr.flush()
+
 
 # Tests whether the path is an absolute path
 def imodIsAbsPath(path):
