@@ -14,7 +14,6 @@ import junit.extensions.jfcunit.JFCTestHelper;
 import etomo.Arguments;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.Arguments.DebugLevel;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -494,7 +493,7 @@ public final class TestRunner extends JFCTestCase implements VariableList {
     }
     SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
         new String[] { "python", getIMODBinPath() + "b3dcopy", file.getAbsolutePath(),
-            toFileNameEmpty ? file.getName() : toFileName }, AxisID.ONLY);
+            toFileNameEmpty ? "." : toFileName }, AxisID.ONLY);
     copy.run();
   }
 
