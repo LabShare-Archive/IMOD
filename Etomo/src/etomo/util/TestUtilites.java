@@ -199,8 +199,7 @@ public final class TestUtilites {
       copyCommand[0] = "python";
       copyCommand[1] = BaseManager.getIMODBinPath() + "b3dcopy";
       copyCommand[2] = unitTestDataFile.getAbsolutePath();
-      copyCommand[3] = testDir.getAbsolutePath() + File.separator
-          + unitTestDataFile.getName();
+      copyCommand[3] = testDir.getAbsolutePath();
       BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
       SystemProgram copy = new SystemProgram(manager, manager == null ? null
           : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY);
