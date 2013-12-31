@@ -32,7 +32,7 @@ assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
 bn.start-combine =
 [[if = test-gui]]
-  if.wait.process.processchunks-volcombine.run.function.test-kill-pp=1 of
+  if.wait.process.processchunks-volcombine.run.function.test-kill-pp=completed
 [[]]
 wait.process.processchunks-volcombine = done
 assert.exists.file = volcombine-finish.com
@@ -78,9 +78,10 @@ bn.kill-process=
 wait.process.combine=killed
 bn.restart-at-volcombine =
 
-[function = test-kill-pp
+[function = test-kill-pp]
 bn.kill-process=
-wait.process.processchunks-volcombine=killed
+wait.process.processchunks-volcombine-killed=killed
+tb.setup = 
 bn.start-combine =
 
 [function = test-final-match]
