@@ -955,7 +955,30 @@ def avoidLocalComFile(command):
       if isExecutable(fullPath) or isExecutable(fullPath + '.exe') or \
           isExecutable(fullPath + '.cmd'):
          return os.path.join(path, command)
-   
+
+
+# Function to try to make current directory writable on Windows or at least make sure
+# that it is
+def makeCurrentDirWritable():
+   # On Windows, make sure the current directory is rxw, first try the cygwin command
+   # then use the system command.  Windows python may be useless at this
+   # When the directory is set -rwx, its running of chmod gives permission denied, it sees
+   # 777 from os.stat and os.chmod has no effect
+   # 12/13/13: At least in Cygwin, some Win 7 systems have files with --------- for
+   # permissions and this test failed with no consequence; so finish with real test
+   if not ('win32' in sys.platform  or 'cygwin' in sys.platform):
+      return None
+   try:
+      runcmd('chmod u+rwx .')
+   except ImodpyError:
+      mode = stat.S_IMODE(os.stat('.')[stat.ST_MODE])
+      try:
+         os.chmod('.', mode | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+      except Exception:
+         errStr = writeTextFile('writetest.tmp', ['Test for writability'], True)
+         cleanupFiles(['writetest.tmp'])
+         return errStr
+
 
 # Function to format a string in new format for earlier versions of python
 def fmtstr(stringIn, *args):
