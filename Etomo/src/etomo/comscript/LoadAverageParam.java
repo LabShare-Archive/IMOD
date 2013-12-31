@@ -100,6 +100,7 @@ public class LoadAverageParam implements IntermittentCommand {
       command.add(tcshShell);
     }
     else {
+      System.err.println("Running a bash shell in buildLocalStartCommand");
       command.add("bash");
     }
     int commandSize = command.size();
