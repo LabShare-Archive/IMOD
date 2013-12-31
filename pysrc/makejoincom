@@ -78,11 +78,10 @@ options = ["root:RootName:CH:", "input:InputTomogram:FNM:", "top:TopSlices:IPL:"
            "srcext:SourceExtension:CH:", "tmpext:TemporaryExtension:CH:",
            "reference:ReferenceForDensity:I:", "midaslim:MidasSizeLimit:I:",
            "test:TestMode:B:"]
-try:
-   runcmd('chmod u+rwx .')
-except ImodpyError:
-   prnstr('WARNING: ' + progname + '- Error running command to make current directory'+\
-          ' writable')
+
+# On Windows, make sure the current directory is rxw or at least writeable
+if makeCurrentDirWritable():
+   exitError('Cannot make the current directory writable or write files to it')
 
 PipSetLinkedOption('InputTomogram')
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 3, 0, 0)
