@@ -1326,8 +1326,9 @@ final class AutodocTester extends Assert implements VariableList {
         // The right process is done
         wait = false;
         // Check the end_state
-        assertEquals("process ended with the wrong state -" + value + " (" + command
-            + ")", value, progressString);
+        assertFalse(
+            "process ended with the wrong state -" + value + " (" + command + ")",
+            progressString.indexOf(value) == -1);
       }
       // wait.test
       else if (subjectType == UITestSubjectType.TEST) {
@@ -1397,7 +1398,7 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
-   * Returns true if progressString is a end string like "done" or "killed".
+   * Returns true if progressString contains an end string like "done" or "killed".
    * @param progressString
    * @param expectedString
    * @param modifierType
@@ -1411,7 +1412,7 @@ final class AutodocTester extends Assert implements VariableList {
     if (progressString == null) {
       return false;
     }
-    return progressString.equals(expectedString);
+    return progressString.indexOf(expectedString) != -1;
   }
 
   /**
@@ -1737,7 +1738,7 @@ final class AutodocTester extends Assert implements VariableList {
       command = "sort";
     }
     SystemProgram sortFile = new SystemProgram(manager, System.getProperty("user.dir"),
-        new String[] {command, file.getAbsolutePath() }, AxisID.ONLY);
+        new String[] { command, file.getAbsolutePath() }, AxisID.ONLY);
     sortFile.run();
     String[] stdOut = sortFile.getStdOutput();
     stdOut = stripCommentsAndBlankLines(stdOut);
