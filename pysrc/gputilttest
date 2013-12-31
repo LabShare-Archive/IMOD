@@ -229,22 +229,30 @@ minutes = 1.
 setExitPrefix(prefix)
 passOnKeyInterrupt(True)
 
+argind = 1
+while argind < len(sys.argv):
+   if sys.argv[argind].find('-h') >= 0:
+      prnstr(progname + ' runs the tilt program repeatedly to test whether a GPU')
+      prnstr('    gives reproducible results')
+      prnstr('Usage:  ' + progname + ' [-P] [#_of_minutes] [GPU_#]')
+      prnstr('    #_of_minutes sets how long the test will run; the default')
+      prnstr('        is 1 minute, fractional values are allowed')
+      prnstr('   GPU_# is the # of the GPU to test, numbered from 1,')
+      prnstr('        or 0 for the bext or only GPU')
+      sys.exit(0)
+   elif sys.argv[argind] == '-P':
+      printPID(True)
+      argind += 1
+   else:
+      break
+
 try:
-   if len(sys.argv) > 1:
+   if len(sys.argv) > argind:
       errstr = "Converting first argument to floating point number"
-      if sys.argv[1].find('-h') >= 0:
-         prnstr(progname + ' runs the tilt program repeatedly to test whether a GPU')
-         prnstr('    gives reproducible results')
-         prnstr('Usage:  ' + progname + ' [#_of_minutes] [GPU_#]')
-         prnstr('    #_of_minutes sets how long the test will run; the default')
-         prnstr('        is 1 minute, fractional values are allowed')
-         prnstr('   GPU_# is the # of the GPU to test, numbered from 1,')
-         prnstr('        or 0 for the bext or only GPU')
-         sys.exit(0)
-      minutes = float(sys.argv[1])
-   if len(sys.argv) > 2:
+      minutes = float(sys.argv[argind])
+   if len(sys.argv) > argind + 1:
       errstr = "Converting second argument to integer"
-      gpunum = int(sys.argv[2])
+      gpunum = int(sys.argv[argind + 1])
       if gpunum < 0:
          exitError("GPU number must be >= 0")
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # b3dcopy - Utility to copy file and make sure permission is set for the copy
+# If the output file is a directory, it copies the file into that directory
 #
 # Author: David Mastronarde
 #
@@ -23,6 +24,9 @@ tofile = sys.argv[2 + doperm]
 if not os.path.exists(fromfile):
    sys.stdout.write('ERROR: b3dcopy - file to copy does not exist: ' + fromfile + '\n')
    sys.exit(1)
+
+if os.path.isdir(tofile):
+   tofile = os.path.join(tofile, os.path.basename(fromfile))
 
 if os.path.exists(tofile):
    try:

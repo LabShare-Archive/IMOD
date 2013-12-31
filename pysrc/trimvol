@@ -37,7 +37,7 @@ options = ["x:XStartAndEnd:IP:", "y:YStartAndEnd:IP:", "z:ZStartAndEnd:IP:",
            "sx:XFindStartAndEnd:IP:", "sy:YFindStartAndEnd:IP:",
            "c:ContrastBlackWhite:IP:", "mm:IntegerMinMax:IP:", "rx:RotateX:B:",
            "yz:FlipYZ:B:", "i:IndexCoordinates:B:", "f:FlippedCoordinates:B:",
-           "old:OldFlippedCoordinates:I:", "k:KeepOrigin:B:"]
+           "old:OldFlippedCoordinates:I:", "k:KeepOrigin:B:", ":PID:B:"]
 
 # Startup and get input and output files
 # Special case: give some good error messages for eliminated/renamed options
@@ -51,6 +51,9 @@ if nonopts != 2:
    prnstr(prefix + "wrong number of arguments")
    PipPrintHelp(progname, 0, 1, 1)
    sys.exit(1)
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
 
 inputFile = PipGetNonOptionArg(0)
 outputFile = PipGetNonOptionArg(1)

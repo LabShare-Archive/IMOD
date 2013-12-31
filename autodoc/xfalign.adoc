@@ -263,3 +263,9 @@ usage = Section number entries are numbered from 1 instead of from 0
 tooltip =
 manpage = Section numbers in the -skip and -break section list entries are
 numbered from 1 instead of from 0.
+
+[Field = PID]
+type = B
+usage = Print process ID
+tooltip =
+manpage = 

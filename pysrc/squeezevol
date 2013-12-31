@@ -40,7 +40,7 @@ OutputFile = ""
 # Fallbacks from ../manpages/autodoc2man 3 1 squeezevol
 options = ["f:factor:F:", "e:expand:F:", "x:xFactor:F:", "y:yFactor:F:", "z:zFactor:F:",
            "ix:ixSize:I:", "iy:iySize:I:", "iz:izSize:I:", "t:tempdir:FN:",
-           "l:linear:B:"]
+           "l:linear:B:", ":PID:B:"]
 
 #
 # Process command-line using PIP
@@ -49,6 +49,10 @@ if nonopts != 2:
    prnstr(prefix + "wrong number of arguments")
    PipPrintHelp(progname, 0, 1, 1)
    sys.exit(1)
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
+
 InputFile = PipGetNonOptionArg(0)
 OutputFile = PipGetNonOptionArg(1)
 if not os.path.exists(InputFile):

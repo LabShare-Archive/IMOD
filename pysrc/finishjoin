@@ -50,9 +50,12 @@ options = ["name:RootName:CH:", "use:UseSliceRange:IPM:", "ref:ReferenceTomogram
            "size:SizeInXandY:IP:", "offset:OffsetInXandY:IP:", "angle:AngleRange:F:",
            "trial:TrialInterval:I:", "binning:BinningForTrial:I:",
            "maxsize:MaximumSizeOnly:B:", "local:LocalFits:B:",
-           "xform:TransformFile:FN:", "gaps:FillGaps:B:", "no:NoImage:B:"]
+           "xform:TransformFile:FN:", "gaps:FillGaps:B:", "no:NoImage:B:", ":PID:B:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 3, 0, 0)
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
 
 joinroot = PipGetInOutFile('RootName', 0)
 

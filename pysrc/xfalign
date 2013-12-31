@@ -113,9 +113,12 @@ options = [":InputImageFile:FN:", ":OutputTransformFile:FN:", "size:SizeToAnalyz
            "shift:ShiftLimitsForWarp:IP:", "skip:SkipSections:LI:",
            "break:BreakAtSections:LI:", "bpair:PairedImages:B:",
            "tomo:TomogramAverages:B:", "diff:DifferenceOutput:B:",
-           "one:SectionsNumberedFromOne:B:"]
+           "one:SectionsNumberedFromOne:B:", ":PID:B:"]
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 1, 1)
 passOnKeyInterrupt(True)
+
+doPID = PipGetBoolean('PID', 0)
+printPID(doPID)
 
 infile = PipGetInOutFile('InputImageFile', 0)
 if not infile:

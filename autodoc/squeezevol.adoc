@@ -71,3 +71,9 @@ type = B
 usage = Use linear interpolation; default is quadratic
 tooltip =
 manpage =
+
+[Field = PID]
+type = B
+usage = Print process ID
+tooltip =
+manpage = 
