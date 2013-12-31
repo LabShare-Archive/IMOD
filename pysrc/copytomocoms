@@ -254,24 +254,9 @@ else:
    stackname = rootname + "a.st"
    piecename = rootname + "a.pl"
 
-# On Windows, make sure the current directory is rxw, first try the cygwin command
-# then use the system command and warn if it fails.  Windows python may be useless at this
-# When the directory is set -rwx, its running of chmod gives permission denied, it sees
-# 777 from os.stat and os.chmod has no effect
-# 12/13/13: At least in Cygwin, some Win 7 systems have files with --------- for
-# permissions and this test failed with no consequence; so finish with real test
-if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
-   try:
-      runcmd('chmod u+rwx .')
-   except ImodpyError:
-      mode = stat.S_IMODE(os.stat('.')[stat.ST_MODE])
-      try:
-         os.chmod('.', mode | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-      except Exception:
-         errStr = writeTextFile('writetest.tmp', ['Test for writability'], True)
-         cleanupFiles(['writetest.tmp'])
-         if errStr:
-            exitError('Cannot make the current directory writable or write files to it')
+# On Windows, make sure the current directory is rxw or at least writeable
+if makeCurrentDirWritable():
+   exitError('Cannot make the current directory writable or write files to it')
 
 # Copy a distortion file to the current directory if it is elsewhere
 if distort:
