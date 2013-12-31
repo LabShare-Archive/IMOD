@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import etomo.Arguments.DebugLevel;
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
@@ -33,6 +35,7 @@ public class LoadAverageParam implements IntermittentCommand {
   private String[] remoteStartCommandArray = null;
   private String intermittentCommand = null;
   private String endCommand = null;
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   public final static LoadAverageParam getInstance(String computer, BaseManager manager) {
     LoadAverageParam loadAverageParam = (LoadAverageParam) instances.get(computer);
@@ -105,8 +108,17 @@ public class LoadAverageParam implements IntermittentCommand {
     }
     int commandSize = command.size();
     localStartCommandArray = new String[commandSize];
+    if (debug.isVerbose()) {
+      System.err.print("local start command:");
+    }
     for (int i = 0; i < commandSize; i++) {
       localStartCommandArray[i] = (String) command.get(i);
+      if (debug.isVerbose()) {
+        System.err.print((String) command.get(i) + " ");
+      }
+    }
+    if (debug.isVerbose()) {
+      System.err.println();
     }
   }
 
