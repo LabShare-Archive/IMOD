@@ -63,10 +63,10 @@ public final class RunraptorParam {
   }
 
   private void buildCommand() {
-    command.add("bash");
-    command.add(BaseManager.getIMODBinPath() + "runpyscript");
+    command.add("python");
+    command.add("-u");
+    command.add(BaseManager.getIMODBinPath() + ProcessName.RUNRAPTOR.toString());
     command.add("-P");
-    command.add(ProcessName.RUNRAPTOR.toString());
     command.add("-" + DIAM_OPTION);
     command.add(diam.toString());
     command.add("-" + MARK_OPTION);

@@ -255,7 +255,7 @@ public final class FinishjoinParam implements CommandDetails {
   private File outputFile;
   private Mode mode;
   private final JoinManager manager;
-  //set in genOptions
+  // set in genOptions
   private EtomoNumber alignmentRefSection = null;
   private ScriptParameter sizeInX = null;
   private ScriptParameter sizeInY = null;
@@ -265,7 +265,7 @@ public final class FinishjoinParam implements CommandDetails {
   private IntKeyList joinEndList = null;
   private ScriptParameter binning = null;
   private EtomoNumber useEveryNSlices = null;
-  //set in getRejoinOptions
+  // set in getRejoinOptions
   private IntKeyList refineStartList = null;
   private IntKeyList refineEndList = null;
   private EtomoBoolean2 localFits = null;
@@ -295,10 +295,10 @@ public final class FinishjoinParam implements CommandDetails {
     }
     int commandSize = 4;
     commandArray = new String[options.size() + commandSize];
-    commandArray[0] = "bash";
-    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
-    commandArray[2] = "-P";
-    commandArray[3] = COMMAND_NAME;
+    commandArray[0] = "python";
+    commandArray[1] = "-u";
+    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+    commandArray[3] = "-P";
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
@@ -494,28 +494,28 @@ public final class FinishjoinParam implements CommandDetails {
    */
   private ArrayList genOptions() {
     ArrayList options = new ArrayList();
-    //options.add("-P");
+    // options.add("-P");
     ConstJoinMetaData metaData = manager.getConstMetaData();
     if (metaData.isUseAlignmentRefSection()) {
       alignmentRefSection = new EtomoNumber(metaData.getAlignmentRefSection());
       options.add("-r");
       options.add(alignmentRefSection.toString());
     }
-    //Add optional size
+    // Add optional size
     sizeInX = new ScriptParameter(metaData.getSizeInXParameter());
     sizeInY = new ScriptParameter(metaData.getSizeInYParameter());
     if (sizeInX.isNotNullAndNotDefault() || sizeInY.isNotNullAndNotDefault()) {
       options.add("-s");
-      //both numbers must exist
+      // both numbers must exist
       options.add(sizeInX.toString() + "," + sizeInY.toString());
     }
-    //Add optional offset
+    // Add optional offset
     shiftInX = new ScriptParameter(metaData.getShiftInXParameter());
     shiftInY = new ScriptParameter(metaData.getShiftInYParameter());
     if (shiftInX.isNotNullAndNotDefault() || shiftInY.isNotNullAndNotDefault()) {
       options.add("-o");
-      //both numbers must exist
-      //offset is a negative shift
+      // both numbers must exist
+      // offset is a negative shift
       options.add(Integer.toString(shiftInX.getInt() * -1) + ","
           + Integer.toString(shiftInY.getInt() * -1));
     }
@@ -546,7 +546,7 @@ public final class FinishjoinParam implements CommandDetails {
       ConstSectionTableRowData data = (SectionTableRowData) sectionData.get(i);
       joinStartList.put(i, data.getJoinFinalStart());
       joinEndList.put(i, data.getJoinFinalEnd());
-      //both numbers must exist
+      // both numbers must exist
       options.add(data.getJoinFinalStart() + "," + data.getJoinFinalEnd());
     }
     return options;
@@ -559,27 +559,27 @@ public final class FinishjoinParam implements CommandDetails {
    */
   private ArrayList genRejoinOptions() {
     ArrayList options = new ArrayList();
-    //options.add("-P");
+    // options.add("-P");
     ConstJoinState state = manager.getState();
     boolean trial = state.getRefineTrial().is();
     if (!state.getJoinAlignmentRefSection(trial).isNull()) {
       options.add("-r");
       options.add(state.getJoinAlignmentRefSection(trial).toString());
     }
-    //Add optional size
+    // Add optional size
     if (state.getJoinSizeInXParameter(trial).isNotNullAndNotDefault()
         || state.getJoinSizeInYParameter(trial).isNotNullAndNotDefault()) {
       options.add("-s");
-      //both numbers must exist
+      // both numbers must exist
       options.add(state.getJoinSizeInX(trial).toString() + ","
           + state.getJoinSizeInY(trial).toString());
     }
-    //Add optional offset
+    // Add optional offset
     if (state.getJoinShiftInXParameter(trial).isNotNullAndNotDefault()
         || state.getJoinShiftInYParameter(trial).isNotNullAndNotDefault()) {
       options.add("-o");
-      //both numbers must exist
-      //offset is a negative shift
+      // both numbers must exist
+      // offset is a negative shift
       options.add(Integer.toString(state.getJoinShiftInX(trial).getInt() * -1) + ","
           + Integer.toString(state.getJoinShiftInY(trial).getInt() * -1));
     }
@@ -604,34 +604,34 @@ public final class FinishjoinParam implements CommandDetails {
     options.add(rootName);
     ConstJoinMetaData metaData = manager.getConstMetaData();
     ArrayList sectionData = metaData.getSectionTableData();
-    //The first start and end:  start comes from join final start and end comes
-    //from the boundary table
+    // The first start and end: start comes from join final start and end comes
+    // from the boundary table
     IntKeyList.Walker startListWalker = state.getJoinStartListWalker(trial);
     IntKeyList.Walker endListWalker = state.getJoinEndListWalker(trial);
     IntKeyList.Walker gapStartListWalker = metaData.getBoundaryRowStartListWalker();
     IntKeyList.Walker gapEndListWalker = metaData.getBoundaryRowEndListWalker();
-    //Make sure that lists are valid
+    // Make sure that lists are valid
     int numRows = startListWalker.size();
-    //Build the refine start and end list, so it can be sent to the join state
+    // Build the refine start and end list, so it can be sent to the join state
     refineStartList = IntKeyList.getNumberInstance();
     refineEndList = IntKeyList.getNumberInstance();
     if (numRows >= 2 && numRows == endListWalker.size()
         && numRows == gapStartListWalker.size() + 1
         && numRows == gapEndListWalker.size() + 1) {
-      //Add the first first and end pair.  Start comes from join final start and
-      //end comes from the boundary table
+      // Add the first first and end pair. Start comes from join final start and
+      // end comes from the boundary table
       ConstEtomoNumber start = startListWalker.nextEtomoNumber();
       ConstEtomoNumber end = gapEndListWalker.nextEtomoNumber();
       options.add(start + "," + end);
-      //set the first key (first row index) from the join start list.  Then add
-      //the rows in order, incrementing the key by 1 each time
+      // set the first key (first row index) from the join start list. Then add
+      // the rows in order, incrementing the key by 1 each time
       refineStartList.reset(1);
       refineEndList.reset(1);
       refineStartList.add(start);
       refineEndList.add(end);
-      //The middle start and end pairs come from the boundary table
-      //while look should end when gapEndListWalker runs out of values (its ahead
-      //of gapStartListWalker by 1).
+      // The middle start and end pairs come from the boundary table
+      // while look should end when gapEndListWalker runs out of values (its ahead
+      // of gapStartListWalker by 1).
       while (gapEndListWalker.hasNext()) {
         start = gapStartListWalker.nextEtomoNumber();
         end = gapEndListWalker.nextEtomoNumber();
@@ -639,8 +639,8 @@ public final class FinishjoinParam implements CommandDetails {
         refineStartList.add(start);
         refineEndList.add(end);
       }
-      //The last start and end:  start comes from the boundary table and end comes from
-      //the last join final end.
+      // The last start and end: start comes from the boundary table and end comes from
+      // the last join final end.
       start = gapStartListWalker.nextEtomoNumber();
       end = endListWalker.getLastEtomoNumber();
       options.add(start + "," + end);

@@ -172,10 +172,8 @@ public final class TransferfidParam implements Storable {
   // null => both, -1 => -90, 1=> +90
   private final EtomoNumber searchDirection = new EtomoNumber(EtomoNumber.Type.INTEGER,
       "SearchDirection");
-  private final EtomoNumber centerViewA = new EtomoNumber(
-      "CenterViewA");
-  private final EtomoNumber centerViewB = new EtomoNumber(
-      "CenterViewB");
+  private final EtomoNumber centerViewA = new EtomoNumber("CenterViewA");
+  private final EtomoNumber centerViewB = new EtomoNumber("CenterViewB");
   private final ScriptParameter numberViews = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "NumberViews");
   private final EtomoBoolean2 mirrorInX = new EtomoBoolean2("MirrorInX");
@@ -329,10 +327,10 @@ public final class TransferfidParam implements Storable {
     // of commands and then report appropriately. The exception to this is the
     // com scripts which require the -e flag. RJG: 2003-11-06
     List<String> command = new ArrayList<String>();
-    command.add("bash");
-    command.add(ApplicationManager.getIMODBinPath() + "runpyscript");
+    command.add("python");
+    command.add("-u");
+    command.add(ApplicationManager.getIMODBinPath() + "transferfid");
     command.add("-P");
-    command.add("transferfid");
 
     if (bToA.is()) {
       command.add("-b");

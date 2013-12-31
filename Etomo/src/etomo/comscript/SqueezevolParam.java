@@ -144,8 +144,8 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     reductionFactorY.load(props, prepend);
     reductionFactorZ.load(props, prepend);
     linearInterpolation = Boolean.valueOf(
-        props.getProperty(group + LINEAR_INTERPOLATION_STRING, Boolean
-            .toString(DEFAULT_LINEAR_INTERPOLATION))).booleanValue();
+        props.getProperty(group + LINEAR_INTERPOLATION_STRING,
+            Boolean.toString(DEFAULT_LINEAR_INTERPOLATION))).booleanValue();
   }
 
   public ConstEtomoNumber setReductionFactorX(final String reductionFactorX) {
@@ -203,7 +203,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
       options.add("-l");
     }
     options.add(inputFile);
-    //output is dataset.sqz
+    // output is dataset.sqz
     outputFile = ImageFileType.SQUEEZE_VOL_OUTPUT.getFile(manager);
     options.add(outputFile.getName());
     return options;
@@ -232,8 +232,8 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     reductionFactorX.store(props, prepend);
     reductionFactorY.store(props, prepend);
     reductionFactorZ.store(props, prepend);
-    props.setProperty(group + LINEAR_INTERPOLATION_STRING, Boolean
-        .toString(linearInterpolation));
+    props.setProperty(group + LINEAR_INTERPOLATION_STRING,
+        Boolean.toString(linearInterpolation));
   }
 
   private static String createPrepend(final String prepend) {
@@ -246,10 +246,10 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
   private void createCommand() {
     ArrayList options = genOptions();
     commandArray = new String[options.size() + COMMAND_SIZE];
-    commandArray[0] = "bash";
-    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
-    commandArray[2] = "-P";
-    commandArray[3] = COMMAND_NAME;
+    commandArray[0] = "python";
+    commandArray[1] = "-u";
+    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+    commandArray[3] = "-P";
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + COMMAND_SIZE] = (String) options.get(i);
     }

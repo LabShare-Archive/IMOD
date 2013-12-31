@@ -371,10 +371,10 @@ public class TrimvolParam implements CommandDetails {
     // Do not use the -e flag for tcsh since David's scripts handle the failure
     // of commands and then report appropriately. The exception to this is the
     // com scripts which require the -e flag. RJG: 2003-11-06
-    commandArray[0] = "bash";
-    commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
-    commandArray[2] = "-P";
-    commandArray[3] = commandName;
+    commandArray[0] = "python";
+    commandArray[1] = "-u";
+    commandArray[2] = BaseManager.getIMODBinPath() + commandName;
+    commandArray[3] = "-P";
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = options.get(i);
     }
