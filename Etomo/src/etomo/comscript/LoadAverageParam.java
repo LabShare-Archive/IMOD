@@ -92,19 +92,24 @@ public class LoadAverageParam implements IntermittentCommand {
 
   private final void buildLocalStartCommand() {
     ArrayList command = new ArrayList();
-    // If the user is a bash user, a bad .cshrc might cause local load average to
-    // fail without causing any other symptoms. So its safer to use the bash
-    // shell for a bash user.
-    // Use bash as the default. Use tcsh only when it is set in $SHELL.
-    String tcshShell = "tcsh";
-    String shell = EnvironmentVariable.INSTANCE.getValue(manager,
-        manager.getPropertyUserDir(), "SHELL", AxisID.ONLY);
-    if (shell != null && shell.indexOf(tcshShell) != -1) {
-      command.add(tcshShell);
+    if (Utilities.isWindowsOS()) {
+      command.add("cmd");
     }
     else {
-      System.err.println("Running a bash shell in buildLocalStartCommand");
-      command.add("bash");
+      // If the user is a bash user, a bad .cshrc might cause local load average to
+      // fail without causing any other symptoms. So its safer to use the bash
+      // shell for a bash user.
+      // Use bash as the default. Use tcsh only when it is set in $SHELL.
+      String tcshShell = "tcsh";
+      String shell = EnvironmentVariable.INSTANCE.getValue(manager,
+          manager.getPropertyUserDir(), "SHELL", AxisID.ONLY);
+      if (shell != null && shell.indexOf(tcshShell) != -1) {
+        command.add(tcshShell);
+      }
+      else {
+        System.err.println("Running a bash shell in buildLocalStartCommand");
+        command.add("bash");
+      }
     }
     int commandSize = command.size();
     localStartCommandArray = new String[commandSize];
