@@ -908,7 +908,8 @@ def imodTempDir():
    imodtemp = getCygpath(windows, '/tmp')
    if os.path.exists(imodtemp) and os.access(imodtemp, os.W_OK):
       return imodtemp
-   return None
+   return '.'
+
 
 # Set the appropriate path variables for executing Qt programs if IMOD_QTLIBDIR is defined
 def setLibPath():
