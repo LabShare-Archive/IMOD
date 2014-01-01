@@ -50,7 +50,7 @@ This module provides the following functions:
 """
 
 # other modules needed by imodpy
-import sys, os, re, time, glob, signal
+import sys, os, re, time, glob, signal, stat
 from pip import exitError
 
 pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
@@ -803,7 +803,7 @@ def cleanupFiles(files):
 def getCygpath(windows, path):
    if windows:
       try:
-         cygtemp = runcmd('cygpath -m ' + path)
+         cygtemp = runcmd('cygpath -m ' + path, inStderr = 'stdout')
          if cygtemp != None and len(cygtemp) > 0:
             return cygtemp[0].strip()
       except Exception:
@@ -815,7 +815,7 @@ def getCygpath(windows, path):
 def cygwinPath(path):
    if 'cygwin' in sys.platform:
       try:
-         cygtemp = runcmd('cygpath "' + path + '"')
+         cygtemp = runcmd('cygpath "' + path + '"', inStderr = 'stdout')
          if cygtemp != None and len(cygtemp) > 0:
             return cygtemp[0].strip()
       except Exception:
@@ -851,7 +851,7 @@ def printPID(doPrint):
 def imodIsAbsPath(path):
    if 'cygwin' in sys.platform:
       try:
-         pathlines = runcmd('cygpath "' + path + '"')
+         pathlines = runcmd('cygpath "' + path + '"', inStderr = 'stdout')
          if len(pathlines):
             path = pathlines[0]
       except Exception:
@@ -969,7 +969,7 @@ def makeCurrentDirWritable():
    if not ('win32' in sys.platform  or 'cygwin' in sys.platform):
       return None
    try:
-      runcmd('chmod u+rwx .')
+      runcmd('chmod u+rwx .', inStderr = 'stdout')
    except ImodpyError:
       mode = stat.S_IMODE(os.stat('.')[stat.ST_MODE])
       try:
