@@ -3,10 +3,6 @@
  *
  *  $Id$
  *
- *  $Log$
- *  Revision 1.3  2007/05/31 16:34:31  mast
- *  Took out of slicer and made separate so zap could use it too
- *
  */
 #ifndef HOTTOOLBAR_H
 #define HOTTOOLBAR_H
@@ -14,6 +10,7 @@
 #include <qtoolbar.h>
 //Added by qt3to4:
 #include <QKeyEvent>
+class QContextMenuEvent;
 
 /* 
  * A HotToolBar emits keyPress( QKeyEvent * e) and keyRelease( QKeyEvent * e)
@@ -33,10 +30,12 @@ class HotToolBar : public QToolBar
  signals:
   void keyPress(QKeyEvent *e);
   void keyRelease(QKeyEvent *e);
+  void contextMenu(QContextMenuEvent *e);
 
  protected:
   void keyPressEvent ( QKeyEvent * e ) {emit keyPress(e);};
   void keyReleaseEvent ( QKeyEvent * e ) {emit keyRelease(e);};
+  void contextMenuEvent(QContextMenuEvent *e) {emit contextMenu(e);};
 };
 
 #endif
