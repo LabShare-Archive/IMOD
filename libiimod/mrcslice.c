@@ -792,7 +792,7 @@ int sliceWrapFFTLines(Islice *s, int direction)
   if (!buf)
     return 2;
   if (pixsize == 8) {
-    wrapFFTslice(s->data.f, buf, nx, ny, direction);
+    wrapFFTslice(s->data.f, (float *)buf, nx, ny, direction);
     return 0;
   }
 
@@ -946,12 +946,12 @@ Islice *sliceReadSubm(MrcHeader *hin,
   switch(axis){
   case 'x':
   case 'X':
-    nx = hin->nx;
+    nx = hin->ny;
     ny = hin->nz;
     break;
   case 'y':
   case 'Y':
-    nx = hin->ny;
+    nx = hin->nx;
     ny = hin->nz;
     break;
   case 'z':
