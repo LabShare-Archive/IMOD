@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/1/14: Fixes in 3dmod for problems with toolbar and popup menu and new model
+view tool windows.
+
 12/31/13: IMOD_4-6-34
 12/25/13: Changed description of hot keys in help files and tooltips to show
 plain letter as upper instead of lower case (S not s) and shifted letter with
