@@ -2956,8 +2956,7 @@ void SlicerFuncs::resizeToFit()
  */
 void SlicerFuncs::resizeBandToWindow()
 {
-  int width, height, neww, newh;
-  int dx, dy, newdx, newdy, axis;
+  int axis;
   float current, axisComp;
   Ipoint norm;
 
