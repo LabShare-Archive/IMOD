@@ -15,7 +15,8 @@ C
 C       
       INTEGER LCV
 C       
-      DO LCV = 1, LEN(ATBUTE)
+      at2 = ''
+      DO LCV = 1, min(LEN(ATBUTE), len(at2))
         IF (ATBUTE(LCV:LCV) .GE. 'a' .AND.
      &      ATBUTE(LCV:LCV) .LE. 'z') THEN
           AT2(LCV:LCV) = CHAR(ICHAR(ATBUTE(LCV:LCV)) - 32)
