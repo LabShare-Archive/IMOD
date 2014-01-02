@@ -10,7 +10,6 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 
@@ -119,6 +118,7 @@ int main( int argc, char *argv[])
 
   char *progname = imodProgName(argv[0]);
   LIp = &li;
+  mrc_init_li(&li, NULL);
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -1196,52 +1196,3 @@ static int itemOnList(int item, int *list, int num)
       return i;
   return -2;
 }
-
-/*
-
-$Log$
-Revision 3.17  2011/09/11 23:56:25  mast
-Preserve pixel size
-
-Revision 3.16  2011/03/05 03:36:08  mast
-Allow environment variable to prevent backing up file
-
-Revision 3.15  2011/02/23 15:24:51  mast
-Output FFT mask as real component only
-
-Revision 3.14  2011/02/21 18:17:37  mast
-Added exact evaluation inside contours, options for mask output, padding,
-tapering over pad region, using contours or points on all sections, and
-changing the output mode.
-
-Revision 3.13  2009/02/27 17:13:35  mast
-Fixed 3D scattered point function, broken by adding planar tubes
-
-Revision 3.12  2009/01/08 00:00:54  mast
-Added option for planar tubes
-
-Revision 3.11  2008/05/02 16:07:47  mast
-Fixed bug in painting tube when points are too far apart in Z
-
-Revision 3.10  2008/01/28 19:42:42  mast
-Added includes for pip and getenv
-
-Revision 3.9  2007/11/28 06:13:10  mast
-Added option to extract just around objects, fixed bug in tube painting
-if empty contours
-
-Revision 3.8  2007/05/18 20:19:49  mast
-But don't reverse zero if no fill value entered!
-
-Revision 3.7  2007/05/18 20:12:38  mast
-Reverse the fill value if reverse is used, test on that
-
-Revision 3.6  2007/05/18 19:05:52  mast
-Added options to specify a background fill value and color
-
-Revision 3.5  2007/04/26 19:15:05  mast
-New version, completely rewritten, adding color, projection, scattered
-point, tube, FFT, and scaling capabilities/
-
-
-*/
