@@ -9,7 +9,8 @@ OBJS = dopen.$(O) getinout.$(O) mypause.$(O) \
  xfcopy3d.$(O) xfinv3d.$(O) indmap.$(O) ialsiz_sam_cel.$(O) get_nxyz.$(O) \
  get_extra_header_pieces.$(O) get_extra_header_tilts.$(O) temp_filename.$(O) \
  taperinvol.$(O) setctf.$(O) parse_input_params.$(O) parallel_write.$(O) \
- getbinnedsize.$(O) set_projection_rays.$(O) objtocont.$(O) b3ddate.$(O)
+ getbinnedsize.$(O) set_projection_rays.$(O) objtocont.$(O) b3ddate.$(O) b3dxor.$(O) \
+ inside.$(O) strupcase.$(O)
 
 
 all: $(OBJS)
