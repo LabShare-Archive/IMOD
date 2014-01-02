@@ -337,8 +337,8 @@ program alterheader
   ! FIXPIECES - Remove flag for piece coordinates from header
   !
 13 write(*,123)
-123 format(' Marking header as not containing any ', &
-      'piece coordinates.')
+123 format(' Marking header as not containing any piece coordinates.',/, &
+        ' This will make other extended header data inaccessible')
   call irtsymtyp(2, nbytex, iflag)
   if (mod(iflag / 2, 2) > 0) iflag = iflag - 2
   call ialsymtyp(2, nbytex, iflag)

@@ -288,12 +288,12 @@ program newstack
     call irdhdr(1, nxyz, mxyz, mode, dmin2, dmax2, dmean2)
     if (mode == 16) call exitError('CANNOT WORK DIRECTLY WITH COLOR DATA'// &
         ' (MODE 16); USE COLORNEWST INSTEAD')
-    call imclose(1)
     if (indFile == 1) then
       nxFirst = nx
       nyFirst = ny
       call irtdel(1, deltafirst)
     endif
+    call imclose(1)
     nxMax = max(nx, nxMax)
     nyMax = max(ny, nyMax)
     nlist(indFile) = nz
