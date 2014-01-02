@@ -232,7 +232,7 @@ if lenfirst == 6 or warping:
          except ImodpyError:
             try:
                os.chmod(tomoxf, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-            except:
+            except Exception:
                pass
 
    # Otherwise, need to start with a unit transform line and
