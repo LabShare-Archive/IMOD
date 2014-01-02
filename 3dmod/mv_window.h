@@ -78,6 +78,7 @@ public slots:
   void movieButToggled(bool state);
   void rotationClosing();
   void rotationKeyPress(QKeyEvent *e);
+  void resizerKeyPress(QKeyEvent *e);
   void rotationKeyRelease(QKeyEvent *e);
   void resizerClosing();
   void newResizerSize(int sizeX, int sizeY);
