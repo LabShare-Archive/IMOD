@@ -225,12 +225,15 @@ if lenfirst == 6 or warping:
 
       # Persistent broken pipes even in RHEL5/python 2.4, so just do in Windows
       # Surely this is there just for Windows...
-      if sys.platform.find('win32') >= 0 or sys.platform.find('cygwin') >= 0:
+      # And don't bother to give a message unless someone has a problem
+      if 'win32' in sys.platform or 'cygwin' in sys.platform:
          try:
             runcmd('chmod u+rw ' + tomoxf)
          except ImodpyError:
-            prnstr('WARNING: ' + progname + \
-                   ' - Error running command to set permissions of ' + tomoxf)
+            try:
+               os.chmod(tomoxf, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+            except:
+               pass
 
    # Otherwise, need to start with a unit transform line and
    else:
