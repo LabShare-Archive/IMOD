@@ -23,6 +23,7 @@
 #include <qtoolbar.h>
 #include <qbitmap.h>
 #include <QBoxLayout>
+#include <qmainwindow.h>
 #include <qsignalmapper.h>
 
 //Added by qt3to4:
@@ -42,6 +43,7 @@
 #include "imod_assistant.h"
 #include "dia_qtutils.h"  
 #include "tooledit.h"
+#include "hottoolbar.h"
 #include "arrowbutton.h"
 #include "scalebar.h"
 
@@ -51,79 +53,79 @@
 
 // For popup menus
 PopupEntry sDefaultActions[] = {
-  {"Go to next/previous item", -1, 0, 0},
-  {"Go to previous object", Qt::Key_O, 0, 0},
-  {"Go to next object", Qt::Key_P, 0, 0},
-  {"Go to previous contour", Qt::Key_C, 0, 0},
-  {"Go to next contour", Qt::Key_C, 0, 1},
-  {"Go to previous contour in surface", Qt::Key_5, 0, 0},
-  {"Go to next contour in surface", Qt::Key_6, 0, 0},
-  {"Go to previous point", Qt::Key_BracketLeft, 0, 0},
-  {"Go to next point", Qt::Key_BracketRight, 0, 0},
-  {"Go to first point in contour", Qt::Key_BraceLeft, 0, 0},
-  {"Go to last point in contour", Qt::Key_BraceRight, 0, 0},
-  {"Unselect current point", Qt::Key_E, 0, 0},
-  {"Unselect current contour", Qt::Key_E, 0, 1},
-  {"Add/Delete/Change items", -1, 0, 0},
-  {"Create a new object", Qt::Key_0, 0, 0},
-  {"New surface (starts a new contour)", Qt::Key_N, 0, 1},
-  {"Start a new contour", Qt::Key_N, 0, 0},
-  {"Delete current model point", Qt::Key_Delete, 0, 0},
-  {"Delete current contour", Qt::Key_D, 0, 1},
-  {"Truncate current contour at current point", Qt::Key_D, 1, 0},
-  {"Delete current surface", Qt::Key_D, 1, 1},
-  {"Move contour to selected object or surface", Qt::Key_M, 0, 1},
-  {"Copy contour (when Contour Copy is open)", Qt::Key_K, 0, 0},
-  {"Join selected contours", Qt::Key_J, 0, 1},
-  {"Break contour (when Contour Break is open)", Qt::Key_B, 1, 0},
-  {"Toggle contour(s) between open and closed", Qt::Key_O, 0, 1},
-  {"Toggle gap between current and next point", Qt::Key_G, 1, 0},
-  {"Display controls", -1, 0, 0},
-  {"Toggle model edit mode and movie mode", Qt::Key_M, 0, 0},
-  {"Toggle model drawing on/off", Qt::Key_T, 0, 0},
-  {"Toggle current point markers on/off", Qt::Key_T, 0, 1},
-  {"Toggle current object on/off", Qt::Key_T, 1, 0},
-  {"Toggle nearby contour ghost drawing", Qt::Key_G, 0, 0},
-  {"Autocontrast", Qt::Key_A, 0, 1},
-  {"Decrease Black level", Qt::Key_F1, 0, 0},
-  {"Increase Black level", Qt::Key_F2, 0, 0},
-  {"Decrease White level", Qt::Key_F3, 0, 0},
-  {"Increase White level", Qt::Key_F4, 0, 0},
-  {"Decrease contrast", Qt::Key_F5, 0, 0},
-  {"Increase contrast", Qt::Key_F6, 0, 0},
-  {"Decrease brightness", Qt::Key_F7, 0, 0},
-  {"Increase brightness", Qt::Key_F8, 0, 0},
-  {"Invert contrast", Qt::Key_F11, 0, 0},
-  {"Toggle false color", Qt::Key_F12, 0, 0},
-  {"Movies && Z/Time changes", -1, 0, 0},
-  {"Toggle movie forward in Z", Qt::Key_NumberSign, 0, 0},
-  {"Toggle movie forward in time", Qt::Key_3, 0, 0},
-  {"Decrease movie speed", Qt::Key_Comma, 0, 0},
-  {"Increase movie speed", Qt::Key_Period, 0, 0},
-  {"Go to Z = 1", Qt::Key_End, 0, 0},
-  {"Go to maximum Z", Qt::Key_Home, 0, 0},
-  {"Go to middle Z", Qt::Key_Insert, 0, 0},
-  {"Go to first image file", Qt::Key_Exclam, 0, 0},
-  {"Go to last image file", Qt::Key_At, 0, 0},
-  {"Window Control", -1, 0, 0},
-  {"Raise all 3dmod windows", Qt::Key_R, 1, 0},
-  {"Open Slicer window", Qt::Key_Backslash, 0, 0},
-  {"Open Zap window (except in Slicer)", Qt::Key_Z, 0, 0},
-  {"Open Graph window", Qt::Key_G, 0, 1},
-  {"Open Model View window", Qt::Key_V, 0, 0},
-  {"Open Isosurface in Model View window", Qt::Key_U, 0, 1},
-  {"", -2, 0, 0},
-  {"", -3, 0, 0},
-  {"Make TIFF snapshot of window", Qt::Key_S, 1, 0},
-  {"Make non-TIFF snapshot of window", Qt::Key_S, 0, 1},
-  {"Make 2nd nonTIFF format snapshot of window", Qt::Key_S, 1, 1},
-  {"", -3, 0, 0},
-  {"Print current pixel value in Info window", Qt::Key_F, 0, 0},
-  {"Print maximum pixel within 10 pixels", Qt::Key_F, 0, 1},
-  {"Save model to file", Qt::Key_S, 0, 0},
-  {"Undo changes to the model", Qt::Key_Z, 1, 0},
-  {"Redo model changes that were undone", Qt::Key_Y, 1, 0},
-  {"", 0, 0, 0}};
+  {"Go to next/previous item", -1, 0, 0, 0},
+  {"Go to previous object", Qt::Key_O, 0, 0, 0},
+  {"Go to next object", Qt::Key_P, 0, 0, 0},
+  {"Go to previous contour", Qt::Key_C, 0, 0, 0},
+  {"Go to next contour", Qt::Key_C, 0, 1, 0},
+  {"Go to previous contour in surface", Qt::Key_5, 0, 0, 0},
+  {"Go to next contour in surface", Qt::Key_6, 0, 0, 0},
+  {"Go to previous point", Qt::Key_BracketLeft, 0, 0, 0},
+  {"Go to next point", Qt::Key_BracketRight, 0, 0, 0},
+  {"Go to first point in contour", Qt::Key_BraceLeft, 0, 0, 0},
+  {"Go to last point in contour", Qt::Key_BraceRight, 0, 0, 0},
+  {"Unselect current point", Qt::Key_E, 0, 0, 0},
+  {"Unselect current contour", Qt::Key_E, 0, 1, 0},
+  {"Add/Delete/Change items", -1, 0, 0, 0},
+  {"Create a new object", Qt::Key_0, 0, 0, 0},
+  {"New surface (starts a new contour)", Qt::Key_N, 0, 1, 0},
+  {"Start a new contour", Qt::Key_N, 0, 0, 0},
+  {"Delete current model point", Qt::Key_Delete, 0, 0, 0},
+  {"Delete current contour", Qt::Key_D, 0, 1, 0},
+  {"Truncate current contour at current point", Qt::Key_D, 1, 0, 0},
+  {"Delete current surface", Qt::Key_D, 1, 1, 0},
+  {"Move contour to selected object or surface", Qt::Key_M, 0, 1, 0},
+  {"Copy contour (when Contour Copy is open)", Qt::Key_K, 0, 0, 0},
+  {"Join selected contours", Qt::Key_J, 0, 1, 0},
+  {"Break contour (when Contour Break is open)", Qt::Key_B, 1, 0, 0},
+  {"Toggle contour(s) between open and closed", Qt::Key_O, 0, 1, 0},
+  {"Toggle gap between current and next point", Qt::Key_G, 1, 0, 0},
+  {"Display controls", -1, 0, 0, 0},
+  {"Toggle model edit mode and movie mode", Qt::Key_M, 0, 0, 0},
+  {"Toggle model drawing on/off", Qt::Key_T, 0, 0, 0},
+  {"Toggle current point markers on/off", Qt::Key_T, 0, 1, 0},
+  {"Toggle current object on/off", Qt::Key_T, 1, 0, 0},
+  {"Toggle nearby contour ghost drawing", Qt::Key_G, 0, 0, 0},
+  {"Autocontrast", Qt::Key_A, 0, 1, 0},
+  {"Decrease Black level", Qt::Key_F1, 0, 0, 0},
+  {"Increase Black level", Qt::Key_F2, 0, 0, 0},
+  {"Decrease White level", Qt::Key_F3, 0, 0, 0},
+  {"Increase White level", Qt::Key_F4, 0, 0, 0},
+  {"Decrease contrast", Qt::Key_F5, 0, 0, 0},
+  {"Increase contrast", Qt::Key_F6, 0, 0, 0},
+  {"Decrease brightness", Qt::Key_F7, 0, 0, 0},
+  {"Increase brightness", Qt::Key_F8, 0, 0, 0},
+  {"Invert contrast", Qt::Key_F11, 0, 0, 0},
+  {"Toggle false color", Qt::Key_F12, 0, 0, 0},
+  {"Movies && Z/Time changes", -1, 0, 0, 0},
+  {"Toggle movie forward in Z", Qt::Key_NumberSign, 0, 0, 0},
+  {"Toggle movie forward in time", Qt::Key_3, 0, 0, 0},
+  {"Decrease movie speed", Qt::Key_Comma, 0, 0, 0},
+  {"Increase movie speed", Qt::Key_Period, 0, 0, 0},
+  {"Go to Z = 1", Qt::Key_End, 0, 0, 0},
+  {"Go to maximum Z", Qt::Key_Home, 0, 0, 0},
+  {"Go to middle Z", Qt::Key_Insert, 0, 0, 0},
+  {"Go to first image file", Qt::Key_Exclam, 0, 0, 0},
+  {"Go to last image file", Qt::Key_At, 0, 0, 0},
+  {"Window Control", -1, 0, 0, 0},
+  {"Raise all 3dmod windows", Qt::Key_R, 1, 0, 0},
+  {"Open Slicer window", Qt::Key_Backslash, 0, 0, 0},
+  {"Open Zap window (except in Slicer)", Qt::Key_Z, 0, 0, 0},
+  {"Open Graph window", Qt::Key_G, 0, 1, 0},
+  {"Open Model View window", Qt::Key_V, 0, 0, 0},
+  {"Open Isosurface in Model View window", Qt::Key_U, 0, 1, 0},
+  {"", -2, 0, 0, 0},
+  {"", -3, 0, 0, 0},
+  {"Make TIFF snapshot of window", Qt::Key_S, 1, 0, 0},
+  {"Make non-TIFF snapshot of window", Qt::Key_S, 0, 1, 0},
+  {"Make 2nd nonTIFF format snapshot of window", Qt::Key_S, 1, 1, 0},
+  {"", -3, 0, 0, 0},
+  {"Print current pixel value in Info window", Qt::Key_F, 0, 0, 0},
+  {"Print maximum pixel within 10 pixels", Qt::Key_F, 0, 1, 0},
+  {"Save model to file", Qt::Key_S, 0, 0, 0},
+  {"Undo changes to the model", Qt::Key_Z, 1, 0, 0},
+  {"Redo model changes that were undone", Qt::Key_Y, 1, 0, 0},
+  {"", 0, 0, 0, 0}};
 
 /* Draw a symbol of the given type, size, and flags */
 void utilDrawSymbol(int mx, int my, int sym, int size, int flags)
@@ -910,7 +912,8 @@ static int sNumSpecActions;
  * Special key values: -1 to start submenu, -2 to end submenu, -3 for separator
  */
 QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
-                             QSignalMapper *mapper, QMenu *menu, int &numSpecific)
+                             QSignalMapper *mapper, QMenu *menu, int &numSpecific, 
+                             QAction **mainActions)
 {
   QString text, format;
   PopupEntry *table = specTable;
@@ -940,26 +943,32 @@ QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
         else if (key == -3)
           menuUse->addSeparator();
       } else {
-
-        // Quick check for "Mak" prefix to snapshot entries then replace them if possible
-        if (table[tableInd].text[0] != 'M' || table[tableInd].text[1] != 'a' || 
-            table[tableInd].text[2] != 'k')  {
-          actions[numActions] = menuUse->addAction(table[tableInd].text);
-        } else {
-          text = table[tableInd].text;
-          text.replace(QString("non-TIFF"), ImodPrefs->snapFormat());
-          format = ImodPrefs->snapFormat2();
-          if (!format.isEmpty())
-            text.replace(QString("2nd nonTIFF format"), format);
-          actions[numActions] = menuUse->addAction(text);
-        }
         
-        // Set up shortcuts, connection and mapping
-        actions[numActions]->setShortcut(table[tableInd].key + 
-                                         (table[tableInd].ctrl ? Qt::CTRL : 0) +
-                                         (table[tableInd].shift ? Qt::SHIFT : 0));
-        QObject::connect(actions[numActions], SIGNAL(triggered()), mapper, SLOT(map()));
-        mapper->setMapping(actions[numActions], numActions);
+        if (mainActions && table[tableInd].mainIndex) {
+          menuUse->addAction(mainActions[table[tableInd].mainIndex]);
+        } else {
+
+          // Quick check for "Mak" prefix to snapshot entries then replace them if 
+          //possible
+          if (table[tableInd].text[0] != 'M' || table[tableInd].text[1] != 'a' || 
+              table[tableInd].text[2] != 'k')  {
+            actions[numActions] = menuUse->addAction(table[tableInd].text);
+          } else {
+            text = table[tableInd].text;
+            text.replace(QString("non-TIFF"), ImodPrefs->snapFormat());
+            format = ImodPrefs->snapFormat2();
+            if (!format.isEmpty())
+              text.replace(QString("2nd nonTIFF format"), format);
+            actions[numActions] = menuUse->addAction(text);
+          }
+          
+          // Set up shortcuts, connection and mapping
+          actions[numActions]->setShortcut(table[tableInd].key + 
+                                           (table[tableInd].ctrl ? Qt::CTRL : 0) +
+                                           (table[tableInd].shift ? Qt::SHIFT : 0));
+          QObject::connect(actions[numActions], SIGNAL(triggered()), mapper, SLOT(map()));
+          mapper->setMapping(actions[numActions], numActions);
+        }
       }
       numActions++;
       tableInd++;
@@ -981,7 +990,7 @@ void utilBuildExecPopupMenu(QWidget *parent, PopupEntry *specTable, bool addDefa
 {
   QMenu menu(parent);
   QAction **actions = utilBuildPopupMenu(specTable, addDefault, mapper, &menu,
-                                         sNumSpecActions);
+                                         sNumSpecActions, NULL);
   if (!actions)
     return;
   menu.exec(event->globalPos());
@@ -1008,6 +1017,32 @@ int utilLookupPopupHit(int index, PopupEntry *specificTable, int numSpecific,
                                       (entry->shift ? Qt::ShiftModifier : 0));
   return entry->key;
 }
+
+/*
+ * Does the boilerplate of adding a new toolbar to a main window, with option break,
+ * spacing setting, and caption
+ */
+HotToolBar *utilMakeToolBar(QMainWindow *parent, bool addBreak, int spacing,
+                            const char *caption)
+{
+  HotToolBar *toolBar = new HotToolBar(parent);
+  if (addBreak)
+    parent->addToolBarBreak();
+  parent->addToolBar(toolBar);
+  toolBar->layout()->setSpacing(spacing);
+  if (caption)
+    toolBar->setWindowTitle(imodCaption(caption));
+  QObject::connect(toolBar, SIGNAL(keyPress(QKeyEvent *)), parent,
+                   SLOT(toolKeyPress(QKeyEvent *)));
+  QObject::connect(toolBar, SIGNAL(keyRelease(QKeyEvent *)), parent,
+                   SLOT(toolKeyRelease(QKeyEvent *)));
+  QObject::connect(toolBar, SIGNAL(contextMenu(QContextMenuEvent *)), parent, 
+                   SLOT(toolbarMenuEvent(QContextMenuEvent *)));
+  
+  toolBar->setAllowedAreas(Qt::TopToolBarArea);
+  return toolBar;
+}
+
 
 static GLUtesselator *sTessel = NULL;
 static int sTessError;
