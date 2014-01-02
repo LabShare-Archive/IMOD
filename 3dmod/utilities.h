@@ -27,12 +27,15 @@ class QGLWidget;
 class QSignalMapper;
 class QMenu;
 class QAction;
+class HotToolBar;
+class QMainWindow;
 
 typedef struct {
   const char *text;
   int key;
-  short ctrl;
-  short shift;
+  unsigned char ctrl;
+  unsigned char shift;
+  short mainIndex;
 } PopupEntry;
 
 typedef struct ViewInfo ImodView;
@@ -96,11 +99,14 @@ Icont *utilAutoNewContour(ImodView *vi, Icont *cont, bool notPlanar, bool timeMi
                           const char *surfText);
 void utilAssignSurfToCont(ImodView *vi, Iobj *obj, Icont *cont, int newSurf);
 QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
-                             QSignalMapper *mapper, QMenu *menu, int &numSpecific);
+                             QSignalMapper *mapper, QMenu *menu, int &numSpecific,
+                             QAction **mainActions);
 void utilBuildExecPopupMenu(QWidget *parent, PopupEntry *specTable, bool addDefault, 
                             QSignalMapper *mapper, QContextMenuEvent *event);
 int utilLookupPopupHit(int index, PopupEntry *specificTable, int numSpecific,
                        Qt::KeyboardModifiers &modifiers);
+HotToolBar *utilMakeToolBar(QMainWindow *parent, bool addBreak, int spacing,
+                            const char *caption);
 void setupFilledContTesselator();
 void drawFilledPolygon(Icont *cont);
 void utilWprintMeasure(QString &baseMess, Imod *imod, float measure, bool area = false);
