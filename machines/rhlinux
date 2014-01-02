@@ -159,9 +159,9 @@ echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
 if ($compiler == intel) then
-    echo "IMLIBS     = -lhvem -lmrcim $lifft -lcfshr" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -ltiff" >> $configure
 else
-    echo "IMLIBS     = -lhvem -lmrcim $lifft -lcfshr -lb3dcmpt" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt -ltiff" >> $configure
 endif
 
 #

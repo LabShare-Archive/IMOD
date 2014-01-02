@@ -234,13 +234,13 @@ if ($compiler == intel) then
     set lapacklibs = "libb3dlapk.lib libb3dblas.lib"
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
-    echo 'IMLIBS     =  $(LIBWMOD)'" libhvem.lib libmrcim.lib $lifft libcfshr.lib" >> $configure
+    echo 'IMLIBS     =  $(LIBWMOD)'" libhvem.lib libmrcim.lib libiimod.lib libcfshr.lib $ltiff" >> $configure
     echo 'LINUXFLIBS = ' >> $configure
     echo '#define WIN32_BIGFILE' >> $hconfigure
 else
     echo "CLIBS   = -lc -lm" >> $configure
     echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
-    echo "IMLIBS     = -lhvem -lmrcim -lifft -lcfshr -lb3dcmpt" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt" >> $configure
     echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 endif
 echo 'LIBS    = $(CLIBS)'  >> $configure
