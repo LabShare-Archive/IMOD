@@ -330,7 +330,7 @@ public final class TransferfidParam implements Storable {
     command.add("python");
     command.add("-u");
     command.add(ApplicationManager.getIMODBinPath() + "transferfid");
-    command.add("-P");
+    command.add("-PID");
 
     if (bToA.is()) {
       command.add("-b");

@@ -249,7 +249,7 @@ public final class SqueezevolParam implements ConstSqueezevolParam {
     commandArray[0] = "python";
     commandArray[1] = "-u";
     commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;
-    commandArray[3] = "-P";
+    commandArray[3] = "-PID";
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + COMMAND_SIZE] = (String) options.get(i);
     }

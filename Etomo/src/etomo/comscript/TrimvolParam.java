@@ -374,7 +374,7 @@ public class TrimvolParam implements CommandDetails {
     commandArray[0] = "python";
     commandArray[1] = "-u";
     commandArray[2] = BaseManager.getIMODBinPath() + commandName;
-    commandArray[3] = "-P";
+    commandArray[3] = "-PID";
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = options.get(i);
     }

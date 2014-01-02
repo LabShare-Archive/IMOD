@@ -249,7 +249,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     command.add(kValue.toString());
     command.add("-i");
     command.add(iterationList.toString());
-    command.add("-P");
+    command.add("-PID");
     command.add(new File(subdir, inputFileName).getPath());
     command.add(new File(subdir, getTestFileRoot(kValue)).getPath());
     if (debugLevel.ge(DebugLevel.LOW)) {

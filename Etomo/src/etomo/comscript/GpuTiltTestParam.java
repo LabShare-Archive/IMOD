@@ -42,7 +42,7 @@ public final class GpuTiltTestParam {
     command.add("python");
     command.add("-u");
     command.add(BaseManager.getIMODBinPath() + ProcessName.GPU_TILT_TEST.toString());
-    command.add("-P");
+    command.add("-PID");
     command.add(nMinutes.toString());
     command.add(gpuNumber.toString());
     return command.toArray(new String[command.size()]);

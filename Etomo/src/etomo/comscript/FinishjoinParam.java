@@ -298,7 +298,7 @@ public final class FinishjoinParam implements CommandDetails {
     commandArray[0] = "python";
     commandArray[1] = "-u";
     commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;
-    commandArray[3] = "-P";
+    commandArray[3] = "-PID";
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }

@@ -66,7 +66,7 @@ public final class RunraptorParam {
     command.add("python");
     command.add("-u");
     command.add(BaseManager.getIMODBinPath() + ProcessName.RUNRAPTOR.toString());
-    command.add("-P");
+    command.add("-PID");
     command.add("-" + DIAM_OPTION);
     command.add(diam.toString());
     command.add("-" + MARK_OPTION);
