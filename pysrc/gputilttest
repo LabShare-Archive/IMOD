@@ -234,13 +234,13 @@ while argind < len(sys.argv):
    if sys.argv[argind].find('-h') >= 0:
       prnstr(progname + ' runs the tilt program repeatedly to test whether a GPU')
       prnstr('    gives reproducible results')
-      prnstr('Usage:  ' + progname + ' [-P] [#_of_minutes] [GPU_#]')
+      prnstr('Usage:  ' + progname + ' [-P[ID]] [#_of_minutes] [GPU_#]')
       prnstr('    #_of_minutes sets how long the test will run; the default')
       prnstr('        is 1 minute, fractional values are allowed')
       prnstr('   GPU_# is the # of the GPU to test, numbered from 1,')
       prnstr('        or 0 for the bext or only GPU')
       sys.exit(0)
-   elif sys.argv[argind] == '-P':
+   elif sys.argv[argind].startswith('-P') and sys.argv[argind] in '-PID':
       printPID(True)
       argind += 1
    else:
