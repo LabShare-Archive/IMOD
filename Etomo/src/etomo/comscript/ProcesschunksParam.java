@@ -449,7 +449,7 @@ public final class ProcesschunksParam implements DetachedCommandDetails, Paralle
         rootName)));
     /* if (!isSubdirNameEmpty()) { commandsFileName.append("\""); } */
     command.add(commandsFileName.toString());
-    command.add("-PID");
+    command.add("-P");
     if (queueCommand == null) {
       // add machine names
       StringBuffer machineList = buildMachineList();
