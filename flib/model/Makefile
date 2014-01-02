@@ -126,7 +126,7 @@ findwarp$(E): findwarp.$(O) solve_wo_outliers.$(O) get_region_contours.$(O)
 
 corrsearch3d$(E): corrsearch3d.$(O) get_region_contours.$(O)
 	$(FC) -o corrsearch3d corrsearch3d.$(O) $(LDFLG) \
-	get_region_contours.$(O) $(SMALLLIBS)
+	get_region_contours.$(O) $(SMALLLIBS) $(LIFFT)
 
 corrsearch3d.$(O): corrsearch3d.f90
 	$(FC) $(FFLAGS) $(OPENMPF) -c corrsearch3d.f90
@@ -162,7 +162,7 @@ findbeads3d$(E): findbeads3d.$(O)
 	$(FC) -o findbeads3d findbeads3d.$(O) $(LDFLG) $(WLIBS)
 
 tiltxcorr$(E): tiltxcorr.$(O)
-	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(LIWARP) $(SMALLLIBS)
+	$(FC) -o tiltxcorr tiltxcorr.$(O) $(LDFLG) $(LIWARP) $(SMALLLIBS) $(LIFFT)
 
 tiltxcorr.$(O): tiltxcorr.f90
 	$(FC) $(FFLAGS) $(OPENMPF) -c tiltxcorr.f90

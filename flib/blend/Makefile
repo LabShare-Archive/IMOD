@@ -22,7 +22,7 @@ all: $(PROGS)
 # Add $(LAPACKLIBS) to test find_best_shifts with SVD
 blendmont$(E): $(BLOBJS)
 	$(FC)  -o blendmont $(BLOBJS) $(LDFLG) $(LSMLMOD) $(LIMOD) \
-	$(LIWARP) $(IMLIBS) $(FORTCLIBS)
+	$(LIWARP) $(IMLIBS) $(LIFFT) $(FORTCLIBS)
 
 
 reducemont$(E): $(REDOBJS)

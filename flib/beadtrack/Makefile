@@ -12,7 +12,7 @@ all: $(PROG)
 #	$(FC) -c $(NOOPFFLAGS) tiltali.f90
 $(PROG): $(BDOBJS)
 	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
-	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB) $(LAPACKLIBS)
+	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB) $(LIFFT) $(LAPACKLIBS)
 
 beadtrack.$(O):   $(INCDIR)/smallmodel.inc90 tltcntrl.$(O) tracksubs.$(O)
 proc_model.$(O):  $(INCDIR)/smallmodel.inc90
