@@ -48,62 +48,62 @@ connect(mActions[c], SIGNAL(triggered()), a##Mapper, SLOT(map())); \
 a##Mapper->setMapping(mActions[c], c);
 
 static PopupEntry sPopupTable[] = {
-  {"Model Orientation and Zoom", -1, 0, 0},
-  {"Show top of model", Qt::Key_T, 0, 0},
-  {"Show bottom of model", Qt::Key_B, 0, 0},
-  {"Show left side of model", Qt::Key_L, 0, 0},
-  {"Show right side of model", Qt::Key_R, 0, 0},
-  {"Show front of model", Qt::Key_F, 0, 0},
-  {"Show back of model", Qt::Key_K, 0, 0},
-  {"", -3, 0, 0},
-  {"Decrease zoom by small steps", Qt::Key_Minus, 0, 0},
-  {"Increase zoom by small steps", Qt::Key_Equal, 0, 0},
-  {"Decrease zoom by large steps", Qt::Key_Underscore, 0, 0},
-  {"Increase zoom by large steps", Qt::Key_Plus, 0, 0},
-  {"", -3, 0, 0},
-  {"Decrease rotation increment and speed", Qt::Key_Comma, 0, 0},
-  {"Increase rotation increment and speed", Qt::Key_Period, 0, 0},
-  {"Model/Time Selection", -1, 0, 0},
-  {"Toggle displaying all models or one model", Qt::Key_8, 0, 0},
-  {"Move to previous model time", Qt::Key_1, 0, 0},
-  {"Move to next model time", Qt::Key_2, 0, 0},
-  {"Switch to previous model", Qt::Key_9, 0, 0},
-  {"Switch to next model", Qt::Key_0, 0, 0},
-  {"Display Quality Controls", -1, 0, 0},
-  {"Toggle low resolution drawing of meshes", Qt::Key_R, 1, 0},
-  {"Decrease the quality of sphere drawing", Qt::Key_G, 0, 1},
-  {"Increase the quality of sphere drawing", Qt::Key_G, 0, 0},
-  {"Open Dialogs", -1, 0, 0},
-  {"Open movie control window",  Qt::Key_M, 0, 0},
-  {"Open Object Edit window", Qt::Key_O, 0, 1},
-  {"Open controls window", Qt::Key_C, 0, 1},
-  {"Open Rotation tool", Qt::Key_R, 0, 1},
-  {"Open background color window", Qt::Key_B, 0, 1},
-  {"Open Object List window", Qt::Key_L, 0, 1},
-  {"Open model selection window", Qt::Key_M, 0, 1},
-  {"Open view editing window", Qt::Key_V, 0, 1},
-  {"Open image overlay control window", Qt::Key_I, 0, 1},
-  {"Open isosurface display control window", Qt::Key_U, 0, 1},
-  {"Stereo Controls", -1, 0, 0},
-  {"Toggle stereo mode", Qt::Key_S, 0, 0},
-  {"Reduce parallax for stereo viewing", Qt::Key_BracketLeft, 0, 0},
-  {"Increase parallax for stereo viewing", Qt::Key_BracketRight, 0, 0},
-  {"Invert the parallax angle", Qt::Key_A, 0, 0},
-  {"Model Editing", -1, 0, 0},
-  {"Delete current scattered point", Qt::Key_Delete, 1, 1},
-  {"Select visible contours in current object", Qt::Key_A, 1, 0},
-  {"Delete selected contour(s) picked here", Qt::Key_D, 0, 0},
-  {"Undo last change to model", Qt::Key_Z, 1, 0},
-  {"Redo the last undone change to model", Qt::Key_Y, 1, 0},
-  {"", -2, 0, 0},
-  {"", -3, 0, 0},
-  {"Make TIFF snapshot of window", Qt::Key_S, 1, 0},
-  {"Make non-TIFF snapshot of window", Qt::Key_S, 0, 1},
-  {"Make 2nd nonTIFF format snapshot of window", Qt::Key_S, 1, 1},
-  {"", -3, 0, 0},
-  {"Toggle current clipping plane on and off", Qt::Key_C, 1, 0},
-  {"Toggle use of vertex buffer objects", Qt::Key_V, 1, 1},
-  {"", 0, 0, 0}};
+  {"Model Orientation and Zoom", -1, 0, 0, 0},
+  {"Show top of model", Qt::Key_T, 0, 0, 0},
+  {"Show bottom of model", Qt::Key_B, 0, 0, 0},
+  {"Show left side of model", Qt::Key_L, 0, 0, 0},
+  {"Show right side of model", Qt::Key_R, 0, 0, 0},
+  {"Show front of model", Qt::Key_F, 0, 0, 0},
+  {"Show back of model", Qt::Key_K, 0, 0, 0},
+  {"", -3, 0, 0, 0},
+  {"Decrease zoom by small steps", Qt::Key_Minus, 0, 0, 0},
+  {"Increase zoom by small steps", Qt::Key_Equal, 0, 0, 0},
+  {"Decrease zoom by large steps", Qt::Key_Underscore, 0, 0, 0},
+  {"Increase zoom by large steps", Qt::Key_Plus, 0, 0, 0},
+  {"", -3, 0, 0, 0},
+  {"Decrease rotation increment and speed", Qt::Key_Comma, 0, 0, 0},
+  {"Increase rotation increment and speed", Qt::Key_Period, 0, 0, 0},
+  {"Model/Time Selection", -1, 0, 0, 0},
+  {"Toggle displaying all models or one model", Qt::Key_8, 0, 0, 0},
+  {"Move to previous model time", Qt::Key_1, 0, 0, 0},
+  {"Move to next model time", Qt::Key_2, 0, 0, 0},
+  {"Switch to previous model", Qt::Key_9, 0, 0, 0},
+  {"Switch to next model", Qt::Key_0, 0, 0, 0},
+  {"Display Quality Controls", -1, 0, 0, 0},
+  {"Toggle low resolution drawing of meshes", Qt::Key_R, 1, 0, VVIEW_MENU_LOWRES},
+  {"Decrease the quality of sphere drawing", Qt::Key_G, 0, 1, 0},
+  {"Increase the quality of sphere drawing", Qt::Key_G, 0, 0, 0},
+  {"Open Dialogs", -1, 0, 0, 0},
+  {"Open movie control window",  Qt::Key_M, 0, 0, VFILE_MENU_MOVIE},
+  {"Open Object Edit window", Qt::Key_O, 0, 1, VEDIT_MENU_OBJECTS},
+  {"Open controls window", Qt::Key_C, 0, 1, VEDIT_MENU_CONTROLS},
+  {"Open Rotation tool", Qt::Key_R, 0, 1, VEDIT_MENU_ROTATION},
+  {"Open background color window", Qt::Key_B, 0, 1, VEDIT_MENU_BKG},
+  {"Open Object List window", Qt::Key_L, 0, 1, VEDIT_MENU_OBJLIST},
+  {"Open model selection window", Qt::Key_M, 0, 1, VEDIT_MENU_MODELS},
+  {"Open view editing window", Qt::Key_V, 0, 1, VEDIT_MENU_VIEWS},
+  {"Open image overlay control window", Qt::Key_I, 0, 1, VEDIT_MENU_IMAGE},
+  {"Open isosurface display control window", Qt::Key_U, 0, 1, VEDIT_MENU_ISOSURFACE},
+  {"Stereo Controls", -1, 0, 0, 0},
+  {"Toggle stereo mode", Qt::Key_S, 0, 0, 0},
+  {"Reduce parallax for stereo viewing", Qt::Key_BracketLeft, 0, 0, 0},
+  {"Increase parallax for stereo viewing", Qt::Key_BracketRight, 0, 0, 0},
+  {"Invert the parallax angle", Qt::Key_A, 0, 0, 0},
+  {"Model Editing", -1, 0, 0, 0},
+  {"Delete current scattered point", Qt::Key_Delete, 1, 1, 0},
+  {"Select visible contours in current object", Qt::Key_A, 1, 0, 0},
+  {"Delete selected contour(s) picked here", Qt::Key_D, 0, 0, 0},
+  {"Undo last change to model", Qt::Key_Z, 1, 0, 0},
+  {"Redo the last undone change to model", Qt::Key_Y, 1, 0, 0},
+  {"", -2, 0, 0, 0},
+  {"", -3, 0, 0, 0},
+  {"Make TIFF snapshot of window", Qt::Key_S, 1, 0, 0},
+  {"Make non-TIFF snapshot of window", Qt::Key_S, 0, 1, 0},
+  {"Make 2nd nonTIFF format snapshot of window", Qt::Key_S, 1, 1, 0},
+  {"", -3, 0, 0, 0},
+  {"Toggle current clipping plane on and off", Qt::Key_C, 1, 0, 0},
+  {"Toggle use of vertex buffer objects", Qt::Key_V, 1, 1, 0},
+  {"", 0, 0, 0, 0}};
 
 // Statics for rotation tool
 static QIcon *sMovieIcon = NULL;
@@ -175,7 +175,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
 
   // View menu
   QMenu *viewMenu = menuBar()->addMenu("&View");
-  ADD_ACTION_KEY(view, "Low &Res", VVIEW_MENU_LOWRES, Qt::CTRL + Qt::Key_R);
+  ADD_ACTION_KEY(view, "Low &Resolution", VVIEW_MENU_LOWRES, Qt::CTRL + Qt::Key_R);
   mActions[VVIEW_MENU_LOWRES]->setCheckable(true);
   mActions[VVIEW_MENU_LOWRES]->setChecked(a->lowres);
   if (!a->standalone) {
@@ -213,7 +213,7 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   QMenu *keyMenu = menuBar()->addMenu("Hot&Keys");
   QSignalMapper *keyMapper = new QSignalMapper(this);
   connect(keyMapper, SIGNAL(mapped(int)), this, SLOT(keyMenuSlot(int)));
-  utilBuildPopupMenu(sPopupTable, false, keyMapper, keyMenu, mNumKeyEntries);
+  utilBuildPopupMenu(sPopupTable, false, keyMapper, keyMenu, mNumKeyEntries, mActions);
 
   // Help menu
   // To stabilize the 3dmod menu with model view open, it had to have a 
@@ -460,12 +460,23 @@ int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo, int alpha)
 
 void ImodvWindow::rotationKeyPress(QKeyEvent *e)
 {
-  imodvKeyPress(e);
+  if (utilCloseKey(e))
+    mRotationTool->close();
+  else
+    imodvKeyPress(e);
 }
 
 void ImodvWindow::rotationKeyRelease(QKeyEvent *e)
 {
   imodvKeyRelease(e);
+}
+
+void ImodvWindow::resizerKeyPress(QKeyEvent *e)
+{
+  if (utilCloseKey(e))
+    mResizeTool->close();
+  else
+    imodvKeyPress(e);
 }
 
 void ImodvWindow::keyPressEvent ( QKeyEvent * e )
@@ -609,7 +620,7 @@ void ImodvWindow::openResizeTool(ImodvApp *a)
   connect(mResizeTool, SIGNAL(closing()), this, SLOT(resizerClosing()));
   connect(mResizeTool, SIGNAL(resize(int, int)), this, SLOT(newResizerSize(int, int)));
   connect(mResizeTool, SIGNAL(keyPress(QKeyEvent *)), this, 
-          SLOT(rotationKeyPress(QKeyEvent *)));
+          SLOT(resizerKeyPress(QKeyEvent *)));
   connect(mResizeTool, SIGNAL(keyRelease(QKeyEvent *)), this, 
           SLOT(rotationKeyRelease(QKeyEvent *)));
   imodvDialogManager.add((QWidget *)mResizeTool, IMODV_DIALOG);
