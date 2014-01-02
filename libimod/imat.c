@@ -358,67 +358,13 @@ int imodMatFindVector(Imat *mat, double *angle, Ipoint *v)
  * Given a 3D rotation matrix in [mat], finds the angles of rotation about the
  * three axes, in the order Z, Y, X, and returns them in [x], [y], and [z].
  * Returns 1 if the determinant of the matrix is not near zero.  Angles are in
- * degrees.
+ * degrees.  Calls @@cfutils.html#matrixToAngles@ then @imodMatUniqueAngles to get a 
+ * unique set of angles with restricted range.
  */
- /* DNM: a translation of fortran code in icalc_angles.f */
 int imodMatGetNatAngles(Imat *mat, double *x, double *y, double *z)
 {
-  double r11, r12, r13, r21, r22, r23, r31, r32, r33;
-  double crit = 0.01;
-  double cnv = 0.017453292;
-  double small = 0.0000001;
-  double det, alpha, beta, gamma, cosg, sing, cosb, test1, test2;
-
-  r11 = mat->data[0];
-  r12 = mat->data[4];
-  r13 = mat->data[8];
-  r21 = mat->data[1];
-  r22 = mat->data[5];
-  r23 = mat->data[9];
-  r31 = mat->data[2];
-  r32 = mat->data[6];
-  r33 = mat->data[10];
-
-  /* first check matrix */
-  det = r11*r22*r33 - r11*r23*r32 + r12*r23*r31 - r12*r21*r33
-    + r13*r21*r32 - r13*r22*r31;
-
-  det -= 1.0;
-  if (det > crit || det < -crit)
+  if (matrixToAngles(mat->data, x, y, z, 4))
     return 1;
-
-  test1 = r13 - 1.0;
-  if (test1 < 0.0)
-    test1 = -test1;
-  test2 = r13 + 1.0;
-  if (test2 < 0.0)
-    test2 = -test2;
-  if (test1 < small || test2 < small) {
-    beta = asin(r13);
-    gamma = atan2(r21, r22);
-    alpha = 0.0;
-
-  } else if (r13 <= small && r13 >= -small) {
-
-    beta = 0.0;
-    gamma = atan2 (-r12, r11);
-    alpha = atan2 (-r23, r33);
-
-  } else {
-
-    alpha = atan2 (-r23, r33);
-    gamma = atan2 (-r12, r11);
-    cosg = cos(gamma);
-    sing = sin(gamma);
-    if (cosg > crit || cosg < -crit) 
-      cosb = r11 / cosg;
-    else
-      cosb = -r12 / sing;
-    beta = atan2 (r13, cosb);
-  }
-  *x = alpha/cnv;
-  *y = beta/cnv;
-  *z = gamma/cnv;
   imodMatUniqueAngles(x, y, z);
   return 0;
 }
