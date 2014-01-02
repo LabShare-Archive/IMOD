@@ -57,6 +57,7 @@
 #define writebytessigned WRITEBYTESSIGNED
 #define b3dshiftbytes B3DSHIFTBYTES
 #define b3dheaderitembytes B3DHEADERITEMBYTES
+#define extraisnbytesandflags EXTRAISNBYTESANDFLAGS
 #define cputime CPUTIME
 #define walltime WALLTIME
 #define b3dmillisleep B3DMILLISLEEP
@@ -74,6 +75,7 @@
 #define writebytessigned writebytessigned_
 #define b3dshiftbytes b3dshiftbytes_
 #define b3dheaderitembytes b3dheaderitembytes_
+#define extraisnbytesandflags extraisnbytesandflags_
 #define cputime cputime_
 #define walltime walltime_
 #define b3dmillisleep b3dmillisleep_
@@ -642,10 +644,39 @@ void b3dHeaderItemBytes(int *nflags, int *nbytes)
     nbytes[i] = extra_bytes[i];
 }
 
-/*! A Fortran wrapper for b3dHeaderItemBytes. */
+/*! A Fortran wrapper for @b3dHeaderItemBytes */
 void b3dheaderitembytes(int *nflags, int *nbytes) 
 {
   b3dHeaderItemBytes(nflags, nbytes);
+}
+
+/*!
+ * Returns 1 if the {nint} and {nreal} members of an MRC header represent number of
+ * bytes and flags from SerialEM, 0 otherwise.
+ */
+int extraIsNbytesAndFlags(int nint, int nreal)
+{
+  int extra_bytes[32];
+  int i, extratot = 0, flag_count;
+  b3dHeaderItemBytes(&flag_count, &extra_bytes[0]);
+
+  /* DNM 12/10/01: as partial protection against mistaking other entries
+     for montage information, at least make sure that the total bytes
+     implied by the bits in the flag equals the nint entry. */
+  /* DNM 2/3/02: make sure nreal also does not have bits beyond the flags */
+  for (i = 0; i < flag_count; i++)
+    if (nreal & (1 << i))
+      extratot += extra_bytes[i];
+
+  if (extratot != nint || nreal >= (1 << flag_count))
+    return 0;
+  return 1;
+}
+
+/*! A Fortran wrapper for @extraIsNbytesAndFlags */
+void extraisnbytesandflags(int *nint, int *nreal) 
+{
+  extraIsNbytesAndFlags(*nint, *nreal);
 }
 
 /*! Set or clear bits in [flags] with the given [mask], depending on whether
