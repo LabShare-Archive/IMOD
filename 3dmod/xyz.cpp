@@ -89,11 +89,11 @@ static const char *sliderLabels[] = {"X", "Y", "Z"};
 enum {X_COORD = 0, Y_COORD, Z_COORD};
 
 static PopupEntry sPopupTable[] = {
-  {"Toggle projection of current contour on planes", Qt::Key_P, 0, 1},
-  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
-  {"Center current point in all panels", Qt::Key_K, 0, 0},
-  {"Toggle high-quality interpolation", Qt::Key_R, 0, 0},
-  {"", 0, 0, 0}};
+  {"Toggle projection of current contour on planes", Qt::Key_P, 0, 1, 0},
+  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0, 0},
+  {"Center current point in all panels", Qt::Key_K, 0, 0, 0},
+  {"Toggle high-quality interpolation", Qt::Key_R, 0, 0, 0},
+  {"", 0, 0, 0, 0}};
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -282,15 +282,7 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   }
 
   // Get the toolbar, add zoom arrows
-  mToolBar = new HotToolBar(this);
-  addToolBar(mToolBar);
-  
-  if (!TB_AUTO_RAISE)
-    mToolBar->layout()->setSpacing(4);
-  connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
-          SLOT(toolKeyPress(QKeyEvent *)));
-  connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
-          SLOT(toolKeyRelease(QKeyEvent *)));
+  mToolBar = utilMakeToolBar(this, false, TB_AUTO_RAISE ? 0 : 4, "XYZ Toolbar");
 
   mZoomEdit = utilTBZoomTools(this, mToolBar, &upArrow, &downArrow);
   connect(upArrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
@@ -341,8 +333,6 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   setMaxAxis(Y_COORD, mVi->ysize - 1);
   setMaxAxis(Z_COORD, mVi->zsize - 1);
   
-  mToolBar->setAllowedAreas(Qt::TopToolBarArea);
-
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
@@ -359,8 +349,6 @@ XyzWindow::XyzWindow(ImodView *vi, bool rgba, bool doubleBuffer,
   mGLw->setMinimumSize(2 * ALL_BORDER, 2 * ALL_BORDER);
 
   setWindowTitle(imodCaption("3dmod XYZ Window"));
-  // THIS DOESN'T WORK
-  mToolBar->setWindowTitle(imodCaption("XYZ Toolbar"));
 
   mLx = mLy = mLz = mLastCacheSum = -1;
 
@@ -443,7 +431,7 @@ void XyzWindow::closeEvent (QCloseEvent * e )
 }
 
 // Process a right click on the toolbar with a popup menu
-void XyzWindow::contextMenuEvent(QContextMenuEvent *event)
+void XyzWindow::toolbarMenuEvent(QContextMenuEvent *event)
 {
   QSignalMapper mapper(this);
   connect(&mapper, SIGNAL(mapped(int)), this, SLOT(contextMenuHit(int)));

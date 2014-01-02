@@ -137,12 +137,12 @@ class XyzWindow : public QMainWindow
     void sliderChanged(int which, int value, bool dragging);
     void help();
     void contextMenuHit(int val);
+    void toolbarMenuEvent(QContextMenuEvent *event);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
   void keyReleaseEvent ( QKeyEvent * e );
-  void contextMenuEvent(QContextMenuEvent *event);
 
  private:
 

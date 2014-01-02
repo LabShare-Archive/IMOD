@@ -90,26 +90,26 @@ static const char *sSliderLabels[] = {"X rotation", "Y rotation", "Z rotation",
 
 // Popup menu table
 static PopupEntry sPopupTable[] = {
-  {"Set Angles Based on Model Points", -1, 0, 0},
-  {"Align current and previous points along X axis", Qt::Key_X, 0, 0},
-  {"Align current and previous points along Y axis", Qt::Key_Y, 0, 0},
-  {"Align current and previous points along Z axis", Qt::Key_Z, 0, 0},
-  {"Align first and last points along X axis", Qt::Key_X, 0, 1},
-  {"Align first and last points along Y axis", Qt::Key_Y, 0, 1},
-  {"Align first and last points along Z axis", Qt::Key_Z, 0, 1},
-  {"Make current contour flat in slice", Qt::Key_W, 0, 1},
-  {"", -2, 0, 0},
-  {"Toggle keeping slice centered on current point", Qt::Key_K, 0, 0},
-  {"Toggle the rubber band on or off", Qt::Key_B, 0, 1},
-  {"Show slice lines in ZaP and XYZ windows", Qt::Key_L, 0, 0},
-  {"Decrease displayed image thickness", Qt::Key_Underscore, 0, 0},
-  {"Increase displayed image thickness", Qt::Key_Plus, 0, 0},
-  {"Decrease displayed model thickness", Qt::Key_9, 0, 0},
-  {"Increase displayed model thickness", Qt::Key_0, 0, 0},
-  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0},
-  {"Resize window to rubber band area", Qt::Key_R, 0, 1},
-  {"Resize area within rubber band to fit window", Qt::Key_R, 1, 1},
-  {"", 0, 0, 0}};
+  {"Set Angles Based on Model Points", -1, 0, 0, 0},
+  {"Align current and previous points along X axis", Qt::Key_X, 0, 0, 0},
+  {"Align current and previous points along Y axis", Qt::Key_Y, 0, 0, 0},
+  {"Align current and previous points along Z axis", Qt::Key_Z, 0, 0, 0},
+  {"Align first and last points along X axis", Qt::Key_X, 0, 1, 0},
+  {"Align first and last points along Y axis", Qt::Key_Y, 0, 1, 0},
+  {"Align first and last points along Z axis", Qt::Key_Z, 0, 1, 0},
+  {"Make current contour flat in slice", Qt::Key_W, 0, 1, 0},
+  {"", -2, 0, 0, 0},
+  {"Toggle keeping slice centered on current point", Qt::Key_K, 0, 0, 0},
+  {"Toggle the rubber band on or off", Qt::Key_B, 0, 1, 0},
+  {"Show slice lines in ZaP and XYZ windows", Qt::Key_L, 0, 0, 0},
+  {"Decrease displayed image thickness", Qt::Key_Underscore, 0, 0, 0},
+  {"Increase displayed image thickness", Qt::Key_Plus, 0, 0, 0},
+  {"Decrease displayed model thickness", Qt::Key_9, 0, 0, 0},
+  {"Increase displayed model thickness", Qt::Key_0, 0, 0, 0},
+  {"Report distance from current point to cursor", Qt::Key_Q, 0, 0, 0},
+  {"Resize window to rubber band area", Qt::Key_R, 0, 1, 0},
+  {"Resize area within rubber band to fit window", Qt::Key_R, 1, 1, 0},
+  {"", 0, 0, 0, 0}};
 
 /*
  * The window
@@ -138,7 +138,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
     utilFileListsToIcons(fileList, sIcons, MAX_SLICER_TOGGLES);
   
   // Get the toolbar
-  mToolBar = makeToolBar(false, TB_AUTO_RAISE ? 0 : 4, "Slicer Toolbar 1");
+  mToolBar = utilMakeToolBar(this, false, TB_AUTO_RAISE ? 0 : 4, "Slicer Toolbar 1");
 
   // Zoom tools
   mZoomEdit = utilTBZoomTools(this, mToolBar, &upArrow, &downArrow);
@@ -205,7 +205,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
 
   // THE TIME TOOLBAR
   if (!timeLabel.isEmpty()) {
-    mTimeBar = makeToolBar(true, TB_AUTO_RAISE ? 0 : 4, "Slicer Time Toolbar");
+    mTimeBar = utilMakeToolBar(this, true, TB_AUTO_RAISE ? 0 : 4, "Slicer Time Toolbar");
 
     mLinkBox = diaCheckBox("Link", this, NULL);
     mTimeBar->addWidget(mLinkBox);
@@ -242,7 +242,7 @@ SlicerWindow::SlicerWindow(SlicerFuncs *funcs, float maxAngles[], QString timeLa
   }
 
   // SET ANGLE TOOLBAR
-  mSaveAngBar = makeToolBar(false, 4, "Slicer Toolbar 3");
+  mSaveAngBar = utilMakeToolBar(this, false, 4, "Slicer Toolbar 3");
 
   utilTBPushButton("Save", this, mSaveAngBar, &mSaveAngBut, "Save current "
                    "angles and position in slicer angle table");
@@ -292,7 +292,7 @@ void SlicerWindow::buildToolBar2()
 {
   int j;
   QGLFormat glFormat;
-  mToolBar2 = makeToolBar(true, 2, "Slicer Toolbar 2");
+  mToolBar2 = utilMakeToolBar(this, true, 2, "Slicer Toolbar 2");
 
   // All widgets need to have the toolbar as parent so that they are deleted with it
   // Make a frame, put a layout in it, and then put multisliders in the layout
@@ -383,23 +383,6 @@ void SlicerWindow::buildToolBar2()
 	  SLOT(modelThicknessChanged(double)));
   mModelBox->setToolTip("Set thickness of model to project onto image "
                 "(hot keys 9 and 0");
-}
-
-// Does the boilerplate of adding a new toolbar
-HotToolBar *SlicerWindow::makeToolBar(bool addBreak, int spacing, const char *caption)
-{
-  HotToolBar *toolBar = new HotToolBar(this);
-  if (addBreak)
-    addToolBarBreak();
-  addToolBar(toolBar);
-  toolBar->layout()->setSpacing(spacing);
-  toolBar->setWindowTitle(imodCaption(caption));
-  connect(toolBar, SIGNAL(keyPress(QKeyEvent *)), this,
-          SLOT(toolKeyPress(QKeyEvent *)));
-  connect(toolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
-          SLOT(toolKeyRelease(QKeyEvent *)));
-  toolBar->setAllowedAreas(Qt::TopToolBarArea);
-  return toolBar;
 }
 
 void SlicerWindow::setFontDependentWidths()
@@ -692,7 +675,7 @@ void SlicerWindow::closeEvent (QCloseEvent * e )
 }
 
 // Keyboard popup menu handlers
-void SlicerWindow::contextMenuEvent(QContextMenuEvent *event)
+void SlicerWindow::toolbarMenuEvent(QContextMenuEvent *event)
 {
   QSignalMapper mapper(this);
   connect(&mapper, SIGNAL(mapped(int)), this, SLOT(contextMenuHit(int)));
