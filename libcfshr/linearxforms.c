@@ -1,4 +1,4 @@
-/*  linearxforms.c - functions for mainpulating linear transformations
+/*  linearxforms.c - functions for manipulating linear transformations and other matrices
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  *
@@ -7,10 +7,10 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
  * $Id$
- * Log at end of file
  */
 
 #include <math.h>
+#include <stdio.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
 
@@ -20,12 +20,18 @@
 #define xfmult XFMULT
 #define xfinvert XFINVERT
 #define xfapply XFAPPLY
+#define icalc_matrix ICALC_MATRIX
 #else
 #define xfunit xfunit_
 #define xfcopy xfcopy_
 #define xfmult xfmult_
 #define xfinvert xfinvert_
 #define xfapply xfapply_
+#ifdef G77__HACK
+#define icalc_matrix icalc_matrix__
+#else
+#define icalc_matrix icalc_matrix_
+#endif
 #endif
 
 /*
@@ -150,12 +156,162 @@ void xfapply(float *f, float *xcen, float *ycen, float *x, float *y, float *xp, 
   xfApply(f, *xcen, *ycen, *x, *y, xp, yp, 2);
 }
 
-  
-/*
+/*!
+ * Given a set of rotations angles about the X, Y, and Z axes in the first, second, and 
+ * third elements of [angles], finds the 3-D rotation matrix and returns it in [matrix].
+ * The number of rows in the matrix is specified by [rows], which should be 3 when calling
+ * with a packed 3x3 matrix, or 4 when calling with an Imat {data} array.  The order of
+ * data elements in the array is r11, r21, r31, etc.  These are the conventions: ^
+ *       [R] premultiplies column vector of coordinates: ^
+ *       |xnew|       | r11  r12  r13 | |xold|  ^
+ *       |ynew|   =   | r21  r22  r23 | |yold|  ^
+ *       |znew|       | r31  r32  r33 | |zold|  ^
+ *       
+ *       rotations applied in the order Z first, X last  ^
+ *       ie  [R] = [X][Y][Z]  ^
+ *       
+ *       rotations are right-handed - i.e., positive angle rotates counterclockwise when
+ *       looking down the respective axis ^
+ *       
+ *       [X] = ^
+ *       |   1    0     0   |  ^
+ *       |   0   cosa -sina |  ^
+ *       |   0   sina  cosa |  ^
+ *       
+ *       [Y] = ^
+ *       |  cosb  0   sinb  |  ^
+ *       |   0    1     0   |  ^
+ *       | -sinb  0   cosb  |  ^
+ *       
+ *       [Z] = ^
+ *       |  cosg -sinb  0   |  ^
+ *       |  sing  cosg  0   |  ^
+ *       |   0    0     1   |  ^
+ */
+void anglesToMatrix(float *angles, float *matrix, int rows)
+{
+  double cnv = 0.0174532921;
+  double ca, cb, cg, sa, sb, sg, alpha, beta, gamma;
 
-$Log$
-Revision 1.1  2011/05/24 18:17:31  mast
-Initial version
+ /* This is a translation of code formerly in flib/subrs/imsubs2/icalc_matrix.f */
+  alpha = angles[0] * cnv;
+  beta  = angles[1] * cnv;
+  gamma = angles[2] * cnv;
+  ca = cos(alpha);
+  cb = cos(beta);
+  cg = cos(gamma);
+  sa = sin(alpha);
+  sb = sin(beta);
+  sg = sin(gamma);
 
+  matrix[0] = cb * cg;
+  matrix[rows] = -cb * sg;
+  matrix[2 * rows] = sb;
+  matrix[1] = sa * sb * cg + ca * sg;
+  matrix[1 + rows] = -sa * sb * sg + ca * cg;
+  matrix[1 + 2 * rows] = -sa * cb;
+  matrix[2] = -ca * sb * cg + sa * sg;
+  matrix[2 + rows] = ca * sb * sg + sa * cg;
+  matrix[2 + 2 * rows] = ca * cb;
+}
 
-*/
+/*! Fortran wrapper to @anglesToMatrix assuming [matrix] has 3 rows */
+void icalc_matrix(float *angles, float *matrix)
+{
+  anglesToMatrix(angles, matrix, 3);
+}
+
+double sDet;
+
+/*!
+ * Given a 3D rotation matrix in [matrix], whose number of rows is [rows], it finds 
+ * the angles of rotation about the three axes, in the order Z, Y, X, and returns them in
+ * [x], [y], and [z].  Returns 1 if the determinant of the matrix is not near zero.  
+ * Angles are in degrees.  The conventions of @anglesToMatrix are followed.
+ */
+int matrixToAngles(float *matrix, double *x, double *y, double *z, int rows)
+{
+  double r11, r12, r13, r21, r22, r23, r31, r32, r33;
+  double crit = 0.01;
+  double cnv = 0.017453292;
+  double small = 0.0000001;
+  double alpha, beta, gamma, cosg, sing, cosb, test1, test2;
+
+ /* This is a translation of code formerly in flib/subrs/imsubs2/icalc_angles.f */
+  r11 = matrix[0];
+  r12 = matrix[rows];
+  r13 = matrix[2 * rows];
+  r21 = matrix[1];
+  r22 = matrix[1 + rows];
+  r23 = matrix[1 + 2 * rows];
+  r31 = matrix[2];
+  r32 = matrix[2 + rows];
+  r33 = matrix[2 + 2 * rows];
+
+  /* first check matrix */
+  sDet = r11 * r22 * r33 - r11 * r23 * r32 + r12 * r23 * r31 - r12 * r21 * r33
+    + r13 * r21 * r32 - r13 * r22 * r31;
+
+  sDet -= 1.0;
+  if (sDet > crit || sDet < -crit)
+    return 1;
+
+  test1 = r13 - 1.0;
+  if (test1 < 0.0)
+    test1 = -test1;
+  test2 = r13 + 1.0;
+  if (test2 < 0.0)
+    test2 = -test2;
+  if (test1 < small || test2 < small) {
+    beta = asin(r13);
+    gamma = atan2(r21, r22);
+    alpha = 0.0;
+
+  } else if (r13 <= small && r13 >= -small) {
+
+    beta = 0.0;
+    gamma = atan2 (-r12, r11);
+    alpha = atan2 (-r23, r33);
+
+  } else {
+
+    alpha = atan2 (-r23, r33);
+    gamma = atan2 (-r12, r11);
+    cosg = cos(gamma);
+    sing = sin(gamma);
+    if (cosg > crit || cosg < -crit) 
+      cosb = r11 / cosg;
+    else
+      cosb = -r12 / sing;
+    beta = atan2 (r13, cosb);
+  }
+  *x = alpha / cnv;
+  *y = beta / cnv;
+  *z = gamma / cnv;
+  return 0;
+}
+
+/*!
+ * Fortran wrapper to @matrixToAngles that assumes [matrix] has three rows and that 
+ * places X, Y, and Z rotations into [angles].  If the determinant is not zero, it exits
+ * with matrix and determinant output and an error message.  This function is callable
+ * from C with this name.
+ */
+void icalc_angles(float *angles, float *matrix)
+{
+  double x, y, z;
+  if (!matrixToAngles(matrix, &x, &y, &z, 3)) {
+    angles[0] = x;
+    angles[1] = y;
+    angles[2] = z;
+    return;
+  }
+
+  /* And here is what the old fortran routine did: */
+  printf("icalc_angles - matrix %10.6f %10.6f %10.6f\n", matrix[0], matrix[3], matrix[6]);
+  printf("                      %10.6f %10.6f %10.6f\n", matrix[1], matrix[4], matrix[7]);
+  printf("                      %10.6f %10.6f %10.6f\n", matrix[2], matrix[5], matrix[8]);
+  printf("determinant - %f\n", sDet);
+  printf("ERROR: icalc_angles - Not a pure rotation matrix\n");
+  fflush(stdout);
+}

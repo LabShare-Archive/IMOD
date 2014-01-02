@@ -17,6 +17,17 @@
 extern "C" {
 #endif
 
+#ifdef F77FUNCAP
+#define icalc_angles ICALC_ANGLES
+#else
+#ifdef G77__HACK
+#define icalc_angles icalc_angles__
+#else
+#define icalc_angles icalc_angles_
+#endif
+#endif
+
+
   /* parselist.c  - for parsing a list of integers */
   int *parselist (const char *line, int *nlist);
 
@@ -237,13 +248,16 @@ extern "C" {
                      float xc, float yc, float xt, float yt, float dmean);
   double zoomFiltValue(float radius);
 
-  /* xformfuncs.f */
+  /* linearxforms.f */
   void xfUnit(float *f, float val, int rows);
   void xfCopy(float *f1, int rows1, float *f2, int rows2);
   void xfMult(float *f1, float *f2, float *prod, int rows);
   void xfInvert(float *f, float *finv, int rows);
   void xfApply(float *f, float xcen, float ycen, float x, float y, float *xp, float *yp,
                int rows);
+  void anglesToMatrix(float *angles, float *matrix, int rows);
+  int matrixToAngles(float *matrix, double *x, double *y, double *z, int rows);
+  void icalc_angles(float *angles, float *matrix);
 
   /* piecefuncs.c */
   int checkPieceList(int *pclist, int stride, int npclist, int redfac, int nframe,
