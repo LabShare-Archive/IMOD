@@ -123,6 +123,7 @@ EXPORTS
 	ADOCGETFLOAT
 	LSQR
 	selectzoomfilterXY
+	EXTRAISNBYTESANDFLAGS
 	AdocInsertSection
 	parWrtFindRegion
 	SCALEDGAUSSIANKERNEL
@@ -133,6 +134,7 @@ EXPORTS
 	PipGetIntegerArray
 	rsMadMedianOutliers
 	beadIntegral
+	ICALC_MATRIX
 	sliceCreate
 	PARWRTFINDREGION
 	MEANZERO
@@ -332,6 +334,7 @@ EXPORTS
 	ADOCNEW
 	LSFIT2NOC
 	AdocGetInteger
+	ICALC_ANGLES
 	b3dFseek
 	PIPGETTWOINTEGERS
 	setZoomValueScaling
@@ -379,8 +382,10 @@ EXPORTS
 	setPeakFindLimits
 	sliceFree
 	lsFit
+	matrixToAngles
 	PIPPRINTHELP
 	TAPERINPADEX
+	anglesToMatrix
 	TAPERINPAD
 	rsSortFloats
 	scaledSobel
@@ -399,6 +404,7 @@ EXPORTS
 	PipGetLineOfValues
 	SPLITFILL
 	APPLYKERNELFILTER
+	extraIsNbytesAndFlags
 	PIPALLOWCOMMADEFAULTS
 	FITCIRCLEWGT
 	SURFACESORT
