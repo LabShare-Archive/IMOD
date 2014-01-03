@@ -421,9 +421,10 @@ int iiureadlines(int *iunit, char *array, int *numLines)
 int iiuWriteSection(int iunit, char *array)
 {
   Unit *u = lookupUnit(iunit, "iiuWriteSection", sExitOnError, 2);
+  int err;
   if (!u)
     return -1;
-  int err = iiuWriteSubarray(iunit, array, u->iiFile->nx, 0, 0, u->iiFile->ny - 1);
+  err = iiuWriteSubarray(iunit, array, u->iiFile->nx, 0, 0, u->iiFile->ny - 1);
   if (err) {
     b3dError(stdout, "\nERROR: iiuWriteSection - writing section %d to unit %d\n",
            u->currentSec - 1, iunit);
@@ -544,6 +545,11 @@ static int setupCurrentLines(Unit *u, int numLines)
  */
 void iiuFileInfo(int iunit, int *fileSize, int *fileType, int *flags)
 {
+#ifdef _WIN32
+  struct _stat64 buf;
+#else
+  struct stat buf;
+#endif
   Unit *u = lookupUnit(iunit, "iiuFileSize", 0, 0);
   *flags = 0;
   *fileType = IIFILE_MRC;
@@ -553,10 +559,8 @@ void iiuFileInfo(int iunit, int *fileSize, int *fileType, int *flags)
 
   /* generic stat is not good enough on Windows */
 #ifdef _WIN32
-  struct _stat64 buf;
   _stat64(u->iiFile->filename, &buf);
 #else
-  struct stat buf;
   stat(u->iiFile->filename, &buf);
 #endif
   *fileSize = (int)((double)buf.st_size / 1024.);

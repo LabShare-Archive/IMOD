@@ -248,7 +248,7 @@ EXPORTS
 	iiuAltAxisMap
 	mrc_coord_cp
 	mrc_read_slice
-	iiualttiltrot
+	IIUALTTILTROT
 	ITRLAB
 	IIURETSAMPLE
 	iiuReadSecPart

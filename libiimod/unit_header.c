@@ -95,7 +95,7 @@
 #define iiualtextendedtype IIUALTEXTENDEDTYPE
 #define ialsymtyp IALSYMTYP
 #define iiuretextendeddata IIURETEXTENDEDDATA
-#define irtsym IRTSYM
+#define ialsym IALSYM
 #define iiualtextendeddata IIUALTEXTENDEDDATA
 #define irtsym IRTSYM
 #define iiutransextendeddata IIUTRANSEXTENDEDDATA
@@ -154,6 +154,7 @@
 #define ialtlt ialtlt_
 #define iiurettiltorig iiurettiltorig_
 #define iiualttiltorig iiualttiltorig_
+#define iiualttiltrot iiualttiltrot_
 #define iiuretdelta iiuretdelta_
 #define irtdel irtdel_
 #define iiualtdelta iiualtdelta_
