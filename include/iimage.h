@@ -103,6 +103,8 @@ extern "C" {
     float slope, offset, smin, smax;
     int   axis;
     int   mirrorFFT;   /* Return mirrored FFT when scaling to bytes */
+    int   padLeft;     /* Padding at start or end of line when reading or writing a */
+    int   padRight;    /* subset of the array, in pixels not bytes */
 
     /* extra storage used by individual file format functions. */
     int   headerSize;
@@ -125,7 +127,9 @@ extern "C" {
     iiSectionFunc readSection;
     iiSectionFunc readSectionByte;
     iiSectionFunc readSectionUShort;
+    iiSectionFunc readSectionFloat;
     iiSectionFunc writeSection;
+    iiSectionFunc writeSectionFloat;
     void (*cleanUp)(ImodImageFile *inFile);
     void (*close)(ImodImageFile *inFile);
     int (*reopen)(ImodImageFile *inFile);
@@ -170,6 +174,7 @@ extern "C" {
   int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
+  int iiReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
   int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li,
                    int nx, int ny, int nz);
 
@@ -177,18 +182,23 @@ extern "C" {
   int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize, 
              int file, int format, int type);
   int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection);
+  int iiWriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
 
   /* Declarations for specific file types needed by other modules */
   int iiTIFFCheck(ImodImageFile *inFile);
   int iiMRCCheck(ImodImageFile *inFile);
+  void iiMRCsetIOFuncs(ImodImageFile *inFile, int rawFile);
   int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
-  int iiMRCLoadPCoord(ImodImageFile *inFile, IloadInfo *li, int nx,
-                      int ny, int nz);
+  int iiMRCreadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
+  int iiMRCwriteSection(ImodImageFile *inFile, char *buf, int inSection);
+  int iiMRCwriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
+  int iiMRCLoadPCoord(ImodImageFile *inFile, IloadInfo *li, int nx, int ny, int nz);
   int iiMRCcheckPCoord(MrcHeader *hdr);
   int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
+  int tiffReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
   void tiffClose(ImodImageFile *inFile);
   int tiffGetField(ImodImageFile *inFile, int tag, void *value);

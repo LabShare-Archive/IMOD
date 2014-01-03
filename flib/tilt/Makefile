@@ -18,7 +18,7 @@ all: $(PROG)
 $(PROG): tilt.$(O) tiltvars.$(O) $(TILTOBJS) $(TILTGPUOBJ) 
 	$(FC) $(FFLAGS) -o tilt tilt.$(O) tiltvars.$(O) \
 	$(TILTOBJS) $(TILTGPUOBJ) $(LDFFLAGS) $(LWMOD) $(LIMOD) \
-	$(IMLIBS) $(FORTCLIBS) $(CUDALIBS)
+	$(IMLIBS) $(LIFFT) $(FORTCLIBS) $(CUDALIBS)
 
 
 gpubp.$(O): gpubp.cu

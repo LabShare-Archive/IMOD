@@ -26,19 +26,18 @@
 !!
 subroutine irdReduced(imUnit, iz, array, nxDim, xUBstart, yUBstart, redFac, nxRed, &
     nyRed, ifiltType, temp, lenTemp, ierr)
-  use imsubs
   implicit none
   integer*4 imUnit, nxDim, ix0, ix1, iy0, iy1, nx, ny, ifiltType
-  integer*4 lenTemp, nxRed, nyRed, ierr, iz
+  integer*4 lenTemp, nxRed, nyRed, ierr, iz, nxyz(3), mxyz(3), nxyzst(3)
   real*4 xUBstart, yUBstart, redFac, chunkYstart, zoomFac
   real*4 array(nxDim, *), temp(lenTemp)
   integer*4 nxLoad, nyLoad, maxLineLoad, loadYstart, ifiltWidth, ihalfWidth, ix
-  integer*4 iyStart, maxChunkLines, lastY1, lastY0, indStart, numCopy, iyEnd
-  integer*4 selectZoomFilter, zoomWithFilter
+  integer*4 iyStart, maxChunkLines, lastY1, lastY0, indStart, numCopy, iyEnd, ierr2
+  integer*4 selectZoomFilter, zoomWithFilter, iiuReadSecPart
   !
-  ix = lstream(imUnit)
-  nx = ncrs(1, ix)
-  ny = ncrs(2, ix)
+  call iiuRetSize(imUnit, nxyz, mxyz, nxyzst)
+  nx = nxyz(1)
+  ny = nxyz(2)
   !
   ! Check the validity of the limits here
   zoomFac = 1. / redFac
@@ -91,10 +90,10 @@ subroutine irdReduced(imUnit, iz, array, nxDim, xUBstart, yUBstart, redFac, nxRe
     endif
     lastY0 = iy0
     lastY1 = iy1
-    call imposn(imUnit, iz, 0)
+    call iiuSetPosition(imUnit, iz, 0)
     ierr = -1
-    call irdpas(imUnit, temp(indStart), nxLoad, iy1 + 1 - loadYstart, ix0, ix1, &
-        loadYstart, iy1, *99)
+    ierr2 = iiuReadSecPart(imUnit, temp(indStart), nxLoad, ix0, ix1, loadYstart, iy1)
+    if (ierr2 .ne. 0) return
 
     chunkYstart = yUBstart + iyStart * redFac - iy0
     ierr = zoomWithFilter(temp, nxLoad, iy1 + 1 - iy0, xUBstart - ix0, chunkYstart,  &
@@ -103,5 +102,5 @@ subroutine irdReduced(imUnit, iz, array, nxDim, xUBstart, yUBstart, redFac, nxRe
     iyStart = iyEnd
   enddo
   ierr = 0
-99 return
+  return
 end subroutine irdReduced

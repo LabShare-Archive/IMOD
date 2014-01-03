@@ -33,21 +33,21 @@
 !!
 subroutine irdBinned(imUnit, iz, array, ixDim, iyDim, &
     ixUBstart, iyUBstart, nbin, nxBin, nyBin, temp, lenTemp, ierr)
-  use imsubs
   implicit none
   integer*4 imUnit, ixDim, iyDim, ix0, ix1, iy0, iy1, nbin, nx, ny
   integer*4 lenTemp, nxBin, ixoffset, nyBin, iyoffset, ierr, iz
-  integer*4 ixUBstart, iyUBstart
+  integer*4 ixUBstart, iyUBstart, nxyz(3), mxyz(3), nxyzst(3)
   real*4 array(ixDim, iyDim), temp(lenTemp)
   integer*4 ixb, nxLoad, nyLoad, maxLineLoad, maxColLoad, loadYoffset
   integer*4 iyStart, iyDone, nBinLines, loadXoffset, ixStart, ixDone
   integer*4 nBinCols, iyb, iFastStrt, iFastEnd, ixEnd, iyEnd, ix, iy
   integer*4 iCheckStrt, iCheckEnd, iCheck, nsum
   real*4 sum, binsq
+  integer*4 iiuReadSection, iiuReadSecPart
   !
-  ixb = lstream(imUnit)
-  nx = ncrs(1, ixb)
-  ny = ncrs(2, ixb)
+  call iiuRetSize(imUnit, nxyz, mxyz, nxyzst)
+  nx = nxyz(1)
+  ny = nxyz(2)
   ierr = 1
   !
   ! convert input starting coordinate to actual start and offset
@@ -64,13 +64,12 @@ subroutine irdBinned(imUnit, iz, array, ixDim, iyDim, &
   ! if binning 1, use regular routines
   !
   if (nbin == 1) then
-    call imposn(imUnit, iz, 0)
+    call iiuSetPosition(imUnit, iz, 0)
     if (ixDim == nx .and. nxBin == nx .and. nyBin == ny) then
-      call irdsec(imUnit, array, *99)
+      ierr = iiuReadSection(imUnit, array)
     else
-      call irdpas(imUnit, array, ixDim, iyDim, ix0, ix1, iy0, iy1, *99)
+      ierr = iiuReadSecPart(imUnit, array, ixDim, ix0, ix1, iy0, iy1)
     endif
-    ierr = 0
     return
   endif
   !
@@ -125,9 +124,10 @@ subroutine irdBinned(imUnit, iz, array, ixDim, iyDim, &
       !
       ! print *,'loading', nxLoad, nyLoad, ixStart, &
       ! ixStart + nxLoad - 1, iyStart, iyStart + nyLoad - 1
-      call imposn(imUnit, iz, 0)
-      call irdpas(imUnit, temp, nxLoad, nyLoad, ixStart, &
-          ixStart + nxLoad - 1, iyStart, iyStart + nyLoad - 1, *99)
+      call iiuSetPosition(imUnit, iz, 0)
+      ierr = iiuReadSecPart(imUnit, temp, nxLoad, ixStart, ixStart + nxLoad - 1, &
+          iyStart, iyStart + nyLoad - 1)
+      if (ierr .ne. 0) return
       do iyb = 1, nBinLines
         !
         ! find extent in X that can be done without checks
@@ -193,6 +193,5 @@ subroutine irdBinned(imUnit, iz, array, ixDim, iyDim, &
     iyStart = iyStart + nyLoad
     loadYoffset = 0
   enddo
-  ierr = 0
-99 return
+  return
 end subroutine irdBinned

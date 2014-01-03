@@ -154,9 +154,10 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
     b3dError(stderr, "ERROR: iiSetupRawHeaders - Getting memory for header");
     return IIERR_MEMORY_ERR;
   }
-  inFile->nx   = hdr->nx = info->nx;
-  inFile->ny   = hdr->ny = info->ny;
-  inFile->nz   = hdr->nz = info->nz;
+  mrc_head_new(hdr, info->nx, info->ny, info->nz, MRC_MODE_BYTE);
+  inFile->nx   = info->nx;
+  inFile->ny   = info->ny;
+  inFile->nz   = info->nz;
   inFile->file = IIFILE_RAW;
   hdr->swapped = info->swapBytes;
   hdr->headerSize = info->headerSize;
@@ -210,9 +211,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
 
   /* Set the header and the access routines; just use the MRC routines */
   inFile->header = (char *)hdr;
-  inFile->readSection = iiMRCreadSection;
-  inFile->readSectionByte = iiMRCreadSectionByte;
-  inFile->readSectionUShort = iiMRCreadSectionUShort;
+  iiMRCsetIOFuncs(inFile, 1);
   inFile->cleanUp = iiLikeMRCDelete;
   inFile->mode = hdr->mode;
   return 0;

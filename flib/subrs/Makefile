@@ -45,12 +45,10 @@ $(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
 	$(RANLIB) $(LIBSMLMOD)
 	$(CP) libsmlmod.$(LIBEXT) $(LIBDIR)
 
-$(LIBMRCIM): imsubs/*.f imsubs/*.f90 imsubs/*.c imsubs2/*.f 
+$(LIBMRCIM): imsubs/*.f imsubs/*.f90 imsubs/*.c
 	(cd imsubs ; $(MAKE) all)
-	(cd imsubs2 ; $(MAKE) all)
 	$(RM) $(LIBMRCIM)
-	$(FAR) $(FARFLAGS)$(LIBMRCIM) $(LIBMRCIMDEF) imsubs/$(IMSUBSOBJ) \
-	imsubs2/*.$(O)
+	$(FAR) $(FARFLAGS)$(LIBMRCIM) $(LIBMRCIMDEF) imsubs/$(IMSUBSOBJ)
 	$(RANLIB) $(LIBMRCIM)
 	$(CP) libmrcim.$(LIBEXT) $(LIBDIR)
 

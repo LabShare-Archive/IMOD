@@ -17,6 +17,10 @@
 
 static void iiMRCdelete(ImodImageFile *inFile);
 static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, int outmax);
+static int writeSection(ImodImageFile *inFile, char *buf, int inSection, int asFloat);
+static int readSectionUnscaled(ImodImageFile *inFile, char *buf, int inSection, 
+                               int asFloat);
+static void iiMRCsetLoadInfo(ImodImageFile *inFile, IloadInfo *li);
 
 int iiMRCCheck(ImodImageFile *iif)
 {
@@ -106,12 +110,21 @@ int iiMRCCheck(ImodImageFile *iif)
   iif->header = (char *)hdr;
   iif->hasPieceCoords = iiMRCcheckPCoord(hdr);
 
-  iif->readSection = iiMRCreadSection;
-  iif->readSectionByte = iiMRCreadSectionByte;
-  iif->readSectionUShort = iiMRCreadSectionUShort;
-  iif->cleanUp = iiMRCdelete;
-
+  iiMRCsetIOFuncs(iif, 0);
   return(0);
+}
+
+void iiMRCsetIOFuncs(ImodImageFile *inFile, int rawFile)
+{
+  inFile->readSection = iiMRCreadSection;
+  inFile->readSectionByte = iiMRCreadSectionByte;
+  inFile->readSectionUShort = iiMRCreadSectionUShort;
+  inFile->readSectionFloat = iiMRCreadSectionFloat;
+  if (rawFile)
+    return;
+  inFile->cleanUp = iiMRCdelete;
+  inFile->writeSection = iiMRCwriteSection;
+  inFile->writeSectionFloat = iiMRCwriteSectionFloat;
 }
 
 void iiMRCdelete(ImodImageFile *inFile)
@@ -120,40 +133,61 @@ void iiMRCdelete(ImodImageFile *inFile)
     free(inFile->header);
 } 
 
+static void iiMRCsetLoadInfo(ImodImageFile *inFile, IloadInfo *li)
+{
+  mrc_init_li(li, NULL);
+  li->xmin = inFile->llx;
+  li->ymin = inFile->lly;
+  li->zmin = inFile->llz;
+
+  /* DNM 2/26/03: replace upper right only if negative */
+  if (inFile->urx < 0)
+    li->xmax = inFile->nx-1;
+  else
+    li->xmax = inFile->urx;
+  if (inFile->ury < 0)
+    li->ymax = inFile->ny-1;
+  else
+    li->ymax = inFile->ury;
+  if (inFile->urz < 0)
+    li->zmax = inFile->nz-1;
+  else
+    li->zmax = inFile->urz;
+
+  li->slope = inFile->slope;
+  li->offset = inFile->offset;
+  li->axis = inFile->axis;
+  li->padLeft = inFile->padLeft;
+  li->padRight = inFile->padRight;
+}
+
 int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return readSectionUnscaled(inFile, buf, inSection, 0);
+}
+
+int iiMRCreadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return readSectionUnscaled(inFile, buf, inSection, 1);
+}
+
+static int readSectionUnscaled(ImodImageFile *inFile, char *buf, int inSection, 
+                               int asFloat)
 {
   IloadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
-  mrc_init_li(&li, NULL);
-  li.xmin = inFile->llx;
-  li.ymin = inFile->lly;
-  li.zmin = inFile->llz;
-
-  /* DNM 2/26/03: replace upper right only if negative */
-  if (inFile->urx < 0)
-    li.xmax = inFile->nx-1;
-  else
-    li.xmax = inFile->urx;
-  if (inFile->ury < 0)
-    li.ymax = inFile->ny-1;
-  else
-    li.ymax = inFile->ury;
-  if (inFile->urz < 0)
-    li.zmax = inFile->nz-1;
-  else
-    li.zmax = inFile->urz;
-
-  li.slope = inFile->slope;
-  li.offset = inFile->offset;
+  iiMRCsetLoadInfo(inFile, &li);
   li.outmin = inFile->smin;
   li.outmax = inFile->smax;
   li.black = 0;
   li.white = 255;
-  li.axis = inFile->axis;
   li.mirrorFFT = 0;
   h->fp = inFile->fp;
-  return (mrcReadSection(h, &li, (unsigned char *)buf, inSection));
+  if (asFloat)
+    return (mrcReadSectionFloat(h, &li, (b3dFloat *)buf, inSection));
+  else
+    return (mrcReadSection(h, &li, (unsigned char *)buf, inSection));
 }
 
 int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
@@ -170,28 +204,9 @@ static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, in
   IloadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
-  mrc_init_li(&li, NULL);
-  li.xmin = inFile->llx;
-  li.ymin = inFile->lly;
-  li.zmin = inFile->llz;
-  if (inFile->urx < 0)
-    li.xmax = inFile->nx-1;
-  else
-    li.xmax = inFile->urx;
-  if (inFile->ury < 0)
-    li.ymax = inFile->ny-1;
-  else
-    li.ymax = inFile->ury;
-  if (inFile->urz < 0)
-    li.zmax = inFile->nz-1;
-  else
-    li.zmax = inFile->urz;
-
-  li.slope = inFile->slope;
-  li.offset = inFile->offset;
+  iiMRCsetLoadInfo(inFile, &li);
   li.outmin   = 0;
   li.outmax   = outmax;
-  li.axis   = inFile->axis;
   li.mirrorFFT = inFile->mirrorFFT;
   h->fp = inFile->fp; 
   if (outmax > 255) 
@@ -200,6 +215,32 @@ static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, in
     return (mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection));
 }
 
+int iiMRCwriteSection(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return writeSection(inFile, buf, inSection, 0);
+}
+
+int iiMRCwriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return writeSection(inFile, buf, inSection, 1);
+}
+
+static int writeSection(ImodImageFile *inFile, char *buf, int inSection, int asFloat) 
+{
+  IloadInfo li;
+  MrcHeader *h = (MrcHeader *)inFile->header;
+
+  iiMRCsetLoadInfo(inFile, &li);
+  h->fp = inFile->fp;
+  if (inFile->axis != 3) {
+    b3dError(stderr, "ERROR: iiMRCwriteSection - attempting to write Y slices\n");
+    return 1;
+  }
+  if (asFloat)
+    return (mrcWriteZFloat(h, &li, (b3dFloat *)buf, inSection));
+  else
+    return (mrcWriteZ(h, &li, (unsigned char *)buf, inSection));
+}
 
 
 #define TILT_FLAG    1
@@ -208,27 +249,10 @@ static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, in
 /* Return 1 if file has piece coordinates in header, 0 if not */
 int iiMRCcheckPCoord(MrcHeader *hdr)
 {
-  int extra_bytes[32];
-  int iflag = hdr->nreal;
-  int nbytes = hdr->nint;
-  int i, extratot = 0, flag_count;
-  if(!hdr->next || !(iflag & MONTAGE_FLAG))
+  /* 12/31/13: move flags test to function, but still test for Deltavision here */
+  if (!hdr->next || !(hdr->nreal & MONTAGE_FLAG) || hdr->creatid == -16224)
     return 0;
-
-   b3dHeaderItemBytes(&flag_count, &extra_bytes[0]);
-
-  /* DNM 12/10/01: as partial protection against mistaking other entries
-     for montage information, at least make sure that the total bytes
-     implied by the bits in the flag equals the nint entry.  Also
-     reject deltavision files */
-  /* DNM 2/3/02: make sure nreal also does not have bits beyond the flags */
-  for (i = 0; i < flag_count; i++)
-    if (iflag & (1 << i))
-      extratot += extra_bytes[i];
-
-  if (extratot != nbytes || hdr->creatid == -16224 || iflag >= (1 << flag_count))
-    return 0;
-  return 1;
+  return extraIsNbytesAndFlags(hdr->nint, hdr->nreal);
 }
 
 

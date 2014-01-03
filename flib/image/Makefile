@@ -55,7 +55,7 @@ checkxforms$(E): checkxforms.$(O)
 
 combinefft$(E): combinefft.$(O) taperprep.$(O)
 	$(FC) -o combinefft combinefft.$(O) taperprep.$(O) $(LDFLG) \
-	$(IMLIBS) $(LIBS)
+	$(IMLIBS) $(LIFFT) $(LIBS)
 
 densmatch$(E): densmatch.$(O)
 	$(FC) -o densmatch densmatch.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -64,13 +64,13 @@ densnorm$(E): densnorm.$(O)
 	$(FC) -o densnorm densnorm.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 edgemtf$(E): edgemtf.$(O)
-	$(FC) -o edgemtf edgemtf.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o edgemtf edgemtf.$(O) $(LDFLG) $(IMLIBS) $(LIFFT) $(LIBS)
 
 edpiecepoint$(E): edpiecepoint.$(O)
 	$(FC) -o edpiecepoint edpiecepoint.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 enhance$(E): enhance.$(O)
-	$(FC) -o enhance enhance.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o enhance enhance.$(O) $(LDFLG) $(IMLIBS) $(LIFFT) $(LIBS)
 
 eraser$(E): eraser.$(O)
 	$(FC) -o eraser eraser.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -97,7 +97,7 @@ fixboundaries$(E): fixboundaries.$(O)
 	$(FC) -o fixboundaries fixboundaries.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 fftrans$(E): fftrans.$(O)
-	$(FC) -o fftrans fftrans.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o fftrans fftrans.$(O) $(LDFLG) $(IMLIBS) $(LIFFT) $(LIBS)
 
 findcontrast$(E): findcontrast.$(O)
 	$(FC) -o findcontrast findcontrast.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -128,13 +128,13 @@ mtdetect$(E): mtdetect.$(O) mtsubs.$(O)
 	$(FC) -o mtdetect mtdetect.$(O) mtsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 mtffilter$(E): mtffilter.$(O)
-	$(FC) -o mtffilter mtffilter.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o mtffilter mtffilter.$(O) $(LDFLG) $(IMLIBS) $(LIFFT) $(LIBS)
 
 mtteach$(E): mtteach.$(O) mtsubs.$(O)
 	$(FC) -o mtteach mtteach.$(O) mtsubs.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 newstack$(E): newstack.$(O)
-	$(FC) -o newstack newstack.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS) 
+	$(FC) -o newstack newstack.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIFFT) $(LIBS) 
 
 numericdiff$(E): numericdiff.$(O)
 	$(FC) -o numericdiff numericdiff.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -183,7 +183,7 @@ warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O) rotmatwarp.$(O)
 	$(LDFLG) $(IMLIBS) $(LIBS)
 
 xcorrstack$(E): xcorrstack.$(O)
-	$(FC) -o xcorrstack xcorrstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+	$(FC) -o xcorrstack xcorrstack.$(O) $(LDFLG) $(IMLIBS) $(LIFFT) $(LIBS)
 
 xfinverse$(E): xfinverse.$(O)
 	$(FC) -o xfinverse xfinverse.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
@@ -192,7 +192,7 @@ xfproduct$(E): xfproduct.$(O)
 	$(FC) -o xfproduct xfproduct.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
 
 xfsimplex$(E): xfsimplex.$(O)
-	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)
+	$(FC) -o xfsimplex xfsimplex.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIFFT) $(LIBS)
 
 xftoxg$(E): xftoxg.$(O)
 	$(FC) -o xftoxg xftoxg.$(O) $(LDFLG) $(IMLIBS) $(LIWARP) $(LIBS)

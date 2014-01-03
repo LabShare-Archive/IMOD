@@ -179,8 +179,8 @@ if ($compiler == intel) then
         echo 'LIBCFSHRDEF = /def:libcfshr.def'     >> $configure
         echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libcfshr.lib ../buildlib/libimod.lib'     >> $configure
         echo 'LIBIWARPDEF = /def:libiwarp.def ../buildlib/libcfshr.lib'     >> $configure
-        echo "LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib $fftw_def ../../buildlib/libcfshr.lib"  >> $configure
-        echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
+        echo "LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libiimod.lib ../../buildlib/libcfshr.lib"  >> $configure
+        echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libiimod.lib ../../buildlib/libcfshr.lib'  >> $configure
         echo "LIBIFFTDEF = /def:libifft.def $fftw_def $fftw_cfshr"     >> $configure
         echo 'LIBBLASDEF = /def:libb3dblas.def'   >> $configure
         echo 'LIBLAPACKDEF = /def:libb3dlapk.def ../../buildlib/libb3dblas.lib'   >> $configure
@@ -234,13 +234,13 @@ if ($compiler == intel) then
     set lapacklibs = "libb3dlapk.lib libb3dblas.lib"
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
-    echo 'IMLIBS     =  $(LIBWMOD)'" libhvem.lib libmrcim.lib $lifft libcfshr.lib" >> $configure
+    echo 'IMLIBS     =  $(LIBWMOD)'" libhvem.lib libmrcim.lib libiimod.lib libcfshr.lib $ltiff" >> $configure
     echo 'LINUXFLIBS = ' >> $configure
     echo '#define WIN32_BIGFILE' >> $hconfigure
 else
     echo "CLIBS   = -lc -lm" >> $configure
     echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
-    echo "IMLIBS     = -lhvem -lmrcim -lifft -lcfshr -lb3dcmpt" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt" >> $configure
     echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 endif
 echo 'LIBS    = $(CLIBS)'  >> $configure

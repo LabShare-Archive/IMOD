@@ -105,6 +105,9 @@ ImodImageFile *iiNew()
   ofile->readSection     = NULL;
   ofile->readSectionByte = NULL;
   ofile->readSectionUShort = NULL;
+  ofile->readSectionFloat  = NULL;
+  ofile->writeSection      = NULL;
+  ofile->writeSectionFloat = NULL;
   ofile->cleanUp         = NULL;
   ofile->reopen          = NULL;
   ofile->close           = NULL;
@@ -118,6 +121,8 @@ ImodImageFile *iiNew()
   ofile->urx = -1;
   ofile->ury = -1;
   ofile->urz = -1;
+  ofile->padLeft = 0;
+  ofile->padRight = 0;
   ofile->nx = 0;
   ofile->ny = 0;
   ofile->nz = 0;
@@ -350,14 +355,33 @@ int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
 }
 
 /*!
+ * Reads the section [inSection] from the file [inFile] as unscaled floating point values
+ * into buffer [buf].  Returns -1 for undefined reading function or failure 
+ * to reopen file, otherwise passes along return value of the reading function.
+ */
+int iiReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return( readWriteSection(inFile, buf, inSection, inFile->readSectionFloat) );
+}
+
+/*!
  * Write data in the buffer [buf] to section [inSection] of the file [inFile].
  * Returns -1 for undefined writing function or failure to reopen file; otherwise passes
- * along return value of the writing function.  Note that neither iimrc nor iitiff define
- * writing functions.
+ * along return value of the writing function.
  */
 int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection)
 {
   return( readWriteSection(inFile, buf, inSection, inFile->writeSection) );
+}
+
+/*!
+ * Write floating point or complex data in the buffer [buf] to section [inSection] of the 
+ * file [inFile].  Returns -1 for undefined writing function or failure to reopen file;
+ * otherwise passes along return value of the writing function.
+ */
+int iiWriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return( readWriteSection(inFile, buf, inSection, inFile->writeSectionFloat) );
 }
 
 /* The routine that does the work */

@@ -7,16 +7,12 @@ CFLAGS = $(LIBCFLAGS)
 FFLAGS = $(LIBFFLAGS)
 
 O        = $(OBJEXT)
-OBJS = blockio.$(O) altskip.$(O) icllim.$(O) imopen.$(O) imposn.$(O) \
- imunit.$(O) irdhdr.$(O) irdlin.$(O) irdpas.$(O) irepak.$(O) isetdn.$(O) \
- iwrlin.$(O) iwrpas.$(O) convert_vms.$(O) nbytes_and_flags.$(O) \
- irdbinned.$(O) irdreduced.$(O)
-MODULES = imsubs.$(O)
+OBJS = irdhdr.$(O) wrap_iiunit.$(O) irdbinned.$(O) irdreduced.$(O) strupcase.$(O) \
+	irepak.$(O) isetdn.$(O) blockio.$(O) convert_vms.$(O) cinterp.$(O) iclcdn.$(O)
 
-all: $(OBJS) $(MODULES)
+all: $(OBJS)
 
 blockio.$(O): environ.h
-$(OBJS):   imsubs.$(O)
 
 clean:
 	$(FIND) . -type f -name "*.$(OBJEXT)" -exec rm "{}" \;

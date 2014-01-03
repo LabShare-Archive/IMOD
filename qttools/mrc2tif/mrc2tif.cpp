@@ -293,6 +293,7 @@ int main(int argc, char *argv[])
   iifile->nx = xsize;
   iifile->ny = ysize;
   iifile->nz = 1;
+  mrc_init_li(&li, NULL);
   li.xmin = 0;
   li.xmax = xsize - 1;
   li.ymin = 0;

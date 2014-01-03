@@ -323,10 +323,10 @@ echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 # make extra fortran libs
 if ($compiler == ifort) then
     echo 'LINUXFLIBS = ' >> $configure
-    echo "IMLIBS     = -lhvem -lmrcim $lifft  -lcfshr" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr $ltiff" >> $configure
 else
     echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
-    echo "IMLIBS     = -lhvem -lmrcim $lifft  -lcfshr -lb3dcmpt" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt $ltiff" >> $configure
 endif
 
 # Adjust variables for CUDA.  Libraries are hardcoded to user's installed 

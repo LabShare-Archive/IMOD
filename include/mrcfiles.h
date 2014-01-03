@@ -71,6 +71,11 @@
 #define MRC_HEADER_SIZE        1024   /* Length of Header is 1024 Bytes. */
 #define MRC_MAXCSIZE           3
 
+#define IIUNIT_SWAPPED       (1l << 0)
+#define IIUNIT_BYTES_SIGNED  (1l << 1)
+#define IIUNIT_OLD_STYLE     (1l << 2)
+#define IIUNIT_NINT_BUG      (1l << 3)
+#define IIUNIT_BAD_MAPCRS    (1l << 4)
 
 typedef struct  /*complex floating number*/
 {
@@ -189,6 +194,7 @@ typedef struct MRCheader
   int    swapped;
   int    bytesSigned;
   int    yInverted;
+  int    iiuFlags;
 
   char *pathname;
   char *filedesc;
@@ -214,6 +220,8 @@ typedef struct LoadInfo
   int ymax;
   int zmin;
   int zmax;
+  int padLeft;     /* Padding at start or end of line when reading or writing a */
+  int padRight;    /* subset of the array, in pixels not bytes */
   
   int ramp;      /* Contrast ramp type. */
   int scale;
@@ -272,6 +280,7 @@ int mrc_head_new  (MrcHeader *hdata, int x, int y, int z, int mode);
 int mrc_byte_mmm  (MrcHeader *hdata, unsigned char **idata);
 int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout);
 int mrc_test_size(MrcHeader *hdata);
+void fixTitlePadding(char *label);
 
 void mrc_get_scale(MrcHeader *h, float *xs, float *ys, float *zs);
 void mrc_set_scale(MrcHeader *h, double x, double y, double z);
@@ -311,11 +320,11 @@ unsigned char **mrc_read_byte(FILE *fin, MrcHeader *hdata,
 			      IloadInfo *li,
 			      void (*func)(const char *));
 
+  /* Functions in mrcsec.c */
 int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
 int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
 int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int y);
-int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, 
-                         int z);
+int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
 int mrcReadZUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
 int mrcReadYUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int y);
 int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int cz);
@@ -324,6 +333,8 @@ int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
 int mrcReadSectionFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
+int mrcWriteZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z);
+int mrcWriteZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 
 /* misc stdio functions */
 int  loadtilts(struct TiltInfo *ti, MrcHeader *hdata);

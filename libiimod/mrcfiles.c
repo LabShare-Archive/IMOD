@@ -61,6 +61,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
     return(-1);
   }
   hdata->swapped = 0;
+  hdata->iiuFlags = 0;
 
   /* Test for byte-swapped data with image size and the map numbers and 
      mark data as swapped if it fails */
@@ -77,6 +78,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
     if (hdata->swapped)
       mrc_swap_floats(&hdata->rms, 1);
     mrc_set_cmap_stamp(hdata);
+    hdata->iiuFlags |= IIUNIT_OLD_STYLE;
   }
 
   if (hdata->swapped) {
@@ -106,12 +108,14 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
     hdata->imodFlags = 0;
 
   for ( i = 0; i < MRC_NLABELS; i ++){
-    if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0){  
+    if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0) {  
       b3dError(stderr, "ERROR: mrc_head_read - reading label %d.\n", i);
       hdata->labels[i][MRC_LABEL_SIZE] = 0;
       return(-1);
     }
     hdata->labels[i][MRC_LABEL_SIZE] = 0;
+    if (i < hdata->nlabl)
+      fixTitlePadding(hdata->labels[i]);
   }
 
   if ((hdata->mode > 31) || (hdata->mode < 0)) {
@@ -124,6 +128,16 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
     return(1);
   }
 
+  /* 12/31/13: If the map indexes are wrong just fix them */
+  if ((hdata->mapc + 2) / 3 != 1 || (hdata->mapr + 2) / 3 != 1 ||
+      (hdata->maps + 2) / 3 != 1 || hdata->mapc == hdata->mapr || 
+      hdata->mapr == hdata->maps || hdata->mapc == hdata->maps) {
+    hdata->mapc = 1;
+    hdata->mapr = 1;
+    hdata->maps = 1;
+    hdata->iiuFlags |= IIUNIT_BAD_MAPCRS;
+  }
+    
   /* 12/9/12: To match what is done in irdhdr when mx or xlen is zero; 
      also if Z pixel size is 0, set Z cell to match X pixel size */
   if (!hdata->mx || hdata->xlen < 1.e-5) {
@@ -132,6 +146,13 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
   }
   if (hdata->zlen < 1.e-5)
     hdata->zlen = hdata->mz * hdata->xlen / hdata->mx;
+
+  /* DNM 6/10/04: Workaround to FEI goof in which nints was set to # of bytes, 4 * nreal*/
+  if (hdata->nint == 128 && hdata->nreal == 32 && 
+      (hdata->next == 131072 || strstr(hdata->labels[0], "Fei ") ==  hdata->labels[0])) {
+    hdata->nint = 0;
+    hdata->iiuFlags |= IIUNIT_NINT_BUG;
+  }
 
   /* DNM 7/2/02: This calculation is won't work for big files and is
      a bad idea anyway, so comment out the test below */
@@ -174,6 +195,19 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 }
 
 /*!
+ * Tests whether the string is null-terminated before its end and pads it with space to 
+ * its end
+ */
+void fixTitlePadding(char *label)
+{
+  int len;
+  label[MRC_LABEL_SIZE] = 0x00;
+  len = strlen(label);
+  if (len < MRC_LABEL_SIZE)
+    memset(&label[len], ' ', MRC_LABEL_SIZE - len);
+}
+
+/*!
  * Tests the image size and map entries in MRC header [hdata] to see if they
  * are within allowed ranges: {nx}, {ny}, and {nz} all positive, and at least 
  * one of them less than 65536; and map values between 0 and 3.  Returns 0 if
@@ -204,7 +238,7 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
 
   /* Set the IMOD stamp and flags and clear out old creator field when writing */
   hdata->imodStamp = IMOD_MRC_STAMP;
-  setOrClearFlags(&hdata->imodFlags, MRC_FLAGS_SBYTES, hdata->bytesSigned);
+  setOrClearFlags((b3dUInt32 *)(&hdata->imodFlags), MRC_FLAGS_SBYTES, hdata->bytesSigned);
   hdata->creatid = 0;
   hdata->blank[0] = 0;
   hdata->blank[1] = 0;
@@ -301,8 +335,7 @@ int mrc_head_label_cp(MrcHeader *hin, MrcHeader *hout)
  */
 int mrcCopyExtraHeader(MrcHeader *hin, MrcHeader *hout)
 {
-  int nflags, nbytes[32], ntotal = 0;
-  int i, ntmp, ind, nsecs;
+  int i, ind, nsecs;
   unsigned char *extdata;
 
   if (!hin || !hout || hout->swapped)
@@ -319,14 +352,7 @@ int mrcCopyExtraHeader(MrcHeader *hin, MrcHeader *hout)
     return 4;
   }
   if (hin->swapped) {
-    b3dHeaderItemBytes(&nflags, nbytes);
-    ntmp = hin->nreal;
-    for (i = 0; i < nflags; i++) {
-      if (ntmp % 2)
-        ntotal += nbytes[i];
-      ntmp /= 2;
-    }
-    if (ntmp == 0 && ntotal == hin->nint) {
+    if (extraIsNbytesAndFlags(hin->nint, hin->nreal)) {
       mrc_swap_shorts((b3dInt16 *)extdata, hin->next / 2);
     } else {
       nsecs = hin->next / (4 * (hin->nint + hin->nreal));
@@ -446,6 +472,7 @@ void mrcInitOutputHeader(MrcHeader *hdata)
   hdata->headerSize = 1024;
   hdata->sectionSkip = 0;
   hdata->yInverted = 0;
+  hdata->iiuFlags = 0;
   hdata->bytesSigned = writeBytesSigned();
   hdata->next = 0;
   hdata->nint = 0;
@@ -912,6 +939,7 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, char axis)
 int mrcReadFloatSlice(b3dFloat *buf, MrcHeader *hdata, int slice)
 {
   IloadInfo li;
+  mrc_init_li(&li, NULL);
   li.xmin = 0;
   li.xmax = hdata->nx - 1;
   li.ymin = 0;
@@ -1892,6 +1920,8 @@ int mrc_init_li(IloadInfo *li, MrcHeader *hd)
     li->ymax = -1;
     li->zmin = -1;
     li->zmax = -1;
+    li->padLeft = 0;
+    li->padRight = 0;
     li->ramp = 0;
     li->black = 0;
     li->white = 255;

@@ -12,8 +12,8 @@ LIBD   = $(DUMMYTIFF)
 LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
-OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) \
- mrcslice.$(O) plist.$(O) sliceproc.$(O) diffusion.$(O) iilikemrc.$(O)
+OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) unit_header.$(O) \
+ mrcslice.$(O) plist.$(O) sliceproc.$(O) diffusion.$(O) iilikemrc.$(O) unit_fileio.$(O)
 
 INCS  = $(INCDIR)/mrcfiles.h $(INCDIR)/mrcslice.h \
  $(INCDIR)/mrcc.h $(INCDIR)/b3dutil.h
@@ -69,6 +69,8 @@ iimrc.$(O) : $(INCDIR)/iimage.h
 iilikemrc.$(O) : $(INCDIR)/iimage.h
 iitif.$(O) : $(INCDIR)/iimage.h
 sliceproc.$(O) : $(INCDIR)/sliceproc.h
+unit_fileio.$(O) : $(INCDIR)/iiunit.h $(INCDIR)/iimage.h
+unit_header.$(O) : $(INCDIR)/iiunit.h $(INCDIR)/iimage.h
 
 ALWAYS :
 
