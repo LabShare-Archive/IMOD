@@ -137,6 +137,7 @@ EXPORTS
 	iiMRCreadSectionByte
 	sliceBox
 	iiuRetNumExtended
+	IIUALTTILTROT
 	iiuOpen
 	mrc_mread_slice
 	iiMRCCheck
@@ -248,7 +249,6 @@ EXPORTS
 	iiuAltAxisMap
 	mrc_coord_cp
 	mrc_read_slice
-	IIUALTTILTROT
 	ITRLAB
 	IIURETSAMPLE
 	iiuReadSecPart
