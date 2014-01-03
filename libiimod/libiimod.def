@@ -4,96 +4,198 @@ LIBRARY      "libiimod"
 
 EXPORTS
 	tiffSuppressWarnings
+	iiuRetOrigin
+	IIUWRITEHEADERSTR
+	IALBRIEF
 	sliceBoxIn
 	iiInit
+	IRTTLT
 	sliceQuadInterpolate
 	sliceByteSharpen
 	read_mrc_byte
 	sliceByteShrink
+	IIURETPRINT
+	IIUSETPOSITION
+	IRTNBSYM
 	getfilename
+	IIUALTTILT
+	iiuAltCell
 	mrc_slice_wrap
+	iiWriteSectionFloat
+	iiuWriteSection
 	mrc_read_point
 	mrc_swap_longs
 	sliceByteGrow
+	iiuRetSpaceGroup
+	IIURETORIGIN
 	mrc_swap_floats
+	iiuSyncWithMrcHeader
 	mrc_slice_zoom
 	mrcGetDataMemory
+	IALTLT_ORIG
+	IIURETLABELS
+	iiuClose
+	IIUTRANSEXTENDEDDATA
 	mrc_set_scale
 	mrc_fix_li
 	mrc_head_label
 	updateMatrix
+	IIURETDATATYPE
 	iiLoadPCoord
+	iiuTransHeader
+	iiuAltConvert
 	iiPlistLoad
 	iiAddRawCheckFunction
+	IALSIGNED
 	sliceMedianFilter
+	IALTLT_ROT
+	iiuAltTilt
 	mrcContrastScaling
+	IIURETNUMEXTENDED
 	sliceFloat
+	IALTLT
 	iiPlistFromMetadata
+	IIURETDELTA
 	mrcReadYByte
 	sliceScaleAndFree
+	IIUALTSIGNED
+	IALIMODFLAGS
+	iiuRetBasicHead
+	iiuAltOrigin
 	analyzeDM3
+	iiuAltSize
 	sliceByteEdgeLaplacian
+	IIUALTEXTENDEDTYPE
 	mrc_slice_valscale
+	IALMAP
+	iiuAltNumExtended
 	tiffGetArray
+	ZERO
 	mrcReadFloatSlice
+	IIUREADSECTION
+	IALORG
 	mrc_set_cmap_stamp
 	mrc_slice_lie_img
 	mrc_head_label_cp
 	get_loadinfo
+	IIUFILEINFO
+	iiuWriteHeader
 	mrc_plist_create
 	iiReadSection
 	sliceAddConst
+	IIURETEXTENDEDDATA
 	iiDeleteCheckList
 	mrc_get_scale
+	IIUTRANSLABELS
 	iiSetupRawHeaders
 	allocate2D_float
 	iiReadSectionUShort
+	IRTSYMTYP
+	IALSIZ
+	IALCEL
+	IRTTLT_ORIG
+	tiffReadSectionFloat
+	iiuRetImodFlags
 	tiffVersion
+	IIURETCELL
 	tiffReadSection
 	iiReopen
+	IIURETSPACEGROUP
 	tiffReadSectionByte
+	IRTRMS
 	sliceByteThreshold
 	iiInsertCheckFunction
 	tiffDelete
+	IWRHDR
+	iiuAltImodFlags
 	mrc_slice_mat_getimat
+	iiuRetRMS
 	loadtilts
 	mrc_init_li
 	mrcReadZUShort
 	mrcCopyExtraHeader
+	iiuRetExtendedData
+	IIURETIMODFLAGS
 	mrc_slice_zooms
+	iiuRetLabels
 	mrc_slice_resize
+	IIUWRITESECTION
+	ICRHDR
+	iiuAltExtendedData
+	iiuAltTiltOrig
+	IIUCLOSE
 	iiMRCreadSection
 	sliceByteAnisoDiff
+	iiuReadSection
 	mrcReadZFloat
+	iiuRetDelta
+	IIUCREATEHEADER
 	get_short_map
+	IIUWRITEHEADER
+	IIURETEXTENDEDTYPE
+	IIUALTNUMEXTENDED
 	iiMRCreadSectionByte
 	sliceBox
+	iiuRetNumExtended
+	iiuOpen
 	mrc_mread_slice
 	iiMRCCheck
+	IALRMS
 	tiffClose
 	sliceWrapFFTLines
+	IIUALTLABELS
+	IIURETBRIEF
 	mrc_slice_lie
 	mrc_plist_load
+	IRTDEL
+	IIUALTDATATYPE
 	tiffGetField
 	mrc_head_write
 	sliceByteConvolve
+	iiuMrcHeader
 	sliceMMM
+	ITRHDR
 	mrc_write_slice
+	IALSYM
+	IIUWRITESUBARRAY
 	sliceReadSubm
 	mrc_head_read
 	mrc_write_idata
 	mrcReadSection
 	sliceAnisoDiff
 	mrcComplexSminSmax
+	iiuAltTiltRot
 	tiffSetMapping
 	iiLikeMRCDelete
+	IALNBSYM
 	corr_conj
 	tiffSuppressErrors
+	iiuRetExtendedType
 	sliceResizeIn
+	IIUALTTILTORIG
+	IIUALTPRINT
+	IIUALTSAMPLE
 	sliceByteEdgeSobel
+	IIUREADLINES
+	iiuReadLines
+	IIUALTEXTENDEDDATA
+	iiuAltDelta
+	IIURETRMS
+	iiuRetDataType
 	tiffWriteSection
+	IIUWRITELINES
+	IRTMAP
+	iiuFileInfo
+	IWRHDRC
+	IALLAB
+	IRTDAT
 	iiLikeMRCCheck
+	iiuRetAxisMap
+	iiuWriteHeaderStr
 	mrc_getdcsize
+	iiMRCreadSectionFloat
+	mrcWriteZFloat
+	iiuMemoryError
 	parallelWriteSlice
 	iiWriteSection
 	iiMRCLoadPCoord
@@ -101,19 +203,36 @@ EXPORTS
 	mrc_slice_real
 	sliceReduceMirroredFFT
 	mrcReadZ
+	IIUALTAXISMAP
 	mrc_head_new
+	IRTSIZ
+	iiuRetTiltOrig
 	iiAddCheckFunction
+	IRTCEL
+	iiuWriteLines
+	IRTLAB
+	IALSYMTYP
 	iiDeleteRawCheckList
 	mrc_slice_translate
+	ITREXTRA
 	mrcFreeDataMemory
 	iiMRCreadSectionUShort
+	iiuSetPosition
+	IIURETSIZE
+	IRTORG
+	iiMRCsetIOFuncs
+	iiuAltRMS
+	iiuAltSigned
 	mrcGetComplexScale
+	IIURETBASICHEAD
 	get_byte_map
 	mrc_bandpass_filter
 	sliceByteAdd
 	mrc_slice_putvol
 	sliceMirror
 	niceFrame
+	iiMRCwriteSectionFloat
+	IMCLOSE
 	mrcReadYFloat
 	sliceByteEdgeTwo
 	mrcReadYUShort
@@ -122,49 +241,100 @@ EXPORTS
 	mrc_default_status
 	mrcReadSectionUShort
 	tiffWriteStrip
+	iiMRCwriteSection
+	iiuRetTilt
+	iiuexitonerror
+	IIUALTSIZE
+	iiuAltAxisMap
 	mrc_coord_cp
 	mrc_read_slice
+	iiualttiltrot
+	ITRLAB
+	IIURETSAMPLE
+	iiuReadSecPart
 	mrc_vol_wrap
+	iiuExitOnError
 	mrc_swap_shorts
+	MOVE
 	iiMRCcheckPCoord
+	iiuRetCell
+	iiuTransLabels
 	sliceByteGraham
 	tiffReadSectionUShort
+	iiuAltSample
 	mrc_plist_proc
 	mrc_plist_li
+	IWRSECL
+	IALDEL
 	sliceByteSmooth
+	IIUALTIMODFLAGS
+	IIUALTCONVERT
+	IIUALTCELL
 	iiNew
 	mrc_slice_rotates
 	mrc_slice_mat_mult
 	sliceMinMax
+	iiuRetSample
+	IWRLIN
 	mrcReadZByte
 	mrc_byte_mmm
+	IIUALTRMS
+	IALSAM
 	sliceReadFloat
+	IIUALTMODE
+	IRTSYM
 	sliceGradient
+	iiuAltExtendedType
 	tiffWriteFinish
 	mrc_slice_getvol
+	IALDAT
+	iiuAltLabels
+	iiReadSectionFloat
+	IIUALTDELTA
+	iiuWriteSubarray
 	sliceByteEdgePrewitt
 	sliceNewMode
+	IIUREADSECPART
+	IIURETTILT
 	slice_mat_filter
+	iiuAltMode
+	IALMOD
 	mrcReadY
 	iiSetMM
+	IIUALTORIGIN
 	iiOpen
 	iiTIFFCheck
+	iiuCreateHeader
+	IRTIMODFLAGS
+	IMPOSN
+	IIUTRANSHEADER
 	mrc_liso
+	IRTSAM
 	iiReadSectionByte
+	iiuRetSize
+	fixTitlePadding
 	sliceWriteMRCfile
 	mrc_swap_header
+	iiuTransExtendedData
+	mrcWriteZ
+	IIUOPEN
 	mrc_read_byte
 	mrc_slice_rotate
 	mrcInitOutputHeader
+	iiuGetExitOnError
 	mrcMirrorSource
 	tiffOpenNew
+	IIURETTILTORIG
+	IWRSEC
 	mrc_write_byte
 	tiffFilterWarnings
 	tiffReopen
 	iiClose
 	mrcReadSectionFloat
 	iiPlistLoadF
+	iiuAltDataType
 	sliceComplexFloat
 	sliceMultConst
 	tiffWriteSetup
+	IIURETAXISMAP
 	mrc_test_size
