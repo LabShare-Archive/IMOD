@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/1/14: IMOD_4-6-35
-1/1/14: Fixes in 3dmod for problems with toolbar and popup menu and new model
+1/2/14: Replaced Fortran image I/O system with system used by C programs.
+Fortran programs can now read TIFF, DigitalMicrograph, and other MRC-like
+files.
+
+1/2/14: IMOD_4-6-35
+1/2/14: Fixes in 3dmod for problems with toolbar and popup menu and new model
 view tool windows.
 
 12/31/13: IMOD_4-6-34
