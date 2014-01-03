@@ -10,7 +10,7 @@ OBJS = dopen.$(O) getinout.$(O) mypause.$(O) \
  get_extra_header_pieces.$(O) get_extra_header_tilts.$(O) temp_filename.$(O) \
  taperinvol.$(O) setctf.$(O) parse_input_params.$(O) parallel_write.$(O) \
  getbinnedsize.$(O) set_projection_rays.$(O) objtocont.$(O) b3ddate.$(O) b3dxor.$(O) \
- inside.$(O) strupcase.$(O)
+ inside.$(O)
 
 
 all: $(OBJS)
