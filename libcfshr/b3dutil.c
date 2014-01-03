@@ -674,9 +674,9 @@ int extraIsNbytesAndFlags(int nint, int nreal)
 }
 
 /*! A Fortran wrapper for @extraIsNbytesAndFlags */
-void extraisnbytesandflags(int *nint, int *nreal) 
+int extraisnbytesandflags(int *nint, int *nreal) 
 {
-  extraIsNbytesAndFlags(*nint, *nreal);
+  return extraIsNbytesAndFlags(*nint, *nreal);
 }
 
 /*! Set or clear bits in [flags] with the given [mask], depending on whether
