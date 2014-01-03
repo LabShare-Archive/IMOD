@@ -637,9 +637,11 @@ void b3dHeaderItemBytes(int *nflags, int *nbytes)
 {
 
   /* Keep this synced to definitions in SerialEM/EMimageExtra.cpp */
-  b3dByte extra_bytes[] = {2, 6, 4, 2, 2, 4, 2, 4, 2, 4, 2};
+  /* 1/1/14: On Mac, icc 11.1, bytes gave 9 2's, 4 and 2 when copied to nbytes if -O2
+     and put in a dylib; so make it short. */
+  short extra_bytes[] = {2, 6, 4, 2, 2, 4, 2, 4, 2, 4, 2};
   int i;
-  *nflags = sizeof(extra_bytes);
+  *nflags = sizeof(extra_bytes) / sizeof(short);
   for (i = 0; i < *nflags; i++)
     nbytes[i] = extra_bytes[i];
 }
