@@ -118,6 +118,9 @@ run.function.setup-patch-tracking=
 [[]]
 cb.parallel-processing=on
 bn.generate-tomogram=
+[[if = test-gui]]
+  if.wait.process.processchunks-tilt%{axis}.run.function.test-kill-pp=completed
+[[]]
 wait.process.processchunks-tilt%{axis}=done
 if.var.build.return=
 # check files
@@ -136,6 +139,9 @@ assert.exists.file=%{dataset}%{tomo-ext}%{axis}.rec
 # run again without parallel processing
 cb.parallel-processing=off
 bn.generate-tomogram=
+[[if = test-gui]]
+  if.wait.process.calculating-tomogram.run.function.test-kill=ETC
+[[]]
 wait.process.calculating-tomogram=done
 # check files
 assert.exists.file=tilt%{axis}.log~
@@ -175,6 +181,16 @@ assert.bn.generate-tomogram=on
 # clean up
 bn.delete-intermediate-image-stacks=
 
+
+[function = test-kill]
+bn.kill-process=
+wait.process.calculating-tomogram=killed
+bn.generate-tomogram=
+
+[function = test-kill-pp]
+bn.kill-process=
+wait.process.processchunks-tilt%{axis}-killed=killed
+bn.generate-tomogram=
 
 [function = setup-patch-tracking]
 if.not.var.patch-tracking.return=

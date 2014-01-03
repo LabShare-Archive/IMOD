@@ -772,7 +772,8 @@ public abstract class BaseProcessManager {
           "Cannot write to " + dir.getAbsolutePath(), "File Error");
       return;
     }
-    String[] commandArray = { "touch", absolutePath };
+    String[] commandArray = { "python", BaseManager.getIMODBinPath() + "b3dtouch",
+        absolutePath };
     startSystemProgramThread(commandArray, AxisID.ONLY, manager);
     final int timeout = 5;
     int t = 0;
@@ -1254,83 +1255,39 @@ public abstract class BaseProcessManager {
   final void signalKill(final SystemProcessInterface thread, final AxisID axisID) {
     String processID = "";
     thread.setProcessEndState(ProcessEndState.KILLED);
-
     processID = thread.getShellProcessID();
-    killProcessGroup(processID, axisID);
-    killProcessAndDescendants(processID, axisID);
+    kill(processID, axisID);
     try {
-      Thread.sleep(100);
+      Thread.sleep(200);
     }
     catch (InterruptedException e) {
     }
     thread.notifyKilled();
   }
 
-  private void killProcessGroup(final String processID, final AxisID axisID) {
-    if (processID == null || processID.equals("")) {
-      return;
+  private void kill(final String processID, final AxisID axisID) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println("killing " + processID);
     }
-    int pid = Integer.parseInt(processID);
-    if (pid == 0 || pid == 1) {
-      return;
+    boolean windows = Utilities.isWindowsOS();
+    String[] command;
+    if (!windows) {
+      command = new String[4];
     }
-    int groupPid = pid * -1;
-    String groupProcessID = Integer.toString(groupPid);
-    kill("-19", groupProcessID, axisID);
-    kill("-9", groupProcessID, axisID);
-  }
-
-  /**
-   * Recursively kill all the descendents of a process and then kill the
-   * process.  Function assumes that the process will continue spawning while
-   * the descendant processes are being killed.  Function attempts to stop
-   * spawning with a Stop signal.  The Stop signal may not work in all cases and
-   * OS's, so the function refreshes the list of child processes until there are
-   * no more child processes.  The function avoids getting stuck on an
-   * unkillable process by recording each PID it sent a "kill -9" to.
-   * 
-   * The algorithm:
-   * 1. Stop the root process.
-   * 2. Go down to a leaf, stopping each process encountered.
-   * 3. Kill the leaf.
-   * 4. Go up to the parent of the killed leaf.
-   * 5. If the parent is now a leaf, kill it and continue from step 4.
-   * 6. If the parent is not a leaf, continue from step 2.
-   * 
-   * @param processID
-   */
-  private void killProcessAndDescendants(final String processID, final AxisID axisID) {
-    if (processID == null || processID.equals("")) {
-      return;
+    else {
+      command = new String[3];
     }
-    // try to prevent process from spawning with a SIGSTOP signal
-    kill("-19", processID, axisID);
-
-    // kill all decendents of process before killing process
-    String[] childProcessIDList = null;
-    do {
-      // get unkilled child processes
-      childProcessIDList = getChildProcessList(processID, axisID);
-      if (childProcessIDList != null) {
-        for (int i = 0; i < childProcessIDList.length; i++) {
-          killProcessAndDescendants(childProcessIDList[i], axisID);
-        }
-      }
-    } while (childProcessIDList != null);
-    // there are no more unkilled child processes so kill process with a SIGKILL
-    // signal
-    kill("-9", processID, axisID);
-    System.err.println("killProcessAndDescendants:kill " + "-9" + " " + processID);
-    // record killed process
-    axisProcessData.putKilledList(processID);
-  }
-
-  private void kill(final String signal, final String processID, final AxisID axisID) {
+    int i = 0;
+    command[i++] = "python";
+    command[i++] = BaseManager.getIMODBinPath() + "imodkillgroup";
+    if (!windows) {
+      command[i++] = "-t";
+    }
+    command[i++] = processID;
     SystemProgram killShell = new SystemProgram(manager, manager.getPropertyUserDir(),
-        new String[] { "kill", signal, processID }, axisID);
+        command, axisID);
     killShell.run();
-    // "kill " + signal + " " + processID + " at " + killShell.getRunTimestamp());
-    Utilities.debugPrint("kill " + signal + " " + processID + " at "
+    Utilities.debugPrint("imodkillgroup " + processID + " at "
         + killShell.getRunTimestamp());
   }
 

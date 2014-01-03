@@ -374,6 +374,10 @@ public class SystemProgram implements Runnable {
     commandArray = cmdArray;
   }
 
+  public void setDebug(final DebugLevel debugLevel) {
+    debug = debugLevel;
+  }
+
   /**
    * Specify the standard input to the program
    * @param programInput A string array containing the standard input to the
@@ -434,10 +438,13 @@ public class SystemProgram implements Runnable {
    */
   public void run() {
     // Don't print background processes
-    if (commandArray.length == 1
-        && (commandArray[0].equals("env") || commandArray[0].endsWith("imodinfo") || commandArray[0]
-            .equals("hostname"))
-        || (commandArray.length > 0 && commandArray[0].equals("ssh"))) {
+    if (!debug.isVerbose()
+        && (commandArray.length == 1
+            && (commandArray[0].equals("env") || commandArray[0].endsWith("imodinfo") || commandArray[0]
+                .equals("b3dhostname"))
+            || (commandArray.length > 0 && (commandArray[0].equals("ssh") || commandArray[0]
+                .equals("ps"))) || (commandArray.length > 1 && commandArray[0]
+            .equals("b3dwinps")))) {
       debug = Arguments.DebugLevel.OFF;
     }
     started = true;

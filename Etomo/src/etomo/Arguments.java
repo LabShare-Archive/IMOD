@@ -751,10 +751,10 @@ public final class Arguments {
   public static final class DebugLevel {
     public static final DebugLevel OFF = new DebugLevel(0);
     private static final DebugLevel LIMITED = new DebugLevel(-1);
-    private static final DebugLevel STANDARD = new DebugLevel(1);
+    public static final DebugLevel STANDARD = new DebugLevel(1);
     private static final DebugLevel EXTRA = new DebugLevel(2);
     private static final DebugLevel VERBOSE = new DebugLevel(3);
-    private static final DebugLevel EXTRA_VERBOSE = new DebugLevel(4);
+    public static final DebugLevel EXTRA_VERBOSE = new DebugLevel(4);
 
     private static final DebugLevel DEFAULT = STANDARD;
 

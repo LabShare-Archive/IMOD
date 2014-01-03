@@ -363,10 +363,11 @@ import etomo.util.Utilities;
 final class AutodocTester extends Assert implements VariableList {
   public static final String rcsid = "$Id$";
 
-  private static final int REDRAW_WAIT = 40;
+  private static final int REDRAW_WAIT = 100;
   private static final int MAX_FORMAT = 5;
   private static final int FORMAT_WAIT = 700;
   private static final int MAX_FRAME_WAIT = 2;
+  private static final int PROCESS_CHECK_MAX = 10;
 
   private final ReadOnlyAutodoc autodoc;
   private final JFCTestHelper helper;
@@ -397,6 +398,7 @@ final class AutodocTester extends Assert implements VariableList {
   private boolean interfaceOpen = false;
   private int frameWait = 0;
   private boolean tryAgain = false;
+  private int processCheck = 0;
 
   /**
    * Tests all the sections of sectionType in order.  This is assumed to be a
@@ -939,6 +941,47 @@ final class AutodocTester extends Assert implements VariableList {
           }
         }
       }
+      // if.wait.process.subcommand
+      else if (subjectType == UITestSubjectType.PROCESS) {
+        assertEquals("modifier must be wait (" + command + ")", modifierType,
+            UITestModifierType.WAIT);
+        assertNotNull("process name is required (" + command + ")", subjectName);
+        assertNotNull("end state is required (" + command + ")", value);
+        // Get the kill process button
+        setupNamedComponentFinder(JButton.class,
+            UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
+                + Utilities.convertLabelToName(AxisProcessPanel.KILL_BUTTON_LABEL));
+        JButton killButton = (JButton) namedFinder.find(currentPanel, 0);
+        assertNotNull("can't find kill button (" + command + ")", killButton);
+        // Get the progress bar label
+        setupNamedComponentFinder(JLabel.class, ProgressPanel.LABEL_NAME);
+        JLabel progressBarLabel = (JLabel) namedFinder.find(currentPanel, 0);
+        assertNotNull("can't find progress bar label (" + command + ")", progressBarLabel);
+        // Get the progress bar
+        setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
+        JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
+        assertNotNull("can't find progress bar label (" + command + ")", progressBar);
+        wait = true;
+        // Decide if this is the right process
+        String progressBarName = Utilities.convertLabelToName(progressBarLabel.getText());
+        if (!progressBarName.equals(subjectName)) {
+          return;
+        }
+        String progressString = progressBar.getString();
+        if (progressString != null && progressString.indexOf(value) != -1) {
+          // Found the process and state - run the subcommand
+          wait = false;
+          if (subcommand != null) {
+            executeCommand(subcommand);
+          }
+        }
+        else if (!killButton.isEnabled() && isProcessDone(killButton)) {
+          // If the process is really done, the state was not found, so do not run the
+          // subcommand.
+          wait = false;
+        }
+        return;
+      }
       // if.enabled.field
       // if.disabled.field
       // if.exists.field
@@ -1155,14 +1198,14 @@ final class AutodocTester extends Assert implements VariableList {
     }
     // WAIT
     else if (actionType == UITestActionType.WAIT) {
+      assertNotNull("value is required (" + command + ")", value);
+      assertNull("modifier not used with this actionType (" + command + ")", modifierType);
       // Take naps during the wait to avoid driving the load up
       try {
         Thread.sleep(5);
       }
       catch (InterruptedException e) {
       }
-      assertNull("modifier not used with this actionType (" + command + ")", modifierType);
-      assertNotNull("value is required (" + command + ")", value);
       // wait.file-chooser.file_chooser_title = chosen_file
       if (subjectType == UITestSubjectType.FILE_CHOOSER) {
         setupComponentFinder(JFileChooser.class);
@@ -1235,17 +1278,10 @@ final class AutodocTester extends Assert implements VariableList {
           return;
         }
       }
-      // wait.process.process_title = process_bar_end_text
+      // wait.process
       else if (subjectType == UITestSubjectType.PROCESS) {
         assertNotNull("process name is required (" + command + ")", subjectName);
         assertNotNull("end state is required (" + command + ")", value);
-        if (!wait) {
-          wait = true;
-          return;
-        }
-        // Already waited at least once - now see whether the process is done.
-        // Waiting for anything but a single process or the last process in a
-        // series will not work.
         // Get the kill process button
         setupNamedComponentFinder(JButton.class,
             UITestFieldType.BUTTON.toString() + AutodocTokenizer.SEPARATOR_CHAR
@@ -1260,34 +1296,21 @@ final class AutodocTester extends Assert implements VariableList {
         setupNamedComponentFinder(JProgressBar.class, ProgressPanel.NAME);
         JProgressBar progressBar = (JProgressBar) namedFinder.find(currentPanel, 0);
         assertNotNull("can't find progress bar label (" + command + ")", progressBar);
+        if (!wait) {
+          wait = true;
+          return;
+        }
+        // Already waited at least once - now see whether the process is done.
+        // Waiting for anything but a single process or the last process in a
+        // series will not work.
+
         // Decide if the process is still running
         if (killButton.isEnabled()) {
           return;
         }
         // The killButton turns on and off in between processes. Avoid exiting
         // in that case.
-        try {
-          Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
-        }
-        if (killButton.isEnabled()) {
-          return;
-        }
-        try {
-          Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
-        }
-        if (killButton.isEnabled()) {
-          return;
-        }
-        try {
-          Thread.sleep(500);
-        }
-        catch (InterruptedException e) {
-        }
-        if (killButton.isEnabled()) {
+        if (!isProcessDone(killButton)) {
           return;
         }
         // Decide if this is the right process
@@ -1296,15 +1319,16 @@ final class AutodocTester extends Assert implements VariableList {
           return;
         }
         String progressString = progressBar.getString();
-        if (!isFinalProgressString(progressString, value)) {
+        if (!isEndProgressString(progressString, value)) {
           // A final progress string is either the command, or "killed", "paused", etc.
           return;
         }
         // The right process is done
         wait = false;
         // Check the end_state
-        assertEquals("process ended with the wrong state -" + value + " (" + command
-            + ")", value, progressString);
+        assertFalse(
+            "process ended with the wrong state -" + value + " (" + command + ")",
+            progressString.indexOf(value) == -1);
       }
       // wait.test
       else if (subjectType == UITestSubjectType.TEST) {
@@ -1336,13 +1360,51 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   /**
-   * Returns true if progressString is a end string like "done" or "killed".  Also returns
-   * true is progressString equals expectedString.
-   * @param progressString
-   * @param expectedString
+   * Returns true if the killButton stays disabled.
+   * @param killButton
    * @return
    */
-  private boolean isFinalProgressString(final String progressString,
+  private boolean isProcessDone(final JButton killButton) {
+    if (killButton == null) {
+      return true;
+    }
+    // The killButton turns on and off in between processes. Avoid exiting
+    // in that case.
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+    }
+    if (killButton.isEnabled()) {
+      return false;
+    }
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+    }
+    if (killButton.isEnabled()) {
+      return false;
+    }
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+    }
+    if (killButton.isEnabled()) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Returns true if progressString contains an end string like "done" or "killed".
+   * @param progressString
+   * @param expectedString
+   * @param modifierType
+   * @return
+   */
+  private boolean isEndProgressString(final String progressString,
       final String expectedString) {
     if (ProcessEndState.isValid(progressString)) {
       return true;
@@ -1350,7 +1412,7 @@ final class AutodocTester extends Assert implements VariableList {
     if (progressString == null) {
       return false;
     }
-    return progressString.equals(expectedString);
+    return progressString.indexOf(expectedString) != -1;
   }
 
   /**
@@ -1382,9 +1444,10 @@ final class AutodocTester extends Assert implements VariableList {
   }
 
   private void touch(final File file) {
-    SystemProgram copy = new SystemProgram(null, System.getProperty("user.dir"),
-        new String[] { "touch", file.getAbsolutePath() }, AxisID.ONLY);
-    copy.run();
+    SystemProgram program = new SystemProgram(null, System.getProperty("user.dir"),
+        new String[] { "python", BaseManager.getIMODBinPath() + "b3dtouch",
+            file.getAbsolutePath() }, AxisID.ONLY);
+    program.run();
   }
 
   boolean isDialogSectionComplete(final String dialogSection) {
@@ -1667,8 +1730,15 @@ final class AutodocTester extends Assert implements VariableList {
       System.err.println("assertSameFile:file.getAbsolutePath()="
           + file.getAbsolutePath());
     }
+    String command;
+    if (Utilities.isWindowsOS()) {
+      command = "C:/cygwin/bin/sort";
+    }
+    else {
+      command = "sort";
+    }
     SystemProgram sortFile = new SystemProgram(manager, System.getProperty("user.dir"),
-        new String[] { "sort", file.getAbsolutePath() }, AxisID.ONLY);
+        new String[] { command, file.getAbsolutePath() }, AxisID.ONLY);
     sortFile.run();
     String[] stdOut = sortFile.getStdOutput();
     stdOut = stripCommentsAndBlankLines(stdOut);
@@ -1677,7 +1747,7 @@ final class AutodocTester extends Assert implements VariableList {
           + storedFile.getAbsolutePath());
     }
     SystemProgram sortStoredFile = new SystemProgram(manager,
-        System.getProperty("user.dir"), new String[] { "sort",
+        System.getProperty("user.dir"), new String[] { command,
             storedFile.getAbsolutePath() }, AxisID.ONLY);
     sortStoredFile.run();
     String[] storedStdOut = sortStoredFile.getStdOutput();
@@ -2034,7 +2104,7 @@ final class AutodocTester extends Assert implements VariableList {
         else {
           tryAgain = true;
           frameWait++;
-          System.err.println("Wait "+ frameWait+" for "+name);
+          System.err.println("Wait " + frameWait + " for " + name);
         }
       }
       else {

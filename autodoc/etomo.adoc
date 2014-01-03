@@ -143,8 +143,8 @@ manpage=Send extra information to eTomo's \fB_err.log\fR.
 ^   \fB0\fR - no debug output
 ^   \fB1\fR - default debug output
 ^   \fB2\fR - more information
-^   \fB3\fR - extensive information - may degrade eTomo's performance
-^   \fB4\fR - as for \fB3\fR, plus the log will be very large
+^   \fB3\fR - extensive information - log will be very large
+^   \fB4\fR - may degrade performance
 
 [Field = ignoresettings]
 type=B

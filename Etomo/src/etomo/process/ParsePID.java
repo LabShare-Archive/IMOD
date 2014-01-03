@@ -91,11 +91,20 @@ public class ParsePID implements Runnable {
       return;
     }
     for (int i = 0; i < stderr.length; i++) {
-      if (stderr[i].startsWith("Shell PID:") || stderr[i].startsWith("Python PID:")
+      if (stderr[i].startsWith("Shell PID:") || stderr[i].indexOf("Python PID:") != -1
           || stderr[i].startsWith("Windows PID:") || stderr[i].startsWith("Cygwin PID:")) {
         String[] tokens = stderr[i].split("\\s+");
         if (tokens.length > 2) {
-          PID.append(tokens[2]);
+          boolean found = false;
+          for (int index = 0; index < tokens.length; index++) {
+            if (found) {
+              PID.append(tokens[index]);
+              break;
+            }
+            else if (tokens[index].endsWith("PID:")) {
+              found = true;
+            }
+          }
         }
       }
     }
