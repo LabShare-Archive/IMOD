@@ -102,5 +102,5 @@ subroutine irdReduced(imUnit, iz, array, nxDim, xUBstart, yUBstart, redFac, nxRe
     iyStart = iyEnd
   enddo
   ierr = 0
-99 return
+  return
 end subroutine irdReduced
