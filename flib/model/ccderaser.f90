@@ -870,12 +870,12 @@ program ccderaser
       , t57, a9, 2x, a8 )
   if (ifTrialMode == 0) then
     call iwrhdr(imFileOut, title, 1, tmin, tmax, tmean)
+    call imclose(imFileOut)
   else
     print *,'New minimum and maximum density would be:', tmin, tmax
   endif
   call irtorg(1, origin(1), origin(2), origin(3))
   call irtdel(1, delta)
-  call imclose(imFileOut)
 
   !
   ! put out a model, even if there are no points.  Slide objects down
