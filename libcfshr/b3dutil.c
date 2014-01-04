@@ -425,10 +425,10 @@ void b3dError(FILE *out, char *format, ...)
   va_start(args, format);
   
   vsprintf(errorMess, format, args);
-  if (out && !storeError)
-    fprintf(out, errorMess);
   if (out == stderr && storeError < 0)
     fprintf(stdout, errorMess);
+  else if (out && storeError <= 0)
+    fprintf(out, errorMess);
   va_end(args);
 }
 
