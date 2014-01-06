@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import etomo.Arguments.DebugLevel;
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
@@ -33,6 +35,7 @@ public class LoadAverageParam implements IntermittentCommand {
   private String[] remoteStartCommandArray = null;
   private String intermittentCommand = null;
   private String endCommand = null;
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   public final static LoadAverageParam getInstance(String computer, BaseManager manager) {
     LoadAverageParam loadAverageParam = (LoadAverageParam) instances.get(computer);
@@ -89,23 +92,38 @@ public class LoadAverageParam implements IntermittentCommand {
 
   private final void buildLocalStartCommand() {
     ArrayList command = new ArrayList();
-    // If the user is a bash user, a bad .cshrc might cause local load average to
-    // fail without causing any other symptoms. So its safer to use the bash
-    // shell for a bash user.
-    // Use bash as the default. Use tcsh only when it is set in $SHELL.
-    String tcshShell = "tcsh";
-    String shell = EnvironmentVariable.INSTANCE.getValue(manager,
-        manager.getPropertyUserDir(), "SHELL", AxisID.ONLY);
-    if (shell != null && shell.indexOf(tcshShell) != -1) {
-      command.add(tcshShell);
+    if (Utilities.isWindowsOS()) {
+      command.add("cmd");
     }
     else {
-      command.add("bash");
+      // If the user is a bash user, a bad .cshrc might cause local load average to
+      // fail without causing any other symptoms. So its safer to use the bash
+      // shell for a bash user.
+      // Use bash as the default. Use tcsh only when it is set in $SHELL.
+      String tcshShell = "tcsh";
+      String shell = EnvironmentVariable.INSTANCE.getValue(manager,
+          manager.getPropertyUserDir(), "SHELL", AxisID.ONLY);
+      if (shell != null && shell.indexOf(tcshShell) != -1) {
+        command.add(tcshShell);
+      }
+      else {
+        System.err.println("Running a bash shell in buildLocalStartCommand");
+        command.add("bash");
+      }
     }
     int commandSize = command.size();
     localStartCommandArray = new String[commandSize];
+    if (debug.isVerbose()) {
+      System.err.print("local start command:");
+    }
     for (int i = 0; i < commandSize; i++) {
       localStartCommandArray[i] = (String) command.get(i);
+      if (debug.isVerbose()) {
+        System.err.print((String) command.get(i) + " ");
+      }
+    }
+    if (debug.isVerbose()) {
+      System.err.println();
     }
   }
 

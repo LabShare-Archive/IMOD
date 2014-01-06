@@ -31,6 +31,9 @@ assert.exists.file = solvematch.com
 assert.exists.file = volcombine.com
 assert.exists.file = warpvol.com
 bn.start-combine =
+[[if = test-gui]]
+  if.wait.process.processchunks-volcombine.run.function.test-kill-pp=completed
+[[]]
 wait.process.processchunks-volcombine = done
 assert.exists.file = volcombine-finish.com
 assert.exists.file = volcombine-start.com
@@ -43,6 +46,9 @@ assert.exists.file = patchcorr.log
 assert.exists.file = solvematch.log
 cb.parallel-processing = 0
 bn.restart-at-volcombine =
+[[if = test-gui]]
+  if.wait.process.combine.run.function.test-kill=ETC
+[[]]
 wait.process.combine = done
 assert.exists.file = volcombine.log
 bn.restart-at-volcombine =
@@ -66,6 +72,17 @@ sleep =
 bn.replace-patch-vectors =
 bn.done =
 
+
+[function = test-kill]
+bn.kill-process=
+wait.process.combine=killed
+bn.restart-at-volcombine =
+
+[function = test-kill-pp]
+bn.kill-process=
+wait.process.processchunks-volcombine-killed=killed
+tb.setup = 
+bn.start-combine =
 
 [function = test-final-match]
 tb.setup.2=

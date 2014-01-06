@@ -24,7 +24,7 @@ import etomo.type.ProcessName;
 */
 public final class GpuTiltTestParam {
   public static final String rcsid = "$Id:$";
-  
+
   public static final String OUTPUT_KEYWORD = "differed";
   private final EtomoNumber nMinutes = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber gpuNumber = new EtomoNumber();
@@ -39,10 +39,10 @@ public final class GpuTiltTestParam {
 
   public String[] getCommand() {
     List<String> command = new ArrayList<String>();
-    command.add("bash");
-    command.add(BaseManager.getIMODBinPath() + "runpyscript");
-    command.add("-P");
-    command.add(ProcessName.GPU_TILT_TEST.toString());
+    command.add("python");
+    command.add("-u");
+    command.add(BaseManager.getIMODBinPath() + ProcessName.GPU_TILT_TEST.toString());
+    command.add("-PID");
     command.add(nMinutes.toString());
     command.add(gpuNumber.toString());
     return command.toArray(new String[command.size()]);

@@ -203,10 +203,10 @@ public class XfalignParam implements Command {
     if (commandArray == null) {
       ArrayList options = genOptions();
       commandArray = new String[options.size() + commandSize];
-      commandArray[0] = "bash";
-      commandArray[1] = BaseManager.getIMODBinPath() + "runpyscript";
-      commandArray[2] = "-P";
-      commandArray[3] = commandName;
+      commandArray[0] = "python";
+      commandArray[1] = "-u";
+      commandArray[2] = BaseManager.getIMODBinPath() + commandName;
+      commandArray[3] = "-PID";
       for (int i = 0; i < options.size(); i++) {
         commandArray[i + commandSize] = (String) options.get(i);
       }

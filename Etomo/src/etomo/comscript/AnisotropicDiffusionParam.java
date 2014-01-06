@@ -249,7 +249,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     command.add(kValue.toString());
     command.add("-i");
     command.add(iterationList.toString());
-    command.add("-P");
+    command.add("-PID");
     command.add(new File(subdir, inputFileName).getPath());
     command.add(new File(subdir, getTestFileRoot(kValue)).getPath());
     if (debugLevel.ge(DebugLevel.LOW)) {
@@ -317,8 +317,6 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     }
     int length = digits.length();
     if (length > maxZeros || length == maxZeros) {
-      //TEMP 1753
-      System.out.println("A:number:"+number);
       return number;
     }
     StringBuffer retval = new StringBuffer();
@@ -326,8 +324,6 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
       retval.append("0");
     }
     retval.append(number);
-    //TEMP 1753
-    System.out.println("A:retval.toString()r:"+retval.toString());
     return retval.toString();
   }
 
