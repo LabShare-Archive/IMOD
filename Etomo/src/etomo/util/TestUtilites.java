@@ -195,10 +195,11 @@ public final class TestUtilites {
             + testDirFile.getAbsolutePath());
       }
       // copy data file from unitTestData to test directory
-      String[] copyCommand = new String[3];
-      copyCommand[0] = "cp";
-      copyCommand[1] = unitTestDataFile.getAbsolutePath();
-      copyCommand[2] = testDir.getAbsolutePath();
+      String[] copyCommand = new String[4];
+      copyCommand[0] = "python";
+      copyCommand[1] = BaseManager.getIMODBinPath() + "b3dcopy";
+      copyCommand[2] = unitTestDataFile.getAbsolutePath();
+      copyCommand[3] = testDir.getAbsolutePath();
       BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
       SystemProgram copy = new SystemProgram(manager, manager == null ? null
           : manager.getPropertyUserDir(), copyCommand, AxisID.ONLY);

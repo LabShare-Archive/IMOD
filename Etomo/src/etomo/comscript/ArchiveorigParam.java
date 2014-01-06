@@ -41,8 +41,8 @@ public class ArchiveorigParam implements Command {
       mode = Mode.AXIS_B;
     }
     File stack = Utilities.getFile(manager, false, axisID, ".st", "");
-    commandArray = new String[] { "bash", BaseManager.getIMODBinPath() + "runpyscript",
-        "-P", COMMAND_NAME, stack.getName() };
+    commandArray = new String[] { "python", "-u",
+        BaseManager.getIMODBinPath() + COMMAND_NAME, "-PID", stack.getName() };
     outputFile = Utilities.getFile(manager, false, axisID, "_xray.st.gz", "");
   }
 
