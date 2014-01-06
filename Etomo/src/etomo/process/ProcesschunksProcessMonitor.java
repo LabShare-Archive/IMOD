@@ -446,7 +446,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       if (debug) {
         System.err.println(line);
       }
-      if (line.indexOf("imodkillgroup") == -1) {
+      if (line.indexOf("imodkillgroup") == -1 && line.indexOf("No such process") == -1) {
         messages.addProcessOutput(line);
       }
       if (messages.isError()) {
