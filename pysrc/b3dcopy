@@ -26,7 +26,11 @@ if not os.path.exists(fromfile):
    sys.exit(1)
 
 if os.path.isdir(tofile):
-   tofile = os.path.join(tofile, os.path.basename(fromfile))
+
+   # Copying to directory, need the base name but cygwin python does not work with
+   # Windows names so they need conversion
+   conv = fromfile.replace('\\', '/')
+   tofile = os.path.join(tofile, os.path.basename(conv))
 
 if os.path.exists(tofile):
    try:
