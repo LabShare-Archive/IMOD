@@ -209,11 +209,12 @@ fi
 
 export IMOD_TEST_SECTION=$1
 
+#trying to run windows python from a cygwin window with cygwin off the path - really bad idea
 #Strip cygwin bins from the path
-if ! which python | grep usr > /dev/null ; then
-    export PATH=`echo $PATH | sed -e '/:\/bin/s///g' -e '/:\/usr\/bin/s///g' -e '/:\/usr\/local\/bin/s///g' `
-    echo $PATH
-fi
+#if ! which python | grep usr > /dev/null ; then
+#    export PATH=`echo $PATH | sed -e '/:\/bin/s///g' -e '/:\/usr\/bin/s///g' -e '/:\/usr\/local\/bin/s///g' `
+#    echo $PATH
+#fi
 
 echo "starting eTomo UI test:  Test section $IMOD_TEST_SECTION"
 echo "class_path:  $class_path"
