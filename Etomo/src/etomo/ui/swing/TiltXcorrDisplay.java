@@ -1,6 +1,7 @@
 package etomo.ui.swing;
 
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.ImodchopcontsParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.type.PanelId;
 
@@ -28,8 +29,10 @@ import etomo.type.PanelId;
 public interface TiltXcorrDisplay extends ProcessDisplay {
   public static final String rcsid = "$Id$";
 
-  public boolean getParameters(TiltxcorrParam tiltXcorrParams,boolean doValidation)
+  public boolean getParameters(TiltxcorrParam tiltXcorrParams, boolean doValidation)
       throws FortranInputSyntaxException;
 
   public PanelId getPanelId();
+
+  public boolean getParameters(ImodchopcontsParam param, boolean doValidation);
 }
