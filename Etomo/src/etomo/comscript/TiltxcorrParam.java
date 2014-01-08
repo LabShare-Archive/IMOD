@@ -215,6 +215,10 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
   private final ScriptParameter iterateCorrelations = new ScriptParameter(
       ITERATE_CORRELATIONS_KEY);
   private final FortranInputString shiftLimitsXandY;
+  /**
+   * @deprecated
+   * Read lengthAndOverlap, but do not write it out.
+   */
   private final FortranInputString lengthAndOverlap;
   private final StringParameter boundaryModel = new StringParameter(BOUNDARY_MODEL_KEY);
   private final ProcessName processName;
@@ -290,37 +294,6 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     viewsWithMagChanges.set(input);
   }
 
-  /**
-   * For patch tracking of the prealigned stack.  Returns the default values of
-   * LengthAndOverlap.
-   * @param manager
-   * @param axisID
-   * @return
-   */
-  public static String getLengthAndOverlapDefault(final BaseManager manager,
-      final AxisID axisID, final FileType fileType) {
-    EtomoNumber lengthAndOverlap = new EtomoNumber();
-    int lengthAndOverlapFloor = 16;
-    lengthAndOverlap.setFloor(lengthAndOverlapFloor);
-    lengthAndOverlap.setDisplayValue(lengthAndOverlapFloor);
-    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        fileType.getFileName(manager, axisID), axisID);
-    try {
-      header.read(manager);
-      int z = header.getNSections();
-      if (z != -1) {
-        lengthAndOverlap.set(Math.round((z / 5)));
-      }
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (etomo.util.InvalidParameterException e) {
-      e.printStackTrace();
-    }
-    return lengthAndOverlap.toString() + ",4";
-  }
-
   public static String getBordersInXandYDefault(final BaseManager manager,
       final AxisID axisID, final FileType fileType) {
     EtomoNumber bordersInX = new EtomoNumber();
@@ -393,10 +366,6 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public void resetBoundaryModel() {
     boundaryModel.reset();
-  }
-
-  public void resetLengthAndOverlap() {
-    lengthAndOverlap.setDefault();
   }
 
   public void resetNumberOfPatchesXandY() {
@@ -634,7 +603,6 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     numberOfPatchesXandY.updateScriptParameter(scriptCommand);
     iterateCorrelations.updateComScript(scriptCommand);
     shiftLimitsXandY.updateScriptParameter(scriptCommand);
-    lengthAndOverlap.updateScriptParameter(scriptCommand);
     boundaryModel.updateComScript(scriptCommand);
     skipViews.updateComScript(scriptCommand);
     prealignmentTransformFile.updateComScript(scriptCommand);
@@ -690,10 +658,6 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
       return iterateCorrelations.getInvalidReason();
     }
     return null;
-  }
-
-  public void setLengthAndOverlap(final String input) throws FortranInputSyntaxException {
-    lengthAndOverlap.validateAndSet(input);
   }
 
   /**
@@ -860,8 +824,18 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
     return ITERATE_CORRELATIONS_DEFAULT;
   }
 
-  public String getLengthAndOverlap() {
-    return lengthAndOverlap.toString(true);
+  /**
+   * @deprecated
+   */
+  public String getLengthFromLengthAndOverlap() {
+    return lengthAndOverlap.toString(0, true);
+  }
+
+  /**
+   * @deprecated
+   */
+  public String getOverlapFromLengthAndOverlap() {
+    return lengthAndOverlap.toString(1, true);
   }
 
   public String getNumberOfPatchesXandY() {
@@ -990,10 +964,6 @@ public final class TiltxcorrParam implements ConstTiltxcorrParam, CommandParam,
 
   public boolean isCumulativeCorrelation() {
     return cumulativeCorrelation;
-  }
-
-  public boolean isLengthAndOverlapSet() {
-    return !lengthAndOverlap.isDefault();
   }
 
   public boolean isAbsoluteCosineStretch() {

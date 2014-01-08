@@ -24,8 +24,11 @@ import etomo.type.FileType;
 public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
   public static final String rcsid = "$Id$";
 
+  private static final String TILTXCORR_TITLE = "Cross-correlating stack";
   private String lastLineRead = null;
   private boolean blendmontRan = false;
+
+  private final String title;
 
   /**
    * Construct an xcorr process watcher
@@ -33,9 +36,18 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    * @param id
    */
   public TiltxcorrProcessWatcher(final BaseManager manager, final AxisID id,
-      FileType comscriptFileType) {
+      FileType comscriptFileType, final boolean runTiltxcorr, final boolean breakContours) {
     super(manager, id);
     logFileBasename = comscriptFileType.getTypeString(manager);
+    if (runTiltxcorr) {
+      title = TILTXCORR_TITLE;
+    }
+    else if (breakContours) {
+      title = "Recutting contours";
+    }
+    else {
+      title = "Restoring contours";
+    }
   }
 
   /**
@@ -50,23 +62,22 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
     super(appMgr, id);
     logFileBasename = "xcorr";
     this.blendmontRan = blendmontRan;
+    title = TILTXCORR_TITLE;
   }
 
   /* (non-Javadoc)
-   * @see etomo.process.LogFileProcessMonitor#intializeProgressBar()
-   */
+   * @see etomo.process.LogFileProcessMonitor#intializeProgressBar() */
   void initializeProgressBar() {
     if (nSections == Integer.MIN_VALUE) {
-      manager.getMainPanel().setProgressBar("Cross-correlating stack", 1, axisID);
+      manager.getMainPanel().setProgressBar(title, 1, axisID);
       manager.getMainPanel().setProgressBarValue(0, "Starting...", axisID);
       return;
     }
-    manager.getMainPanel().setProgressBar("Cross-correlating stack", nSections, axisID);
+    manager.getMainPanel().setProgressBar(title, nSections, axisID);
   }
 
   /* (non-Javadoc)
-   * @see etomo.process.LogFileProcessMonitor#getCurrentSection()
-   */
+   * @see etomo.process.LogFileProcessMonitor#getCurrentSection() */
   void getCurrentSection() throws NumberFormatException, LogFile.LockException,
       IOException {
     String line;
@@ -89,7 +100,7 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
    */
   void findNSections() throws InterruptedException, NumberFormatException,
       LogFile.LockException, IOException {
-    //  Search for the number of sections, we should see a header ouput first
+    // Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
 
     nSections = -1;
@@ -101,8 +112,8 @@ public final class TiltxcorrProcessWatcher extends LogFileProcessMonitor {
         if (line.startsWith(nSectionsHeader)) {
           String[] fields = line.split("\\s+");
           if (fields.length > nSectionsIndex) {
-            //Take the second header output if there is blendmont output in the
-            //log file
+            // Take the second header output if there is blendmont output in the
+            // log file
             if (blendmontRan) {
               blendmontRan = false;
             }

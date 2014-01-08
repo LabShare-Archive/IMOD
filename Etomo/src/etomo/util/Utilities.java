@@ -376,6 +376,24 @@ public class Utilities {
   }
 
   /**
+   * Returns an element from a comma-divided list stored in a string.  Returns null if the
+   * requested element does not exist.  The element's leading and trailing whitespace will
+   * be removed from the return value.
+   * @param list - comma-divided list
+   * @param index - index of the element
+   * @return
+   */
+  public static String getElementFromList(final String list, final int index) {
+    if (list != null && index >= 0) {
+      String[] array = list.split("\\s*,\\s*");
+      if (array != null && index < array.length) {
+        return array[index];
+      }
+    }
+    return null;
+  }
+
+  /**
    * Convert milliseconds into a string of the format Minutes:Seconds
    * @param milliseconds
    * @return

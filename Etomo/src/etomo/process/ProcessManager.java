@@ -1261,11 +1261,12 @@ public class ProcessManager extends BaseProcessManager {
 
   public String tiltxcorr(ConstTiltxcorrParam param, FileType comscriptfileType,
       AxisID axisID, ProcessResultDisplay processResultDisplay,
-      final ProcessSeries processSeries) throws SystemProcessException {
+      final ProcessSeries processSeries, final boolean runTiltxcorr,
+      final boolean breakContours) throws SystemProcessException {
     // Create the required command string
     // Create the process monitor
     TiltxcorrProcessWatcher tiltxcorrProcessWatcher = new TiltxcorrProcessWatcher(
-        appManager, axisID, comscriptfileType);
+        appManager, axisID, comscriptfileType, runTiltxcorr, breakContours);
     // Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param, tiltxcorrProcessWatcher,
         axisID, processResultDisplay, processSeries);
