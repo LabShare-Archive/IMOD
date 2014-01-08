@@ -44,6 +44,7 @@ import etomo.comscript.FlattenWarpParam;
 import etomo.comscript.FortranInputString;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.GotoParam;
+import etomo.comscript.ImodchopcontsParam;
 import etomo.comscript.MakecomfileParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.MatchshiftsParam;
@@ -1404,7 +1405,7 @@ public final class ApplicationManager extends BaseManager implements
     else {
       coarseAlignDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
-      updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID, false, false);
+      updateXcorrCom(coarseAlignDialog.getTiltXcorrDisplay(), axisID, false, false, true);
       updateBlendmontInXcorrCom(axisID);
       try {
         if (metaData.getViewType() != ViewType.MONTAGE) {
@@ -1451,16 +1452,18 @@ public final class ApplicationManager extends BaseManager implements
   /**
    * Get the parameters from the display and run the cross correlation script
    */
-  public void tiltxcorr(AxisID axisID, ProcessResultDisplay processResultDisplay,
+  public void tiltxcorr(final AxisID axisID, ProcessResultDisplay processResultDisplay,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions, ProcessSeries processSeries,
       DialogType dialogType, TiltXcorrDisplay display, boolean useBlendmont,
-      FileType comscriptFileType) {
+      FileType comscriptFileType, final boolean runTiltxcorr, final boolean breakContours) {
+    sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
       processSeries = new ProcessSeries(this, dialogType);
     }
     // Get the parameters from the dialog box
-    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID, true, true);
+    ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(display, axisID, true, true,
+        runTiltxcorr);
     if (tiltxcorrParam == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
@@ -1478,7 +1481,7 @@ public final class ApplicationManager extends BaseManager implements
         // runs, this value will be turned back on.
         state.setXcorrBlendmontWasRun(axisID, false);
         threadName = processMgr.tiltxcorr(tiltxcorrParam, comscriptFileType, axisID,
-            processResultDisplay, processSeries);
+            processResultDisplay, processSeries, runTiltxcorr, breakContours);
       }
       else {
         threadName = processMgr.crossCorrelate(blendmontParam, axisID,
@@ -1573,7 +1576,7 @@ public final class ApplicationManager extends BaseManager implements
       return;
     }
     tiltxcorr(axisID, processResultDisplay, null, null, processSeries, dialogType,
-        display, true, FileType.CROSS_CORRELATION_COMSCRIPT);
+        display, true, FileType.CROSS_CORRELATION_COMSCRIPT, true, false);
   }
 
   /**
@@ -2003,7 +2006,7 @@ public final class ApplicationManager extends BaseManager implements
    *         script, return null if not successfull
    */
   private ConstTiltxcorrParam updateXcorrCom(TiltXcorrDisplay display, AxisID axisID,
-      final boolean validate, final boolean doFieldValidation) {
+      final boolean validate, final boolean doFieldValidation, final boolean runTiltxcorr) {
     TiltxcorrParam tiltXcorrParam = null;
     TiltxcorrParam toParam = null;
     PanelId panelId = display.getPanelId();
@@ -2034,6 +2037,22 @@ public final class ApplicationManager extends BaseManager implements
         }
       }
       else if (panelId == PanelId.PATCH_TRACKING) {
+        ImodchopcontsParam imodchopcontsParam = comScriptMgr
+            .getImodchopcontsParam(axisID);
+        if (!display.getParameters(imodchopcontsParam, doFieldValidation)) {
+          return null;
+        }
+        comScriptMgr.saveXcorrPt(imodchopcontsParam, axisID);
+        GotoParam gotoParam = comScriptMgr.getGotoParamFromXcorrPt(axisID, true);
+        if (gotoParam != null) {
+          if (runTiltxcorr) {
+            gotoParam.setLabel(TiltxcorrParam.GOTO_LABEL);
+          }
+          else {
+            gotoParam.setLabel(ImodchopcontsParam.GOTO_LABEL);
+          }
+          comScriptMgr.saveXcorrPt(gotoParam, axisID);
+        }
         comScriptMgr.saveXcorrPt(tiltXcorrParam, axisID);
         if (toParam != null) {
           comScriptMgr.saveXcorr(toParam, axisID);
@@ -2269,10 +2288,30 @@ public final class ApplicationManager extends BaseManager implements
       tiltXcorrPtParam.setPartialSave(true);
       comScriptMgr.saveXcorrPt(tiltXcorrPtParam, axisID);
     }
+    ImodchopcontsParam imodchopcontsParam = null;
     if (tiltXcorrPtParam == null) {
       tiltXcorrPtParam = comScriptMgr.getTiltxcorrParamFromXcorrPt(axisID);
+      // Backwards compatibility
+      GotoParam gotoParam = comScriptMgr.getGotoParamFromXcorrPt(axisID, false);
+      if (gotoParam == null) {
+        // This is an old version of xcorr_pt.com - create the new version.
+        Utilities.deleteFileType(this, axisID, FileType.PATCH_TRACKING_COMSCRIPT);
+        MakecomfileParam makecomfileParam = new MakecomfileParam(this, axisID,
+            FileType.PATCH_TRACKING_COMSCRIPT);
+        makecomfile(axisID, makecomfileParam);
+        comScriptMgr.loadXcorrPt(axisID, true);
+        comScriptMgr.saveXcorrPt(tiltXcorrPtParam, axisID);
+        // Transfer the old xcorr data that now belongs in the imodchopconts command.
+        imodchopcontsParam = ImodchopcontsParam
+            .getBackwardCompatableInstance(tiltXcorrPtParam);
+        comScriptMgr.saveXcorrPt(imodchopcontsParam, axisID);
+      }
+    }
+    if (imodchopcontsParam == null) {
+      imodchopcontsParam = comScriptMgr.getImodchopcontsParam(axisID);
     }
     fiducialModelDialog.setParameters(tiltXcorrPtParam);
+    fiducialModelDialog.setParameters(imodchopcontsParam);
     // Autofidseed
     AutofidseedParam autofidseedParam = null;
     if (!comScriptMgr.loadAutofidseed(axisID, false)) {
@@ -2345,7 +2384,8 @@ public final class ApplicationManager extends BaseManager implements
       fiducialModelDialog.getParameters(metaData);
       // Get the user input data from the dialog box
       updateTrackCom(fiducialModelDialog.getBeadTrackDisplay(), axisID, false);
-      updateXcorrCom(fiducialModelDialog.getTiltxcorrDisplay(), axisID, false, false);
+      updateXcorrCom(fiducialModelDialog.getTiltxcorrDisplay(), axisID, false, false,
+          true);
       updateAutofidseedCom(fiducialModelDialog, axisID, false);
       if (exitState == DialogExitState.EXECUTE) {
         processTrack.setFiducialModelState(ProcessState.COMPLETE, axisID);
@@ -8263,7 +8303,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     if (process.equals(ProcessName.XCORR.toString())) {
       tiltxcorr(axisID, processResultDisplay, null, null, processSeries, dialogType,
-          (TiltXcorrDisplay) display, true, FileType.CROSS_CORRELATION_COMSCRIPT);
+          (TiltXcorrDisplay) display, true, FileType.CROSS_CORRELATION_COMSCRIPT, true,
+          false);
       return true;
     }
     if (process.equals(ProcessName.ERASER.toString())) {
