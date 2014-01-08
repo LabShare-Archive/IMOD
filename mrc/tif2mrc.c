@@ -514,7 +514,7 @@ int main( int argc, char *argv[])
                          &max);
       mean += (tmean * nlines) / ysize;
 
-      if (!hdata.mode && hdata.bytesSigned)
+      if (!mode && hdata.bytesSigned)
         b3dShiftBytes(tifdata, (char *)tifdata, xsize, nlines, 1, 1);
 
       if ((xsize == mrcxsize) && (ysize == mrcysize)) {
