@@ -164,10 +164,6 @@ public interface ConstTiltxcorrParam extends Command {
 
   public String getShiftLimitsXandY();
 
-  public boolean isLengthAndOverlapSet();
-
-  public String getLengthAndOverlap();
-
   public boolean isBoundaryModelSet();
 
   public boolean isBordersInXandYSet();
