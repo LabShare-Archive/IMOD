@@ -22,8 +22,7 @@
 #include <unistd.h>
 #endif
 #include "imodel.h"
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "parse_params.h"
 
 static int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int inside,
@@ -83,7 +82,7 @@ int main( int argc, char *argv[])
   Iobj *obj;
   Ipoint *pts;
   Ipoint minpt, maxpt;
-  int ob, co, pt;
+  int co, pt;
   float addPad;
   MrcHeader hdata, hdbyte;
   IloadInfo li;
@@ -146,7 +145,7 @@ int main( int argc, char *argv[])
   free(modfile);
   
   /* Open input image, read header */
-  gfin = fopen(infile, "rb");
+  gfin = iiFOpen(infile, "rb");
   if (gfin == NULL)
     exitError("Could not open %s", infile);
   if (mrc_head_read(gfin, &hdata))
@@ -442,7 +441,7 @@ int main( int argc, char *argv[])
   /* Open final output file now */
   if (!getenv("IMOD_NO_IMAGE_BACKUP"))
     imodBackupFile(outfile);
-  gfout = fopen(outfile, "wb");
+  gfout = iiFOpen(outfile, "wb");
   if (gfout == NULL)
     exitError("Could not open %s", outfile);
   free(outfile);
@@ -457,7 +456,7 @@ int main( int argc, char *argv[])
     for (i = 0; i < NumChan; i++) {
       sprintf(recnames[i], "%s/%s.rec%d.%d", tempDir, progname, i, pid);
       sprintf(xyznames[i], "%s/%s.xyz%d.%d", tempDir, progname, i, pid);
-      files[i] = fopen(recnames[i], "wb");
+      files[i] = iiFOpen(recnames[i], "wb");
       if (!files[i])
         exitError("Could not open %s\n", recnames[i]);
     }
@@ -605,9 +604,9 @@ int main( int argc, char *argv[])
   for (i = 0; i < numFiles; i++) {
     if (mrc_head_write(files[i], &hdout[i]))
       exitError("Writing header to file # %d", i + 1);
-    fclose(files[i]);
+    iiFClose(files[i]);
   }
-  fclose(gfin);
+  iiFClose(gfin);
   sliceFree(islice);
   for (i = 0; i < NumChan; i++)
     sliceFree(pslice[i]);
@@ -637,7 +636,7 @@ int main( int argc, char *argv[])
   smax = -1.e30;
   printf("Scaling data into final output file...\n");
   for (i = 0; i < numFiles; i++) {
-    files[i] = fopen(xyznames[i], "rb");
+    files[i] = iiFOpen(xyznames[i], "rb");
     if (files[i] == NULL)
       exitError("Could not open %s", xyznames[i]);
     if (mrc_head_read(files[i], &hdout[i]))
@@ -689,10 +688,10 @@ int main( int argc, char *argv[])
   /* Finalize header and clean up */
   if (mrc_head_write(gfout, &hdbyte))
     exitError("Writing header to final output file");
-  fclose(gfout);
+  iiFClose(gfout);
   sliceFree(oslice);
   for (i = 0; i < numFiles; i++) {
-    fclose(files[i]);
+    iiFClose(files[i]);
     sliceFree(pslice[i]);
     if (!retain)
       remove(xyznames[i]);

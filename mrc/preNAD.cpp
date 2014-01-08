@@ -36,8 +36,7 @@
 #include <vector>
 
 #include "b3dutil.h"
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "sliceproc.h"
 #include "ilist.h"
 #include "ctfutils.h"
@@ -1007,10 +1006,10 @@ main (int argc, char *argv[])
   printf ("\n");
 
   FILE *fpStack;
-  if ((fpStack = fopen (stackFn, "rb")) == 0)
+  if ((fpStack = iiFOpen (stackFn, "rb")) == 0)
     {
-      exitError ("could not open input file %s", stackFn);
       printf ("error 0.5\n");
+      exitError ("could not open input file %s", stackFn);
     }
 
   FILE *foutput;
@@ -1059,7 +1058,7 @@ main (int argc, char *argv[])
 
 
   // printf("minAngle=%f, maxAngle=%f\n",minAngle,maxAngle);
-  foutput = fopen (outFn, "wb");
+  foutput = iiFOpen (outFn, "wb");
 
   mrc_head_label (&outHeader, "PreNAD filtered image");
   mrc_head_label(&outHeader, "PreNAD filtered image, options here");
@@ -1181,8 +1180,8 @@ main (int argc, char *argv[])
   free (stackIn);
   free (stackOut);
 
-  fclose (foutput);
-  fclose (fpStack);
+  iiFClose (foutput);
+  iiFClose (fpStack);
 
 }
 

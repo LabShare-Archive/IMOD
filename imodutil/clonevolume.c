@@ -18,7 +18,7 @@
 
 #include "b3dutil.h"
 #include "imodel.h"
-#include "mrcfiles.h"
+#include "iimage.h"
 #include "parse_params.h"
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
@@ -150,7 +150,7 @@ int main( int argc, char *argv[])
   }
 
   /* Open the input file */
-  if ((inFP = fopen(inFile, "rb")) == 0) {
+  if ((inFP = iiFOpen(inFile, "rb")) == 0) {
     sprintf(msg, "Error opening input file:\n%s", inFile);
     exitError(msg);
   }
@@ -163,7 +163,7 @@ int main( int argc, char *argv[])
     exitError("Input Volume must be  byte, short integer, or real");
 
   /* Open the into file */
-  if ((intoFP = fopen(intoFile, "rb")) == 0) {
+  if ((intoFP = iiFOpen(intoFile, "rb")) == 0) {
     sprintf(msg, "Error opening into file:\n%s", intoFile);
     exitError(msg);
   }
@@ -179,17 +179,17 @@ int main( int argc, char *argv[])
   outHeader = intoHeader;
 
   /* Open the output file */
-  if ((outFP = fopen(outFile, "wb")) == 0) {
+  if ((outFP = iiFOpen(outFile, "wb")) == 0) {
     sprintf(msg, "Error opening output file:\n%s", outFile);
     exitError(msg);
   }
 
   /* Open the mask file, if specified */
   if (maskFile) {
-    if ((maskFP = fopen(maskFile, "r")) != 0) {
+    if ((maskFP = iiFOpen(maskFile, "r")) != 0) {
       if (mrc_head_read(maskFP, &maskHeader)) {
-	sprintf(msg, "Error reading header of mask file:\n%s", maskFile);
-	exitError(msg);
+        sprintf(msg, "Error reading header of mask file:\n%s", maskFile);
+        exitError(msg);
       }
       if (inHeader.nx != maskHeader.nx || inHeader.ny != maskHeader.ny ||
           inHeader.nz != maskHeader.nx)
@@ -237,7 +237,7 @@ int main( int argc, char *argv[])
         int oldMaxClones = maxClones;
         maxClones *= 2;
         outBBox = (bndBox3D *)realloc(
-	  (void *)outBBox, maxClones * sizeof(bndBox3D));
+          (void *)outBBox, maxClones * sizeof(bndBox3D));
         xform = reallocateMat3DArray(xform, oldMaxClones, maxClones);
       }
 
@@ -281,7 +281,7 @@ int main( int argc, char *argv[])
     inVol[iSlice] = slice->data.f;
     free(slice); /* This frees the slice but not the data pointed to */
   }
-  fclose(inFP);
+  iiFClose(inFP);
 
   /* Read the mask volume (if any) as unsigned char */
   if (maskFile) {
@@ -291,11 +291,11 @@ int main( int argc, char *argv[])
     for (iSlice = 0; iSlice < maskHeader.nz; iSlice++) {
       slice = sliceReadMRC(&maskHeader, iSlice, 'Z');
       if (!slice)
-	exitError("Error reading mask volume");
+        exitError("Error reading mask volume");
       maskVol[iSlice] = slice->data.b;
       free(slice); /* This frees the slice but not the data pointed to */
     }
-    fclose(maskFP);
+    iiFClose(maskFP);
   }
 
   slice = sliceCreate(intoHeader.nx, intoHeader.ny, intoMode);
@@ -315,7 +315,7 @@ int main( int argc, char *argv[])
         for (ix = (int)ceil(outBBox[iClone].xMin);
              ix < (int)floor(outBBox[iClone].xMax); ix++) {
           for (iy = (int)ceil(outBBox[iClone].yMin); 
-	       iy < (int)floor(outBBox[iClone].yMax); iy++) {
+               iy < (int)floor(outBBox[iClone].yMax); iy++) {
             Ipoint inPt, outPt;
             /* Convert from image index to model coordinates */
             outPt.x = (float)ix + 0.5;
@@ -331,8 +331,8 @@ int main( int argc, char *argv[])
               if (maskVol) {
                 /* Use nearest neighbor interpolation for masking */
                 withinMask = maskVol[(int)(inPt.z + 0.5)]
-		  [(int)(inPt.x + 0.5) + maskHeader.nx * (int)(inPt.y + 0.5)];
-	      }
+                  [(int)(inPt.x + 0.5) + maskHeader.nx * (int)(inPt.y + 0.5)];
+              }
               if (r >= rMin && r <= rMax && withinMask != 0) {
                 if (sliceGetVal(slice, ix, iy, oldVal))
                   exitError("Error retrieving value from slice");
@@ -341,7 +341,7 @@ int main( int argc, char *argv[])
                  * and interpolate.
                  */
                 inVal = trilinearInterpolation(
-	          inVol, &inHeader, inPt.x - 0.5, inPt.y - 0.5, inPt.z);
+                  inVol, &inHeader, inPt.x - 0.5, inPt.y - 0.5, inPt.z);
 
                 newVal[0] = alpha * oldVal[0] + (1.0 - alpha) * inVal;
                 if (slicePutVal(slice, ix, iy, newVal))
@@ -377,8 +377,8 @@ int main( int argc, char *argv[])
     exitError("Error writing output file header");
   
   /* Clean up. For documentation only since we're about to exit */
-  fclose(outFP);
-  fclose(intoFP);
+  iiFClose(outFP);
+  iiFClose(intoFP);
   for (iSlice = 0; iSlice < inHeader.nz; iSlice++) {
     free(inVol[iSlice]);
     if (maskVol)

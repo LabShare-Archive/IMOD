@@ -22,7 +22,6 @@
   *************************************************************/
 #include <math.h>
 #include <vector>
-#include "mrcslice.h"
 #include "parse_params.h"
 #include "slicecache.h"
 #include "myapp.h"
@@ -77,8 +76,8 @@ void SliceCache::initCache(const char *fnStack, int dim,
   int dsize, csize;
   mDataOffset = 0.;
   if (mFpStack)
-    fclose(mFpStack);
-  if ((mFpStack = fopen(fnStack, "rb")) == 0)
+    iiFClose(mFpStack);
+  if ((mFpStack = iiFOpen(fnStack, "rb")) == 0)
     exitError("could not open input file %s", fnStack);
 
   /* read mHeader */

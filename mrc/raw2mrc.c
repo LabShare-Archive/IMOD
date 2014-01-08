@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "mrcfiles.h"
+#include "iimage.h"
 #include "b3dutil.h"
 #include "parse_params.h"
 
@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
   FILE   *fin;
   FILE   *fout;
   int    intype = -1;
-  int    outtype;
+  int    outtype, izsec;
   int    outPixsize = -1;
   int    compression = 0;
   int    byteswap = FALSE;
@@ -98,10 +98,9 @@ int main( int argc, char *argv[] )
   int    pixsize = 1;
   float  pixel;
   double pixSpacing = 0., zPixel = 0.;
-  float  mean = 0.0f, tmean = 0.0f, max = -5e29f, min= 5e29f;
-  int start = 0;
+  float  mean = 0.0f, tmean = 0.0f, min, max, allmax = -5e29f, allmin= 5e29f;
   b3dByte *sbdata;
-  b3dUByte *bdata;
+  b3dUByte *bdata, *bdata2, *scratch;
   b3dInt16 *sdata;
   b3dUInt16 *usdata;
   b3dInt32 *ldata;
@@ -222,16 +221,13 @@ int main( int argc, char *argv[] )
 
   if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[argc - 1])) 
     exitError("Couldn't create backup file");
-  fout = fopen(argv[argc - 1], "wb");
+  fout = iiFOpen(argv[argc - 1], "wb");
   if (!fout)
     exitError("Opening %s for output", argv[argc -1]);
 
-  for (j = 0; j < 1024; j++)
-    b3dFwrite(&start , 1, 1, fout);
-
   xysize = x * y;
 
-  indata = (void *)malloc(pixsize * xysize);
+  indata = (void *)malloc(pixsize * (xysize + (flip ? x : 0)));
   if (!indata)
     exitError("Getting memory");
 
@@ -242,6 +238,8 @@ int main( int argc, char *argv[] )
       zPixel = pixSpacing;
     mrc_set_scale(&hdata, pixSpacing, pixSpacing, zPixel);
   }
+  hdata.fp = fout;
+  izsec = 0;
 
   for (j = iarg ; j < argc-1 ; j++) {
     jread = invertFiles ? iarg + argc - 2 - j : j;
@@ -251,6 +249,8 @@ int main( int argc, char *argv[] )
 
     for (k = 0; k < z; k++) {
       tmean = 0.0f;
+      max = -5e29f;
+      min= 5e29f;
       zread = invertStack ? z - 1 - k : k;
       if (mrc_big_seek(fin, hsize + zread * zoffset, pixsize * x, y * zread, SEEK_SET))
         exitError("Seeking to data at section %d in file  %s", zread, argv[jread]);
@@ -342,10 +342,8 @@ int main( int argc, char *argv[] )
         for (i = 0; i < xysize; i++) {
           pixel = sdata[i];
           tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
+          min = B3DMIN(min, pixel);
+          max = B3DMAX(max, pixel);
         }
         break;
 
@@ -354,10 +352,8 @@ int main( int argc, char *argv[] )
         for (i = 0; i < xysize; i++) {
           pixel = usdata[i];
           tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
+          min = B3DMIN(min, pixel);
+          max = B3DMAX(max, pixel);
         }
         break;
 
@@ -366,10 +362,8 @@ int main( int argc, char *argv[] )
         for (i = 0; i < xysize; i++) {
           pixel = fdata[i];
           tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
+          min = B3DMIN(min, pixel);
+          max = B3DMAX(max, pixel);
         }
         break;
 
@@ -378,48 +372,50 @@ int main( int argc, char *argv[] )
         for (i = 0; i < xysize; i++) {
           pixel = bdata[i];
           tmean += pixel;
-          if (min > pixel)
-            min = pixel;
-          if (max < pixel)
-            max = pixel;
+          min = B3DMIN(min, pixel);
+          max = B3DMAX(max, pixel);
         }
-        b3dShiftBytes(bdata, (char *)bdata, x, y, 1, hdata.bytesSigned);
         break;
 
       default:
         break;
       }
 
-      if (flip == 0) {
-        if (b3dFwrite(indata, outPixsize, xysize, fout) != xysize) 
-          exitError("Writing data to file");
-      } else {
-
-        for (i = y - 1; i >= 0 ; i--) {
-          bdata = ((unsigned char *)indata) + i * outPixsize * x;
-          if (b3dFwrite(bdata, outPixsize, x, fout) != x) 
-            exitError("Writing data to file");
+      if (flip) {
+        scratch = ((unsigned char *)indata) + y * outPixsize * x;
+        for (i = 0; i < y / 2; i++) {
+          bdata = ((unsigned char *)indata) + (y - 1 - i) * outPixsize * x;
+          bdata2 = ((unsigned char *)indata) + i * outPixsize * x;
+          memcpy(scratch, bdata, outPixsize * x);
+          memcpy(bdata, bdata2, outPixsize * x);
+          memcpy(bdata2, scratch, outPixsize * x);
         }
       }
+      hdata.amin = min;
+      hdata.amax = max;
+      if (mrc_write_slice(indata, fout, &hdata, izsec++ ,'Z'))
+        exitError("Writing data to file");
       mean += (tmean / (float)xysize);
+      allmin = B3DMIN(min, allmin);
+      allmax = B3DMAX(max, allmax);
     }
     fclose(fin);
   }
 
+  hdata.amin = allmin;
+  hdata.amax = allmax;
   mean  /= (float)nsecs;
+  hdata.amean = mean;
 
   printf("Min = %g, Max = %g, Mean = %g\n", min, max, mean);
 
   /* write out MRC header */
   /* DNM 11/5/02: change from raw writes of each element to calling
      library routines.  Added label.  1/17/04: eliminate unneeded rewind */
-  hdata.amin = min;
-  hdata.amax = max;
-  hdata.amean = mean;
   mrc_head_label(&hdata, "raw2mrc: Converted to mrc format.");
   mrc_head_write(fout, &hdata);
 
-  fclose(fout);
+  iiFClose(fout);
 
   exit(0);
 }

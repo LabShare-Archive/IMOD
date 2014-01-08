@@ -424,7 +424,7 @@ return;
 /* Calculating eigenvectors and eigenvalues */
 
 /* Changes for IMOD: jacobi() and eigsrt() from Numerical recipes removed, */
-/* read_struct_tens() and read_ei() changed to use the vectors from dsyevq3()
+/* read_struct_tens() and read_ei() changed to use the vectors from dsyevq3() */
 
 /* Define the struct_tens matrix */
 
@@ -818,8 +818,7 @@ return;
 
 #include "b3dutil.h"
 #include "parse_params.h"
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 
 void usage(char *progname, float ht, int pmax, float sigma, float lambda)
 {
@@ -956,7 +955,7 @@ int main (int argc, char **argv)
 
 
   /* ---- read input image ---- */
-  if ((fp_infile = fopen (argv[iarg], "rb")) == 0)
+  if ((fp_infile = iiFOpen (argv[iarg], "rb")) == 0)
     exitError("Could not open input file %s", argv[iarg]);
 
   /* read header */
@@ -1002,7 +1001,7 @@ int main (int argc, char **argv)
 
     sliceFree(sl);
   }
-  fclose(fp_infile);
+  iiFClose(fp_infile);
 
   /* ---- Image ---- */
   analyse (u, nx, ny, nz, &min, &max, &mean, &vari);
@@ -1072,7 +1071,7 @@ int main (int argc, char **argv)
           fprintf(stderr, "WARNING: error renaming existing %s to %s~", 
                   outFile, outFile);
 
-        if ((fp_outfile = fopen (outFile, "wb")) == 0)
+        if ((fp_outfile = iiFOpen (outFile, "wb")) == 0)
           exitError("Could not open output file %s", outFile);
       } 
       
@@ -1125,7 +1124,7 @@ int main (int argc, char **argv)
         if (mrc_head_write(fp_outfile, &header))
           exitError("Writing header");
       
-        fclose(fp_outfile);
+        iiFClose(fp_outfile);
         printf("output image %s successfully written\n\n", outFile);
         fp_outfile = NULL;
       }
