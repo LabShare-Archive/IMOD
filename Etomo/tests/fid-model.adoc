@@ -399,14 +399,18 @@ mb.beadtracker.1=B
 	assert.tf.size-of-patches=
 	assert.cb.use-boundary-model=off
 	assert.sp.iterations-to-increase-subpixel-accuracy=1
-	assert.cb.break-contours-into-pieces=off
-	assert.tf.break-contours-into-pieces=16,4
+	assert.cb.break-contours-into-pieces-with-overlap=off
+	assert.tf.break-contours-into-pieces-with-overlap=4
+	assert.rb.use-default-length=on
+	assert.rb.use-length=off
+	assert.tf.use-length=
 	assert.tf.pixels-to-trim=%{pixels-to-trim}
 	assert.tf.x-axis-min=
 	assert.tf.max=
 	assert.tf.y-axis-min=
 	assert.tf.max.1=
 	assert.bn.track-patches=off
+	assert.bn.recut-or-restore-contours=off
 	bn.advanced=
 	assert.tf.limits-on-shifts-from-correlation=
 	assert.tf.tilt-angle-offset=
@@ -424,8 +428,11 @@ mb.beadtracker.1=B
 	assert.enabled.cb.use-boundary-model=
 	assert.disabled.bn.create-boundary-model=
 	assert.enabled.sp.iterations-to-increase-subpixel-accuracy=
-	assert.enabled.cb.break-contours-into-pieces=
-	assert.disabled.tf.break-contours-into-pieces=
+	assert.enabled.cb.break-contours-into-pieces-with-overlap=
+	assert.disabled.tf.break-contours-into-pieces-with-overlap=
+	assert.disabled.rb.use-default-length=
+	assert.disabled.rb.use-length=
+	assert.disabled.tf.use-length=
 	assert.enabled.tf.pixels-to-trim=
 	assert.enabled.tf.x-axis-min=
 	assert.enabled.tf.max=
@@ -433,6 +440,7 @@ mb.beadtracker.1=B
 	assert.enabled.tf.max.1=
 	assert.enabled.bn.track-patches=
 	assert.enabled.bn.open-tracked-patches=
+	assert.enabled.bn.recut-or-restore-contours=
 	bn.advanced=
 	assert.enabled.tf.limits-on-shifts-from-correlation=
 	assert.enabled.tf.tilt-angle-offset=
@@ -452,10 +460,15 @@ mb.beadtracker.1=B
 	cb.use-boundary-model=off
 	assert.disabled.bn.create-boundary-model=
 	#Break contour into pieces
-	cb.break-contours-into-pieces=on
-	assert.enabled.tf.break-contours-into-pieces=
-	cb.break-contours-into-pieces=off
-	assert.disabled.tf.break-contours-into-pieces=
+	cb.break-contours-into-pieces-with-overlap=on
+	assert.enabled.tf.break-contours-into-pieces-with-overlap=
+	assert.enabled.rb.use-default-length=
+	assert.enabled.rb.use-length=
+	rb.use-length=
+	assert.enabled.tf.use-length=
+	rb.use-default-length=
+	cb.break-contours-into-pieces-with-overlap=off
+	assert.disabled.tf.break-contours-into-pieces-with-overlap=
 [[]]
 run.function.patch-layout=
 #patch tracking is slow so avoid running if patch-tracking isn't set
@@ -478,17 +491,25 @@ assert.exists.file=xcorr_pt%{axis}.log~
 assert.exists.file=%{dataset}%{axis}.fid~
 #don't break contours for midzone2b (doesn't need it)
 if.equals.var.axis.return=b
-cb.break-contours-into-pieces=on
+cb.break-contours-into-pieces-with-overlap=on
 [[if = test-gui]]
   #test field validation
-  tf.break-contours-into-pieces=16,4abc
+  tf.break-contours-into-pieces-with-overlap=4abc
   bn.track-patches=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=
-  tf.break-contours-into-pieces=16,4
+  tf.break-contours-into-pieces-with-overlap=4
 [[]]
 bn.track-patches=
 wait.process.cross-correlating-stack=done
+[[if = test-gui]]
+  cb.break-contours-into-pieces-with-overlap=off
+  bn.recut-or-restore-contours=
+  wait.process.restoring-contours=done
+  cb.break-contours-into-pieces-with-overlap=on
+[[]]
+bn.recut-or-restore-contours=
+wait.process.recutting-contours=done
 
 
 [function = patch-layout]
