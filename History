@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/8/14: Change eTomo to make it independent of Cygwin.  Fixed a problem with
+killing processes on Windows.(Bug# 1716)
+
 1/8/14: Added control of imodchopconts to eTomo - Fiducial Model Dialog.
 (Bug# 1767)
 
