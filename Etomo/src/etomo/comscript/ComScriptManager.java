@@ -627,6 +627,45 @@ public final class ComScriptManager extends BaseComScriptManager {
     return tiltXcorrParam;
   }
 
+  public ImodchopcontsParam getImodchopcontsParam(AxisID axisID) {
+    // Get a reference to the appropriate script object
+    ComScript xcorrPt;
+    if (axisID == AxisID.SECOND) {
+      xcorrPt = scriptXcorrPtB;
+    }
+    else {
+      xcorrPt = scriptXcorrPtA;
+    }
+
+    // Initialize a TiltxcorrParam object from the com script command object
+    ImodchopcontsParam param = new ImodchopcontsParam();
+    initialize(param, xcorrPt, "imodchopconts", axisID, false, false);
+    return param;
+  }
+
+  /**
+   * Get the first goto command from xcorr.com
+   * @param axisID
+   * @return
+   */
+  public GotoParam getGotoParamFromXcorrPt(final AxisID axisID, final boolean required) {
+    ComScript xcorrPt;
+    if (axisID == AxisID.SECOND) {
+      xcorrPt = scriptXcorrPtB;
+    }
+    else {
+      xcorrPt = scriptXcorrPtA;
+    }
+    // Initialize a GotoParam object from the com script command
+    // object
+    GotoParam gotoParam = new GotoParam();
+    if (!initialize(gotoParam, xcorrPt, GotoParam.COMMAND_NAME, axisID, false, false,
+        required)) {
+      return null;
+    }
+    return gotoParam;
+  }
+
   /**
    * Get the autofidseed parameters
    * @param axisID the AxisID to read.
@@ -689,6 +728,30 @@ public final class ComScriptManager extends BaseComScriptManager {
       scriptXcorrPt = scriptXcorrPtA;
     }
     modifyCommand(scriptXcorrPt, tiltXcorrParam, "tiltxcorr", axisID, false, false);
+  }
+
+  public void saveXcorrPt(ImodchopcontsParam param, AxisID axisID) {
+    // Get a reference to the appropriate script object
+    ComScript scriptXcorrPt;
+    if (axisID == AxisID.SECOND) {
+      scriptXcorrPt = scriptXcorrPtB;
+    }
+    else {
+      scriptXcorrPt = scriptXcorrPtA;
+    }
+    modifyCommand(scriptXcorrPt, param, "imodchopconts", axisID, false, false);
+  }
+
+  public void saveXcorrPt(GotoParam param, AxisID axisID) {
+    // Get a reference to the appropriate script object
+    ComScript scriptXcorrPt;
+    if (axisID == AxisID.SECOND) {
+      scriptXcorrPt = scriptXcorrPtB;
+    }
+    else {
+      scriptXcorrPt = scriptXcorrPtA;
+    }
+    modifyCommand(scriptXcorrPt, param, "goto", axisID, false, false);
   }
 
   /**
@@ -2073,7 +2136,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // Initialize a Patchcrawl3DParam object from the com script command object
     Patchcrawl3DParam patchcrawl3DParam = new Patchcrawl3DParam();
     if (!initialize(patchcrawl3DParam, scriptPatchcorr, Patchcrawl3DParam.COMMAND,
-        AxisID.ONLY, true, false, false)) {
+        AxisID.ONLY, true, false, false, true)) {
       initialize(patchcrawl3DParam, scriptPatchcorr, Patchcrawl3DPrePIPParam.COMMAND,
           AxisID.ONLY, false, false);
     }
@@ -2246,7 +2309,7 @@ public final class ComScriptManager extends BaseComScriptManager {
     // object
     GotoParam gotoParam = new GotoParam();
     if (!initialize(gotoParam, scriptCombine, GotoParam.COMMAND_NAME, AxisID.ONLY, true,
-        false, false)) {
+        false, false, true)) {
       return null;
     }
     return gotoParam;
@@ -2255,7 +2318,7 @@ public final class ComScriptManager extends BaseComScriptManager {
   public SetParam getSetParamFromVolcombine(String name, EtomoNumber.Type type) {
     SetParam setParam = new SetParam(name, type);
     if (!initialize(setParam, scriptVolcombine, SetParam.COMMAND_NAME, AxisID.ONLY, true,
-        false, false)) {
+        false, false, true)) {
       return null;
     }
     return setParam;
