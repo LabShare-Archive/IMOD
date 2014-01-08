@@ -452,9 +452,11 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     double newtimeStamp = new Date().getTime();
     waitTime += newtimeStamp - timestamp;
     timestamp = newtimeStamp;
-    // Has currentSection been incremented
+    // Has the current section been incremented?
     if (doneSections < currentSection - 1) {
-      // Average sections time is the total time over the total number of sections done.
+      // At least one section has been completed since the last time this function was
+      // called, so recalculate average section completion time: the total time over the
+      // total number of sections done.
       averageSectionTime = ((doneSections * averageSectionTime) + waitTime)
           / (currentSection - 1);
       doneSections = currentSection - 1;
@@ -462,10 +464,14 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       updatedAverageSectionTime = averageSectionTime;
       percentDone = Math.round((double) doneSections / nSections * 100);
     }
+    // If the current section has not been incremented and the wait for the current
+    // section to be completed exceeds the average section completion time, then
+    // recalculate updatedAverageSectionTime.
     else if (waitTime > averageSectionTime) {
       updatedAverageSectionTime = ((doneSections * averageSectionTime) + waitTime)
           / (doneSections + 1);
     }
+    // Calculate the new estimated time to completion.
     if (updatedAverageSectionTime > 0) {
       etc = updatedAverageSectionTime * (nSections - doneSections) - waitTime;
     }

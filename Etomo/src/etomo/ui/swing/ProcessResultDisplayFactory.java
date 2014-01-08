@@ -77,6 +77,9 @@ public final class ProcessResultDisplayFactory implements
       .getDeferredToggle3dmodInstance("Track Patches", DialogType.FIDUCIAL_MODEL);
   private final Run3dmodButton autofidseed = Run3dmodButton
       .getDeferredToggle3dmodInstance("Generate Seed Model", DialogType.FIDUCIAL_MODEL);
+  private final ProcessResultDisplay imodchopconts = Run3dmodButton
+      .getDeferredToggle3dmodInstance("Recut or Restore Contours",
+          DialogType.FIDUCIAL_MODEL);
 
   // fine alignment
 
@@ -206,6 +209,7 @@ public final class ProcessResultDisplayFactory implements
     addDependency(seedFiducialModel);
     addDependency(autofidseed);
     addDependency(trackTiltxcorr);
+    addDependency(imodchopconts);
     addDependency(raptor);
     addDependency(useRaptor);
     addDependency(trackFiducials);
@@ -264,6 +268,7 @@ public final class ProcessResultDisplayFactory implements
     // fiducial model
     transferFiducials.setScreenState(screenState);
     trackTiltxcorr.setScreenState(screenState);
+    imodchopconts.setScreenState(screenState);
     raptor.setScreenState(screenState);
     useRaptor.setScreenState(screenState);
     seedFiducialModel.setScreenState(screenState);
@@ -322,6 +327,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(coarseAlign);
     // fiducial model
     addDependents(trackTiltxcorr);
+    addDependents(imodchopconts);
     addDependents(transferFiducials);
     addDependents(seedFiducialModel);
     addDependents(autofidseed);
@@ -442,6 +448,10 @@ public final class ProcessResultDisplayFactory implements
       return trackTiltxcorr;
     }
     return null;
+  }
+
+  public ProcessResultDisplay getImodchopconts() {
+    return imodchopconts;
   }
 
   public ProcessResultDisplay getAutofidseed() {

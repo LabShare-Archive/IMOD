@@ -630,8 +630,14 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + "." + FIRST_AXIS_KEY + ".NumberOfPatchesXandY");
   private final StringProperty trackNumberOfPatchesXandYB = new StringProperty(TRACK_KEY
       + "." + SECOND_AXIS_KEY + ".NumberOfPatchesXandY");
+  /**
+   * @deprecated
+   */
   private final StringProperty trackLengthAndOverlapA = new StringProperty(TRACK_KEY
       + "." + FIRST_AXIS_KEY + ".LengthAndOverlap");
+  /**
+   * @deprecated
+   */
   private final StringProperty trackLengthAndOverlapB = new StringProperty(TRACK_KEY
       + "." + SECOND_AXIS_KEY + ".LengthAndOverlap");
   private final StringProperty trackMethodA = new StringProperty(TRACK_KEY + "."
@@ -855,6 +861,20 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + ".WeightWholeTracks");
   private final EtomoBoolean2 weightWholeTracksB = new EtomoBoolean2(FINE_KEY
       + SECOND_AXIS_KEY + ".WeightWholeTracks");
+  private final EtomoNumber lengthOfPiecesA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".LengthOfPieces");
+  private final EtomoNumber lengthOfPiecesB = new EtomoNumber(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".LengthOfPieces");
+  /**
+   * For backwards compatibility
+   */
+  private final EtomoNumber minimumOverlapA = new EtomoNumber(TRACK_KEY + "."
+      + FIRST_AXIS_KEY + ".MinimumOverlap");
+  /**
+   * For backwards compatibility
+   */
+  private final EtomoNumber minimumOverlapB = new EtomoNumber(TRACK_KEY + "."
+      + SECOND_AXIS_KEY + ".MinimumOverlap");
 
   public MetaData(final ApplicationManager manager, final LogProperties logProperties) {
     super(logProperties);
@@ -1868,6 +1888,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origViewsWithMagChangesSetB.reset();
     weightWholeTracksA.reset();
     weightWholeTracksB.reset();
+    lengthOfPiecesA.reset();
+    lengthOfPiecesB.reset();
+    minimumOverlapA.reset();
+    minimumOverlapB.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2193,6 +2217,25 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origViewsWithMagChangesSetB.load(props, prepend);
     weightWholeTracksA.load(props, prepend);
     weightWholeTracksB.load(props, prepend);
+    lengthOfPiecesA.load(props, prepend);
+    lengthOfPiecesB.load(props, prepend);
+    // backwards compatibility - not necessary to load minimumOverlap
+    if (!trackLengthAndOverlapA.isEmpty()) {
+      if (lengthOfPiecesA.isNull()) {
+        lengthOfPiecesA.set(Utilities.getElementFromList(
+            trackLengthAndOverlapA.toString(), 0));
+      }
+      minimumOverlapA.set(Utilities.getElementFromList(trackLengthAndOverlapA.toString(),
+          1));
+    }
+    if (!trackLengthAndOverlapB.isEmpty()) {
+      if (lengthOfPiecesB.isNull()) {
+        lengthOfPiecesB.set(Utilities.getElementFromList(
+            trackLengthAndOverlapB.toString(), 0));
+      }
+      minimumOverlapB.set(Utilities.getElementFromList(trackLengthAndOverlapB.toString(),
+          1));
+    }
   }
 
   public boolean isTrackElongatedPointsAllowedNull(final AxisID axisID) {
@@ -2497,8 +2540,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackOverlapOfPatchesXandYB.store(props, prepend);
     trackNumberOfPatchesXandYA.store(props, prepend);
     trackNumberOfPatchesXandYB.store(props, prepend);
-    trackLengthAndOverlapA.store(props, prepend);
-    trackLengthAndOverlapB.store(props, prepend);
+    // Backward compatibility - do not store trackLengthAndOverlap
     trackMethodA.store(props, prepend);
     trackMethodB.store(props, prepend);
     fineExistsA.store(props, prepend);
@@ -2595,6 +2637,32 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     origViewsWithMagChangesSetB.store(props, prepend);
     weightWholeTracksA.store(props, prepend);
     weightWholeTracksB.store(props, prepend);
+    lengthOfPiecesA.store(props, prepend);
+    lengthOfPiecesB.store(props, prepend);
+    // Backward compatibility - not necessary to store minimumOverlap
+  }
+
+  public String getMinimumOverlap(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return minimumOverlapB.toString();
+    }
+    return minimumOverlapA.toString();
+  }
+
+  public String getLengthOfPieces(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return lengthOfPiecesB.toString();
+    }
+    return lengthOfPiecesA.toString();
+  }
+
+  public void setLengthOfPieces(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      lengthOfPiecesB.set(input);
+    }
+    else {
+      lengthOfPiecesA.set(input);
+    }
   }
 
   public void setWeightWholeTracks(final AxisID axisID, final boolean input) {

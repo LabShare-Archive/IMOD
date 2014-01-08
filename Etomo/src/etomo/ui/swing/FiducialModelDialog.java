@@ -39,6 +39,7 @@ import etomo.comscript.AutofidseedParam;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.ImodchopcontsParam;
 import etomo.comscript.RunraptorParam;
 import etomo.comscript.TransferfidParam;
 
@@ -1063,6 +1064,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     tiltxcorrPanel.setParameters(tiltXcorrParams);
   }
 
+  public void setParameters(final ImodchopcontsParam param) {
+    tiltxcorrPanel.setParameters(param);
+  }
+
   public void setParameters(final AutofidseedParam param) {
     ltfMinGuessNumBeads.setText(param.getMinGuessNumBeads());
     ltfMinSpacing.setText(param.getMinSpacing());
@@ -1349,7 +1354,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       }
     }
     else if (command.equals(btn3dmodClusteredElongatedModel.getActionCommand())) {
-      applicationManager.imodClusteredElongatedModel( axisID, run3dmodMenuOptions);
+      applicationManager.imodClusteredElongatedModel(axisID, run3dmodMenuOptions);
     }
     else if (command.equals(btnCleanup.getActionCommand())) {
       applicationManager.cleanupAutofidseed(axisID);

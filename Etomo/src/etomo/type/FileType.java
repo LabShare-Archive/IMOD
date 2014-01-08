@@ -195,6 +195,8 @@ public final class FileType {
       ".fid");
   public static final FileType CCD_ERASER_BEADS_INPUT_MODEL = FileType.getInstance(true,
       true, "_erase", ".fid");
+  public static final FileType FIDUCIAL_PATCH_TRACKING_MODEL = FileType.getInstance(true,
+      true, "_pt", ".fid");
   public static final FileType FLATTEN_TOOL_OUTPUT = FileType.getImodInstance(true,
       false, "", ".flat", ImodManager.FLATTEN_TOOL_OUTPUT_KEY);
   public static final FileType NAD_TEST_INPUT = FileType.getImodInstanceInSubdirectory(

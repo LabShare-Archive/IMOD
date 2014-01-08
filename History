@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/8/14: Added control of imodchopconts to eTomo - Fiducial Model Dialog.
+(Bug# 1767)
+
 1/2/14: Replaced Fortran image I/O system with system used by C programs.
 Fortran programs can now read TIFF, DigitalMicrograph, and other MRC-like
 files.
