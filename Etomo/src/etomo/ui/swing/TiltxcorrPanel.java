@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.ConstTiltxcorrParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.ImodchopcontsParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -310,15 +311,21 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       TiltxcorrParam.ITERATE_CORRELATIONS_MIN, TiltxcorrParam.ITERATE_CORRELATIONS_MAX);
   private final LabeledTextField ltfShiftLimitsXandY = new LabeledTextField(
       FieldType.INTEGER_PAIR, "Limits on shifts from correlation (X,Y): ");
-  private final CheckTextField ctfLengthAndOverlap = CheckTextField.getInstance(
-      FieldType.INTEGER_PAIR, "Break contours into pieces (length, overlap): ");
+  private final CheckTextField ctfLengthOfPiecesMinimumOverlap = CheckTextField
+      .getInstance(FieldType.INTEGER, "Break contours into pieces with overlap: ");
   private final CheckBox cbBoundaryModel = new CheckBox("Use boundary model");
   private final Run3dmodButton btn3dmodBoundaryModel = Run3dmodButton.get3dmodInstance(
       "Create Boundary Model", this);
+  private final ButtonGroup bgLengthOfPieces = new ButtonGroup();
+  private final RadioButton rbLengthOfPiecesDefault = new RadioButton(
+      "Use default length", bgLengthOfPieces);
+  private RadioTextField rtfLengthOfPieces = RadioTextField.getInstance(
+      FieldType.INTEGER, "Use length", bgLengthOfPieces);
 
   private final AxisID axisID;
   private final DialogType dialogType;
   private final MultiLineButton btnTiltxcorr;
+  private final MultiLineButton btnImodchopconts;
   private final Run3dmodButton btn3dmodPatchTracking = Run3dmodButton.get3dmodInstance(
       "Open Tracked Patches", this);
   private final PanelHeader header;
@@ -342,14 +349,14 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     header = PanelHeader.getAdvancedBasicInstance("Tiltxcorr", this, dialogType,
         globalAdvancedButton);
 
-    btnTiltxcorr = (MultiLineButton) applicationManager.getProcessResultDisplayFactory(
-        axisID).getTiltxcorr(dialogType);
+    ProcessResultDisplayFactory factory = applicationManager
+        .getProcessResultDisplayFactory(axisID);
+    btnTiltxcorr = (MultiLineButton) factory.getTiltxcorr(dialogType);
+    btnImodchopconts = (MultiLineButton) factory.getImodchopconts();
     if (panelId == PanelId.PATCH_TRACKING) {
       ctfMagChanges = null;
-      if (btnTiltxcorr != null) {
-        ((Run3dmodButton) btnTiltxcorr).setDeferred3dmodButton(btn3dmodPatchTracking);
-        ((Run3dmodButton) btnTiltxcorr).setContainer(this);
-      }
+      ((Run3dmodButton) btnTiltxcorr).setDeferred3dmodButton(btn3dmodPatchTracking);
+      ((Run3dmodButton) btnTiltxcorr).setContainer(this);
     }
     else {
       ctfMagChanges = CheckTextField.getInstance(FieldType.INTEGER_LIST,
@@ -385,6 +392,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     if (btnTiltxcorr != null) {
       btnTiltxcorr.setSize();
     }
+    btnImodchopconts.setSize();
+    rbLengthOfPiecesDefault.setSelected(true);
+    rbLengthOfPiecesDefault.setText("Use default length ("
+        + ImodchopcontsParam.getLengthOfPiecesDefault(applicationManager, axisID,
+            FileType.PREALIGNED_STACK) + ")");
     // root panel
     pnlRoot.setBoxLayout(BoxLayout.Y_AXIS);
     // Construct the min and max subpanels
@@ -441,9 +453,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     else if (panelId == PanelId.PATCH_TRACKING) {
       // initialize
       rtfOverlapOfPatchesXandY.setText(TiltxcorrParam.OVERLAP_OF_PATCHES_X_AND_Y_DEFAULT);
-      ctfLengthAndOverlap.setTextPreferredWidth(35);
-      ctfLengthAndOverlap.setText(TiltxcorrParam.getLengthAndOverlapDefault(
-          applicationManager, axisID, FileType.PREALIGNED_STACK));
+      ctfLengthOfPiecesMinimumOverlap.setTextPreferredWidth(30);
       btn3dmodPatchTracking.setSize();
       btn3dmodBoundaryModel.setSize();
       rtfOverlapOfPatchesXandY.setSelected(true);
@@ -456,6 +466,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       JPanel pnlPatchLayout = new JPanel();
       JPanel pnlBoundaryModel = new JPanel();
       JPanel pnlButtons = new JPanel();
+      JPanel pnlImodchopconts = new JPanel();
+      JPanel pnlLengthOfPieces = new JPanel();
       // root panel
       pnlRoot.setBorder(new EtchedBorder("Patch Tracking").getBorder());
       pnlRoot.add(ltfSizeOfPatchesXandY.getContainer());
@@ -469,7 +481,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlIterateCorrelations.add(Box.createHorizontalGlue());
       pnlRoot.add(pnlIterateCorrelations);
       pnlRoot.add(ltfShiftLimitsXandY.getContainer());
-      pnlRoot.add(ctfLengthAndOverlap.getRootComponent());
+      pnlRoot.add(ctfLengthOfPiecesMinimumOverlap.getRootComponent());
+      pnlRoot.add(pnlLengthOfPieces);
       pnlRoot.add(ltfAngleOffset);
       pnlRoot.add(pnlAdvanced2);
       pnlRoot.add(ltfTrim);
@@ -477,6 +490,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlRoot.add(pnlYMinAndMax);
       pnlRoot.add(pnlAdvanced);
       pnlRoot.add(pnlButtons);
+      pnlRoot.add(pnlImodchopconts);
       // patch layout panel
       pnlPatchLayout.setLayout(new BoxLayout(pnlPatchLayout, BoxLayout.Y_AXIS));
       pnlPatchLayout.setBorder(new EtchedBorder("Patch Layout").getBorder());
@@ -488,6 +502,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlBoundaryModel.add(Box.createHorizontalGlue());
       pnlBoundaryModel.add(btn3dmodBoundaryModel.getComponent());
       pnlBoundaryModel.add(Box.createHorizontalGlue());
+      // LengthOfPieces
+      pnlLengthOfPieces.setLayout(new BoxLayout(pnlLengthOfPieces, BoxLayout.X_AXIS));
+      pnlLengthOfPieces.add(rbLengthOfPiecesDefault.getComponent());
+      pnlLengthOfPieces.add(Box.createRigidArea(FixedDim.x10_y0));
+      pnlLengthOfPieces.add(rtfLengthOfPieces.getContainer());
       // advanced 2 panel
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterSigma1.getContainer());
       UIUtilities.addWithYSpace(pnlAdvanced2, ltfFilterRadius2.getContainer());
@@ -507,6 +526,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       pnlButtons.add(Box.createHorizontalGlue());
       pnlButtons.add(btn3dmodPatchTracking.getComponent());
       pnlButtons.add(Box.createHorizontalGlue());
+      // Imodchopconts
+      pnlImodchopconts.setLayout(new BoxLayout(pnlImodchopconts, BoxLayout.X_AXIS));
+      pnlImodchopconts.add(Box.createHorizontalGlue());
+      pnlImodchopconts.add(btnImodchopconts.getComponent());
+      pnlImodchopconts.add(Box.createHorizontalGlue());
       updatePanel();
     }
   }
@@ -524,6 +548,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     if (ctfMagChanges != null) {
       ctfMagChanges.addActionListener(actionListener);
     }
+    btnImodchopconts.addActionListener(actionListener);
+    ctfLengthOfPiecesMinimumOverlap.addActionListener(actionListener);
   }
 
   /**
@@ -536,12 +562,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       }
       return;
     }
-    String[] manPagelabel = { "Tiltxcorr", "3dmod" };
-    String[] manPage = { "tiltxcorr.html", "3dmod.html" };
+    String[] manPagelabel = { "Tiltxcorr", "Imodchopconts", "3dmod" };
+    String[] manPage = { "tiltxcorr.html", "imodchopconts.html", "3dmod.html" };
 
     String[] logFileLabel = { "Xcorr_pt" };
-    String[] logFile = new String[1];
-    logFile[0] = "xcorr_pt" + axisID.getExtension() + ".log";
+    String[] logFile = { "xcorr_pt" + axisID.getExtension() + ".log" };
     new ContextPopup(pnlRoot.getContainer(), mouseEvent, "PatchTracking",
         ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
         applicationManager, axisID);
@@ -552,9 +577,8 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   }
 
   void done() {
-    if (btnTiltxcorr != null) {
-      btnTiltxcorr.removeActionListener(actionListener);
-    }
+    btnTiltxcorr.removeActionListener(actionListener);
+    btnImodchopconts.removeActionListener(actionListener);
   }
 
   void updateAdvanced(final boolean state) {
@@ -588,6 +612,24 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
 
   Container getPanel() {
     return pnlRoot.getContainer();
+  }
+
+  void setParameters(final ImodchopcontsParam param) {
+    if (panelId == PanelId.PATCH_TRACKING) {
+      ctfLengthOfPiecesMinimumOverlap.setText(param.getMinimumOverlap());
+      boolean lengthOfPiecesSet = !param.isLengthOfPiecesNull();
+      ctfLengthOfPiecesMinimumOverlap.setSelected(lengthOfPiecesSet);
+      if (lengthOfPiecesSet) {
+        if (param.isLengthOfPiecesDefault()) {
+          rbLengthOfPiecesDefault.setSelected(true);
+        }
+        else {
+          rtfLengthOfPieces.setSelected(true);
+          rtfLengthOfPieces.setText(param.getLengthOfPieces());
+        }
+      }
+      updatePanel();
+    }
   }
 
   /**
@@ -635,13 +677,6 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       }
       spIterateCorrelations.setValue(tiltXcorrParams.getIterateCorrelations());
       ltfShiftLimitsXandY.setText(tiltXcorrParams.getShiftLimitsXandY());
-      if (tiltXcorrParams.isLengthAndOverlapSet()) {
-        ctfLengthAndOverlap.setSelected(true);
-        ctfLengthAndOverlap.setText(tiltXcorrParams.getLengthAndOverlap());
-      }
-      else {
-        ctfLengthAndOverlap.setSelected(false);
-      }
       cbBoundaryModel.setSelected(tiltXcorrParams.isBoundaryModelSet());
     }
     if (ctfMagChanges != null) {
@@ -662,9 +697,11 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         rtfOverlapOfPatchesXandY.setText(metaData.getTrackOverlapOfPatchesXandY(axisID));
       }
       rtfNumberOfPatchesXandY.setText(metaData.getTrackNumberOfPatchesXandY(axisID));
+      // Backwards compatibility
       if (metaData.isTrackLengthAndOverlapSet(axisID)) {
-        ctfLengthAndOverlap.setText(metaData.getTrackLengthAndOverlap(axisID));
+        ctfLengthOfPiecesMinimumOverlap.setText(metaData.getMinimumOverlap(axisID));
       }
+      rtfLengthOfPieces.setText(metaData.getLengthOfPieces(axisID));
     }
   }
 
@@ -676,7 +713,10 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     if (panelId == PanelId.PATCH_TRACKING) {
       metaData.setTrackOverlapOfPatchesXandY(axisID, rtfOverlapOfPatchesXandY.getText());
       metaData.setTrackNumberOfPatchesXandY(axisID, rtfNumberOfPatchesXandY.getText());
-      metaData.setTrackLengthAndOverlap(axisID, ctfLengthAndOverlap.getText());
+      metaData.setLengthOfPieces(axisID, rtfLengthOfPieces.getText());
+      // MinimumOverlap does not have to be saved because it can be placed in the
+      // comscript even when it is disabled. It is in meta data for backwards
+      // compatibility, and is loaded from trackLengthAndOverlap.
     }
   }
 
@@ -688,6 +728,29 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
 
   void getParameters(BaseScreenState screenState) {
     header.getButtonStates(screenState);
+  }
+
+  public boolean getParameters(final ImodchopcontsParam param, final boolean doValidation) {
+    try {
+      if (panelId == PanelId.PATCH_TRACKING) {
+        param.setMinimumOverlap(ctfLengthOfPiecesMinimumOverlap.getText(doValidation));
+        if (ctfLengthOfPiecesMinimumOverlap.isSelected()) {
+          if (rbLengthOfPiecesDefault.isSelected()) {
+            param.setLengthOfPiecesDefault();
+          }
+          else {
+            param.setLengthOfPieces(rtfLengthOfPieces.getText(doValidation));
+          }
+        }
+        else {
+          param.resetLengthOfPieces();
+        }
+      }
+      return true;
+    }
+    catch (FieldValidationFailedException e) {
+      return false;
+    }
   }
 
   /**
@@ -712,7 +775,7 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
         }
         tiltXcorrParams.setInputFile(FileType.PREALIGNED_STACK.getFileName(
             applicationManager, axisID));
-        tiltXcorrParams.setOutputFile(FileType.FIDUCIAL_MODEL.getFileName(
+        tiltXcorrParams.setOutputFile(FileType.FIDUCIAL_PATCH_TRACKING_MODEL.getFileName(
             applicationManager, axisID));
         if (cbBoundaryModel.isSelected()) {
           tiltXcorrParams.setBoundaryModel(FileType.PATCH_TRACKING_BOUNDARY_MODEL
@@ -787,14 +850,6 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
           }
           currentParam = ltfShiftLimitsXandY.getLabel();
           tiltXcorrParams.setShiftLimitsXandY(ltfShiftLimitsXandY.getText(doValidation));
-          currentParam = ctfLengthAndOverlap.getLabel();
-          if (ctfLengthAndOverlap.isSelected()) {
-            tiltXcorrParams
-                .setLengthAndOverlap(ctfLengthAndOverlap.getText(doValidation));
-          }
-          else {
-            tiltXcorrParams.resetLengthAndOverlap();
-          }
           tiltXcorrParams.setPrealignmentTransformFileDefault();
           tiltXcorrParams.setImagesAreBinned(UIExpertUtilities.INSTANCE.getStackBinning(
               applicationManager, axisID, ".preali"));
@@ -834,6 +889,9 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
       ctfMagChanges.setEnabled(!cbCumulativeCorrelation.isSelected()
           || !cbCumulativeCorrelation.isEnabled());
     }
+    boolean enable = ctfLengthOfPiecesMinimumOverlap.isSelected();
+    rbLengthOfPiecesDefault.setEnabled(enable);
+    rtfLengthOfPieces.setEnabled(enable);
   }
 
   private boolean validate() {
@@ -855,19 +913,22 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
   void buttonAction(final String actionCommand,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (btnTiltxcorr != null && actionCommand.equals(btnTiltxcorr.getActionCommand())) {
-      if (panelId == PanelId.CROSS_CORRELATION) {
-        applicationManager
-            .preCrossCorrelate(axisID, btnTiltxcorr, null, dialogType, this);
+    boolean runTiltxcorr = btnTiltxcorr != null
+        && actionCommand.equals(btnTiltxcorr.getActionCommand());
+    if (runTiltxcorr && panelId == PanelId.CROSS_CORRELATION) {
+      applicationManager.preCrossCorrelate(axisID, btnTiltxcorr, null, dialogType, this);
+    }
+    else if ((runTiltxcorr && panelId == PanelId.PATCH_TRACKING)
+        || actionCommand.equals(btnImodchopconts.getActionCommand())) {
+      // The validations do not cover imodchopconts fields
+      if (runTiltxcorr && !validate()) {
+        return;
       }
-      else if (panelId == PanelId.PATCH_TRACKING) {
-        if (!validate()) {
-          return;
-        }
-        applicationManager.tiltxcorr(axisID, btnTiltxcorr, deferred3dmodButton,
-            run3dmodMenuOptions, null, dialogType, this, false,
-            FileType.PATCH_TRACKING_COMSCRIPT);
-      }
+      applicationManager.tiltxcorr(axisID,
+          runTiltxcorr ? btnTiltxcorr : btnImodchopconts, deferred3dmodButton,
+          run3dmodMenuOptions, null, dialogType, this, false,
+          FileType.PATCH_TRACKING_COMSCRIPT, runTiltxcorr,
+          ctfLengthOfPiecesMinimumOverlap.isSelected());
     }
     else if (actionCommand.equals(btn3dmodPatchTracking.getActionCommand())) {
       applicationManager.imodModel(FileType.PREALIGNED_STACK, FileType.FIDUCIAL_MODEL,
@@ -876,10 +937,6 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     else if (actionCommand.equals(btn3dmodBoundaryModel.getActionCommand())) {
       applicationManager.imodModel(FileType.PREALIGNED_STACK,
           FileType.PATCH_TRACKING_BOUNDARY_MODEL, axisID, run3dmodMenuOptions, false);
-    }
-    else if (ctfMagChanges != null
-        && actionCommand.equals(ctfMagChanges.getActionCommand())) {
-      updatePanel();
     }
     else {
       updatePanel();
@@ -976,7 +1033,15 @@ final class TiltxcorrPanel implements Expandable, TiltXcorrDisplay,
     String tooltip = EtomoAutodoc.getTooltip(autodoc, TiltxcorrParam.BOUNDARY_MODEL_KEY);
     cbBoundaryModel.setToolTipText(tooltip);
     btn3dmodBoundaryModel.setToolTipText(tooltip);
-    ctfLengthAndOverlap.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        TiltxcorrParam.LENGTH_AND_OVERLAP_KEY));
+    ctfLengthOfPiecesMinimumOverlap.setCheckBoxToolTipText(EtomoAutodoc.getTooltip(
+        autodoc, ImodchopcontsParam.LENGTH_OF_PIECES_KEY));
+    ctfLengthOfPiecesMinimumOverlap.setFieldToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        ImodchopcontsParam.MINIMUM_OVERLAP_KEY));
+    rbLengthOfPiecesDefault.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        ImodchopcontsParam.LENGTH_OF_PIECES_KEY));
+    rtfLengthOfPieces.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        ImodchopcontsParam.LENGTH_OF_PIECES_KEY));
+    btnImodchopconts
+        .setToolTipText("Changes the contour pieces without rerunning tiltaxcorr.");
   }
 }
