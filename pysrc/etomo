@@ -175,17 +175,32 @@ if '-h' in sys.argv or '--help' in sys.argv or '--h' in sys.argv:
 if '--fg' in sys.argv or '--directive' in sys.argv:
    foreground = 1
 
+# Allow developer to run a specified jar
+jarDir = IMOD_DIR + '/bin/'
+if '--jardir' in sys.argv:
+   for ind in range(1, len(sys.argv) - 1):
+      if sys.argv[ind] == '--jardir':
+         jarDir = sys.argv[ind + 1]
+         break
+
 # Build the common java command
-javacom = fmtstr('java -Xmx{0} {1} -cp "{2}/bin/etomo" -jar "{2}/bin/etomo.jar"', \
-                    ETOMO_MEM_LIM, userhomeQuoted, IMOD_DIR)
+javacom = fmtstr('java -Xmx{0} {1} -cp "{2}/etomo" -jar "{2}/etomo.jar"', \
+                    ETOMO_MEM_LIM, userhomeQuoted, jarDir)
 comArray = ['java', '-Xmx' + ETOMO_MEM_LIM]
 if userhome:
    comArray.append(userhome)
-comArray += ['-cp', IMOD_DIR + '/bin/etomo', '-jar', IMOD_DIR + '/bin/etomo.jar']
+comArray += ['-cp', jarDir + '/etomo', '-jar', jarDir + '/etomo.jar']
+skipNext = False
 for ind in range(1, len(sys.argv)):
+   if skipNext:
+      skipNext= False
+      continue
    arg = sys.argv[ind]
    if arg == '-h':
       arg = '--help'
+   if arg == '--jardir':
+      skipNext = True
+      continue
    javacom += ' "' + arg + '"'
    comArray.append(arg)
    if arg.startswith('-') and not arg.startswith('--'):
