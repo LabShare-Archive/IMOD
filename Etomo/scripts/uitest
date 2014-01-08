@@ -19,7 +19,7 @@ if [ $# -eq 0 ] ; then
   exit
 elif [[ $1 == '--help' || $1 == '-h' ]] ; then
   echo "usage: uitest Test_section_name"
-  echo See man uitestdoc
+  echo See man uitest
   exit
 fi
 
