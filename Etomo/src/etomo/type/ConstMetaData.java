@@ -562,4 +562,8 @@ public interface ConstMetaData {
   public ConstEtomoNumber getTrackElongatedPointsAllowed(AxisID axisID);
 
   public boolean getWeightWholeTracks(AxisID axisID);
+
+  public String getLengthOfPieces(AxisID axisID);
+
+  public String getMinimumOverlap(AxisID axisID);
 }
