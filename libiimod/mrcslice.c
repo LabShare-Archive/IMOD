@@ -870,7 +870,7 @@ int sliceWriteMRCfile(char *filename, Islice *slice)
  * @@mrcfiles.html#MrcHeader structure@ [hin].  The coordinate of the plane is
  * [sno] along the axis given by [axis], which must be one of x, X, y, Y, z, 
  * or Z.  The file pointer in [hin] is used.  Bytes are swapped if necessary.
- * Returns NULL for errors.
+ * Calls @@mrcfiles.html#mrc_mread_slice@.  Returns NULL for errors.
  */
 Islice *sliceReadMRC(MrcHeader *hin, int sno, char axis)
 {
@@ -918,9 +918,10 @@ Islice *sliceReadMRC(MrcHeader *hin, int sno, char axis)
  * by the @@mrcfiles.html#MrcHeader structure@ [hin].  The coordinate of the 
  * plane is [sno] along the axis given by [axis], which must be one of x, X, y,
  * Y, z, or Z.  The size of the subarea is given by [xsize] and [ysize] and its
- * center is given by [xcen], [ycen].  The entire slice is read in and then the
- * subarea is taken with @sliceBoxIn .  The file pointer in [hin] is used.
- * Bytes are swapped if necessary.  Returns NULL for errors.
+ * center is given by [xcen], [ycen].  The entire slice is read in by calling 
+ * @@mrcfiles.html#mrc_mread_slice@ and then the subarea is taken with @@sliceBoxIn@. 
+ * The file pointer in [hin] is used.  Bytes are swapped if necessary.  Returns NULL 
+ * for errors.
  */
 Islice *sliceReadSubm(MrcHeader *hin, 
                       int sno, char axis,
@@ -976,8 +977,8 @@ Islice *sliceReadSubm(MrcHeader *hin,
 /*!
  * Returns a slice with one Z plane of data at Z value [secno] from the file 
  * described by the @@mrcfiles.html#MrcHeader structure@ [hin].  
- * The file pointer in [hin] is used.  Bytes are swapped if necessary.
- * Returns NULL for errors.
+ * The file pointer in [hin] is used.  Calls @@mrcfiles.html#mrcReadFloatSlice, where
+ * bytes are swapped if necessary.  Returns NULL for errors.
  */
 Islice *sliceReadFloat(MrcHeader *hin, int secno)
 {
