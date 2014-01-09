@@ -27,7 +27,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf
                              int readY, int type);
 static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int cz,
                               int mode);
-static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis);
+static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis, 
+                                   ImodImageFile *iiSave);
+static int restoreIIfile(int error, ImodImageFile *iiFile, ImodImageFile *iiSave);
 
 /*
  * Routines for accessing particular kinds of data as bytes or raw, Y or Z
@@ -49,9 +51,9 @@ static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis);
  */
 int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 3)) != NULL)
-    return (iiReadSection(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSection(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, 0, 0));
 }
 
@@ -62,9 +64,9 @@ int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 3)) != NULL)
-    return (iiReadSectionByte(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL)
+  return restoreIIfile(iiReadSectionByte(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, 0, MRSA_BYTE));
 }
 
@@ -75,9 +77,9 @@ int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadZUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 3)) != NULL)
-    return (iiReadSectionUShort(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionUShort(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, 0, MRSA_USHORT));
 }
 
@@ -87,9 +89,9 @@ int mrcReadZUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 3)) != NULL)
-    return (iiReadSectionFloat(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionFloat(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, 0,MRSA_FLOAT));
 }
 
@@ -102,9 +104,9 @@ int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
  */
 int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 2)) != NULL)
-    return (iiReadSection(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 2, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSection(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, 1, 0));
 }
 
@@ -115,9 +117,9 @@ int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 2)) != NULL)
-    return (iiReadSectionByte(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 2, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionByte(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, 1, MRSA_BYTE));
 }
 
@@ -128,9 +130,9 @@ int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadYUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 2)) != NULL)
-    return (iiReadSectionUShort(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 2, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionUShort(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, 1, MRSA_USHORT));
 }
 
@@ -140,9 +142,9 @@ int mrcReadYUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 2)) != NULL)
-    return (iiReadSectionFloat(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 2, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionFloat(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, 1,MRSA_FLOAT));
 }
 
@@ -162,9 +164,9 @@ int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, li->axis)) != NULL)
-    return (iiReadSection(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, li->axis, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSection(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, readY, 0));
 }
 
@@ -176,9 +178,9 @@ int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, li->axis)) != NULL)
-    return (iiReadSectionByte(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, li->axis, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionByte(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, readY, MRSA_BYTE));
 }
 
@@ -190,9 +192,9 @@ int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int 
 int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, li->axis)) != NULL)
-    return (iiReadSectionUShort(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, li->axis, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionUShort(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, buf, z, readY, MRSA_USHORT));
 }
 
@@ -203,9 +205,9 @@ int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, in
 int mrcReadSectionFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, li->axis)) != NULL)
-    return (iiReadSectionFloat(iiFile, (char *)buf, z));
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, li->axis, &iiSave)) != NULL)
+    return restoreIIfile(iiReadSectionFloat(iiFile, (char *)buf, z), iiFile, &iiSave);
   return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, readY, 
                             MRSA_FLOAT));
 }
@@ -451,7 +453,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     }
   }
   /* printf("ps %d cl %d nd %d ds %d nx %d xsize %d pl %d pr %d\n", pixSize, chunkLines,
-     needData, (int)dataSize, nx, xsize, padLeft, padRight); */
+     needData, (int)dataSize, nx, xsize, padLeft, padRight);*/
 
   /* Get the supplemental data array, set all pointers to it */
   if (needData) {
@@ -857,12 +859,12 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
  */
 int mrcWriteZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 3)) != NULL) {
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL) {
     iiSyncFromMrcHeader(iiFile, hdata);
-    if (iiFile->file == IIFILE_MRC)
+    if (iiFile->file == IIFILE_MRC && (MrcHeader *)iiFile->header != hdata)
       *((MrcHeader *)iiFile->header) = *hdata;
-    return (iiWriteSection(iiFile, (char *)buf, z));
+    return restoreIIfile(iiWriteSection(iiFile, (char *)buf, z), iiFile, &iiSave);
   }
   return (mrcWriteSectionAny(hdata, li, buf, z, hdata->mode));
 }
@@ -876,12 +878,12 @@ int mrcWriteZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcWriteZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
-  ImodImageFile *iiFile;
-  if ((iiFile = lookupIIfile(hdata, li, 3)) != NULL) {
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL) {
     iiSyncFromMrcHeader(iiFile, hdata);
-    if (iiFile->file == IIFILE_MRC)
-     *((MrcHeader *)iiFile->header) = *hdata;
-    return (iiWriteSectionFloat(iiFile, (char *)buf, z));
+    if (iiFile->file == IIFILE_MRC && (MrcHeader *)iiFile->header != hdata)
+      *((MrcHeader *)iiFile->header) = *hdata;
+    return restoreIIfile(iiWriteSectionFloat(iiFile, (char *)buf, z), iiFile, &iiSave);
   }
   return (mrcWriteSectionAny(hdata, li, (unsigned char *)buf, z, 
                              hdata->mode == MRC_MODE_COMPLEX_FLOAT || 
@@ -1031,16 +1033,33 @@ static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *bu
 
 /*
  * If this is not already a call from an II function, look up the iiFile from the file 
- * pointer and fill in the I/O limits for the given axis.
+ * pointer, and if it is not MRC-like, it fills in the I/O limits for the given axis and
+ * returns the iiFile.
  */
-static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis)
+static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis, 
+                                   ImodImageFile *iiSave)
 {
   ImodImageFile *iiFile;
   if (iiCallingReadOrWrite())
     return NULL;
   iiFile = iiLookupFileFromFP(hdata->fp);
-  if (!iiFile)
+  if (!iiFile || iiFile->file == IIFILE_MRC || iiFile->file == IIFILE_RAW)
     return NULL;
+
+  /* Save original parameters */
+  iiSave->llx = iiFile->llx;
+  iiSave->urx = iiFile->urx;
+  iiSave->lly = iiFile->lly;
+  iiSave->ury = iiFile->ury;
+  iiSave->llz = iiFile->llz;
+  iiSave->urz = iiFile->urz;
+  iiSave->axis = iiFile->axis;
+  iiSave->padLeft = iiFile->padLeft;
+  iiSave->padRight = iiFile->padRight;
+  iiSave->slope = iiFile->slope;
+  iiSave->offset = iiFile->offset;
+
+  /* Set up the load */
   iiFile->llx = li->xmin;
   iiFile->urx = li->xmax;
   if (axis == 3) {
@@ -1057,3 +1076,20 @@ static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis)
   iiFile->offset = li->offset;
   return iiFile;
 }
+
+/* Restore the original loading parameters */
+static int restoreIIfile(int error, ImodImageFile *iiFile, ImodImageFile *iiSave)
+{
+  iiFile->llx = iiSave->llx;
+  iiFile->urx = iiSave->urx;
+  iiFile->lly = iiSave->lly;
+  iiFile->ury = iiSave->ury;
+  iiFile->llz = iiSave->llz;
+  iiFile->urz = iiSave->urz;
+  iiFile->axis = iiSave->axis;
+  iiFile->padLeft = iiSave->padLeft;
+  iiFile->padRight = iiSave->padRight;
+  iiFile->slope = iiSave->slope;
+  iiFile->offset = iiSave->offset;
+  return error;
+} 

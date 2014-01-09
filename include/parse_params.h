@@ -20,6 +20,7 @@ int PipInitialize(int numOpts);
 int PipExitOnError(int useStdErr, const char *prefix);
 void exitError(const char *format, ...);
 void setExitPrefix(const char *prefix);
+void setStandardExitPrefix(const char *progName);
 int PipAddOption(const char *optionString);
 int PipNextArg(const char *argString);
 void PipNumberOfArgs(int *numOptArgs, int *numNonOptArgs);
