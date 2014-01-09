@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/8/14: Made all C programs able to read TIFF and MRC-like file formats, made 
+it possible to direct output to a format specified by environment variable.
+TIFF stacks are now written with min and max of the file in the last image
+directory and these values are used when reading a stack.
+
 1/8/14: Change eTomo to make it independent of Cygwin.  Fixed a problem with
 killing processes on Windows.(Bug# 1716)
 
