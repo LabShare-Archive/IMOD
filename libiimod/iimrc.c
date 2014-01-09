@@ -11,6 +11,8 @@
  */
 
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 #include "mrcc.h"
 #include "iimage.h"
 #include "b3dutil.h"
@@ -47,15 +49,25 @@ int iiMRCCheck(ImodImageFile *iif)
     return IIERR_NOT_FORMAT;
   }
 
-  iif->nx   = hdr->nx;
-  iif->ny   = hdr->ny;
-  iif->nz   = hdr->nz;
+  iif->header = (char *)hdr;
   iif->file = IIFILE_MRC;
+  iiMRCmodeToFormatType(iif, hdr->mode, hdr->bytesSigned);
+  iiSyncFromMrcHeader(iif, hdr);
+  iif->smin  = iif->amin;
+  iif->smax  = iif->amax;
 
-  switch(hdr->mode){
+  iif->hasPieceCoords = iiMRCcheckPCoord(hdr);
+
+  iiMRCsetIOFuncs(iif, 0);
+  return(0);
+}
+
+void iiMRCmodeToFormatType(ImodImageFile *iif, int mode, int bytesSigned)
+{
+  switch (mode) {
   case MRC_MODE_BYTE:
     iif->format = IIFORMAT_LUMINANCE;
-    iif->type   = IITYPE_UBYTE;
+    iif->type   = bytesSigned ? IITYPE_BYTE : IITYPE_UBYTE;
     break;
   case MRC_MODE_SHORT:
     iif->format = IIFORMAT_LUMINANCE;
@@ -82,36 +94,7 @@ int iiMRCCheck(ImodImageFile *iif)
     iif->type   = IITYPE_UBYTE;
     break;
   }
-  iif->mode  = hdr->mode;
-  iif->amin  = hdr->amin;
-  iif->amax  = hdr->amax;
-  iif->smin  = iif->amin;
-  iif->smax  = iif->amax;
-  iif->amean = hdr->amean;
-  iif->xscale = iif->yscale = iif->zscale = 1.;
-
-  /* DNM 11/5/98: inverted these expressions to give proper usage */
-  /* DNM 9/13/02: needed to divide by mx, ny, nz, not nx, ny, nz */
-  if (hdr->xlen && hdr->mx)
-    iif->xscale = hdr->xlen/(float)hdr->mx;
-  if (hdr->ylen && hdr->my)
-    iif->yscale = hdr->ylen/(float)hdr->my;
-  if (hdr->xlen && hdr->mz)
-    iif->zscale = hdr->zlen/(float)hdr->mz;
-  iif->xtrans = hdr->xorg;
-  iif->ytrans = hdr->yorg;
-  iif->ztrans = hdr->zorg;
-  iif->xrot = hdr->tiltangles[3];
-  iif->yrot = hdr->tiltangles[4];
-  iif->zrot = hdr->tiltangles[5];
-
-  iif->headerSize = 1024;
-  iif->sectionSkip = 0;
-  iif->header = (char *)hdr;
-  iif->hasPieceCoords = iiMRCcheckPCoord(hdr);
-
-  iiMRCsetIOFuncs(iif, 0);
-  return(0);
+  iif->mode  = mode;
 }
 
 void iiMRCsetIOFuncs(ImodImageFile *inFile, int rawFile)
@@ -120,6 +103,7 @@ void iiMRCsetIOFuncs(ImodImageFile *inFile, int rawFile)
   inFile->readSectionByte = iiMRCreadSectionByte;
   inFile->readSectionUShort = iiMRCreadSectionUShort;
   inFile->readSectionFloat = iiMRCreadSectionFloat;
+  inFile->fillMrcHeader = iiMRCfillHeader;
   if (rawFile)
     return;
   inFile->cleanUp = iiMRCdelete;
@@ -133,6 +117,39 @@ void iiMRCdelete(ImodImageFile *inFile)
     free(inFile->header);
 } 
 
+int iiMRCopenNew(ImodImageFile *inFile, const char *mode) 
+{
+  errno = 0;
+  inFile->fp = fopen(inFile->filename, mode);
+  if (!inFile->fp) {
+    b3dError(stderr, "ERROR: iiMRCopenNew - Could not open %s%s%s\n" , inFile->filename,
+             errno ? " - system message: " : "", errno ? strerror(errno) : "");
+    return 1;
+  }
+  inFile->header = (char *)malloc(sizeof(MrcHeader));
+  if (!inFile->header) {
+    b3dError(stderr, "ERROR: iiMRCopenNew - Allocating MRC header\n");
+    return 1;
+  }
+  mrc_head_new(inFile->header, 1, 1, 1, 0);
+  iiMRCsetIOFuncs(inFile, 0);
+  ((MrcHeader *)(inFile->header))->fp = inFile->fp;
+  inFile->file = IIFILE_MRC;
+  return 0;
+}
+
+int iiMRCfillHeader(ImodImageFile *inFile, MrcHeader *hdata)
+{
+  if (!inFile || !inFile->header)
+    return 1;
+  if (hdata != (MrcHeader *)(inFile->header))
+    *hdata = *((MrcHeader *)(inFile->header));
+  return 0;
+}
+
+/*
+ * Transfer the subarea loading information from the image file to the loadInfo
+ */
 static void iiMRCsetLoadInfo(ImodImageFile *inFile, IloadInfo *li)
 {
   mrc_init_li(li, NULL);
@@ -174,6 +191,7 @@ int iiMRCreadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
 static int readSectionUnscaled(ImodImageFile *inFile, char *buf, int inSection, 
                                int asFloat)
 {
+  int err;
   IloadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
@@ -184,10 +202,13 @@ static int readSectionUnscaled(ImodImageFile *inFile, char *buf, int inSection,
   li.white = 255;
   li.mirrorFFT = 0;
   h->fp = inFile->fp;
+  iiChangeCallCount(1);
   if (asFloat)
-    return (mrcReadSectionFloat(h, &li, (b3dFloat *)buf, inSection));
+    err = mrcReadSectionFloat(h, &li, (b3dFloat *)buf, inSection);
   else
-    return (mrcReadSection(h, &li, (unsigned char *)buf, inSection));
+    err = mrcReadSection(h, &li, (unsigned char *)buf, inSection);
+  iiChangeCallCount(-1);
+  return err;
 }
 
 int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
@@ -201,6 +222,7 @@ int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
 
 static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, int outmax)
 {
+  int err;
   IloadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
@@ -209,10 +231,13 @@ static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, in
   li.outmax   = outmax;
   li.mirrorFFT = inFile->mirrorFFT;
   h->fp = inFile->fp; 
+  iiChangeCallCount(1);
   if (outmax > 255) 
-    return (mrcReadSectionUShort(h, &li, (unsigned char *)buf, inSection));
+    err = mrcReadSectionUShort(h, &li, (unsigned char *)buf, inSection);
   else
-    return (mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection));
+    err = mrcReadSectionByte(h, &li, (unsigned char *)buf, inSection);
+  iiChangeCallCount(-1);
+  return err;
 }
 
 int iiMRCwriteSection(ImodImageFile *inFile, char *buf, int inSection)
@@ -227,6 +252,7 @@ int iiMRCwriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
 
 static int writeSection(ImodImageFile *inFile, char *buf, int inSection, int asFloat) 
 {
+  int err;
   IloadInfo li;
   MrcHeader *h = (MrcHeader *)inFile->header;
 
@@ -236,10 +262,13 @@ static int writeSection(ImodImageFile *inFile, char *buf, int inSection, int asF
     b3dError(stderr, "ERROR: iiMRCwriteSection - attempting to write Y slices\n");
     return 1;
   }
+  iiChangeCallCount(1);
   if (asFloat)
-    return (mrcWriteZFloat(h, &li, (b3dFloat *)buf, inSection));
+    err = mrcWriteZFloat(h, &li, (b3dFloat *)buf, inSection);
   else
-    return (mrcWriteZ(h, &li, (unsigned char *)buf, inSection));
+    err = mrcWriteZ(h, &li, (unsigned char *)buf, inSection);
+  iiChangeCallCount(-1);
+  return err;
 }
 
 
