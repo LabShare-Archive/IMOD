@@ -66,8 +66,7 @@ static bool fileReadable(ImodView *vi, int iz)
   ImodImageFile *image = vi->image;
   if (vi->multiFileZ && iz >= 0 && iz < vi->multiFileZ)
     image = &vi->imageList[iz];
-  return ((image->file == IIFILE_MRC || image->file == IIFILE_RAW) &&
-          !vi->rgbStore && !vi->noReadableImage);
+  return (!vi->rgbStore && !vi->noReadableImage);
 }
 
 static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
