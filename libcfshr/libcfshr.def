@@ -130,6 +130,7 @@ EXPORTS
 	AMOEBAINIT
 	CPUTIME
 	PipInitialize
+	overrideOutputType
 	PipNumberOfEntries
 	PipGetIntegerArray
 	rsMadMedianOutliers
@@ -200,6 +201,7 @@ EXPORTS
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
+	b3doutputfiletype
 	ilistSize
 	parWrtInitialize
 	ADOCGETTHREEFLOATS
@@ -361,6 +363,7 @@ EXPORTS
 	sliceGetYSize
 	ilistFloat
 	XCorrPeakFind
+	setStandardExitPrefix
 	FITCIRCLE
 	SETSURFSORTPARAM
 	PipSetError
@@ -397,6 +400,7 @@ EXPORTS
 	cblas_dscal
 	PipEnableEntryOutput
 	WALLTIME
+	overrideoutputtype
 	minimize1D
 	PIPINITIALIZE
 	ROBUSTREGRESS
@@ -440,3 +444,4 @@ EXPORTS
 	PipGetThreeIntegers
 	XCorrFilterPart
 	PipPrintEntries
+	b3dOutputFileType
