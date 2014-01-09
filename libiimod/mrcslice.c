@@ -977,7 +977,7 @@ Islice *sliceReadSubm(MrcHeader *hin,
 /*!
  * Returns a slice with one Z plane of data at Z value [secno] from the file 
  * described by the @@mrcfiles.html#MrcHeader structure@ [hin].  
- * The file pointer in [hin] is used.  Calls @@mrcfiles.html#mrcReadFloatSlice, where
+ * The file pointer in [hin] is used.  Calls @@mrcfiles.html#mrcReadFloatSlice@, where
  * bytes are swapped if necessary.  Returns NULL for errors.
  */
 Islice *sliceReadFloat(MrcHeader *hin, int secno)
