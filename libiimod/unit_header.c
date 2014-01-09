@@ -7,8 +7,6 @@
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  *
- *  Adapted from the blockio.c module originally from Baylor
- *
  *  $Id$
  *****************************************************************************/
  
@@ -17,6 +15,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "iiunit.h"
+#include "iimage.h"
 #include "b3dutil.h"
 
 #ifdef F77FUNCAP
@@ -325,11 +324,14 @@ void iwrhdrc(int *iunit, char *labelStr, int *labFlag, float *dmin, float *dmax,
  */
 int iiuTransHeader(int intoUnit, int iunit)
 {
+  FILE *fpSave;
   MrcHeader *ihdr = iiuMrcHeader(iunit, "iiuTransHeader", iiuGetExitOnError(), 0);
   MrcHeader *jhdr = iiuMrcHeader(intoUnit, "iiuTransHeader", iiuGetExitOnError(), 2);
   if (!ihdr || !jhdr)
     return -1;
+  fpSave = jhdr->fp;
   *jhdr = *ihdr;
+  jhdr->fp = fpSave;
   mrcInitOutputHeader(jhdr);
   iiuSyncWithMrcHeader(intoUnit);
   return iiuTransExtendedData(intoUnit, iunit);
@@ -612,6 +614,7 @@ void iiuAltMode(int iunit, int mode)
 {
   MrcHeader *hdr = iiuMrcHeader(iunit, "iiuAltMode", 1, 0);
   hdr->mode = mode;
+  iiuSyncWithMrcHeader(iunit);
 }
 
 void ialmod(int *iunit, int *mode) {iiuAltMode(*iunit, *mode);}
@@ -953,6 +956,8 @@ int iiuAltExtendedData(int iunit, int numBytes, int *extra)
   MrcHeader *hdr = iiuMrcHeader(iunit, "iiAltExtendedData", doExit, 2);
   if (!hdr)
     return -1;
+  if (iiuFileType(iunit) == IIFILE_TIFF)
+    return 0;
   if (hdr->swapped) {
     fprintf(stdout, "\nERROR: iiuAltExtendedData - Cannot write extra header data to a"
             " byte-swapped file (unit %d).\n", iunit);
@@ -993,6 +998,8 @@ int iiuTransExtendedData(int intoUnit, int iunit)
   MrcHeader *jhdr = iiuMrcHeader(intoUnit, "iiuTransExtendedData", doExit, 2);
   if (!ihdr || !jhdr)
     return -1;
+  if (iiuFileType(intoUnit) == IIFILE_TIFF)
+    return 0;
   if (!ihdr->next) {
     iiuAltNumExtended(intoUnit, 0);
     return 0;

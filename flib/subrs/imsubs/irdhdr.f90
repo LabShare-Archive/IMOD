@@ -66,7 +66,7 @@ subroutine irdhdr(iunit, nxyz, mxyz, imode, dmin, dmax, dmean)
   meanLabel = ' '
   if (imode < 0 .or. imode > 16) then
     modeLabel = '(unknown)'
-  else if (imode == 0 .and. btest(imodFlags, 0)) then
+  else if (imode == 0 .and. (btest(iflags, 1) .or. btest(imodFlags, 0))) then
     !
     ! For signed bytes, the file value was already adjusted on read-in, subtract it back
     modeLabel = '(bytes - signed in file)'

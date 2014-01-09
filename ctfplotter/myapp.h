@@ -8,7 +8,7 @@
 
 #include <QObject>
 #include "defocusfinder.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "slicecache.h"
 #include "ctfutils.h"
 

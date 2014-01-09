@@ -47,6 +47,7 @@ extern "C" {
   int iiuGetExitOnError();
   MrcHeader *iiuMrcHeader(int iunit, const char *function, int doExit, int checkRW);
   void iiuSyncWithMrcHeader(int iunit);
+  int iiuFileType(int iunit);
   void iiuMemoryError(void *ptr, const char *message);
 
   /* Functions in unit_header.c */

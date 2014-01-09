@@ -32,7 +32,7 @@ int load_image(MidasView *vw, char *filename)
   float smin, smax;
   QString qstr;
 
-  hin->fp = fopen(filename, "rb");
+  hin->fp = iiFOpen(filename, "rb");
   if (!hin->fp){
     midas_error("Couldn't open", filename, 0);
     return(1);
@@ -74,7 +74,7 @@ int load_refimage(MidasView *vw, char *filename)
   float smin, smax;
   QString qstr;
 
-  hin.fp = fopen(filename, "rb");
+  hin.fp = iiFOpen(filename, "rb");
   if (!hin.fp) {
     midas_error("Error opening reference image ", filename, 0);
     return 1;
@@ -115,7 +115,7 @@ int load_refimage(MidasView *vw, char *filename)
 
   midasReadZByte(vw, &hin, &li, vw->ref->data.b, vw->xsec);
 
-  fclose(hin.fp);
+  iiFClose(hin.fp);
   return 0;
 }
 
@@ -150,7 +150,7 @@ int save_view(MidasView *vw, char *filename)
   }
 
   /* Open up file to save. */
-  hout->fp = fopen(filename, "wb");
+  hout->fp = iiFOpen(filename, "wb");
   if (!hout->fp){
     midas_error("Couldn't open", filename, 0);
     return(-1);
@@ -176,7 +176,7 @@ int save_view(MidasView *vw, char *filename)
 
   /* Clean up and restore. */
   sliceFree(s);
-  fclose(hout->fp);
+  iiFClose(hout->fp);
   return(0);
 }
 

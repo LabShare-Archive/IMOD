@@ -146,11 +146,9 @@ int iiuOpen(int iunit, const char *name, const char *attribute)
 {
 
   Unit *u;  
-  char *oldFileName;
   int mode, errSave;
   const char *modes[4] = {"rb", "rb+", "wb", "wb+"};
   char *tailback;
-  struct stat buf;
 
   u = findNewUnit(iunit);
   iiuMemoryError(u, "ERROR: iiuOpen - Allocating new unit");
@@ -169,26 +167,16 @@ int iiuOpen(int iunit, const char *name, const char *attribute)
 
   /* New file - manage backup */
   if (attribute[0] == 'N' || attribute[0] == 'n') {
-    oldFileName = B3DMALLOC(char, strlen(name) + 4);
-    iiuMemoryError(oldFileName, "ERROR: iiuOpen - Allocating string");
-    strcpy(oldFileName, name);
-    
-    /* DNM 10/20/03: check for existence of file before making backup,
-       and delete old backup first */
-    if (!getenv("IMOD_NO_IMAGE_BACKUP") && !stat(oldFileName, &buf)) {
-      oldFileName[strlen(name) + 1] = 0x00;
-      oldFileName[strlen(name)] = '~';
-      remove(oldFileName);
+    if (!getenv("IMOD_NO_IMAGE_BACKUP")) {
       errno = 0;
-      if (rename(name, oldFileName)) {
+      if (imodBackupFile(name)) {
         errSave = errno;
-        fprintf(stdout, "\nWARNING: iiuOpen - Could not rename '%s' to '%s'\n", name, 
-                oldFileName);
+        fprintf(stdout, "\nWARNING: iiuOpen - Could not rename '%s' to '%s~'\n", name, 
+                name);
         if (errSave)
           fprintf(stdout, "WARNING: from system - %s\n", strerror(errSave));
       }
     }
-    free(oldFileName);
     mode = 3;
     u->attribute = UNIT_ATBUT_NEW;
   }
@@ -205,27 +193,12 @@ int iiuOpen(int iunit, const char *name, const char *attribute)
 
   if (mode == 3) {
 
-    /* Open a new MRC file */
-    u->iiFile = iiNew();
-    iiuMemoryError(u->iiFile, "ERROR: iiuOpen - Allocating ImodImageFile structure");
-    errno = 0;
-    u->iiFile->fp = fopen(name, modes[mode]);
-    if (u->iiFile->fp == NULL) {
-      errSave = errno;
-      b3dError(stdout, "\nERROR: iiuOpen - Could not open '%s'\n" , name);
-      if (errSave)
-        b3dError(stdout, "ERROR: from system - %s\n", strerror(errSave));
+    /* Open a new file in default output format */
+    u->iiFile = iiOpenNew(name, modes[mode], IIFILE_DEFAULT);
+    if (!u->iiFile) {
+      b3dError(stdout, "\nERROR: iiuOpen - Opening new output file\n");
       EXIT_OR_RETURN(1);
     }
-    u->header = B3DMALLOC(MrcHeader, 1);
-    u->iiFile->header = (char *)u->header;
-    iiuMemoryError(u->header, "ERROR: iiuOpen - Allocating MRC header");
-    u->iiFile->filename = strdup(name);
-    iiuMemoryError(u->iiFile->filename, "ERROR: iiuOpen - Allocating copy of filename");
-    iiMRCsetIOFuncs(u->iiFile, 0);
-    mrc_head_new(u->header, 1, 1, 1, 0);
-    u->header->fp = u->iiFile->fp;
-    u->iiFile->file = IIFILE_MRC;
 
   } else {
 
@@ -248,20 +221,23 @@ int iiuOpen(int iunit, const char *name, const char *attribute)
                  "is not supported\n", name);
         EXIT_OR_RETURN(1);
       }
-
-      u->header = B3DMALLOC(MrcHeader, 1);
-      iiuMemoryError(u->header, "ERROR: iiuOpen - Allocating MRC header");
-      mrc_head_new(u->header, u->iiFile->nx, u->iiFile->ny, u->iiFile->nz, 
-                   u->iiFile->mode);
-      u->header->amin = u->iiFile->amin;
-      u->header->amean = u->iiFile->amean;
-      u->header->amax = u->iiFile->amax;
-      
-    } else {
-
-      /* Otherwise copy header pointer */
-      u->header = (MrcHeader *)u->iiFile->header;
     }
+  }
+
+  /* Old or new files */
+  /* For a non-MRC file type, create an MRC header and populate it with defaults */
+  if (u->iiFile->file != IIFILE_MRC && u->iiFile->file != IIFILE_RAW) {
+    u->header = B3DMALLOC(MrcHeader, 1);
+    iiuMemoryError(u->header, "ERROR: iiuOpen - Allocating MRC header");
+    if (iiFillMrcHeader(u->iiFile, u->header)) {
+      b3dError(stdout, "\nERROR: iiuOpen - file '%s' is not a format that provides "
+               "an MRC-like header and cannot be read\n", name);
+      EXIT_OR_RETURN(1);
+    }
+  } else {
+    
+    /* Otherwise copy header pointer */
+    u->header = (MrcHeader *)u->iiFile->header;
   }
   
   /* Get the tail of the filename for other error messages */
@@ -453,6 +429,10 @@ int iiuWriteSubarray(int iunit, char *array, int nxdim, int ixStart,
   Unit *u = lookupUnit(iunit, "iiuWriteSubarray", sExitOnError, 2);
   if (!u)
     return -1;
+
+  /* Have to sync header for TIFF file because the write is the time when it matters */
+  if (u->iiFile->file == IIFILE_TIFF)
+    iiSyncFromMrcHeader(u->iiFile, u->header);
   u->iiFile->llx = 0;
   u->iiFile->urx = u->iiFile->nx - 1;
   u->iiFile->lly = u->currentLine;
@@ -489,6 +469,8 @@ int iiuWriteLines(int iunit, char *array, int numLines)
   Unit *u = lookupUnit(iunit, "iiuWriteLine", sExitOnError, 2);
   if (!u)
     return -1;
+  if (u->iiFile->file == IIFILE_TIFF)
+    iiSyncFromMrcHeader(u->iiFile, u->header);
   iz = u->currentSec;
   if (setupCurrentLines(u, numLines))
     EXIT_OR_RETURN(-3);
@@ -538,7 +520,7 @@ static int setupCurrentLines(Unit *u, int numLines)
  * and flags in [flags]: ^
  * bit 0 - bytes are swapped  ^
  * bit 1 - bytes are stored signed  ^
- * bit 2 - old-style header with no MAP and orinigin wrong place  ^
+ * bit 2 - old-style header with no MAP and origin wrong place  ^
  * bit 3 - Extra header nint value was corrected to 0  ^
  * bit 4 - map values were bad and were corrected  ^
  * If the unit is not open, [fileSize] is returned with -1.  Fortran wrapper iiuFileInfo.
@@ -668,10 +650,16 @@ MrcHeader *iiuMrcHeader(int iunit, const char *function, int doExit, int checkRW
 void iiuSyncWithMrcHeader(int iunit)
 {
   Unit *u = lookupUnit(iunit, "iiuSyncWithMrcHeader", 1, 0);
-  u->header->fp = u->iiFile->fp;
-  u->iiFile->nx = u->header->nx;
-  u->iiFile->ny = u->header->ny;
-  u->iiFile->nz = u->header->nz;
+  iiSyncFromMrcHeader(u->iiFile, u->header);
+}
+
+/*!
+ * Returns the type of file open on unit [iunit]: IIFILE_MRC (2), or IIFILE_TIFF (1).
+ */
+int iiuFileType(int iunit)
+{
+  Unit *u = lookupUnit(iunit, "iiuFileType", 1, 0);
+  return u->iiFile->file;
 }
 
 void move(char *a, char *b, int *n)

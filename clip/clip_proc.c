@@ -15,8 +15,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "sliceproc.h"
 #include "b3dutil.h"
 #include "clip.h"
@@ -1146,7 +1145,7 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
   }
   hdr[0] = *h1;
   hdr[1] = *h2;
-  hdr[2].fp = fopen(opt->fnames[2], "rb");
+  hdr[2].fp = iiFOpen(opt->fnames[2], "rb");
 
   if (!hdr[2].fp){
       printf("ERROR: clip joinrgb - opening %s.\n", opt->fnames[2]);
@@ -1293,7 +1292,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     if (hdr[i].mz)
       hdr[i].zorg -= opt->secs[0] * hdr[i].zlen / hdr[i].mz;
       
-    hdr[i].fp = fopen(fname, "wb+");
+    hdr[i].fp = iiFOpen(fname, "wb+");
     if (!hdr[i].fp){
       printf("ERROR: clip - opening %s\n", fname);
       return(-1);
@@ -1349,6 +1348,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     if (mrc_head_write(hdr[i].fp, &hdr[i]))
       return -1;
     sliceFree(srgb[i]);
+    iiFClose(hdr[i].fp);
   }
   sliceFree(s);
   return(0);
@@ -1438,7 +1438,7 @@ int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt
     hdr[f] = (MrcHeader *)malloc(sizeof(MrcHeader));
     if (!hdr[f])
       return(-1);
-    hdr[f]->fp = fopen(opt->fnames[f], "rb");
+    hdr[f]->fp = iiFOpen(opt->fnames[f], "rb");
     if (!hdr[f]->fp){
       show_error("clip volume combining: error opening %s.", opt->fnames[f]);
       return(-1);

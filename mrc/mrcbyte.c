@@ -13,9 +13,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "b3dutil.h"
+#include "parse_params.h"
 
 void mrcbyte_help(char *name)
 {
@@ -43,6 +43,7 @@ int main( int argc, char *argv[] )
   MrcHeader hdata, hout;
   IloadInfo  li;
   Islice slice;
+  Islice *slicep;
   char line[128];
   int mode = 0;
   int data_only = FALSE;
@@ -52,7 +53,7 @@ int main( int argc, char *argv[] )
   unsigned char *buf;
   double meansum = 0.;
   char *progname = imodProgName(argv[0]);
-
+  setStandardExitPrefix(progname);
 
   if (argc < 2){
     printf("%s version %s\n", progname, VERSION_NAME);
@@ -137,35 +138,28 @@ int main( int argc, char *argv[] )
 
   if (i < (argc - 1)){
       
-
-    fin = fopen(argv[i], "rb");
-    if (fin == NULL) {
-      printf("ERROR: %s - Opening %s.\n", progname, argv[i]);
-      exit(3);
-    }
+    fin = iiFOpen(argv[i], "rb");
+    if (fin == NULL)
+      exitError("Opening %s.", argv[i]);
  
     i++;
     if (!getenv("IMOD_NO_IMAGE_BACKUP") && imodBackupFile(argv[i])) {
       printf("WARNING: %s - Error making backup file from existing %s\n",
              progname, argv[i]);
     }
-    fout = fopen(argv[i], "wb");
-    if (fout == NULL) {
-      printf("ERROR: %s - Opening %s.\n", progname, argv[i]);
-      exit(3);
-    }
+    fout = iiFOpen(argv[i], "wb");
+    if (fout == NULL)
+      exitError("Opening %s.", argv[i]);
   }else{
     mrcbyte_help(progname);
     exit(3);     
   }
      
 
-  if (mrc_head_read(fin, &hdata)) {
-    printf("ERROR: %s - Reading input file header.\n", progname);
-    exit(3);
-  }
+  if (mrc_head_read(fin, &hdata)) 
+    exitError("Reading input file header.");
      
-  if (resize){
+  if (resize) {
     printf("Defaults for %s size = ( %d x %d x %d):\n", 
            argv[i - 1], hdata.nx, hdata.ny, hdata.nz);
     printf("x = ( 0, %d), y = ( 0, %d), z = ( 0, %d), c = ( 0, 255)\n",
@@ -181,19 +175,32 @@ int main( int argc, char *argv[] )
 
   li.ramp = ramptype;
   if (ramptype != MRC_RAMP_LIN && hdata.mode != MRC_MODE_SHORT &&
-      hdata.mode != MRC_MODE_USHORT && hdata.mode != MRC_MODE_FLOAT) {
-    printf("ERROR: %s - Nonlinear scaling can be used only with integer and "
-           "float data\n", progname);
-    exit(3);
-  }
+      hdata.mode != MRC_MODE_USHORT && hdata.mode != MRC_MODE_FLOAT)
+    exitError("Nonlinear scaling can be used only with integer and float data");
 
   /* This takes care of fixing the mins and maxes */
   mrc_init_li(&li, &hdata);
 
+  if (!hdata.amin && !hdata.amax) {
+    printf("Input file has no min and max; scanning file...");
+    hdata.amin = 1.e37;
+    hdata.amax = -hdata.amin;
+    for (k = 0; k < hdata.nz; k++) {
+      slicep = sliceReadMRC(&hdata, k, 'z');
+      if (!slicep)
+        exitError("Reading slice %d while scanning for min/max", k);
+      sliceMMM(slicep);
+      hdata.amin = B3DMIN(hdata.amin, slicep->min);
+      hdata.amax = B3DMAX(hdata.amax, slicep->max);
+      sliceFree(slicep);
+      printf(" min %.5g max %.5g\n", hdata.amin, hdata.amax);
+    }
+  }
+
   /* This sets the scaling */
   mrcContrastScaling(&hdata, li.smin, li.smax, li.black, li.white, li.ramp, 
                      &li.slope, &li.offset);
-  
+
   hout = hdata;
   hout.amin = 0.;
   hout.amax = 255.;
@@ -212,23 +219,17 @@ int main( int argc, char *argv[] )
 
   xysize = (size_t)hout.nx * (size_t)hout.ny;
   buf = (unsigned char *)malloc(xysize);
-  if (!buf) {
-    printf("ERROR: %s - Allocating memory to read data into\n", progname);
-    exit(1);
-  }
+  if (!buf)
+    exitError("Allocating memory to read data into");
 
-  if (!data_only && mrc_head_write(fout, &hout)) {
-    printf("ERROR: %s - Writing header to output file\n", progname);
-    exit(1);
-  }
+  if (!data_only && mrc_head_write(fout, &hout))
+    exitError("Writing header to output file");
 
   for (k = 0; k < hout.nz; k++) {
     printf("Converting Image # %3d\r", k + li.zmin);
     fflush(stdout);
-    if (mrcReadZByte(&hdata, &li, buf, k + li.zmin)) {
-      printf("ERROR: %s - Reading section %d from file\n", progname,k+li.zmin);
-      exit(1);
-    }
+    if (mrcReadZByte(&hdata, &li, buf, k + li.zmin))
+      exitError("Reading section %d from file", k+li.zmin);
     if (reverse_video){
       for (ii = 0; ii < xysize; ii++)
         buf[ii] = (unsigned char)(255 - (int)buf[ii]);
@@ -244,20 +245,15 @@ int main( int argc, char *argv[] )
       hout.amax = B3DMAX(hout.amax, slice.max);
     }
     meansum += slice.mean;
-    if (mrc_write_slice(buf, fout, &hout, k, 'Z')) {
-      printf("ERROR: %s - Writing section %d to file\n", progname, k);
-      exit(1);
-    }
-
+    if (mrc_write_slice(buf, fout, &hout, k, 'Z'))
+      exitError("Writing section %d to file", k);
       
   }
   hout.amean = meansum / hout.nz;
 
-  if (!data_only && mrc_head_write(fout, &hout)) {
-    printf("ERROR: %s - Writing header to output file\n", progname);
-    exit(1);
-  }
-  fclose(fout);
+  if (!data_only && mrc_head_write(fout, &hout))
+    exitError("Writing header to output file");
+  iiFClose(fout);
   printf("\nDone\n");
 
   exit(0);

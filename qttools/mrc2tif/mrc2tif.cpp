@@ -18,7 +18,6 @@
 #include <qfile.h>
 #include <qapplication.h>
 #include <qstringlist.h>
-#include "mrcfiles.h"
 #include "b3dtiff.h"
 #include "b3dutil.h"
 #include "parse_params.h"
@@ -50,7 +49,7 @@ int main(int argc, char *argv[])
   float savecrit, dmin, dmax, smin =0., smax = 0.;
   int xTileSize = 0;
   float val[3];
-  float scale, offset, xscale, yscale, zscale;
+  float scale, offset, xscale, yscale, zscale, allMin, allMax, sliceMin, sliceMax;
   char prefix[100];
   char format[14];
   IloadInfo li;
@@ -227,7 +226,7 @@ int main(int argc, char *argv[])
   }
     
   // Get input file and header
-  if (NULL == (fin = fopen(argv[iarg], "rb")))
+  if (NULL == (fin = iiFOpen(argv[iarg], "rb")))
     exitError("Couldn't open %s", argv[iarg]);
 
   if (mrc_head_read(fin, &hdata))
@@ -365,6 +364,9 @@ int main(int argc, char *argv[])
     digits = 4;
   sprintf(format, "%%s.%%0%dd.%%s", digits);
 
+  allMin = 1.e30;
+  allMax = -1.e30;
+
   printf("Writing %s images. ", typeNames[typeInd]);
   for (z = zmin; z <= zmax; z++){
     int tiferr;
@@ -385,16 +387,11 @@ int main(int argc, char *argv[])
       }
     }
 
-    /* Prepare to get min/max for a slice if not doing in chunks */
-    if (!stack && !doChunks) {
-      iifile->amin = 1.e30;
-      iifile->amax = -1.e30;
-    } else {
-
-      /* Otherwise take file min/max, that is better than nothing */
-      iifile->amin = dmin;
-      iifile->amax = dmax;
-    }
+    // Prepare to get min/max for a slice, but send file min/max to slice initially
+    sliceMin = 1.e30;
+    sliceMax = -1.e30;
+    iifile->amin = dmin;
+    iifile->amax = dmax;
     
     /* If doing chunks, set up chunk loop */
     numChunks = 1;
@@ -458,10 +455,16 @@ int main(int argc, char *argv[])
       }
     
       // Get min/max for all image types, even bytes
-      if (!stack && !doChunks && !makeQimage) {
+      if (!makeQimage) {
         sliceMMM(&slice);
-        iifile->amin = B3DMIN(iifile->amin, slice.min);
-        iifile->amax = B3DMAX(iifile->amax, slice.max);
+        sliceMin = B3DMIN(sliceMin, slice.min);
+        sliceMax = B3DMAX(sliceMax, slice.max);
+        allMin = B3DMIN(allMin, slice.min);
+        allMax = B3DMAX(allMax, slice.max);
+        if (!doChunks) {
+          iifile->amin = sliceMin;
+          iifile->amax = sliceMax;
+        }
       }
 
       if (makeQimage) {
@@ -511,7 +514,9 @@ int main(int argc, char *argv[])
         free(slice.data.b);
     }
 
-    // Finish up the file
+    // Finish up the file; set the min/max for real now
+    iifile->amin = sliceMin;
+    iifile->amax = sliceMax;
     if (doChunks)
       tiffWriteFinish(iifile);
     
@@ -526,7 +531,9 @@ int main(int argc, char *argv[])
 
   printf("\r\n");
 
-  // Finish up the stack
+  // Finish up the stack; give the last image the full min/max
+  iifile->amin = allMin;
+  iifile->amax = allMax;
   if (stack) {
     if (fpTiff)
       fclose(fpTiff);

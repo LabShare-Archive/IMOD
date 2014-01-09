@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "mrcc.h"
+#include "iimage.h"
 #include "sliceproc.h"
 #include "imodel.h"
 
@@ -1257,7 +1257,7 @@ int main(int argc, char *argv[])
 	
 	//## OPEN INPUT MRC FILE (FOR READING):
 	
-  inImage = fopen(argv[argc-3], "rb");
+  inImage = iiFOpen(argv[argc-3], "rb");
   if (!inImage)
 	{
     fprintf(stderr, "ERROR: Opening image file %s.\n", argv[argc-3]);
@@ -1789,7 +1789,7 @@ int main(int argc, char *argv[])
 	
 	float percEarlyElim = (totPxProc) ? (numEarlyElim/(float)totPxProc)*100.0f : 0.0f;
 	
-	fclose(inImage);
+	iiFClose(inImage);
 	
 	fprintf(stdout, "\nPERFORMANCE SUMMARY:\n"  );
 	fprintf(stdout, "  # slice loads:       %d\n", sliceBuffer.totSliceLoads   );
@@ -3140,7 +3140,7 @@ bool writeOutMrcFileAfterFilters( MrcHeader &inHead, char outfile[MAX_CHARS],
 {
 	char newLabel[MAX_CHARS];
 	imodBackupFile(outfile);
-	FILE *gfout = fopen(outfile, "wb");
+	FILE *gfout = iiFOpen(outfile, "wb");
 	if (gfout == NULL) {
 		fprintf(stderr, "ERROR: Could not open %s", outfile);
 		return false;
@@ -3182,7 +3182,7 @@ bool writeOutMrcFileAfterFilters( MrcHeader &inHead, char outfile[MAX_CHARS],
 	
 	if (mrc_head_write(gfout, &outHead))								// write final header to file
 		fprintf(stderr, "ERROR: Writing header to final output file");
-	fclose(gfout);
+	iiFClose(gfout);
 	
 	printf("done\n\n");
 	return true;
@@ -3200,7 +3200,7 @@ bool writeOutMrcFileWithCutoffVals( MrcHeader &inHead, char outfile[MAX_CHARS],
 {
 	char newLabel[MAX_CHARS];
 	imodBackupFile(outfile);
-	FILE *gfout = fopen(outfile, "wb");
+	FILE *gfout = iiFOpen(outfile, "wb");
 	if (gfout == NULL) {
 		fprintf(stderr, "ERROR: Could not open %s", outfile);
 		return false;
@@ -3308,7 +3308,7 @@ bool writeOutMrcFileWithCutoffVals( MrcHeader &inHead, char outfile[MAX_CHARS],
 	
 	if (mrc_head_write(gfout, &outHead))								// write final header to file
 		fprintf(stderr, "ERROR: Writing header to final output file");
-	fclose(gfout);
+	iiFClose(gfout);
 	
 	printf("done\n\n");
 	return true;

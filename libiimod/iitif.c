@@ -61,6 +61,8 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout, int co
                      int pixsize, int type, int format, int samples,
                      float slope, float offset, int doscale, unsigned char *map);
 static void bestTileSize(int imSize, int *tileSize, int *numTiles);
+static int tiffWriteSectionAny(ImodImageFile *inFile, char *buf, int inSection, 
+                               int ifFloat);
 static TIFF *openWithoutBMode(ImodImageFile *inFile);
 static int setMatchingDirectory(ImodImageFile *inFile, int dirnum);
 static void closeWithError(ImodImageFile *inFile, char *message);
@@ -79,10 +81,10 @@ int iiTIFFCheck(ImodImageFile *inFile)
   uint16 bits, samples, photometric, sampleformat, planarConfig;
   uint16 bitsIm, samplesIm, photoIm, formatIm, planarIm, resUnit;
   uint32 rowsPerStrip;
-  int nxim, nyim, formatDef, tileWidth, tileLength;
+  int nxim, nyim, formatDef, tileWidth, tileLength, gotMin = 0, gotMax = 0;
   int defined, i, j, hasPixelIm, hasPixel = 0, mismatch = 0, err = 0;
   float xResol, yResol, xPixelIm = 0., yPixelIm = 0., xPixel, yPixel, resScale;
-  double minmax;
+  double lastMin, lastMax;
   b3dUInt16 *redp, *greenp, *bluep;
   char *resvar;
   uint16 TVIPStag = 37708;
@@ -202,6 +204,12 @@ int iiTIFFCheck(ImodImageFile *inFile)
       inFile->multipleSizes = 1;
   } while (TIFFReadDirectory(tif));
 
+  /* get the min and max from last directory; if we wrote it, it applies to whole file */
+  if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &lastMin))
+    gotMin = 1;
+  if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &lastMax))
+    gotMax = 1;
+
   TIFFSetDirectory(tif, 0);
 
   /* Don't know how to get the multiple bit entries from libtiff, so can't test
@@ -211,8 +219,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
          photometric < PHOTOMETRIC_RGB) ||
         (bits == 8 && (photometric == PHOTOMETRIC_RGB || 
                        photometric == PHOTOMETRIC_PALETTE)))) {
-    closeWithError(inFile, "ERROR: iiTIFFCheck - Unsupported type of TIFF "
-                   "file\n");
+    closeWithError(inFile, "ERROR: iiTIFFCheck - Unsupported type of TIFF file\n");
     return(IIERR_NO_SUPPORT);
   }
 
@@ -237,6 +244,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->readSectionByte = tiffReadSectionByte;
   inFile->readSectionFloat = tiffReadSectionFloat;
 
+  defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
   if (bits == 8) {
     inFile->type   = IITYPE_UBYTE;
     inFile->amin  = 0;
@@ -277,11 +285,12 @@ int iiTIFFCheck(ImodImageFile *inFile)
         }
       }
       TIFFSetDirectory(tif, 0);
+    } else if (defined && sampleformat == SAMPLEFORMAT_INT) {
+      inFile->type   = IITYPE_BYTE;
     }
   } else {
     /* If there is a field specifying signed numbers, set up for signed;
        otherwise set up for unsigned */
-    defined = TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat);
     if (bits == 16) {
       if (defined && sampleformat == SAMPLEFORMAT_INT) {
         inFile->type   = IITYPE_SHORT;
@@ -333,10 +342,17 @@ int iiTIFFCheck(ImodImageFile *inFile)
   }
 
   /* Use min and max from file if defined (better be there for float/int) */
-  if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
-    inFile->amin = minmax;
-  if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
-    inFile->amax = minmax;
+  if (gotMin) {
+    if (inFile->type == IITYPE_BYTE)
+      lastMin += 128.;
+    inFile->amin = lastMin;
+  }
+  if (gotMax) {
+    if (inFile->type == IITYPE_BYTE)
+      lastMax += 128.;
+    inFile->amax = lastMax;
+  }
+  inFile->amean = (inFile->amin + inFile->amax) / 2.;
 
   /* Handle pixel size if it is above threshold */
   if (hasPixel && (inFile->anyTiffPixSize || xPixel / 1.e4 <= pixelLimit)) {
@@ -353,6 +369,8 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->cleanUp = tiffDelete;
   inFile->reopen = tiffReopen;
   inFile->close = tiffClose;
+  inFile->fillMrcHeader = tiffFillMrcHeader;
+  inFile->lastWrittenZ = inFile->nz - 1;
   return(0);
 }
 
@@ -371,7 +389,18 @@ int tiffReopen(ImodImageFile *inFile)
 
 void tiffClose(ImodImageFile *inFile)
 {
+  double dmin, dmax;
   TIFF* tif = (TIFF *)inFile->header;
+
+  /* After writing a new file, if it has more than one section and there is a min and
+     max, write them to last directory */
+  if (inFile->newFile && inFile->format != IIFORMAT_RGB
+      && tif && inFile->amax > inFile->amin) {
+    dmin = inFile->amin - (inFile->type == IITYPE_BYTE ? 128. : 0.);
+    dmax = inFile->amax - (inFile->type == IITYPE_BYTE ? 128. : 0.);
+    TIFFSetField(tif, TIFFTAG_SMINSAMPLEVALUE, dmin);
+    TIFFSetField(tif, TIFFTAG_SMAXSAMPLEVALUE, dmax);
+  }
   if (tif)
     TIFFClose(tif);
   inFile->header = NULL;
@@ -381,6 +410,19 @@ void tiffClose(ImodImageFile *inFile)
 void tiffDelete(ImodImageFile *inFile)
 {
   tiffClose(inFile);
+}
+
+int tiffFillMrcHeader(ImodImageFile *inFile, MrcHeader *hdata)
+{
+  mrc_head_new(hdata, inFile->nx, inFile->ny, inFile->nz, inFile->mode);
+  hdata->bytesSigned = inFile->type == IITYPE_BYTE ? 1 : 0;
+  hdata->amin = inFile->amin;
+  hdata->amean = inFile->amean;
+  hdata->amax = inFile->amax;
+  mrc_set_scale(hdata, (double)inFile->xscale, (double)inFile->yscale,
+                (double)inFile->zscale);
+  hdata->fp = inFile->fp;
+  return 0;
 }
 
 /* Get the value for a field that returns a single value */
@@ -526,6 +568,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int conv
   int byte = convert == 1 ? 1 : 0;
   int toShort = convert == 2 ? 1 : 0;
   int toFloat = convert == 3 ? 1 : 0;
+  int signedBytes = inFile->type == IITYPE_BYTE;
   float slope = inFile->slope;
   float offset = inFile->offset;
   int outmin = 0;
@@ -547,8 +590,10 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int conv
   int tilesize, tilewidth, tilelength, xtiles, ytiles, xti, yti, xDimension;
      
   TIFF* tif = (TIFF *)inFile->header;
-  if (inFile->axis == 2)
+  if (inFile->axis == 2) {
+    b3dError(stderr, "ERROR: TIFF ReadSection - Cannot read Y planes from a TIFF file\n");
     return -1;
+  }
   if (convert && (inFile->format != IIFORMAT_LUMINANCE))
     return -1;
   if (!tif)
@@ -581,7 +626,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int conv
   
   /* Set up pixsize which is the number of bytes in the input data, and 
      moveSize which is number of bytes of output.  Also get scale maps */
-  if (convert && !toFloat) {
+  if ((convert && !toFloat) || signedBytes) {
     if (inFile->type == IITYPE_SHORT) {
       pixsize = 2;
       map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 1);
@@ -595,8 +640,10 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection, int conv
     } else if (inFile->type == IITYPE_FLOAT || inFile->type == IITYPE_INT ||
                inFile->type == IITYPE_UINT) {
       pixsize = 4;
-    } else if (toShort || doscale)
-      map = get_byte_map(slope, offset, outmin, outmax, 0);
+    } else if (toShort || doscale || signedBytes)
+      map = get_byte_map(slope, offset, outmin, outmax, signedBytes ? 1 : 0);
+    if (toFloat)
+      moveSize = 4;
   } else {
     if (inFile->format == IIFORMAT_RGB)
       pixsize = inFile->rgbSamples;
@@ -746,28 +793,37 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout, int co
   int toShort = convert == 2 ? 1 : 0;
   int toFloat = convert == 3 ? 1 : 0;
   int outmax = toShort ? 65535 : 255;
+  int signedBytes = type == IITYPE_BYTE;
   int i, j, ival;
 
-  if (convert) {
+  if (convert || signedBytes) {
 
     /* Converted data */
     if (pixsize == 1) {
       
       /* Bytes */
       if (samples == 1) {
-        if (toFloat)
+        if (toFloat && signedBytes)
+          for (i = 0; i < xout; i++)
+            *fobuf++ = map[*bdata++];
+        else if (toFloat)
           for (i = 0; i < xout; i++)
             *fobuf++ = *bdata++;
         else if (toShort)
           for (i = 0; i < xout; i++)
             *usobuf++ = usmap[*bdata++];
-        else if (doscale)
+        else if (doscale || signedBytes)
           for (i = 0; i < xout; i++)
             *obuf++ = map[*bdata++];
         else
           memcpy(obuf, bdata, xout);
       } else {
-        if (toFloat)
+        if (toFloat && signedBytes)
+          for (i = 0; i < xout; i++) {
+            *fobuf++ = map[*bdata];
+            bdata += samples;
+          }
+        else if (toFloat)
           for (i = 0; i < xout; i++) {
             *fobuf++ = *bdata;
             bdata += samples;
@@ -777,7 +833,7 @@ static void copyLine(unsigned char *bdata, unsigned char *obuf, int xout, int co
             *usobuf++ = usmap[*bdata];
             bdata += samples;
           }
-        else if (doscale) 
+        else if (doscale || signedBytes) 
           for (i = 0; i < xout; i++) {
             *obuf++ = map[*bdata];
             bdata += samples;
@@ -974,12 +1030,15 @@ int tiffOpenNew(ImodImageFile *inFile)
   inFile->state = IISTATE_READY;
   inFile->cleanUp = tiffDelete; 
   inFile->close = tiffClose;
+  inFile->fillMrcHeader = tiffFillMrcHeader;
+  inFile->writeSection = iiTiffWriteSection;
+  inFile->writeSectionFloat = iiTiffWriteSectionFloat;
   return 0;
 }
 
-static uint32 rowsPerStrip, lineBytes, stripBytes, xTileSize;
-static int linesDone, numStrips, alreadyInverted, numXtiles, pixSize;
-static char *tmpbuf;
+static uint32 sRowsPerStrip, sLineBytes, sStripBytes, sXtileSize;
+static int sLinesDone, sNumStrips, sAlreadyInverted, sNumXtiles, sPixSize;
+static char *sTmpBuf;
 
 /*
  * Write next section to file with the given compression value; set inverted
@@ -995,12 +1054,12 @@ int tiffWriteSection(ImodImageFile *inFile, void *buf, int compression,
                        &strip, &lines, &tileX);
   if (err)
     return err;
-  for (strip = 0; strip < numStrips; strip++) {
-    lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
+  for (strip = 0; strip < sNumStrips; strip++) {
+    lines = B3DMIN(sRowsPerStrip, inFile->ny - sLinesDone);
     if (inverted)
-      sbuf = (char *)buf + strip * stripBytes;
+      sbuf = (char *)buf + strip * sStripBytes;
     else
-      sbuf = (char *)buf + (inFile->ny - (linesDone + lines)) * lineBytes;
+      sbuf = (char *)buf + (inFile->ny - (sLinesDone + lines)) * sLineBytes;
     err = tiffWriteStrip(inFile, strip, (void *)sbuf);
     if (err)
       return err;
@@ -1097,48 +1156,48 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
 
     /* 11/1/13: save min/max for bytes also, needed for displaying very low count data */
     if (inFile->amax > inFile->amin) {
-      dmin = inFile->amin;
-      dmax = inFile->amax;
+      dmin = inFile->amin - (inFile->type == IITYPE_BYTE ? 128. : 0.);
+      dmax = inFile->amax - (inFile->type == IITYPE_BYTE ? 128. : 0.);
       TIFFSetField(tif, TIFFTAG_SMINSAMPLEVALUE, dmin);
       TIFFSetField(tif, TIFFTAG_SMAXSAMPLEVALUE, dmax);
     }
   }
   TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, photometric);
   TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, samples);
-  pixSize = samples * bits / 8;
+  sPixSize = samples * bits / 8;
 
   if (*tileSizeX) {
 
-    rowsPerStrip = *outRows;
-    bestTileSize(inFile->nx, tileSizeX, &numXtiles);
-    bestTileSize(inFile->ny, (int *)(&rowsPerStrip), &numStrips);
-    xTileSize = *tileSizeX;
-    TIFFSetField(tif, TIFFTAG_TILEWIDTH, xTileSize);
-    TIFFSetField(tif, TIFFTAG_TILELENGTH, rowsPerStrip);
-    lineBytes = pixSize * xTileSize;
+    sRowsPerStrip = *outRows;
+    bestTileSize(inFile->nx, tileSizeX, &sNumXtiles);
+    bestTileSize(inFile->ny, (int *)(&sRowsPerStrip), &sNumStrips);
+    sXtileSize = *tileSizeX;
+    TIFFSetField(tif, TIFFTAG_TILEWIDTH, sXtileSize);
+    TIFFSetField(tif, TIFFTAG_TILELENGTH, sRowsPerStrip);
+    sLineBytes = sPixSize * sXtileSize;
     
   } else {
   
     /* Increase the strip target size to avoid having too many strips, as per
        recommendations that go with libtiff4 */
-    lineBytes = pixSize * inFile->nx;
+    sLineBytes = sPixSize * inFile->nx;
     if (inFile->ny > maxStrips)
-      stripTarget = (1 + inFile->ny / maxStrips) * lineBytes;
-    rowsPerStrip = B3DMAX(1, (stripTarget + lineBytes / 2) / lineBytes);
+      stripTarget = (1 + inFile->ny / maxStrips) * sLineBytes;
+    sRowsPerStrip = B3DMAX(1, (stripTarget + sLineBytes / 2) / sLineBytes);
 
     /* For JPEG compression, rows must be multiple of 8 */
-    if (compression == COMPRESSION_JPEG && rowsPerStrip % 8) {
-      if (rowsPerStrip < 5 || rowsPerStrip % 8 > 4)
-        rowsPerStrip = 8 * ((rowsPerStrip + 7) / 8);
+    if (compression == COMPRESSION_JPEG && sRowsPerStrip % 8) {
+      if (sRowsPerStrip < 5 || sRowsPerStrip % 8 > 4)
+        sRowsPerStrip = 8 * ((sRowsPerStrip + 7) / 8);
       else
-        rowsPerStrip = 8 * (rowsPerStrip / 8);
+        sRowsPerStrip = 8 * (sRowsPerStrip / 8);
     }
-    TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsPerStrip);
+    TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, sRowsPerStrip);
   }
-  numStrips = (inFile->ny + rowsPerStrip - 1) / rowsPerStrip;
-  stripBytes = rowsPerStrip * lineBytes;
-  *outNum = numStrips;
-  *outRows = rowsPerStrip;
+  sNumStrips = (inFile->ny + sRowsPerStrip - 1) / sRowsPerStrip;
+  sStripBytes = sRowsPerStrip * sLineBytes;
+  *outNum = sNumStrips;
+  *outRows = sRowsPerStrip;
 
   time(&curtime);
   tm = localtime(&curtime);
@@ -1146,13 +1205,13 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
           tm->tm_mon, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
   TIFFSetField(tif, TIFFTAG_DATETIME, datetime);
 
-  if (!inverted || xTileSize) {
-    tmpbuf = (char *)_TIFFmalloc(stripBytes);
-    if (!tmpbuf)
+  if (!inverted || sXtileSize) {
+    sTmpBuf = (char *)_TIFFmalloc(sStripBytes);
+    if (!sTmpBuf)
       return IIERR_MEMORY_ERR;
   }
-  linesDone = 0;
-  alreadyInverted = inverted;
+  sLinesDone = 0;
+  sAlreadyInverted = inverted;
   return 0;
 }
 
@@ -1176,55 +1235,136 @@ int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf)
   size_t bufLine;
   char *inbuf;
   TIFF *tif = (TIFF *)inFile->header;
-  lines = B3DMIN(rowsPerStrip, inFile->ny - linesDone);
+  lines = B3DMIN(sRowsPerStrip, inFile->ny - sLinesDone);
 
-  if (!xTileSize) {
+  b3dShiftBytes(buf, buf, sLineBytes, lines, 1, inFile->type == IITYPE_BYTE ? 1 : 0);
+  if (!sXtileSize) {
 
     /* Ordinary strip writing */
-    if (alreadyInverted) {
-      tmpbuf = (char *)buf;
+    if (sAlreadyInverted) {
+      sTmpBuf = (char *)buf;
     } else {
       for (i = 0; i < lines; i++) {
-        inbuf = (char *)buf + (lines - (i + 1)) * lineBytes;
-        memcpy(tmpbuf + i * lineBytes, inbuf, lineBytes);
+        inbuf = (char *)buf + (lines - (i + 1)) * sLineBytes;
+        memcpy(sTmpBuf + i * sLineBytes, inbuf, sLineBytes);
       }
     }
-    if (TIFFWriteEncodedStrip(tif, strip, tmpbuf, lineBytes * lines) < 0) {
-      if (!alreadyInverted)
-        _TIFFfree(tmpbuf);
+    if (TIFFWriteEncodedStrip(tif, strip, sTmpBuf, sLineBytes * lines) < 0) {
+      if (!sAlreadyInverted)
+        _TIFFfree(sTmpBuf);
       return IIERR_IO_ERROR;
     }
   } else {
     
     /* Tile writing.  Copy just the data that exists in the strip given to us into
      the portion of the buffer corresponding to its rows and columns */
-    for (xtile = 0; xtile < numXtiles; xtile++) {
-      xOffset = xtile * xTileSize * pixSize;
-      numBytes = B3DMIN(xTileSize, inFile->nx - xtile * xTileSize) * pixSize;
+    for (xtile = 0; xtile < sNumXtiles; xtile++) {
+      xOffset = xtile * sXtileSize * sPixSize;
+      numBytes = B3DMIN(sXtileSize, inFile->nx - xtile * sXtileSize) * sPixSize;
       for (i = 0; i < lines; i++) {
-        bufLine = alreadyInverted ? i : lines - (i + 1);
-        inbuf = (char *)buf + bufLine * inFile->nx * pixSize + xOffset;
-        memcpy(tmpbuf + i * lineBytes, inbuf, numBytes);
+        bufLine = sAlreadyInverted ? i : lines - (i + 1);
+        inbuf = (char *)buf + bufLine * inFile->nx * sPixSize + xOffset;
+        memcpy(sTmpBuf + i * sLineBytes, inbuf, numBytes);
       }
 
       /* But then write the entire buffer of data.  It is required to have the full 
          size */
-      if (TIFFWriteEncodedTile(tif, xtile + strip * numXtiles, tmpbuf, 
-                               lineBytes * rowsPerStrip) < 0) {
-        _TIFFfree(tmpbuf);
+      if (TIFFWriteEncodedTile(tif, xtile + strip * sNumXtiles, sTmpBuf, 
+                               sLineBytes * sRowsPerStrip) < 0) {
+        _TIFFfree(sTmpBuf);
         return IIERR_IO_ERROR;
       }
     }
   }
-  linesDone += lines;
+  b3dShiftBytes(buf, buf, sLineBytes, lines, -1, inFile->type == IITYPE_BYTE ? 1 : 0);
+  sLinesDone += lines;
   return 0;
 }
 
 void tiffWriteFinish(ImodImageFile *inFile)
 {
   inFile->state = IISTATE_BUSY;
-  if (!alreadyInverted)
-    _TIFFfree(tmpbuf);
+  if (!sAlreadyInverted)
+    _TIFFfree(sTmpBuf);
+}
+
+int iiTiffWriteSection(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return (tiffWriteSectionAny(inFile, buf, inSection, 0));
+}
+
+int iiTiffWriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+{
+  return (tiffWriteSectionAny(inFile, buf, inSection, 1));
+}
+
+static int tiffWriteSectionAny(ImodImageFile *inFile, char *buf, int inSection, 
+                               int ifFloat)
+{
+  char *useBuf = buf;
+  int inverted = 0;
+  int nx = inFile->nx;
+  int ny = inFile->ny;
+  int resolution = 0, iy;
+  int pixsize = 2, compression = 1, quality = 1;
+  size_t dataSize;
+  b3dFloat * fbufp;
+  unsigned char *bdata;
+
+  if (inFile->padLeft || inFile->padRight) {
+    b3dError(stderr, "ERROR: tiffWriteSectionAny - Cannot write from a subset of an "
+             "array\n");
+    return -1;
+  }
+  if (inSection != inFile->lastWrittenZ + 1) {
+    b3dError(stderr, "ERROR: tiffWriteSectionAny - Can only write sequential sections to"
+             " a TIFF file (last Z = %d, requested Z = %d)\n", inFile->lastWrittenZ, 
+             inSection);
+    return -1;
+  }
+  if (inFile->llx || inFile->lly || inFile->urx != nx -1 || inFile->ury != ny -1) {
+    b3dError(stderr, "ERROR: tiffWriteSectionAny - Can only write a whole section at "
+             "once\n", nx, ny, inFile->llx, inFile->urx, inFile->lly, inFile->ury);
+    return -1;
+  }
+  if (inFile->format == IIFORMAT_COMPLEX) {
+    b3dError(stderr, "ERROR: tiffWriteSectionAny - Cannot write complex data\n");
+    return -1;
+  }
+
+  if (ifFloat && inFile->type != IITYPE_FLOAT) {
+    pixsize = (inFile->mode == MRC_MODE_BYTE) ? 1 : 2;
+    dataSize = (size_t)nx * (size_t)ny * pixsize;
+    useBuf = B3DMALLOC(char, dataSize);
+    if (!useBuf) {
+      b3dError(stderr, "ERROR: tiffWriteSectionAny - Allocating array for converting "
+               "floats\n");
+      return 1;
+    }
+    inverted = 1;
+    fbufp = (b3dFloat *)buf;
+    for (iy = 0; iy < ny; iy++) {
+      bdata = (unsigned char *)useBuf + nx * pixsize * (size_t)(ny - 1 - iy);
+      iiConvertLineOfFloats(fbufp, bdata, nx, inFile->mode, 0);
+      fbufp += nx;
+    }
+  }
+
+  if (inFile->xscale != 1.)
+    resolution = 2.54e8 / inFile->xscale;
+  if (getenv("IMOD_TIFF_COMPRESSION")) {
+    compression = atoi(getenv("IMOD_TIFF_COMPRESSION"));
+    compression = B3DMAX(1, compression);
+  }
+  if (getenv("IMOD_TIFF_QUALITY")) {
+    quality = atoi(getenv("IMOD_TIFF_QUALITY"));
+    quality = B3DMAX(1, quality);
+  }
+  iy = tiffWriteSection(inFile, useBuf, compression, inverted, resolution, quality);
+  if (!iy)
+    inFile->lastWrittenZ++;
+  /* printf("Wrote TIFF %d %d\n", inFile->lastWrittenZ, inFile->file); */
+  return iy;
 }
   
 int tiffVersion(int *minor)
@@ -1241,3 +1381,4 @@ int tiffVersion(int *minor)
   sscanf(substr + 7, "%d.%d.%d", &version, minor, &update);
   return version;
 }    
+

@@ -18,8 +18,7 @@
 #include <vector>
 #include "imodel.h"
 #include "b3dutil.h"
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "sliceproc.h"
 #include "parse_params.h"
 #include "cfft.h"
@@ -154,7 +153,7 @@ void FindBeads::main(int argc, char *argv[])
   /* Get input file */
   if (PipGetInOutFile("InputImageFile", 0, &filename))
     exitError("No input image file specified");
-  mInFp = fopen(filename, "rb");
+  mInFp = iiFOpen(filename, "rb");
   if (!mInFp)
     exitError("Opening input image file %s", filename);
   free(filename);
@@ -368,7 +367,7 @@ void FindBeads::main(int argc, char *argv[])
     if (imodBackupFile(filename))
       printf("WARNING: %s - Error renaming existing image file %s\n", progname,
              filename);
-    outfp = fopen(filename, "wb");
+    outfp = iiFOpen(filename, "wb");
     if (!outfp)
       exitError("Opening output image file %s", filename);
     free(filename);
@@ -708,9 +707,9 @@ void FindBeads::main(int argc, char *argv[])
     outhead.amean /= outhead.nz;
     if (mrc_head_write(outfp, &outhead))
       exitError("Writing header to output image file");
-    fclose(outfp);
+    iiFClose(outfp);
   }
-  fclose(mInFp);
+  iiFClose(mInFp);
   if (mDumpFp)
     fclose(mDumpFp);
 

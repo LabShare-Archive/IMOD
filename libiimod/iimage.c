@@ -18,29 +18,34 @@
 #include "ilist.h"
 #include "b3dutil.h"
 
-static char *defMode = "rb";
+/* The resident check list and list of opened files */
+static Ilist *sCheckList = NULL;
+static Ilist *sOpenedFiles = NULL;
+static int sRWcallCount = 0;
 
-/* The resident check list */
-static Ilist *checkList = NULL;
 static int readWriteSection(ImodImageFile *inFile, char *buf, int inSection, 
-                            iiSectionFunc func);
+                            iiSectionFunc func, const char *mess);
+static int initCheckList();
+static int addToOpenedList(ImodImageFile *iiFile);
+static void removeFromOpenedList(ImodImageFile *iiFile);
+static int findFileInList(ImodImageFile *iiFile, FILE *fp);
 
 /* Initialize check list: if it does not exist, allocate it and place TIFF and
    MRC functions on the list */
 static int initCheckList()
 {
   IIFileCheckFunction func;
-  if (checkList)
+  if (sCheckList)
     return 0;
-  checkList = ilistNew(sizeof(IIFileCheckFunction), 6);
-  if (!checkList)
+  sCheckList = ilistNew(sizeof(IIFileCheckFunction), 6);
+  if (!sCheckList)
     return 1;
   func = iiTIFFCheck;
-  ilistAppend(checkList, &func);
+  ilistAppend(sCheckList, &func);
   func = iiMRCCheck;
-  ilistAppend(checkList, &func);
+  ilistAppend(sCheckList, &func);
   func = iiLikeMRCCheck;
-  ilistAppend(checkList, &func);
+  ilistAppend(sCheckList, &func);
   return 0;
 }
 
@@ -53,7 +58,7 @@ void iiAddCheckFunction(IIFileCheckFunction func)
 {
   if (initCheckList())
     return;
-  ilistAppend(checkList, &func);
+  ilistAppend(sCheckList, &func);
 }
 
 /*!
@@ -66,10 +71,10 @@ void iiInsertCheckFunction(IIFileCheckFunction func, int index)
 {
   if (initCheckList())
     return;
-  if (index < ilistSize(checkList))
-    ilistInsert(checkList, &func, index);
+  if (index < ilistSize(sCheckList))
+    ilistInsert(sCheckList, &func, index);
   else
-    ilistAppend(checkList, &func);
+    ilistAppend(sCheckList, &func);
 }
 
 /*!
@@ -77,10 +82,10 @@ void iiInsertCheckFunction(IIFileCheckFunction func, int index)
  */
 void iiDeleteCheckList()
 {
-  if (!checkList)
+  if (!sCheckList)
     return;
-  ilistDelete(checkList);
-  checkList = NULL;
+  ilistDelete(sCheckList);
+  sCheckList = NULL;
 }
 
 /*!
@@ -91,8 +96,10 @@ ImodImageFile *iiNew()
 {
   ImodImageFile *ofile = (ImodImageFile *)malloc(sizeof(ImodImageFile));
      
-  if (!ofile) 
+  if (!ofile) {
+    b3dError(stderr, "ERROR: iiNew -Allocating new ImodImageFile structure\n");
     return NULL;
+  }
   memset(ofile, 0, sizeof(ImodImageFile));
   ofile->xscale = ofile->yscale = ofile->zscale = 1.0f;
   ofile->slope  = 1.0f;
@@ -108,6 +115,8 @@ ImodImageFile *iiNew()
   ofile->readSectionFloat  = NULL;
   ofile->writeSection      = NULL;
   ofile->writeSectionFloat = NULL;
+  ofile->fillMrcHeader = NULL;
+  ofile->syncFromMrcHeader = NULL;
   ofile->cleanUp         = NULL;
   ofile->reopen          = NULL;
   ofile->close           = NULL;
@@ -126,6 +135,7 @@ ImodImageFile *iiNew()
   ofile->nx = 0;
   ofile->ny = 0;
   ofile->nz = 0;
+  ofile->lastWrittenZ = -1;
   return(ofile);
 }
 
@@ -159,6 +169,10 @@ ImodImageFile *iiOpen(const char *filename, const char *mode)
   IIFileCheckFunction *checkFunc;
   int i, err = 0;
 
+  /* If the mode contains w for a new file, call the open routine for a default file */
+  if (strstr(mode, "w"))
+    return iiOpenNew(filename, mode, IIFILE_DEFAULT);
+
   if ((ofile = iiNew()) == NULL) 
     return NULL;
   if (filename && filename[0])
@@ -171,15 +185,15 @@ ImodImageFile *iiOpen(const char *filename, const char *mode)
     iiDelete(ofile);
     return(NULL);
   }
+  ofile->format = IIFILE_UNKNOWN;
   ofile->filename = strdup(filename);
-  ofile->fmode = strdup(mode);
+  strncpy(ofile->fmode, mode, 3);
     
   /* Try to open the file with each of the check functions in turn 
    * until one succeeds
    */
-  ofile->format = IIFILE_UNKNOWN;
-  for (i = 0; i < ilistSize(checkList); i++) {
-    checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
+  for (i = 0; i < ilistSize(sCheckList); i++) {
+    checkFunc = (IIFileCheckFunction *)ilistItem(sCheckList, i);
 
     /* If file was closed and couldn't reopen, bail out */
     if (ofile->fp == NULL) {
@@ -189,7 +203,10 @@ ImodImageFile *iiOpen(const char *filename, const char *mode)
 
     if (!(err = (*checkFunc)(ofile))) {
       ofile->state = IISTATE_READY;
-      return ofile;
+      if (!addToOpenedList(ofile))
+        return ofile;
+      iiDelete(ofile);
+      return NULL;
     }
     
     if (err != IIERR_NOT_FORMAT)
@@ -198,6 +215,59 @@ ImodImageFile *iiOpen(const char *filename, const char *mode)
   
   if (err == IIERR_NOT_FORMAT)
     b3dError(stderr, "ERROR: iiOpen - %s has unknown format.\n", filename);
+  iiDelete(ofile);
+  return NULL;
+}
+
+/*!
+ * Opens a new file whose name is in [filename] with the given [mode], which must
+ * contain 'w'.  The type of file is specified by [fileKind], which can be either
+ * IIFILE_MRC, IIFILE_TIFF, or IIFILE_DEFAULT for the type defined by calling
+ * @@b3dutil.html#b3dOutputFileType@.  Adds the file to the list of opened files and
+ * returns the opened file pointer.
+ */
+ImodImageFile *iiOpenNew(const char *filename, const char *mode, int fileKind)
+{
+  ImodImageFile *ofile;
+  int err = 0;
+  if (fileKind == IIFILE_DEFAULT)
+    fileKind = b3dOutputFileType();
+  //printf("fk %d\n", fileKind);
+  if (!strstr(mode, "w")) {
+    b3dError(stderr, "ERROR: iiOpenNew - File opening mode %s is not appropriate for a "
+             "new image file\n");
+    return NULL;
+  }
+      
+  if ((ofile = iiNew()) == NULL) 
+    return NULL;
+  ofile->filename = strdup(filename);
+  if (!ofile->filename) {
+    err = 1;
+  }
+   
+  if (!err && fileKind == IIFILE_MRC) {
+    err = iiMRCopenNew(ofile, mode);
+  } else if (!err && fileKind == IIFILE_TIFF) {
+    err = tiffOpenNew(ofile);
+    if (err)
+      b3dError(stderr, "ERROR: iiOpenNew - Opening new TIFF file\n");
+  } else if (!err) {
+    b3dError(stderr, "ERROR: iiOpenNew - Cannot open new files with file format %d\n", 
+             fileKind);
+    err = 1;
+  }
+  
+  if (!err) {
+    ofile->file = fileKind;
+    ofile->newFile = 1;
+    strncpy(ofile->fmode, "rb+", 3);
+    ofile->state = IISTATE_READY;
+    if (!addToOpenedList(ofile))
+      return ofile;
+  }
+
+  /* Fall through to here on any kind of error requiring deletion of the file */
   iiDelete(ofile);
   return NULL;
 }
@@ -214,8 +284,8 @@ int  iiReopen(ImodImageFile *inFile)
     return -1;
   if (inFile->fp)
     return 1;
-  if (!inFile->fmode)
-    inFile->fmode = defMode;
+  if (!inFile->fmode[0])
+    strncpy(inFile->fmode, "rb+", 3);
   if (inFile->reopen) {
     if ((*inFile->reopen)(inFile))
       return 2;
@@ -227,6 +297,10 @@ int  iiReopen(ImodImageFile *inFile)
   if (!inFile->fp)
     return 2;
 
+  /* Add back to opened list: failure is not an error because FP-based programs don't
+     use iiReopen */
+  addToOpenedList(inFile);
+
   if (inFile->state != IISTATE_NOTINIT) {
     inFile->state = IISTATE_READY;
     return 0;
@@ -234,8 +308,8 @@ int  iiReopen(ImodImageFile *inFile)
 
   /* If the file is not initted yet, treat it as unknown and deal with from scratch */
   inFile->format = IIFILE_UNKNOWN;
-  for (i = 0; i < ilistSize(checkList); i++) {
-    checkFunc = (IIFileCheckFunction *)ilistItem(checkList, i);
+  for (i = 0; i < ilistSize(sCheckList); i++) {
+    checkFunc = (IIFileCheckFunction *)ilistItem(sCheckList, i);
     if (!(*checkFunc)(inFile)) {
       inFile->state = IISTATE_READY;
       return 0;
@@ -292,7 +366,7 @@ int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax, float scaleMax)
 }
 
 /*!
- * Closes an image file [inFile]
+ * Closes an image file [inFile] and removes it from the list of opened files
  */
 void iiClose(ImodImageFile *inFile)
 {
@@ -301,6 +375,7 @@ void iiClose(ImodImageFile *inFile)
   else if (inFile->fp != NULL) 
     fclose(inFile->fp);
   inFile->fp = NULL;
+  removeFromOpenedList(inFile);
   if (inFile->state != IISTATE_NOTINIT)
     inFile->state = IISTATE_PARK;
 }
@@ -319,9 +394,158 @@ void iiDelete(ImodImageFile *inFile)
     (*inFile->cleanUp)(inFile);
   B3DFREE(inFile->description);
   B3DFREE(inFile->colormap);
-  if (inFile->fmode != defMode)
-    B3DFREE(inFile->fmode);
   free(inFile);
+}
+
+/*!
+ * For the image file [inFile], initializes the MRC header structure [data] and fills in
+ * as many fields as possible with file-specific values.  For an MRC file, it simply 
+ * copies the already read-in header.  Returns -1 if a header filling function is not 
+ * defined or 1 if there is some other problem filling the header in.
+ */
+int iiFillMrcHeader(ImodImageFile *inFile, MrcHeader *hdata)
+{
+  if (!inFile || !inFile->fillMrcHeader)
+    return 1;
+  return inFile->fillMrcHeader(inFile, hdata);
+}
+
+/*!
+ * For the image file [inFile], synchronizes numerous values in the ImodImageFile 
+ * structure from values in [hdata], including size, mode, scale, origin, rotation,
+ * and min/max/mean values.
+ */
+void iiSyncFromMrcHeader(ImodImageFile *inFile, MrcHeader *hdata)
+{
+
+  /* Do not write signed bytes to a TIFF file!  It works fine for us and 3dmod can show
+   them, but no other image viewers (including photoshop and gimp) read them right */
+  int bytesSigned = hdata->bytesSigned && 
+    !(inFile->file == IIFILE_TIFF && inFile->newFile) ? 1 : 0;
+  if (hdata->mode != inFile->mode || !hdata->mode)
+    iiMRCmodeToFormatType(inFile, hdata->mode, bytesSigned);
+
+  /* These all came from the iimrc opening function.  It is not clear if any file format
+     will need to have all those values synced after opening, but here they are. */
+  inFile->nx   = hdata->nx;
+  inFile->ny   = hdata->ny;
+  inFile->nz   = hdata->nz;
+  inFile->amin  = hdata->amin;
+  inFile->amax  = hdata->amax;
+  inFile->amean = hdata->amean;
+  inFile->xscale = inFile->yscale = inFile->zscale = 1.;
+
+  /* DNM 11/5/98: inverted these expressions to give proper usage */
+  /* DNM 9/13/02: needed to divide by mx, ny, nz, not nx, ny, nz */
+  if (hdata->xlen && hdata->mx)
+    inFile->xscale = hdata->xlen/(float)hdata->mx;
+  if (hdata->ylen && hdata->my)
+    inFile->yscale = hdata->ylen/(float)hdata->my;
+  if (hdata->xlen && hdata->mz)
+    inFile->zscale = hdata->zlen/(float)hdata->mz;
+  inFile->xtrans = hdata->xorg;
+  inFile->ytrans = hdata->yorg;
+  inFile->ztrans = hdata->zorg;
+  inFile->xrot = hdata->tiltangles[3];
+  inFile->yrot = hdata->tiltangles[4];
+  inFile->zrot = hdata->tiltangles[5];
+
+  /* And synchronize a few more things */
+  inFile->headerSize = hdata->headerSize;
+  inFile->sectionSkip = hdata->sectionSkip;
+  if (inFile->syncFromMrcHeader)
+    inFile->syncFromMrcHeader(inFile, hdata);
+}
+
+/*
+ * Functions for adding, removing, and looking up a file in the list
+ */
+static int addToOpenedList(ImodImageFile *iiFile)
+{
+  if (!sOpenedFiles)
+    sOpenedFiles = ilistNew(sizeof(ImodImageFile *), 4);
+  if (sOpenedFiles && !ilistAppend(sOpenedFiles, &iiFile))
+    return 0;
+  b3dError(stderr, "ERROR: iiOpen - Memory error adding new file to master list\n");
+    return 1;
+}
+
+static void removeFromOpenedList(ImodImageFile *iiFile)
+{
+  int i = findFileInList(iiFile, NULL);
+  if (i >= 0)
+    ilistRemove(sOpenedFiles, i);
+}
+
+/*
+ * Find a file either by its iiFile or its fp entry 
+ */
+static int findFileInList(ImodImageFile *iiFile, FILE *fp)
+{
+  int i;
+  ImodImageFile **listPtr;
+  for (i = 0; i < ilistSize(sOpenedFiles); i++) {
+    listPtr = (ImodImageFile **)ilistItem(sOpenedFiles, i);
+    if ((iiFile && *listPtr == iiFile) || (fp && (*listPtr)->fp == fp)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/*!
+ * Opens an old or new ImodImageFile with the given [filename] and [mode], adds it to the
+ * list of opened files, and returns the file pointer.  When this function is used instead
+ * of fopen to open an image file, then most MRC file reading and writing functions 
+ * listed in @@mrcfiles.html#TOP@, as well as @@mrcfiles.html#mrc_head_read@ and 
+ * @@mrcfiles.html#mrc_head_write@, will look up the file pointer in the list of opened
+ * files and perform the operation appropriate for the particular file type.
+ */
+FILE *iiFOpen(const char *filename, const char *mode)
+{
+  ImodImageFile *iiFile = iiOpen(filename, mode);
+  if (!iiFile)
+    return NULL;
+  return iiFile->fp;
+}
+
+/*!
+ * Returns the open ImodImageFile that has [fp] as its {fp} member.
+ */
+ImodImageFile *iiLookupFileFromFP(FILE *fp)
+{
+  ImodImageFile **listPtr;
+  int i = findFileInList(NULL, fp);
+  if (i < 0)
+    return NULL;
+  listPtr = (ImodImageFile **)ilistItem(sOpenedFiles, i);
+  return *listPtr;
+}
+
+/*!
+ * Closes the file with pointer [fp] either by calling @iiDelete for its corresponding 
+ * ImodImageFile, or by simple closing it if it is not in the list of opened files.
+ * This function must be called for a newly written file if there is a possibility that
+ * it is a TIFF file.
+ */
+void iiFClose(FILE *fp)
+{
+  ImodImageFile *iiFile = iiLookupFileFromFP(fp);
+  if (iiFile)
+    iiDelete(iiFile);
+  else
+    fclose(fp);
+}
+
+/* Fuctions for keeping track of whether we are already in an iiRead/Write call */
+void iiChangeCallCount(int delta)
+{
+  sRWcallCount = B3DMAX(0, sRWcallCount + delta);
+}
+
+int iiCallingReadOrWrite()
+{
+  return sRWcallCount;
 }
 
 /*!
@@ -331,7 +555,7 @@ void iiDelete(ImodImageFile *inFile)
  */
 int iiReadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
-  return( readWriteSection(inFile, buf, inSection, inFile->readSection) );
+  return( readWriteSection(inFile, buf, inSection, inFile->readSection, "reading from") );
 }
 
 /*!
@@ -341,7 +565,8 @@ int iiReadSection(ImodImageFile *inFile, char *buf, int inSection)
  */
 int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 {
-  return( readWriteSection(inFile, buf, inSection, inFile->readSectionByte) );
+  return( readWriteSection(inFile, buf, inSection, inFile->readSectionByte,
+                           "reading and converting to bytes for") );
 }
 
 /*!
@@ -351,7 +576,8 @@ int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
  */
 int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
 {
-  return( readWriteSection(inFile, buf, inSection, inFile->readSectionUShort) );
+  return( readWriteSection(inFile, buf, inSection, inFile->readSectionUShort,
+                           "reading and converting to shorts for") );
 }
 
 /*!
@@ -361,7 +587,8 @@ int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
  */
 int iiReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
 {
-  return( readWriteSection(inFile, buf, inSection, inFile->readSectionFloat) );
+  return( readWriteSection(inFile, buf, inSection, inFile->readSectionFloat,
+                           "reading and converting to floats for") );
 }
 
 /*!
@@ -371,7 +598,7 @@ int iiReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
  */
 int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection)
 {
-  return( readWriteSection(inFile, buf, inSection, inFile->writeSection) );
+  return( readWriteSection(inFile, buf, inSection, inFile->writeSection, "writing to") );
 }
 
 /*!
@@ -381,20 +608,28 @@ int iiWriteSection(ImodImageFile *inFile, char *buf, int inSection)
  */
 int iiWriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
 {
-  return( readWriteSection(inFile, buf, inSection, inFile->writeSectionFloat) );
+  return( readWriteSection(inFile, buf, inSection, inFile->writeSectionFloat, 
+                           "converting floats to write to") );
 }
 
 /* The routine that does the work */
 static int readWriteSection(ImodImageFile *inFile, char *buf, int inSection, 
-                            iiSectionFunc func)
+                            iiSectionFunc func, const char *mess)
 {
-  if (!func) 
+  int err;
+  if (!func) {
+    b3dError(stderr, "ERROR: iiRead/WriteSection - There is no function for %s this "
+             "type of file\n", mess);
     return -1;
+  }
   if (!inFile->fp){
     if (iiReopen(inFile))
       return -1;
   }
-  return( func(inFile, buf, inSection) );
+  iiChangeCallCount(1);
+  err = func(inFile, buf, inSection);
+  iiChangeCallCount(-1);
+  return(err);
 }
 
 
@@ -415,4 +650,54 @@ int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li, int nx,
   if (!li->plist && useMdoc)
     err = iiPlistFromMetadata(inFile->filename, 1, li, nx, ny, nz);
   return 0;
+}
+
+void iiConvertLineOfFloats(float *fbufp, unsigned char *bdata, int nx, int mrcMode, 
+                           int bytesSigned)
+{
+  int i, ival;
+  b3dInt16 *sdata = (b3dInt16 *)bdata;
+  b3dUInt16 *usdata = (b3dUInt16 *)bdata;
+  char *sbdata = (char *)bdata;
+
+  /* Conversions of float to int/byte */
+  switch (mrcMode) {
+  case MRC_MODE_BYTE:
+    if (bytesSigned) {
+      
+      /* Signed bytes */
+      for (i = 0; i < nx; i++) {
+        ival = (int)floor(fbufp[i] - 127.5);
+        B3DCLAMP(ival, -128, 127);
+        sbdata[i] = (char)ival;
+      }
+    } else {
+
+      /* Unsigned bytes */
+      for (i = 0; i < nx; i++) {
+        ival = (int)(fbufp[i] + 0.5f);
+        B3DCLAMP(ival, 0, 255);
+        bdata[i] = (unsigned char)ival;
+      }
+    }
+    break;
+
+    /* Signed shorts */
+  case MRC_MODE_SHORT:
+    for (i = 0; i < nx; i++) {
+      ival = (int)floor(fbufp[i] + 0.5);
+      B3DCLAMP(ival, -32768, 32767);
+      sdata[i] = (b3dInt16)ival;
+    }
+    break;
+
+    /* Unsigned shorts */
+  case MRC_MODE_USHORT:
+    for (i = 0; i < nx; i++) {
+      ival = (int)(fbufp[i] + 0.5f);
+      B3DCLAMP(ival, 0, 65535);
+      usdata[i] = (b3dUInt16)ival;
+    }
+    break;
+  }
 }
