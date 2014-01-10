@@ -22,6 +22,7 @@
 extern "C" {
   int iiQImageCheck(ImodImageFile *inFile);
   int qimageReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+  int qimageReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
   int qimageReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int qimageReopen(ImodImageFile *inFile);
   void qimageClose(ImodImageFile *inFile);
@@ -63,6 +64,7 @@ int iiQImageCheck(ImodImageFile *inFile)
   if (image->depth() == 8 && image->isGrayscale()) {
     inFile->format = IIFORMAT_LUMINANCE;
     inFile->readSectionByte = qimageReadSectionByte;
+    inFile->readSectionFloat = qimageReadSectionFloat;
     inFile->mode   = MRC_MODE_BYTE;
   } else {
 
@@ -87,6 +89,11 @@ int iiQImageCheck(ImodImageFile *inFile)
 int qimageReadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 { 
   return(ReadSection(inFile, buf, 1));
+}
+
+int qimageReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+{ 
+  return(ReadSection(inFile, buf, 2));
 }
 
 int qimageReadSection(ImodImageFile *inFile, char *buf, int inSection)
@@ -128,6 +135,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
   int outmax = 255;
   int xmin, xmax, ymin, ymax;
   unsigned char *obuf;
+  float *fbuf;
   unsigned char *bdata;
   unsigned char map[256];
   QRgb *rgbdata;
@@ -181,13 +189,19 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int byte)
 
   // Loop on the lines to get data
   obuf = (unsigned char *)buf;
+  fbuf = (float *)buf;
   for (y = ymin; y <= ymax; y++) {
     bdata = image->scanLine(ysize - 1 - y);
 
     // Bytes: just map the index values
-    if (byte) {
+    if (byte == 1) {
       for (i = xmin; i <= xmax; i++)
         *obuf++ = map[bdata[i]];
+
+    } else if (byte == 2) {
+      for (i = xmin; i <= xmax; i++)
+        *fbuf++ = bdata[i];
+
 
       // 8 bit RGB: look up in color table
     } else if (image->depth() == 8) {
