@@ -632,6 +632,42 @@ static int readWriteSection(ImodImageFile *inFile, char *buf, int inSection,
   return(err);
 }
 
+/*!
+ * Returns the value of a single pixel at [x, y, z] from the image fioe [inFile].
+ * Gives the value directly for byte,
+ * short, and float data, (by calling @mrcReadZFloat) and the magnitude for complex data 
+ * (after calling @mrcReadZ).  Returns the file minimum {hdata->amin} for coordinates 
+ * out of bounds or if there is no function for reading floats for a file type.
+ */
+float iiReadPoint(ImodImageFile *inFile, int x, int y, int z)
+{
+  b3dInt16 sdata[2];
+  float fdata = inFile->amin;
+  float cfdata[2];
+  int llx, lly, urx, ury, axis;
+  ImodImageFile iiSave;
+
+  if (x < 0 || y < 0 || z < 0 || 
+      x >= inFile->nx || y >= inFile->ny || z >= inFile->nz)
+    return(fdata);
+
+  iiSaveLoadParams(inFile, &iiSave);
+  inFile->llx = inFile->urx = x;
+  inFile->lly = inFile->ury = y;
+  inFile->axis = 3;
+  if (inFile->mode == MRC_MODE_COMPLEX_SHORT) {
+    if (!iiReadSection(inFile, (char *)&sdata[0], z))
+      fdata = (float)sqrt((double)sdata[0] * sdata[0] + (double)sdata[1] * sdata[1]);
+  } else if (inFile->mode == MRC_MODE_COMPLEX_FLOAT) {
+    if (!iiReadSection(inFile, (char *)&cfdata[0], z))
+      fdata = (float)sqrt((double)cfdata[0] * cfdata[0] + (double)cfdata[1] * cfdata[1]);
+  } else {
+    iiReadSectionFloat(inFile, (char *)&fdata, z);
+  }
+  iiRestoreLoadParams(0, inFile, &iiSave);
+  return(fdata);
+}
+
 
 /*!
  * Loads piece coordinates from an MRC file [inFile] of size [nx], [ny], [nz]
@@ -652,6 +688,11 @@ int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li, int nx,
   return 0;
 }
 
+/*!
+ * Converts [nx] floating point values in the array [fbufp] to values in the mode 
+ * specified by [mrcMode], with signed bytes produced if [byteSigned] is nonzero.
+ * Values are placed in [bdata].
+ */
 void iiConvertLineOfFloats(float *fbufp, unsigned char *bdata, int nx, int mrcMode, 
                            int bytesSigned)
 {
@@ -700,4 +741,43 @@ void iiConvertLineOfFloats(float *fbufp, unsigned char *bdata, int nx, int mrcMo
     }
     break;
   }
+}
+
+/*!
+ * Copies the parameters with loading information from [iiFile] to [iiSave]: {ll} and
+ * {ur} members for x, y, and z, {axis}, {padLeft}, {padRight}, {slope}, and {offset}.
+ */
+void iiSaveLoadParams(ImodImageFile *iiFile, ImodImageFile *iiSave)
+{
+  iiSave->llx = iiFile->llx;
+  iiSave->urx = iiFile->urx;
+  iiSave->lly = iiFile->lly;
+  iiSave->ury = iiFile->ury;
+  iiSave->llz = iiFile->llz;
+  iiSave->urz = iiFile->urz;
+  iiSave->axis = iiFile->axis;
+  iiSave->padLeft = iiFile->padLeft;
+  iiSave->padRight = iiFile->padRight;
+  iiSave->slope = iiFile->slope;
+  iiSave->offset = iiFile->offset;
+}
+
+/*!
+ * Restores the parameters copied by @iiSaveLoadParams from [iiSave] back to [iiFile] and
+ * returns the value in [retVal] for convenience.
+ */
+int iiRestoreLoadParams(int retVal, ImodImageFile *iiFile, ImodImageFile *iiSave)
+{
+  iiFile->llx = iiSave->llx;
+  iiFile->urx = iiSave->urx;
+  iiFile->lly = iiSave->lly;
+  iiFile->ury = iiSave->ury;
+  iiFile->llz = iiSave->llz;
+  iiFile->urz = iiSave->urz;
+  iiFile->axis = iiSave->axis;
+  iiFile->padLeft = iiSave->padLeft;
+  iiFile->padRight = iiSave->padRight;
+  iiFile->slope = iiSave->slope;
+  iiFile->offset = iiSave->offset;
+  return retVal;
 }
