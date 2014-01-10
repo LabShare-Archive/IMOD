@@ -296,7 +296,6 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata,
 int parallelWriteSlice(void *buf, FILE *fout, MrcHeader *hdata, int slice);
 
 /************************ Read image data functions **************************/
-float mrc_read_point (FILE *fin, MrcHeader *hdata, int x, int y, int z);
 void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
 		      int slice, char axis);
 int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, 

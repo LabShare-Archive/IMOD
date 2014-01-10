@@ -186,11 +186,14 @@ extern "C" {
   int iiCallingReadOrWrite();
   void iiConvertLineOfFloats(float *fbufp, unsigned char *bdata, int nx, int mrcMode, 
                              int bytesSigned);
+  void iiSaveLoadParams(ImodImageFile *iiFile, ImodImageFile *iiSave);
+  int iiRestoreLoadParams(int retVal, ImodImageFile *iiFile, ImodImageFile *iiSave);
 
   int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
+  float iiReadPoint(ImodImageFile *inFile, int x, int y, int z);
   int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li,
                    int nx, int ny, int nz);
 
