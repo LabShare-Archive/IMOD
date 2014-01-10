@@ -671,45 +671,6 @@ void mrc_set_cmap_stamp(MrcHeader *hdata)
  */
 
 /*!
- * Returns the value of a single pixel at [x, y, z] from the file with pointer
- * [fin] given the header properties in [hdata].  Gives the value directly for byte,
- * short, and float data, (by calling @mrcReadZFloat) and the magnitude for complex data 
- * (after calling @mrcReadZ).  Returns the file minimum {hdata->amin} for coordinates 
- * out of bounds or if there is no function for reading floats for a file type.
- */
-float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
-{
-  b3dInt16 sdata[2];
-  float fdata = hdata->amin;
-  float cfdata[2];
-  IloadInfo li;
-  FILE *fpSave = hdata->fp;
-
-  if (!fin) 
-    return(fdata);
-  
-  if (x < 0 || y < 0 || z < 0 || 
-      x >= hdata->nx || y >= hdata->ny || z >= hdata->nz)
-    return(fdata);
-
-  hdata->fp = fin;
-  mrc_init_li(&li, NULL);
-  li.xmin = li.xmax = x;
-  li.ymin = li.ymax = y;
-  if (hdata->mode == MRC_MODE_COMPLEX_SHORT) {
-    if (!mrcReadZ(hdata, &li, (unsigned char *)&sdata[0], z))
-      fdata = (float)sqrt((double)sdata[0] * sdata[0] + (double)sdata[1] * sdata[1]);
-  } else if (hdata->mode == MRC_MODE_COMPLEX_FLOAT) {
-    if (!mrcReadZ(hdata, &li, (unsigned char *)&cfdata[0], z))
-      fdata = (float)sqrt((double)cfdata[0] * cfdata[0] + (double)cfdata[1] * cfdata[1]);
-  } else {
-    mrcReadZFloat(hdata, &li, &fdata, z);
-  }
-  hdata->fp = fpSave;
-  return(fdata);
-}
-
-/*!
  * Allocates and returns one plane of data at the coordinate given by [slice]
  * along the axis given by [axis], which must be one of x, X, y, Y, z, or Z.  
  * Reads from the file with pointer [fin] according to the header in [hdata] 
