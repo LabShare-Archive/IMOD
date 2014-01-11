@@ -24,7 +24,6 @@ EXPORTS
 	iiWriteSectionFloat
 	iiuWriteSection
 	iiConvertLineOfFloats
-	mrc_read_point
 	mrc_swap_longs
 	sliceByteGrow
 	iiuRetSpaceGroup
@@ -49,6 +48,7 @@ EXPORTS
 	iiAddRawCheckFunction
 	IALSIGNED
 	sliceMedianFilter
+	iiSaveLoadParams
 	IALTLT_ROT
 	iiuAltTilt
 	mrcContrastScaling
@@ -185,6 +185,7 @@ EXPORTS
 	IIUALTSAMPLE
 	sliceByteEdgeSobel
 	IIUREADLINES
+	iiRestoreLoadParams
 	iiuReadLines
 	IIUALTEXTENDEDDATA
 	iiMRCopenNew
@@ -243,6 +244,7 @@ EXPORTS
 	mrc_slice_putvol
 	sliceMirror
 	niceFrame
+	iiReadPoint
 	iiMRCwriteSectionFloat
 	IMCLOSE
 	mrcReadYFloat
