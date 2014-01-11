@@ -209,6 +209,24 @@ int imodObjectCopy(Iobj *from, Iobj *to)
 }
 
 /*!
+ * Copies object structure from object [from] to object [to] then sets pointers to NULL
+ * and contour and mesh sizes to 0.  Returns -1 if error.
+ */
+int imodObjectCopyClear(Iobj *from, Iobj *to)
+{
+  if (imodObjectCopy(from, to))
+    return -1;
+  to->contsize = 0;
+  to->meshsize = 0;
+  to->label = NULL;
+  to->store = NULL;
+  to->meshParam = NULL;
+  to->vertBufSphere = NULL;
+  to->vertBufCont = NULL;
+  return 0;
+}
+
+/*!
  * Duplicates object [obj], including all contour, mesh, and label data, and
  * returns pointer to copy, or NULL if error.
  */
@@ -219,20 +237,16 @@ Iobj *imodObjectDup(Iobj *obj)
   Imesh *mesh;
   int i;
 
+  if (!obj)
+    return NULL;
+
   newObj = imodObjectNew();
   if (!newObj)
     return NULL;
 
   /* Copy object structure but zero out the count of mesh and contours in case
      we have to free it */
-  imodObjectCopy(obj, newObj);
-  newObj->contsize = 0;
-  newObj->meshsize = 0;
-  newObj->label = NULL;
-  newObj->store = NULL;
-  newObj->meshParam = NULL;
-  newObj->vertBufSphere = NULL;
-  newObj->vertBufCont = NULL;
+  imodObjectCopyClear(obj, newObj);
 
   /* Duplicate contours one at a time and copy into the array */
   if (obj->contsize) {
