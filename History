@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/11/14: Fixed 3dmod crash when the I button is pressed in Zap and no image
+loaded, present since 4.6.29.
+
+1/10/14: Made 3dmod able to read single pixels from non-MRC-like files so
+Pixel View and Graph windows can show file values.
+ 
 1/8/14: Made all C programs able to read TIFF and MRC-like file formats, made 
 it possible to direct output to a format specified by environment variable.
 TIFF stacks are now written with min and max of the file in the last image
