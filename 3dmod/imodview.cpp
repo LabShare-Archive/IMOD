@@ -785,6 +785,12 @@ int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX,
   int fz;
   bool blankX, blankY, blankZ = false;
 
+  if (vi->fakeImage) {
+    llX = leftXpad = rightXpad = llY = leftYpad = rightYpad = llZ = leftZpad = 
+      rightZpad = 0.;
+    return 1;
+  }
+
   // Copy the right image file structure for the situation
   leftZpad = rightZpad = llZ = 0;
   if (vi->multiFileZ > 0) {
