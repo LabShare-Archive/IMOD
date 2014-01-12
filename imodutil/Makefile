@@ -101,7 +101,7 @@ imodfillin$(E) : imodfillin.$(O)
 	$(CC) -o imodfillin imodfillin.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodchopconts$(E) : imodchopconts.$(O)
-	$(CC) -o imodchopconts imodchopconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+	$(CXX) -o imodchopconts imodchopconts.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodcurvature$(E) : imodcurvature.$(O)
 	$(CC) -o imodcurvature imodcurvature.$(O) $(LDFLAGS) $(MODLIBS) \

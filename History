@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/12/14: Made Imodchopconts able to chop up or sort out contours based on
+fine-grained color.
+
 1/11/14: Fixed 3dmod crash when the I button is pressed in Zap and no image
 loaded, present since 4.6.29.
 

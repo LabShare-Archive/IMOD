@@ -61,6 +61,17 @@ manpage = Give each new contour a surface number equal to the number of the
 contour from which it came.  This will replace any existing surface numbers
 and invalidate any fine-grained information that applies to surfaces.
 
+[Field = BreakAtColors]
+short = colors
+type = I
+usage = Break contours at color changes into new surfaces (1) or objects (2)
+tooltip =
+manpage = Break contours at fine-grained color changes, assigning them to new
+surfaces or new objects with the appropriate color if 1 or 2 is entered,
+respectively.  None of the options related to length-based chopping
+(\fB-length\fR, \fB-overlap\fR, \fB-number\fR, or \fB-surfaces\fR) may be
+entered with this option.  See above for details.
+
 [Field = ObjectsToDo]
 short = objects
 type = LI
