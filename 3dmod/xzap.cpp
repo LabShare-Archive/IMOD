@@ -4582,7 +4582,7 @@ void ZapFuncs::drawContour(int co, int ob)
   if (!iobjScat(obj->flags) && ((cont->flags & ICONT_WILD) || lastVisible)) {
 
     // Draw fill first if there is a 2d trans setting
-    if (obj->extra[IOBJ_EX_2D_TRANS] && mTessCont) {
+    if (obj->extra[IOBJ_EX_2D_TRANS] && mTessCont && !(cont->flags & ICONT_WILD)) {
 
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
