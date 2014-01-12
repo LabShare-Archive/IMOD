@@ -312,6 +312,7 @@ EXPORTS
 	imodMatTransform
 	imodPointInsideArea
 	imodNewContour
+	imodObjectCopyClear
 	imodel_point_dist
 	imodContourGetMaxPoint
 	imodFileWrite
