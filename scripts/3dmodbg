@@ -1,4 +1,0 @@
-#!/bin/sh
-# Script to run 3dmod in background under Windows and preserve spaces in names
-#
-3dmod "$@" &
