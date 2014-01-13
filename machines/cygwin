@@ -608,7 +608,7 @@ echo VCEXEDIR = $vcexedir >> $configure
 
 # 5/20/10: removed Workaround for vista w/o manifest, i.e. imod2vatch etc.
 #
-echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv processchunksbg" >> $configure
+echo "BACKGROUND_SCRIPTS = 3dmodbg 3dmodv processchunksbg" >> $configure
 
 # Set up to copy qt lib to bin dir for a distribution
 #
@@ -630,6 +630,6 @@ echo "QTSQL_TOCOPY = qsqlite4.dll" >> $configure
 # Make sure critical scripts are in unix mode
 # ALL BASH/SH SCRIPTS MUST BE INCLUDED
 #
-(cd scripts ; dos2unix matchrotpairs prochunks.csh queuechunk runpyscript 3dmodbg 3dmodv processchunksbg patch2imod imod2patch >& /dev/null)
+(cd scripts ; dos2unix matchrotpairs prochunks.csh queuechunk >& /dev/null)
 (cd dist ; dos2unix installStub IMOD-cygwin.sh >& /dev/null)
 dos2unix installqtlib >& /dev/null

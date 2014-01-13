@@ -5,7 +5,7 @@ include ../configure
 
 SCRIPTS = matchshifts onepatchcorr patchcorr3d patchcrawl3d recombine selfalign\
  setupcoms setuplong splitmrc  imodpsview settmpdir matchrotpairs\
- prochunks.csh queuechunk $(GENERATED_SCRIPTS)
+ prochunks.csh queuechunk
 
 all:
 
