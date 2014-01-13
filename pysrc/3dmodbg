@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# 3dmodbg - runs 3dmod in the background
+#
+# Author: David Mastronarde
+#
+# $Id$
+
+progname = '3dmod'
+prefix = 'ERROR: ' + progname + ' - '
+
+# load System Libraries
+import sys, os
+
+#
+# Setup runtime environment
+if os.getenv('IMOD_DIR') != None:
+   sys.path.insert(0, os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+   from imodpy import *
+   addIMODbinIgnoreSIGHUP()
+else:
+   sys.stdout.write(prefix + " IMOD_DIR is not defined!\n")
+   sys.exit(1)
+
+bkgdProcess([progname] + sys.argv[1:])
+sys.exit(0)
