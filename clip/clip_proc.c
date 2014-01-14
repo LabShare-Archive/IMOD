@@ -1853,7 +1853,7 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
 {
   Islice *slRef, *slOut, *slIn;
   int z, i, j, k, ival, base, truncVal, splitVal;
-  float offset, scale;
+  float offset, scale = 1.;
   float val[3] = {0., 0., 0.};
   int doRef = opt->infiles == 2 ? TRUE : FALSE;
   int truncThresh = 100;
