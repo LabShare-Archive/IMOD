@@ -36,6 +36,12 @@ comment = If 1, create a multiparticle reference. Otherwise, choose a single
 ^particle reference or use the user-specified volume.
 tooltip =  Generate a multiparticle reference.
 
+[Field = flgNoReferenceRefinement]
+comment = If 1, use the initial reference at all iterations. If 0
+^(the default), a refined estimate of the reference will be
+^ generated at each iteration.
+tooltip = Template match the initial reference without refinement.
+
 [Field = reference]
 KeyValueDelimiter = ==
 comment == If flgFairReference = 1, an integer k specifying that a
