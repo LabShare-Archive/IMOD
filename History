@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/14/14: Fixed bug in clip multiplying while unpacking 4-bit data, added
+rounding in clip multiply or divide when outout is to an integer.
+
 1/12/14: Made Imodchopconts able to chop up or sort out contours based on
 fine-grained color.
 
