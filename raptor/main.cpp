@@ -31,6 +31,9 @@
 #include "./fillContours/fillContours.h"
 #include "sys/stat.h"
 #include <time.h>
+#ifdef _WIN32
+#include "Windows.h"
+#endif
 
 //#pragma warning(disable : ) // Ignore warnings for deprecated conversion from string constant to ‘char*’ produced by pip source code
 using namespace std;
