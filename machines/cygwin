@@ -484,7 +484,7 @@ if ($compiler == intel) then
     endif
 
     # Then for making plugins
-    #set qt_libs = "$qt_libs QtXml4.lib QtNetwork4.lib"
+    set qt_libs = "$qt_libs QtSql4.lib"
     echo "MAKELIBSO = link -dll /NOLOGO  $qt_libs ../../buildlib/libimod.lib ../../buildlib/libcfshr.lib ../../3dmod/3dmod.lib ../../buildlib/libdiaqt.lib  ../../buildlib/libimesh.lib /out:" >> $configure
 
     # Then get simple set for fortran graphics
