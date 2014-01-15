@@ -131,7 +131,7 @@ int iiMRCopenNew(ImodImageFile *inFile, const char *mode)
     b3dError(stderr, "ERROR: iiMRCopenNew - Allocating MRC header\n");
     return 1;
   }
-  mrc_head_new(inFile->header, 1, 1, 1, 0);
+  mrc_head_new((MrcHeader *)inFile->header, 1, 1, 1, 0);
   iiMRCsetIOFuncs(inFile, 0);
   ((MrcHeader *)(inFile->header))->fp = inFile->fp;
   inFile->file = IIFILE_MRC;
