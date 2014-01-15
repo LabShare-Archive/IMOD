@@ -48,11 +48,6 @@ and mean value, and the first and last title.
 Directory in which IMOD-related information can live, unaffected by upgrading
 the main IMOD directory.  Set by startup scripts to /usr/local/ImodCalib.
 .TP
-.B IMOD_CSHELL
-Variable specifying a command to use when running csh/tcsh on a script.
-Used by Bead Fixer and could be used elsewhere.  This variable can contain a
-path to the C shell executable plus flags.  The -f flag is always added.
-.TP
 .B IMOD_DIR
 The path to the top IMOD directory; set by startup scripts, or can be set
 before startup script is run.
@@ -75,6 +70,12 @@ front of the path in the etomo startup script.
 If this variable is set (no value needed), virtually all programs that create
 image files will no longer back up an existing file by adding ~ to the name.
 Instead, they will overwrite the file.
+.TP
+.B IMOD_OUTPUT_FORMAT
+Sets the default file format for new files created by virtually all
+IMOD programs.  Possible settings are MRC and TIFF (or TIF).  TIFF
+output will work only for programs that output data as whole images
+instead of in chunks.
 .TP
 .B IMOD_PLUGIN_DIR
 Main directory for IMOD plugins; set by startup scripts to be inside IMOD.
