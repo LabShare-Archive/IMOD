@@ -1689,6 +1689,12 @@ void b3dSetSnapDirectory(void)
     (NULL, "Directory to Save Snapshots to", dir);
 }
 
+// Return the snap directory or empty string if none is set
+QString b3dGetSnapDirectory(void)
+{
+  return sSnapDirectory;
+}
+
 /*
  * Create a filename in fname with the prefix in name, based on the
  * format_type, and with at least the given number of digits.  The starting
