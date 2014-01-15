@@ -14,6 +14,7 @@ all : ALWAYS
 	cd analysistools  ;    $(MAKE) $@
 	cd namewizard     ;    $(MAKE) $@
 	cd stereology     ;    $(MAKE) $@
+	cd grabslicer     ;    $(MAKE) $@
 
 install : 
 	cd beadhelper     ;    $(MAKE) $@
@@ -21,6 +22,7 @@ install :
 	cd interpolator   ;    $(MAKE) $@
 	cd namewizard     ;    $(MAKE) $@
 	cd stereology     ;    $(MAKE) $@
+	cd grabslicer     ;    $(MAKE) $@
 
 clean : ALWAYS
 	cd beadfix        ;    $(MAKE) $@
@@ -31,6 +33,7 @@ clean : ALWAYS
 	cd analysistools  ;    $(MAKE) $@
 	cd namewizard     ;    $(MAKE) $@
 	cd stereology     ;    $(MAKE) $@
+	cd grabslicer     ;    $(MAKE) $@
 
 ALWAYS:
 

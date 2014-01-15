@@ -1,0 +1,59 @@
+<head>
+<title>Grab With Note Plugin Help</title>
+</head>
+<body>
+<a name="TOP"></a>
+<h3>Grab With Note Plugin Help</h3><br>
+--------------------------<br><br>
+This plugin is designed to grab the display in 3dmod top Slicer or 
+Zap window, and save it as an image with text note and Slicer
+parameters (if it's Slicer window).
+
+<br><br><br>
+<b>Hot Keys</b><br>
+---------------------<br>
+<b>[W]</b>&nbsp &nbsp
+Save image with note in imod snapshot directory
+<br>
+<b>[Shift+W]</b>&nbsp &nbsp
+Save image with note in the Caltech Tomography Database. The image will
+be attached to an existing database tilt series id. See more details below.
+<br>
+<br>
+<br>
+<b>Save Image</b><br>
+---------------------<br>
+
+This function saves the grabbed image with note in standard imod snapshot directory
+with default snapshot naming.
+
+<br>
+<br>
+<br>
+<b>Save to Database</b><br>
+---------------------<br>
+
+If you are using Caltech Tomography Database, you may use this function 
+to add grabbed image with note to the database and attached with a given 
+tilt series id. A database configuration file must be present.
+
+<ul>
+<li><b>image type</b> - For display purpose, only JPG or PNG are allowed to be saved 
+to database.</li>
+<li><b>configuration file</b> - should be located at $IMOD_CALIB_DIR/grabDatabase.ini. 
+By default $IMOD_CALIB_DIR is /usr/local/ImodCalib/ .</li>
+<li><b>tilt series id</b> - you may manually input "Tilt Series Database ID", or,
+if the 3D image opened by 3dmod is under standard path in the database (has a format
+of &lt;Database path&gt;/&lt; tilt series id&gt;/... ), the tilt series id will be automatically
+detected.</li>
+<li><b>database image path</b> - all images are saved under  &lt;Database path&gt;/Caps/ .
+File name formats: &lt;tilt series id&gt;_&lt;zap or slicer&gt;&lt;file id&gt;.jpg</li>
+</ul>
+
+<br>
+---------------------<br>
+<br>
+This plugin was created by <b>Jane Ding</b> (<u>hding&lt;at&gt;caltech&lt;dot&gt;edu</u>).<br>
+Last updated January 14, 2014
+<br><br>
+</body>
