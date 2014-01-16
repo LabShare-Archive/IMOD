@@ -477,7 +477,7 @@ final class PrenewstPanel implements ContextMenu, Expandable, Run3dmodButtonCont
           menuOptions, dialogType, this, this);
     }
     else if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodCoarseAlign(axisID, menuOptions, null);
+      applicationManager.imodCoarseAlign(axisID, menuOptions, null, false);
     }
   }
 
