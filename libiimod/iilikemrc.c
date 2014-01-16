@@ -146,6 +146,8 @@ int iiLikeMRCCheck(ImodImageFile *inFile)
  */
 int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
 {
+  int modeTable[] = {MRC_MODE_BYTE, MRC_MODE_BYTE, MRC_MODE_SHORT, MRC_MODE_USHORT,
+                     MRC_MODE_FLOAT, MRC_MODE_COMPLEX_FLOAT, MRC_MODE_RGB};
   MrcHeader *hdr;
 
   /* Get an MRC header; set sizes into that header and the iifile header */
@@ -154,10 +156,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
     b3dError(stderr, "ERROR: iiSetupRawHeaders - Getting memory for header");
     return IIERR_MEMORY_ERR;
   }
-  mrc_head_new(hdr, info->nx, info->ny, info->nz, MRC_MODE_BYTE);
-  inFile->nx   = info->nx;
-  inFile->ny   = info->ny;
-  inFile->nz   = info->nz;
+  mrc_head_new(hdr, info->nx, info->ny, info->nz, modeTable[info->type]);
   inFile->file = IIFILE_RAW;
   hdr->swapped = info->swapBytes;
   hdr->headerSize = info->headerSize;
@@ -165,55 +164,20 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   hdr->yInverted = info->yInverted;
   hdr->bytesSigned = info->type == RAW_MODE_SBYTE ? 1 : 0;
   hdr->fp = inFile->fp;
-  if (info->pixel) {
-    inFile->xscale = inFile->yscale = inFile->zscale = info->pixel;
-    if (info->zPixel)
-      inFile->zscale = info->zPixel;
-  }
 
-  /* Set flags for type of data */
-  switch(info->type) {
-  case RAW_MODE_BYTE:
-    hdr->mode = MRC_MODE_BYTE;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_UBYTE;
-  case RAW_MODE_SBYTE:
-    hdr->mode = MRC_MODE_BYTE;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_BYTE;
-    break;
-  case RAW_MODE_SHORT:
-    hdr->mode = MRC_MODE_SHORT;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_SHORT;
-    break;
-  case RAW_MODE_USHORT:
-    hdr->mode = MRC_MODE_USHORT;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_USHORT;
-    break;
-  case RAW_MODE_FLOAT:
-    hdr->mode = MRC_MODE_FLOAT;
-    inFile->format = IIFORMAT_LUMINANCE;
-    inFile->type   = IITYPE_FLOAT;
-    break;
-  case RAW_MODE_COMPLEX_FLOAT:
-    hdr->mode = MRC_MODE_COMPLEX_FLOAT;
-    inFile->format = IIFORMAT_COMPLEX;
-    inFile->type   = IITYPE_FLOAT;
-    break;
-  case RAW_MODE_RGB:
-    hdr->mode = MRC_MODE_RGB;
-    inFile->format = IIFORMAT_RGB;
-    inFile->type   = IITYPE_UBYTE;
-    break;
-  }
-
-  /* Set the header and the access routines; just use the MRC routines */
+  /* Pass on a min and max of 0 as a sign that there is no min/max */
+  hdr->amin = info->amin;
+  hdr->amax = info->amax;
+  if (info->pixel)
+    mrc_set_scale(hdr, (double)info->pixel, (double)info->pixel, 
+                  (double)(info->zPixel ? info->zPixel : info->pixel));
   inFile->header = (char *)hdr;
+  iiMRCmodeToFormatType(inFile, hdr->mode, hdr->bytesSigned);
+  iiSyncFromMrcHeader(inFile, hdr);
+
+  /* Set the access routines; just use the MRC routines */
   iiMRCsetIOFuncs(inFile, 1);
   inFile->cleanUp = iiLikeMRCDelete;
-  inFile->mode = hdr->mode;
   return 0;
 }
 

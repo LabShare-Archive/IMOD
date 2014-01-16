@@ -36,7 +36,7 @@ class ArrowButton;
 #include <qspinbox.h>
 
 #include "imodconfig.h"
-#include "mrcc.h"
+#include "iimage.h"
 #include "b3dutil.h"
 #include "warpfiles.h"
 #include <qgl.h>

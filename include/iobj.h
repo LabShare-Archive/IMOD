@@ -129,6 +129,7 @@ extern "C" {
   int   imodObjectDelete(Iobj *obj);
   int   imodObjectsDelete(Iobj *obj, int size);
   int   imodObjectCopy(Iobj *from, Iobj *to);
+  int   imodObjectCopyClear(Iobj *from, Iobj *to);
   Iobj *imodObjectDup(Iobj *obj);
 
 

@@ -80,9 +80,8 @@ int sliceByteEdgeTwo(Islice *sin, int center)
   float val;
   int imax = sin->xsize - 1;
   int jmax = sin->ysize - 1;
-  int i, j, x, y;
-  float range;
-  float Sr, Sc, k;
+  int i, j;
+  float Sr, Sc;
 
   for(i = 1; i < imax; i++) 
     for(j = 1; j < jmax; j++){
@@ -173,7 +172,7 @@ int sliceByteConvolve(Islice *sin, int mask[3][3])
   Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_SHORT);
   int imax = sin->xsize - 1;
   int jmax = sin->ysize - 1;
-  int i, j, m, n;
+  int i, j;
   int val;
 
   /* 11/7/04: No longer need to determine mean of mask with new scaling */
@@ -284,9 +283,7 @@ int sliceByteShrink(Islice *sin, int val)
   Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_BYTE);
   int imax = sin->xsize;
   int jmax = sin->ysize;
-  int i, j, m, n;
-  int tval;
-  int white = 0;
+  int i, j;
 
   unsigned char pmin = (unsigned char)sin->min;
   unsigned char pmax = (unsigned char)sin->max;
@@ -318,9 +315,8 @@ int sliceByteGraham(Islice *sin)
   float val;
   int imax = sin->xsize - 1;
   int jmax = sin->ysize - 1;
-  int i, j, x, y;
-  float range;
-  float Ixx, Iyy, k;
+  int i, j;
+  float Ixx, Iyy;
   float ld = 1.0f/6.0f;
   float hd = 1.0f/3.0f;
   float delta = 5;

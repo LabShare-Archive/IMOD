@@ -1140,6 +1140,7 @@ void istoreShiftIndex(Ilist *list, int ptIndex, int startScan, int amount)
     if (stp->index.i >= ptIndex)
       stp->index.i += amount;
   }
+  istoreSort(list);
 }
 
 /*!

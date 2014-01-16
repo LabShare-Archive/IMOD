@@ -31,6 +31,9 @@
 #include "./fillContours/fillContours.h"
 #include "sys/stat.h"
 #include <time.h>
+#ifdef _WIN32
+#include "Windows.h"
+#endif
 
 //#pragma warning(disable : ) // Ignore warnings for deprecated conversion from string constant to ‘char*’ produced by pip source code
 using namespace std;
@@ -564,9 +567,15 @@ int main(int argc, char* argv[])
     }
     else //copy angles from inputDir
     {
-        cmd=string("cp " + inputDir + basename + ".rawtlt " + outputDirIMOD);
-        error=system((cmd + " > " + errorOutputLog).c_str());
-        if (error!=0)
+#ifdef _WIN32
+      BOOL copyOK = CopyFile((inputDir + basename + ".rawtlt").c_str(),
+                             (outputDirIMOD + basename + ".rawtlt").c_str(), FALSE);
+      error = copyOK ? 0 : 1;
+#else
+      cmd=string("cp " + inputDir + basename + ".rawtlt " + outputDirIMOD);
+      error=system((cmd + " > " + errorOutputLog).c_str());
+#endif
+      if (error!=0)
         {
             cout<<"ERROR: error executing the command "<<cmd<<" in function RAPTOPR::Main"<<endl;
             exit(error);

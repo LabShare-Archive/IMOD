@@ -345,6 +345,13 @@ int readbytessigned(int *stamp, int *flags, int *mode, float *dmin, float *dmax)
   return readBytesSigned(*stamp, *flags, *mode, *dmin, *dmax);
 }
 
+/*!
+ * Changes bytes from unsigned to signed or back either in place or while copying to a 
+ * new array, provided that [bytesSigned] is nonzero.  If [direction] is >= 0, changes 
+ * unsigned bytes in [usbuf] to signed bytes in [buf] by subtracting 128; otherwise it 
+ * changes signed bytes in [buf] to unsigned bytes in [usbuf] by adding 128.  The number 
+ * of bytes is given by [nx] * [ny].  [usbuf] and  [buf] may be the same.
+ */
 void b3dShiftBytes(unsigned char *usbuf, char *sbuf, int nx, int ny, int direction,
                        int bytesSigned)
 {
@@ -360,10 +367,55 @@ void b3dShiftBytes(unsigned char *usbuf, char *sbuf, int nx, int ny, int directi
       *usbuf++ = (unsigned char)((int)(*sbuf++) + 128);
 }
 
+/*! Fortran wrapper to @b3dShiftBytes */
 void b3dshiftbytes(unsigned char *usbuf, char *sbuf, int *nx, int *ny, int *direction,
                        int *bytesSigned)
 {
   b3dShiftBytes(usbuf, sbuf, *nx, *ny, *direction, *bytesSigned);
+}
+
+static int sOutputTypeOverride = -1;
+
+/*!
+ * Sets the output file type, overriding the default and the value specified by 
+ * environment variable.  Valid values are OUTPUT_TYPE_MRC (2) and OUTPUT_TYPE_TIFF (1).
+ */
+void overrideOutputType(int type)
+{
+  sOutputTypeOverride = type;
+}
+
+/*! Fortran wrapper to @overrideOutputType */
+void overrideoutputtype(int *type)
+{
+  overrideOutputType(*type);
+}
+
+/*!
+ * Returns the current output file type  OUTPUT_TYPE_MRC (2) or OUTPUT_TYPE_TIFF (1), 
+ * The type is either the default type (which is MRC), or the value of the environment 
+ * variable IMOD_OUTPUT_FORMAT if that is set and is 'MRC', 'TIF', or 'TIFF', overridden
+ * by a value set with @@overrideOutputType@.
+ */
+int b3dOutputFileType()
+{
+  int type = OUTPUT_TYPE_DEFAULT;
+  char *envtype = getenv(OUTPUT_TYPE_ENV_VAR);
+  if (envtype) {
+    if (!strcmp(envtype, "MRC"))
+      type = OUTPUT_TYPE_MRC;
+    else if (!strcmp(envtype, "TIFF") || !strcmp(envtype, "TIF"))
+      type = OUTPUT_TYPE_TIFF;
+  }
+  if (sOutputTypeOverride == OUTPUT_TYPE_MRC || sOutputTypeOverride == OUTPUT_TYPE_TIFF)
+    type = sOutputTypeOverride;
+  return type;
+}
+
+/*! Fortran wrapper to @b3dOutputFileType */
+int b3doutputfiletype()
+{
+  return b3dOutputFileType();
 }
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 

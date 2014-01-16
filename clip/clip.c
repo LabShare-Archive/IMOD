@@ -14,8 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "clip.h"
 #include "imodconfig.h"
 #include "b3dutil.h"
@@ -464,7 +463,7 @@ int main( int argc, char *argv[] )
   /* check and load files:
    * Always at least one input file.
    */
-  hin.fp = fopen(argv[i], "rb");
+  hin.fp = iiFOpen(argv[i], "rb");
   hin.pathname = argv[i];
   if (!hin.fp){
     fprintf(stderr, "Error opening %s\n", argv[i]);
@@ -486,7 +485,7 @@ int main( int argc, char *argv[] )
   /* Load additional input files. */
   i++;
   if (opt.infiles > 1){
-    hin2.fp = fopen(argv[i], "rb");
+    hin2.fp = iiFOpen(argv[i], "rb");
     hin2.pathname = argv[i];
     if (!hin2.fp){
       fprintf(stderr, "Error opening %s\n", argv[i]);
@@ -511,7 +510,7 @@ int main( int argc, char *argv[] )
   if (procout && (!needtwo || opt.infiles > 1)){
     opt.ofname = argv[argc - 1];
     if (opt.add2file){
-      hout.fp = fopen(argv[argc - 1], "rb+");
+      hout.fp = iiFOpen(argv[argc - 1], "rb+");
       if (!hout.fp){
         fprintf(stderr, "Error finding %s\n", argv[argc - 1]);
         return(-1);
@@ -528,7 +527,13 @@ int main( int argc, char *argv[] )
       if (!getenv("IMOD_NO_IMAGE_BACKUP"))
         imodBackupFile(argv[argc - 1]);
 
-      hout.fp = fopen(argv[argc - 1], "wb+");
+      if (process == IP_FFT && hin.mode != MRC_MODE_COMPLEX_FLOAT && 
+          b3dOutputFileType() == IIFILE_TIFF) {
+        printf("WARNING: clip - Writing an MRC file; TIFF files cannot contain FFTs\n");
+        overrideOutputType(IIFILE_MRC);
+      }
+
+      hout.fp = iiFOpen(argv[argc - 1], "wb+");
         
       if (!hout.fp){
         fprintf(stderr, "Error opening %s\n", argv[argc - 1]);
@@ -655,9 +660,9 @@ int main( int argc, char *argv[] )
 
   if (retval)
     exit(retval);
-  fclose (hin.fp);
+  iiFClose (hin.fp);
   if (procout && process != IP_SPLITRGB)
-    fclose (hout.fp);
+    iiFClose (hout.fp);
 
   if (view){
     sprintf(viewcmd, "3dmod %s", argv[argc - 1]);

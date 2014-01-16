@@ -269,6 +269,16 @@ void setExitPrefix(const char *prefix)
   PipExitOnError(0, prefix);
 }
 
+void setStandardExitPrefix(const char *progName)
+{
+  char *prefix = (char *)malloc(strlen(progName) + 15);
+  if (PipMemoryError(prefix, "setStandardExitPrefix"))
+    return;
+  sprintf(prefix, "\nERROR: %s - ", progName);
+  PipExitOnError(0, prefix);
+  free(prefix);
+}
+
 void PipAllowCommaDefaults(int val)
 {
   sAllowDefaults = val;

@@ -2,29 +2,65 @@
 .nh
 .TH imodchopconts 1 2.50 BL3DEMC
 .SH NAME
-imodchopconts \- Break contours in IMOD model into pieces with specified overlap
+imodchopconts \- Chop up contours in IMOD model based on length or color
 .SH SYNOPSIS
 imodchopconts  [options]  input_model  output_model
 .SH DESCRIPTION
-This program will chop contours into pieces with equals numbers of
-points, and with a specified amount of overlap between the pieces.  It
+This program will chop contours into pieces in two different ways.  In
+one mode, it will produce contours with equal numbers of
+points, and with a specified amount of overlap between the pieces.
+This mode of operation
 has two main uses: 1) Breaking up the contours produced by patch tracking with
 Tiltxcorr(1) into overlapping pieces, which can give a better fit in Tiltalign(1).
 2) Splitting up scattered point contours so that there is one point per
 contour.  However, it could also be used to split up contours into
-other lengths, with or without overlap.
+other lengths, with or without overlap.  In its other mode of
+operation, the program will break contours apart at fine-grained color
+changes between points, and put the new contours into separate surfaces
+or separate objects.  Whole contours that are a different color because
+of a fine-grained contour color property will also be sorted into
+different surfaces or objects.  The color can thus be changed at the
+surface or object level for all contour segments of the same color,
+which is otherwise difficult.  Breaking contours apart in this way also
+allows quantitative analysis to be done on separately colored segments
+by programs that do not take account of fine-grained color changes.
 .P
-Specifying positive numbers for the \fB-length\fR and
-\fB-overlap\fR options here has exactly the same effect as providing
-those two numbers to the  \fB-length\fR option of Tiltxcorr(1).
+Specifying positive numbers for the
+\fB-length\fR and \fB-overlap\fR options here has exactly the same
+effect as providing those two numbers to the \fB-length\fR option of
+Tiltxcorr(1).
 .P
-Fine grained information at the point level will be preserved in the
-newly created contours.  Fine-grained information for an individual
-contour will be transferred to each of the new contours derived from
-it.  Surface-level fine-grained information will also be preserved
-unless the 
+When doing length-base chopping, fine grained information at the point
+level will be preserved in the newly created contours.  Fine-grained
+information for an individual contour will be transferred to each of
+the new contours derived from it.  Surface-level fine-grained
+information will also be preserved unless the 
 .B -surfaces 
 option is given.
+.P
+When doing color-based chopping, all line segments will be appear with
+their original colors for open or closed contour objects.  This
+requires a duplication of points at the contour endpoints.
+However, there is no such duplication of points for scattered point objects.
+.P
+Fine grained information will be preserved during color-based chopping
+to the extent that it makes sense.  Specifically, fine-grained
+properties at all three levels (point, contour, or surface) will be
+preserved in the new contours, except for color.  The color is not
+lost, but is incorporated into the surface or object to which the derived
+contours are assigned and is thus removed as a fine-grained property.
+Contour level fine-grained properties are transferred from the original
+contour to each contour derived from it.  Surface level information is
+transferred differently depending on whether contours are assigned to
+surfaces or objects.  In the latter case, the derived contours have the
+same surface number as the original one, and all non-color surface
+information is copied to each new object.  When derived contours are
+assigned to new surfaces, surface information that applies to the
+original contour is duplicated for the new surfaces.
+.P
+If for some reason your model has surface-level fine-grained data, it
+will probably be preferable to split contours into new objects, to avoid a
+proliferation of surfaces.
 .SH OPTIONS
 Imodchopconts uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line

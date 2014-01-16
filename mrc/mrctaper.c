@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "mrcslice.h"
-#include "mrcfiles.h"
+#include "iimage.h"
+#include "parse_params.h"
 #include "b3dutil.h"
 #include "sliceproc.h"
 
@@ -48,6 +48,7 @@ int main( int argc, char *argv[] )
   int zmin = -1, zmax = -1;
   int secofs;
   char *progname = imodProgName(argv[0]);
+  setStandardExitPrefix(progname);
 
   if (argc < 2){
     fprintf(stderr, 
@@ -57,9 +58,9 @@ int main( int argc, char *argv[] )
     exit(3);
   }
 
-  for (i = 1; i < argc; i++)
-    if (argv[i][0] == '-')
-      switch (argv[i][1]){
+  for (i = 1; i < argc; i++) {
+    if (argv[i][0] == '-') {
+      switch (argv[i][1]) {
           
       case 'i':
         inside = 1;
@@ -85,41 +86,31 @@ int main( int argc, char *argv[] )
         mrctaper_help(progname);
         exit(1);
         break;
-            
-      }else break;
-
-     
+      }
+    } else
+      break;
+  }
 
   if (i < (argc - 2) || i == argc){
     mrctaper_help(progname);
     exit(3);      
   }
 
-  if (ntaper < 1 || ntaper > 127) {
-    printf("ERROR: %s - Taper must be between 1 and 127.\n",
-            progname);
-    exit(3);
-  }
+  if (ntaper < 1 || ntaper > 127)
+    exitError("Taper must be between 1 and 127.");
 
   if (i < argc - 1)
-    fin = fopen(argv[i++], "rb");
+    fin = iiFOpen(argv[i++], "rb");
   else
-    fin = fopen(argv[i++], "rb+");
+    fin = iiFOpen(argv[i++], "rb+");
 
-  if (fin == NULL){
-    printf("ERROR: %s - Opening %s.\n", progname, argv[i - 1]);
-    exit(3);
-  }
-  if (mrc_head_read(fin, &hdata)) {
-    printf("ERROR: %s - Can't Read Input File Header.\n", progname);
-    exit(3);
-  }
+  if (fin == NULL)
+    exitError("Opening %s.", argv[i - 1]);
+  if (mrc_head_read(fin, &hdata))
+    exitError("Can't Read Input File Header.");
 
-  if (sliceModeIfReal(hdata.mode) < 0) {
-    printf("ERROR: %s - Can operate only on byte, integer and "
-            "real data.\n", progname);
-    exit(3);
-  }
+  if (sliceModeIfReal(hdata.mode) < 0)
+    exitError("Can operate only on byte, integer and real data.");
 
   if (!taperEntered) {
     ntaper = (hdata.nx + hdata.ny) / 200;
@@ -137,13 +128,13 @@ int main( int argc, char *argv[] )
       zmax = hdata.nz - 1;
   }
      
-  if (i < argc){
-    fout = fopen(argv[i], "wb");
-    if (fout == NULL) {
-      printf("ERROR: %s - Opening %s.\n", progname, argv[i]);
-      exit(3);
-    }
+  if (i < argc) {
+    fout = iiFOpen(argv[i], "wb");
+    if (fout == NULL)
+      exitError("Opening %s.", argv[i]);
     hout = hdata;
+    hout.fp = fout;
+
     /* DNM: eliminate extra header info in the output, and mark it as not swapped  */
     mrcInitOutputHeader(&hout);
     hptr = &hout;
@@ -151,12 +142,10 @@ int main( int argc, char *argv[] )
     hout.mz = hout.nz;
     hout.zlen = hout.nz;
     secofs = zmin;
-  }else{
-    /* DNM 6/26/02: it it OK now */
-    /* if (hdata.swapped) {
-       fprintf(stderr, "%s: Cannot write to byte-swapped file.\n", progname);
-       exit(3);
-       } */
+  } else {
+    if (b3dOutputFileType() == IIFILE_TIFF)
+      exitError("Cannot write to an existing TIFF file.");
+      
     hptr = &hdata;
     fout = fin;
     secofs = 0;
@@ -167,37 +156,28 @@ int main( int argc, char *argv[] )
   bsize = hdata.nx * hdata.ny;
   buf = (unsigned char *)malloc(dsize * csize * bsize);
      
-  if (!buf){
-    printf("ERROR: %s - Couldn't get memory for slice.\n", progname);
-    exit(3);
-  }
+  if (!buf)
+    exitError("Couldn't get memory for slice.");
   sliceInit(&slice, hdata.nx, hdata.ny, hdata.mode, buf);
 
   for (i = zmin; i <= zmax; i++) {
     printf("\rDoing section #%4d", i);
     fflush(stdout);
-    if (mrc_read_slice(buf, fin, &hdata, i, 'Z')) {
-      printf("\nERROR: %s - Reading section %d.\n", progname, i);
-      exit(3);
-    }
+    if (mrc_read_slice(buf, fin, &hdata, i, 'Z'))
+      exitError("Reading section %d.", i);
       
-    if (sliceTaperAtFill(&slice, ntaper, inside)) {
-      printf("\nERROR: %s - Can't get memory for taper operation.\n",
-              progname);
-      exit(3);
-    }
+    if (sliceTaperAtFill(&slice, ntaper, inside))
+      exitError("Can't get memory for taper operation.");
           
-    if (mrc_write_slice(buf, fout, hptr, i - secofs, 'Z')) {
-      printf("\nERROR: %s - Writing section %d.\n", progname, i);
-      exit(3);
-    }
+    if (mrc_write_slice(buf, fout, hptr, i - secofs, 'Z'))
+      exitError("Writing section %d.", i);
   }
   puts("\nDone!");
 
-  mrc_head_label(hptr, "mrctaper: Image tapered down to fill value at "
-                 "edges");
+  mrc_head_label(hptr, "mrctaper: Image tapered down to fill value at edges");
 
   mrc_head_write(fout, hptr);
+  iiFClose(fout);
 
   return(0);
 }

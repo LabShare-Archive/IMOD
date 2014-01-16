@@ -23,7 +23,7 @@ EXPORTS
 	mrc_slice_wrap
 	iiWriteSectionFloat
 	iiuWriteSection
-	mrc_read_point
+	iiConvertLineOfFloats
 	mrc_swap_longs
 	sliceByteGrow
 	iiuRetSpaceGroup
@@ -48,10 +48,12 @@ EXPORTS
 	iiAddRawCheckFunction
 	IALSIGNED
 	sliceMedianFilter
+	iiSaveLoadParams
 	IALTLT_ROT
 	iiuAltTilt
 	mrcContrastScaling
 	IIURETNUMEXTENDED
+	iiSyncFromMrcHeader
 	sliceFloat
 	IALTLT
 	iiPlistFromMetadata
@@ -70,6 +72,7 @@ EXPORTS
 	IALMAP
 	iiuAltNumExtended
 	tiffGetArray
+	iiChangeCallCount
 	ZERO
 	mrcReadFloatSlice
 	IIUREADSECTION
@@ -117,6 +120,7 @@ EXPORTS
 	iiuRetExtendedData
 	IIURETIMODFLAGS
 	mrc_slice_zooms
+	iiFOpen
 	iiuRetLabels
 	mrc_slice_resize
 	IIUWRITESECTION
@@ -146,15 +150,18 @@ EXPORTS
 	sliceWrapFFTLines
 	IIUALTLABELS
 	IIURETBRIEF
+	iiCallingReadOrWrite
 	mrc_slice_lie
 	mrc_plist_load
 	IRTDEL
 	IIUALTDATATYPE
 	tiffGetField
+	iiOpenNew
 	mrc_head_write
 	sliceByteConvolve
 	iiuMrcHeader
 	sliceMMM
+	iiuFileType
 	ITRHDR
 	mrc_write_slice
 	IALSYM
@@ -178,8 +185,10 @@ EXPORTS
 	IIUALTSAMPLE
 	sliceByteEdgeSobel
 	IIUREADLINES
+	iiRestoreLoadParams
 	iiuReadLines
 	IIUALTEXTENDEDDATA
+	iiMRCopenNew
 	iiuAltDelta
 	IIURETRMS
 	iiuRetDataType
@@ -208,11 +217,14 @@ EXPORTS
 	mrc_head_new
 	IRTSIZ
 	iiuRetTiltOrig
+	tiffFillMrcHeader
 	iiAddCheckFunction
 	IRTCEL
 	iiuWriteLines
 	IRTLAB
+	iiTiffWriteSection
 	IALSYMTYP
+	iiFillMrcHeader
 	iiDeleteRawCheckList
 	mrc_slice_translate
 	ITREXTRA
@@ -232,6 +244,7 @@ EXPORTS
 	mrc_slice_putvol
 	sliceMirror
 	niceFrame
+	iiReadPoint
 	iiMRCwriteSectionFloat
 	IMCLOSE
 	mrcReadYFloat
@@ -256,6 +269,7 @@ EXPORTS
 	iiuExitOnError
 	mrc_swap_shorts
 	MOVE
+	iiFClose
 	iiMRCcheckPCoord
 	iiuRetCell
 	iiuTransLabels
@@ -277,6 +291,8 @@ EXPORTS
 	iiuRetSample
 	IWRLIN
 	mrcReadZByte
+	iiLookupFileFromFP
+	iiMRCfillHeader
 	mrc_byte_mmm
 	IIUALTRMS
 	IALSAM
@@ -287,12 +303,14 @@ EXPORTS
 	iiuAltExtendedType
 	tiffWriteFinish
 	mrc_slice_getvol
+	iiTiffWriteSectionFloat
 	IALDAT
 	iiuAltLabels
 	iiReadSectionFloat
 	IIUALTDELTA
 	iiuWriteSubarray
 	sliceByteEdgePrewitt
+	iiMRCmodeToFormatType
 	sliceNewMode
 	IIUREADSECPART
 	IIURETTILT
@@ -326,7 +344,6 @@ EXPORTS
 	tiffOpenNew
 	IIURETTILTORIG
 	IWRSEC
-	mrc_write_byte
 	tiffFilterWarnings
 	tiffReopen
 	iiClose

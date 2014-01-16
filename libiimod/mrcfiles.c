@@ -17,7 +17,7 @@
 #include <limits.h>
 #include <time.h>
 #include <math.h>
-#include "mrcfiles.h"
+#include "iimage.h"
 #include "b3dutil.h"
 
 /* These defines are OK since all I/O in file is to MRC files */
@@ -43,7 +43,9 @@
  * and {nz} are positive, that one of them is < 65536, and that {mapc}, {mapr},
  * and {maps} be between 0 and 4.  Leaves the file pointer [fin] in the {fp} 
  * member of [hdata].  Returns -1 for I/O error, or 1 if these requirements are
- * not met or if the mode or number of labels are inappropriate.
+ * not met or if the mode or number of labels are inappropriate.  However, if [fin] is
+ * a file pointer in the list of opened ImodImageFiles, it calls 
+ * @@iimage.html#iiFillMrcHeader@ instead since the header has already been read.
  */
 int mrc_head_read(FILE *fin, MrcHeader *hdata)
 {
@@ -51,9 +53,16 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
   int retval = 0;
   //int filesize;
   int datasize;
+  ImodImageFile *iiFile;
 
   if (!fin)
     return(-1);
+
+  iiFile = iiLookupFileFromFP(fin);
+  if (iiFile) {
+    return iiFillMrcHeader(iiFile, hdata);
+  }
+
   b3dRewind(fin);
      
   if (fread(hdata, 4, 56, fin) != 56){
@@ -225,16 +234,26 @@ int mrc_test_size(MrcHeader *hdata)
 }
 
 /*!
- * Write the MRC header in [hdata] to the file with pointer [fout].  Returns
- * 1 for error.
+ * Write the MRC header in [hdata] to the file with pointer [fout].  First, it looks up
+ * [fout] in the list of opened ImodImageFiles and if it finds that it belongs to a 
+ * non-MRC file, it calls @@iimage.html#iiSyncFromMrcHeader@ and returns 0.  Otherwise, 
+ * it returns 1 for error.
  */
 int mrc_head_write(FILE *fout, MrcHeader *hdata)
 {
   int i;
+  ImodImageFile *iiFile;
   MrcHeader hcopy;
 
   if (!fout)
     return(1);
+  iiFile = iiLookupFileFromFP(fout);
+  if (iiFile && iiFile->file != IIFILE_MRC) {
+    if (iiFile->file != IIFILE_RAW)
+      iiSyncFromMrcHeader(iiFile, hdata);
+    /* There is not yet a need for a header-writing function for other file types */
+    return 0;
+  }
 
   /* Set the IMOD stamp and flags and clear out old creator field when writing */
   hdata->imodStamp = IMOD_MRC_STAMP;
@@ -652,110 +671,10 @@ void mrc_set_cmap_stamp(MrcHeader *hdata)
  */
 
 /*!
- * Returns the value of a single pixel at [x, y, z] from the file with pointer
- * [fin] given the header properties in [hdata].  Gives the value directly for
- * byte, short, and float data, and the magnitude for complex data.  Returns
- * the file minimum {hdata->amin} for coordinates out of bounds.
- */
-float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
-{
-  int pixsize = 1;
-  unsigned char bdata;
-  char sbdata;
-  b3dInt16 sdata;
-  b3dInt16 sidata, srdata;
-  b3dUInt16 usdata;
-  float fdata = hdata->amin;
-  float fidata, frdata;
-  double rdata;
-  int channel = 1;
-
-  if (!fin) return(fdata);
-  if (x < 0 || y < 0 || z < 0 || 
-      x >= hdata->nx || y >= hdata->ny || z >= hdata->nz)
-    return(fdata);
-
-  if ((hdata->mode == MRC_MODE_SHORT) || (hdata->mode == MRC_MODE_USHORT) ||
-      (hdata->mode == MRC_MODE_COMPLEX_SHORT))
-    pixsize = sizeof(b3dInt16);
-     
-  if ((hdata->mode == MRC_MODE_FLOAT) || 
-      (hdata->mode == MRC_MODE_COMPLEX_FLOAT))
-    pixsize = sizeof(b3dFloat);
-
-  if ((hdata->mode == MRC_MODE_COMPLEX_FLOAT) || 
-      (hdata->mode == MRC_MODE_COMPLEX_SHORT))
-    channel = 2;
-
-  /* rewind(fin);
-     fseek(fin, (hdata->headerSize + (channel * pixsize *  
-     ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
-     SEEK_CUR); */
-  mrcHugeSeek(fin, hdata->headerSize + hdata->sectionSkip * z, x, y, z, 
-              hdata->nx, hdata->ny, channel * pixsize, SEEK_SET);
-  switch(hdata->mode){
-  case MRC_MODE_BYTE:
-    if (hdata->bytesSigned) {
-      fread(&sbdata, pixsize, 1, fin);     
-      fdata = sbdata + 128;
-    } else {
-      fread(&bdata, pixsize, 1, fin);     
-      fdata = bdata;
-    }
-    break;
-  case MRC_MODE_SHORT:
-    fread(&sdata, pixsize, 1, fin);
-    if (hdata->swapped)
-      mrc_swap_shorts(&sdata, 1);
-    fdata = sdata;
-    break;
-  case MRC_MODE_USHORT:
-    fread(&usdata, pixsize, 1, fin);
-    if (hdata->swapped)
-      mrc_swap_shorts((b3dInt16 *)&usdata, 1);
-    fdata = usdata;
-    break;
-  case MRC_MODE_FLOAT:
-    fread(&fdata, pixsize, 1, fin);
-    if (hdata->swapped)
-      mrc_swap_floats(&fdata, 1);
-    break;
-  case MRC_MODE_COMPLEX_SHORT:
-    fread(&srdata, pixsize, 1, fin);
-    fread(&sidata, pixsize, 1, fin);
-    if (hdata->swapped) {
-      mrc_swap_shorts(&srdata, 1);
-      mrc_swap_shorts(&sidata, 1);
-    }
-    rdata = ((double)srdata * (double)srdata) + 
-      ((double)sidata * (double)sidata);
-    fdata = (float)sqrt(rdata);
-    break;
-  case MRC_MODE_COMPLEX_FLOAT:
-    fread(&frdata, pixsize, 1, fin);
-    fread(&fidata, pixsize, 1, fin);
-    if (hdata->swapped) {
-      mrc_swap_floats(&frdata, 1);
-      mrc_swap_floats(&fidata, 1);
-    }
-    rdata = ((double)frdata * (double)frdata) + 
-      ((double)fidata * (double)fidata);
-    fdata = (float)sqrt(rdata);
-    break;
-  default:
-    break;
-  }
-
-  /*     printf("Pixel %d %d %d = %g\n", x, y, z, fdata);    */
-
-  return(fdata);
-}
-
-/*!
  * Allocates and returns one plane of data at the coordinate given by [slice]
  * along the axis given by [axis], which must be one of x, X, y, Y, z, or Z.  
  * Reads from the file with pointer [fin] according to the header in [hdata] 
- * and swaps bytes if necessary.  Returns NULL for errors.
+ * and swaps bytes if necessary.  Calls @mrc_read_slice.  Returns NULL for errors.
  */
 void *mrc_mread_slice(FILE *fin, MrcHeader *hdata, int slice, char axis)
 {
@@ -789,7 +708,6 @@ void *mrc_mread_slice(FILE *fin, MrcHeader *hdata, int slice, char axis)
     return(NULL);
   }
   buf = (unsigned char *)malloc(dsize * csize * bsize);
-     
   if (!buf){
     b3dError(stderr, "ERROR: mrc_mread_slice - couldn't get memory.\n");
     return(NULL);
@@ -807,7 +725,10 @@ void *mrc_mread_slice(FILE *fin, MrcHeader *hdata, int slice, char axis)
  * [slice] along the axis given by [axis], which must be one of x, X, y, Y, z,
  * or Z.  Reads from the file with pointer [fin] according to the header in 
  * [hdata] and swaps bytes if necessary.  Should work with planes > 4 GB on
- * 64-bit systems.  Returns -1 for errors.
+ * 64-bit systems.  If the axis is Y or Z, it calls @@mrcfiles.html#mrcReadSection@ and
+ * returns its return value; thus it can read from all file types for Z planes and
+ * from file types other than TIFF for Y planes.  Can read X planes only from MRC-like
+ * files; in that case it returns -1 for errors.
  */
 int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, char axis)
 {
@@ -816,9 +737,29 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, char axis)
   b3dInt16 *sbuf = (b3dInt16 *)buf;
   b3dFloat *fbuf = (b3dFloat *)buf;
   char *sbbuf = (char *)buf;
-
   int dcsize;
   int j,k;
+  IloadInfo li;
+  ImodImageFile *iiFile;
+  FILE *fpSave =  hdata->fp;
+
+  mrc_init_li(&li, NULL);
+  mrc_init_li(&li, hdata);
+  if (axis == 'z' || axis == 'Z' || axis == 'y' || axis == 'Y') {
+    if (axis == 'y' || axis == 'Y')
+      li.axis = 2;
+    hdata->fp = fin;
+    j = mrcReadSection(hdata, &li, buf, slice);
+    hdata->fp = fpSave;
+    return j;
+  }
+
+  iiFile = iiLookupFileFromFP(fin);
+  if (iiFile && iiFile->file != IIFILE_MRC && iiFile->file != IIFILE_RAW) {
+    b3dError(stderr, "ERROR: mrc_read_slice - Cannot read X slice from non-MRC-like "
+             "file\n");
+    return(-1);
+  }
 
   rewind(fin);
   fseek(fin, hdata->headerSize, SEEK_SET);
@@ -830,10 +771,8 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, char axis)
   }
   dcsize = dsize * csize;
 
-  switch (axis){
-    /* slowest loading  use z or y if possible. */
-  case 'x':
-  case 'X':
+  /* slowest loading  use z or y if possible. */
+  if (axis == 'x' || axis == 'X') {
     sxsize = hdata->ny;
     sysize = hdata->nz;
     if (slice >= hdata->nx)
@@ -851,45 +790,7 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice, char axis)
       if (hdata->sectionSkip)
         fseek(fin, hdata->sectionSkip, SEEK_CUR);
     }
-    break;
-
-  case 'y':
-  case 'Y':
-    sxsize = hdata->nx;
-    sysize = hdata->nz;
-    if (slice >= hdata->ny)
-      return(-1);
-    /* fseek( fin, slice * hdata->nx * dcsize, SEEK_CUR); */
-    mrcHugeSeek(fin, 0, 0, slice, 0, hdata->nx, hdata->ny, dcsize, SEEK_CUR);
-    for(k = 0; k < hdata->nz; k++){
-      if (fread(data, dcsize, hdata->nx, fin) != hdata->nx) {
-        b3dError(stderr, "ERROR: mrc_read_slice y - fread error.\n");
-        return(-1);
-      }
-      data += dcsize * hdata->nx;
-      /*fseek(fin, dcsize * (xysize - hdata->nx), SEEK_CUR);*/
-      mrcHugeSeek(fin, hdata->sectionSkip, 0, hdata->ny - 1, 0, hdata->nx,
-                  hdata->ny, dcsize, SEEK_CUR);
-    }
-    break;
-          
-  case 'z':
-  case 'Z':
-    sxsize = hdata->nx;
-    sysize = hdata->ny;
-    if (slice >= hdata->nz)
-      return(-1);
-    /*  fseek( fin, slice * hdata->nx * hdata->ny * dcsize,
-        SEEK_CUR); */
-    mrcHugeSeek(fin, slice * hdata->sectionSkip, 0, 0, slice, hdata->nx,
-                hdata->ny, dcsize, SEEK_CUR);
-    if (fread(data, dcsize * hdata->nx, hdata->ny, fin) != hdata->ny) {
-      b3dError(stderr, "ERROR: mrc_read_slice z - fread error.\n");
-      return(-1);
-    }
-    break;
-          
-  default:
+  } else {
     b3dError(stderr, "ERROR: mrc_read_slice - axis error.\n");
     return(-1);
   }
@@ -981,7 +882,8 @@ unsigned char **read_mrc_byte(FILE *fin,
  * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory .  Should work
  * with planes > 4 GB on 64-bit systems.  The dimensions and mode in [hdata]
  * (as well as the {mx} and {xlen} members, etc.), are modified so as to be 
- * appropriate if the data volume is written.  Returns NULL for error.
+ * appropriate if the data volume is written.  Returns NULL for error.  Does NOT work
+ * with non-MRC-like files.
  */
 unsigned char **mrc_read_byte(FILE *fin, 
                               MrcHeader *hdata, 
@@ -1016,7 +918,8 @@ unsigned char **mrc_read_byte(FILE *fin,
   unsigned char *map = NULL;
   int freeMap = 0;
   b3dUInt16 *usdata;
-
+  ImodImageFile *iiFile;
+ 
   /* Max # of bytes in full lines before reiterating the status output */
   int statusLimit = 4000000;   
 
@@ -1025,6 +928,12 @@ unsigned char **mrc_read_byte(FILE *fin,
     return(NULL);
   if (!hdata)
     return(NULL);
+  iiFile = iiLookupFileFromFP(fin);
+  if (iiFile && iiFile->file != IIFILE_MRC && iiFile->file != IIFILE_RAW) {
+    b3dError(stderr, "ERROR: mrc_read_byte - Cannot be used with non-MRC-like file\n");
+    return(NULL);
+  }
+
   if (li){
     xsize = li->xmax - li->xmin + 1;
     ysize = li->ymax - li->ymin + 1;
@@ -1351,7 +1260,6 @@ void mrcContrastScaling(MrcHeader *hdata, float smin, float smax, int black,
     max = smax;
     min = smin;
   }
-  /*printf("min %f  max %f black %d white %d\n", min, max, black, white); */
 
   if (ramptype == MRC_RAMP_LOG){
     min = (float)log((double)min);
@@ -1390,81 +1298,23 @@ void mrcContrastScaling(MrcHeader *hdata, float smin, float smax, int black,
  */
 
 /*!
- * Writes byte data in [data] to the file with pointer [fout] according to the 
- * dimensions in header [hdata].  [data] must be an array of pointers to 
- * {hdata->nz} planes of data.  Returns 0 (no error checks).  Unused 5/7/05.
- * Should write bytes as signed when appropriate, but this is untested.
- */
-int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
-{
-  int k;
-  int xysize = hdata->nx * hdata->ny;
-     
-  for (k = 0; k < hdata->nz; k++) {
-    b3dShiftBytes(data[k], (char *)(data[k]), hdata->nx, hdata->ny,1, hdata->bytesSigned);
-    fwrite(data[k], 1, xysize, fout);
-    b3dShiftBytes(data[k], (char *)(data[k]), hdata->nx, hdata->ny,-1,hdata->bytesSigned);
-  }
-  return(0);
-}
-
-
-/*!
  * Writes byte, short, or float image data to the file with pointer [fout] 
- * according to the dimensions and mode in header [hdata].  [data] must be an
- * array of pointers to {hdata->nz} planes of data.  Should be able to handle
- * planes > 4 GB.  Returns -1 for attempt to write a byte-swapped file, 0 for 
- * improper mode, -2 for a write error, or 1 for success.  Was used by mrcbyte
- * until 5/30/08.  Should write bytes as signed when appropriate, but this is untested.
+ * according to the dimensions and mode in header [hdata], and starting from the 
+ * beginning of the file.  [data] must be an
+ * array of pointers to {hdata->nz} planes of data.  Simply calls @mrc_write_slice and
+ * returns its return value.  An earlier version was used by mrcbyte
+ * until 5/30/08; this is currently unused.
  */
 int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 {
-  int k, j=0, nwrote;
-  unsigned char **bdata;
-  b3dInt16         **sdata;
-  b3dFloat         **fdata;
-
-  if (hdata->swapped) {
-    b3dError(stderr, "ERROR: mrc_write_idata - cannot write to a byte-swapped file.\n");
-    return(-1);
-  }
-
-
+  int k, j = 0;
 
   for (k = 0; k < hdata->nz; k++) {
-    switch (hdata->mode) {
-    case MRC_MODE_BYTE:
-      bdata = (unsigned char **)data;
-      b3dShiftBytes(bdata[k], (char *)(bdata[k]), hdata->nx, hdata->ny, 1, 
-                 hdata->bytesSigned);
-      nwrote = fwrite(bdata[k], hdata->nx, hdata->ny, fout);
-      b3dShiftBytes(bdata[k], (char *)(bdata[k]), hdata->nx, hdata->ny, -1, 
-                 hdata->bytesSigned);
-      break;
-      
-    case MRC_MODE_SHORT:
-    case MRC_MODE_USHORT:
-      sdata = (b3dInt16 **)data;
-      nwrote = fwrite(&(sdata[k][j]), hdata->nx * sizeof(b3dInt16),
-                      hdata->ny, fout);
-      break;
-      
-    case MRC_MODE_FLOAT:
-      fdata = (b3dFloat **)data;
-      nwrote = fwrite(&(fdata[k][j]),  hdata->nx * sizeof(b3dFloat),  
-                      hdata->ny, fout);
-      break;
-      
-    default:
-      b3dError(stderr, "ERROR: mrc_write_idata - unknown mode\n");
-      return(0);
-    }
-    if (nwrote != hdata->ny) {
-      b3dError(stderr, "ERROR: mrc_write_idata - Writing data to file\n");
-      return(-2);
-    }
+    j = mrc_write_slice(data[k], fout, hdata, k, 'Z');
+    if (j) 
+      return(j);
   }
-  return(1);
+  return(0);
 }
 
 /*!
@@ -1472,10 +1322,11 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
  * [slice] along the axis given by [axis], which must be one of x, X, y, Y, z,
  * or Z.  Writes to the file with pointer [fout] according to the header in 
  * [hdata] and swaps bytes if necessary.  Should handle planes > 4 GB on 64-bit
- * systems.  Returns -1 for errors.
+ * systems.  When writing to a Z slice, it calls @@mrcfiles.html#mrcWriteZ@ and
+ * returns its return value.  Otherwise, it will only work with MRC files and
+ * returns -1 for errors.
  */
-int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
-                    char axis)
+int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice, char axis)
 {
   int dsize, csize, retval = 0;
   size_t slicesize, sxsize, sysize;
@@ -1484,9 +1335,28 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
   b3dInt16 *sbuf;
   b3dFloat *fbuf;
   int bytesSigned = (!hdata->mode && hdata->bytesSigned) ? 1 : 0;
+  FILE *fpSave = hdata->fp;
+  IloadInfo li;
+  ImodImageFile *iiFile;
 
   if (!buf || slice < 0)
     return(-1);
+
+  if (axis == 'Z' || axis == 'z') {
+    mrc_init_li(&li, NULL);
+    mrc_init_li(&li, hdata);
+    hdata->fp = fout;
+    j = mrcWriteZ(hdata, &li, buf, slice);
+    hdata->fp = fpSave;
+    return j;
+  }
+
+  iiFile = iiLookupFileFromFP(fout);
+  if (iiFile && iiFile->file != IIFILE_MRC && iiFile->file != IIFILE_RAW) {
+    b3dError(stderr, "ERROR: mrc_write_slice - Cannot write X or Y slice to non-MRC-like "
+             "file\n");
+    return(-1);
+  }
 
   rewind(fout);
   fseek(fout, hdata->headerSize, SEEK_SET);
@@ -1519,16 +1389,6 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
     sysize = hdata->nz;
     break;
           
-  case 'z':
-  case 'Z':
-    if (slice >= hdata->nz) {
-      b3dError(stderr, "ERROR: mrc_write_slice - slice number (%d) bigger than nz(%d).\n",
-               slice, hdata->nz);
-      return(-1);
-    }
-    sxsize = nx;
-    sysize = ny;
-    break;
   default:
     b3dError(stderr, "ERROR: mrc_write_slice - axis error.\n");
     return(-1);
@@ -1590,17 +1450,6 @@ int mrc_write_slice(void *buf, FILE *fout, MrcHeader *hdata, int slice,
       data += dcsize * nx;
       /* fseek(fout, dcsize * (xysize - nx), SEEK_CUR); */
       mrcHugeSeek(fout, 0, 0, ny - 1, 0, nx, ny, dcsize, SEEK_CUR);
-    }
-    break;
-
-  case 'z':
-  case 'Z':
-    /*  fseek( fout, slice * nx * ny * dcsize, SEEK_CUR); */
-    mrcHugeSeek(fout, 0, 0, 0, slice, nx, ny, dcsize, SEEK_CUR);
-  if ((k = fwrite(data, dcsize * nx, ny, fout)) != ny) {
-    b3dError(stderr, "ERROR: mrc_write_slice z - fwrite error, ny=%d, return value=%d.\n",
-             ny, k);
-      retval = -1;
     }
     break;
     

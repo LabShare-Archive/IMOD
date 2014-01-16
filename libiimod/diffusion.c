@@ -26,8 +26,8 @@ void updateMatrix(float **image, float **imageOld, int m, int n,
   double      cE;
   double      cW;
   double      gradN, gradS, gradE, gradW;
-  double      wCen = 0.5;
-  double      wSide = 0.25;
+  /*double      wCen = 0.5;
+    double      wSide = 0.25; */
   double      ksq = k * k;
   int         i, j, ip1, im1, jp1, jm1;
     

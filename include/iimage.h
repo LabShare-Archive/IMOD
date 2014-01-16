@@ -15,6 +15,8 @@ extern "C" {
 
   /* DOC_CODE ImodImageFile definitions */
   /* Values for the file member of ImodImageFile, describing kind of file */
+  /* Except IIFILE_DEFAULT means use the default output file type */
+#define IIFILE_DEFAULT -1
 #define IIFILE_UNKNOWN 0
 #define IIFILE_TIFF    1
 #define IIFILE_MRC     2
@@ -79,7 +81,7 @@ extern "C" {
   struct  ImodImageFileStruct
   {
     char *filename;
-    char *fmode;
+    char fmode[4];
     FILE *fp;
     char *description;
     int   state;
@@ -90,6 +92,7 @@ extern "C" {
     int   format;     /* Kind of data represented: i.e. gray, color, complex */
     int   type;       /* Type if numerical elements, i.e. byte, etc. */
     int   mode;       /* MRC mode value */
+    int   newFile;    /* Newly created file */
 
     /* optional data to be set if input file supports it. */
     float amin, amax, amean;
@@ -122,6 +125,7 @@ extern "C" {
     int  anyTiffPixSize;     /* Set non-0 to have TIFF pixel size put into [xyz]scale */
     int  tileSizeX;          /* Tile size in X, or 0 if no tiles */
     int  tileSizeY;          /* Tile size in Y if tiles, strip size if not */
+    int  lastWrittenZ;       /* Last Z written, needed if sequential writing only */
 
     /* Callback functions used by different file formats. */
     iiSectionFunc readSection;
@@ -133,6 +137,8 @@ extern "C" {
     void (*cleanUp)(ImodImageFile *inFile);
     void (*close)(ImodImageFile *inFile);
     int (*reopen)(ImodImageFile *inFile);
+    int (*fillMrcHeader)(ImodImageFile *inFile, MrcHeader *hdata);
+    int (*syncFromMrcHeader)(ImodImageFile *inFile, MrcHeader *hdata);
 
   };
 /* END_CODE */
@@ -166,15 +172,28 @@ extern "C" {
   void iiDeleteRawCheckList();
   ImodImageFile *iiNew(void);
   ImodImageFile *iiOpen(const char *filename, const char *mode);
+  ImodImageFile *iiOpenNew(const char *filename, const char *mode, int fileKind);
   int  iiReopen(ImodImageFile *inFile);
   void iiClose(ImodImageFile *inFile);
   void iiDelete(ImodImageFile *inFile);
+  int iiFillMrcHeader(ImodImageFile *inFile, MrcHeader *hdata);
+  void iiSyncFromMrcHeader(ImodImageFile *inFile, MrcHeader *hdata);
   int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax, float scaleMax);
+  FILE *iiFOpen(const char *filename, const char *mode);
+  ImodImageFile *iiLookupFileFromFP(FILE *fp);
+  void iiFClose(FILE *fp);
+  void iiChangeCallCount(int delta);
+  int iiCallingReadOrWrite();
+  void iiConvertLineOfFloats(float *fbufp, unsigned char *bdata, int nx, int mrcMode, 
+                             int bytesSigned);
+  void iiSaveLoadParams(ImodImageFile *iiFile, ImodImageFile *iiSave);
+  int iiRestoreLoadParams(int retVal, ImodImageFile *iiFile, ImodImageFile *iiSave);
 
   int iiReadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int iiReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
+  float iiReadPoint(ImodImageFile *inFile, int x, int y, int z);
   int iiLoadPCoord(ImodImageFile *inFile, int useMdoc, IloadInfo *li,
                    int nx, int ny, int nz);
 
@@ -187,7 +206,10 @@ extern "C" {
   /* Declarations for specific file types needed by other modules */
   int iiTIFFCheck(ImodImageFile *inFile);
   int iiMRCCheck(ImodImageFile *inFile);
+  int iiMRCfillHeader(ImodImageFile *inFile, MrcHeader *hdata);
+  int iiMRCopenNew(ImodImageFile *inFile, const char *mode);
   void iiMRCsetIOFuncs(ImodImageFile *inFile, int rawFile);
+  void iiMRCmodeToFormatType(ImodImageFile *iif, int mode, int bytesSigned);
   int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
@@ -196,6 +218,7 @@ extern "C" {
   int iiMRCwriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
   int iiMRCLoadPCoord(ImodImageFile *inFile, IloadInfo *li, int nx, int ny, int nz);
   int iiMRCcheckPCoord(MrcHeader *hdr);
+  int tiffFillMrcHeader(ImodImageFile *inFile, MrcHeader *hdata);
   int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
@@ -213,6 +236,8 @@ extern "C" {
                      int quality, int *outRows, int *outNum, int *tileSizeX);
   int tiffWriteStrip(ImodImageFile *inFile, int strip, void *buf);
   void tiffWriteFinish(ImodImageFile *inFile);
+  int iiTiffWriteSection(ImodImageFile *inFile, char *buf, int inSection);
+  int iiTiffWriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
   int tiffVersion(int *minor);
   int tiffReopen(ImodImageFile *inFile);
   void tiffDelete(ImodImageFile *inFile);

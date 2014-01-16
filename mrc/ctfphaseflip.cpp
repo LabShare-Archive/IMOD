@@ -16,8 +16,7 @@
 #include <stdlib.h>
 
 #include "b3dutil.h"
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "sliceproc.h"
 #include "ilist.h"
 #include "ctfutils.h"
@@ -104,7 +103,7 @@ int main(int argc, char *argv[])
   printf("pixelSize=%f nm, cs=%f mm, ampContrast=%f \n", pixelSize, cs, ampContrast);
 
   FILE *fpStack;
-  if ((fpStack = fopen(stackFn, "rb")) == 0)
+  if ((fpStack = iiFOpen(stackFn, "rb")) == 0)
     exitError("could not open input file %s", stackFn);
   defocusList = readDefocusFile(defFn, defVersion);
   if (!ilistSize(defocusList))
@@ -166,25 +165,25 @@ int main(int argc, char *argv[])
     outHeader.mz = endingTotal - startingTotal + 1;
   }
   outHeader.zlen = header.zlen * outHeader.nz / header.nz;
-  outHeader.next = 0;
-  outHeader.headerSize = 1024;
-  outHeader.swapped = 0;
+  mrcInitOutputHeader(&outHeader);
   mrc_head_label(&outHeader, "ctfPhaseFlip: CTF correction "
                  "with phase flipping only");
 
   if ((startingView == -1 && endingView == -1) || isSingleRun) {
+    if (!isSingleRun && b3dOutputFileType() == IIFILE_TIFF)
+      exitError("Cannot do parallel writing to a TIFF output file");
     imodBackupFile(outFn);
-    foutput = fopen(outFn, "wb");
+    foutput = iiFOpen(outFn, "wb");
   } else
-    foutput = fopen(outFn, "r+b");
+    foutput = iiFOpen(outFn, "r+b");
   if (!foutput)
     exitError("fopen() failed to open %s", outFn);
 
   if (startingView == -1 && endingView == -1 && !isSingleRun) {
     if (mrc_head_write(foutput, &outHeader))
       exitError("Error when write out header");
-    fclose(fpStack);
-    fclose(foutput);
+    iiFClose(fpStack);
+    iiFClose(foutput);
     return 0;
   }
 
@@ -462,7 +461,7 @@ int main(int argc, char *argv[])
     printf("min, max, mean, # pixels= %f  %f  %f %d \n",
            amin, amax, meanSum / (double)currNz, nx * ny * currNz);
   }
-  fclose(foutput);
-  fclose(fpStack);
+  iiFClose(foutput);
+  iiFClose(fpStack);
   free(defocus);
 }

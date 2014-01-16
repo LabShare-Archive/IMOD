@@ -28,10 +28,17 @@
 #define B3DSWAP(a,b,c) {c = (a); a = (b); b = c;}
 
 #define IMOD_MRC_STAMP 1146047817
-#define WRITE_SBYTES_DEFAULT 0
+#define WRITE_SBYTES_DEFAULT 1
 #define WRITE_SBYTES_ENV_VAR "WRITE_MODE0_SIGNED"
 #define READ_SBYTES_ENV_VAR "READ_MODE0_SIGNED"
 #define MRC_FLAGS_SBYTES  1
+
+/* Duplicate definitions of output-capable IITYPE values to avoid including iimage.h */
+#define OUTPUT_TYPE_TIFF    1
+#define OUTPUT_TYPE_MRC     2
+#define OUTPUT_TYPE_DEFAULT OUTPUT_TYPE_MRC
+#define OUTPUT_TYPE_ENV_VAR "IMOD_OUTPUT_FORMAT"
+
 
 /* Determinant of 3x3 matrix */
 #define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
@@ -81,7 +88,8 @@ extern "C" {
   int readBytesSigned(int stamp, int flags, int mode, float dmin, float dmax);
   void b3dShiftBytes(unsigned char *usbuf, char *sbuf, int nx, int ny, int direction,
                      int bytesSigned);
-
+  void overrideOutputType(int type);
+  int b3dOutputFileType();
 
 #ifdef __cplusplus
 }

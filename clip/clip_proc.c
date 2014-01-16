@@ -15,8 +15,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#include "mrcfiles.h"
-#include "mrcslice.h"
+#include "iimage.h"
 #include "sliceproc.h"
 #include "b3dutil.h"
 #include "clip.h"
@@ -1146,7 +1145,7 @@ int clip_joinrgb(MrcHeader *h1, MrcHeader *h2,
   }
   hdr[0] = *h1;
   hdr[1] = *h2;
-  hdr[2].fp = fopen(opt->fnames[2], "rb");
+  hdr[2].fp = iiFOpen(opt->fnames[2], "rb");
 
   if (!hdr[2].fp){
       printf("ERROR: clip joinrgb - opening %s.\n", opt->fnames[2]);
@@ -1293,7 +1292,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     if (hdr[i].mz)
       hdr[i].zorg -= opt->secs[0] * hdr[i].zlen / hdr[i].mz;
       
-    hdr[i].fp = fopen(fname, "wb+");
+    hdr[i].fp = iiFOpen(fname, "wb+");
     if (!hdr[i].fp){
       printf("ERROR: clip - opening %s\n", fname);
       return(-1);
@@ -1349,6 +1348,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     if (mrc_head_write(hdr[i].fp, &hdr[i]))
       return -1;
     sliceFree(srgb[i]);
+    iiFClose(hdr[i].fp);
   }
   sliceFree(s);
   return(0);
@@ -1438,7 +1438,7 @@ int clip_average(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout, ClipOptions *opt
     hdr[f] = (MrcHeader *)malloc(sizeof(MrcHeader));
     if (!hdr[f])
       return(-1);
-    hdr[f]->fp = fopen(opt->fnames[f], "rb");
+    hdr[f]->fp = iiFOpen(opt->fnames[f], "rb");
     if (!hdr[f]->fp){
       show_error("clip volume combining: error opening %s.", opt->fnames[f]);
       return(-1);
@@ -1701,7 +1701,7 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
 {
   Islice *s, *so;
   char *message, *titleProc;
-  int i, j, k, z, dsize, csize1, csize2, divByZero = 0, readOnce;
+  int i, j, k, z, dsize, csize1, csize2, divByZero = 0, readOnce, doRound;
   Ival val, oval;
   float tmp, denom, scaledVal, scale = 1.;
   char title[54];
@@ -1761,6 +1761,11 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
     sprintf(title, "clip: %s", titleProc);
   mrc_head_label(hout, title);
 
+  /* Do rounding if there is a single channel in and out and the output mode is not float
+     and either we are doing division or one of the input modes is float */
+  doRound = csize1 * csize2 == 1 &&  hout->mode != MRC_MODE_FLOAT && 
+    (h1->mode == MRC_MODE_FLOAT || h2->mode == MRC_MODE_FLOAT || 
+     opt->process == IP_DIVIDE);
   readOnce = (h2->nz == 1 && h1->nz > 1) ? 1 : 0;
   for (k = 0; k < opt->nofsecs; k++) {
     printf("\rclip: %s slice %d of %d", message, k + 1, opt->nofsecs);
@@ -1789,7 +1794,19 @@ int clip_multdiv(MrcHeader *h1, MrcHeader *h2, MrcHeader *hout,
       for (i = 0; i < opt->ix; i ++) {
         sliceGetVal(s, i, j,   val);
         sliceGetVal(so, i, j, oval);
-        if (csize2 == 1 || hout->mode == MRC_MODE_FLOAT) {
+        if (doRound) {
+
+          /* Single channel with rounding because of integer output from float */
+          if (opt->process == IP_MULTIPLY)
+            oval[0] = B3DNINT(oval[0] * val[0] * scale);
+          else if (val[0] != 0)
+            oval[0] = B3DNINT(oval[0] * (scale / val[0]));
+          else {
+            divByZero++;
+            oval[0] = 0.;
+          }
+
+        } else if (csize2 == 1 || hout->mode == MRC_MODE_FLOAT) {
 
           /* Ordinary mult or div, possible multi-channel */
           if (opt->process == IP_MULTIPLY) {
@@ -1853,7 +1870,7 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
 {
   Islice *slRef, *slOut, *slIn;
   int z, i, j, k, ival, base, truncVal, splitVal;
-  float offset, scale;
+  float offset, scale = 1.;
   float val[3] = {0., 0., 0.};
   int doRef = opt->infiles == 2 ? TRUE : FALSE;
   int truncThresh = 100;
@@ -1922,13 +1939,14 @@ int clipUnpack(MrcHeader *hin1, MrcHeader *hin2, MrcHeader *hout, ClipOptions *o
 
       // Unpack, low bits first, truncate, and scale
       for (i = 0; i < opt->ix; i++) {
-        scale = doRef ? slRef->data.f[2 * (i + base)] : 1.;
         ival = slIn->data.b[i + base];
+        scale = doRef ? slRef->data.f[2 * (i + base)] : 1.;
         splitVal = ival & 15;
         if (splitVal > truncThresh)
           splitVal = truncVal;
         val[0] = splitVal * scale + offset;
         slicePutVal(slOut, 2 * i, j, val);
+        scale = doRef ? slRef->data.f[2 * (i + base) + 1] : 1.;
         splitVal = ival >> 4;
         if (splitVal > truncThresh)
           splitVal = truncVal;

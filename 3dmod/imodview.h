@@ -385,6 +385,12 @@ void DLL_EX_IM scaleBarAllLengths(float &zapLen, float &slicerLen, float &xyzLen
 void DLL_EX_IM ivwOpen3dmodDialogs(const char *keys);
 
 /*
+ * Returns the current snapshot directory or an empty string if one is not set, in
+ * which case snapshots will be to QDir::currentPath().
+ */
+QString DLL_EX_IM b3dGetSnapDirectory(void);
+
+/*
  * Selection list functions in imod_edit.cpp
  */
 

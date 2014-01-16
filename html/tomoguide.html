@@ -941,14 +941,14 @@ first.  <B>Open Initial Bead Model </B> will show you whether
 <P>
 A variety of problems can be addressed by the Advanced controls:
 <UL>
-<LI> <B>Failure to find histogram dip</B>.  If
+<LI> <I>Failure to find histogram dip</I>.  If
 <A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A> reports that
     it cannot find a dip in the histogram of correlation peak strengths, it
     may help to enter a value for the <B>Estimated number of beads in
     sample</B>.  The value only needs to be a rough guess for the minimum
     number of beads present, but it may help the program find a dip,
     particularly if there are relatively few beads.
-<LI> <B>Incorrect bead size</B>.  If the initial bead-finding fails to identify a
+<LI> <I>Incorrect bead size</I>.  If the initial bead-finding fails to identify a
   substantial number of beads, first check the diameter of a few beads in
   3dmod to make sure that it matches the nominal bead size entered when
   starting the data set.  If the diameter is off by more than 10%, it could be
@@ -956,21 +956,21 @@ A variety of problems can be addressed by the Advanced controls:
   images, check <B>Find and adjust bead size</B> and run again.  This
   procedure does not work for plastic-section data sets taken near focus; the
   only recourse there is to restart the data set.
-<LI><B>Incorrect threshold for storing peaks</B>. If the initial bead model
+<LI><I>Incorrect threshold for storing peaks</I>. If the initial bead model
   includes many non-beads or excludes many beads, and the final seed selection
   suffers as a result, you can try adjusting the <B>Fraction of peaks to
   store</B>.  Enter a value above 1 to include more beads or below 1 to
   exclude more non-beads, in either case estimated by the 
   ratio of the total actual beads to the total of points picked. 
-<LI><B>Beads too near the edge</B> If beads have been picked too near the
+<LI><I>Beads too near the edge</I> If beads have been picked too near the
   edge of the image, you can enter a border size in pixels for X and Y in the
   box <B>Borders in X & Y</B>.
-<LI><B>Too few beads selected because of clustering</B>. If you have too few
+<LI><I>Too few beads selected because of clustering</I>. If you have too few
   fiducials because many beads are in pairs or larger clusters, you may need to
   include beads identified as clustered by checking <B>Allow clustered
   beads</B>.  In this case, only one of a pair of beads will be picked.  These
   beads may not track properly at high tilt.
-<LI><B>Beads inappropriately excluded as elongated</B>.  Elongated beads are
+<LI><I>Beads inappropriately excluded as elongated</I>.  Elongated beads are
   excluded because they can represent two overlapping beads, which
   will become distinct at higher tilt.  However, if a small fraction of beads 
   occur over dense, variable
@@ -984,7 +984,7 @@ A variety of problems can be addressed by the Advanced controls:
   identified as elongated are usable, 
   you can turn on <B>Allow elongated beads of severity</B> and select an
   appropriate severity level.
-<LI> <B>Poor tracking or sorting onto two sides in some runs</B>.  If you
+<LI> <I>Poor tracking or sorting onto two sides in some runs</I>.  If you
   chose to find beads on two surfaces, the display of 3D models may show that
   the sorting onto two sides is flawed for one or more tarcking runs, but good
   for the rest.  You can then exclude these models from consideration by

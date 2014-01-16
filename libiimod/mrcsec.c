@@ -17,7 +17,7 @@
 #include <math.h>
 #include <errno.h>
 #include "b3dutil.h"
-#include "mrcfiles.h"
+#include "iimage.h"
 
 #define MRSA_BYTE 1
 #define MRSA_FLOAT 2
@@ -27,6 +27,10 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf
                              int readY, int type);
 static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int cz,
                               int mode);
+static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis, 
+                                   ImodImageFile *iiSave);
+static int callIIorMRSA(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z,
+                        int readY, int type, iiSectionFunc func);
 
 /*
  * Routines for accessing particular kinds of data as bytes or raw, Y or Z
@@ -38,13 +42,17 @@ static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *bu
  * Reads one Z slice of raw data at Z value [z] into the buffer [buf] from the 
  * MRC file whose header is in [hdata].  The @@IloadInfo structure@ [li] 
  * controls the subarea loaded through its members {xmin}, {xmax}, {ymin},
- * and {ymax}.
- * Returns 1 for an illegal request, 2 for a memory error, or 3 for an error 
- * reading the file.
+ * and {ymax}  If it is not already
+ * being called by one of the iiRead functions in @@iimage.html#TOP@, it looks
+ * up whether the {fp} member of [hdata] is on the list of opened ImodImageFiles and if 
+ * so, redirects the call through an iiRead function.
+ * Returns 1 for an illegal request, 2 for a memory error, 3 for an error 
+ * reading the file, or if the call is redirected, it can return -1 if no function is 
+ * defined for the operation or error codes from I/O functions for other file types.
  */
 int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 0, 0));
+  return (callIIorMRSA(hdata, li, buf, z, 0, 0, iiReadSection));
 }
 
 /*!
@@ -54,7 +62,7 @@ int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 0, MRSA_BYTE));
+  return (callIIorMRSA(hdata, li, buf, z, 0, MRSA_BYTE, iiReadSectionByte));
 }
 
 /*!
@@ -64,7 +72,7 @@ int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadZUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 0, MRSA_USHORT));
+  return (callIIorMRSA(hdata, li, buf, z, 0, MRSA_USHORT, iiReadSectionUShort));
 }
 
 /*!
@@ -73,7 +81,8 @@ int mrcReadZUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, 0,MRSA_FLOAT));
+  return (callIIorMRSA(hdata, li, (unsigned char *)buf, z, 0,MRSA_FLOAT, 
+                       iiReadSectionFloat));
 }
 
 /*!
@@ -85,7 +94,7 @@ int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
  */
 int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 1, 0));
+  return (callIIorMRSA(hdata, li, buf, z, 1, 0, iiReadSection));
 }
 
 /*!
@@ -95,7 +104,7 @@ int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 1, MRSA_BYTE));
+  return (callIIorMRSA(hdata, li, buf, z, 1, MRSA_BYTE, iiReadSectionByte));
 }
 
 /*!
@@ -105,7 +114,7 @@ int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadYUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 1, MRSA_USHORT));
+  return (callIIorMRSA(hdata, li, buf, z, 1, MRSA_USHORT, iiReadSectionUShort));
 }
 
 /*!
@@ -114,7 +123,8 @@ int mrcReadYUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, 1,MRSA_FLOAT));
+  return (callIIorMRSA(hdata, li, (unsigned char *)buf, z, 1,MRSA_FLOAT, 
+                       iiReadSectionFloat));
 }
 
 /*!
@@ -122,14 +132,18 @@ int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
  * MRC file whose header is in [hdata].  A Y slice at Y = [z] is loaded if the
  * {axis} member of [li] is 2; otherwise a Z slice at Z = [z] is loaded.
  * The subarea loaded is determined by [li] members {xmin}, {xmax}, and {ymin}
- * and {ymax} (for a Z slice) or {zmin} and {zmax} (for a Y slice).
- * Returns 1 for an illegal request, 2 for a memory error, or 3 for an error 
- * reading the file.
+ * and {ymax} (for a Z slice) or {zmin} and {zmax} (for a Y slice).  If it is not already
+ * being called by one of the iiRead functions in @@iimage.html#TOP@, it looks
+ * up whether the {fp} member of [hdata] is on the list of opened ImodImageFiles and if 
+ * so, redirects the call through an iiRead function.
+ * Returns 1 for an illegal request, 2 for a memory error, 3 for an error 
+ * reading the file, or if the call is redirected, it can return -1 if no function is 
+ * defined for the operation or error codes from I/O functions for other file types.
  */
 int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  return (mrcReadSectionAny(hdata, li, buf, z, readY, 0));
+  return (callIIorMRSA(hdata, li, buf, z, readY, 0, iiReadSection));
 }
 
 /*!
@@ -140,7 +154,7 @@ int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  return (mrcReadSectionAny(hdata, li, buf, z, readY, MRSA_BYTE));
+  return (callIIorMRSA(hdata, li, buf, z, readY, MRSA_BYTE, iiReadSectionByte));
 }
 
 /*!
@@ -151,7 +165,7 @@ int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int 
 int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  return (mrcReadSectionAny(hdata, li, buf, z, readY, MRSA_USHORT));
+  return (callIIorMRSA(hdata, li, buf, z, readY, MRSA_USHORT, iiReadSectionUShort));
 }
 
 /*!
@@ -161,8 +175,21 @@ int mrcReadSectionUShort(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, in
 int mrcReadSectionFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, readY, 
-                            MRSA_FLOAT));
+  return (callIIorMRSA(hdata, li, (unsigned char *)buf, z, readY, MRSA_FLOAT,
+                       iiReadSectionFloat));
+}
+
+/*
+ * Looks up an iiFile for the fp and redirects to the indicated function, otherwise
+ * proceeds to call the read function
+ */
+static int callIIorMRSA(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z,
+                        int readY, int type, iiSectionFunc func)
+{
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, readY ? 2 : 3, &iiSave)) != NULL)
+    return iiRestoreLoadParams(func(iiFile, (char *)buf, z), iiFile, &iiSave);
+  return (mrcReadSectionAny(hdata, li, buf, z, readY, type));
 }
 
 /*
@@ -376,7 +403,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     j = (yEnd - yStart) * xsize;
     bdata += pixSize * j;
     pixIndex += j;
-    bufp += j;
+    bufp += pixSizeBuf[type] * j;
     usbufp += j;
     fbufp += j;
     deltaYsign = -1;
@@ -406,7 +433,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     }
   }
   /* printf("ps %d cl %d nd %d ds %d nx %d xsize %d pl %d pr %d\n", pixSize, chunkLines,
-     needData, (int)dataSize, nx, xsize, padLeft, padRight); */
+     needData, (int)dataSize, nx, xsize, padLeft, padRight);*/
 
   /* Get the supplemental data array, set all pointers to it */
   if (needData) {
@@ -803,11 +830,22 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
  * {swapped} and {bytesSigned} members of [hdata].  The @@IloadInfo structure@ [li] 
  * controls the lines to be written through its members {ymin}
  * and {ymax}; only full lines can be written and {xmin} and {xmax} must be 0 and nx - 1.
- * Returns 1 for an illegal request, 2 for a memory error, or 3 for an error 
- * seeking or writing the file.
+ * If it is not already being called by one of the iiWrite functions in 
+ * @@iimage.html#TOP@, it looks up whether the {fp} member of [hdata] is on the opened 
+ * file list and if so, redirects the call through an iiWrite function.
+ * Returns 1 for an illegal request, 2 for a memory error, 3 for an error seeking or
+ * writing the file, or if the call is redirected, it can return -1 if no function is 
+ * defined for the operation or error codes from I/O functions for other file types.
  */
 int mrcWriteZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL) {
+    iiSyncFromMrcHeader(iiFile, hdata);
+    if (iiFile->file == IIFILE_MRC && (MrcHeader *)iiFile->header != hdata)
+      *((MrcHeader *)iiFile->header) = *hdata;
+    return iiRestoreLoadParams(iiWriteSection(iiFile, (char *)buf, z), iiFile, &iiSave);
+  }
   return (mrcWriteSectionAny(hdata, li, buf, z, hdata->mode));
 }
 
@@ -820,6 +858,14 @@ int mrcWriteZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcWriteZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
 {
+  ImodImageFile *iiFile, iiSave;
+  if ((iiFile = lookupIIfile(hdata, li, 3, &iiSave)) != NULL) {
+    iiSyncFromMrcHeader(iiFile, hdata);
+    if (iiFile->file == IIFILE_MRC && (MrcHeader *)iiFile->header != hdata)
+      *((MrcHeader *)iiFile->header) = *hdata;
+    return iiRestoreLoadParams(iiWriteSectionFloat(iiFile, (char *)buf, z), iiFile, 
+                               &iiSave);
+  }
   return (mrcWriteSectionAny(hdata, li, (unsigned char *)buf, z, 
                              hdata->mode == MRC_MODE_COMPLEX_FLOAT || 
                              hdata->mode == MRC_MODE_COMPLEX_SHORT ?
@@ -839,7 +885,7 @@ static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *bu
   int convert = hdata->mode != bufMode ? 1 : 0;
   int padLeft = B3DMAX(0, li->padLeft);
   int padRight = B3DMAX(0, li->padRight);
-  int i, j, ival, xDimension;
+  int j, xDimension;
   int pixSizeOut, pixSizeBuf, bytesPerChanOut, numChanOut, bytesPerChanBuf, numChanBuf;
   int needData = 0;
   int chunkLines = 1;
@@ -848,7 +894,6 @@ static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *bu
   /* Buffer to write lines from; may be replaced by temporary buffer */
   unsigned char *bdata = buf;
   b3dInt16 *sdata;
-  b3dUInt16 *usdata;
   char *sbdata;
 
   /* Copies of buffer pointer that can be advanced after each line */
@@ -895,9 +940,8 @@ static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *bu
       return 2;
     }
   }
-  /* printf("ystart %d yend %d needData %d convert %d chunkLines %d bufmode %d filemode"
-     " %d\n", yStart, yEnd, needData, convert, chunkLines, bufMode, hdata->mode); */
-  
+  /*printf("ystart %d yend %d needData %d convert %d chunkLines %d bufmode %d filemode"
+     " %d\n", yStart, yEnd, needData, convert, chunkLines, bufMode, hdata->mode);*/
   if (mrcHugeSeek(fin, hdata->headerSize + hdata->sectionSkip * cz, 0, yStart, cz,
                   nx, ny, pixSizeOut, SEEK_SET)) {
     b3dError(stderr, "ERROR: mrcWriteSectionAny - seeking to write location.\n");
@@ -923,53 +967,12 @@ static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *bu
     /* Start loop on Y */
     for (; j <= lineEnd; j++) {
       sdata = (b3dInt16 *)bdata;
-      usdata = (b3dUInt16 *)bdata;
       sbdata = (char *)bdata;
 
       if (convert) {
 
-        /* Conversions of float to int/byte */
-        switch (hdata->mode) {
-        case MRC_MODE_BYTE:
-          if (bytesSigned) {
-
-            /* Signed bytes */
-            for (i = 0; i < nx; i++) {
-              ival = (int)floor(fbufp[i] - 127.5);
-              B3DCLAMP(ival, -128, 127);
-              sbdata[i] = (char)ival;
-            }
-          } else {
-
-            /* Unsigned bytes */
-            for (i = 0; i < nx; i++) {
-              ival = (int)(fbufp[i] + 0.5f);
-              B3DCLAMP(ival, 0, 255);
-              bdata[i] = (unsigned char)ival;
-            }
-          }
-          break;
-
-          /* Signed shorts */
-        case MRC_MODE_SHORT:
-          for (i = 0; i < nx; i++) {
-            ival = (int)floor(fbufp[i] + 0.5);
-            B3DCLAMP(ival, -32768, 32767);
-            sdata[i] = (b3dInt16)ival;
-          }
-          break;
-
-          /* Unsigned shorts */
-        case MRC_MODE_USHORT:
-          for (i = 0; i < nx; i++) {
-            ival = (int)(fbufp[i] + 0.5f);
-            B3DCLAMP(ival, 0, 65535);
-            usdata[i] = (b3dUInt16)ival;
-          }
-          break;
-        }
-
-        /* Now swap data if needed */
+        /* Convert floats then swap data if needed */
+        iiConvertLineOfFloats(fbufp, bdata, nx, hdata->mode, bytesSigned);
         if (hdata->swapped && hdata->mode)
           mrc_swap_shorts(sdata, nx);
         fbufp += xDimension;
@@ -1007,4 +1010,40 @@ static int mrcWriteSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *bu
   }
   B3DFREE(tmpData);
   return 0;
+}
+
+/*
+ * If this is not already a call from an II function, look up the iiFile from the file 
+ * pointer, and if it is not MRC-like, it fills in the I/O limits for the given axis and
+ * returns the iiFile.
+ */
+static ImodImageFile *lookupIIfile(MrcHeader *hdata, IloadInfo *li, int axis, 
+                                   ImodImageFile *iiSave)
+{
+  ImodImageFile *iiFile;
+  if (iiCallingReadOrWrite())
+    return NULL;
+  iiFile = iiLookupFileFromFP(hdata->fp);
+  if (!iiFile || iiFile->file == IIFILE_MRC || iiFile->file == IIFILE_RAW)
+    return NULL;
+
+  /* Save original parameters */
+  iiSaveLoadParams(iiFile, iiSave);
+
+  /* Set up the load */
+  iiFile->llx = li->xmin;
+  iiFile->urx = li->xmax;
+  if (axis == 3) {
+    iiFile->lly = li->ymin;
+    iiFile->ury = li->ymax;
+  } else {
+    iiFile->llz = li->zmin;
+    iiFile->urz = li->zmax;
+  }
+  iiFile->axis = axis;
+  iiFile->padLeft = li->padLeft;
+  iiFile->padRight = li->padRight;
+  iiFile->slope = li->slope;
+  iiFile->offset = li->offset;
+  return iiFile;
 }

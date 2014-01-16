@@ -52,6 +52,8 @@ static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert, 
                              int winType);
+static float ivwReadBinnedPoint(ImodView *vi, ImodImageFile *image, int cx, int cy,
+                                int cz);
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi, bool modview)
@@ -782,6 +784,12 @@ int ivwGetImagePadding(ImodView *vi, int cy, int section, int time, int &llX,
 
   int fz;
   bool blankX, blankY, blankZ = false;
+
+  if (vi->fakeImage) {
+    llX = leftXpad = rightXpad = llY = leftYpad = rightYpad = llZ = leftZpad = 
+      rightZpad = 0.;
+    return 1;
+  }
 
   // Copy the right image file structure for the situation
   leftZpad = rightZpad = llZ = 0;
@@ -1818,31 +1826,29 @@ int ivwPointVisible(ImodView *vi, Ipoint *pnt)
 }
 
 /* Read a point from an MRC file, binning if necessary */
-static float ivwReadBinnedPoint(ImodView *vi, FILE *fp, 
-                                struct MRCheader *mrcheader, 
-                                int cx, int cy, int cz)
+static float ivwReadBinnedPoint(ImodView *vi, ImodImageFile *image, int cx, int cy,
+                                int cz)
 {
   double sum = 0.;
   int nsum = 0;
   int ix, iy, iz, ubx, uby, ubz, mirx, miry;
-
   if (vi->xybin * vi->zbin == 1 && !vi->image->mirrorFFT)
-    return (mrc_read_point(fp, mrcheader, cx, cy, cz));
+    return (iiReadPoint(image, cx, cy, cz));
   for (iz = 0; iz < vi->zbin; iz++) {
     ubz = cz * vi->zbin + iz;
-    if (ubz < mrcheader->nz) {
+    if (ubz < image->nz) {
       for (iy = 0; iy < vi->xybin; iy++) {
         uby = cy * vi->xybin + iy;
-        if (uby < mrcheader->ny) {
+        if (uby < image->ny) {
           for (ix = 0; ix < vi->xybin; ix++) {
             ubx = cx * vi->xybin + ix;
             if (vi->image->mirrorFFT && ubx < vi->image->nx) {
                 mrcMirrorSource(vi->image->nx, vi->image->ny, ubx, uby, &mirx,
                                 &miry);
-                sum += mrc_read_point(fp, mrcheader, mirx, miry, ubz);
+                sum += iiReadPoint(image, mirx, miry, ubz);
                 nsum++;
-            } else if (ubx < mrcheader->nx) {
-              sum += mrc_read_point(fp, mrcheader, ubx, uby, ubz);
+            } else if (ubx < image->nx) {
+              sum += iiReadPoint(image, ubx, uby, ubz);
               nsum++;
             }
           }
@@ -1861,14 +1867,10 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   /* fx, fy, fz are in image file coords. */
   /* px, py, pz are in piece list coords. */
   int fx, fy, fz, llx, lly, llz, xpad, ypad, zpad;
-  FILE *fp = NULL;
-  MrcHeader *mrcheader = NULL;
 
   if (!vi->image || cz < 0 || cz >= vi->zsize)
     return 0.0f;
-
-  if ((vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW) ||
-      vi->noReadableImage) {
+  if (vi->noReadableImage) {
     if (!vi->rawImageStore)
       return ivwGetValue(vi, cx, cy, cz);
     return 0.0f;
@@ -1876,13 +1878,10 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   if (vi->li->axis == 2)
     cz = vi->zsize - 1 - cz;
 
-  fp = vi->image->fp;
-  mrcheader = (MrcHeader *)vi->image->header;
-
   // For a tile cache, translate the coordinates and read it
   if (vi->pyrCache) {
     if (!vi->pyrCache->getBaseFileCoords(cx, cy, cz, fx, fy, fz))
-    return(ivwReadBinnedPoint(vi, fp, mrcheader, fx, fy, fz));
+    return(ivwReadBinnedPoint(vi, vi->image, fx, fy, fz));
       return 0.f;
   }
 
@@ -1913,10 +1912,6 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
         iiClose(vi->image);
         vi->hdr = vi->image = &vi->imageList[fz];
         ivwReopen(vi->image);
-        fp = vi->image->fp;
-        mrcheader = (MrcHeader *)vi->image->header;
-        if (vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW)
-          return 0.0f;
       }
       fz = 0;
     }
@@ -1939,15 +1934,15 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
             fz = i;
             fx = px - vi->li->pcoords[(i*3)];
             fy = py - vi->li->pcoords[(i*3)+1];
-            return(ivwReadBinnedPoint(vi, fp, mrcheader, fx, fy, fz));
+            return(ivwReadBinnedPoint(vi, vi->image, fx, fy, fz));
           }
         }
       }
       return(vi->hdr->amean);
     }
-    return(ivwReadBinnedPoint(vi, fp, mrcheader, fx, fy, fz));
+    return(ivwReadBinnedPoint(vi, vi->image, fx, fy, fz));
   }
-  return(ivwReadBinnedPoint(vi, fp, mrcheader, cx, cy, cz));
+  return(ivwReadBinnedPoint(vi, vi->image, cx, cy, cz));
 }
 
 
@@ -2749,18 +2744,18 @@ static int ivwProcessImageList(ImodView *vi)
         header = (MrcHeader *)image->header;
         midy = image->ny / 2;
         midz = image->nz / 2;
-        naysum = mrc_read_point(fp, header, 1, midy, 0) + 
-          mrc_read_point(fp, header, 0, midy - 1, 0) + 
-          mrc_read_point(fp, header, 1, midy + 1, 0);
+        naysum = iiReadPoint(image, 1, midy, 0) + 
+          iiReadPoint(image, 0, midy - 1, 0) + 
+          iiReadPoint(image, 1, midy + 1, 0);
         zratio = 0.;
         if (naysum > 0.)
-          zratio = mrc_read_point(fp, header, 0, midy, 0) / naysum;
-        naysum = mrc_read_point(fp, header, 1, midy, midz) + 
-          mrc_read_point(fp, header, 0, midy - 1, midz) + 
-          mrc_read_point(fp, header, 1, midy + 1, midz);
+          zratio = iiReadPoint(image, 0, midy, 0) / naysum;
+        naysum = iiReadPoint(image, 1, midy, midz) + 
+          iiReadPoint(image, 0, midy - 1, midz) + 
+          iiReadPoint(image, 1, midy + 1, midz);
         mratio = 0.;
         if (naysum  > 0.)
-          mratio = mrc_read_point(fp, header, 0, midy, midz) / naysum;
+          mratio = iiReadPoint(image, 0, midy, midz) / naysum;
         imodPrintStderr("mratio %f  zratio %f\n", mratio, zratio);
         if (zratio && mratio && mratio > 10. * zratio)
           image->mirrorFFT = 0;

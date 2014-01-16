@@ -17,7 +17,7 @@
 #include <math.h>
 #include <limits.h>
 #include <stdio.h>
-#include "mrcc.h"
+#include "iimage.h"
 #include "imodel.h"
 #include "sliceproc.h"
 #include "parse_params.h"
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
   if (inside) {
     if (hentered && lentered)
       exitError("Only a high or a low threshold, not both, "
-              "may be entered when using\n -n to find inside contours.");
+              "may be entered when using -n to find inside contours.");
 
     /* Set thresholds equal, and set to follow diagonals only on the
        primary threshold */
@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  fin = fopen(argv[i++], "rb");
+  fin = iiFOpen(argv[i++], "rb");
   if (fin == NULL){
     printf("ERROR: %s - Opening image file %s.\n", progname, argv[i-1]);
     if (errno)
