@@ -19,16 +19,12 @@ class GrabSlicer : public DialogFrame
   Q_OBJECT
 
  public:
-  GrabSlicer(QWidget *parent, const char *name = NULL);
+  GrabSlicer(QWidget *parent, bool ShowWelcome);
   ~GrabSlicer() {};
 
   QLineEdit *tilt_id;
   QTextEdit *tilt_note;
   QLabel *lblTilt;
-  int winValue;
-  int SnapShot_format;
-
-  void reread(int which);
 
   public slots:
 
@@ -38,7 +34,7 @@ class GrabSlicer : public DialogFrame
   void winSelected(int value);
   void imgtypeSelected(int value);
   void quitDatabase(QSqlDatabase db);
-
+  void scaleBarToggled(bool state);
 
  protected:
 
@@ -49,6 +45,7 @@ class GrabSlicer : public DialogFrame
 
  private:
 
+  QString scaleBarLine();
   QButtonGroup *winGroup;
   QButtonGroup *imgGroup;
   QWidget *topBox;
