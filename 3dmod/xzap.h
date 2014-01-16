@@ -53,7 +53,7 @@ class ZapFuncs
   void flushImage();
   void getixy(int mx, int my, float &x, float &y, int &z);
   void montageSnapshot(int snaptype);
-  int namedSnapshot(QString &fname, int format, bool checkConvert);
+  int namedSnapshot(QString &fname, int format, bool checkConvert, bool fullArea);
   void setCursor(int mode, bool setAnyway = false);
   void setMouseTracking();
   void shiftRubberband(float idx, float idy);

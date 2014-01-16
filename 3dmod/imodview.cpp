@@ -51,7 +51,7 @@ static int initializeFlipAndModel(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert, 
-                             int winType);
+                             int winType, bool fullArea);
 static float ivwReadBinnedPoint(ImodView *vi, ImodImageFile *image, int cx, int cy,
                                 int cz);
 
@@ -3385,18 +3385,18 @@ int ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY, int imZ,
   return 0;
 }
 
-int ivwSnapshotTopZap(QString &name, int format, bool checkGrayConvert)
+int ivwSnapshotTopZap(QString &name, int format, bool checkGrayConvert, bool fullArea)
 {
-  return snapshotTopWindow(name, format, checkGrayConvert, ZAP_WINDOW_TYPE);
+  return snapshotTopWindow(name, format, checkGrayConvert, ZAP_WINDOW_TYPE, fullArea);
 }
 
-int ivwSnapshotTopSlicer(QString &name, int format, bool checkGrayConvert)
+int ivwSnapshotTopSlicer(QString &name, int format, bool checkGrayConvert, bool fullArea)
 {
-  return snapshotTopWindow(name, format, checkGrayConvert, SLICER_WINDOW_TYPE);
+  return snapshotTopWindow(name, format, checkGrayConvert, SLICER_WINDOW_TYPE, fullArea);
 }
 
 static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert, 
-                             int winType)
+                             int winType, bool fullArea)
 {
   ZapFuncs *zap;
   SlicerFuncs *slicer;
@@ -3419,9 +3419,9 @@ static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert,
     format = SnapShot_RGB;
   }
   if (winType == ZAP_WINDOW_TYPE)
-    retval = zap->namedSnapshot(name, format, checkGrayConvert);
+    retval = zap->namedSnapshot(name, format, checkGrayConvert, fullArea);
   else
-    retval = slicer->namedSnapshot(name, format, checkGrayConvert);
+    retval = slicer->namedSnapshot(name, format, checkGrayConvert, fullArea);
   if (restore)
     ImodPrefs->restoreSnapFormat();
   return retval;

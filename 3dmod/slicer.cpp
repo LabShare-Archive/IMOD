@@ -1193,12 +1193,14 @@ void SlicerFuncs::getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &n
 }
 
 // Take snapshot with the given name or automatically generated name and given format
-int SlicerFuncs::namedSnapshot(QString &fname, int format, bool checkConvert)
+int SlicerFuncs::namedSnapshot(QString &fname, int format, bool checkConvert, 
+                               bool fullArea)
 {
-  int *limits;
+  int *limits = NULL;
   int limarr[4];
   mGlw->updateGL();
-  setSnapshotLimits(&limits, limarr);
+  if (!fullArea)
+    setSnapshotLimits(&limits, limarr);
   return b3dNamedSnapshot(fname, "slicer", format, limits, checkConvert);
 }
 
