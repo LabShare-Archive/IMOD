@@ -737,7 +737,7 @@ Order counts in this section.
 .RE
 
 .TP 4
-.B assert.\fR(\fBenabled\fR|\fBdisabled\fR)\fB.\fIfield\fB = 
+.B assert.\fR(\fBenabled\fR|\fBdisabled\fR)\fB.\fR(\fBbn\fR|\fBcb\fR|\fBcbb\fR|\fBmn\fR|\fBmb\fR|\fBrb\fR|\fBsp\fR|\fBtf\fR)\fB = 
 Tests whether the \fIfield\fR is enabled or disabled.  Panel and tabs are not
 valid for this command.
 .RS 4
