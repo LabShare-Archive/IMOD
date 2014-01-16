@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/16/14: Jane Ding contributed Grab with Note plugin, which takes Slicer or Zap
+snapshots with notes added below the image.
+
 1/16/14: Fixed creation of patch tracking com file if mag change searched in
 coarse align.
 
