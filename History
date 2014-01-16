@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/15/14: Fixed problems with autofidseed in eTomo - Fiducial Model Dialog.
+(Bug# 1743)
+
 1/15/14: Exposed flgNoReferenceRefinement in eTomo - PEET.(Bug# 1738)
 
 1/14/14: Fixed bug in clip multiplying while unpacking 4-bit data, added
