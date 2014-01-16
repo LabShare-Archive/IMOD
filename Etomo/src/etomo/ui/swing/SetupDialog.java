@@ -975,6 +975,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     JPanel pnlTwodir = new JPanel();
     JPanel pnlBtwodir = new JPanel();
     // init
+    ltfFiducialDiameter.setRequired(true);
     btnViewRawStackA.setSize();
     btnViewRawStackB.setSize();
     ctfTwodir.setColumns();
