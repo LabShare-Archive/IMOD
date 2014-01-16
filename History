@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/16/14: Fixed creation of patch tracking com file if mag change searched in
+coarse align.
+
 1/16/14: Change eTomo to make it independent of Cygwin.  Fixed a problem with
 killing processes on Windows.(Bug# 1716)
 
