@@ -18,7 +18,8 @@
 <BR><A HREF = "#Intensity Problems">1.7. Problems with Intensities in 3dmod</A>
 <BR><A HREF = "#NON-BOULDER NOTES">2. NOTES FOR SPECIAL CASES</A>
 <BR><A HREF = "#Image Scaling">2.1. Image Scaling and Contrast Polarity</A>
-<BR><A HREF = "#Bidirectional Series">2.2. Tilt Series Taken in Two Directions from Zero Tilt</A>
+<BR><A HREF = "#Bidirectional Series">2.2. Tilt Series Taken in Two Directions
+  from a Starting Angle</A>
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
 <BR><A HREF = "#Montage Coms">3.1. Command Files when Montaging</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
@@ -336,23 +337,33 @@ in the <B>Fiducial Model Generation Panel</B>.  Also, check <B>Light</B> in
 the Bead Fixer when making the seed model or fixing gaps.
 </P>
 <H4><A NAME = "Bidirectional Series"></A>
-2.2. Tilt Series Taken in Two Directions from Zero Tilt
+2.2. Tilt Series Taken in Two Directions from a Starting Angle
 </H4>
 <P>
-A tilt series taken by tilting in two directions from zero tilt often shows a
+A tilt series taken by tilting in two directions from zero tilt or another
+angle often shows a
 discontinuity in the aligned stack at the transition between the two halves of
 the series.  Usually this reflects either an irregular tilt increment due to 
 backlash in the goniometer, or changes in the specimen during the first half
-of the series.  Because of these effects, you should always identify one half
-of such a tilt series as a separate group in the 
+of the series.  Because of these effects, you should always identify such tilt
+series as bidirectional in the <B>Setup Tomogram</B> panel.  Doing so will
+identify the first half
+of the series as a separate group in the 
 <B>Separate view groups</B> fields on the 
 <B>Fiducial Model Generation</B> and <B>Fine Alignment</B> panels.  These
 entries will prevent the programs from assigning the same or similar values
 for alignment variables to views that are not in the same half of the tilt
 series.  
 For
-example, if the discontinuity occurs between views 71 and 72, enter "1-71" in
-the <B>Separate view groups</B> fields.  
+example, if the discontinuity occurs between views 71 and 72, 
+the <B>Separate view groups</B> fields will be filled with "1-71".  
+<P>
+For plastic section tilt series, sometimes the shrinkage in the first half of
+the series makes it hard to track gold beads across the discontinuity.  An
+option is available in the <B>Fine Alignment</B> panel to find a magnification
+(size) change at one or more views.  When you identify the series as
+bidirectional during the setup, this option will appear in Basic mode, with
+the correct view number filled in, but it will not be turned on.
 <P>
 In some cases there appears to be a change in the
 X-axis tilt of the specimen between the two directions of tilting.  It is
@@ -382,6 +393,16 @@ section above on
 <A HREF = "#Using Insecure Storage">Using Temporary or Insecure
 Storage</A>
 for an explanation of this option.
+
+<LI><B> Templates:</B> The selectors in this box allow you to set parameters
+  from template files of different types.  There will always be 2 or more
+  system templates to choose from.  You are encouraged to choose one of them,
+  since doing so will turn on the option for more precise tracking of gold
+  fiducials, with an appropriate filtering when a "cryo" template is chosen
+  for cryo or other high noise data.  Scope templates can be set up to set
+  microscope-specific parameters (e.g., for CTF correction), and you can save
+  your own templates as User templates.  See <A HREF =
+  "UsingEtomo.html#Templates">Using eTomo</B> for more details.
 
 <LI><B> Axis Type:</B> Here, you select
 whether the data are single or dual axis.
@@ -455,6 +476,12 @@ A file
 with raw tilt values should be named "setname.rawtlt".  If you have 
 regular angles with some variations, you may find a 
 nearly correct file in $IMOD_DIR/com.
+
+<LI><B> Series was bidirectional:</B> If the tilt series was taken in two
+  directions from a starting angle such as zero degrees, you should turn on
+  this option and fill in the starting angle.  See <A HREF "#Bidirectional Series">
+Tilt Series Taken in Two Directions from a Starting Angle</A> for the
+  implications and benefits of doing so.
 
 <LI><B>Exclude views:</B> If you know in advance that you want to exclude
 some views from the reconstruction, you can enter the list of views in
@@ -565,7 +592,12 @@ intensity deviate from the surrounding pixels
 by a certain number of standard deviations, which is
 specified in the <B>Peak criterion</B> text box.  It also looks for
 pixel-to-pixel differences that exceed background by a certain number
-of SDs, specified in the <B>Difference criterion</B> text box.
+of SDs, specified in the <B>Difference criterion</B> text box.  The ones found
+by these two criteria have to be smaller than the size set in the 
+<B>Maximum radius</B> text box.  However, particularly strong artifacts larger than
+this size will also be removed if they satisfy other criteria, the principal
+one being a criterion for pixel-to-pixel differences shown in <B>Extra-large
+  difference criterion</B>
 <P>
 When <A HREF = "man/ccderaser.html#TOP">Ccderaser</A> runs, it produces an 
 IMOD model marking the pixels that
@@ -592,8 +624,12 @@ images into a file named "setname_fixed.st".  If you are satisfied
 with the result, press the <B>Use Fixed Stack</B> button to rename
 the original file to "setname_orig.st" and replace it with the fixed stack.
 <P>
-If you find that some X-rays are too large to be removed with the default
-parameters, increase the <B>Maximum radius</B> to encompass these large
+If you find that some X-rays or other artifacts are too large to be removed
+with the default parameters, there are two avenues to pursue.  If the
+artifacts are particularly strong, you can try reducing the 
+<B>Extra-large difference criterion</B>, but make sure that this does not
+cause gold particles to be erased.
+Otherwise, increase the <B>Maximum radius</B> to encompass these large
 X-rays and try again.  If the larger radius causes inappropriate points to be
 corrected, then do the removal in two stages.  First create a fixed stack with
 the smaller radius, and press <B>Use Fixed Stack</B>.  Then increase both the
@@ -611,7 +647,7 @@ increase the maximum; but with the fixed stack this listing will often reveal
 the subset of views that still have sizable uncorrected X-rays.  If you have
 trouble finding a position, you can type the X and Y coordinates into the spin
 boxes in the <A HREF = "3dmodHelp/infowin.html#TOP">3dmod Info Window</A> then
-toggle the centering button inthe Zap window toolbar on then off to center on
+toggle the centering button in the Zap window toolbar on then off to center on
 the position that you typed in.
 <P>
 If your images have other features that do not get corrected by the
@@ -643,7 +679,11 @@ in the montage (any piece).
 </H3>
 <P>
 The main purpose of this step is to get the images aligned well enough for
-the automatic tracking of fiducials to work.  There are generally no
+the automatic tracking of fiducials to work.  If you identified the tilt
+series as bidirectional during tomogram setup, the option to find a
+magnification change at the discontinuity in the series will appear in Basic
+mode, and you can turn this on to adjust for shrinkage in the first half of
+the series.  Other than this, there are generally no
 parameters to adjust, so you proceed by pushing the top three buttons
 in sequence.  
 <UL>
@@ -674,7 +714,9 @@ starting with the value in the <B>Tilt axis rotation</B> text box on
 the <B>Coarse Alignment</B> panel.
 If you have a big magnification change, you could also
 correct for this using the right mouse button while holding the Shift
-key down.
+key down.  (Alternatively, you can rerun the correlations after turning on the
+option to find a magnification change at this view, switch to Advanced mode if
+necessary to see this option.)
 <P>
 After fixing and saving transformations, you must generate a new coarse 
 aligned stack.
@@ -820,7 +862,7 @@ partly on the displacements that you just modified.
 <P>
 There are several ways to get a model that can be used to align the tilt
 series.  The first involves starting with a collection of gold beads on the
-zero-degree view, referred to a seed model, and using 
+zero-degree view, referred to as a seed model, and using 
 <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> to
 find their locations in the rest of the tilt series.  The seed points can be
 marked manually or selected automatically.  The second method involves
@@ -834,11 +876,13 @@ each patch from one view to the next with
 </H4>
 <P>
 A seed model can be generated automatically by 
-<A HREF = "man/autofidseed.html#TOP">Autofidseed</A>, which aims to select a well-distributed set of fiducials of a
+<A HREF = "man/autofidseed.html#TOP">Autofidseed</A>, which aims to select a
+  well-distributed set of fiducials of a
   desired number.  If this procedure does not succeed in giving a
   good seed model, for small data sets you would probably just proceed to make
   or finish the seed model manually.  When larger numbers of fiducials are
-  needed, however, it is worth trying to get <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> to make a usable
+  needed, however, it is worth trying to get 
+<A HREF = "man/autofidseed.html#TOP">Autofidseed</A> to make a usable
   seed model by accessing the various problem-solving features provided in
   the interface.  Here is what you need to know about automatic seed-finding to use
   it effectively in more difficult cases:
@@ -846,26 +890,29 @@ A seed model can be generated automatically by
 <LI> All gold beads are found on a set of 3 views around zero tilt, separated
   by about 2 degrees, using <A HREF = "man/imodfindbeads.html#TOP">Imodfindbeads</A>.  
 <LI> The beads are tracked with 3 separate runs of
-<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> through the 11 views nearest to zero tilt, starting each time
-    with a seed containing all points on one of the 3 views.
+<A HREF = "man/beadtrack.html#TOP">Beadtrack</A> through the 11 views nearest
+to zero tilt, starting each time with a seed containing all points on one of
+the 3 views.
 <ILI> If you specify that gold is on two surfaces, information from the
-  tracking runs on the 3D location
-  of the beads is used by <A HREF = "man/sortbeadsurfs.html#TOP">Sortbeadsurfs</A> to sort the beads onto two
+  tracking runs on the 3D location of the beads is used by <A HREF =
+  "man/sortbeadsurfs.html#TOP">Sortbeadsurfs</A> to sort the beads onto two
   surfaces separately for each of the 3 tracking runs.
-<LI> <A HREF = "man/pickbestseed.html#TOP">Pickbestseed</A> selects the final seed model by combining all of the
-    information from the 3 tracking runs.  It assigns a score to each bead
-    based on how well it tracked and fit an alignment model in
-    each <A HREF = "man/beadtrack.html#TOP">Beadtrack</A> run.  It selects beads in a series of phases, first
+<LI> <A HREF = "man/pickbestseed.html#TOP">Pickbestseed</A> selects the final
+    seed model by combining all of the information from the 3 tracking runs.
+    It assigns a score to each bead based on how well it tracked and fit an
+    alignment model in each <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>
+    run.  It selects beads in a series of phases, first
     adding the best-scoring beads, then filling in areas of low density with
     the best nearby beads.  If gold is to be selected on two surfaces, these
     operations are run separately for the two surfaces, then beads are added
     on the majority surface to make up for a deficiency on the minority
     surface.
-<LI> If there are not enough beads
-  on 3 views, <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> will rerun the first step with 5 or 7 views,
-  and the other steps will work with correspondingly more data.
-<LI> Two kinds of beads are identified in <A HREF = "man/pickbestseed.html#TOP">Pickbestseed</A> and excluded from
-    selection by default: clustered beads, which are within 2 bead diameters
+<LI> If there are not enough beads on 3 views, <A HREF =
+  "man/autofidseed.html#TOP">Autofidseed</A> will rerun the first step with 5
+  or 7 views, and the other steps will work with correspondingly more data.
+<LI> Two kinds of beads are identified in <A HREF =
+    "man/pickbestseed.html#TOP">Pickbestseed</A> and excluded from selection
+    by default: clustered beads, which are within 2 bead diameters
     or each other or would become so at the highest tilt; and elongated
     beads, which appear not to be round and could be two overlapping beads.
 <LI> <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> keeps track of
@@ -879,11 +926,12 @@ A seed model can be generated automatically by
     (or "autofidseeda.dir" for the first axis of a dual-axis set).
 </UL>
 <P>
-The basic use of <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> involves a small number of parameter
-    choices:
+The basic use of <A HREF = "man/autofidseed.html#TOP">Autofidseed</A> involves
+a small number of parameter choices:
 <UL>
-<LI> Since seed-finding runs <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>, the essential parameters for this
-    operation appear here and should be set if necessary.  They include the
+<LI> Since seed-finding runs <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>,
+    the essential parameters for this operation appear here and should be set
+    if necessary.  They include the
     list of views to skip and whether some views are in a separate group that may
     have different alignment parameters.  You should also select <B>Refine
     center with Sobel filter</B> if it is not already on, but for a cryo data
@@ -1102,13 +1150,23 @@ the tilt series.  Enter a list with no embedded spaces, and use a
 space to separate multiple lists, e.g., if there is a discontinuity
 between views 30 and 31, and 62, 72, and 81 were taken separately,
 enter "1-30 66,72,81".
+<LI> <B>Refine center with Sobel filter</B> should be turned on because it
+  will give more precise centering of the model points on the beads.  Using
+  this method typically reduces the mean residual for fine alignment by ~22%
+  for plastic section data sets and ~10% for cryo data sets, provided that the
+  alignment is intrinsically good and not dominated by systematic misfit.
+  However, it can be detrimental for a cryo data set unless the <B>Sigma for
+  kernel filter</B> is set to about 1.5 pixels; thus the option is not on by
+  default.  Selecting one of the system templates during tomogram setup will
+  turn on the option and supply the appropriate filtering parameter.
 <LI> If you have partially tracked a bead in the seed model and left a gap
 because of ambiguity, you should uncheck <B>Fill seed model gaps</B>.
-<LI> <B>Local tracking</B>  Select this option if you want to do tracking in
-overlapping, local subareas.  Once it is selected, you can change the value
+<LI> <B>Local tracking</B>  With this option on, the program does tracking in
+overlapping, local subareas.  When it is selected, you can change the value
 in the <B>Local area size</B> text box, which specifies a target size for
 the local areas.  The default size is rather large and smaller values may
-give better results in some cases.
+give better results in some cases.  As of IMOD 4.7, this option is on by
+  default.
 <LI><B>Max # of views to include in align</B>  Put a value in this text box
 to make the tilt alignments fit to data from a restricted range of views.
 Try a value equal to half the number of views in the series.
@@ -1140,8 +1198,7 @@ and allow Beadtrack to track those beads as far as possible.
 6.5. Using Beadtrack to Extend a Model
 </H4>
 <P>
-Sometimes you will want to have <A HREF =
-"man/beadtrack.html#TOP">Beadtrack</A>
+Sometimes you will want to have <A HREF = "man/beadtrack.html#TOP">Beadtrack</A>
 start with an existing
 fiducial model instead of a seed model.  This is especially helpful when there
 are a large number of beads that failed to track.  For example, you might
@@ -1248,7 +1305,7 @@ Even if
 there are fiducials, the patch tracking may provide a tomogram of adequate
 quality in some cases, so it may be worth trying as a way to reduce labor.
 <P>
-One feature that requires some extended explanation is the option to breaking
+One feature that requires some extended explanation is the option to break
 contours into overlapping pieces.  Normally the positions from tracking each
 patch are placed into a single contour, just as for real fiducials.  The mean
 residual from a fine alignment with such contours will be directly comparable
@@ -1282,13 +1339,17 @@ default.  Breaking contours into pieces will have the following effects:
   contours that are least consistent with a global alignment should improve
   the quality of alignment.  The Bead Fixer has a special mode that allows you
   to find and remove contours with the largest mean residuals in the
-  alignment.
+  alignment.  Moreover, with robust fitting during fine alignment, you can
+  choose to have it use a single weight for all the points in a contour, and
+  this will eliminate or give reduced weight to the worst-fitting contours.
 </UL>
 Because contours broken into pieces give a misleadingly low mean residual, it
 is recommended that you first run tracking without breaking contours into
 pieces, then assess the alignment.  If necessary, then go back and break
-contours into pieces.  Unfortunately, the only way to do this currently is to
-rerun the tracking.
+contours into pieces.  There is no need to recompute the patch correlations;
+just press the <B>Recut or Restore Contours</B> button to have the whole
+contours from the tracking broken into pieces according to the current
+parameters.
 </P>
 <P>
 Patch tracking is controlled by the following settings:
@@ -1326,7 +1387,10 @@ Patch tracking is controlled by the following settings:
   interpolation, but calculations will take 3 times as long.
 <LI> <B>Breaking contours into pieces</B> This option is discussed above.
   After enabling the option, you can adjust the length of pieces if desired.
-  The default length is based on the number of views in the tilt series.
+  The default length is based on the number of views in the tilt series.  You
+  can also adjust the overlap between the pieces.  Note that this is a minimum
+  overlap; the overlap will usually be bigger than the minimum so that the
+  contours can all have the specified length.
 <LI> <B>Trimming area to analyze</B> The <B>Pixels to trim</B> and
   the <B>Min</B> and <B>Max</B> entries for X and Y provide an alternative to
   using a boundary model for restricting the area to analyze.  It is no longer
@@ -1343,7 +1407,7 @@ Press <B>Track Patches</B> to start the tracking, and when it finishes, press
 stack.  If patches do not track well, there are three remedies to pursue:
 1) Use a boundary model to exclude areas not correlating well. 2)
 Increase the patch size.  3) For cryo data, decrease the filter cutoff.  This
-parameter was inherited from its value for coarse alignment and is shownin
+parameter was inherited from its value for coarse alignment and is shown in
 Advanced mode.  Try decreasing the <B>High frequency cutoff radius</B>
 and <B>High frequency rolloff sigma</B> together by as much as half (this
 corresponds to the strongest filtering tested for aligning cryosections with a
