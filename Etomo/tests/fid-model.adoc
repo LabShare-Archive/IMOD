@@ -595,7 +595,6 @@ assert.exists.file=%{dataset}%{axis}_raptor.fid~
 assert.exists.file=raptor2
 assert.exists.file=raptor2/align
 assert.exists.file=raptor2/IMOD
-assert.exists.file=raptor2/align/%{dataset}%{axis}_IMOD.log
 assert.exists.file=raptor2/align/%{dataset}%{axis}_RAPTOR.log
 assert.exists.file=raptor2/IMOD/%{dataset}%{axis}.fid.txt
 assert.exists.file=raptor2/IMOD/%{dataset}%{axis}.rawtlt
