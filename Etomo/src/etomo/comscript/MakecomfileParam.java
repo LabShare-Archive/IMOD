@@ -58,8 +58,6 @@ public class MakecomfileParam {
       command.add("-root");
       command.add(manager.getName() + axisID.getExtension());
       if (fileType == FileType.PATCH_TRACKING_COMSCRIPT) {
-        //Temporary command to add imodchopconts
-        command.add("-chop");
         command.add("-input");
         command.add(FileType.CROSS_CORRELATION_COMSCRIPT.getFileName(manager, axisID));
         command.add("-binning");
