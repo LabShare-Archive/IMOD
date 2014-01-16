@@ -7,15 +7,26 @@
 --------------------------<br><br>
 This plugin is designed to grab the display in 3dmod top Slicer or 
 Zap window, and save it as an image with text note and Slicer
-parameters (if it's Slicer window).
-
+parameters (if it's Slicer window) or the center position (if it's a Zap window).
+<P>
+When this plugin is open, scale bars will be displayed in the image windows
+even when the Scale Bar dialog is not open, provided that
+ <B>Show and record scale bar</B> is checked.  This will be turned on by
+ default if the image or model file appears to have a pixel size defined.
+<P>
+Another special feature when this plugin is open is that snapshots will always
+be of the full window area, even when a rubber band is drawn in the window.
+Thus, you can use a rubber band to outline an area of interest in either type
+of window.  The toolbar in either window also provides an arrow for pointing
+to a feature of interest, and the lasso in the Zap toolbar can also be used
+for outlining a feature.
 <br><br><br>
 <b>Hot Keys</b><br>
 ---------------------<br>
-<b>[W]</b>&nbsp &nbsp
+<b>[Shift+W]</b>&nbsp &nbsp
 Save image with note in imod snapshot directory
 <br>
-<b>[Shift+W]</b>&nbsp &nbsp
+<b>[W]</b>&nbsp &nbsp
 Save image with note in the Caltech Tomography Database. The image will
 be attached to an existing database tilt series id. See more details below.
 <br>
@@ -24,7 +35,7 @@ be attached to an existing database tilt series id. See more details below.
 <b>Save Image</b><br>
 ---------------------<br>
 
-This function saves the grabbed image with note in standard imod snapshot directory
+This function saves the grabbed image with note in standard 3dmod snapshot directory
 with default snapshot naming.
 
 <br>
