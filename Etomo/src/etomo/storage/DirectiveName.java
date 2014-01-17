@@ -43,7 +43,7 @@ public final class DirectiveName {
         buffer.append(key[i] + " ");
       }
     }
-    return ",type:" + type + "]";
+    return buffer + ",type:" + type + "]";
   }
 
   public DirectiveName() {
