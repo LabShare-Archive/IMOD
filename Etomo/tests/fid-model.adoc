@@ -41,11 +41,11 @@ run.function.run-run-raptor-and-fix=
 #test values
 assert.rb.make-seed-and-track=on
 assert.rb.use-patch-tracking-to-make-fiducial-model=off
-assert.rb.run-raptor-and-fix=off
+if.not.var.dual-b.assert.rb.run-raptor-and-fix=off
 #test enabled
 assert.enabled.rb.make-seed-and-track=
 assert.enabled.rb.use-patch-tracking-to-make-fiducial-model=
-assert.enabled.rb.run-raptor-and-fix=
+if.not.var.dual-b.assert.enabled.rb.run-raptor-and-fix=
 #test panels
 run.function.test-basic-make-seed-and-track=
 run.function.test-basic-use-patch-tracking-to-make-fiducial-model=
@@ -710,6 +710,7 @@ rb.make-seed-and-track=
 # run-raptor-and-fix
 
 [function = test-basic-run-raptor-and-fix]
+if.var.axis.return=b
 #setup
 rb.run-raptor-and-fix=
 #test values
@@ -733,6 +734,7 @@ assert.enabled.bn.use-raptor-result-as-fiducial-model=
 rb.make-seed-and-track=
 
 [function = run-run-raptor-and-fix]
+if.var.axis.return=b
 if.var.build.return=
 if.not.var.run-raptor.return=
 #setup
@@ -797,6 +799,7 @@ if.not.var.dual.return.var.retval=
 [[if = axis]]
   if.not-equals.var.axis.return=a
   set.var.retval=true
+  return.var.retval=
 [[]]
 return.var.retval=
 
@@ -806,6 +809,7 @@ if.not.var.dual.return.var.retval=
 [[if = axis]]
   if.not-equals.var.axis.return=b
   set.var.retval=true
+  return.var.retval=
 [[]]
 return.var.retval=
 
