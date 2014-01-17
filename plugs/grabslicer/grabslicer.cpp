@@ -30,6 +30,7 @@
 #include <QButtonGroup>
 #include <QGroupBox>
 #include <qradiobutton.h>
+#include <qcheckbox.h>
 
 #include <QTextEdit> 
 #include <QLineEdit> 
@@ -43,6 +44,7 @@
 #include <string>
 using namespace std;
 
+#define NUM_SAVED_VALS 2
 
 //Static variables
 
@@ -50,7 +52,7 @@ static QString fullfilename;
 static QString realfilename;
 static QString qtiltseriesid;
 static QString dbini;
-
+static bool sHasDBini;
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -59,11 +61,13 @@ typedef struct
 {
   ImodView    *view;
   GrabSlicer *window;
-
+  int slicerZap;
+  int snapShot_format;
+  bool enableScale;
 }PlugData;
 
 
-static PlugData thisPlug = { NULL, NULL };
+static PlugData sPlug = { NULL, NULL, 0, SnapShot_JPG, true};
 
 /*
  * Called by the imod plugin load function. 
@@ -80,7 +84,7 @@ const char *imodPlugInfo(int *type)
  */
 int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 {
-  PlugData *plug = &thisPlug;
+  PlugData *plug = &sPlug;
   int keysym;
   int    keyhandled = 1;
   int    ctrl;
@@ -113,7 +117,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   case Qt::Key_W:
     if(shift)
       plug->window->saveImage();
-    else
+    else if (sHasDBini)
       plug->window->saveDatabase();
     break;
   default:
@@ -131,9 +135,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 
 void imodPlugExecute(ImodView *inImodView)
 {
+  double savedValues[NUM_SAVED_VALS];
+  int nvals;
+  static int firstTime = 1;
   PlugData *plug;
+  bool showWelcome = false;
+  const char *modelUnits = imodUnits(ivwGetModel(inImodView));
 
-  plug = &thisPlug;
+  plug = &sPlug;
 
   if (plug->window){
     /* 
@@ -141,6 +150,22 @@ void imodPlugExecute(ImodView *inImodView)
      */
     plug->window->raise();
     return;
+  }
+
+  if (firstTime) {
+
+    // Get values from preferences
+    nvals = prefGetGenericSettings("GrabWithNote", savedValues,
+                                          NUM_SAVED_VALS);
+    if (nvals > 1) { 
+      plug->slicerZap = B3DNINT(savedValues[0]);
+      plug->snapShot_format = B3DNINT(savedValues[1]);
+    }
+    showWelcome = nvals == 0;
+
+    // And enable scale bar if there appear to be real units
+    plug->enableScale = strcmp(modelUnits, "pixels") != 0;
+    firstTime = 0;
   }
 
   plug->view = inImodView;
@@ -151,14 +176,18 @@ void imodPlugExecute(ImodView *inImodView)
   /*
    * This creates the plug window.
    */
-  plug->window  = new GrabSlicer(imodDialogManager.parent(IMOD_DIALOG),
-                                "Grab with Note");
+  plug->window  = new GrabSlicer(imodDialogManager.parent(IMOD_DIALOG), showWelcome);
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
 
   // This makes the widget the right size and keeps it on screen and off the
   // info window on the Mac
   adjustGeometryAndShow((QWidget *)plug->window, IMOD_DIALOG);
+
+  if (plug->enableScale) {
+    setScaleBarWithoutDialog(true);
+    ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
+  }
 }
 
 
@@ -168,17 +197,15 @@ void imodPlugExecute(ImodView *inImodView)
 static const char *buttonLabels[] = {"Done", "Help"};
 static const char *buttonTips[] = {"Close Grab with Note", "Open help window"};
 
-GrabSlicer::GrabSlicer(QWidget *parent, const char *name)
-  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Grab with Note", "", name)
+GrabSlicer::GrabSlicer(QWidget *parent, bool showWelcome)
+  : DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Grab with Note", "")
 {
   QPushButton *button;
   QCheckBox *box;
-  PlugData *plug = &thisPlug;
-  bool hasDBini = false;
+  PlugData *plug = &sPlug;
+  sHasDBini = false;
+  int snapFormat = 0;
 
-  winValue = 0;
-  SnapShot_format = SnapShot_JPG;
-	
   mLayout->setSpacing(8);
   topBox = new QWidget(this);
   mLayout->addWidget(topBox);
@@ -197,9 +224,11 @@ GrabSlicer::GrabSlicer(QWidget *parent, const char *name)
   connect(winGroup, SIGNAL(buttonClicked(int)), this,
           SLOT(winSelected(int)));
 
-  QRadioButton *radio_win = diaRadioButton("Slicer", gbox_win, winGroup, gbLayout, 0, "Take snapshot of Slicer window");
-  radio_win = diaRadioButton("Zap", gbox_win, winGroup, gbLayout, 1, "Take snapshot of Zap window");
-  diaSetGroup(winGroup, 0);
+  QRadioButton *radio_win = diaRadioButton("Slicer", gbox_win, winGroup, gbLayout, 0,
+                                           "Take snapshot of Slicer window");
+  radio_win = diaRadioButton("Zap", gbox_win, winGroup, gbLayout, 1,
+                             "Take snapshot of Zap window");
+  diaSetGroup(winGroup, plug->slicerZap);
 
   QGroupBox *gbox_img = new QGroupBox("Choose Image Type", topBox);
   toplay->addWidget(gbox_img);
@@ -211,19 +240,24 @@ GrabSlicer::GrabSlicer(QWidget *parent, const char *name)
   connect(imgGroup, SIGNAL(buttonClicked(int)), this,
           SLOT(imgtypeSelected(int)));  
 
-  QRadioButton *radio_img = diaRadioButton("JPEG", gbox_img, imgGroup, gbLayout1, 0, "Save grabbed image with note as JPEG");
-  radio_img = diaRadioButton("PNG", gbox_img, imgGroup, gbLayout1, 1, "Save grabbed image with note as PNG");
-  radio_img = diaRadioButton("TIFF", gbox_img, imgGroup, gbLayout1, 2, "Save grabbed image with note as TIFF");
-  diaSetGroup(imgGroup, 0);
+  QRadioButton *radio_img = diaRadioButton("JPEG", gbox_img, imgGroup, gbLayout1, 0, 
+                                           "Save grabbed image with note as JPEG");
+  radio_img = diaRadioButton("PNG", gbox_img, imgGroup, gbLayout1, 1,
+                             "Save grabbed image with note as PNG");
+  radio_img = diaRadioButton("TIFF", gbox_img, imgGroup, gbLayout1, 2,
+                             "Save grabbed image with note as TIFF");
 
+  if (sPlug.snapShot_format == SnapShot_PNG)
+    snapFormat = 1;
+  if (sPlug.snapShot_format == SnapShot_TIF)
+    snapFormat = 2;
+  diaSetGroup(imgGroup, snapFormat);
 
-  lblTilt = new QLabel("Tilt Series Database ID:");
-  mLayout->addWidget(lblTilt, 1, 0);
-
-  tilt_id = new QLineEdit;
-  mLayout->addWidget(tilt_id);
-  tilt_id->setToolTip("Type the tilt series id for grabbed image to be attached in the tomography database"
-                          "");
+  box = diaCheckBox("Show and record scale bar", this, mLayout);
+  box->setChecked(plug->enableScale);
+  box->setToolTip("Draw scale bar and add length to note if it is turned on in "
+                       "the Scale Bar dialog");
+  connect(box, SIGNAL(toggled(bool)), this, SLOT(scaleBarToggled(bool)));
 
   //get real filename, input tiltseiresid if available
   const char *imod_calob_dir = getenv("IMOD_CALIB_DIR");
@@ -231,13 +265,21 @@ GrabSlicer::GrabSlicer(QWidget *parent, const char *name)
 
   QFile dbfile(dbini);
   if(dbfile.open(QIODevice::ReadOnly)) {
-    hasDBini = true;
+    sHasDBini = true;
+    lblTilt = new QLabel("Tilt Series Database ID:");
+    mLayout->addWidget(lblTilt, 1, 0);
+    
+    tilt_id = new QLineEdit;
+    mLayout->addWidget(tilt_id);
+    tilt_id->setToolTip("Type the tilt series id for grabbed image to be attached "
+                        "in the tomography database");
+
     QTextStream in(&dbfile);
     QString qdbpath;
     while ( !in.atEnd() ) {
       QStringList dbline =  in.readLine().split("'");
       if (dbline[0].startsWith("dbpath")) 
-	qdbpath = dbline[1].trimmed();;
+        qdbpath = dbline[1].trimmed();;
     } 
     if (fullfilename.startsWith(qdbpath)) {
       int len1 = fullfilename.size();
@@ -260,27 +302,33 @@ GrabSlicer::GrabSlicer(QWidget *parent, const char *name)
     else
       realfilename = fullfilename;
   }
-  tilt_id->setEnabled(hasDBini);
-  lblTilt->setEnabled(hasDBini);
+
+  QLabel *boxlab = new QLabel("Enter note for image snapshot:", this);
+  mLayout->addWidget(boxlab, 1, 0);
 
   tilt_note = new QTextEdit();
-  //tilt_note->setText("Input notes here, to be added into Database. Or leave it blank.\n");
-  tilt_note->setText("Input notes here, to be added on the image and in the database. Or leave it blank.\n");
+  if (showWelcome) {
+    QString str = "Welcome to Grab with Note\n"
+      "Input notes here, to be added to the snapshot below the image";
+    if (sHasDBini)
+      str += " and in the database.";
+    str += "\nOr leave this box blank.\n";
+    tilt_note->setText(str);
+  }
   mLayout->addWidget(tilt_note);
-  tilt_note->setToolTip("Input notes to be added on grabbed image and database"
-                          "");
+  tilt_note->setToolTip("Input notes to be added on grabbed image and in database");
 
   saveImgBut = diaPushButton("Save Image", this, mLayout);
   connect(saveImgBut, SIGNAL(clicked()), this, SLOT(saveImage()));
-  saveImgBut->setEnabled(true);
   saveImgBut->setToolTip("Save grabbed image with note on local disk "
-                          "(hot key Shift+W)");
+                           "(hot key Shift+W)");
 
-  saveDatabaseBut = diaPushButton("Save to Database", this, mLayout);
-  connect(saveDatabaseBut, SIGNAL(clicked()), this, SLOT(saveDatabase()));
-  saveDatabaseBut->setEnabled(hasDBini);
-  saveDatabaseBut->setToolTip("Save grabbed image with note to Database "
-                          "(hot key W)");
+  if (sHasDBini) {
+    saveDatabaseBut = diaPushButton("Save to Database", this, mLayout);
+    connect(saveDatabaseBut, SIGNAL(clicked()), this, SLOT(saveDatabase()));
+    saveDatabaseBut->setToolTip("Save grabbed image with note to Database "
+                                "(hot key W)");
+  }
 
   connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
 
@@ -304,7 +352,15 @@ void GrabSlicer::buttonPressed(int which)
 // The window is closing, remove from manager
 void GrabSlicer::closeEvent ( QCloseEvent * e )
 {
-  PlugData *plug = &thisPlug;
+  PlugData *plug = &sPlug;
+  double saveValues[NUM_SAVED_VALS];
+  saveValues[0] = plug->slicerZap;
+  saveValues[1] = plug->snapShot_format;
+  prefSaveGenericSettings("GrabWithNote", NUM_SAVED_VALS, saveValues);
+  if (plug->enableScale) {
+    setScaleBarWithoutDialog(false);
+    ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
+  }
   imodDialogManager.remove((QWidget *)plug->window);
 
   plug->view = NULL;
@@ -329,7 +385,7 @@ void GrabSlicer::keyReleaseEvent ( QKeyEvent * e )
 void GrabSlicer::winSelected(int value)
 {
   //slicer 0, zap 1
-  winValue =  value;
+  sPlug.slicerZap =  value;
 }
 
 void GrabSlicer::imgtypeSelected(int value)
@@ -338,253 +394,294 @@ void GrabSlicer::imgtypeSelected(int value)
   int imgValue =  value;
   switch ( imgValue  ) {
     case 0: 
-        SnapShot_format = SnapShot_JPG;
+        sPlug.snapShot_format = SnapShot_JPG;
         break;
     case 1: 
-        SnapShot_format = SnapShot_PNG;
+        sPlug.snapShot_format = SnapShot_PNG;
         break;
     case 2: 
-        SnapShot_format = SnapShot_TIF;
+        sPlug.snapShot_format = SnapShot_TIF;
         break;
   }  
 }
 
+// The use enables or diables the scale bar: redraw
+void GrabSlicer::scaleBarToggled(bool state)
+{
+  sPlug.enableScale = state;
+  setScaleBarWithoutDialog(state);
+  ivwDraw(sPlug.view, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
+}
+
+// Compose a line with a scale bar length if there is one
+QString GrabSlicer::scaleBarLine()
+{
+  QString str = "";
+  float zapLen, slicerLen, xyzLen, multiZlen, modvLen, useLen = -1.;
+  scaleBarAllLengths(zapLen, slicerLen, xyzLen, multiZlen, modvLen);
+  if (sPlug.enableScale)
+    useLen = sPlug.slicerZap == 0 ? slicerLen : zapLen;
+  if (useLen > 0) {
+    str.sprintf("Scale bar: %g %s", useLen, imodUnits(ivwGetModel(sPlug.view)));
+    imodPrintStderr("%s\n", (const char *)str.toLatin1());
+  }
+  return str;
+}
+
+
 void GrabSlicer::saveImage()
 {
   //QString snapname = "/home/hding/snap000.jpg";
-    QString snapname = "";
-    QString TiltNote = (tilt_note->toPlainText()).trimmed(); 
-    QString sangle;
-    QString spoint;
-    QStringList capLines = (QStringList() << realfilename);
-    if (winValue == 0) { // slicer
-      float fangle[3];
-      Ipoint fpoint;
-      int stime;
-      int islicer = getTopSlicerAngles(fangle, &fpoint, stime); //time always 0?
-      sangle.sprintf ("Slicer angle:  (%f, %f, %f)", fangle[0], fangle[1], fangle[2] );
-      spoint.sprintf ("Slicer center point:  (%d, %d, %d)", (int)fpoint.x+1, (int)fpoint.y+1, (int)fpoint.z+1 );
-      capLines = capLines << sangle << spoint;       
-    }
-    if (!TiltNote.isEmpty())
-      capLines = capLines << TiltNote;      
+  QString snapname = "";
+  QString TiltNote = (tilt_note->toPlainText()).trimmed(); 
+  QString sangle;
+  QString spoint;
+  QString scaleLine = scaleBarLine();
+  QStringList capLines = (QStringList() << realfilename);
+  if (sPlug.slicerZap == 0) { // slicer
+    float fangle[3];
+    Ipoint fpoint;
+    int stime;
+    int islicer = getTopSlicerAngles(fangle, &fpoint, stime); //time always 0?
+    sangle.sprintf ("Slicer angle:  (%.2f, %.2f, %.2f)", fangle[0], fangle[1], fangle[2]);
+    spoint.sprintf ("Slicer center point:  (%d, %d, %d)", (int)fpoint.x+1, 
+                    (int)fpoint.y+1, (int)fpoint.z+1 );
+    capLines << sangle << spoint;       
+  } else {
+    float imX, imY;
+    int imZ;
+    ivwGetTopZapCenter(sPlug.view, imX, imY, imZ);
+    spoint.sprintf("Zap center point:  (%d, %d, %d)", (int)imX, (int)imY, imZ);
+    capLines << spoint;
+  }
+  if (!scaleLine.isEmpty())
+    capLines << scaleLine;
+  if (!TiltNote.isEmpty())
+    capLines << TiltNote;      
 
-    int isnap;
-    b3dSetSnapshotCaption(capLines, true);
-    if (winValue == 0) { //slicer
-      isnap = ivwSnapshotTopSlicer(snapname, SnapShot_format, false);
-      if (isnap == -1) {
-	dia_err("Snapshot failed: Slicer window is not open.");
-      }
+  int isnap;
+  b3dSetSnapshotCaption(capLines, true);
+  if (sPlug.slicerZap == 0) { //slicer
+    isnap = ivwSnapshotTopSlicer(snapname, sPlug.snapShot_format, false, true);
+    if (isnap == -1) {
+      dia_err("Snapshot failed: Slicer window is not open.");
     }
-    else if  (winValue == 1) { //zap
-      isnap = ivwSnapshotTopZap(snapname, SnapShot_format, false);
-      if (isnap == -1)
-	dia_err("Snapshot failed: Zap window is not open");
-    }
-    if (isnap == 1)
-      dia_err("Snapshot failed.");
-    else if (isnap == 0)
-      imodPrintStderr("Snapshot saved under Snap Dir\n");
-
-    return;
+  }
+  else if  (sPlug.slicerZap == 1) { //zap
+    isnap = ivwSnapshotTopZap(snapname, sPlug.snapShot_format, false, true);
+    if (isnap == -1)
+      dia_err("Snapshot failed: Zap window is not open");
+  }
+  if (isnap == 1)
+    dia_err("Snapshot failed.");
+  else if (isnap == 0) {
+    sangle = b3dGetSnapDirectory();
+    if (sangle.isEmpty())
+      sangle = "current directory";
+    imodPrintStderr("Snapshot saved as %s in %s\n", (const char *)snapname.toLatin1(),
+                    (const char *)sangle.toLatin1());
+  }
+  return;
 
 }
 
 void GrabSlicer::saveDatabase()
 {
 
-    QString sangle, spoint;
-    if (winValue == 0) { // slicer, put this first in order to check if slicer window is open
-      float fangle[3];
-      Ipoint fpoint;
-      int stime;
-      int islicer = getTopSlicerAngles(fangle, &fpoint, stime); //time always 0?
-      if (islicer == 1) {
-	dia_err("Snapshot failed: Slicer window is not open.");
-	return;
-      }
-      sangle.sprintf ("Slicer angle:  (%f, %f, %f)", fangle[0], fangle[1], fangle[2] );
-      spoint.sprintf ("Slicer center point:  (%d, %d, %d)", (int)fpoint.x+1, (int)fpoint.y+1, (int)fpoint.z+1 );
-    }
-
-    if (SnapShot_format == SnapShot_TIF) { 
-      dia_err("Only JPG or PNG snapshots can be accepted in database for display reason.");
+  QString sangle, spoint;
+  if (sPlug.slicerZap == 0) { // slicer, put this first in order to check if slicer window is open
+    float fangle[3];
+    Ipoint fpoint;
+    int stime;
+    int islicer = getTopSlicerAngles(fangle, &fpoint, stime); //time always 0?
+    if (islicer == 1) {
+      dia_err("Snapshot failed: Slicer window is not open.");
       return;
     }
+    sangle.sprintf ("Slicer angle:  (%.2f, %.2f, %.2f)", fangle[0], fangle[1], fangle[2]);
+    spoint.sprintf ("Slicer center point:  (%d, %d, %d)", (int)fpoint.x+1, 
+                    (int)fpoint.y+1, (int)fpoint.z+1 );
+  } else {
+    float imX, imY;
+    int imZ;
+    ivwGetTopZapCenter(sPlug.view, imX, imY, imZ);
+    spoint.sprintf("Zap center point:  (%d, %d, %d)", (int)imX, (int)imY, imZ);
+  }
 
-    //prepare caption text
-    QString TiltID = (tilt_id->text()).trimmed();
-    QString TiltNote = (tilt_note->toPlainText()).trimmed(); 
-    if (TiltID.isEmpty()) { 
-      dia_err("Please input tilt series id to which the snapshot will be added");
-      return;
-    }
-
-    QStringList capLines = (QStringList() << QString("Database id: ")+TiltID);
-    capLines = capLines << QString("3D Image: ")+realfilename;
-    if (winValue == 0) { // slicer
-      float fangle[3];
-      Ipoint fpoint;
-      int stime;
-      int islicer = getTopSlicerAngles(fangle, &fpoint, stime); //time always 0?
-      if (islicer == 1) {
-	dia_err("Snapshot failed: Slicer window is not open.");
-	return;
-      }
-      capLines = capLines << sangle << spoint;       
-      //QStringList capLines = (QStringList() << " " << QString(sangle) << QString(spoint) << TiltID << TiltNote << " ");
-    }
-    if (!TiltNote.isEmpty())
-      capLines = capLines << TiltNote;      
-
-    //get database setting from database.ini file
-    QFile dbfile(dbini);
-    if(!dbfile.open(QIODevice::ReadOnly)) {
-      imodPrintStderr("Error: can not open %s\n", dbini.toStdString().c_str());
-      dia_err("Database connection failed: can not open grabDatabase.ini");
-      return;
-    }
-    QTextStream in(&dbfile);
-    char dbpath[500];
-    QString dbhost, dbname, dbuser, dbpass;
-    while ( !in.atEnd() ) {
-      QStringList dbline =  in.readLine().split("'");
-      if (dbline[0].startsWith("dbpath")) 
-	sprintf (dbpath, "%s", dbline[1].toStdString().c_str());
-      else if  (dbline[0].startsWith("dbhost")) 
-	dbhost = QString(dbline[1]);
-      else if  (dbline[0].startsWith("dbname")) 
-	dbname = QString(dbline[1]); 
-      else if  (dbline[0].startsWith("dbuser")) 
-	dbuser = QString(dbline[1]); 
-      else if  (dbline[0].startsWith("dbpass")) 
-	dbpass = QString(dbline[1]); 
-    } 
-    dbfile.close();
-
-    //QSqlDatabase db = QSqlDatabase::database("TOMO");
-    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
-    QString dbconnection;
-    db.setHostName(dbhost);
-    db.setDatabaseName(dbname);
-    db.setUserName(dbuser);
-    db.setPassword(dbpass);
-    if(!db.open()) {
-      dia_err("Database connection failed.");
-      quitDatabase(db);
-      return;
-    }
-    imodPrintStderr("database connected: %s\n", dbhost.toStdString().c_str());
-
-    //verify the tilt series id is valid
-    char tiltseriesid[24];
-    sprintf (tiltseriesid, "%s", TiltID.toStdString().c_str());
-    
-    QSqlQuery qry;
-    char sqlsql[500];
-    sprintf (sqlsql, "SELECT COUNT(1) FROM TiltSeriesData WHERE tiltseriesID='%s' AND status !=2", tiltseriesid);
-    qry.prepare(sqlsql);
-    if( !qry.exec() ) {
-      imodPrintStderr("Error excuting sql=%s\n", sqlsql);
-      dia_err("Unexpected error in saving file to database (1)");
-      quitDatabase(db);
-      return;
-    }
-    qry.next();
-    if (qry.value(0).toInt() == 0) {
-      char dbmsg[200];
-      sprintf (dbmsg, "%s is not a valid tilt series id in the database!", tiltseriesid);
-      dia_err(dbmsg);
-      quitDatabase(db);
-      return;
-    }
-    imodPrintStderr("%s is in database\n", tiltseriesid);
-
-    //insert image and get the last insert id
-    sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`, status, filetype, auto, filename, TXT_notes)  VALUES ( \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\")", tiltseriesid, TiltNote.toStdString().c_str() );
-    qry.prepare(sqlsql);
-    if( !qry.exec() ) {
-      imodPrintStderr("Error excuting sql=%s\n", sqlsql);
-      dia_err("Unexpected error in saving file to database (2)");
-      quitDatabase(db);
-      return;
-    }
-    // get last insert id and generate save path
-    char savepath[500], savename[50];
-    int last_id;
-    if( qry.isActive()) {
-	qry.next();
-	last_id = qry.lastInsertId().toInt();
-	char imgend[4];
-	switch ( SnapShot_format  ) {
-	case SnapShot_JPG: 
-	  strcpy (imgend, "jpg");
-	  break;
-	case SnapShot_PNG: 
-	  strcpy (imgend, "png");
-	  break;
-	}  
-	if (winValue == 0) 
-	  sprintf (savename, "%s_slicer%d.%s", tiltseriesid, last_id, imgend);
-	else 
-	  sprintf (savename, "%s_zap%d.%s", tiltseriesid, last_id, imgend);
-    }
-    else {
-      imodPrintStderr("Error in obtaining lateast inserted id.\n");
-      dia_err("Unexpected error in saving file to database (3)");
-      quitDatabase(db);
-      return;
-    }
-
-    //set captions
-    b3dSetSnapshotCaption(capLines, true);
-
-    //save grabed image to savepath
-    int isnap = 1;
-    sprintf (savepath, "%sCaps/%s", dbpath, savename);
-    QString snapname = QString(savepath);
-    if (winValue == 0) { //slicer
-      isnap = ivwSnapshotTopSlicer(snapname, SnapShot_format, false);
-      if (isnap == -1) {
-	dia_err("Snapshot failed: Slicer window is not open.");
-      }
-    }
-    else if  (winValue == 1) { //zap
-      isnap = ivwSnapshotTopZap(snapname, SnapShot_format, false);
-      if (isnap == -1)
-	dia_err("Snapshot failed: Zap window is not open");
-    }
-    if (isnap == 0) { // snapshot saved
-      //rename the image record in DB with correct name containing file id
-      sprintf (sqlsql, "UPDATE DataFile SET filename = \"%s\" WHERE DEF_id = %d ", savename, last_id );
-      qry.prepare(sqlsql);
-      if( !qry.exec() ) {
-	imodPrintStderr("Error excuting sql=%s\n", sqlsql);
-	isnap = 1;
-      }
-      sprintf (sqlsql, "UPDATE TiltSeriesData SET time_modified=NOW() WHERE tiltseriesID = \"%s\"", tiltseriesid );
-      qry.prepare(sqlsql);
-      if( !qry.exec() ) {
-	imodPrintStderr("Warning! Timestamp is not changed. Error excuting sql=%s\n", sqlsql);
-      }
-      imodPrintStderr("Snapshot saved at %s\n", savepath);
-    }
-    if (isnap != 0) {  // failed
-      dia_err("Snapshot failed.");
-      //remove image record from DB
-      sprintf (sqlsql, "DELETE FROM TiltSeriesData WHERE tiltseriesID='%d' ", last_id );
-      qry.prepare(sqlsql);
-    }
-
-    // close db and quit
-    qry.clear();
-    dbconnection = db.connectionName();
-    db.close();
-    db = QSqlDatabase();
-    db.removeDatabase(dbconnection);
-    imodPrintStderr("database connection closed.\n");
+  if (sPlug.snapShot_format == SnapShot_TIF) { 
+    dia_err("Only JPG or PNG snapshots can be accepted in database for display reason.");
     return;
+  }
+
+  //prepare caption text
+  QString TiltID = (tilt_id->text()).trimmed();
+  QString TiltNote = (tilt_note->toPlainText()).trimmed(); 
+  QString scaleLine = scaleBarLine();
+  if (TiltID.isEmpty()) { 
+    dia_err("Please input tilt series id to which the snapshot will be added");
+    return;
+  }
+
+  QStringList capLines = (QStringList() << QString("Database id: ")+TiltID);
+  capLines << QString("3D Image: ")+realfilename;
+  if (sPlug.slicerZap == 0) { // slicer
+    capLines << sangle << spoint;       
+    //QStringList capLines = (QStringList() << " " << QString(sangle) << QString(spoint) << TiltID << TiltNote << " ");
+  } else {
+    capLines << spoint;
+  }
+  if (!scaleLine.isEmpty())
+    capLines << scaleLine;
+  if (!TiltNote.isEmpty())
+    capLines << TiltNote;      
+
+  //get database setting from database.ini file
+  QFile dbfile(dbini);
+  if(!dbfile.open(QIODevice::ReadOnly)) {
+    imodPrintStderr("Error: can not open %s\n", dbini.toStdString().c_str());
+    dia_err("Database connection failed: can not open grabDatabase.ini");
+    return;
+  }
+  QTextStream in(&dbfile);
+  char dbpath[500];
+  QString dbhost, dbname, dbuser, dbpass;
+  while ( !in.atEnd() ) {
+    QStringList dbline =  in.readLine().split("'");
+    if (dbline[0].startsWith("dbpath")) 
+      sprintf (dbpath, "%s", dbline[1].toStdString().c_str());
+    else if  (dbline[0].startsWith("dbhost")) 
+      dbhost = QString(dbline[1]);
+    else if  (dbline[0].startsWith("dbname")) 
+      dbname = QString(dbline[1]); 
+    else if  (dbline[0].startsWith("dbuser")) 
+      dbuser = QString(dbline[1]); 
+    else if  (dbline[0].startsWith("dbpass")) 
+      dbpass = QString(dbline[1]); 
+  } 
+  dbfile.close();
+
+  //QSqlDatabase db = QSqlDatabase::database("TOMO");
+  QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+  QString dbconnection;
+  db.setHostName(dbhost);
+  db.setDatabaseName(dbname);
+  db.setUserName(dbuser);
+  db.setPassword(dbpass);
+  if(!db.open()) {
+    dia_err("Database connection failed.");
+    quitDatabase(db);
+    return;
+  }
+  imodPrintStderr("database connected: %s\n", dbhost.toStdString().c_str());
+
+  //verify the tilt series id is valid
+  char tiltseriesid[24];
+  sprintf (tiltseriesid, "%s", TiltID.toStdString().c_str());
+    
+  QSqlQuery qry;
+  char sqlsql[500];
+  sprintf (sqlsql, "SELECT COUNT(1) FROM TiltSeriesData WHERE tiltseriesID='%s' AND status !=2", tiltseriesid);
+  qry.prepare(sqlsql);
+  if( !qry.exec() ) {
+    imodPrintStderr("Error excuting sql=%s\n", sqlsql);
+    dia_err("Unexpected error in saving file to database (1)");
+    quitDatabase(db);
+    return;
+  }
+  qry.next();
+  if (qry.value(0).toInt() == 0) {
+    char dbmsg[200];
+    sprintf (dbmsg, "%s is not a valid tilt series id in the database!", tiltseriesid);
+    dia_err(dbmsg);
+    quitDatabase(db);
+    return;
+  }
+  imodPrintStderr("%s is in database\n", tiltseriesid);
+
+  //insert image and get the last insert id
+  sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`, status, filetype, auto, filename, TXT_notes)  VALUES ( \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\")", tiltseriesid, TiltNote.toStdString().c_str() );
+  qry.prepare(sqlsql);
+  if( !qry.exec() ) {
+    imodPrintStderr("Error excuting sql=%s\n", sqlsql);
+    dia_err("Unexpected error in saving file to database (2)");
+    quitDatabase(db);
+    return;
+  }
+  // get last insert id and generate save path
+  char savepath[500], savename[50];
+  int last_id;
+  if( qry.isActive()) {
+    qry.next();
+    last_id = qry.lastInsertId().toInt();
+    char imgend[4];
+    switch ( sPlug.snapShot_format  ) {
+    case SnapShot_JPG: 
+      strcpy (imgend, "jpg");
+      break;
+    case SnapShot_PNG: 
+      strcpy (imgend, "png");
+      break;
+    }  
+    if (sPlug.slicerZap == 0) 
+      sprintf (savename, "%s_slicer%d.%s", tiltseriesid, last_id, imgend);
+    else 
+      sprintf (savename, "%s_zap%d.%s", tiltseriesid, last_id, imgend);
+  }
+  else {
+    imodPrintStderr("Error in obtaining lateast inserted id.\n");
+    dia_err("Unexpected error in saving file to database (3)");
+    quitDatabase(db);
+    return;
+  }
+
+  //set captions
+  b3dSetSnapshotCaption(capLines, true);
+
+  //save grabed image to savepath
+  int isnap = 1;
+  sprintf (savepath, "%sCaps/%s", dbpath, savename);
+  QString snapname = QString(savepath);
+  if (sPlug.slicerZap == 0) { //slicer
+    isnap = ivwSnapshotTopSlicer(snapname, sPlug.snapShot_format, false, true);
+    if (isnap == -1) {
+      dia_err("Snapshot failed: Slicer window is not open.");
+    }
+  }
+  else if  (sPlug.slicerZap == 1) { //zap
+    isnap = ivwSnapshotTopZap(snapname, sPlug.snapShot_format, false, true);
+    if (isnap == -1)
+      dia_err("Snapshot failed: Zap window is not open");
+  }
+  if (isnap == 0) { // snapshot saved
+    //rename the image record in DB with correct name containing file id
+    sprintf (sqlsql, "UPDATE DataFile SET filename = \"%s\" WHERE DEF_id = %d ", savename, last_id );
+    qry.prepare(sqlsql);
+    if( !qry.exec() ) {
+      imodPrintStderr("Error excuting sql=%s\n", sqlsql);
+      isnap = 1;
+    }
+    sprintf (sqlsql, "UPDATE TiltSeriesData SET time_modified=NOW() WHERE tiltseriesID = \"%s\"", tiltseriesid );
+    qry.prepare(sqlsql);
+    if( !qry.exec() ) {
+      imodPrintStderr("Warning! Timestamp is not changed. Error excuting sql=%s\n", sqlsql);
+    }
+    imodPrintStderr("Snapshot saved at %s\n", savepath);
+  }
+  if (isnap != 0) {  // failed
+    dia_err("Snapshot failed.");
+    //remove image record from DB
+    sprintf (sqlsql, "DELETE FROM TiltSeriesData WHERE tiltseriesID='%d' ", last_id );
+    qry.prepare(sqlsql);
+  }
+
+  // close db and quit
+  qry.clear();
+  dbconnection = db.connectionName();
+  db.close();
+  db = QSqlDatabase();
+  db.removeDatabase(dbconnection);
+  imodPrintStderr("database connection closed.\n");
+  return;
 
 }
 

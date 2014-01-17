@@ -3803,13 +3803,14 @@ void ZapFuncs::setAreaLimits()
  * An external call for taking a snapshot of given format and given an optional name
  * that is returned to the called
  */
-int ZapFuncs::namedSnapshot(QString &fname, int format, bool checkConvert)
+int ZapFuncs::namedSnapshot(QString &fname, int format, bool checkConvert, bool fullArea)
 {
-  int *limits;
+  int *limits = NULL;
   int limarr[4];
   mShowslice = mShowedSlice;
   draw();
-  setSnapshotLimits(&limits, limarr);
+  if (!fullArea)
+    setSnapshotLimits(&limits, limarr);
   return b3dNamedSnapshot(fname, "zap", format, limits, checkConvert);
 }
 

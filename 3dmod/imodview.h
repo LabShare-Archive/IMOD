@@ -349,18 +349,21 @@ void DLL_EX_IM b3dSetSnapshotCaption(QStringList &captionLines, bool wrapLastLin
  * as usual and returned in [name].  The snapshot format is specified by [format], which
  * should be SnapShot_TIF, SnapShot_PNG, or SnapShot_JPG, not the ambiguous SnapShot_RGB.
  * For a TIFF snapshot, the user's choice of whether to convert to gray-scale is honored
- * if [checkGrayConvert] is true and ignored otherwise.  Returns -1 if there is no top
- * zap window, -2 if the format is not one of the three listed, -3 if the format is not
- * available as the first or second nonTiff format selected by the user, or 1 for any
- * kind of error in the snapshotting process.
+ * if [checkGrayConvert] is true and ignored otherwise.  If [fullArea] is true, the
+ * snapshot will be of the whole window even if there is a rubber band.  Returns -1 if 
+ * there is no top zap window, -2 if the format is not one of the three listed, -3 if the
+ * format is not available as the first or second nonTiff format selected by the user, 
+ * or 1 for any kind of error in the snapshotting process.
  */
-int DLL_EX_IM ivwSnapshotTopZap(QString &name, int format, bool checkGrayConvert);
+int DLL_EX_IM ivwSnapshotTopZap(QString &name, int format, bool checkGrayConvert, 
+                                bool fullArea);
 
 /*!
  * Takes a single-frame snapshot of the top Slicer window; arguments and return values 
  * are the same as in @@ivwSnapshotTopZap.@
  */
-int DLL_EX_IM ivwSnapshotTopSlicer(QString &name, int format, bool checkGrayConvert);
+int DLL_EX_IM ivwSnapshotTopSlicer(QString &name, int format, bool checkGrayConvert, 
+                                   bool fullArea);
 
 /*!
  * Returns the X, Y, and Z angles of the top slicer in [angles], the center position in
@@ -379,12 +382,17 @@ void DLL_EX_IM scaleBarAllLengths(float &zapLen, float &slicerLen, float &xyzLen
                                   float &multiZlen, float &modvLen);
 
 /*!
+ * Enables or disables the drawing of scale bars without the Scale Bar dialog open.
+ */
+void DLL_EX_IM setScaleBarWithoutDialog(bool enable);
+
+/*!
  * Opens or raises the 3dmod dialog windows specified by the key letters provided in 
  * [keys], where the letters are the same as can be given with the -E option.
  */
 void DLL_EX_IM ivwOpen3dmodDialogs(const char *keys);
 
-/*
+/*!
  * Returns the current snapshot directory or an empty string if one is not set, in
  * which case snapshots will be to QDir::currentPath().
  */

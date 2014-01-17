@@ -25,6 +25,8 @@
 static ScaleBar params = {true, false, 50, 8, false, 0, 20, 20, false, 25, 
                           false, false};
 
+static int sNeedNoDia = 0;
+
 // The instance of the dialog
 static ScaleBarForm *sbDia = NULL;
 
@@ -64,6 +66,13 @@ void scaleBarClosing()
   scaleBarRedraw();
 }
 
+// Enable bar without dialog open - keep a count to allow multiple callers
+void setScaleBarWithoutDialog(bool enable)
+{
+  sNeedNoDia += enable ? 1 : -1;
+  sNeedNoDia = B3DMAX(0, sNeedNoDia);
+}
+
 /*
  * Assess the scale bar length and start and size for pixel drawing 
  */
@@ -73,7 +82,7 @@ float scaleBarAssess(int winx, int winy, float zoom, int &pixlen, int &xst,
   Imod *imod;
   double expon, minlen, loglen, normlen, custlen;
   float truelen, pixsize;
-  if (!params.draw || !sbDia)
+  if (!params.draw || !(sbDia || sNeedNoDia))
     return -1.;
 
   imod = imodvStandalone() ? Imodv->imod : App->cvi->imod;
@@ -211,7 +220,8 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
     glEnable(GL_DEPTH_TEST);
 
   // Start timer every time this routine draws a bar so updates occur
-  sbDia->startUpdateTimer();
+  if (sbDia)
+    sbDia->startUpdateTimer();
   return truelen;
 }
 
@@ -239,7 +249,7 @@ void scaleBarAllLengths(float &zapLen, float &slicerLen, float &xyzLen, float &m
   SlicerFuncs *ss;
   ZapFuncs *zap;
   slicerLen = zapLen = multiZlen = modvLen = xyzLen = -1.;
-  if (!sbDia)
+  if (!(sbDia || sNeedNoDia))
     return;
 
   if (!imodvStandalone()) {

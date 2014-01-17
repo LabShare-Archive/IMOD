@@ -67,7 +67,7 @@ class SlicerFuncs {
   int synchronizeSlicers(bool draw = false);
   void changeCenterIfLinked();
   void getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
-  int namedSnapshot(QString &fname, int format, bool checkConvert);
+  int namedSnapshot(QString &fname, int format, bool checkConvert, bool fullArea);
   void toggleArrow(bool drawWin = true);
   void rotateOnViewAxis(int deltaX, int deltaY, int deltaZ);
   void setCursor(int mode, bool setAnyway = false);
