@@ -1917,7 +1917,7 @@ public final class ApplicationManager extends BaseManager implements
    * Open 3dmod to view the coarsely aligned stack
    */
   public void imodCoarseAlign(final AxisID axisID, final Run3dmodMenuOptions menuOptions,
-      final String modelName) {
+      final String modelName, final boolean preserveContrast) {
     try {
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
       File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
@@ -1928,11 +1928,14 @@ public final class ApplicationManager extends BaseManager implements
       else {
         imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
+      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
+          preserveContrast);
       if (modelName == null) {
         imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
       }
       else {
-        imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, modelName, menuOptions);
+        imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, modelName, true,
+            menuOptions);
       }
     }
     catch (AxisTypeException except) {
@@ -2754,6 +2757,7 @@ public final class ApplicationManager extends BaseManager implements
       if (beadfixerMode == ImodProcess.BeadFixerMode.PATCH_TRACKING_RESIDUAL_MODE) {
         imodManager.setOpenModelView(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
+      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel, true,
           menuOptions);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -6410,16 +6414,17 @@ public final class ApplicationManager extends BaseManager implements
   public void imodClusteredElongatedModel(final AxisID axisID,
       final Run3dmodMenuOptions menuOptions) {
     FileType fileType = FileType.PREALIGNED_STACK;
-    FileType modelFileType = FileType.CLUSTERED_ELONGATED_MODEL;
+    String model = FileType.AUTOFIDSEED_DIR.getFileName(this, axisID) + File.separator
+        + FileType.CLUSTERED_ELONGATED_MODEL.getFile(this, axisID).getName();
     try {
-      imodManager.open(fileType.getImodManagerKey(this), axisID, modelFileType,
-          menuOptions);
+      imodManager.setOpenSurfContPoint(fileType.getImodManagerKey(this), axisID, true);
+      imodManager.setPreserveContrast(fileType.getImodManagerKey(this), axisID, true);
+      imodManager.open(fileType.getImodManagerKey(this), axisID, model, menuOptions);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(this, except.getMessage(),
-          "Can't open 3dmod on " + fileType.getFileName(this, axisID) + " for "
-              + modelFileType.getFile(this, axisID).getAbsolutePath(), axisID);
+      uiHarness.openMessageDialog(this, except.getMessage(), "Can't open 3dmod on "
+          + fileType.getFileName(this, axisID) + " for " + model, axisID);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();

@@ -1,7 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/15/14: Fixed problems with autofidseed in eTomo - Fiducial Model Dialog.
+(Bug# 1743)
+
 1/16/14: Jane Ding contributed Grab with Note plugin, which takes Slicer or Zap
 snapshots with notes added below the image.
+
+1/15/14: Exposed flgNoReferenceRefinement in eTomo - PEET.(Bug# 1738)
 
 1/16/14: Fixed creation of patch tracking com file if mag change searched in
 coarse align.
