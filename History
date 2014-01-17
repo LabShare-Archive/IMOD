@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/3/13: In eTomo improving error handling for an empty fiducial diameter
+field.(Bug# 1671)
+
 1/15/14: Fixed problems with autofidseed in eTomo - Fiducial Model Dialog.
 (Bug# 1743)
 
