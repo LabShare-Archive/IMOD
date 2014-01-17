@@ -117,10 +117,12 @@ if.var.build-with-patch-tracking.return=
 if.var.build-with-seed-b.return=
 #test 1
 #build
-bn.seed-fiducial-model=
-copy.file=%{dataset}%{axis}.seed
+[[ifnot = dual-b]]
+  copy.file=%{dataset}%{axis}.seed
+[[]]
 if.var.build.return=
 [[if = test-gui]]
+  bn.seed-fiducial-model=
   assert.bn.seed-fiducial-model=on
 [[]]
 
