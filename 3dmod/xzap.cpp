@@ -1093,11 +1093,14 @@ void ZapFuncs::paint()
                        mRbMouseX1 - mRbMouseX0, 
                        mRbMouseY1 - mRbMouseY0);
     } 
-    if (mArrowOn && (fabs((double)xpos(mArrowXtail) - xpos(mArrowXhead)) > 2. || 
-                     fabs((double)ypos(mArrowYtail) - ypos(mArrowYhead)) > 2.)) {
-      b3dColorIndex(App->arrow);
-      b3dDrawArrow(xpos(mArrowXtail), ypos(mArrowYtail), 
-                   xpos(mArrowXhead), ypos(mArrowYhead));
+
+    for (ix = 0; ix < mArrowHead.size(); ix++) {
+      if ((fabs((double)xpos(mArrowTail[ix].x) - xpos(mArrowHead[ix].x)) > 2. || 
+           fabs((double)ypos(mArrowTail[ix].y) - ypos(mArrowHead[ix].y)) > 2.)) {
+        b3dColorIndex(App->arrow);
+        b3dDrawArrow(xpos(mArrowTail[ix].x), ypos(mArrowTail[ix].y), 
+                     xpos(mArrowHead[ix].x), ypos(mArrowHead[ix].y));
+      }
     }
   }
   drawTools();
@@ -2164,8 +2167,9 @@ int ZapFuncs::b1Click(int x, int y, int controlDown)
 
   // If drawing an arrow, start the coordinates
   if (mDrawingArrow) {
-    mArrowXhead = mArrowXtail = ix;
-    mArrowYhead = mArrowYtail = iy;
+    iz = mArrowHead.size() - 1;
+    mArrowHead[iz].x = mArrowTail[iz].x = ix;
+    mArrowHead[iz].y = mArrowTail[iz].y = iy;
     return 0;
   }
 
@@ -2710,8 +2714,9 @@ int ZapFuncs::b2Drag(int x, int y, int controlDown)
   // Arrow: update the head coordinates
   getixy(x, y, ix, iy, iz);
   if (mDrawingArrow) {
-    mArrowXhead = ix;
-    mArrowYhead = iy;
+    iz = mArrowHead.size() - 1;
+    mArrowHead[iz].x = ix;
+    mArrowHead[iz].y = iy;
     draw();
     return 1;
   }
@@ -3960,22 +3965,52 @@ void ZapFuncs::toggleLasso(bool drawWin)
  */
 void ZapFuncs::toggleArrow(bool drawWin)
 {
+  Ipoint zero = {0., 0., 0.};
   if (!mArrowOn) {
     if (mStartingBand)
       toggleRubberband(false);
     if (mDrawingLasso)
       toggleLasso(false);
     endContourShift();
+    mArrowHead.push_back(zero);
+    mArrowTail.push_back(zero);
+  } else {
+    mArrowHead.pop_back();
+    mArrowTail.pop_back();
   }
   mArrowOn = !mArrowOn;
   mDrawingArrow = mArrowOn;
   mQtWindow->setToggleState(ZAP_TOGGLE_ARROW, mArrowOn ? 1 : 0);
-  mArrowXhead = mArrowYhead = mArrowXtail = mArrowYtail = 0.;
 
   setCursor(mMousemode, true);
   if (drawWin)
     draw();
   setCursor(mMousemode, true);
+}
+
+/*
+ * Clear out all arrows
+ */
+void ZapFuncs::clearArrows()
+{
+  if (mArrowOn)
+    toggleArrow(false);
+  mArrowHead.resize(0);
+  mArrowTail.resize(0);
+  draw();
+}
+
+/*
+ * Start a new arrow, keeping an existing one
+ */
+void ZapFuncs::startAddedArrow()
+{
+  int ind = mArrowHead.size();
+  if (mDrawingArrow && !mArrowHead[ind].x && !mArrowTail[ind].x && 
+      !mArrowHead[ind].y && !mArrowTail[ind].y)
+    return;
+  mArrowOn = false;
+  toggleArrow(false);
 }
 
 /*

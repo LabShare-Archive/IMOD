@@ -18,6 +18,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QEvent>
+#include <vector>
 
 class ZapWindow;
 class ZapGL;
@@ -61,6 +62,8 @@ class ZapFuncs
   void toggleRubberband(bool draw = true);
   void toggleLasso(bool draw = true);
   void toggleArrow(bool draw = true);
+  void clearArrows();
+  void startAddedArrow();
   void setSnapshotLimits(int **limits, int *limarr);
   bool getLowHighSection(int &low, int &high);
   Icont *getLassoContour();
@@ -163,10 +166,8 @@ class ZapFuncs
   int mLassoObjNum;   // Extra object number for lasso
   bool mArrowOn;       // Arrow flag
   bool mDrawingArrow;  // And flag for initial drawing
-  float mArrowXtail;   // Image coordinates of head and tail
-  float mArrowYtail;
-  float mArrowXhead;
-  float mArrowYhead;
+  std::vector<Ipoint> mArrowTail;   // Image coordinates of head and tail (Z is 0)
+  std::vector<Ipoint> mArrowHead;
 
  private:
   int    mXborder,   mYborder;   /* border around image window. */

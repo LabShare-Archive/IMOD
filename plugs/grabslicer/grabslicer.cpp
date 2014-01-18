@@ -44,7 +44,7 @@
 #include <string>
 using namespace std;
 
-#define NUM_SAVED_VALS 2
+#define NUM_SAVED_VALS 3
 
 //Static variables
 
@@ -64,10 +64,11 @@ typedef struct
   int slicerZap;
   int snapShot_format;
   bool enableScale;
+  bool fullAreaSnap;
 }PlugData;
 
 
-static PlugData sPlug = { NULL, NULL, 0, SnapShot_JPG, true};
+static PlugData sPlug = { NULL, NULL, 0, SnapShot_JPG, true, true};
 
 /*
  * Called by the imod plugin load function. 
@@ -157,9 +158,10 @@ void imodPlugExecute(ImodView *inImodView)
     // Get values from preferences
     nvals = prefGetGenericSettings("GrabWithNote", savedValues,
                                           NUM_SAVED_VALS);
-    if (nvals > 1) { 
+    if (nvals > 2) { 
       plug->slicerZap = B3DNINT(savedValues[0]);
       plug->snapShot_format = B3DNINT(savedValues[1]);
+      plug->fullAreaSnap = savedValues[2] != 0.;
     }
     showWelcome = nvals == 0;
 
@@ -259,6 +261,22 @@ GrabSlicer::GrabSlicer(QWidget *parent, bool showWelcome)
                        "the Scale Bar dialog");
   connect(box, SIGNAL(toggled(bool)), this, SLOT(scaleBarToggled(bool)));
 
+  box = diaCheckBox("Always snapshot whole window", this, mLayout);
+  box->setChecked(plug->fullAreaSnap);
+  box->setToolTip("Snapshot whole window instead of area inside rubber band if band is"
+                  " on");
+  connect(box, SIGNAL(toggled(bool)), this, SLOT(fullAreaSnapToggled(bool)));
+
+  QHBoxLayout *hlay = diaHBoxLayout(mLayout);
+  button = diaPushButton("Add Arrow", this, hlay);
+  button->setToolTip("Turn on arrow drawing in the top window, keeping any existing "
+                     "arrows");
+  connect(button, SIGNAL(clicked()), this, SLOT(addArrowClicked()));
+
+  button = diaPushButton("Clear Arrows", this, hlay);
+  button->setToolTip("Clear out all arrows in windows of the selected type");
+  connect(button, SIGNAL(clicked()), this, SLOT(clearArrowsClicked()));
+
   //get real filename, input tiltseiresid if available
   const char *imod_calob_dir = getenv("IMOD_CALIB_DIR");
   dbini = QString(imod_calob_dir)+"/grabDatabase.ini";
@@ -354,9 +372,14 @@ void GrabSlicer::closeEvent ( QCloseEvent * e )
 {
   PlugData *plug = &sPlug;
   double saveValues[NUM_SAVED_VALS];
+
+  // Save settings, clear any arrows, restore scale bar
   saveValues[0] = plug->slicerZap;
   saveValues[1] = plug->snapShot_format;
+  saveValues[2] = plug->fullAreaSnap ? 1. : 0.;
   prefSaveGenericSettings("GrabWithNote", NUM_SAVED_VALS, saveValues);
+  clearAllArrows(ZAP_WINDOW_TYPE, true);
+  clearAllArrows(SLICER_WINDOW_TYPE, true);
   if (plug->enableScale) {
     setScaleBarWithoutDialog(false);
     ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
@@ -413,6 +436,24 @@ void GrabSlicer::scaleBarToggled(bool state)
   ivwDraw(sPlug.view, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
 }
 
+void GrabSlicer::fullAreaSnapToggled(bool state)
+{
+  sPlug.fullAreaSnap = state;
+}
+
+void GrabSlicer::addArrowClicked()
+{
+  if (!startAddedArrow(sPlug.slicerZap ? ZAP_WINDOW_TYPE : SLICER_WINDOW_TYPE))
+    return;
+  dia_err(sPlug.slicerZap ? "There are no Zap windows open" : 
+          "There are no Slicer windows open");
+}
+
+void GrabSlicer::clearArrowsClicked()
+{
+  clearAllArrows(sPlug.slicerZap ? ZAP_WINDOW_TYPE : SLICER_WINDOW_TYPE, false);
+}
+
 // Compose a line with a scale bar length if there is one
 QString GrabSlicer::scaleBarLine()
 {
@@ -437,12 +478,14 @@ void GrabSlicer::saveImage()
   QString sangle;
   QString spoint;
   QString scaleLine = scaleBarLine();
+  QStringList templist = ivwCurrentImageFile(sPlug.view, false).split(QDir::separator());
+  realfilename = templist[templist.size() - 1];
   QStringList capLines = (QStringList() << realfilename);
   if (sPlug.slicerZap == 0) { // slicer
     float fangle[3];
     Ipoint fpoint;
     int stime;
-    int islicer = getTopSlicerAngles(fangle, &fpoint, stime); //time always 0?
+    getTopSlicerAngles(fangle, &fpoint, stime);
     sangle.sprintf ("Slicer angle:  (%.2f, %.2f, %.2f)", fangle[0], fangle[1], fangle[2]);
     spoint.sprintf ("Slicer center point:  (%d, %d, %d)", (int)fpoint.x+1, 
                     (int)fpoint.y+1, (int)fpoint.z+1 );
@@ -462,13 +505,14 @@ void GrabSlicer::saveImage()
   int isnap;
   b3dSetSnapshotCaption(capLines, true);
   if (sPlug.slicerZap == 0) { //slicer
-    isnap = ivwSnapshotTopSlicer(snapname, sPlug.snapShot_format, false, true);
+    isnap = ivwSnapshotTopSlicer(snapname, sPlug.snapShot_format, false, 
+                                 sPlug.fullAreaSnap);
     if (isnap == -1) {
       dia_err("Snapshot failed: Slicer window is not open.");
     }
   }
   else if  (sPlug.slicerZap == 1) { //zap
-    isnap = ivwSnapshotTopZap(snapname, sPlug.snapShot_format, false, true);
+    isnap = ivwSnapshotTopZap(snapname, sPlug.snapShot_format, false, sPlug.fullAreaSnap);
     if (isnap == -1)
       dia_err("Snapshot failed: Zap window is not open");
   }
@@ -523,6 +567,8 @@ void GrabSlicer::saveDatabase()
   }
 
   QStringList capLines = (QStringList() << QString("Database id: ")+TiltID);
+  QStringList templist = ivwCurrentImageFile(sPlug.view, false).split(QDir::separator());
+  realfilename = templist[templist.size() - 1];
   capLines << QString("3D Image: ")+realfilename;
   if (sPlug.slicerZap == 0) { // slicer
     capLines << sangle << spoint;       
@@ -642,13 +688,14 @@ void GrabSlicer::saveDatabase()
   sprintf (savepath, "%sCaps/%s", dbpath, savename);
   QString snapname = QString(savepath);
   if (sPlug.slicerZap == 0) { //slicer
-    isnap = ivwSnapshotTopSlicer(snapname, sPlug.snapShot_format, false, true);
+    isnap = ivwSnapshotTopSlicer(snapname, sPlug.snapShot_format, false, 
+                                 sPlug.fullAreaSnap);
     if (isnap == -1) {
       dia_err("Snapshot failed: Slicer window is not open.");
     }
   }
   else if  (sPlug.slicerZap == 1) { //zap
-    isnap = ivwSnapshotTopZap(snapname, sPlug.snapShot_format, false, true);
+    isnap = ivwSnapshotTopZap(snapname, sPlug.snapShot_format, false, sPlug.fullAreaSnap);
     if (isnap == -1)
       dia_err("Snapshot failed: Zap window is not open");
   }
@@ -692,5 +739,4 @@ void GrabSlicer::quitDatabase(QSqlDatabase db) {
     QSqlDatabase::removeDatabase(dbconnection);
     imodPrintStderr("database connection closed.\n");
 }
-
 

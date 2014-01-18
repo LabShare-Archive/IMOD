@@ -35,6 +35,9 @@ class GrabSlicer : public DialogFrame
   void imgtypeSelected(int value);
   void quitDatabase(QSqlDatabase db);
   void scaleBarToggled(bool state);
+  void fullAreaSnapToggled(bool state);
+  void addArrowClicked();
+  void clearArrowsClicked();
 
  protected:
 
