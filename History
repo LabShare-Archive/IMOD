@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/18/14: Further polishing of Grab with Note, which can now be used to draw
+multiple arrows in Zap or Slicer windows.
+
 1/16/14: IMOD_4-6-36
 1/16/14: Jane Ding contributed Grab with Note plugin, which takes Slicer or Zap
 snapshots with notes added below the image.
