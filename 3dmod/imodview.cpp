@@ -38,6 +38,8 @@
 #include "autox.h"
 #include "xzap.h"
 #include "sslice.h"
+#include "zap_classes.h"
+#include "slicer_classes.h"
 #include "xcramp.h"
 #include "workprocs.h"
 #include "vertexbuffer.h"
@@ -52,6 +54,7 @@ static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert, 
                              int winType, bool fullArea);
+static int getTopZapOrSlicer(int winType, ZapFuncs **zap, SlicerFuncs **slicer);
 static float ivwReadBinnedPoint(ImodView *vi, ImodImageFile *image, int cx, int cy,
                                 int cz);
 
@@ -3385,6 +3388,9 @@ int ivwSetTopZapCenter(ImodView *inImodView, float imX, float imY, int imZ,
   return 0;
 }
 
+/* 
+ * Do snapshot in top zap or slicer
+ */
 int ivwSnapshotTopZap(QString &name, int format, bool checkGrayConvert, bool fullArea)
 {
   return snapshotTopWindow(name, format, checkGrayConvert, ZAP_WINDOW_TYPE, fullArea);
@@ -3401,14 +3407,8 @@ static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert,
   ZapFuncs *zap;
   SlicerFuncs *slicer;
   int retval;
-  if (winType == ZAP_WINDOW_TYPE)
-    zap = getTopZapWindow(false);
-  else if (winType == SLICER_WINDOW_TYPE)
-    slicer = getTopSlicer();
-  else
-    return -4;
-  if ((winType == ZAP_WINDOW_TYPE && !zap) || (winType == SLICER_WINDOW_TYPE && !slicer))
-    return -1;
+  if ((retval = getTopZapOrSlicer(winType, &zap, &slicer)))
+    return retval;
   if (format != SnapShot_TIF && format != SnapShot_JPG && format != SnapShot_PNG)
     return -2;
   int restore = 0;
@@ -3425,6 +3425,72 @@ static int snapshotTopWindow(QString &name, int format, bool checkGrayConvert,
   if (restore)
     ImodPrefs->restoreSnapFormat();
   return retval;
+}
+
+static int getTopZapOrSlicer(int winType, ZapFuncs **zap, SlicerFuncs **slicer)
+{
+  if (winType == ZAP_WINDOW_TYPE)
+    *zap = getTopZapWindow(false);
+  else if (winType == SLICER_WINDOW_TYPE)
+    *slicer = getTopSlicer();
+  else
+    return -4;
+  if ((winType == ZAP_WINDOW_TYPE && !*zap) || 
+      (winType == SLICER_WINDOW_TYPE && !*slicer))
+    return -1;
+  return 0;
+}
+
+/*
+ * Functions for starting new arrow or clearing all arrows
+ */
+int startAddedArrow(int windowType)
+{
+  ZapFuncs *zap;
+  SlicerFuncs *slicer;
+  int retval;
+  if ((retval = getTopZapOrSlicer(windowType, &zap, &slicer)))
+    return retval;
+  if (windowType == ZAP_WINDOW_TYPE)
+    zap->startAddedArrow();
+  else
+    slicer->startAddedArrow();
+  return 0;
+}
+
+// Clear all arrows in top window or all windows of given type
+int clearAllArrows(int windowType, bool allWindows)
+{
+  ZapFuncs *zap;
+  SlicerFuncs *slicer;
+  QObjectList objList;
+  int i;
+
+  // Get top window regardless, for easy error check
+  if ((i = getTopZapOrSlicer(windowType, &zap, &slicer)))
+    return i;
+
+  // Top window
+  if (!allWindows) {
+    if (windowType == ZAP_WINDOW_TYPE)
+      zap->clearArrows();
+    else
+      slicer->clearArrows();
+  } else {
+
+    // All windows
+    imodDialogManager.windowList(&objList, -1, windowType);
+    for (i = 0; i < objList.count(); i++) {
+      if (windowType == ZAP_WINDOW_TYPE) {
+        zap = ((ZapWindow *)objList.at(i))->mZap;
+        zap->clearArrows();
+      } else {
+        slicer = ((SlicerWindow *)objList.at(i))->mFuncs;
+      slicer->clearArrows();
+      }
+    }
+  }
+  return 0;
 }
 
 // Return the name of the current image file, without any path adjustments
