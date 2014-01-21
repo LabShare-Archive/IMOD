@@ -944,7 +944,7 @@ QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
           menuUse->addSeparator();
       } else {
         
-        if (mainActions && table[tableInd].mainIndex) {
+        if (mainActions && table[tableInd].mainIndex > 0) {
           menuUse->addAction(mainActions[table[tableInd].mainIndex]);
         } else {
 
@@ -962,10 +962,11 @@ QAction **utilBuildPopupMenu(PopupEntry *specTable, bool addDefault,
             actions[numActions] = menuUse->addAction(text);
           }
           
-          // Set up shortcuts, connection and mapping
-          actions[numActions]->setShortcut(table[tableInd].key + 
-                                           (table[tableInd].ctrl ? Qt::CTRL : 0) +
-                                           (table[tableInd].shift ? Qt::SHIFT : 0));
+          // Set up shortcuts (unless mainIndex < 0), connection and mapping
+          if (table[tableInd].mainIndex >= 0)
+            actions[numActions]->setShortcut(table[tableInd].key + 
+                                             (table[tableInd].ctrl ? Qt::CTRL : 0) +
+                                             (table[tableInd].shift ? Qt::SHIFT : 0));
           QObject::connect(actions[numActions], SIGNAL(triggered()), mapper, SLOT(map()));
           mapper->setMapping(actions[numActions], numActions);
         }
