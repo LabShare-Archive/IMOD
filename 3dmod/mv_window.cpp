@@ -68,11 +68,11 @@ static PopupEntry sPopupTable[] = {
   // On the Mac, setting up shortcuts kills the keypad, so set mainIndex -1 to avoid the
   // shortcut and put key in the text
 #ifdef Q_OS_MACX
-  {"Toggle displaying all models or one model  8", Qt::Key_8, 0, 0, -1},
-  {"Move to previous model time                1", Qt::Key_1, 0, 0, -1},
-  {"Move to next model time                    2", Qt::Key_2, 0, 0, -1},
-  {"Switch to previous model                   9", Qt::Key_9, 0, 0, -1},
-  {"Switch to next model                       0", Qt::Key_0, 0, 0, -1},
+  {"Toggle displaying all models/one model  8", Qt::Key_8, 0, 0, -1},
+  {"Move to previous model time                   1", Qt::Key_1, 0, 0, -1},
+  {"Move to next model time                          2", Qt::Key_2, 0, 0, -1},
+  {"Switch to previous model                         9", Qt::Key_9, 0, 0, -1},
+  {"Switch to next model                               0", Qt::Key_0, 0, 0,-1},
 #else
   {"Toggle displaying all models or one model", Qt::Key_8, 0, 0, 0},
   {"Move to previous model time", Qt::Key_1, 0, 0, 0},
