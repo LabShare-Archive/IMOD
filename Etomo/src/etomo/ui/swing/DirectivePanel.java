@@ -465,7 +465,7 @@ final class DirectivePanel  {
     }
     String tooltip = directive.getKeyDescription() + ":  " + directive.getDescription()
         + "." + (valueString != null ? "  Dataset value:" + valueString : "")
-        + (defaultValueString != null ? "  Orginal value:" + defaultValueString : "")
+        + (defaultValueString != null ? "  Original value:" + defaultValueString : "")
         + debugString;
     cbInclude.setToolTipText(tooltip);
     if (cbValue != null) {
