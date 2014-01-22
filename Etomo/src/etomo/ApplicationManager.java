@@ -1011,7 +1011,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Archive the orginal stacks during clean up.
+   * Archive the original stacks during clean up.
    * 
    * @param axisID
    */
@@ -1187,7 +1187,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    // Rename the fixed stack to the raw stack file name and save the orginal
+    // Rename the fixed stack to the raw stack file name and save the original
     // raw stack to _orig.st if that does not already exist
     try {
       if (!FileType.ORIGINAL_RAW_STACK.getFile(this, axisID).exists()) {
@@ -3044,6 +3044,19 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
+      final StringBuffer errmsg, final ConstEtomoNumber value,
+      final ConstEtomoNumber defaultValue) {
+    Directive directive = map.get(key);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
+    }
+    else {
+      errmsg.append("Missing directive: " + key + ".  ");
+    }
+  }
+
+  private void updateDirective(final DirectiveMap map, final String key,
       final StringBuffer errmsg, final ConstStringParameter value) {
     Directive directive = map.get(key);
     if (directive != null) {
@@ -3115,6 +3128,18 @@ public final class ApplicationManager extends BaseManager implements
     Directive directive = map.get(key);
     if (directive != null) {
       directive.setValue(value);
+    }
+    else {
+      errmsg.append("Missing directive: " + key + ".  ");
+    }
+  }
+
+  private void updateDirective(final DirectiveMap map, final String key,
+      final StringBuffer errmsg, final String value, final String defaultValue) {
+    Directive directive = map.get(key);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
     }
     else {
       errmsg.append("Missing directive: " + key + ".  ");
@@ -3330,11 +3355,11 @@ public final class ApplicationManager extends BaseManager implements
         errmsg, metaData.isFiducialess(curAxisID));
     // Tracking choices
     updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
-    updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
+        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)),
+        TrackingMethod.SEED.getValue());
     updateDirective(directiveMap, prepend + module + DirectiveFile.SEEDING_METHOD_NAME,
-        errmsg, SeedingMethod.toDirectiveValue(metaData, curAxisID));
+        errmsg, SeedingMethod.toDirectiveValue(metaData, curAxisID),
+        SeedingMethod.MANUAL.getValue());
     // Beadtracking
     // numberOfRuns - cannot update
     // Auto seed finding
@@ -11591,7 +11616,7 @@ public final class ApplicationManager extends BaseManager implements
  * <p>
  * .seed to _orig.seed. Ok to use fid as seed when .seed does not exist.
  * <p>
- * Orginal bug# 276.
+ * Original bug# 276.
  * <p>
  * <p>
  * Revision 3.47 2004/05/03 22:29:21 sueh
