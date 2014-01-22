@@ -113,27 +113,34 @@ end subroutine get_tilt_angles
 ! !
 subroutine read_tilt_file(numViews, nunit, filename, tilt, limTilt)
   implicit none
-  integer*4 numViews, nunit, limTilt, i
+  integer*4 numViews, nunit, limTilt, ind
   real*4 tilt(*)
   character*(*) filename
+  character*80 message
   call dopen(nunit, filename, 'ro', 'f')
   if (numViews == 0) then
-10  read(nunit,*,end = 20, err = 40) tilt(numViews + 1)
-    numViews = numViews + 1
+10  ind = numViews + 1
+    read(nunit,*,end = 20, err = 40) tilt(ind)
+    numViews = ind
     if (numViews > limTilt) call gta_errorexit('TOO MANY VIEWS FOR TILT ANGLE ARRAY')
     go to 10
   else
-    read(nunit,*,err = 40, end = 30) (tilt(i), i = 1, numViews)
+    do ind = 1, numViews
+      read(nunit,*,err = 40, end = 30) tilt(ind)
+    enddo
   endif
 20 close(nunit)
   return
-30 call gta_errorexit('end of file reached reading tilt angles')
-40 call gta_errorexit('error reading tilt angles')
+30 write(message,'(a,i5,a,i5)')'end of file reached after reading',ind - 1,  &
+       ' tilt angles, expected', numViews
+  call gta_errorexit(message)
+40 write(message,'(a,i5)')'error reading tilt angles on line', ind
+  call gta_errorexit(message)
 end subroutine read_tilt_file
 
 
 subroutine gta_errorexit(message)
   character*(*) message
-  write(*,'(/,a,a)') 'ERROR: GET_TILT_ANGLES - ', message
+  write(*,'(/,a,a)') 'ERROR: GET_TILT_ANGLES - ', trim(message)
   call exit(1)
 end subroutine gta_errorexit
