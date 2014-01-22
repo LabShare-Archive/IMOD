@@ -200,6 +200,10 @@ public class Directive {
   public void setDefaultValue(final boolean input) {
     values.setDefaultValue(input);
   }
+  
+  public void setDefaultValue(final ConstEtomoNumber input) {
+    values.setDefaultValue(input);
+  }
 
   public void setDefaultValue(final String input) {
     values.setDefaultValue(input);
