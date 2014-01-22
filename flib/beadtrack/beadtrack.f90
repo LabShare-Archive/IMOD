@@ -356,13 +356,7 @@ program beadtrack
     if (PipGetString('SkipViews', listString) == 0) call parseList2 &
         (listString, izExclude, numExclude, maxView)
     ierr = PipGetFloat('RotationAngle', rotStart)
-    ierr = PipNumberOfEntries('SeparateGroup', ngsep)
-    if (ngsep > MAXGRP) call errorExit &
-        ('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
-    do ig = 1, ngsep
-      ierr = PipGetString('SeparateGroup', listString)
-      call parseList2(listString, ivsepIn(1, ig), nsepInGrpIn(ig), maxView)
-    enddo
+    call inputSeparateGroups(ngsep, nsepInGrpIn, ivsepIn, listString)
   else
     !
     write(*,'(1x,a,$)') 'List of views to skip over: '

@@ -88,14 +88,9 @@ subroutine input_vars(var, varName, inputAlf, numVarSearch, numVarAngles, &
   ! print *,(numInView(i), i = 1, nview)
   if (pipinput) ifpip = 1
   if (pipinput .and. ifLocal == 0) then
-    ierr = PipNumberOfEntries('SeparateGroup', ngsep)
-    if (ngsep > MAXGRP) call errorExit &
-        ('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
+    call inputSeparateGroups(ngsep, nsepInGrp, ivsep, listString)
     do ig = 1, ngsep
-      ierr = PipGetString('SeparateGroup', listString)
-      call parseList(listString, ivsep(1, ig), nsepInGrp(ig))
-      call mapSeparateGroup(ivsep(1, ig), nsepInGrp(ig), mapFileToView, &
-          nfileViews)
+      call mapSeparateGroup(ivsep(1, ig), nsepInGrp(ig), mapFileToView, nfileViews)
     enddo
     rotStart = 0.
     ierr = PipGetFloat('RotationAngle', rotStart)

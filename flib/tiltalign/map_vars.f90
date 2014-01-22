@@ -254,9 +254,48 @@ subroutine automap(nview, mapList, groupSize, mapFileToView, nFileViews, &
 end subroutine automap
 
 
-subroutine inputGroupings(nFileViews, ifpip, ifRequired, &
-    defaultOption, nonDefaultOption, nmapDef, ivSpecStrIn, &
-    ivSpecEndIn, nmapSpecIn, nRanSpecIn, MAXGRP)
+! Input the separate groups and check that not every view is in each one
+!
+subroutine inputSeparateGroups(ngsep, nsepInGrp, ivsep, listString)
+  use alivar
+  implicit none
+  integer*4 ngsep, nsepInGrp(*), ivsep(maxView, *)
+  character*(*) listString
+  integer*4 ig, iv, i, ierr, PipGetString, PipNumberOfEntries
+
+  ierr = PipNumberOfEntries('SeparateGroup', ngsep)
+  if (ngsep > MAXGRP) call errorExit('TOO MANY SEPARATE GROUPS FOR ARRAYS', 0)
+  do ig = 1, ngsep
+    ierr = PipGetString('SeparateGroup', listString)
+    call parseList2(listString, ivsep(1, ig), nsepInGrp(ig), maxView)
+
+    ! Check each view to see if it is in the group
+    do iv = 1, nview
+      ierr = 0
+      do i = 1, nsepInGrp(ig)
+        if (ivsep(i, ig) == iv) then
+          ierr = 1
+          exit
+        endif
+      enddo
+      
+      ! We get here with a 1 if it is in, so if there is ever a view not in the group, 
+      ! the group is OK
+      if (ierr == 0) then
+        exit
+      endif
+    enddo
+    if (ierr > 0) call errorExit('THIS ENTRY FOR A SEPARATE GROUP CONTAINS ALL VIEWS: ' &
+        // trim(listString), 0)
+  enddo
+  return
+end subroutine inputSeparateGroups
+
+
+! Inputs the groupings for one variable
+!
+subroutine inputGroupings(nFileViews, ifpip, ifRequired, defaultOption, &
+    nonDefaultOption, nmapDef, ivSpecStrIn, ivSpecEndIn, nmapSpecIn, nRanSpecIn, MAXGRP)
   implicit none
   integer*4 nFileViews, ifpip, ifRequired, nmapDef, MAXGRP, nRanSpecIn
   character*(*) defaultOption, nonDefaultOption
@@ -670,8 +709,7 @@ subroutine mapSeparateGroup(ivSep, nSepInGrp, mapFileToView, &
   i = 1
   do while(i <= nSepInGrp)
     if (ivsep(i) <= 0 .or. ivsep(i) > nFileViews) call errorExit( &
-        'View in separate group is outside known range of '// &
-        'image file', 0)
+        'View in separate group is outside known range of image file', 0)
     ivsep(i) = mapFileToView(ivsep(i))
     if (ivsep(i) == 0) then
       nSepInGrp = nSepInGrp - 1
