@@ -107,6 +107,8 @@ oneratio = 1      # for error
 nobeamtilt = 1    # for solution
 noprogentry = 1   # for angle
 nolocals = 1      # for angle
+projSkewLine = ''
+rotAtMinTiltLine = ''
 
 totalRat = re.compile('Ratio .*to total unknown')
 formerRat = re.compile('Ratio .*formerly')
@@ -127,6 +129,10 @@ for l in lines:
       noprogentry = 0
    if (angle or weight) and nolocals and l.find("Doing local area") >= 0:
       nolocals = 0
+   if solution and 'Projection skew is' in l:
+      projSkewLine = l.strip()
+   if solution and 'minimum tilt, rotation' in l:
+      rotAtMinTiltLine = l.strip()
 
 # Go through the arguments
 for optind in range(1,numOpts+1):
@@ -150,6 +156,12 @@ for optind in range(1,numOpts+1):
       separator()
       if nobeamtilt == 0:
          pygrep(lines, 'Beam tilt angle is')
+         prnstr(' ')
+      if projSkewLine:
+         prnstr(projSkewLine)
+         prnstr(' ')
+      if rotAtMinTiltLine:
+         prnstr(rotAtMinTiltLine)
          prnstr(' ')
       pyawk(lines, '^ view.*deltilt', '^$')
 
