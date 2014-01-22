@@ -120,6 +120,8 @@ docs :	configure man sourcedoc ALWAYS
 	if [ -e $(ARCNAME)_docs ] ; then /bin/rm -rf $(ARCNAME)_docs/ ; fi
 	cd html  ; $(MAKE) install
 	cd html  ; $(MAKE) docs
+	echo 'User-agent: *' > $(ARCNAME)_docs/robots.txt
+	echo 'Disallow: /' >> $(ARCNAME)_docs/robots.txt
 	tar cf $(ARCNAME)_docs.tar $(ARCNAME)_docs
 	$(COMPRESS) $(ARCNAME)_docs.tar
 
