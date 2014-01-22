@@ -49,9 +49,9 @@
 			<a href="#AdvancedTopics">Advanced Topics</a>
 		</ul>
 		<hr>
-		<p>
+		<p>&nbsp;</p>
 			<h3><a name="ModelOrganization"></a>Model Organization</h3>
-		<P></P>
+		<P>&nbsp;</P>
 		<p>
 			It is helpful to understand the model data structure before trying to create a 
 			model. A model is basically a collection of points that refer to or mark 
@@ -181,9 +181,10 @@
 					</tbody>
 				</table>
 			</center>
-		<P></P>
+		<P>&nbsp;</P>
 		<br>
 		<h3><a name="Starting3dmod"></a> Starting 3dmod</h3>
+    <p>&nbsp;</p>
 		<p>To create a model for a MRC image file called <code>example.mrc</code> run the 
 			following 3dmod command. This command will cause a new model to be created, 
 			ready to edit.
@@ -201,10 +202,10 @@
 		<p>Note that the files used for the examples shown below, <code>dual.rec</code> and <code>
 				example.mod</code>, are among the <a href="http://bio3d.colorado.edu/imod/files/imod_data.tar.gz">
 				sample data files</a> available from our web site.<br>
-		</p>
+		</p>&nbsp;
 		<p>
 			<h3><a name="InformationWindow"></a>The Information Window</h3>
-		<P></P>
+		<P>&nbsp;</P>
 		<center>
 			<img src="3dmodimages/infowin.png" alt="3dmod Information Window">
 		</center>
@@ -303,9 +304,10 @@
 		<p>The bottom panel of the Info Window contains additional information and status 
 			messages. You can expand the window vertically to see more of the information 
 			at once.
-		</p>
-		<p>
+		</p>&nbsp;
+		<p>&nbsp;</p>
 			<h3><a name="ZapWindow"></a>The Zap Window</h3>
+    <p>&nbsp;</p>
 			<table align="center" border="0">
 				<tbody>
 					<tr>
@@ -326,7 +328,7 @@
 		press and hold the left mouse button in the image area of the window and drag 
 		the image.
 		<P></P>
-		<p>This display of two nearby slices from a tomogram (sections 12 and 16) 
+		<p>This display of two nearby slices from a tomogram (sections 20 and 16) 
 			illustrates the three kinds of model objects: closed contours, open contours, 
 			and scattered points.
 		</p>
@@ -359,7 +361,7 @@
 				successive points of a contour. Such points are usually displayed as a sphere 
 				in a 3D view of the model, or as a circle in cross-sections such as in the Zap 
 				window. In the example, a small round vesicle has been modeled simply by 
-				placing a single scattered point on it on section 12 (magenta circle). 
+				placing a single scattered point on it on section 20 (magenta circle). 
 				Depending on the sphere radius selected, a scattered point will typically show 
 				up on several sections, with the circle becoming smaller away from the central 
 				section where the point was placed (the circle is smaller on section 16). A 
@@ -368,9 +370,10 @@
 				also make a separate symbol be displayed only on the central section.
 			</li>
 		</ul>
-		<p>
+		<p>&nbsp;
 		</p>
 		<h3><a name="ObjectEdit"></a>The Object Edit Dialog</h3>
+    <p>&nbsp;</p>
 		<p>The type of contours in an object, and the symbols displayed at individual 
 			points, can be selected with the Object Edit dialog box. Here are two examples.</p>
 		<table align="center" border="0">
@@ -397,9 +400,9 @@
 			the bottom to set the properties of the current object as the default for new 
 			objects.
 		</p>
-		<p>
+		<p>&nbsp;</p>
 			<h3><a name="ModelinginZap"></a>Modeling in the Zap Window</h3>
-		<P></P>
+		<P>&nbsp;</P>
 		<p>
 			Model points are added or changed using a 3-button mouse with the program in 
 			Model mode. The table below gives an overview of the mouse controls in Movie 
@@ -497,8 +500,9 @@
 			deleting them. Use this button alone to move one or more points; hold down the 
 			Ctrl key to delete points under the cursor while clicking or holding down the 
 			third button. 		</p>
-		<p><h3><a name="ZapToolbar"></a>The Zap Toolbar</h3>
-		<P></P>
+		<p>&nbsp;</p>
+    <h3><a name="ZapToolbar"></a>The Zap Toolbar</h3>
+		<P>&nbsp;</P>
 		<center>
 			<img src="3dmodimages/zaptoolbar.png" alt="Zap window toolbar">
 		</center>
@@ -509,9 +513,9 @@
 		</p>
 		<ul>
 			<li>
-			In addition to the arrows for changing zoom to fixed zoom values, there is a 
-			text box which both displays the current zoom value and allows you to enter any 
-			arbitrary zoom. (Fractional zooms may be slower on some machines.)
+			        In addition to the arrows for changing zoom to fixed zoom values, there is a 
+        text box which both displays the current zoom value and allows you to enter any 
+        arbitrary zoom.
 			<li>
 			The numbers next to the zoom text box show the size of the window, or of the 
 			area enclosed by the rubberband, in pixels in the screen.&nbsp; This could be 
@@ -543,16 +547,25 @@
 			before and inserting points after the current model point. This is useful when 
 			modeling a feature that passes between sections, in case you need to add points 
 			to the start of a contour.
-			<li>
-			The Rubberband button toggles the rubberband on and off.&nbsp; The rubberband 
-			can be used for getting coordinates, resizing, and setting contrast in selected 
-			areas.&nbsp; The rubberband is initially positioned by pressing the first mouse 
-			button at the upper left corner of the desired area and dragging to the lower 
-			right, and then can be repositioned and resized with
+			<li>The Rubberband button toggles the rubberband on and off.&nbsp; The rubberband can be 
+        used for getting coordinates, resizing, setting contrast in selected 
+			areas, and file extraction.&nbsp; It can also be used for selecting contours or 
+        points that are inside it.&nbsp; The rubberband is initially positioned by pressing 
+        the first mouse button at any corner of the desired area and dragging to the 
+        opposite corner, and then can be repositioned and resized with
 			first and second mouse 
 			buttons. When the rubberband is on, the toolbar changes to include buttons and 
-			text boxes for setting lower and upper Z limits (as in the lower image, above).
-			<li>
+			text boxes for setting lower and upper Z limits (as in the lower image, above).&nbsp; 
+        These limits are used for file extraction and at various places in eTomo for 
+        selecting slice limits.<li>
+			  The Lasso button toggles a lasso contour on and off.&nbsp; When you turn it on, 
+        you can then draw a closed contour of any shape with the left mouse button.&nbsp; 
+        After the lasso is drawn, it can be moved with the second mouse button.&nbsp; 
+        The lasso can be used to select contours or points within the area or to 
+        constrain the region displayed in the isosurface display desscribed below.low.<li>
+			  The Arrow button toggles a bright, thick arrow that can be useful for pointing 
+        out a feature in an image snapshot.&nbsp; When you turn it on, you then draw the 
+        arrow from its tail to its head while holding down the first mouse button.<li>
 			The Z slider allows you to riffle through the sections and select a particular 
 			one. The text box shows the value of the current section being viewed in the 
 			Zap window and allows you to go to a particular section by entering a number.
@@ -569,21 +582,24 @@
 				to all help pages.<br>
 			</li>
 		</ul>
-		<p>
+		<p>&nbsp;</p>
 			<h3><a name="CommonHotKeys"></a>Most Frequently Used Hot Keys</h3>
-		<P></P>
+		<P>&nbsp;</P>
 		<p>3dmod has many hot keys, which are listed both in the man page for <a href="man/3dmod.html#TOP">
-				3dmod</a> and in a <a href="3dmodHelp/keyboard.html#TOP">help page</a> that 
+				3dmod</a> and in a <a href="3dmodHelp/keyboard.html#TOP">help page</a>  that 
 			can be accessed from the Help-Hot Keys menu entry. These hot keys will work 
 			from all of the 3dmod image display windows, and even from the Info Window or 
 			other dialog boxes. There are also hot keys active only in particular windows, 
-			which are described in the help for those windows. The most commonly used hot 
+			which are described in the help for those windows. Most of these hot keys are 
+      accessible in a popup menu when you click with the right mouse button over the 
+      toolbar of a window.&nbsp; This feature provides a handy way to look up an 
+      obscure but useful hot key. The most commonly used hot 
 			keys are listed here:
 		</p>
 		<pre>PageUp     Show the next section (increase Z)<br>PageDown   Show the previous section (decrease Z)<br>Home       Show the last section<br>End        Show the first section<br>Delete     Delete current model point<br>-          Zoom down<br>=          Zoom up<br>s          Save the model<br>n          Start a new contour<br>Ctrl-S     Snapshot an image window to a Tiff file<br>Shift-S, Ctrl-Shift-S   Shapshot to non-Tiff file (usually JPEG and PNG)<br>t          Toggle model drawing off or on<br>,          Slow down movie or model rotation<br>.          Speed up movie or model rotation<br></pre>
-		<p>
+		<p>&nbsp;</p>
 			<h3><a name="XYZWindow"></a>The XYZ Window</h3>
-		<P></P>
+		<P>&nbsp;</P>
 		<table style="TEXT-ALIGN: left; WIDTH: 1007px; HEIGHT: 481px" border="1" cellpadding="2"
 			cellspacing="2">
 			<tbody>
@@ -620,7 +636,9 @@
 			blue square diagonally with the first mouse button.
 		</p>
 		<p>The toolbar of the XYZ Window has zoom controls, a low/high resolution button, 
-			and a lock button as in the Zap Window.&nbsp; There is a centering button for 
+			and a lock button as in the Zap Window.&nbsp; The <b>Z</b> button will apply the 
+      model&#39;s Z-scale factor, if one is set (see below), to stretch out the Z 
+      dimension in the XZ and YZ planes.&nbsp; There is a centering button for 
 			bringing the current point as near to the center of the view boxes as 
 			possible.&nbsp; In movie mode, it will center the current image point marked by 
 			the yellow crosses; in model mode it will center the current model point.&nbsp; 
@@ -631,21 +649,24 @@
 			mouse to riffle through the images in one plane, as an alternative to the 
 			toolbar sliders. The color of the marker line matches the color of the border 
 			around the image that is controlled by it; for example, the red line controls 
-			the plane selected in the upper panel.
-		</p>
-		<p>The display of the model in the XY plane is essentially the same as in the Zap 
-			Window. In the other planes, scattered points will show up as circles, and 
-			other segments of contours will appear to the extent that they intersect the 
-			plane.
-		</p>
-		<p>In Movie mode, the mouse buttons behave the same as in the Zap Window, and they 
+			the plane selected in the upper panel.</p>
+    <p>PageUp and PageDown keys can be used to step through the planes, as usual, 
+      except that these keys step through XZ or YZ slices when the mouse is over the 
+      XZ or YZ plane, respectively.&nbsp; Similarly, the arrow keys, which ordinarily 
+      step the current image point in X or in Y, operate relative to whichever plane 
+      the mouse is located in.</p>
+    <p>In Movie mode, the mouse buttons behave the same as in the Zap Window, and they 
 			act separately in the three image panels for selecting the current image point 
-			or starting a movie in that panel. Basic modeling can also be done in the XY 
-			plane, again with the same mouse button functions as in the Zap Window.
-		</p>
-		<p>
+			or starting a movie in that panel. Basic modeling can also be done in all three 
+			planes, again with the same mouse button functions as in the Zap Window. The 
+      display of the model in a given plane is essentially the same as in the Zap 
+      window for items drawn in that plane.&nbsp; Items drawn in one plane will show 
+      up in other planes to the extent that they intersect the other two planes.&nbsp; 
+      Scattered points will show up well everywhere; contours will be hard to see in 
+      other planes.</p>
+		<p>&nbsp;</p>
 			<h3><a name="SlicerWindow"></a>The Slicer Window</h3>
-		<P></P>
+		<P>&nbsp;</P>
 		<center>
 			<table style="TEXT-ALIGN: left; WIDTH: 808px; HEIGHT: 514px" border="1" cellpadding="2"
 				cellspacing="2">
@@ -655,6 +676,7 @@
 						</td>
 						<td><img alt="Slicer after rotation with mouse" src="3dmodimages/slicer2.jpg"><br>
 						</td>
+						<td><img alt="Slicer after rotation with mouse" src="3dmodimages/slicer3.jpg"></td>
 					</tr>
 				</tbody>
 			</table>
@@ -675,60 +697,71 @@
 			current image point, but it can then be panned in the plane of the slice using 
 			the first mouse button, just as for other windows.&nbsp; You can step through 
 			slices in the direction perpendicular to the displayed slice using the PageUp 
-			and PageDown hot keys.&nbsp; The center of the window is marked by a red cross; 
+			and PageDown hot keys.&nbsp; You also use the &#39;View axis position&#39; slider to 
+      riffle through slices in that direction.&nbsp; The center of the window is marked by a red cross; 
 			this is the center of rotation when the slice angles are changed.
 		</p>
-		<p>There is an alternative method of changing the slice angles which can often be 
-			more convenient and intuitive than adjusting the sliders.&nbsp; When you hold 
-			down the Shift key and the second mouse button, you can rotate the volume 
-			around an axis perpendicular to the direction of mouse motion.&nbsp; For 
-			example, the image on the right shows the result of dragging with the second 
-			mouse button in the direction of the red arrow until some of the microtubules 
-			come into good cross-section.&nbsp; You can also rotate in the plane of the 
-			slice by holding down the Shift key and dragging with the third mouse&nbsp; 
-			button.&nbsp; The Shift key also converts the numeric keypad hot keys from 
-			operating on an individual axis angle to rotating the volume around X, Y or Z 
-			axes relative to the current slice; in the latter case, these keys operate the 
-			same as for the model view window shown below.
-		</p>
+    <p>There are alternative methods of changing the slice angles which can often be 
+			more convenient and intuitive than adjusting the sliders.&nbsp; They involve 
+      rotating the volume by increments around the viewing axes instead of directly 
+      changing the overall rotation around an axis.&nbsp; You can use the cluster of 
+      red arrows to rotate by steps around the vertical or horizontal axis (the 
+      straight arrows) or in the plane of the slice (the curved arrows).&nbsp; The 
+      size of the rotation step is shown and can be changed with the minus and plus 
+      buttons.&nbsp; A second way to rotate by steps around viewing axes is to use the 
+      numeric keypad.&nbsp; Ordinarily, the keys there operate on an individual volume 
+      axis angle, but if you either hold down the Shift key or turn on
+			the <b>Sh</b> button in the middle of the toolbar arrow cluster, the arrows in 
+      the numeric keypad will rotate around X or Y viewing axes and PageUp and 
+      PageDown will rotate in the plane of the slice.&nbsp; Finally, if you hold 
+			down the Shift key or turn on the <b>Sh</b> button, dragging with the second mouse button 
+      will rotate the volume 
+			around an axis perpendicular to the direction of mouse motion, and dragging with 
+      the third mouse button will rotate in the plane of the slice.&nbsp; For example, 
+      the image in the middle shows the result of dragging with the second mouse 
+      button in the direction of the red arrow until some of the microtubules come 
+      into good cross-section.&nbsp; In this particular case, because the some 
+      microtubules were already in good longitudinal section, the same result can be 
+      obtained by setting the step size to 90 and using the toolbar red up or down 
+      arrow.</p>
 		<p>The most useful items in the Slicer toolbars are the following.
 		</p>
 		<ul>
-			<li>
-			The arrow buttons can be used to change zoom, and the text box displays the 
+			<li>The black Arrow buttons can be used to change zoom, and the text box displays the 
 			current zoom and allows a custom zoom to be entered.
 			<li>
-			The checkerboard allows you to toggle between rapid, low-resolution drawing 
+			The Checkerboard allows you to toggle between rapid, low-resolution drawing 
 			using nearest-neighbor interpolation, and high resolution drawing using cubic 
-			interpolation. The latter may be considerably slower, but it will also be more 
+			interpolation. The latter may be noticeably slower, but it will also be more 
 			accurate as well as giving a smoother image.
 			<li>
-			The lock button will prevent the slice position from being moved. There are two 
+			The Lock button will prevent the slice position from being moved. There are two 
 			main uses for this feature. First, it allows you to maintain a selected view in 
 			a Slicer Window while changing to other views in other windows (including other 
 			Slicers). Second, it prevents the slow drawing in the slicer from slowing down 
 			the program when you want to work in or movie through other windows.
 			<li>
-			The centering mode button can be used to toggle back to an older mode of 
+			The Centering mode button can be used to toggle back to an older mode of 
 			operation, where the Slicer was always centered on the current image point and 
 			could not be panned.&nbsp; This is perhaps most useful for recentering on the 
-			current image or model point, by pushing the button on then off.
+			current image or model point, by pushing the button on then off.&nbsp;
 			<li>
-			The Sh button turns on a Shift Lock mode, in which the mouse and keypad can be 
-			used to rotate the model as described above without having to hold down the 
-			Shift key.
-			<li>
-			The IM/FT button toggles between showing an image and a Fourier transform of 
+			  The Rubberband button allows you to select a rectangular area just as in the Zap 
+        window.&nbsp; It can be used for resizing and for extracting a subvolume that is 
+        rotated into the orientation of the slice.&nbsp; As shown in the picture on the 
+        right, <b>Lo</b> and <b>Hi</b> buttons b buttons appear when the rubberband is drawn; 
+        these are used to set slice limits for file extraction.<li>
+			The FT button toggles between showing an image and a Fourier transform of 
 			the image.
-			<li>
-			The C button changes the angles to show the slice in which the current contour 
+ 	    <li>
+      The C button changes the angles to show the slice in which the current contour 
 			will appear flat.
-			<li>
-			The box to the right of the sliders portrays the portion of the slice being 
+				<li>
+	The box to the right of the arrow cluster portrays the portion of the slice being 
 			viewed as a red plane inside of a representation of the whole image volume.
 			<li>
 			The Help button describes hot keys and other features.
-			<li>
+					<li>
 			The image thickness spin box lets you display a slice thicker than 1 pixel 
 			thick. The Slicer computes a projection through the number of slices that you 
 			select, effectively averaging those slices.
@@ -761,12 +794,11 @@
 			resolution, image size, and the number of processors available. The program 
 			will take advantage of all processors automatically.&nbsp; If you need to 
 			average through many slices with a high resolution display, be sure to make the 
-			image as small as possible. If you must work with a very slow slicer window, 
+			image no larger than needed. If you must work with a very slow slicer window, 
 			remember that the hot sliders can be tamed with the Ctrl key.
 		</p>
-		<p>
-			<h3><a name="MultiZWindow"></a>The Multi-Z Window</h3>
-		<P></P>
+		<p>&nbsp;</p>
+			<h3><a name="MultiZWindow"></a>The Multi-Z Window</h3><P>&nbsp;</P>
 		<center>
 			<img src="3dmodimages/multiZ.jpg" alt="Multi-Z Window">
 		</center>
@@ -780,7 +812,10 @@
 			the Zap window and the first toolbar has a subset of the features in the 
 			standard Zap toolbar.
 		</p>
+    <p>
+			&nbsp;</p>
 		<h3><a name="SettingZ-scale"></a>Setting Z-scale and Pixel Size</h3>
+    <p>&nbsp;</p>
 		<p>
 			In order for your model to look right in 3D, you may need to set a property 
 			called the "Z-scale" correctly. Both the Z-scale and the pixel size must be set 
@@ -789,7 +824,7 @@
 			mesh data. To adjust these fields in the model header select the Model Header 
 			menu item from the Edit menu in the 3dmod <a href="#InformationWindow">Information 
 				Window</a>.
-		</p>
+    </p>
 		<p>The Z-Scale is the ratio of the thickness between successive images to the pixel 
 			size. Its two most common uses are to adjust for section thickness in serial 
 			section reconstructions and section thinning in tomography. For serial 
@@ -805,11 +840,14 @@
 				help page</a> for a formula.
 		</p>
 		<p>The Pixel Size field should contain both a value for the size of the pixel in 
-			the digitized data, and the units for that value. Units can be one of the 
-			following; A, nm, um, mm, m, km. For example, you could enter "0.015 um" or "15 
-			nm".
-		</p>
+      the digitized data, and the units for that value. Units can be one of the 
+      following; A, nm, um, mm, m, km. For example, you could enter &quot;0.015 um&quot; or &quot;15 
+      nm&quot;; your choice determines what units are reported when items such as distance, 
+      length, and area are computed.&nbsp; When a new model is started on an image 
+      file that contains pixel size information, this size is assigned to the model.</p>
+    <p>&nbsp;</p>
 		<h3><a name="ViewingModel"></a>Viewing the Model in 3D</h3>
+    <p>&nbsp;</p>
 		<p>
 			<table align="center" border="0">
 				<tbody>
@@ -831,7 +869,7 @@
 			can be opened while running 3dmod by selecting Model View from the Image menu, 
 			or by typing the hot key "v". This same window can be opened in a standalone 
 			mode with
-			<br>
+      <br>
 			<code>3dmodv example.mod</code>
 			<br>
 			The model has been tilted around the X and Y axes using the arrow keys on the 
@@ -841,7 +879,9 @@
 			single keystrike rotates the model by one step. Continuous rotation is started 
 			by pressing the keypad Enter key followed by the desired arrow key; another 
 			press of the Enter key stops the rotation.
-		</p>
+		  If there is no keypad available, you can open a rotation tool with Edit-Rotation 
+      and use it just like the arrow cluster in the Slicer window, except that the 
+      middle button starts and stops continuous rotation.</p>
 		<p>On the left is the initial view of the model, before any of the default viewing 
 			parameters have been changed. These parameters are initially set to show open 
 			and closed contour objects with contour line tracings, and scattered points as 
@@ -851,7 +891,7 @@
 			lighted surfaces. On the right is the display after making meshes for the 
 			objects (as explained below) and setting all objects to display as lighted 
 			surfaces. These display settings are all changed in the 3dmodv Objects dialog 
-			box, opened with the Edit-Objects menu item or the O hot key.
+			box, opened with the Edit-Objects menu item or the Shift+O hot key.
 		</p>
 		<p>
 			<table align="center" border="0">
@@ -874,7 +914,7 @@
 			edited, buttons for turning individual objects on or off, and a set of panels 
 			for setting different object properties or controlling the overall display. A 
 			panel is selected by clicking on its name in the list.
-		</p>
+    </p>
 		<p>The example on the left shows how the appearance of the green lines was changed 
 			for the middle model view panel above. The "Lines" panel was selected, the 3D 
 			line width was increased from 1 to 3, and "Anti-alias rendering" was turned on 
@@ -897,15 +937,20 @@
 			mesh.
 		</p>
 		<p>The appearance of the magenta scattered point was improved between the middle 
-			and right views of the model by pressing the "g" hot key twice to increase 
+			and right views of the model by pressing the "G" hot key twice to increase 
 			sphere drawing quality. When there are many spheres, this degree of quality 
 			could significantly increase drawing time for the display, so it is not the 
 			default. The sphere drawing quality can also be controlled in the "Points" 
 			panel, which allows one to change the global quality setting (just as with the 
-			"g" and "G" hot keys) as well as set a quality for individual objects.
+			"G" and "Shift+G" hot keys) as well as set a quality for individual objects.
 		</p>
+    <p>The Model View window, like the rest of 3dmod, has many hot keys, which are 
+      listed in a <a href="3dmodHelp/modvKeyboard.html#TOP">help page</a>. Most of 
+      them are accessible through the HotKeys menu.</p>
+    <p>&nbsp;</p>
 		<h3><a name="ViewingImage3D"></a>Viewing Image Data in 3D</h3>
-		<p>When the Model View window is opened from 3dmod, it is possible to display the 
+		<p>&nbsp;</p>
+    <p>When the Model View window is opened from 3dmod, it is possible to display the 
 			image data in 3D in this window in two different ways.&nbsp; One way is to draw 
 			one or more planes of the image along with the model.&nbsp; Use the Edit-Image 
 			menu entry to open a dialog to control many aspects of this image 
@@ -933,7 +978,7 @@
 			at a particular threshold level.&nbsp; The middle image below shows an 
 			isosurface rendering of the two basal bodies whose cross-section appear in the 
 			Zap window on the left.
-		</p>
+    </p>
 		<p>
 			<table align="center" border="0">
 				<tbody>
@@ -953,7 +998,7 @@
 		</p>
 		<p>
 			Select Isosurface from either the Image menu of the Info window or the Edit 
-			menu of the Model View window (or use the U hot key) to start the isosurface 
+			menu of the Model View window (or use the Shift+U hot key) to start the isosurface 
 			display and open the dialog to control it.&nbsp; The isosurface display is most 
 			useful when looking at macromolecular structures in averaged subvolumes from 
 			tomograms, but may also be useful for examining tomograms directly, 
@@ -983,9 +1028,9 @@
 			<span style="FONT-WEIGHT: bold">Save to Object</span>
 			button to move it into a new actual object in the model.
 		</p>
-		<p>
+		<p>&nbsp;</p>
 			<h3><a name="SkinningModel"></a>Putting a Skin on Model Data</h3>
-		<P></P>
+		<P>&nbsp;</P>
 		<p>
 			Skinning is the name used for calculating a three-dimensional surface from 
 			contour data.&nbsp; This surface, once calculated, is represented by a mesh of 
@@ -1069,7 +1114,9 @@
 			the model, run imodmesh, then immediately load the model back into 3dmod with 
 			the Reload Model entry in the File menu.
 		</p>
+    <p>&nbsp;</p>
 		<h3><a name="ScaleBars"></a>Drawing Scale Bars</h3>
+    <p>&nbsp;</p>
 		<p>To display a scale bar in any of the image windows, or in the Model View window, 
 			select the Scale Bar entry from either the Edit menu of the Info window or the 
 			View menu of the Model View window.&nbsp; The following dialog will appear.</p>
@@ -1087,11 +1134,14 @@
 			the scale bar sizes in the various kinds of windows; you will need to record 
 			this information when you take a snapshot.
 		</p>
+    <p>
+			&nbsp;</p>
 		<h3><a name="Making_Movies"></a>Making Movies</h3>
+    <p>&nbsp;</p>
 		<p>Because IMOD does not produce files that can be used in movie players, if you 
 			want to make a movie of your images or models, you need to make a series of 
 			snapshots of a window and import those images into movie-making software.&nbsp; 
-			(For Windows, we recommend Videomach from www.gromada.com for making 
+			(For Windows, we have used Videomach from www.gromada.com for making 
 			movies).&nbsp; There are two dialogs that help manage this task:<br>
 		</p>
 		<table style="TEXT-ALIGN: left; MARGIN-LEFT: auto; MARGIN-RIGHT: auto" border="1" cellpadding="2"
@@ -1106,15 +1156,15 @@
 				</tr>
 			</tbody>
 		</table>
-		<p>On the left is the dialog box opened with Edit-Movies from the 3dmod Info Window 
+		<p>On the left is the dialog box opened with File-Movie/Montage from the 3dmod Info Window 
 			menu and used to control movieing and automatic snapshots in image display 
-			windows (primarily Zap and Slicer).&nbsp; The sliders at the top allow you 
-			select the range and increment between slices to be snapshot.&nbsp; Here, every 
+			windows (primarily Zap and Slicer).&nbsp; The sliders at the top allow you to 
+      select the range and increment between slices to be snapshot.&nbsp; Here, every 
 			slice from 6 to 56 will be snapshot.&nbsp; The<span style="FONT-WEIGHT: bold"> Looping</span>
 			radio buttons control how many pictures will be taken when you start a 
 			movie.&nbsp; With
 			<span style="FONT-WEIGHT: bold">Round trip</span>
-			selected, pictures will be taken going in both directions, which is useful if 
+      selected, pictures will be taken going in both directions, which is useful if 
 			your movie playing software will not loop back and forth.&nbsp; If your movie 
 			software will loop back and forth, you can select
 			<span style="FONT-WEIGHT: bold">One way</span>
@@ -1128,7 +1178,7 @@
 			button.&nbsp; The window will stop movieing when the set of pictures is 
 			finished.
 		</p>
-		<p>On the right is the corresponding dialog for movies, opened with File-Movies 
+		<p>On the right is the corresponding dialog for movies, opened with File-Movie/Montage 
 			from the Model View Window menu.&nbsp; In the most general case, you can adjust 
 			the model display to the desired starting position, orientation, and size, and 
 			press
@@ -1158,18 +1208,20 @@ files</span>, then press
 			dialog.&nbsp; For images with no model overlay, 80% quality is usually adequate 
 			for making movies.&nbsp; If there is a model overlay, you need 90% or higher 
 			quality to make it look decent in the individual snapshots (images here were 
-			shot at 90% quality).&nbsp; It might be preferable to take such snapshots as 
+			shot at 95% quality).&nbsp; It might be preferable to take such snapshots as 
 			PNG's and let your movie software take care of the compression.
 		</p>
 		<p>Note that both of these dialogs have a montage option for capturing 
-			high-resolution snapshots that are larger than the image window itself.&nbsp; 
-			In each case, the program zooms up the display and pans around to capture a 
-			montage of images, then assembles these into a single image and writes a TIFF 
-			file.&nbsp; A movie of such montaged snapshots can be saved from the Zap window 
+      high-resolution snapshots that are larger than the image window itself.&nbsp; In 
+      each case, the program zooms up the display and pans around to capture a montage 
+      of images, then assembles these into a single image and writes a 
+			file in the selected format.&nbsp; A movie of such montaged snapshots can be saved from the Zap window 
 			or from the Slicer, but only a single frame can be saved in high-resolution 
 			mode from the Model View window.
 		</p>
+    <p>&nbsp;</p>
 		<h3><a name="AdvancedTopics"></a>Advanced Topics</h3>
+    <p>&nbsp;</p>
 		<p>
 			This section is to make you aware of some other features in 3dmod, so that you 
 			can investigate them when the need arises. Consult the help windows of the 
@@ -1240,14 +1292,20 @@ files</span>, then press
 					right.&nbsp; For more details see the <a href="3dmodHelp/finegrain.html#TOP">help 
 						page</a>.
 				<li>
+					<b>Model movie sequences. </b>&nbsp;It is possible to set up a series of movies 
+          for the Model View window, play them automatically, revisit each one 
+          to adjust its properties, and save the movie parameters to a file for reuse 
+          later.&nbsp; The dialog for this is opened with the menu entry File-Movie 
+          Sequence or with the <b>Sequence</b> button in the Movie/Montage dialog.&nbsp; Here is the
+          <a href="3dmodHelp/movieSequence.html#TOP">help page</a>.<li>
 					<b>Preferences.</b>
 				You can set preferences that are stored between sessions of 3dmod, such as the 
 				font size and the type of file that will be 
-				snapshot with Shift-S. Use the Edit-Options menu entry to open the 3dmod 
+				snapshot with Shift+S. Use the Edit-Options menu entry to open the 3dmod 
 				Preferences dialog box.&nbsp; (This item is under the 3dmod menu on the Mac.)
 				<li>
 					<b>Automated modeling.</b>
-				There are two facilities for automated modeling. The Auto Contouring dialog 
+	      There are two facilities for automated modeling. The Auto Contouring dialog 
 				box, opened from the Edit-Contour menu, will draw contours around areas that 
 				are above or below a selected threshold of intensity. The Line Track module, 
 				opened from the Special menu, will draw contours along a linear feature such as 
@@ -1256,15 +1314,17 @@ files</span>, then press
 				position to fit changes in the boundary or the object.
 				<li>
 					<b>Drawing Tools, Interpolator, and Other Plugins.</b>
-				Andrew Noske, originally at the University of Queensland and now at the 
+				Andrew Noske, originally at the University of Queensland and then at the 
 				National Center for Microscopy and Imaging research, has contributed several 
 				plugins to 3dmod. Plugins are opened from the Special menu of 3dmod. His 
 				plugins provide tools to assist with drawing, tools for making measurements 
 				with stereology, help with fixing fiducial models for large data sets, and help 
-				managing and assigning standardized names to objects.
-				<li>
+				managing and assigning standardized names to objects.&nbsp; Jane Ding at CalTech 
+          contributed the &quot;Grab with Note&quot; plugin, which allows you to take snapshots of 
+          the Zap or Slicer window that have some standard information, and notes that you 
+          type in, added to the snapshot below the image itself.<li>
 					<b>Pixel View window.</b>
-				Use the Image-Pixel View menu entry to open a window that displays a grid of 
+	      Use the Image-Pixel View menu entry to open a window that displays a grid of 
 				pixel intensity values as well as a continuous display of the mouse position in 
 				the image and the pixel value at that location. The actual values from the 
 				image file are shown in the grid; the continuous display can show either the 
@@ -1292,7 +1352,9 @@ files</span>, then press
 					in the Zap window, and also a range of Z sections in the Zap toolbar, select 
 					the File-Extract entry in the Info window to extract the selected volume from 
 					the image file using <a href="man/trimvol.html#TOP">Trimvol</a>.
-				<li>
+				  Similarly, after defining a region and range of slices in a Slicer window, 
+          select the same item to extract a subvolume rotated with
+          <a href="man/rotatevol.html#TOP">Rotatevol</a>.<li>
 					<b>Storing Slicer Angles.</b> Use the Edit-Angles menu entry to open a dialog 
 					that allows you save views seen in a Slicer Window.&nbsp; Each view consists of 
 					the 3 slicer angles and the center position.&nbsp; You can then set a Slicer to 
@@ -1309,6 +1371,12 @@ Slicer Windows.</span>&nbsp; It is possible to synchronize the angles of the Mod
 					dialog, and select the checkbox
 					<span style="FONT-WEIGHT: bold">Link to top Slicer angles</span>.
 				<li>
+					<b>Linked Slicers.</b>&nbsp; If you have loaded multiple image files into 3dmod, 
+          you can set up several slicers, each one locked to a different time (image 
+          file), and link them so that they can be controlled from one window&#39;s toolbar.&nbsp; 
+          You can even use the Image-Linked Slicers menu entry to open a set of linked 
+          slicers automatically, one per image file, and with only one toolbar for all of 
+          them.<li>
 					<b>Object color.</b>
 				You can change an object's color using the Edit-Object-Color menu entry from 
 				the 3dmod Info Window, as well as using the Edit-Objects dialog box from the 
@@ -1347,6 +1415,13 @@ Slicer Windows.</span>&nbsp; It is possible to synchronize the angles of the Mod
 					take an FFT or apply a number of filters such as Fourier filtering, smoothing, 
 					and median filtering; here is the <a href="3dmodHelp/imageProc.html#TOP">help page</a>.
 				<li>
+					<b>Caches and image pyramids for large image files.</b>&nbsp; 3dmod has two 
+          kinds of caches for working with very large image files, described in the 
+          sections &quot;The Full-slice Image Cache&quot; and &quot;The Tile/Strip Image Cache and Image 
+          Pyramids&quot; in the <a href="man/3dmod.html#TOP">3dmod</a> man page.&nbsp; By 
+          making a set of copies of a volume at different resolutions, called an image 
+          pyramid, it is possible to access any region of a very large file relatively 
+          quickly.<li>
 					<b>Tooltips.</b> If you leave the mouse over a button or other control for over 
 					half a second, a tooltip will appear for that control.
 				</li>

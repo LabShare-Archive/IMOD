@@ -87,7 +87,7 @@ set.var.build=
 set.interface.Recon=
 
 [Test = single-fidless-test-gui]
-set.testdir=single-fidless
+set.testdir=single-fidless-test-gui
 set.adoc.dialog = recon.adoc
 set.var.dataset = BBa
 set.dataset = BB
@@ -120,7 +120,7 @@ set.var.build=
 set.interface.Recon=
 
 [Test = single-simple-align-test-gui]
-set.testdir=single-simple-align
+set.testdir=single-simple-align-test-gui
 #set.keep.testdir=single
 set.adoc.dialog = recon.adoc
 set.var.dataset = BBa
@@ -261,6 +261,22 @@ set.var.run_sirt=
 set.var.patch-tracking=
 set.var.build=
 
+[Test = dual-montage-patch-tracking-test-gui]
+set.testdir = dual-montage-patch-tracking-test-gui
+#set.keep.testdir = dual-montage-patch-tracking
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
+set.dataset = midzone2
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+#set.param = midzone2.edf
+set.var.dual=
+set.var.montage=
+set.var.run_sirt=
+set.var.patch-tracking=
+set.var.build=
 
 [Test = join]
 set.testdir = join
@@ -319,7 +335,7 @@ set.var.build=
 set.interface.Generic=
 
 [Test = generic-test-gui]
-set.testdir = generic
+set.testdir = generic-test-gui
 set.adoc.dialog = generic.adoc
 set.dataset = BB
 set.var.dataset = tilt

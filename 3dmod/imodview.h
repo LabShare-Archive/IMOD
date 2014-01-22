@@ -366,6 +366,21 @@ int DLL_EX_IM ivwSnapshotTopSlicer(QString &name, int format, bool checkGrayConv
                                    bool fullArea);
 
 /*!
+ * Starts a new arrow, retaining any existing arrows, in the top window of the type given
+ * by [windowType], which can be either ZAP_WINDOW_TYPE or SLICER_WINDOW_TYPE.  Returns
+ * -4 for an invalid type and -1 if there is no top window.
+ */
+int DLL_EX_IM startAddedArrow(int windowType);
+
+/*!
+ * Clears all arrows in the top window of the type given by [windowType] if [allWindows]
+ * is false, or all windows of that type if [allWindows] is true.  [windowType] can be 
+ * either ZAP_WINDOW_TYPE or SLICER_WINDOW_TYPE.  Returns -4 for an invalid type and -1 
+ * if there are now windows of the given type.
+ */
+int DLL_EX_IM clearAllArrows(int windowType, bool allWindows);
+  
+/*!
  * Returns the X, Y, and Z angles of the top slicer in [angles], the center position in
  * [center], and the time of that slicer in [time].  The return value is 1 if there is
  * no slicer open.

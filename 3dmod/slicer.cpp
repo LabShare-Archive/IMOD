@@ -907,11 +907,17 @@ void SlicerFuncs::stateToggled(int index, int state)
  */
 void SlicerFuncs::toggleArrow(bool drawWin)
 {
+  Ipoint zero = {0., 0., 0.};
   mArrowOn = !mArrowOn;
   mDrawingArrow = mArrowOn;
   mQtWindow->setToggleState(SLICER_TOGGLE_ARROW, mArrowOn ? 1 : 0);
-  mArrowHead.x = mArrowHead.y = mArrowHead.z = 0.;
-  mArrowTail = mArrowHead;
+  if (mArrowOn) {
+    mArrowHead.push_back(zero);
+    mArrowTail.push_back(zero);
+  } else {
+    mArrowHead.pop_back();
+    mArrowTail.pop_back();
+  }
   if (mArrowOn && mStartingBand)
     toggleRubberband(false);
 
@@ -921,7 +927,32 @@ void SlicerFuncs::toggleArrow(bool drawWin)
   setCursor(mMousemode, true);
 }
 
+/*
+ * Clear out all arrows
+ */
+void SlicerFuncs::clearArrows()
+{
+  if (mClosing)
+    return;
+  if (mArrowOn)
+    toggleArrow(false);
+  mArrowHead.resize(0);
+  mArrowTail.resize(0);
+  draw();
+}
 
+/*
+ * Start a new arrow, keeping an existing one
+ */
+void SlicerFuncs::startAddedArrow()
+{
+  int ind = mArrowHead.size();
+  if (mDrawingArrow && !mArrowHead[ind].x && !mArrowHead[ind].y && !mArrowHead[ind].z && 
+      !mArrowTail[ind].x && !mArrowTail[ind].y && !mArrowTail[ind].z)
+    return;
+  mArrowOn = false;
+  toggleArrow(false);
+}
 
 // Toggle classic mode, set center if going to classic and not locked
 void SlicerFuncs::setClassicMode(int state)
@@ -1757,7 +1788,7 @@ void SlicerFuncs::mouseRelease(QMouseEvent *event)
 void SlicerFuncs::mouseMove(QMouseEvent *event)
 {
   static int button1, button2, button3, ex, ey, shift, processing = 0;
-  int zmouse;
+  int zmouse, ind;
   float xm, ym, zm, current, angleScale, trueLimits[2], dx = 0., dy = 0., drot = 0.;
   float axisStart, axisEnd;
   Ipoint cpt;
@@ -1828,7 +1859,8 @@ void SlicerFuncs::mouseMove(QMouseEvent *event)
 
     // when drawing arrow: update the arrowhead position
     if (mDrawingArrow) {
-      getxyz(ex, ey, mArrowHead.x, mArrowHead.y, mArrowHead.z);
+      ind = mArrowHead.size() - 1;
+      getxyz(ex, ey, mArrowHead[ind].x, mArrowHead[ind].y, mArrowHead[ind].z);
       draw();
 
       // Button one when starting band, see if mouse has moved far enough to commit to
@@ -1978,9 +2010,10 @@ void SlicerFuncs::attachPoint(int x, int y, int ctrlDown)
 
   // Start the arrow; record tail position and angles
   if (mDrawingArrow) {
-    getxyz(x, y, mArrowTail.x, mArrowTail.y, mArrowTail.z);
-    mArrowHead = mArrowTail;
-    for (ind = 0; ind < 3; ind++)
+    ind = mArrowHead.size() - 1;
+    getxyz(x, y, mArrowTail[ind].x, mArrowTail[ind].y, mArrowTail[ind].z);
+    mArrowHead[ind] = mArrowTail[ind]; 
+   for (ind = 0; ind < 3; ind++)
       mArrowAngle[ind] = mTang[ind];
 
     // If starting band, record position and angles
@@ -3525,11 +3558,12 @@ void SlicerFuncs::draw()
     imodPrintStderr("Slicer ID %d in sslice_draw\n", mCtrl);
 
   // Turn off arrow or rubberband now if angles don't match
-  if (mArrowOn && (mArrowHead.x || mArrowHead.y || mArrowHead.z) &&
+  if ((mArrowHead.size() > 1 || 
+       (mArrowOn && (mArrowHead[0].x || mArrowHead[0].y || mArrowHead[0].z))) &&
       (fabs(mArrowAngle[0] - mTang[0]) > 1.e-3 ||
        fabs(mArrowAngle[1] - mTang[1]) > 1.e-3 ||
        fabs(mArrowAngle[2] - mTang[2]) > 1.e-3))
-    toggleArrow(false);
+    clearArrows();
   if ((mRubberband || (mStartingBand && sMousePressed)) &&
       (fabs(mBandAngle[0] - mTang[0]) > 1.e-3 ||
        fabs(mBandAngle[1] - mTang[1]) > 1.e-3 ||
@@ -3564,7 +3598,7 @@ void SlicerFuncs::updateImage()
  */
 void SlicerFuncs::paint()
 {
-  int i, ival, sliceScaleThresh = 4;
+  int i, iz, ival, sliceScaleThresh = 4;
   int ixStart, iyStart, nxUse, nyUse, xim1, xim2, yim1, yim2;
   int mousing = sMousePanning + sMouseRotating +
     (ImodPrefs->speedupSlider() ? sSliderDragging : 0);
@@ -3657,9 +3691,9 @@ void SlicerFuncs::paint()
 
   mScaleBarSize = scaleBarDraw(mWinx, mWiny, mZoom, 0);
 
-  if (mArrowOn) {
-    getWindowCoords(mArrowTail.x, mArrowTail.y, mArrowTail.z, xim1, yim1, i);
-    getWindowCoords(mArrowHead.x, mArrowHead.y, mArrowHead.z, xim2, yim2, i);
+  for (i = 0; i < mArrowHead.size(); i++) {
+    getWindowCoords(mArrowTail[i].x, mArrowTail[i].y, mArrowTail[i].z, xim1, yim1, iz);
+    getWindowCoords(mArrowHead[i].x, mArrowHead[i].y, mArrowHead[i].z, xim2, yim2, iz);
     if (fabs((double)xim1 - xim2) > 2. || fabs((double)yim1 - yim2) > 2.) {
       b3dColorIndex(App->arrow);
       b3dDrawArrow(xim1, yim1, xim2, yim2);

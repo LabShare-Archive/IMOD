@@ -18,6 +18,8 @@
 #define SLICE_ZSCALE_BEFORE 1
 #define SLICE_ZSCALE_AFTER  2
 
+#include <vector>
+
 class SlicerWindow;
 class SlicerGL;
 class SlicerCube;
@@ -69,6 +71,8 @@ class SlicerFuncs {
   void getSubsetLimits(int &ixStart, int &iyStart, int &nxUse, int &nyUse);
   int namedSnapshot(QString &fname, int format, bool checkConvert, bool fullArea);
   void toggleArrow(bool drawWin = true);
+  void clearArrows();
+  void startAddedArrow();
   void rotateOnViewAxis(int deltaX, int deltaY, int deltaZ);
   void setCursor(int mode, bool setAnyway = false);
   void setBandLowHighLimit(int which);
@@ -207,8 +211,8 @@ class SlicerFuncs {
   int mIgnoreCurPtChg;     /* Flag to ignore a current point change in draw */
   bool mArrowOn;           // Arrow flag
   bool mDrawingArrow;      // And flag for initial drawing
-  Ipoint mArrowTail;       // Image coordinates of head and tail
-  Ipoint mArrowHead;
+  std::vector<Ipoint> mArrowTail;       // Image coordinates of head and tail
+  std::vector<Ipoint> mArrowHead;
   float mArrowAngle[3];    // Angle at which arrow is valid
   int mLastShape;          // Last shape for cursor
   int mLastAxisPos;        // Last position sent to view axis slider

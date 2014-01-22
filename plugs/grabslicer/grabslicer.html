@@ -7,35 +7,47 @@
 --------------------------<br><br>
 This plugin is designed to grab the display in 3dmod top Slicer or 
 Zap window, and save it as an image with text note and Slicer
-parameters (if it's Slicer window) or the center position (if it's a Zap window).
-<P>
+parameters (if it's a Slicer window) or the center position (if it's a Zap
+window).  The top window is the one with the most recent activity.  Select
+which kind of window you want to grab with the <B>Slicer</B>
+and <B>Zap</B> radio buttons.  The snapshot type is controlled by the
+<B>JPEG</B>, <B>PNG</B>, and <B>TIFF</B> buttons.  The notes will include the
+image filename; if multiple files are loaded, the name of the current file is
+shown.
+<br><br><br>
+<b>Display Features</b><br>
+---------------------<br>
 When this plugin is open, scale bars will be displayed in the image windows
 even when the Scale Bar dialog is not open, provided that
  <B>Show and record scale bar</B> is checked.  This will be turned on by
  default if the image or model file appears to have a pixel size defined.
 <P>
-Another special feature when this plugin is open is that snapshots will always
+Another special feature when this plugin is open is that snapshots can
 be of the full window area, even when a rubber band is drawn in the window.
+This happens whenever <B>Always snapshot whole window</B> is checked.
 Thus, you can use a rubber band to outline an area of interest in either type
-of window.  The toolbar in either window also provides an arrow for pointing
-to a feature of interest, and the lasso in the Zap toolbar can also be used
+of window.  The lasso in the Zap toolbar can also be used
 for outlining a feature.
+<P>
+This plugin lets you draw multiple arrows in either type of window.  The first
+time you press <B>Add Arrow</B>, it acts just the same as using the arrow
+button in the window's toolbar.  However, you can press it again and draw
+another arrow, without losing the previously drawn arrows.  Press <B>Clear
+Arrows</B> to remove all arrows from the top window of the selected type.  The
+arrows will also go away when this dialog is closed.
 <br><br><br>
-<b>Hot Keys</b><br>
----------------------<br>
-<b>[Shift+W]</b>&nbsp &nbsp
-Save image with note in imod snapshot directory
-<br>
-<b>[W]</b>&nbsp &nbsp
-Save image with note in the Caltech Tomography Database. The image will
-be attached to an existing database tilt series id. See more details below.
+<B>Text Box for Notes</B>
+Text that you type in the box will appear below the filename and other
+standard information that is added to the snapshot. 
+The text that you enter will be line-wrapped, but you can use "Enter" to break
+lines.  Adding a note is optional.  
 <br>
 <br>
 <br>
 <b>Save Image</b><br>
 ---------------------<br>
 
-This function saves the grabbed image with note in standard 3dmod snapshot directory
+This button saves the grabbed image with note in the standard 3dmod snapshot directory
 with default snapshot naming.
 
 <br>
@@ -44,15 +56,32 @@ with default snapshot naming.
 <b>Save to Database</b><br>
 ---------------------<br>
 
-If you are using Caltech Tomography Database, you may use this function 
-to add grabbed image with note to the database and attached with a given 
-tilt series id. A database configuration file must be present.
+If you are using Caltech Tomography Database, this button is present and you may use it
+to add grabbed image with note to the database and attach it with a given 
+tilt series ID. A database configuration file must be present.  If multiple
+files are loaded, the image
+filename used to set up the tilt series ID is based on the current file when
+the dialog is opened.  Do not change to another file while the dialog is open if
+you are grabbing images for the database.
 
 <ul>
-<li><b>image type</b> - For display purpose, only JPG or PNG are allowed to be saved 
+<li><b>image type</b> - For display purpose, only JPEG or PNG are allowed to be saved 
 to database.</li>
 <li><b>configuration file</b> - should be located at $IMOD_CALIB_DIR/grabDatabase.ini. 
-By default $IMOD_CALIB_DIR is /usr/local/ImodCalib/ .</li>
+By default $IMOD_CALIB_DIR is /usr/local/ImodCalib/ .  The configuration file
+  should have 5 lines:
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbpath '/path/tp/database/'
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbhost 'ip_address_of_host'
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbname 'database_name'
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbuser 'username'
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbpass 'password'
+<br>
+where in each case the text should be contained in single quotes as shown.</li>
 <li><b>tilt series id</b> - you may manually input "Tilt Series Database ID", or,
 if the 3D image opened by 3dmod is under standard path in the database (has a format
 of &lt;Database path&gt;/&lt; tilt series id&gt;/... ), the tilt series id will be automatically
@@ -60,11 +89,19 @@ detected.</li>
 <li><b>database image path</b> - all images are saved under  &lt;Database path&gt;/Caps/ .
 File name formats: &lt;tilt series id&gt;_&lt;zap or slicer&gt;&lt;file id&gt;.jpg</li>
 </ul>
-
+<br><br><br>
+<b>Hot Keys</b><br>
+---------------------<br>
+<b>[Shift+W]</b>&nbsp &nbsp
+Save image with note in 3dmod snapshot directory
+<br>
+<b>[W]</b>&nbsp &nbsp
+Save image with note in the Caltech Tomography Database. The image will
+be attached to an existing database tilt series ID. See more details below.
 <br>
 ---------------------<br>
 <br>
-This plugin was created by <b>Jane Ding</b> (<u>hding&lt;at&gt;caltech&lt;dot&gt;edu</u>).<br>
-Last updated January 14, 2014
+This plugin was created by <b>Jane Ding</b>
+(<u>hding&lt;at&gt;caltech&lt;dot&gt;edu</u>) with refinements by David Mastronarde.<br>
 <br><br>
 </body>

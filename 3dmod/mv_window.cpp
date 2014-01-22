@@ -64,11 +64,22 @@ static PopupEntry sPopupTable[] = {
   {"Decrease rotation increment and speed", Qt::Key_Comma, 0, 0, 0},
   {"Increase rotation increment and speed", Qt::Key_Period, 0, 0, 0},
   {"Model/Time Selection", -1, 0, 0, 0},
+
+  // On the Mac, setting up shortcuts kills the keypad, so set mainIndex -1 to avoid the
+  // shortcut and put key in the text
+#ifdef Q_OS_MACX
+  {"Toggle displaying all models/one model  8", Qt::Key_8, 0, 0, -1},
+  {"Move to previous model time                   1", Qt::Key_1, 0, 0, -1},
+  {"Move to next model time                          2", Qt::Key_2, 0, 0, -1},
+  {"Switch to previous model                         9", Qt::Key_9, 0, 0, -1},
+  {"Switch to next model                               0", Qt::Key_0, 0, 0,-1},
+#else
   {"Toggle displaying all models or one model", Qt::Key_8, 0, 0, 0},
   {"Move to previous model time", Qt::Key_1, 0, 0, 0},
   {"Move to next model time", Qt::Key_2, 0, 0, 0},
   {"Switch to previous model", Qt::Key_9, 0, 0, 0},
   {"Switch to next model", Qt::Key_0, 0, 0, 0},
+#endif
   {"Display Quality Controls", -1, 0, 0, 0},
   {"Toggle low resolution drawing of meshes", Qt::Key_R, 1, 0, VVIEW_MENU_LOWRES},
   {"Decrease the quality of sphere drawing", Qt::Key_G, 0, 1, 0},
