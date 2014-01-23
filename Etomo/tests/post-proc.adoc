@@ -70,7 +70,8 @@ assert.tf.z-min=1
   assert.tf.z-max=%{tomogram-thickness-in-z-patch-tracking}
 [[]]
 [[ifnot = patch-tracking]]
-  assert.tf.z-max=%{tomogram-thickness-in-z}
+  if.not.var.simple-align.assert.tf.z-max=%{tomogram-thickness-in-z}
+  if.var.simple-align.assert.tf.z-max=88
 [[]]
 #check enabled/disabled
 assert.enabled.tf.x-min=

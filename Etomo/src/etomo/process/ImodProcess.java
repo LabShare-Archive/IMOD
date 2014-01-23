@@ -16,7 +16,6 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
-import etomo.type.FileType;
 import etomo.type.OSType;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.swing.UIHarness;
@@ -815,10 +814,6 @@ public class ImodProcess {
    */
   public void setModelName(String modelName) {
     this.modelName = modelName;
-  }
-
-  public void setModel(FileType model) {
-    modelName = model.getFile(manager, axisID).getAbsolutePath();
   }
 
   public void setModelNameList(List<String> modelNameList) {

@@ -223,6 +223,7 @@ final class LabeledTextField implements UIComponent, SwingComponent {
   private boolean debug = false;
   private String checkpointValue = null;
   private EtomoNumber nCheckpointValue = null;
+  private boolean required = false;
 
   public String toString() {
     return "[label:" + getLabel() + "]";
@@ -370,7 +371,7 @@ final class LabeledTextField implements UIComponent, SwingComponent {
       nCheckpointValue.set(checkpointValue);
     }
   }
-  
+
   /**
    * Resets to checkpointValue if checkpointValue has been set.  Otherwise has no effect.
    */
@@ -380,7 +381,6 @@ final class LabeledTextField implements UIComponent, SwingComponent {
     }
     setText(checkpointValue);
   }
-
 
   public void addActionListener(ActionListener listener) {
     textField.addActionListener(listener);
@@ -471,11 +471,15 @@ final class LabeledTextField implements UIComponent, SwingComponent {
     setName(label);
   }
 
+  void setRequired(final boolean required) {
+    this.required = required;
+  }
+
   String getText(final boolean doValidation) throws FieldValidationFailedException {
     String text = textField.getText();
     if (doValidation && textField.isEnabled()) {
       text = FieldValidator.validateText(text, fieldType, this, getQuotedLabel()
-          + (locationDescr == null ? "" : " in " + locationDescr), false);
+          + (locationDescr == null ? "" : " in " + locationDescr), required);
     }
     return text;
   }

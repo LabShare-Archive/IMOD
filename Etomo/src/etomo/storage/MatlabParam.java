@@ -384,6 +384,7 @@ public final class MatlabParam {
   public static final String FLG_STRICT_SEARCH_LIMITS_KEY = "flgStrictSearchLimits";
   public static final boolean FLG_STRICT_SEARCH_LIMITS_DEFAULT = false;
   public static final String SELECT_CLASS_ID_KEY = "selectClassID";
+  public static final String FLG_NO_REFERENCE_REFINEMENT_KEY = "flgNoReferenceRefinement";
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -443,6 +444,8 @@ public final class MatlabParam {
       .getMatlabInstance(FLG_STRICT_SEARCH_LIMITS_KEY);
   private final ParsedNumber selectClassID = ParsedNumber
       .getMatlabInstance(SELECT_CLASS_ID_KEY);
+  private final ParsedNumber flgNoReferenceRefinement = ParsedNumber
+      .getMatlabInstance(FLG_NO_REFERENCE_REFINEMENT_KEY);
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -469,6 +472,7 @@ public final class MatlabParam {
     flgAbsValue.setDefault(FLG_ABS_VALUE_DEFAULT);
     flgStrictSearchLimits.setDefault(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
+    flgNoReferenceRefinement.setDefault(false);
   }
 
   /**
@@ -742,6 +746,10 @@ public final class MatlabParam {
     return flgFairReference.getRawBoolean();
   }
 
+  public boolean isFlgNoReferenceRefinement() {
+    return flgNoReferenceRefinement.getRawBoolean();
+  }
+
   public boolean isFlgAbsValue() {
     return flgAbsValue.getRawBoolean();
   }
@@ -756,6 +764,10 @@ public final class MatlabParam {
 
   public void setFlgFairReference(final boolean input) {
     flgFairReference.setRawString(input);
+  }
+
+  public void setFlgNoReferenceRefinement(final boolean input) {
+    flgNoReferenceRefinement.setRawString(input);
   }
 
   public void setFlgAbsValue(final boolean input) {
@@ -907,6 +919,7 @@ public final class MatlabParam {
     flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
     flgStrictSearchLimits.setRawString(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
     selectClassID.clear();
+    flgNoReferenceRefinement.setRawString(false);
 
   }
 
@@ -1320,6 +1333,13 @@ public final class MatlabParam {
     // selectClassID
     selectClassID.parse(autodoc.getAttribute(SELECT_CLASS_ID_KEY));
     addError(selectClassID, errorList);
+    // FlgNoReferenceRefinement
+    flgNoReferenceRefinement.parse(autodoc.getAttribute(FLG_NO_REFERENCE_REFINEMENT_KEY));
+    if (!addError(flgNoReferenceRefinement, errorList)) {
+      checkValue(flgNoReferenceRefinement, new int[] { 0, 1 }, component,
+          FLG_NO_REFERENCE_REFINEMENT_KEY, FieldLabels.FLG_NO_REFERENCE_REFINEMENT_LABEL,
+          -1);
+    }
   }
 
   void checkValue(final ParsedNumber number, final int[] expectedValues,
@@ -1614,6 +1634,8 @@ public final class MatlabParam {
     else {
       valueMap.remove(SELECT_CLASS_ID_KEY);
     }
+    valueMap.put(FLG_NO_REFERENCE_REFINEMENT_KEY,
+        flgNoReferenceRefinement.getParsableString());
   }
 
   /**
@@ -1802,6 +1824,8 @@ public final class MatlabParam {
     else {
       removeNameValuePair(autodoc, SELECT_CLASS_ID_KEY);
     }
+    setNameValuePairValue(manager, autodoc, FLG_NO_REFERENCE_REFINEMENT_KEY,
+        (String) valueMap.get(FLG_NO_REFERENCE_REFINEMENT_KEY), commentMap);
   }
 
   /**
