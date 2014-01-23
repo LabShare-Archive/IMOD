@@ -29,7 +29,7 @@ this Z value will be included
 correspondence (see below)
 .P
 (After the program solves for a transformation):
-.br.
+.br
 Name of the model file to be transformed
 .P
 0 to transform model from fitting the first stack to fitting the
