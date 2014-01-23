@@ -131,7 +131,6 @@ set.param = --ignoreloc
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.simple-align=
-set.var.run_sirt=
 set.var.test-gui=
 set.interface.Recon=
 
@@ -444,7 +443,7 @@ set.var.findbeads3d-binning = 1
 set.var.erase-gold-thickness=98
 set.var.incremental-shift-to-center.a=-12.5
 set.var.incremental-shift-to-center.b=-12.3
-set.var.incremental-shift-to-center-simple-align.a=-12.4
+set.var.incremental-shift-to-center-simple-align.a=-12.2
 set.var.incremental-shift-to-center-simple-align.b=-13.9
 set.var.final-align-comscript=newst
 set.var.final-align-command=newstack
