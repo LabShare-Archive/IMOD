@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/22/14: In eTomo fixed bugs in the Directive Editor.(Bug# 1721)
+
 7/3/13: In eTomo improving error handling for an empty fiducial diameter
 field.(Bug# 1671)
 

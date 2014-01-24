@@ -51,6 +51,10 @@ public final class SeedingMethod {
     }
     return null;
   }
+  
+  public String getValue() {
+    return value;
+  }
 
   public static String toDirectiveValue(final MetaData metaData, final AxisID axisID) {
     if (metaData.isTrackSeedModelManual(axisID)) {
