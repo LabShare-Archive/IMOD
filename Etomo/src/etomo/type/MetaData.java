@@ -915,6 +915,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         + ".CTF.AutoFit.RangeAndStep");
     stackCtfAutoFitRangeAndStepA.setPropertiesKey(STACK_KEY + "." + SECOND_AXIS_KEY
         + ".CTF.AutoFit.RangeAndStep");
+
+    trackMethodA.set(TrackingMethod.SEED.toString());
+    trackMethodB.set(TrackingMethod.SEED.toString());
+    trackSeedModelManualA.set(true);
+    trackSeedModelManualB.set(true);
   }
 
   /**
@@ -1794,8 +1799,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trackNumberOfPatchesXandYB.reset();
     trackLengthAndOverlapA.reset();
     trackLengthAndOverlapB.reset();
-    trackMethodA.reset();
-    trackMethodB.reset();
+    trackMethodA.set(TrackingMethod.SEED.toString());
+    trackMethodB.set(TrackingMethod.SEED.toString());
     fineExistsA.reset();
     fineExistsB.reset();
     genLogA.reset();
@@ -1844,9 +1849,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     postTrimvolScaleYMin.reset();
     postTrimvolScaleYMax.reset();
     eraseBeadsInitialized.reset();
-
-    trackSeedModelManualA.reset();
-    trackSeedModelManualB.reset();
+    trackSeedModelManualA.set(true);
+    trackSeedModelManualB.set(true);
     trackSeedModelAutoA.reset();
     trackSeedModelAutoB.reset();
     trackSeedModelTransferA.reset();
