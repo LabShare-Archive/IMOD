@@ -851,6 +851,7 @@ EOF
         # Set up Qt image plugins to copy
         #
         echo "QTPLUGS_TOCOPY1 = libqjpeg.so libqico.so" >> $configure
+        echo "QTPLUGS_TOCOPY2 = libqsqlmysql.so" >> $configure
         echo "QTSQL_TOCOPY = libqsqlite.so" >> $configure
     else
 
@@ -864,6 +865,7 @@ EOF
 
 
         echo "QTPLUGS_TOCOPY1 = libqjpeg.dylib libqico.dylib" >> $configure
+        echo "QTPLUGS_TOCOPY2 = libqsqlmysql.dylib" >> $configure
         echo "QTSQL_TOCOPY = libqsqlite.dylib" >> $configure
     endif
 
@@ -894,6 +896,7 @@ endif
 \find $imod_dir -name 'imod*_menu.o*' ! -newer .version -exec \rm -f '{}' \;
 
 echo "QTPLUG_SRCDIR1 = imageformats" >> $configure
+echo "QTPLUG_SRCDIR2 = sqldrivers" >> $configure
 echo "QTSQL_SRCDIR = sqldrivers" >> $configure
 echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
