@@ -619,12 +619,7 @@ public class Directive {
       value.setDefault();
       if (input != null) {
         for (int i = 0; i < input.size(); i++) {
-          if (input.isIntegerType(i)) {
-            value.set(i, input.getInt(i));
-          }
-          else {
-            value.set(i, input.getDouble(i));
-          }
+          value.set(i, input.toString(i, true));
         }
       }
     }
