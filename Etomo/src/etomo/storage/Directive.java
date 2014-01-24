@@ -46,6 +46,7 @@ public class Directive {
 
   private boolean[] inDirectiveFile = null;
   private boolean include = false;
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   public Directive(final DirectiveDescr descr) {
     directiveName.setKey(descr);
@@ -56,7 +57,7 @@ public class Directive {
     template = descr.isTemplate();
     etomoColumn = descr.getEtomoColumn();
     label = descr.getLabel();
-    choiceList = descr.getChoiceList();
+    choiceList = descr.getChoiceList(debug);
   }
 
   /**
@@ -91,6 +92,9 @@ public class Directive {
 
   public void setDebug(final DebugLevel input) {
     values.setDebug(input);
+    if (choiceList != null) {
+      choiceList.setDebug(input);
+    }
   }
 
   public void resetDebug() {
@@ -200,7 +204,7 @@ public class Directive {
   public void setDefaultValue(final boolean input) {
     values.setDefaultValue(input);
   }
-  
+
   public void setDefaultValue(final ConstEtomoNumber input) {
     values.setDefaultValue(input);
   }
@@ -372,7 +376,7 @@ public class Directive {
     }
 
     boolean equals(final BooleanValue input) {
-      if (debug.isExtra() ) {
+      if (debug.isExtra()) {
         System.err.println("equals:value:" + value + ",input:" + input);
       }
       if (input == null) {
