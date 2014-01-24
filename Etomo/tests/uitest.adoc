@@ -13,8 +13,8 @@ set.param = --actions
 #set.param = %{dataset}.edf
 set.var.single=
 set.var.run_sirt=
+set.var.build=
 set.interface.Recon=
-#set.var.build=
 
 [Test = dual]
 set.testdir = dual
@@ -31,6 +31,7 @@ set.param = --actions
 #set.param = %{dataset}.edf
 set.var.dual=
 set.var.run_sirt=
+set.var.build=
 set.interface.Recon=
 
 [Test = single-test-gui]
@@ -82,8 +83,25 @@ set.param = --actions
 set.var.single=
 set.var.fidless=
 set.var.run_sirt=
+set.var.build=
 set.interface.Recon=
-#set.var.build=
+
+[Test = single-fidless-test-gui]
+set.testdir=single-fidless-test-gui
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.fidless=
+set.var.run_sirt=
+set.var.test-gui=
+set.interface.Recon=
+
 
 [Test = single-simple-align]
 set.testdir=single-simple-align
@@ -98,6 +116,22 @@ set.param = --ignoreloc
 set.var.single=
 set.var.simple-align=
 set.var.run_sirt=
+set.var.build=
+set.interface.Recon=
+
+[Test = single-simple-align-test-gui]
+set.testdir=single-simple-align-test-gui
+#set.keep.testdir=single
+set.adoc.dialog = recon.adoc
+set.var.dataset = BBa
+set.dataset = BB
+copy.file = %{dataset}.st
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+#set.param = %{dataset}.edf
+set.var.single=
+set.var.simple-align=
+set.var.test-gui=
 set.interface.Recon=
 
 [Test = single-patch-tracking]
@@ -114,6 +148,7 @@ set.param = --actions
 set.var.single=
 set.var.patch-tracking=
 set.var.run_sirt=
+set.var.build=
 set.interface.Recon=
 
 [Test = single-patch-tracking-test-gui]
@@ -146,6 +181,7 @@ set.param = --actions
 set.var.single=
 set.var.run_sirt=
 set.var.montage=
+set.var.build=
 
 [Test = single-montage-patch-tracking]
 set.testdir = single-montage-patch-tracking
@@ -175,6 +211,7 @@ set.param = --ignoreloc
 set.var.dual=
 set.var.run_sirt=
 set.var.montage=
+set.var.build=
 
 [Test = single-montage-test-gui]
 set.testdir = single-montage-test-gui
@@ -221,7 +258,24 @@ set.var.dual=
 set.var.montage=
 set.var.run_sirt=
 set.var.patch-tracking=
+set.var.build=
 
+[Test = dual-montage-patch-tracking-test-gui]
+set.testdir = dual-montage-patch-tracking-test-gui
+#set.keep.testdir = dual-montage-patch-tracking
+set.adoc.dialog.a=recon.adoc
+set.adoc.bdialog.b=recon.adoc
+set.var.dataset = midzone2
+set.dataset = midzone2
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.param = --actions
+#set.param = midzone2.edf
+set.var.dual=
+set.var.montage=
+set.var.run_sirt=
+set.var.patch-tracking=
+set.var.build=
 
 [Test = join]
 set.testdir = join
@@ -232,6 +286,7 @@ copy.file = %{dataset}2.rec
 copy.file = %{dataset}3.rec
 set.param = --autoclose3dmod
 set.param = --ignoreloc
+set.var.build=
 set.interface.Join=
 
 [Test = join-test-gui]
@@ -275,6 +330,17 @@ set.dataset = BB
 set.var.dataset = tilt
 set.param = --autoclose3dmod
 set.param = --ignoreloc
+set.var.build=
+set.interface.Generic=
+
+[Test = generic-test-gui]
+set.testdir = generic-test-gui
+set.adoc.dialog = generic.adoc
+set.dataset = BB
+set.var.dataset = tilt
+set.param = --autoclose3dmod
+set.param = --ignoreloc
+set.var.test-gui=
 set.interface.Generic=
 
 [Test = nad]
@@ -285,8 +351,8 @@ set.dataset = unicross
 set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.var.volume=unicross1.rec
+set.var.build=
 set.interface.Nad=
-
 
 [Test = nad-test-gui]
 set.testdir = nad-test-gui
@@ -307,6 +373,7 @@ set.var.dataset = pi
 set.param = --autoclose3dmod
 set.param = --ignoreloc
 set.dataset = pi
+set.var.build=
 
 [Test = peet-test-gui]
 set.testdir = peet-test-gui
@@ -326,6 +393,7 @@ copy.file = %{dataset}
 set.param = --autoclose3dmod
 set.param = --ignoreloc
 #set.param = --names
+set.var.build=
 set.interface.tools=
 
 [Test = flatten-volume-test-gui]
@@ -375,7 +443,7 @@ set.var.findbeads3d-binning = 1
 set.var.erase-gold-thickness=98
 set.var.incremental-shift-to-center.a=-12.5
 set.var.incremental-shift-to-center.b=-12.3
-set.var.incremental-shift-to-center-simple-align.a=-12.4
+set.var.incremental-shift-to-center-simple-align.a=-12.2
 set.var.incremental-shift-to-center-simple-align.b=-13.9
 set.var.final-align-comscript=newst
 set.var.final-align-command=newstack
@@ -389,11 +457,15 @@ set.var.tomogram-thickness-in-z-patch-tracking.a=84
 set.var.x-axis-tilt.a=1.94
 set.var.x-axis-tilt.b=-0.08
 set.var.x-axis-tilt-patch-tracking.a=1.23
+set.var.x-axis-tilt-simple-align.a=2.04
 #PostProc
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
 set.var.scaling-z-min-patch-tracking=28
+set.var.scaling-z-min-simple-align=29
 set.var.scaling-z-max-patch-tracking=56
+set.var.scaling-z-max-simple-align=58
+set.var.z-simple-align=88
 
 
 [dataset = midzone2]
@@ -451,6 +523,7 @@ set.var.tomogram-thickness-in-z-patch-tracking.b=144
 #PostProc
 set.var.scaling-z-min=32
 set.var.scaling-z-max=64
+set.var.z-simple-align=128
 set.interface.Recon=
 
 [dataset = unicross]

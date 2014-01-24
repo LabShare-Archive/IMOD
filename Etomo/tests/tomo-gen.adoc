@@ -17,8 +17,10 @@ bn.done=
     assert.tf.x-axis-tilt=%{x-axis-tilt-patch-tracking}
 [[]]
 [[ifnot = patch-tracking]]
-  assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
-    assert.tf.x-axis-tilt=%{x-axis-tilt}
+  if.not.var.simple-align.assert.tf.tomogram-thickness-in-z=%{tomogram-thickness-in-z}
+  if.var.simple-align.assert.tf.tomogram-thickness-in-z=%{z-simple-align}
+  if.not.var.simple-align.assert.tf.x-axis-tilt=%{x-axis-tilt}
+  if.var.simple-align.assert.tf.x-axis-tilt=%{x-axis-tilt-simple-align}
 [[]]
 
 
@@ -26,7 +28,7 @@ bn.done=
 if.var.fidless.return=
 assert.contains.file=tilt%{axis}.com|EXCLUDELIST*1
 #Ignore tilt_sirt.com - unpredictible file
-assert.contains.file=tilt%{axis}_for_sirt.com|EXCLUDELIST*1
+if.var.run_sirt.assert.contains.file=tilt%{axis}_for_sirt.com|EXCLUDELIST*1
 
 
 [function = tilt]
@@ -56,8 +58,10 @@ mb.tilt=+
 	assert.tf.tomogram-height-in-y=
 	assert.tf.y-shift=
 	assert.tf.x-shift=0.0
-	assert.tf.z-shift=0.0
-	assert.tf.tilt-angle-offset=0.0
+	if.not.var.fidless.assert.tf.z-shift=0.0
+	if.var.fidless.assert.tf.z-shift=6.6
+  if.not.var.fidless.assert.tf.tilt-angle-offset=0.0
+  if.var.fidless.assert.tf.tilt-angle-offset=-0.03
 	assert.tf.extra-views-to-exclude=
 	mb.tilt.1=B
 	# check enabled/disabled
@@ -68,8 +72,10 @@ mb.tilt=+
 	assert.enabled.tf.x-axis-tilt=
 	assert.enabled.tf.radial-filter-cutoff=
 	assert.enabled.tf.falloff=
-	assert.enabled.cb.use-local-alignments=
-	assert.enabled.cb.use-z-factors=
+	if.not.var.fidless.assert.enabled.cb.use-local-alignments=
+	if.var.fidless.assert.disabled.cb.use-local-alignments=
+	if.not.var.fidless.assert.enabled.cb.use-z-factors=
+	if.var.fidless.assert.disabled.cb.use-z-factors=
 	assert.enabled.bn.generate-tomogram=
 	assert.enabled.bn.view-tomogram-in-3dmod=
 	assert.enabled.bn.delete-intermediate-image-stacks=
@@ -388,9 +394,9 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=tilt%{axis}.com
   assert.exists.file=sirtsetup%{axis}.com
   assert.exists.file=tilt%{axis}_sirt-finish.com
-  assert.exists.file=tilt%{axis}_for_sirt.com
+  if.var.run_sirt.assert.exists.file=tilt%{axis}_for_sirt.com
   assert.exists.file=sirtsetup%{axis}.log
-  assert.exists.file=%{dataset}%{axis}.alilog10
+  if.not.var.fidless.assert.exists.file=%{dataset}%{axis}.alilog10
   assert.exists.file=tilt%{axis}_sirt.log
   assert.exists.file=%{dataset}%{axis}%{full-ext}.sint01
   assert.exists.file=%{dataset}%{axis}%{full-ext}.srec02
@@ -407,7 +413,7 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
   assert.enabled.rb.go-back,-resume-from-iteration=
-  assert.exists.file=tilt%{axis}_for_sirt.com~
+  if.var.run_sirt.assert.exists.file=tilt%{axis}_for_sirt.com~
   assert.exists.file=sirtsetup%{axis}.log~
   assert.exists.file=tilt%{axis}_sirt.log~
   assert.exists.file=%{dataset}%{axis}%{full-ext}.sint01
@@ -467,7 +473,7 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=tilt%{axis}.com
   assert.exists.file=sirtsetup%{axis}.com
   assert.exists.file=tilt%{axis}_sirt-finish.com
-  assert.exists.file=tilt%{axis}_for_sirt.com
+  if.var.run_sirt.assert.exists.file=tilt%{axis}_for_sirt.com
   assert.exists.file=sirtsetup%{axis}.log
   assert.exists.file=%{dataset}%{axis}_sub.ali
   assert.exists.file=tilt%{axis}_sirt.log
@@ -486,7 +492,7 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.cbb.go-back,-resume-from-iteration=3
   assert.enabled.rb.resume-from-last-iteration=
   assert.enabled.rb.go-back,-resume-from-iteration=
-  assert.exists.file=tilt%{axis}_for_sirt.com~
+  if.var.run_sirt.assert.exists.file=tilt%{axis}_for_sirt.com~
   assert.exists.file=sirtsetup%{axis}.log~
   assert.exists.file=tilt%{axis}_sirt.log~
   assert.exists.file=%{dataset}%{axis}_sub.sint01
@@ -532,9 +538,9 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.exists.file=tilt%{axis}.com
   assert.exists.file=sirtsetup%{axis}.com
   assert.exists.file=tilt%{axis}_sirt-finish.com
-  assert.exists.file=tilt%{axis}_for_sirt.com
+  if.var.run_sirt.assert.exists.file=tilt%{axis}_for_sirt.com
   assert.exists.file=sirtsetup%{axis}.log
-  assert.exists.file=%{dataset}%{axis}.alilog10
+  if.not.var.fidless.assert.exists.file=%{dataset}%{axis}.alilog10
   assert.exists.file=tilt%{axis}_sirt.log
   assert.exists.file=%{dataset}%{axis}%{full-ext}.sint01
   assert.exists.file=%{dataset}%{axis}%{full-ext}.srec03
@@ -558,7 +564,7 @@ wait.process.processchunks-tilt%{axis}_sirt=done
   assert.enabled.rb.go-back,-resume-from-iteration=
   # only sees subarea output
   assert.cbb.go-back,-resume-from-iteration=2
-  assert.exists.file=tilt%{axis}_for_sirt.com~
+  if.var.run_sirt.assert.exists.file=tilt%{axis}_for_sirt.com~
   assert.exists.file=sirtsetup%{axis}.log~
   assert.exists.file=tilt%{axis}_sirt.log~
   # full output unchanged

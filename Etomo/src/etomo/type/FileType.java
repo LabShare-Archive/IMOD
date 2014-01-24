@@ -723,18 +723,20 @@ public final class FileType {
     // below the dataset location, or in the dataset.
     String subdirName;
     if (inImodSubdirectory != null) {
-      return new File(new File(EtomoDirector.INSTANCE.getIMODDirectory(),
-          inImodSubdirectory), fileName);
+      return new File(new File(new File(EtomoDirector.INSTANCE.getIMODDirectory(),
+          inImodSubdirectory), fileName).getAbsolutePath());
     }
     if (inSubdirectory) {
       if (subdir != null) {
-        return new File(subdir.getFileName(manager, axisID), fileName);
+        return new File(
+            new File(subdir.getFileName(manager, axisID), fileName).getAbsolutePath());
       }
       if ((subdirName = manager.getFileSubdirectoryName()) != null) {
-        return new File(new File(manager.getPropertyUserDir(), subdirName), fileName);
+        return new File(new File(new File(manager.getPropertyUserDir(), subdirName),
+            fileName).getAbsolutePath());
       }
     }
-    return new File(manager.getPropertyUserDir(), fileName);
+    return new File(new File(manager.getPropertyUserDir(), fileName).getAbsolutePath());
   }
 
   public boolean exists(final BaseManager manager, final AxisID axisID) {

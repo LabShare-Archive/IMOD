@@ -1596,6 +1596,14 @@ public class ImodManager {
     }
   }
 
+  /**
+   * Use this when opening a model newly created by software that doesn't have previous
+   * contrast settings in it.
+   * @param key
+   * @param axisID
+   * @param preserveContrast
+   * @throws AxisTypeException
+   */
   public void setPreserveContrast(String key, AxisID axisID, boolean preserveContrast)
       throws AxisTypeException {
     key = getPrivateKey(key);
