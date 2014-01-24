@@ -1,5 +1,6 @@
 package etomo.logic;
 
+import etomo.Arguments.DebugLevel;
 import etomo.storage.Directive;
 import etomo.storage.DirectiveDescr;
 import etomo.storage.DirectiveDescrEtomoColumn;
@@ -195,7 +196,7 @@ public class DirectiveToolTest extends TestCase {
       return null;
     }
 
-    public DirectiveDescrFile.ChoiceList getChoiceList() {
+    public DirectiveDescrFile.ChoiceList getChoiceList(final DebugLevel debug) {
       return null;
     }
 
