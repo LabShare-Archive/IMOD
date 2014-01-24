@@ -458,6 +458,7 @@ set.var.x-axis-tilt.a=1.94
 set.var.x-axis-tilt.b=-0.08
 set.var.x-axis-tilt-patch-tracking.a=1.23
 set.var.x-axis-tilt-simple-align.a=2.04
+set.var.x-axis-tilt-simple-align.b=2.04
 #PostProc
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
@@ -518,6 +519,7 @@ set.var.tomogram-thickness-in-z.a=96
 set.var.tomogram-thickness-in-z.b=84
 set.var.x-axis-tilt.a=2.03
 set.var.x-axis-tilt.b=0.21
+set.var.x-axis-tilt-simple-align.a=2.04
 set.var.tomogram-thickness-in-z-patch-tracking.a=128
 set.var.tomogram-thickness-in-z-patch-tracking.b=144
 #PostProc
