@@ -20,11 +20,12 @@
 #include <math.h>
 #include "stdbool.h"
 
-#ifdef __APPLE__
+/* DNM 1/23/14: just take it out, the header is gone now */
+/*#ifdef __APPLE__
   #include <vecLib/vecLib.h>
-#else
-  #include "cblas.h"
-#endif
+  #else */
+#include "cblas.h"
+/*#endif*/
 
 #define ZERO   0.0
 #define ONE    1.0

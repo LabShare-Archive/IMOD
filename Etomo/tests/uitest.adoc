@@ -457,11 +457,15 @@ set.var.tomogram-thickness-in-z-patch-tracking.a=84
 set.var.x-axis-tilt.a=1.94
 set.var.x-axis-tilt.b=-0.08
 set.var.x-axis-tilt-patch-tracking.a=1.23
+set.var.x-axis-tilt-simple-align.a=2.04
 #PostProc
 set.var.scaling-z-min=28
 set.var.scaling-z-max=56
 set.var.scaling-z-min-patch-tracking=28
+set.var.scaling-z-min-simple-align=29
 set.var.scaling-z-max-patch-tracking=56
+set.var.scaling-z-max-simple-align=58
+set.var.z-simple-align=88
 
 
 [dataset = midzone2]
@@ -519,6 +523,7 @@ set.var.tomogram-thickness-in-z-patch-tracking.b=144
 #PostProc
 set.var.scaling-z-min=32
 set.var.scaling-z-max=64
+set.var.z-simple-align=128
 set.interface.Recon=
 
 [dataset = unicross]
