@@ -16,9 +16,9 @@ while ($plugnum < 100)
     set plugdir = `sed -n "/QTPLUG_SRCDIR$plugnum/s/^.*= *//p" configure`
     if ("$plugdir" == "") break
     set pluglist = `sed -n "/QTPLUGS_TOCOPY$plugnum/s/^.*= *//p" configure`
-    mkdir -p $instdir/lib/imodplug/$plugdir
     foreach i ($pluglist)
         if (-e $QTDIR/plugins/$plugdir/$i) then
+            mkdir -p $instdir/lib/imodplug/$plugdir
             \cp $QTDIR/plugins/$plugdir/$i $instdir/lib/imodplug/$plugdir
             chmod -R 755 $instdir/lib/imodplug/$plugdir
         endif

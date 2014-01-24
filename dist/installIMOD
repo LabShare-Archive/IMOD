@@ -145,6 +145,7 @@ ubscripts = ('/etc/csh.cshrc', '/etc/bash.bashrc')
 linux = 0
 windows = 1
 osx = 2
+noCygwin = 0
 sysnames = ('Linux', 'Windows', 'Mac OSX')
 
 # Look for recognized arguments
@@ -240,7 +241,11 @@ elif 'cygwin' in sys.platform:
    scripts = ('IMOD-cygwin.csh', 'IMOD-cygwin.sh')
 
 elif 'win32' in sys.platform:
-   echoerr("You must run the install script with Cygwin python")
+   ostype = windows
+   defaultdir = 'C:/Program Files'
+   noCygwin = 1
+   if not skipcopy:
+      echoerr("You must run the install script with Cygwin python unless -skip is given")
 
 else:
    echoerr("IMOD will not run on this system (" + sys.platform + ")")
@@ -428,7 +433,7 @@ if ubuntu:
                        '; You should remove that file manually')
 
 # Move Windows .dlls up for pre-XP version
-if ostype == windows:
+if ostype == windows and not noCygwin:
    uname = (os.uname()[0]).split('-')
    try:
       unamespl = uname[1].split('.')
@@ -450,7 +455,8 @@ if ostype == windows:
 # Test for 64 versus 32-bit
 mismatch = ''
 try:
-   uname = os.uname()
+   if not windows:
+      uname = os.uname()
    if ostype == linux:
       bit3264 = testFileType('lib/libimod.so')
       if bit3264 == 2 and uname[4] == 'x86_64':
@@ -688,7 +694,11 @@ if mismatch:
    echo("")
    echo(mismatch)
 
-if ostype == windows and custom:
+if noCygwin:
+   winpath = installstr.replace('/', '\\')
+   echo("\nIn Windows environment variables, set IMOD_DIR to " + winpath)
+   echo("    and add " + winpath + "\\bin to PATH")
+elif ostype == windows and custom:
    try:
       winpath = runcmd('cygpath -w ' + installstr)
       if len(winpath):
