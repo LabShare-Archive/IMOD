@@ -31,8 +31,9 @@ set gccvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gcc.tmp |sed '
 \rm -f gcc.tmp
 if ($#gccvers < 2) set gccvers = (3 0)
 @ minorvers = $gccvers[2]
-set unameout = `uname -r | sed '/\./s// /g'`
-@ darversion = $unameout[1]
+
+set release = `echo $URELEASE | sed 's/\./ /g'`
+@ majorrel = $release[1]
 
 # Set default fortran compiler to intel for intel, but only if it exists and 
 # its true location has been put on the path
@@ -41,7 +42,7 @@ if ($compiler == default && $intel == true) then
     set ifortout = `which ifort`
     if ($status || "$ifortout:h" == "/usr/bin") then
 	set compiler = gfortran
-        if ($minorvers < 2) set openmp = false
+        if ($minorvers < 2 || $majorrel > 11) set openmp = false
     else
 	set compiler = ifort
     endif
@@ -79,6 +80,8 @@ if ($compiler == ifort || $compiler == intel) then
     set openmplib = "libguide"
     if ($ifortversion > 10) set openmplib = "libiomp5"
 endif
+
+if ($compiler == gfortran && ($majorrel > 11 || $minorvers < 2)) set openmp = false
 
 # If using gcc, assume that version 4.2 has openmp for C and fortran
 if ($ccomp == gcc) then
@@ -147,11 +150,13 @@ else
     set ltiff = ""
 endif
 
+if ($majorrel > 10) \cp sysdep/mac/stdarg.h include
+
 # -read_only_relocs warning is not supposed to be used with 64-bit OS 10.6
 #
 set ldread_only = "-read_only_relocs warning"
 set wlread_only = "-Wl,-dynamic -Wl,-read_only_relocs,warning"
-if ($m64bit == true && $darversion > 9) then
+if ($m64bit == true && $majorrel > 9) then
     set ldread_only = ""
     set wlread_only = ""
 endif
@@ -171,6 +176,7 @@ if ($compiler == ifort) then
     set fortdir = `which ifort`
     set fortlibdir = $fortdir:h:h/lib
     if (! -e $fortlibdir) set fortlibdir = $fortdir:h:h:h/lib
+    if (! -e $fortlibdir) set fortlibdir = $fortdir:h:h:h:h/lib
     echo "DLLSOURCEDIR1 = $fortlibdir" >> $configure
     set dllstocopy1 = "libifcore$libmt libifport$libmt libimf libsvml"
     if ($ifortversion <= 9) then
@@ -179,7 +185,6 @@ if ($compiler == ifort) then
         set dllstocopy1 = "$dllstocopy1 libintlc"
     endif    
     if ($openmp == true) set dllstocopy1 = "$dllstocopy1 $openmplib"
-    echo "DLLSTOCOPY1 = $dllstocopy1" >> $configure
 else
 
     set fcompFlags = "-ffixed-line-length-0"
@@ -206,10 +211,16 @@ else
     echo "DATESRC   = compat/datetime.f" >> $configure
     echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
     echo "DATEOBJ  = datetime.o" >> $configure
-    echo "DLLSTOCOPY1 = libgfortran" >> $configure
+    set dllstocopy1 = "libgfortran"
     if (-e /usr/lib/libgfortran.dylib) set dllsourcedir1 = "/usr/lib"
+    if (-e /usr/local/gfortran/lib) then
+        set dllstocopy1 = "libgfortran libgcc_s.1.dylib libquadmath libstdc++"
+        set dllsourcedir1 = "/usr/local/gfortran/lib"
+    endif
     echo "DLLSOURCEDIR1 = $dllsourcedir1" >> $configure
 endif
+echo "DLLSTOCOPY1 = $dllstocopy1" >> $configure
+
 if ($wrapintel == true && $compiler == ifort) then
     echo "DLLDESTDIR = qtlib" >> $configure
 else
@@ -225,20 +236,19 @@ EOF
 
 #set shared_libs = false
 
-set release = `echo $URELEASE | sed 's/\./ /g'`
-@ majorrel = $release[1]
-
 if ($shared_libs != false) then
     if ($ccomp == icc) then
         echo "AR      = icc"                 >> $configure
         echo "ARCPP   = icpc"                 >> $configure
         set far = 'ifort'
+        set fardynamic = '-i-dynamic'
     else
 	echo "AR      = c++"                 >> $configure
 	echo "ARCPP   = c++"                >> $configure
+        set fardynamic = ''
     endif
     echo "ARFLAGS = $flags $openmpFlags $m64flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress $wlread_only -o "    >> $configure
-    set farflags = "$flags $openmpfFlags $m64flags -i-dynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress $wlread_only -o "
+    set farflags = "$flags $openmpfFlags $m64flags $fardynamic -dynamiclib -Wl,-single_module -Wl,-flat_namespace -Wl,-undefined,suppress $wlread_only -o "
     echo "RANLIB    = true"                     >> $configure
     echo "LIBEXT  = dylib"                 >> $configure
     if ($majorrel > 7) then
@@ -246,7 +256,9 @@ if ($shared_libs != false) then
         set makestaticlib = "ar -sruv "
         set makenmcar = '$(MAKESTATICLIB)'
         set nmcarext = "a"
-        if ($tifflibs == true) echo "LIBIIMODDEF = $ltiff -lSystemStubs" >> $configure
+        set systubs = "-lSystemStubs"
+        if ($majorrel > 11) set systubs = ""
+        if ($tifflibs == true) echo "LIBIIMODDEF = $ltiff $systubs" >> $configure
     endif
 else
     echo "AR      = ar"                 >> $configure
@@ -294,7 +306,7 @@ echo '#define SENDEVENT_RETRY_HACK 300' >> $hconfigure
 echo '#define MAC103_BIGFILE' >> $hconfigure
 
 # Set the GLU_CALLBACK for OS 10.4 with gcc 4
-if ($darversion < 9 && $ccomp == gcc) echo '#define GLU_CALLBACK GLvoid (*)(...)' >> $hconfigure
+if ($majorrel < 9 && $ccomp == gcc) echo '#define GLU_CALLBACK GLvoid (*)(...)' >> $hconfigure
 
 set optimization = "-O3 -w"
 # 12/9/05: hurt more than helped on G5
@@ -484,7 +496,7 @@ set qtapp_path  = '$1.app/Contents/MacOS/'
 echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.profile linklibs-mac' >> $configure
 if ($distname == "") then
     set distname = _osx_ppc
-    if ($intel == true) set distname = _osx_intel 
+    if ($intel == true) set distname = _osx 
     if ($m64bit == true) set distname = ${distname}64
 endif
 
