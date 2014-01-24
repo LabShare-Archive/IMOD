@@ -1,5 +1,7 @@
 package etomo.storage;
 
+import etomo.Arguments.DebugLevel;
+
 /**
 * <p>Description: </p>
 * 
@@ -32,5 +34,5 @@ public interface DirectiveDescr {
 
   public String getLabel();
 
-  public DirectiveDescrFile.ChoiceList getChoiceList();
+  public DirectiveDescrFile.ChoiceList getChoiceList(DebugLevel debug);
 }
