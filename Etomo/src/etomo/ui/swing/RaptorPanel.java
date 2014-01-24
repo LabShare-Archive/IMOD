@@ -248,7 +248,7 @@ final class RaptorPanel implements Run3dmodButtonContainer, ContextMenu {
         manager.imodRawStack(axisID, run3dmodMenuOptions);
       }
       else {
-        manager.imodCoarseAlign(axisID, run3dmodMenuOptions, null);
+        manager.imodCoarseAlign(axisID, run3dmodMenuOptions, null, false);
       }
     }
     else if (command.equals(btnRaptor.getActionCommand())) {

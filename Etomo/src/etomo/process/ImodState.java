@@ -433,8 +433,7 @@ public final class ImodState {
 
   // current state information
   // reset to initial state
-  private String modelName=null;
-  private FileType model = null;
+  private String modelName = null;
   private int mode;
   private boolean swapYZ;
   // reset to default state
@@ -754,7 +753,7 @@ public final class ImodState {
         process.setRaise3dmodMessage();
       }
       // reopen model
-      if (!useModv && modelName != null && modelName.matches("\\S+")) {
+      if (!useModv && modelName != null && !modelName.matches("\\s+")) {
         if (preserveContrast) {
           process.setOpenModelPreserveContrastMessage(modelName);
         }
@@ -806,7 +805,8 @@ public final class ImodState {
       }
     }
     if ((modelView || useModv) && interpolation == null && usingMode
-        && mode != MODEL_MODE && EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+        && mode != MODEL_MODE
+        && EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
       System.err.println("ImodState:open: sendMessages");
       Thread.dumpStack();
     }
@@ -995,8 +995,7 @@ public final class ImodState {
   }
 
   private void setModel(FileType model) {
-    this.model = model;
-    process.setModel(model);
+    setModelName(model.getFile(manager, axisID).getAbsolutePath());
   }
 
   private void setModelName(String modelName) {

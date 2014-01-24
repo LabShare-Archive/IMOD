@@ -54,7 +54,8 @@ run.function.final-align-command=
 	assert.cb.use-linear-interpolation=off
 	assert.sp.aligned-image-stack-binning=1
 	if.not.var.montage.assert.cb.reduce-size-with-antialiasing-filter=off
-	assert.cb.fiducialless-alignment=off
+	if.not.var.fidless.assert.cb.fiducialless-alignment=off
+	if.var.fidless.assert.cb.fiducialless-alignment=on
 	assert.tf.tilt-axis-rotation=%{image-rotation}
 	assert.bn.create-full-aligned-stack=off
 	mb.%{final-align-command}=A
@@ -62,6 +63,7 @@ run.function.final-align-command=
 	mb.%{final-align-command}=B
 	# check enabled/disabled
 	mb.%{final-align-command}=B
+	if.var.fidless.return=
 	cb.fiducialless-alignment=off
 	assert.enabled.cb.use-linear-interpolation=
 	assert.enabled.sp.aligned-image-stack-binning=

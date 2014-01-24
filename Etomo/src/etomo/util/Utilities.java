@@ -1044,6 +1044,23 @@ public class Utilities {
     return quote + stripLabel(label) + quote;
   }
 
+  public static String escapeSpaces(final String string) {
+    int index = string.indexOf(' ');
+    if (index == -1) {
+      return string;
+    }
+    StringBuffer buffer = new StringBuffer();
+    int prevIndex = 0;
+    while (index != -1) {
+      buffer.append(string.substring(prevIndex, index));
+      buffer.append("\\ ");
+      prevIndex = ++index;
+      index = string.indexOf(' ', prevIndex);
+    }
+    buffer.append(string.substring(prevIndex));
+    return buffer.toString();
+  }
+
   /**
    * 
    * @param file

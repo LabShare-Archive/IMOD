@@ -461,6 +461,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final CheckBox cbAlignedBaseName = new CheckBox(ALIGNED_BASE_NAME_LABEL);
   private final CheckBox cbFlgStrictSearchLimits = new CheckBox(
       FieldLabels.FLG_STRICT_SEARCH_LIMITS_LABEL);
+  private final CheckBox cbFlgNoReferenceRefinement = new CheckBox(
+      FieldLabels.FLG_NO_REFERENCE_REFINEMENT_LABEL);
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
       FieldType.FLOATING_POINT, "Low frequency cutoff:", 5);
   private final LabeledTextField ltfLowCutoffSigma = new LabeledTextField(
@@ -797,6 +799,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       cbAlignedBaseName.setSelected(false);
     }
     cbFlgStrictSearchLimits.setSelected(matlabParam.isFlgStrictSearchLimits());
+    cbFlgNoReferenceRefinement.setSelected(matlabParam.isFlgNoReferenceRefinement());
     ltfLowCutoff.setText(matlabParam.getLowCutoffCutoff());
     ltfLowCutoffSigma.setText(matlabParam.getLowCutoffSigma());
     lsDebugLevel.setValue(matlabParam.getDebugLevel());
@@ -854,6 +857,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         matlabParam.resetAlignedBaseName();
       }
       matlabParam.setFlgStrictSearchLimits(cbFlgStrictSearchLimits.isSelected());
+      matlabParam.setFlgNoReferenceRefinement(cbFlgNoReferenceRefinement.isSelected());
       matlabParam.setLowCutoff(ltfLowCutoff.getText(doValidation),
           ltfLowCutoffSigma.getText(doValidation));
       matlabParam.setDebugLevel(lsDebugLevel.getValue());
@@ -953,6 +957,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
         MatlabParam.FLG_ABS_VALUE_KEY);
     cbFlgAbsValue.setToolTipText(section, "1");
+    cbFlgNoReferenceRefinement.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        MatlabParam.FLG_NO_REFERENCE_REFINEMENT_KEY));
 
     ltfDirectory.setToolTipText("The directory which will contain the parameter and "
         + "project files, logs, intermediate files, and results. Data files "
@@ -1138,6 +1144,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlOptionalLeft.add(cbFlgAbsValue);
     pnlOptionalLeft.add(cbAlignedBaseName);
     pnlOptionalLeft.add(cbFlgStrictSearchLimits);
+    pnlOptionalLeft.add(cbFlgNoReferenceRefinement);
     // optional right
     pnlOptionalRight.setLayout(new GridLayout(4, 1, 0, 5));
     pnlOptionalRight.add(lsParticlePerCPU.getContainer());
