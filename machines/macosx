@@ -101,7 +101,8 @@ if ($ccomp == gcc) then
     endif
 
     if ($?MACOSX_DEPLOYMENT_TARGET) then
-	set sdkpath = `ls -d /Developer/SDKs/*${MACOSX_DEPLOYMENT_TARGET}*`
+        set sdkpath = `\find /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs -depth 1 -name "*${MACOSX_DEPLOYMENT_TARGET}*" -print`
+        if (! $#sdkpath) sdkpath = `\find /Developer/SDKs -depth 1 -name "*${MACOSX_DEPLOYMENT_TARGET}*" -print`
 	if ($#sdkpath == 1) then
 	    set macsdkFlags = "-isysroot $sdkpath"
 	    echo "Setting gcc compile flag  $macsdkFlags"
