@@ -526,6 +526,7 @@ set.var.tomogram-thickness-in-z-patch-tracking.b=144
 set.var.scaling-z-min=32
 set.var.scaling-z-min-simple-align=32
 set.var.scaling-z-max=64
+set.var.scaling-z-max-simple-align=64
 set.var.z-simple-align=128
 set.interface.Recon=
 
