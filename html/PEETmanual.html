@@ -697,6 +697,12 @@ can be useful when refining an initial alignment, since the optimum at each iter
 expected to be within the search range of the previous ones.
 </p>
 
+<p><b>No reference refinement</b> allows for alignment against a fixed reference 
+(i.e. template matching).&nbsp; Normally, PEET generates a new reference at the end of
+each iteration based on the current alignment.&nbsp; If <b>no reference refinement</b>
+is checked, the initial reference (whether user supplied our automatically generated),
+will be used for all alignment iterations without modification.</p>
+
 <p><b>Particles per CPU</b> controls the splitting of alignment searches into "chunks"
 for parallel execution on multiple CPUS.&nbsp; No more than the specified number of particles 
 will be sent simultaneously to a single CPU for alignment.&nbsp;
@@ -706,7 +712,7 @@ should you need to kill (or pause) and then resume the processing.&nbsp;  The de
 a good choice for most purposes.</p>
 
 <p><b>Debug level</b> (0, 1, 2, or 3) controls the amount of information included in the log 
-files, with higher numbers leading to more verbose logs..</p>
+files, with higher numbers leading to more verbose logs.</p>
 
 <p>PEET can filter out low frequencies from both particles and the reference.&nbsp; 
 <b>Low frequency cutoff</b> is the frequency in inverse pixels
@@ -714,6 +720,14 @@ files, with higher numbers leading to more verbose logs..</p>
 is the standard deviation of the Gaussian whose left half defines the shape of the
 resulting high-pass filter.&nbsp; We have rarely found low frequency filtering to
 be useful, and do not recommend its routine use.</p>
+
+<p>PEET can create averages containing only selected subsets of the particles if 
+<b>Average only members of class</b> is specified.&nbsp; This is most often useful after 
+classification using programs pca and clusterPca.&nbsp; It can also be used following any
+other action which places the desired numeric class labels in column 20
+of the motive list.&nbsp; Currently, the eTomo gui supports only selection of a single
+class;&nbsp; multiple classes can be selected simultaneously by editing the prm 
+file directly and running averageAll from the command line.</p>
 
 <H4><A NAME="3.7 Action Buttons"></A>3.7. Action Buttons</H4>
 
