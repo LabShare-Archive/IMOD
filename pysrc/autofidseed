@@ -544,7 +544,7 @@ if tiltFile:
          if tiltLines[i].strip():
             tiltAngles.append(float(tiltLines[i]))
    except ValueError:
-      exitError('Converting lines in ' + tiltfile + ' to floating point values')
+      exitError('Converting lines in ' + tiltFile + ' to floating point values')
 
 else:
    first = optionValue(tracklines, 'FirstTiltAngle', 2)
