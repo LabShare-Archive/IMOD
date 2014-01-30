@@ -3,8 +3,13 @@ IMOD History
 1/29/14: In eTomo - Coarse Alignment, fixed a problem with graphing edge
 errors.(Bug# 1774)
 
-7/3/13: In eTomo improving error handling for an empty fiducial diameter
+1/29/14: In eTomo improving error handling for an empty fiducial diameter
 field.(Bug# 1671)
+
+1/29/14: Fixed problems with autofidseed in eTomo - Fiducial Model Dialog.
+(Bug# 1743)
+
+1/29/14: Exposed flgNoReferenceRefinement in eTomo - PEET.(Bug# 1738)
 
 1/28/13: Restored fortran graphics program wrappers to Mac build, lost 1/13.
 
@@ -12,10 +17,6 @@ field.(Bug# 1671)
 1/20/13: Fixed keypad hot keys in Model View on Mac.
 
 1/18/14: IMOD_4-6-37
-1/15/14: Fixed problems with autofidseed in eTomo - Fiducial Model Dialog.
-(Bug# 1743)
-
-1/15/14: Exposed flgNoReferenceRefinement in eTomo - PEET.(Bug# 1738)
 
 1/18/14: Further polishing of Grab with Note, which can now be used to draw
 multiple arrows in Zap or Slicer windows.
