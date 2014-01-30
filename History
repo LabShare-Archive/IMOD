@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/22/14: In eTomo fixed bugs in the Directive Editor.(Bug# 1721)
+
 1/29/13: IMOD_4-6-39
 1/29/13: Changed Newstack floating to truncate images with extreme ranges
 instead of scaling them to a different mean/SD.

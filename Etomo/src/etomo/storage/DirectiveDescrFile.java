@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
+import etomo.Arguments.DebugLevel;
 import etomo.type.AxisID;
 import etomo.type.FileType;
 import etomo.ui.swing.UIHarness;
@@ -166,9 +168,9 @@ public final class DirectiveDescrFile {
       return null;
     }
 
-    public ChoiceList getChoiceList() {
+    public ChoiceList getChoiceList(final DebugLevel debug) {
       if (curLineArray != null && curLineArray.length > CHOICES_COLUMN_INDEX) {
-        return new ChoiceList(curLineArray[CHOICES_COLUMN_INDEX]);
+        return new ChoiceList(curLineArray[CHOICES_COLUMN_INDEX], debug);
       }
       return null;
     }
@@ -282,7 +284,12 @@ public final class DirectiveDescrFile {
   public static final class ChoiceList {
     private final List<String[]> choiceList;
 
-    private ChoiceList(final String input) {
+    private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
+
+    private ChoiceList(final String input, final DebugLevel debug) {
+      if (debug != null) {
+        this.debug = debug;
+      }
       String[] choiceArray = input.split("\\s*;\\s*");
       if (choiceArray == null || choiceArray.length < 1) {
         choiceList = null;
@@ -298,6 +305,10 @@ public final class DirectiveDescrFile {
           }
         }
       }
+    }
+
+    public void setDebug(final DebugLevel input) {
+      debug = input;
     }
 
     boolean isEmpty() {
@@ -329,6 +340,7 @@ public final class DirectiveDescrFile {
         return null;
       }
     }
+
     /**
      * If the index is valid, returns the value.  If the index is not valid, returns null.
      * @param index

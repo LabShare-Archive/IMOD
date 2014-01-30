@@ -39,7 +39,7 @@ import etomo.ui.FieldType;
 * 
 * <p> $Log$ </p>
 */
-final class DirectivePanel  {
+final class DirectivePanel {
   public static final String rcsid = "$Id:$";
 
   private static final int NO_INDEX = 1;
@@ -250,6 +250,7 @@ final class DirectivePanel  {
     if (includeChange) {
       setIncluded();
     }
+    tool.setDebug(debug);
     boolean visible = tool.isDirectiveVisible(directive, cbInclude.isSelected(),
         isDifferentFromCheckpoint(false));
     pnlRoot.setVisible(visible);
@@ -458,14 +459,14 @@ final class DirectivePanel  {
     }
     String debugString = "";
     if (debug.isOn()) {
-      debugString = "  Type:" + directive.getValueType()
-          + ", Batch:" + directive.isBatch() + ", Tmplt:" + directive.isTemplate()
-          + ", eTomo:" + directive.getEtomoColumn() + ", AxisLevelData:"
+      debugString = "  Type:" + directive.getValueType() + ", Batch:"
+          + directive.isBatch() + ", Tmplt:" + directive.isTemplate() + ", eTomo:"
+          + directive.getEtomoColumn() + ", AxisLevelData:"
           + directive.getInDirectiveFileDebugString();
     }
     String tooltip = directive.getKeyDescription() + ":  " + directive.getDescription()
         + "." + (valueString != null ? "  Dataset value:" + valueString : "")
-        + (defaultValueString != null ? "  Orginal value:" + defaultValueString : "")
+        + (defaultValueString != null ? "  Original value:" + defaultValueString : "")
         + debugString;
     cbInclude.setToolTipText(tooltip);
     if (cbValue != null) {
