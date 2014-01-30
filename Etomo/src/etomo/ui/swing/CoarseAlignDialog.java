@@ -299,6 +299,7 @@ import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
+import etomo.type.FileType;
 import etomo.type.MetaData;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -503,7 +504,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements ContextMen
       alignLogfileLabel = "Preblend";
       alignLogfile = "preblend";
       if (!DatasetTool.isOneBy(applicationManager.getPropertyUserDir(),
-          applicationManager.getName(), applicationManager, axisID)
+          FileType.RAW_STACK.getFileName(applicationManager, axisID), applicationManager,
+          axisID)
           && applicationManager.getState().isXcorrBlendmontWasRun(axisID)) {
         graph = new TomodataplotsParam.Task[] { TomodataplotsParam.Task.COARSE_MEAN_MAX };
       }
