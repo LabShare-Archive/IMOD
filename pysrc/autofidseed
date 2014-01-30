@@ -421,7 +421,7 @@ if targetNumber < 1 and targetDensity <= 0.:
 boundModel = PipGetString('BoundaryModel', '')
 excludeAreas = PipGetBoolean('ExcludeInsideAreas', 0)
 if boundModel and not os.path.exists(boundModel):
-   exitError('Boundary model ' + boundModel + ' dose not exist')
+   exitError('Boundary model ' + boundModel + ' does not exist')
 (minSubareaNum, minSubareaSize) = PipGetTwoIntegers('SortAreasMinNumAndSize',
                                                     minSubareaNum, minSubareaSize)
 ifPick = 1 - PipGetErrNo()

@@ -1587,7 +1587,8 @@ public final class ApplicationManager extends BaseManager implements
     }
     sendMsgProcessStarting(processResultDisplay);
     if (metaData.getViewType() == ViewType.MONTAGE
-        && !DatasetTool.isOneBy(getPropertyUserDir(), getName(), this, axisID)) {
+        && !DatasetTool.isOneBy(getPropertyUserDir(),
+            FileType.RAW_STACK.getFileName(this, axisID), this, axisID)) {
       processSeries.addProcess(TomodataplotsParam.Task.COARSE_MEAN_MAX);
     }
     if (axisID == AxisID.SECOND && processBStack()) {

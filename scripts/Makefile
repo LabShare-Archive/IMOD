@@ -1,11 +1,10 @@
 include ../configure
 
 #  $Id$
-#  No more Log
 
 SCRIPTS = matchshifts onepatchcorr patchcorr3d patchcrawl3d recombine selfalign\
  setupcoms setuplong splitmrc  imodpsview settmpdir matchrotpairs\
- prochunks.csh queuechunk
+ prochunks.csh queuechunk $(GENERATED_SCRIPTS)
 
 all:
 

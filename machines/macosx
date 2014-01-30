@@ -183,7 +183,8 @@ if ($compiler == ifort) then
         set dllstocopy1 = "$dllstocopy1 libirc"
     else
         set dllstocopy1 = "$dllstocopy1 libintlc"
-    endif    
+    endif
+    if ($ifortversion >= 13) set dllstocopy1 = "$dllstocopy1 libirng"
     if ($openmp == true) set dllstocopy1 = "$dllstocopy1 $openmplib"
 else
 

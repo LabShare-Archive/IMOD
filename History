@@ -2,8 +2,13 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 1/22/14: In eTomo fixed bugs in the Directive Editor.(Bug# 1721)
 
+1/29/14: In eTomo - Coarse Alignment, fixed a problem with graphing edge
+errors.(Bug# 1774)
+
 7/3/13: In eTomo improving error handling for an empty fiducial diameter
 field.(Bug# 1671)
+
+1/28/13: Restored fortran graphics program wrappers to Mac build, lost 1/13.
 
 1/20/13: IMOD_4-6-38
 1/20/13: Fixed keypad hot keys in Model View on Mac.
