@@ -438,7 +438,11 @@ manpage = Adjust densities of sections individually.  Enter 1 for each section
 to fill the data range, 2 to scale sections to common mean and standard
 deviation, 3 to shift sections to a common mean without scaling, or 4 to
 shift sections to a common mean then rescale the minimum and maximum densities
-to the Min and Max values specified with the -scale option.
+to the Min and Max values specified with the -scale option.  When floating to
+mean and SD, the program will express the minimum and maximum densities for
+each image as the number of SDs from the mean and analyze these minima and
+maxima for extreme outliers.  Images with extreme ranges will be truncated to
+preserve the dynamic range for the rest of the images.
 
 [Field = MeanAndStandardDeviation]
 short = meansd

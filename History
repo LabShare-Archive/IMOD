@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/29/13: IMOD_4-6-39
+1/29/13: Changed Newstack floating to truncate images with extreme ranges
+instead of scaling them to a different mean/SD.
+
 1/28/13: Restored fortran graphics program wrappers to Mac build, lost 1/13.
 
 1/20/13: IMOD_4-6-38
