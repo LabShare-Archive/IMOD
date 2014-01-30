@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/29/14: In eTomo - Coarse Alignment, fixed a problem with graphing edge
+errors.(Bug# 1774)
+
 7/3/13: In eTomo improving error handling for an empty fiducial diameter
 field.(Bug# 1671)
 
