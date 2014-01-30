@@ -63,7 +63,6 @@ public final class QueuechunkParam implements IntermittentCommand {
   private void setIntermittentCommand(String queue, AxisID axisID, BaseManager manager) {
     Node cluster = Network.getQueue(manager, queue, axisID, manager.getPropertyUserDir());
     if (cluster != null) {
-      System.err.println("Running a bash shell in setIntermittentCommand");
       intermittentCommand = "bash " + cluster.getCommand() + " -a L";
     }
   }

@@ -533,6 +533,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     btn3dmodInitialBeadFinding.setEnabled(false);
     btn3dmodBeadSelectionAndSorting.setSize();
     btn3dmodBeadSelectionAndSorting.setEnabled(false);
+    ltfIgnoreSurfaceData.setEnabled(false);
     btn3dmodClusteredElongatedModel.setSize();
     btn3dmodClusteredElongatedModel.setEnabled(false);
     btnCleanup.setSize();
@@ -948,7 +949,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     boolean modelsExist = AutofidseedSelectionAndSorting.exists(applicationManager,
         axisID);
     btn3dmodBeadSelectionAndSorting.setEnabled(modelsExist);
-    btn3dmodClusteredElongatedModel.setEnabled(modelsExist);
+    ltfIgnoreSurfaceData.setEnabled(modelsExist);
+    boolean exists = FileType.CLUSTERED_ELONGATED_MODEL
+        .exists(applicationManager, axisID);
+    btn3dmodClusteredElongatedModel.setEnabled(exists);
   }
 
   /**
@@ -1343,7 +1347,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     else if (command.equals(btn3dmodInitialBeadFinding.getActionCommand())) {
       String fileName = AutofidseedInitFileFilter.getFileName(applicationManager, axisID);
       if (fileName != null) {
-        applicationManager.imodCoarseAlign(axisID, run3dmodMenuOptions, fileName);
+        applicationManager.imodCoarseAlign(axisID, run3dmodMenuOptions, fileName, true);
       }
     }
     else if (command.equals(btn3dmodBeadSelectionAndSorting.getActionCommand())) {

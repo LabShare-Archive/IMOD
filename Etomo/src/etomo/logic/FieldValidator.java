@@ -47,8 +47,8 @@ public final class FieldValidator {
       final UIComponent component, final String descr, final boolean required)
       throws FieldValidationFailedException {
     if (required && (fieldText == null || fieldText.matches("\\s*"))) {
-      UIHarness.INSTANCE.openMessageDialog(component, descr + " is a required field.",
-          TITLE);
+      UIHarness.INSTANCE.openMessageDialog(component, "An entry is required in " + descr
+          + ".", TITLE);
       FieldValidationFailedException fe = new FieldValidationFailedException(descr
           + ":required field:" + "fieldText:" + fieldText);
       if (EtomoDirector.INSTANCE.getArguments().isDebug()

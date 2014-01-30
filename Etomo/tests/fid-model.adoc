@@ -1,168 +1,177 @@
 Version = 1.2
 
 [function = main]
-#temp
-if.var.quick.run.function.quick=
-if.var.quick.return=
-run.function.fiducial-model-generation=
+#set variables
+run.function.is-dual-a=
+if.equals.var.retval.set.var.dual-a=true
+run.function.is-dual-b=
+if.equals.var.retval.set.var.dual-b=true
+run.function.is-build-with-seed=
+if.equals.var.retval.set.var.build-with-seed=true
+run.function.is-build-with-patch-tracking=
+if.equals.var.retval.set.var.build-with-patch-tracking=true
+run.function.is-build-with-seed-b=
+if.equals.var.retval.set.var.build-with-seed-b=true
+#
+run.function.test-gui=
+run.function.run-processes=
 bn.done=
 
+#top level functions
 
+[function = test-gui]
+if.not.var.test-gui.return=
+run.function.test-basic=
+run.function.test-advanced=
 
-[function = quick]
+[function = run-processes]
+#goto panels
+run.function.run-run-raptor-and-fix=
+#use the method that will be kept last
 [[ifnot = patch-tracking]]
-  run.function.transfer-fiducials-quick=
-[[]]
-if.equals.var.axis.return=b
-[[ifnot = patch-tracking]]
-  copy.file=%{dataset}%{axis}.seed
-  bn.track-seed-model=
-  wait.process.tracking-fiducials=done
-  copy.file=%{dataset}%{axis}.fid
+  run.function.run-use-patch-tracking-to-make-fiducial-model=
+  run.function.run-make-seed-and-track=
 [[]]
 [[if = patch-tracking]]
-  tf.size-of-patches=200,200
-  cb.use-boundary-model=
-  copy.file=%{dataset}%{axis}_ptbound.mod
-  bn.track-patches=
-  wait.process.cross-correlating-stack=done
+  run.function.run-make-seed-and-track=
+  run.function.run-use-patch-tracking-to-make-fiducial-model=
 [[]]
-bn.done=
 
+[function = test-basic]
+#test values
+assert.rb.make-seed-and-track=on
+assert.rb.use-patch-tracking-to-make-fiducial-model=off
+if.not.var.dual-b.assert.rb.run-raptor-and-fix=off
+#test enabled
+assert.enabled.rb.make-seed-and-track=
+assert.enabled.rb.use-patch-tracking-to-make-fiducial-model=
+if.not.var.dual-b.assert.enabled.rb.run-raptor-and-fix=
+#test panels
+run.function.test-basic-make-seed-and-track=
+run.function.test-basic-use-patch-tracking-to-make-fiducial-model=
+run.function.test-basic-run-raptor-and-fix=
 
-[function = transfer-fiducials-quick]
-if.not-equals.var.axis.return = b
-rb.transfer-seed-model-from-the-other-axis=
-bn.transfer-fiducials-from-other-axis =
-wait.process.transferring-fiducials = done
-bn.done=
+[function = test-advanced]
+#test panels
+run.function.test-advanced-make-seed-and-track=
+run.function.test-advanced-use-patch-tracking-to-make-fiducial-model=
+bn.basic=
 
+# make-seed-and-track
 
-[function = fiducial-model-generation]
-rb.use-patch-tracking-to-make-fiducial-model=
-run.function.patch-tracking=
-if.var.patch-tracking.return=
-set.var.seed-button=view-seed-model
-[[if = axis]]
-	if.equals.var.axis.return=b
-	if.exists.rb.run-raptor-and-fix.run.function.run-raptor=
-	set.var.seed-button=seed-fiducial-model
-	return.var.seed-button=
-[[]]
-rb.make-seed-and-track=
-if.var.test-gui.run.function.test-make-seed-and-track=
-run.function.transfer-fiducials=
-run.function.generate-seed-model=
-run.function.manual-seed-model=
-run.function.beadtracker=
+[function = test-basic-make-seed-and-track]
+#test panels
+run.function.test-basic-seed-model=
+run.function.test-basic-track-beads=
 
+[function = test-advanced-make-seed-and-track]
+#test panels
+run.function.test-advanced-seed-model=
+run.function.test-advanced-track-beads=
 
-[function = test-make-seed-and-track]
+[function = run-make-seed-and-track]
+if.var.build-with-patch-tracking.return=
+#goto panels
+run.function.run-seed-model=
+run.function.run-track-beads=
+
+# seed-model
+
+[function = test-basic-seed-model]
 #test values
 assert.rb.make-seed-model-manually=on
 assert.rb.generate-seed-model-automatically=off
-[[if = dual]]
-  assert.rb.transfer-seed-model-from-the-other-axis=off
-[[]]
-#test enabled/disabled
+if.var.dual.assert.rb.transfer-seed-model-from-the-other-axis=off
+#test enabled
 assert.enabled.rb.make-seed-model-manually=
 assert.enabled.rb.generate-seed-model-automatically=
+if.var.dual-a.assert.disabled.rb.transfer-seed-model-from-the-other-axis=
+if.var.dual-b.assert.enabled.rb.transfer-seed-model-from-the-other-axis=
+#test panels
+run.function.test-basic-make-seed-model-manually=
+run.function.test-basic-generate-seed-model-automatically=
+run.function.test-basic-transfer-seed-model-from-the-other-axis=
 
+[function = test-advanced-seed-model]
+#test panels
+run.function.test-advanced-generate-seed-model-automatically=
+run.function.test-advanced-transfer-seed-model-from-the-other-axis=
 
-[function = manual-seed-model]
-rb.make-seed-model-manually=
-[[if = test-gui]]
-  #test enabled/disabled
-  assert.enabled.bn.%{seed-button}=
-[[]]
-bn.%{seed-button}=
-[[if = axis]]
-  if.equals.var.axis.return=b
+[function = run-seed-model]
+if.var.build-with-patch-tracking.return=
+#test panels
+run.function.run-make-seed-model-manually=
+run.function.run-generate-seed-model-automatically=
+run.function.run-transfer-seed-model-from-the-other-axis=
+
+# make-seed-model-manually
+
+[function = test-basic-make-seed-model-manually]
+#test values
+assert.bn.seed-fiducial-model=off
+#test enabled
+assert.enabled.bn.seed-fiducial-model=
+
+[function = run-make-seed-model-manually]
+if.var.build-with-patch-tracking.return=
+if.var.build-with-seed-b.return=
+#test 1
+#build
+[[ifnot = dual-b]]
   copy.file=%{dataset}%{axis}.seed
 [[]]
+if.var.build.return=
 [[if = test-gui]]
-  #test values
-  assert.bn.%{seed-button}=on
+  bn.seed-fiducial-model=
+  assert.bn.seed-fiducial-model=on
 [[]]
 
+# generate-seed-model-automatically
 
-[function = generate-seed-model]
+[function = test-basic-generate-seed-model-automatically]
+#goto panel
 rb.generate-seed-model-automatically=
-[[if = test-gui]]
-  #basic
-  #test values
-  assert.cb.use-boundary-model=off
-  assert.cb.exclude-inside-boundary-contours=off
-  assert.rb.total-number=on
-  assert.tf.total-number=
-  assert.rb.density=off
-  assert.tf.density=
-  assert.cb.select-beads-on-two-surfaces=off
-  assert.bn.generate-seed-model=off
-  #test enabled/disabled
-  assert.enabled.cb.use-boundary-model=
-  assert.disabled.bn.create/edit-boundary-model=
-  assert.disabled.cb.exclude-inside-boundary-contours=
-  assert.disabled.bn.open-initial-bead-model=
-  assert.enabled.rb.total-number=
-  assert.enabled.tf.total-number=
-  assert.enabled.rb.density=
-  assert.disabled.tf.density=
-  assert.enabled.cb.select-beads-on-two-surfaces=
-  assert.disabled.bn.open-sorted-3d-models=
-  assert.enabled.bn.generate-seed-model=
-  assert.enabled.bn.open-seed-model=
-  assert.enabled.bn.clean-up-temporary-files=
-  #behavior
-  cb.use-boundary-model=on
-  assert.enabled.bn.create/edit-boundary-model=
-  assert.enabled.cb.exclude-inside-boundary-contours=
-  cb.use-boundary-model=off
-  #
-  rb.density=
-  assert.disabled.tf.total-number=
-  assert.enabled.tf.density=
-  rb.total-number=
-  #advanced
-  bn.advanced=
-  #test values
-  assert.cb.find-and-adjust-bead-size=off
-  assert.tf.borders-in-x-&-y=
-  assert.tf.estimated-number-of-beads-in-sample=
-  assert.tf.minimum-spacing=0.85
-  assert.tf.fraction-of-peaks-to-store=1.0
-  assert.tf.drop-tracked-models=
-  assert.tf.maximum-ratio-between-surfaces=
-  assert.cb.allow-clustered-beads=off
-  assert.cb.allow-elongated-beads-of-severity=off
-  assert.sp.allow-elongated-beads-of-severity=1
-  #test enabled/disabled
-  assert.enabled.cb.find-and-adjust-bead-size=
-  assert.enabled.tf.borders-in-x-&-y=
-  assert.enabled.tf.estimated-number-of-beads-in-sample=
-  assert.enabled.tf.minimum-spacing=
-  assert.enabled.tf.fraction-of-peaks-to-store=
-  assert.enabled.tf.drop-tracked-models=
-  assert.enabled.tf.maximum-ratio-between-surfaces=
-  assert.enabled.cb.allow-clustered-beads=
-  assert.enabled.cb.allow-elongated-beads-of-severity=
-  assert.disabled.sp.allow-elongated-beads-of-severity=
-  assert.disabled.bn.open-clustered-/-elongated-model=
-  #behavior
-  cb.allow-elongated-beads-of-severity=on
-  assert.enabled.sp.allow-elongated-beads-of-severity=
-  cb.allow-elongated-beads-of-severity=off
-  bn.basic=
-[[]]
+#test values
+assert.bn.generate-seed-model=off
+#test enabled
+assert.enabled.bn.generate-seed-model=
+assert.enabled.bn.open-seed-model=
+assert.enabled.bn.clean-up-temporary-files=
+#test panels
+run.function.test-basic-beadtracker=
+run.function.test-basic-initial-bead-finding-parameters=
+run.function.test-basic-selection-and-sorting-parameters=
+#reset
+rb.make-seed-model-manually=
+
+[function = test-advanced-generate-seed-model-automatically]
+#setup
+rb.generate-seed-model-automatically=
+#test panels
+run.function.test-advanced-beadtracker=
+#set advanced
+bn.advanced=
+run.function.test-advanced-initial-bead-finding-parameters=
+run.function.test-advanced-selection-and-sorting-parameters=
+#reset
+rb.make-seed-model-manually=
+
+[function = run-generate-seed-model-automatically]
+if.var.build.return=
+#setup
+rb.generate-seed-model-automatically=
+bn.advanced=
+#test processes
+#test 1
 tf.total-number=40
 bn.generate-seed-model=
 wait.process.autofidseed=done
 [[if = test-gui]]
   #test values
   assert.bn.generate-seed-model=on
-  #test enabled/disabled
-  assert.enabled.bn.open-initial-bead-model=
+  #test enabled
   assert.disabled.bn.open-sorted-3d-models=
+  assert.enabled.bn.open-clustered-/-elongated-model=
   #files
   assert.exists.file=autofidseed%{axis}.com
   assert.exists.file=autofidseed%{axis}.info
@@ -170,12 +179,15 @@ wait.process.autofidseed=done
   assert.exists.file=autofidseed%{axis}.dir
   assert.exists.file=autofidseed%{axis}.log
   assert.exists.file=autofidseed%{axis}.dir/track%{axis}.com
+  assert.exists.file=autofidseed%{axis}.dir/clusterElong.mod
 [[]]
+run.function.test-run-initial-bead-finding-parameters=
+#test 2
 cb.select-beads-on-two-surfaces=on
 bn.generate-seed-model=
 wait.process.autofidseed=done
 [[if = test-gui]]
-  #test enabled/disabled
+  #test enabled
   assert.enabled.bn.open-sorted-3d-models=
   #files
   assert.exists.file=%{dataset}%{axis}.seed~
@@ -183,397 +195,554 @@ wait.process.autofidseed=done
 [[]]
 bn.generate-seed-model=
 wait.process.autofidseed=done
-[[if = test-gui]]
-  #3dmod
-  bn.open-seed-model=
-  bn.open-initial-bead-model=
-  bn.open-sorted-3d-models=
-  bn.advanced=
-  bn.open-clustered-/-elongated-model=
-  bn.basic=
-[[]]
-# clean up
+#3dmod
+bn.open-sorted-3d-models=
+run.function.test-run-selection-and-sorting-parameters=
+#clean up
 bn.clean-up-temporary-files=
 wait.process.deleting-temporary-directory=done
 [[if = test-gui]]
-  #test enabled/disabled
-  assert.disabled.bn.open-initial-bead-model=
-  assert.disabled.bn.open-sorted-3d-models=
   #files
   assert.not-exists.file=autofidseed%{axis}.dir
 [[]]
+run.function.test-cleanup-initial-bead-finding-parameters=
+run.function.test-cleanup-selection-and-sorting-parameters=
+#reset
+bn.basic=
+rb.make-seed-model-manually=
 
+# transfer-seed-model-from-the-other-axis
 
-[function = transfer-fiducials]
-if.not-equals.var.axis.return = b
-rb.make-seed-and-track=
+[function = test-basic-transfer-seed-model-from-the-other-axis]
+if.not.var.dual-b.return=
+#setup
 rb.transfer-seed-model-from-the-other-axis=
 mb.transfer-fiducials=+
-[[if = test-gui]]
-	#Test values
-	assert.cb.run-midas=off
-	assert.bn.transfer-fiducials-from-other-axis=off
-	#advanced
-	mb.transfer-fiducials.1=A
-	assert.tf.center-view-a=
-	assert.tf.center-view-b=
-	assert.tf.number-of-views-in-the-search=5
-	assert.rb.both-directions=on
-	assert.rb.+90-only=off
-	assert.rb.-90-only=off
-	assert.cb.mirror-one-image-around-the-x-axis=off
-	#basic
-	mb.transfer-fiducials.1=B
-	#Test enabled/disabled
-	assert.enabled.cb.run-midas=
-	assert.enabled.bn.transfer-fiducials-from-other-axis=
-	assert.enabled.bn.open-seed-model=
-	#advanced
-	mb.transfer-fiducials.1=A
-	assert.enabled.tf.center-view-a=
-	assert.enabled.tf.center-view-b=
-	assert.enabled.tf.number-of-views-in-the-search=
-	assert.enabled.rb.both-directions=
-	assert.enabled.rb.+90-only=
-	assert.enabled.rb.-90-only=
-	assert.enabled.cb.mirror-one-image-around-the-x-axis=
-	#basic
-	mb.transfer-fiducials.1=B
-[[]]
+#test values
+assert.cb.run-midas=off
+assert.bn.transfer-fiducials-from-other-axis=off
+#test enabled
+assert.enabled.cb.run-midas=
+assert.enabled.bn.transfer-fiducials-from-other-axis=
+assert.enabled.bn.open-seed-model=
+#reset
+mb.transfer-fiducials=-
+rb.make-seed-model-manually=
+
+[function = test-advanced-transfer-seed-model-from-the-other-axis]
+if.not.var.dual-b.return=
+#setup
+rb.transfer-seed-model-from-the-other-axis=
+mb.transfer-fiducials=+
+mb.transfer-fiducials=A
+#test values
+assert.tf.center-view-a=
+assert.tf.center-view-b=
+assert.tf.number-of-views-in-the-search=5
+assert.rb.both-directions=on
+assert.rb.+90-only=off
+assert.rb.-90-only=off
+assert.cb.mirror-one-image-around-the-x-axis=off
+#test enabled
+assert.enabled.tf.center-view-a=
+assert.enabled.tf.center-view-b=
+assert.enabled.tf.number-of-views-in-the-search=
+assert.enabled.rb.both-directions=
+assert.enabled.rb.+90-only=
+assert.enabled.rb.-90-only=
+assert.enabled.cb.mirror-one-image-around-the-x-axis=
+#reset
+mb.transfer-fiducials=-
+rb.make-seed-model-manually=
+
+[function = run-transfer-seed-model-from-the-other-axis]
+if.not.var.dual-b.return=
+#setup
+rb.transfer-seed-model-from-the-other-axis=
+mb.transfer-fiducials=+
+#test 1
+#build
 bn.transfer-fiducials-from-other-axis =
 wait.process.transferring-fiducials = done
+if.var.build.return=
 [[if = test-gui]]
-assert.rb.transfer-seed-model-from-the-other-axis=on
-assert.exists.file=transferfid.log
-assert.exists.file=transferfid.coord
-assert.exists.file=%{dataset}%{axis}.seed
+  assert.rb.transfer-seed-model-from-the-other-axis=on
+  assert.exists.file=transferfid.log
+  assert.exists.file=transferfid.coord
+  assert.exists.file=%{dataset}%{axis}.seed
+[[]]
+#3dmod
 bn.open-seed-model=
+#reset
+mb.transfer-fiducials=-
+rb.make-seed-model-manually=
+
+# beadtracker - subset for automatic beadtracking
+
+[function = test-basic-beadtracker]
+#setup
+mb.beadtracker=+
+#test values
+assert.tf.view-skip-list=
+assert.tf.separate-view-groups=
+assert.cb.refine-center-with-sobel-filter=off
+assert.tf.sigma-for-kernel-filter=
+#test enabled
+assert.enabled.tf.view-skip-list=
+assert.enabled.tf.separate-view-groups=
+assert.enabled.cb.refine-center-with-sobel-filter=
+assert.disabled.tf.sigma-for-kernel-filter=
+#test behavior
+cb.refine-center-with-sobel-filter=
+assert.enabled.tf.sigma-for-kernel-filter=
+cb.refine-center-with-sobel-filter=
+#reset
+mb.beadtracker=-
+
+[function = test-advanced-beadtracker]
+#setup
+mb.beadtracker=+
+mb.beadtracker.1=A
+#test values
+assert.cb.light-fiducial-markers=off
+#test enabled
+assert.enabled.cb.light-fiducial-markers=
+#reset
+mb.beadtracker=-
+
+# initial-bead-finding-parameters
+
+[function = test-basic-initial-bead-finding-parameters]
+#test values
+assert.cb.use-boundary-model=off
+assert.cb.exclude-inside-boundary-contours=off
+#test enabled
+assert.enabled.cb.use-boundary-model=
+assert.disabled.bn.create/edit-boundary-model=
+assert.disabled.cb.exclude-inside-boundary-contours=
+assert.disabled.bn.open-initial-bead-model=
+#test behavior
+cb.use-boundary-model=
+assert.enabled.bn.create/edit-boundary-model=
+cb.use-boundary-model=
+
+[function = test-advanced-initial-bead-finding-parameters]
+#setup
+assert.enabled.bn.basic=
+#test values
+assert.tf.borders-in-x-&-y=
+assert.tf.estimated-number-of-beads-in-sample=
+assert.tf.minimum-spacing=0.85
+assert.tf.fraction-of-peaks-to-store=1.0
+#test enabled
+assert.enabled.tf.borders-in-x-&-y=
+assert.enabled.tf.estimated-number-of-beads-in-sample=
+assert.enabled.tf.minimum-spacing=
+assert.enabled.tf.fraction-of-peaks-to-store=
+
+[function = test-run-initial-bead-finding-parameters]
+if.var.build.return=
+[[if = test-gui]]
+  #test enabled/disabled
+  assert.enabled.bn.open-initial-bead-model=
+[[]]
+#3dmod
+bn.open-initial-bead-model=
+
+[function = test-cleanup-initial-bead-finding-parameters]
+if.var.build.return=
+[[if = test-gui]]
+  #test enabled/disabled
+  assert.disabled.bn.open-initial-bead-model=
+[[]]
+
+# selection-and-sorting-parameters
+
+[function = test-basic-selection-and-sorting-parameters]
+#test values
+assert.rb.total-number=on
+assert.tf.total-number=
+assert.rb.density=off
+assert.tf.density=
+assert.cb.select-beads-on-two-surfaces=off
+#test enabled
+assert.enabled.rb.total-number=
+assert.enabled.tf.total-number=
+assert.enabled.rb.density=
+assert.disabled.tf.density=
+assert.enabled.cb.select-beads-on-two-surfaces=
+assert.disabled.bn.open-sorted-3d-models=
+
+[function = test-advanced-selection-and-sorting-parameters]
+assert.enabled.bn.basic=
+#test values
+assert.tf.ignore-sorting-in-tracked-models=
+assert.tf.drop-tracked-models=
+assert.tf.maximum-ratio-between-surfaces=
+assert.cb.allow-clustered-beads=off
+assert.cb.allow-elongated-beads-of-severity=off
+assert.sp.allow-elongated-beads-of-severity=1
+#test enabled
+assert.disabled.tf.ignore-sorting-in-tracked-models=
+assert.enabled.tf.drop-tracked-models=
+assert.enabled.tf.maximum-ratio-between-surfaces=
+assert.enabled.cb.allow-clustered-beads=
+assert.enabled.cb.allow-elongated-beads-of-severity=
+assert.disabled.sp.allow-elongated-beads-of-severity=
+assert.disabled.bn.open-clustered-/-elongated-model=
+#test behavior
+cb.allow-elongated-beads-of-severity=
+assert.enabled.sp.allow-elongated-beads-of-severity=
+cb.allow-elongated-beads-of-severity=
+
+[function = test-run-selection-and-sorting-parameters]
+if.var.build.return=
+[[if = test-gui]]
+  #test enabled
+  assert.enabled.bn.open-sorted-3d-models=
+  assert.enabled.bn.open-clustered-/-elongated-model=
+[[]]
+#3dmod
+bn.open-sorted-3d-models=
+bn.open-clustered-/-elongated-model=
+
+[function = test-cleanup-selection-and-sorting-parameters]
+if.var.build.return=
+[[if = test-gui]]
+  #test enabled
+  assert.disabled.bn.open-sorted-3d-models=
+  assert.disabled.bn.open-clustered-/-elongated-model=
 [[]]
 
 
-[function = beadtracker]
+# track-beads
+
+[function = test-basic-track-beads]
+#setup
+tb.seed-model.1=
+#open panel
+mb.beadtracker=+
+#test values
+assert.tf.view-skip-list=
+assert.tf.separate-view-groups=
+assert.cb.refine-center-with-sobel-filter=off
+assert.tf.sigma-for-kernel-filter=
+assert.cb.fill-seed-model-gaps=on
+assert.cb.local-tracking=on
+assert.tf.local-area-size=1000
+assert.tf.max-#-views-to-include-in-align=
+assert.bn.track-seed-model=off
+assert.bn.fix-fiducial-model=off
+assert.bn.track-with-fiducial-model-as-seed=off
+#test enabled
+assert.enabled.tf.view-skip-list=
+assert.enabled.tf.separate-view-groups=
+assert.enabled.cb.refine-center-with-sobel-filter=
+assert.disabled.tf.sigma-for-kernel-filter=
+assert.enabled.cb.fill-seed-model-gaps=
+assert.enabled.cb.local-tracking=
+assert.enabled.tf.local-area-size=
+assert.enabled.tf.max-#-views-to-include-in-align=
+assert.enabled.bn.track-seed-model=
+assert.enabled.bn.fix-fiducial-model=
+assert.enabled.bn.track-with-fiducial-model-as-seed=
+#test behavior
+cb.refine-center-with-sobel-filter=
+assert.enabled.tf.sigma-for-kernel-filter=
+cb.refine-center-with-sobel-filter=
+#close panel
+mb.beadtracker=-
+#reset
+tb.seed-model=
+
+[function = test-advanced-track-beads]
+#setup
+tb.seed-model.1=
+#open panel
+mb.beadtracker=+
+#set advanced
+mb.beadtracker.1=A
+#test values
+assert.tf.tilt-angle-group-size=7
+assert.tf.non-default-tilt-angle-groups=
+assert.tf.magnification-group-size=5
+assert.tf.non-default-magnification-groups=
+assert.tf.minimum-#-of-views-for-tilt-alignment=4
+assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter}
+assert.cb.light-fiducial-markers=off
+assert.tf.minimum-beads-in-area=8
+assert.tf.minimum-beads-overlapping=5
+assert.tf.rounds-of-tracking=2
+assert.tf.minimum-tilt-range-for-finding-axis=10.0
+assert.tf.minimum-tilt-range-for-finding-angles=20.0
+assert.tf.search-box-size=%{search-box-size}
+#test enabled
+assert.enabled.tf.tilt-angle-group-size=
+assert.enabled.tf.non-default-tilt-angle-groups=
+assert.enabled.tf.magnification-group-size=
+assert.enabled.tf.non-default-magnification-groups=
+assert.enabled.tf.minimum-#-of-views-for-tilt-alignment=
+assert.enabled.tf.unbinned-bead-diameter=
+assert.enabled.cb.light-fiducial-markers=
+assert.enabled.tf.minimum-beads-in-area=
+assert.enabled.tf.minimum-beads-overlapping=
+assert.enabled.tf.rounds-of-tracking=
+assert.enabled.tf.minimum-tilt-range-for-finding-axis=
+assert.enabled.tf.minimum-tilt-range-for-finding-angles=
+assert.enabled.tf.search-box-size=
+#test panels
+run.function.test-advanced-expert-parameters=
+#close panel
+mb.beadtracker=-
+#reset
+tb.seed-model=
+
+[function = run-track-beads]
+#setup
 tb.seed-model.1=
 mb.beadtracker=+
+#test 1
+#build
+bn.track-seed-model=
+wait.process.tracking-fiducials=done
+if.var.build.return=
+#test 2
 [[if = test-gui]]
-	#Test values
-	assert.tf.view-skip-list=
-	assert.tf.separate-view-groups=
-	assert.cb.refine-center-with-sobel-filter=off
-	assert.tf.sigma-for-kernel-filter=
-	assert.cb.fill-seed-model-gaps=on
-	assert.cb.local-tracking=on
-	assert.tf.local-area-size=1000
-	assert.tf.max-#-views-to-include-in-align=
-	assert.bn.track-seed-model=off
-	assert.bn.fix-fiducial-model=off
-	#advanced
-	mb.beadtracker.1=A
-	assert.tf.tilt-angle-group-size=7
-	assert.tf.non-default-tilt-angle-groups=
-	assert.tf.magnification-group-size=5
-	assert.tf.non-default-magnification-groups=
-	assert.tf.minimum-#-of-views-for-tilt-alignment=4
-	assert.tf.unbinned-bead-diameter=%{unbinned-bead-diameter}
-	assert.cb.light-fiducial-markers=off
-	assert.tf.maximum-gap-size=5
-	assert.tf.minimum-beads-in-area=8
-	assert.tf.minimum-beads-overlapping=5
-	assert.tf.rounds-of-tracking=2
-	assert.tf.minimum-tilt-range-for-finding-axis=10.0
-	assert.tf.minimum-tilt-range-for-finding-angles=20.0
-	assert.tf.search-box-size=%{search-box-size}
-	#basic
-	mb.beadtracker.1=B
-	#Test enabled/disabled
-	assert.enabled.tf.view-skip-list=
-	assert.enabled.tf.separate-view-groups=
-	assert.enabled.cb.refine-center-with-sobel-filter=
-  assert.disabled.tf.sigma-for-kernel-filter=
-	assert.enabled.cb.fill-seed-model-gaps=
-	assert.enabled.cb.local-tracking=
-	assert.enabled.tf.local-area-size=
-	assert.enabled.tf.max-#-views-to-include-in-align=
-	assert.enabled.bn.track-seed-model=
-	assert.enabled.bn.fix-fiducial-model=
-	#advanced
-	mb.beadtracker.1=A
-	assert.enabled.tf.tilt-angle-group-size=
-	assert.enabled.tf.non-default-tilt-angle-groups=
-	assert.enabled.tf.magnification-group-size=
-	assert.enabled.tf.non-default-magnification-groups=
-	assert.enabled.tf.minimum-#-of-views-for-tilt-alignment=
-	assert.enabled.tf.unbinned-bead-diameter=
-	assert.enabled.cb.light-fiducial-markers=
-	assert.enabled.tf.maximum-gap-size=
-	assert.enabled.tf.minimum-beads-in-area=
-	assert.enabled.tf.minimum-beads-overlapping=
-	assert.enabled.tf.rounds-of-tracking=
-	assert.enabled.tf.minimum-tilt-range-for-finding-axis=
-	assert.enabled.tf.minimum-tilt-range-for-finding-angles=
-	assert.enabled.tf.search-box-size=
-	#basic
-	mb.beadtracker.1=B
-	#Test behavior
-	cb.refine-center-with-sobel-filter=on
-  assert.enabled.tf.sigma-for-kernel-filter=
-  cb.refine-center-with-sobel-filter=off
-	cb.local-tracking=off
-	assert.disabled.tf.local-area-size=
-	mb.beadtracker.1=A
-	assert.disabled.tf.minimum-beads-in-area=
-	assert.disabled.tf.minimum-beads-overlapping=
-	mb.beadtracker.1=B
-	#Test field validation
-	tf.view-skip-list=abc
-	bn.track-seed-model=
-	wait.popup.field-validation-failed=OK
-	assert.disabled.bn.kill-process=
-	tf.view-skip-list=
+  #Test validation
+  tf.view-skip-list=abc
+  bn.track-seed-model=
+  wait.popup.field-validation-failed=OK
+  assert.disabled.bn.kill-process=
+  tf.view-skip-list=
 [[]]
+#test 3
 cb.local-tracking=off
-run.function.expert-parameters=
 cb.refine-center-with-sobel-filter=on
 bn.track-seed-model=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.com
 assert.exists.file=track%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
+#test 4
 cb.refine-center-with-sobel-filter=off
 bn.track-seed-model=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.log~
 assert.exists.file=%{dataset}%{axis}.fid~
+#test 5
 bn.track-with-fiducial-model-as-seed=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.com
 assert.exists.file=track%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
+#test 6
 bn.track-with-fiducial-model-as-seed=
 wait.process.tracking-fiducials=done
 assert.exists.file=track%{axis}.log~
+#test 7
 bn.fix-fiducial-model=
 sleep=
+[[if = test-gui]]
+  #Test after run
+  assert.bn.track-seed-model=on
+  assert.bn.track-with-fiducial-model-as-seed=on
+[[]]
+#fix dataset
 copy.file=%{dataset}%{axis}.fid
-[[if = test-gui]]
-	#Test after run
-	assert.bn.track-seed-model=on
-	assert.bn.track-with-fiducial-model-as-seed=on
-[[]]
+#reset
+mb.beadtracker=-
+tb.seed-model=
 
+# expert-parameters
 
-[function = expert-parameters]
-tb.seed-model.1=
-mb.beadtracker.1=A
+[function = test-advanced-expert-parameters]
+#setup
 mb.expert-parameters=+
-[[if = test-gui]]
-	#Test values
-	assert.tf.maximum-#-of-views-for-fiducial-avg=4
-	assert.tf.fiducial-extrapolation-limits=7,3
-	assert.tf.rescue-attempt-criteria=0.6,1.0
-	assert.tf.distance-criterion-for-rescue=10.0
-	assert.tf.rescue-relaxation-factors=0.7,0.9
-	assert.tf.first-pass-residual-limit-for-deletion=2.5
-	assert.tf.second-pass-density-relaxation=0.9
-	assert.tf.second-pass-maximum-rescue-distance=2.5
-	assert.tf.residual-change-limits=9,5
-	assert.tf.deletion-residual-parameters=0.04,2.0
-	#Test enabled/disabled
-	assert.enabled.tf.maximum-#-of-views-for-fiducial-avg=
-	assert.enabled.tf.fiducial-extrapolation-limits=
-	assert.enabled.tf.rescue-attempt-criteria=
-	assert.enabled.tf.distance-criterion-for-rescue=
-	assert.enabled.tf.rescue-relaxation-factors=
-	assert.enabled.tf.first-pass-residual-limit-for-deletion=
-	assert.enabled.tf.second-pass-density-relaxation=
-	assert.enabled.tf.second-pass-maximum-rescue-distance=
-	assert.enabled.tf.residual-change-limits=
-	assert.enabled.tf.deletion-residual-parameters=
-[[]]
+#test values
+assert.tf.maximum-#-of-views-for-fiducial-avg=4
+assert.tf.fiducial-extrapolation-limits=7,3
+assert.tf.rescue-attempt-criteria=0.6,1.0
+assert.tf.distance-criterion-for-rescue=10.0
+assert.tf.rescue-relaxation-factors=0.7,0.9
+assert.tf.first-pass-residual-limit-for-deletion=2.5
+assert.tf.second-pass-density-relaxation=0.9
+assert.tf.second-pass-maximum-rescue-distance=2.5
+assert.tf.residual-change-limits=9,5
+assert.tf.deletion-residual-parameters=0.04,2.0
+#test enabled
+assert.enabled.tf.maximum-#-of-views-for-fiducial-avg=
+assert.enabled.tf.fiducial-extrapolation-limits=
+assert.enabled.tf.rescue-attempt-criteria=
+assert.enabled.tf.distance-criterion-for-rescue=
+assert.enabled.tf.rescue-relaxation-factors=
+assert.enabled.tf.first-pass-residual-limit-for-deletion=
+assert.enabled.tf.second-pass-density-relaxation=
+assert.enabled.tf.second-pass-maximum-rescue-distance=
+assert.enabled.tf.residual-change-limits=
+assert.enabled.tf.deletion-residual-parameters=
+#close panel
 mb.expert-parameters=-
-mb.beadtracker.1=B
 
+# use-patch-tracking-to-make-fiducial-model
 
-[function = patch-tracking]
-[[if = test-gui]]
-	#Test values
-	assert.tf.size-of-patches=
-	assert.cb.use-boundary-model=off
-	assert.sp.iterations-to-increase-subpixel-accuracy=1
-	assert.cb.break-contours-into-pieces-with-overlap=off
-	assert.tf.break-contours-into-pieces-with-overlap=4
-	assert.rb.use-default-length=on
-	assert.rb.use-length=off
-	assert.tf.use-length=
-	assert.tf.pixels-to-trim=%{pixels-to-trim}
-	assert.tf.x-axis-min=
-	assert.tf.max=
-	assert.tf.y-axis-min=
-	assert.tf.max.1=
-	assert.bn.track-patches=off
-	assert.bn.recut-or-restore-contours=off
-	bn.advanced=
-	assert.tf.limits-on-shifts-from-correlation=
-	assert.tf.tilt-angle-offset=
-	assert.tf.low-frequency-rolloff-sigma=0.03
-	assert.tf.high-frequency-cutoff-radius=0.25
-	assert.tf.high-frequency-rolloff-sigma=0.05
-	assert.tf.pixels-to-pad=
-	assert.tf.pixels-to-taper=
-	assert.tf.test-output=
-	assert.tf.view-range=
-	assert.tf.views-to-skip=
-	bn.basic=
-	#Test enabled/disabled
-	assert.enabled.tf.size-of-patches=
-	assert.enabled.cb.use-boundary-model=
-	assert.disabled.bn.create-boundary-model=
-	assert.enabled.sp.iterations-to-increase-subpixel-accuracy=
-	assert.enabled.cb.break-contours-into-pieces-with-overlap=
-	assert.disabled.tf.break-contours-into-pieces-with-overlap=
-	assert.disabled.rb.use-default-length=
-	assert.disabled.rb.use-length=
-	assert.disabled.tf.use-length=
-	assert.enabled.tf.pixels-to-trim=
-	assert.enabled.tf.x-axis-min=
-	assert.enabled.tf.max=
-	assert.enabled.tf.y-axis-min=
-	assert.enabled.tf.max.1=
-	assert.enabled.bn.track-patches=
-	assert.enabled.bn.open-tracked-patches=
-	assert.enabled.bn.recut-or-restore-contours=
-	bn.advanced=
-	assert.enabled.tf.limits-on-shifts-from-correlation=
-	assert.enabled.tf.tilt-angle-offset=
-	assert.enabled.tf.low-frequency-rolloff-sigma=
-	assert.enabled.tf.high-frequency-cutoff-radius=
-	assert.enabled.tf.high-frequency-rolloff-sigma=
-	assert.enabled.tf.pixels-to-pad=
-	assert.enabled.tf.pixels-to-taper=
-	assert.enabled.tf.test-output=
-	assert.enabled.tf.view-range=
-	assert.enabled.tf.views-to-skip=
-	bn.basic=
-	#Test gui behavior
-	#Boundary model
-	cb.use-boundary-model=on
-	assert.enabled.bn.create-boundary-model=
-	cb.use-boundary-model=off
-	assert.disabled.bn.create-boundary-model=
-	#Break contour into pieces
-	cb.break-contours-into-pieces-with-overlap=on
-	assert.enabled.tf.break-contours-into-pieces-with-overlap=
-	assert.enabled.rb.use-default-length=
-	assert.enabled.rb.use-length=
-	rb.use-length=
-	assert.enabled.tf.use-length=
-	rb.use-default-length=
-	cb.break-contours-into-pieces-with-overlap=off
-	assert.disabled.tf.break-contours-into-pieces-with-overlap=
-[[]]
-run.function.patch-layout=
-#patch tracking is slow so avoid running if patch-tracking isn't set
-if.not.var.patch-tracking.return=
-#assuming that this is midzone2
+[function = test-basic-use-patch-tracking-to-make-fiducial-model]
+#setup
+rb.use-patch-tracking-to-make-fiducial-model=
+#test values
+assert.tf.size-of-patches=
+assert.rb.fractional-overlap-of-patches=on
+assert.tf.fractional-overlap-of-patches=0.33,0.33
+assert.rb.number-of-patches=off
+assert.tf.number-of-patches=
+assert.cb.use-boundary-model=off
+assert.sp.iterations-to-increase-subpixel-accuracy=1
+assert.cb.break-contours-into-pieces-with-overlap=off
+assert.tf.break-contours-into-pieces-with-overlap=4
+assert.rb.use-default-length=on
+assert.rb.use-length=off
+assert.tf.use-length=
+assert.tf.pixels-to-trim=%{pixels-to-trim}
+assert.tf.x-axis-min=
+assert.tf.max=
+assert.tf.y-axis-min=
+assert.tf.max.1=
+assert.bn.track-patches=off
+assert.bn.recut-or-restore-contours=off
+#test enabled
+assert.enabled.tf.size-of-patches=
+assert.enabled.rb.fractional-overlap-of-patches=
+assert.enabled.tf.fractional-overlap-of-patches=
+assert.enabled.rb.number-of-patches=
+assert.disabled.tf.number-of-patches=
+assert.enabled.cb.use-boundary-model=
+assert.disabled.bn.create-boundary-model=
+assert.enabled.sp.iterations-to-increase-subpixel-accuracy=
+assert.enabled.cb.break-contours-into-pieces-with-overlap=
+assert.disabled.tf.break-contours-into-pieces-with-overlap=
+assert.disabled.rb.use-default-length=
+assert.disabled.rb.use-length=
+assert.disabled.tf.use-length=
+assert.enabled.tf.pixels-to-trim=
+assert.enabled.tf.x-axis-min=
+assert.enabled.tf.max=
+assert.enabled.tf.y-axis-min=
+assert.enabled.tf.max.1=
+assert.enabled.bn.track-patches=
+assert.enabled.bn.open-tracked-patches=
+assert.enabled.bn.recut-or-restore-contours=
+#reset
+rb.make-seed-and-track=
+
+[function = test-advanced-use-patch-tracking-to-make-fiducial-model]
+assert.enabled.bn.basic=
+#setup
+rb.use-patch-tracking-to-make-fiducial-model=
+#test values
+assert.tf.limits-on-shifts-from-correlation=
+assert.tf.tilt-angle-offset=
+assert.tf.low-frequency-rolloff-sigma=0.03
+assert.tf.high-frequency-cutoff-radius=0.25
+assert.tf.high-frequency-rolloff-sigma=0.05
+assert.tf.pixels-to-pad=
+assert.tf.pixels-to-taper=
+assert.tf.test-output=
+assert.tf.view-range=
+assert.tf.views-to-skip=
+#test enabled
+assert.enabled.tf.limits-on-shifts-from-correlation=
+assert.enabled.tf.tilt-angle-offset=
+assert.enabled.tf.low-frequency-rolloff-sigma=
+assert.enabled.tf.high-frequency-cutoff-radius=
+assert.enabled.tf.high-frequency-rolloff-sigma=
+assert.enabled.tf.pixels-to-pad=
+assert.enabled.tf.pixels-to-taper=
+assert.enabled.tf.test-output=
+assert.enabled.tf.view-range=
+assert.enabled.tf.views-to-skip=
+#reset
+rb.make-seed-and-track=
+
+[function = run-use-patch-tracking-to-make-fiducial-model]
+if.var.build-with-seed.return=
+#setup
+rb.use-patch-tracking-to-make-fiducial-model=
+#test 1
+#build
 tf.size-of-patches=200,200
-cb.use-boundary-model=
+cb.use-boundary-model=on
 copy.file=%{dataset}%{axis}_ptbound.mod
 bn.create-boundary-model=
+cb.break-contours-into-pieces-with-overlap=off
 bn.track-patches=
 wait.process.cross-correlating-stack=done
+if.var.build.return=
 assert.exists.file=xcorr_pt%{axis}.com
 assert.exists.file=xcorr%{axis}.com
 assert.exists.file=xcorr_pt%{axis}.log
 assert.exists.file=%{dataset}%{axis}.fid
-sp.iterations-to-increase-subpixel-accuracy=2
-bn.track-patches=
-wait.process.cross-correlating-stack=done
-assert.exists.file=xcorr_pt%{axis}.log~
-assert.exists.file=%{dataset}%{axis}.fid~
-#don't break contours for midzone2b (doesn't need it)
-if.equals.var.axis.return=b
-cb.break-contours-into-pieces-with-overlap=on
+#test 2
 [[if = test-gui]]
   #test field validation
+  cb.break-contours-into-pieces-with-overlap=on
   tf.break-contours-into-pieces-with-overlap=4abc
   bn.track-patches=
   wait.popup.field-validation-failed=OK
   assert.disabled.bn.kill-process=
   tf.break-contours-into-pieces-with-overlap=4
+  cb.break-contours-into-pieces-with-overlap=off
 [[]]
+#test 3
+cb.break-contours-into-pieces-with-overlap=on
+sp.iterations-to-increase-subpixel-accuracy=2
 bn.track-patches=
 wait.process.cross-correlating-stack=done
-[[if = test-gui]]
-  cb.break-contours-into-pieces-with-overlap=off
-  bn.recut-or-restore-contours=
-  wait.process.restoring-contours=done
-  cb.break-contours-into-pieces-with-overlap=on
-[[]]
+assert.exists.file=xcorr_pt%{axis}.log~
+assert.exists.file=%{dataset}%{axis}.fid~
+#test 4
+cb.break-contours-into-pieces-with-overlap=off
+bn.recut-or-restore-contours=
+wait.process.restoring-contours=done
+#test 5
+cb.break-contours-into-pieces-with-overlap=on
 bn.recut-or-restore-contours=
 wait.process.recutting-contours=done
+#reset
+rb.make-seed-and-track=
 
+# run-raptor-and-fix
 
-[function = patch-layout]
-[[if = test-gui]]
-	#test values
-	assert.rb.fractional-overlap-of-patches=on
-	assert.tf.fractional-overlap-of-patches=0.33,0.33
-	assert.rb.number-of-patches=off
-	assert.tf.number-of-patches=
-	#enabled/disabled
-	assert.enabled.rb.fractional-overlap-of-patches=
-	assert.enabled.tf.fractional-overlap-of-patches=
-	assert.enabled.rb.number-of-patches=
-	assert.disabled.tf.number-of-patches=
-	#Test gui behavior
-	rb.number-of-patches=
-	assert.enabled.rb.fractional-overlap-of-patches=
-	assert.disabled.tf.fractional-overlap-of-patches=
-	assert.enabled.rb.number-of-patches=
-	assert.enabled.tf.number-of-patches=
-	rb.fractional-overlap-of-patches=
-	assert.enabled.rb.fractional-overlap-of-patches=
-	assert.enabled.tf.fractional-overlap-of-patches=
-	assert.enabled.rb.number-of-patches=
-	assert.disabled.tf.number-of-patches=
-[[]]
-
-
-[function = test-raptor-input]
-[[if = test-gui]]
-  #test values
-  assert.rb.run-against-the-coarse-aligned-stack=on
-  assert.rb.run-against-the-raw-stack=off
-  #test enabled/disabled
-  assert.enabled.rb.run-against-the-coarse-aligned-stack=
-[[]]
-[[ifnot = montage]]
-  assert.enabled.rb.run-against-the-raw-stack=
-[[]]
-[[if = montage]]
-  assert.disabled.rb.run-against-the-raw-stack=
-[[]]
-
-
-[function = run-raptor]
+[function = test-basic-run-raptor-and-fix]
+if.var.axis.return=b
+#setup
 rb.run-raptor-and-fix=
-run.function.test-raptor-input=
-[[if = test-gui]]
-	#test values
-	assert.tf.#-of-beads-to-choose=
-	assert.tf.unbinned-bead-diameter=%{int-unbinned-bead-diameter}
-	assert.bn.run-raptor=off
-	assert.bn.use-raptor-result-as-fiducial-model=off
-	#test enabled/disabled
-	assert.enabled.bn.open-stack-in-3dmod=
-	assert.enabled.tf.#-of-beads-to-choose=
-	assert.enabled.tf.unbinned-bead-diameter=
-	assert.enabled.bn.run-raptor=
-	assert.enabled.bn.open-raptor-model-in-3dmod=
-	assert.enabled.bn.use-raptor-result-as-fiducial-model=
-[[]]
+#test values
+assert.rb.run-against-the-coarse-aligned-stack=on
+assert.rb.run-against-the-raw-stack=off
+assert.tf.#-of-beads-to-choose=
+assert.tf.unbinned-bead-diameter=%{int-unbinned-bead-diameter}
+assert.bn.run-raptor=off
+assert.bn.use-raptor-result-as-fiducial-model=off
+#test enabled
+assert.enabled.rb.run-against-the-coarse-aligned-stack=
+if.not.var.montage.assert.enabled.rb.run-against-the-raw-stack=
+if.var.montage.assert.disabled.rb.run-against-the-raw-stack=
+assert.enabled.bn.open-stack-in-3dmod=
+assert.enabled.tf.#-of-beads-to-choose=
+assert.enabled.tf.unbinned-bead-diameter=
+assert.enabled.bn.run-raptor=
+assert.enabled.bn.open-raptor-model-in-3dmod=
+assert.enabled.bn.use-raptor-result-as-fiducial-model=
+#reset
+rb.make-seed-and-track=
+
+[function = run-run-raptor-and-fix]
+if.var.axis.return=b
+if.var.build.return=
 if.not.var.run-raptor.return=
+#setup
+rb.run-raptor-and-fix=
+#test 1
 tf.#-of-beads-to-choose=%{#-of-beads-to-choose}
-#run raptor against the raw stack
 [[ifnot = montage]]
   # Montage raw stack cannot be used with RAPTOR
   # Run RAPTOR against raw stack
@@ -588,7 +757,8 @@ assert.exists.file=raptor1/IMOD
 assert.exists.file=raptor1/align/%{dataset}%{axis}_RAPTOR.log
 assert.exists.file=raptor1/IMOD/%{dataset}%{axis}.fid.txt
 assert.exists.file=raptor1/IMOD/%{dataset}%{axis}.rawtlt
-#run raptor against the coarse aligned stack
+#test 2
+rb.run-against-the-coarse-aligned-stack=
 bn.run-raptor=
 wait.process.running-runraptor=done
 assert.exists.file=%{dataset}%{axis}_raptor.fid~
@@ -598,10 +768,55 @@ assert.exists.file=raptor2/IMOD
 assert.exists.file=raptor2/align/%{dataset}%{axis}_RAPTOR.log
 assert.exists.file=raptor2/IMOD/%{dataset}%{axis}.fid.txt
 assert.exists.file=raptor2/IMOD/%{dataset}%{axis}.rawtlt
+#3dmod
 bn.open-raptor-model-in-3dmod=
+#use
+#test 3
 bn.use-raptor-result-as-fiducial-model=
 assert.not-exists.file=%{dataset}%{axis}_raptor.fid
 assert.exists.file=%{dataset}%{axis}.fid
+#test 4
 bn.use-raptor-result-as-fiducial-model=
 wait.popup.entry-error=OK
+#reset
+rb.make-seed-and-track=
 
+#utilities
+
+[function = is-build-with-seed]
+set.var.retval=false
+if.not.var.build.return.var.retval=
+if.not.var.patch-tracking.set.var.retval=true
+return.var.retval=
+
+[function = is-build-with-patch-tracking]
+set.var.retval=false
+if.not.var.build.return.var.retval=
+if.var.patch-tracking.set.var.retval=true
+return.var.retval=
+
+[function = is-dual-a]
+set.var.retval=false
+if.not.var.dual.return.var.retval=
+[[if = axis]]
+  if.not-equals.var.axis.return=a
+  set.var.retval=true
+  return.var.retval=
+[[]]
+return.var.retval=
+
+[function = is-dual-b]
+set.var.retval=false
+if.not.var.dual.return.var.retval=
+[[if = axis]]
+  if.not-equals.var.axis.return=b
+  set.var.retval=true
+  return.var.retval=
+[[]]
+return.var.retval=
+
+[function = is-build-with-seed-b]
+set.var.retval=false
+if.not.var.build-with-seed.return.var.retval=
+if.var.dual-b.set.var.retval=true
+return.var.retval=
