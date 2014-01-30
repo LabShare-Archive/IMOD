@@ -14,7 +14,8 @@
 <BR><A HREF = "#Fiducialless Tomogram">4.0. Making a Tomogram with Correlation Alignment.</A>
 <BR><A HREF = "#Fiducialless Combine">5.0. Combining Tomograms with Few or No Fiducials</A>
 <BR><A HREF = "#ImportingDual">6.0. Importing Two Tomograms into Tomogram Combination</A>
-<BR><A HREF = "#ErasingTracking"> 7.0. Tracking Additional Gold for Erasing from a Tomogram</A>
+<BR><A HREF = "#CombineOversized"></A>7.0. Combining with Over-sized Reconstructions</A>
+<BR><A HREF = "#ErasingTracking"> 8.0. Tracking Additional Gold for Erasing from a Tomogram</A>
 <HR>
 
 <H4><A NAME = "Command Files"></A>
@@ -36,22 +37,26 @@ IMOD startup files; for example, for tcsh users it is:
 <BR><CODE>     alias subm 'submfg \!* &'
 <BR></CODE>
 (An equivalent function is provided for bash users, and a script is provided
-for Windows users without Cygwin to run submfg in the background.)  Submfg is a script
+for Windows users without Cygwin to run submfg in the background.)  
+<A HREF = "man/subm.html">Submfg</A> is a script
 that will run one or more command
 files in sequence, creating a log file for each and reporting on their
-success or failure.  It uses the script Vmstopy to
+success or failure.  It uses the script <A HREF = "man/vmstopy.html">Vmstopy</A> to
 convert a command file to a Python script.
 With this alias, you can enter, e.g., "subm track", and a file named
 track.com will be executed in the background, with a log file created
 called track.log.  The bell will ring and a message will be printed 
 when the command file is completed.
-You can also enter "subm track." or "subm xcorr.com prenewst".
+You can also enter "subm track." or "subm xcorr.com prenewst".  You can
+actually define variables and include Python statements in a command file; see
+the <A HREF = "man/vmstopy.html">Vmstopy man page</A>.
 <P>
      If you need to interrupt a command file after you have started it,
 one way is to use the "imodkillgroup" command with the process ID (PID) that was
 printed out
 when you entered the "subm" command.  For example, if the PID was 1234, enter
-"imodkillgroup 1234".  Another way is to bring the process to
+"imodkillgroup 1234".  Another way (except on Windows without Cygwin) is to
+bring the process to
 the foreground with "fg", then used CTRL-C to interrupt it.  If there is
 more than one process in the background, in tcsh you can give the command
 "jobs" first to determine which one is the process in question, then use,
@@ -396,8 +401,43 @@ patches used for patch correlations.
 <LI> Set other parameters as usual and start the combine operation.
 </ol>
 </P>
+<H4><A NAME = "CombineOversized"></A>
+7.0. Combining Over-sized Reconstructions
+</H4>
+When you make over-sized reconstructions, there will be substantial regions
+near the edges that have inadequate or no backprojected information; these
+regions need to be excluded from patch correlation when combining.  When you
+use a patch region model to define the area with good reconstruction in the A
+tomogram, <A HREF = "man/corrsearch3d.html#TOP">Corrsearch3d</A> assumes that
+everything from the B tomogram that matches into that area is suitable for
+correlation, unless it is within 36 pixels of the edge in X or Y.  Indeed,
+the material in such regions would be suitable, but the reconstruction of it
+may not.  Thus, you may need to define a region model for the second axis.
+Specifically, this would be the case when the two tomograms are not nearly the
+same size in X and Y after rotating one by 90 degrees, or when there is a
+substantial shift between their centers.
+The steps for this would be:
+<OL>
+<LI>Open the volume being transformed in 3dmod.  Draw a contour around the
+  region with good reconstruction.  In the X dimension, keep the borders to
+  within the original field of view of the camera to avoid data that may be
+  smeared out in Z.  Save the model as "matched_region.mod".
+<LI>After pressing <B>Create Combine Scripts</B>, press <B>Postpone</B>.
+<LI>Edit patchcorr.com and insert the line
+<PRE>    BRegionModel  matched_region.mod </PRE>
+among the other parameter inputs.
+<LI>Reopen the Combine page and press <B>Start Combine</B>
+</OL>
+<P>
+In the final step of combining, <A HREF = "man/filltomo.html#TOP">Filltomo</A>
+is used to fill the combined tomogram with data from A in areas where the the
+B tomogram does not have good data.  The program is given information
+about the size of the original tilt series and the transformations that were
+applied in reconstructing and combining the B axis.   This information should
+allow the program to fill in data appropriately when combining 
+</P>
 <H4><A NAME = "ErasingTracking"></A>
-7.0. Tracking Additional Gold for Erasing from a Tomogram
+8.0. Tracking Additional Gold for Erasing from a Tomogram
 </H4>
 <P>
 If you want to erase gold that was not modeled as fiducials, then you need to

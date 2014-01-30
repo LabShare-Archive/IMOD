@@ -20,7 +20,8 @@
 <BR><A HREF = "#Image Scaling">2.1. Image Scaling and Contrast Polarity</A>
 <BR><A HREF = "#Bidirectional Series">2.2. Tilt Series Taken in Two Directions
   from a Starting Angle</A>
-<BR><A HREF = "Antialiasing">2.3. Image Reduction with Antialiasing</A>
+<BR><A HREF = "#UnknownAxisAngle">2.3. Unknown Tilt Axis Rotation Angle</A>
+<BR><A HREF = "#Antialiasing">2.4. Image Reduction with Antialiasing</A>
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
 <BR><A HREF = "#Montage Coms">3.1. Command Files when Montaging</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
@@ -41,7 +42,7 @@
 <BR><A HREF = "#Background Grouping">7.2. Background on Grouping Variables and Solving for Distortion</A>
 <BR><A HREF = "#Distortion Two">7.3. Solving for Distortion - Fiducials on Both Surfaces</A>
 <BR><A HREF = "#Distortion One">7.4. Solving for Distortion - Fiducials on Only One Surface</A>
-<BR><A HREF = "RobustFitting"> 7.5. Using Robust Fitting</A>
+<BR><A HREF = "#RobustFitting"> 7.5. Using Robust Fitting</A>
 <BR><A HREF = "#Projection Stretch">7.6. Solving for Projection Stretch</A>
 <BR><A HREF = "#Beam Tilt">7.7. Solving for Beam Tilt</A>
 <BR><A HREF = "#Using Local Alignments">7.8. Using Local Alignments</A>
@@ -90,6 +91,49 @@
 This section lists significant changes or additions to this guide from the
 4.5 version.  
 <UL>
+<LI> There are three new processing features which, taken together, enable a
+  high-quality tomogram to be computed automatically with fiducial alignment.
+  One is the automatic selection of a seed model, described in
+<A HREF = "#AutomaticSeed">Generating a Seed Model Automatically</A>;
+another is improved precision in fiducial positions and lower alignment
+residuals by using a Sobel filter,
+described in <A HREF = "#TrackingSeed">Tracking Gold from a Seed
+  Model</A>; the third is robust fitting to reduce the effects of aberrant
+points on the alignment solution, described in
+<A HREF = "#RobustFitting"> Using Robust Fitting</A> and 
+<A HREF = "#AligningPatchModel">Aligning with a Patch Tracking Model</A>.  
+There is a new script,
+<A HREF = "man/batchruntomo.html#TOP">Batchruntomo</A>, for generating
+tomograms automatically; an interface is planned for the next IMOD release.
+<LI> IMOD programs can now read some file formats other than MRC, described in 
+<A HREF = "#File Naming Conventions">File Format and Naming Conventions</A>.
+<LI> There is new support for bidirectional tilt series, described in 
+<A HREF = "#Bidirectional Series">Tilt Series Taken in Two Directions
+  from a Starting Angle</A>.
+<LI> There is advice about estimating the angle of the tilt axis in 
+<A HREF = "#UnknownAxisAngle">Unknown Tilt Axis Rotation Angle</A>
+and revised information about handedness in 
+<A HREF = "#Reorienting">Reorienting the Volume</A>.
+<LI> New options for binning with antialiasing are described in
+<A HREF = "#Antialiasing">Image Reduction with Antialiasing</A>
+<LI> Template files for setting some parameters can be selected and generated,
+  as described in <A HREF = "#INITIAL STEPS">SETUP</A> and <A HREF =
+  "UsingEtomo.html#Templates">Using eTomo</A>.
+<LI> X-ray removal has new parameters for removing very strong artifacts that
+  are larger than the usual allowed size, described in 
+<A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>.
+<LI> Graphs of various parameters will open automatically in some cases or can
+  be opened by selections in some of the right-click popup menus.
+<LI> The initial cross-correlation can now exclude a correlation peak at zero
+  shift due to common noise without misaligning nearly-aligned images, in
+<A HREF = "#COARSE ALIGNMENT">COARSE ALIGNMENT BY CROSS-CORRELATION</A>.
+<LI> Local bead tracking is now turned on by default.
+<LI> Contours in a patch tracking model can now be cut into overlapping pieces
+  without rerunning the patch tracking, described in <A HREF =
+  "#PatchTracking">Local Patch Tracking</A>
+<LI> There is new information about combining over-sized tomograms and one that
+  are not the same size in <A HREF = "#TOMOGRAM COMBINATION">COMBINING TWO
+  TOMOGRAMS</A>.
 </UL>
 
 </P>
@@ -160,7 +204,9 @@ When a program refers to "view numbers", these are always numbered from
 1; but when a program refers to "section numbers" or "Z values", there
 is a good chance that they are numbered from 0.  The most important
 example is the program <A HREF = "man/newstack.html#TOP">Newstack</A>, which is
-often used for rearranging or extracting sections from a stack.
+often used for rearranging or extracting sections from a stack.  It has an
+option "-fromone" that allows you to enter section values numbered from 1
+instead of 0.
 
 </P>
 <H4><A NAME = "Backup Files"></A>
@@ -372,9 +418,43 @@ tilt in <A HREF = "man/tiltalign.html#TOP">Tiltalign</A>; see
 <A HREF = "tomoExtra.html#Bidirectional X Tilt">
 Correcting for X-axis Tilt in Bidirectional Tilt Series</A> in the Extra 
 Topics section.
+<H4><A NAME = "UnknownAxisAngle"></A>2.3. Unknown Tilt Axis Rotation
+  Angle</H4>
+<P>
+A starting estimate for the angle of the tilt axis in the images is required for
+processing, and if this information is not contained in the header of your tilt
+series, you will have to supply an estimate yourself. 
+For the initial coarse alignment with cross-correlation, this
+angle needs to be accurate to within about 5-10 degrees, depending on the
+highest tilt angle.  The fine alignment with fiducials will solve for the
+actual angle and can work with more inaccurate estimates; it will also warn
+you if your starting angle is significantly off.  For a given microscope, this
+angle is essentially fixed for each magnification and will usually be nearly constant
+over some ranges of magnifications.  Thus, if you can a good fine alignment on
+one data set, you will have a very good value to use for comparable future
+data sets.
+<P>
+If you have no information about the nominal tilt axis angle in your tilt
+series, open the raw stack in <A HREF = "man/3dmod.html#TOP">3dmod</A> 
+and step or riffle through some of the
+views until you can get an impression of structures rotating around an axis.
+You may have to go up to a tilt angle of ~20-30 degrees to see the axis of
+tilting clearly. The axis may be more apparent in the coarse aligned stack, so
+you may have to start the data set with a very rough estimate and refine that
+estimate with the coarse aligned stack.  The rotation angle is the angle from
+the vertical to the axis of tilting, where counterclockwise is positive.
+<P>
+The problem with the approach just described is that it cannot resolve the
+ambiguity between the true angle and an angle 180 degrees away; and the latter
+angle will invert the handedness of the reconstruction.  This is a difficult
+issue; see <A HREF = "#Reorienting">Reorienting the Volume</A> for some ways
+to approach it.  Properly configured tilt series acquisition software (e.g.,
+SerialEM, FEI software) should provide a true angle that will give appropriate
+handedness.
+
 </P>
 <H4><A NAME = "Antialiasing"></A>
-2.3. Image Reduction with Antialiasing
+2.4. Image Reduction with Antialiasing
 </H4>
 <P>
 When making both the initial coarsely aligned stack and the final aligned
@@ -510,7 +590,8 @@ to enter or add to such a list at later stages in the process.  Note that the
   excluded views are never removed from the tilt series stack but are excluded
   from various alignment and reconstructions step.  If you find this
   disconcerting, you can trim out the views before you start using the
-  "-exclude" option to <A HREF = "man/newstack.html#TOP">Newstack</A>.
+  "-exclude" and "fromone" options to
+ <A HREF = "man/newstack.html#TOP">Newstack</A>.
 
 <LI><B>Focus was adjusted between montage frames:</B>
 When processing montaged images with correction for mag gradients,
@@ -1125,9 +1206,7 @@ not much point in having more than 12 or so; if they are on both surfaces, 20
 or more may be useful.  However, for areas larger than 1000x1000 pixels,
 you will probably need to use local alignments, in which case you should have 
 at least 
-8-12 fiducials per 1000 by 1000 pixel area 
-acquired with a CCD camera, or
-6-8 fiducials per 500 by 500 pixel area digitized from film.  (See
+8-12 fiducials per 1000 by 1000 pixel area.  (See
 <A HREF = "#Using Local Alignments">Using Local Alignments</A>.)
 Save the seed model when you are done.
 </P>
@@ -1286,7 +1365,7 @@ delete fiducials from either tilt series after doing the transfer, and
 the combining procedure will still be able to tell which fiducials correspond.
 <P>
 When there is a substantial shift between the areas captured in the two axes,
-the transferred fiducials will not cover area for the second axis.  
+the transferred fiducials will not cover the area for the second axis.  
 If you used automatic seed selection successfully on the first axis, you can
 use it again to add fiducials in the remaining area.  Simply switch to 
 <B>Generate seed model automatically</B>, set appropriate parameters, and
@@ -1851,7 +1930,10 @@ solution.
 Select <B>Do robust fitting with tuning factor</B> on
  the <B>General</B> parameters page to activate robust fitting.  The log file
  window will have a new <B>Robust</B> tab, showing the final mean weighted
- errors for global and local solutions, if any.  The tab will also show some
+ errors for global and local solutions, if any.  The weighted errors will be
+ less than with no robust fitting, but the unweighted error can actually be
+ more because some down-weighted points will end up with larger errors.  
+The tab will also show some
  details about the fitting, including a summary of how many points have final
  weights less than various thresholds.  Typically, about 5% of points will
  have weights of 0.5 or less.  You can enter a tuning factor less than 1 in
@@ -2362,7 +2444,7 @@ filtering or the radial filter.
 thickness to projections is close to 1, and if the input data are not very
 noisy.  This may not make much difference for unbinned data from a CCD
 camera but could be worthwhile for higher resolution binned CCD images or
-data from film. 
+data from a direct detector. 
 <LI> If the ratio of thickness to number of views is higher than two, the
 data should probably be filtered more than the default.  Do this filtering
 in 2D instead of with the radial filter.  Reduce the cutoff
@@ -2615,7 +2697,12 @@ low counts in your data, the tomogram may have less than the desired amount of
 dynamic range unless you increase this factor.  If your data have very high
 counts, the tomogram may be saturated unless you increase it.
 <P>
-Press <B>Generate Tomogram</B> when ready.
+Press <B>Generate Tomogram</B> when ready.  When it is finished, you can press
+<B>View Tomogram in 3dmod</B> to open it.  The reconstruction has
+isotropic voxels; i.e., the voxel size in Z is the same as in X and Y.  If you
+have a plastic section sample, however, the extent of sectioned material in Z
+will be less than the nominal section thickness because of thinning under the
+beam (see Luther et al., (1988) Ultramicroscopy 24:7-18).
 </P>
 <H4><A NAME = "Making Trial Tomograms"></A>
 11.2. Making Trial Tomograms
@@ -2945,6 +3032,22 @@ eTomo.  See
 <A HREF = "tomoExtra.html#ImportingDual">
 Importing Two Tomograms into Tomogram Combination</A> in the Advanced Topics
 Guide.
+<P>
+The two tomograms do not need to be the same size in X and Y after one is
+rotated by 90 degrees.  The combined tomogram will always be the same size as
+the tomogram being matched to.  For example, if both tilt series have
+full-field images from a rectangular camera, such as 4K x 3K, the combined
+tomogram will be 4K x 3K.  The central 3K in X will be dual-axis data, and the
+regions outside that will derive just from the tomogram being matched to.  If
+you wanted a tomogram that showed all the data from both axes, you would have
+to make each axis be an over-sized 4K x 4K reconstruction.
+<P>
+If you are combining over-sized reconstructions for this reason, or for either
+of the other reasons given above (to preserve data when the tilt axis is quite
+oblique, and for stitching), you may need a region model for the second
+tomogram to delineate areas that have good data.  See 
+<A HREF = "tomoExtra.html#CombineOversized">Combining Over-sized
+Reconstructions</A> in the Advanced Topics Guide.
 </P>
 <H4><A NAME = "Setting Up"></A>
 12.1. Setting Up
@@ -2985,14 +3088,14 @@ restrictions on this ability: you must give it at least 4 correspondences to
 start with (5 is recommended); and if you have fiducials on both surfaces, you
 must include at least one from each surface.
 <LI>
-Decide what size patches to use in Patchcrawl3D.  Ideally, this
+Decide what size patches to use for local patch correlations.  Ideally, this
 decision would be based on how much high frequency information is in the
 tomograms and on how well the two volumes seem to agree with each other, but
 these features are difficult to assess.  In the initial creation of the
 command files, there are three built-in sizes available, small, medium, and
-large.  Small patches should be adequate for
-relatively high-resolution tomograms from film, while the medium patches are
-more appropriate for data from a CCD camera.  If the tomograms seem
+large.  Small patches might be adequate for relatively high-resolution
+tomograms from direct detectors, while the medium patches are more appropriate
+for data from a CCD camera.  If the tomograms seem
 particularly fuzzy, go up one size in either case.  Once you have created
 the command files, you can adjust these sizes in the <B>Final Match</B> page
 if necessary.
@@ -3001,7 +3104,7 @@ not be used for correlating the tomograms because they are either empty of
 material or contain reconstruction of poor quality.  You can exclude such
 areas from consideration in two ways.  One way is to set more restrictive
 lower and upper limits in X and Y on the region from which patches will be
-extracted by <A HREF = "man/patchcrawl3d.html#TOP">Patchcrawl3d</A>.
+extracted by <A HREF = "man/corrsearch3d.html#TOP">Corrsearch3d</A>.
 Take note of the coordinates in X and Y beyond
 which the image is unreliable in the tomogram being matched TO, and adjust
 the entries in the X or Y axis min or max text boxes.
@@ -3014,8 +3117,12 @@ See the man page for
 <A HREF = "man/refinematch.html#TOP">Refinematch</A>
 for details.  Do not worry about identifying regions in this
 tomogram that are outside the bounds of the other tomogram; 
-<A HREF = "man/patchcrawl3d.html#TOP">Patchcrawl3d</A> will
-take care of this limitation.
+<A HREF = "man/corrsearch3d.html#TOP">Corrsearch3d</A> will
+take care of this limitation.  If you are delineating the area with good
+reconstruction in an over-sized tomogram, do not be fooled by the regions on
+the left and right sides; they may look good in X/Y views but be badly smeared
+in Z due to backprojection from limited angular ranges.  Outline a region
+corresponding to the originl field of view of the camera.
 <LI> Examine the tomogram being matched TO and determine the first and last
 slices that contain useful information for cross-correlating the tomograms
 (i.e., are inside the section over at least half of the area).
@@ -3520,17 +3627,28 @@ To make the right choice, however, you need to know whether the
 original reconstruction is correct or inverted, which depends on 
 whether the polarity of the tilt angles recorded from the microscope 
 is appropriate given the tilt axis rotation angle used in the tilt series
-alignment.  This can be determined by staring at the microscope, but an
-empirical approach may be more reliable.  The easiest way is to take a tilt
+alignment.  See Briegel et al., 2013, J. Struct. Biol. 183:95-98  for a
+discussion of handedness and a description of one method for determining it.
+Another method would be to take a tilt
 series of a plastic section on formvar, with gold markers on both sides, so
-that the formvar side can be distinguished in the reconstruction.  Place the
-grid in the holder with a known orientation (e.g., section up), and note
+that the formvar side can be distinguished in the reconstruction.  You need to
+determine whether the reconstruction inverts the section in Z, and you also
+need to know whether images are being inverted.  To determine the latter,
+place a finder grid in the holder in a known orientation (e.g., letters not
+inverted when viewed from above.)  Note
 whether the holder turns the grid upside down when it is inserted in the
-microscope.  Now you know the orientation of the section and formvar in the
-microscope. 
+microscope.  Find an asymmetric letter like F and see if it has been inverted;
+from this fact and from whether the holder inverts when inserted, you know
+whether images are inverted.  (Most probably, images are inverted only on
+JEOL microscopes with omega filters).
+Similarly, place the plastic section
+grid in the holder with a known orientation (e.g., section up).
+Accounting for whether the holder inverts on insertion, now you know the 
+orientation of the section and formvar in the microscope. 
 If the reconstruction has the same features at low Z as are located lower in
-the microscope column, then it has correct handedness; otherwise it is
-inverted.  This kind of careful assessment needs to be done only once for a
+the microscope column, then it has correct or inverted handedness depending on
+whether images are true or inverted; otherwise the opposite is the case.
+This kind of careful assessment needs to be done only once for a
 particular scope and acquisition software, or possibly twice if there are
 magnification ranges where the images are turned by 90 degrees.
 </P>
