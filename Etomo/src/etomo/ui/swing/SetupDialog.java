@@ -219,6 +219,8 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   public boolean buttonExecuteAction() {
     String sDataset = ftfDataset.getText();
+    ftfDataset.setText(DatasetTool.standardizeExtension(applicationManager,
+        ftfDataset.getFile()));
     if (sDataset.indexOf(File.separator) != -1) {
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
           ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {
