@@ -1,6 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/22/14: In eTomo fixed bugs in the Directive Editor.(Bug# 1721)
+1/30/14: In eTomo fixed bugs in the Directive Editor.(Bug# 1721)
+
+1/30/14: In eTomo - Directive Editor, fixed bugs which where causing unchanged
+directives to be display in the default mode.(Bug# 1772)
+
+1/30/14: In eTomo - Directive Editor, getting CTF defaults from origcoms.
+(Bug# 1715)
 
 1/29/13: IMOD_4-6-39
 1/29/13: Changed Newstack floating to truncate images with extreme ranges
