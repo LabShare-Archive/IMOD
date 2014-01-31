@@ -46,6 +46,7 @@ public final class DirectiveEditorBuilder {
 
   private static final String SECTION_OTHER_HEADER = "Other Directives";
   private static final AxisID AXID_ID = AxisID.ONLY;
+  private static final String SPECIAL_CASE_PROGRAM_NAME = "ctfplotter";
 
   private final DirectiveMap directiveMap = new DirectiveMap();
   private final List<DirectiveDescrSection> sectionArray = new ArrayList<DirectiveDescrSection>();
@@ -170,15 +171,15 @@ public final class DirectiveEditorBuilder {
     while (iterator.hasNext()) {
       directiveName.setKey(iterator.next());
       // save values
-      commandMap = getCommandMap(directiveName, comFile, commandMap, errmsg);
+      commandMap = getCommandMap(directiveName, comFile, commandMap, errmsg, false);
       if (commandMap != null) {
-        setDirectiveValue(commandMap, directiveMap, directiveName, false);
+        setDirectiveValue(commandMap, directiveName, false);
       }
       // save default values
       commandMapDefaults = getCommandMap(directiveName, comFileDefaults,
-          commandMapDefaults, errmsg);
+          commandMapDefaults, errmsg, true);
       if (commandMapDefaults != null) {
-        setDirectiveValue(commandMapDefaults, directiveMap, directiveName, true);
+        setDirectiveValue(commandMapDefaults, directiveName, true);
       }
     }
     return errmsg;
@@ -265,7 +266,9 @@ public final class DirectiveEditorBuilder {
    * @return
    */
   private Map<String, String> getCommandMap(final DirectiveName directiveName,
-      final ComFile comFile, Map<String, String> commandMap, final StringBuffer errmsg) {
+      final ComFile comFile, Map<String, String> commandMap, final StringBuffer errmsg,
+      final boolean origcoms) {
+
     // Get a new comfile and origcoms comfile each time the comfile name changes in the
     // sorted list of comparam directives.
     String comFileName = directiveName.getComFileName();
@@ -277,26 +280,83 @@ public final class DirectiveEditorBuilder {
     String programName = directiveName.getProgramName();
     if (!comFile.equalsProgramName(programName)) {
       commandMap = comFile.getCommandMap(programName, errmsg);
+      //Handled special case setupset directives.
+      if (origcoms && comFile.equalsComFileName(SPECIAL_CASE_PROGRAM_NAME)
+          && comFile.equalsProgramName(SPECIAL_CASE_PROGRAM_NAME)) {
+        setSpecialCaseDefaultValues(commandMap);
+      }
     }
     return commandMap;
+  }
+
+  /**
+   * Handles cases where a setupset directive has a default value that is stored in a
+   * .com file.
+   * @param commandMap
+   * @param errmsg
+   */
+  private void setSpecialCaseDefaultValues(Map<String, String> commandMap) {
+    DirectiveName fromDirectiveName = new DirectiveName();
+    DirectiveName toDirectiveName = new DirectiveName();
+    String fromPrefix = "comparam.";
+    String toPrefix = "setupset.copyarg.";
+    fromDirectiveName.setKey(fromPrefix + SPECIAL_CASE_PROGRAM_NAME + "."
+        + SPECIAL_CASE_PROGRAM_NAME + ".ExpectedDefocus");
+    toDirectiveName.setKey(toPrefix + "defocus");
+    setDefaultDirectiveValue(commandMap, fromDirectiveName, toDirectiveName);
+    fromDirectiveName.setKey(fromPrefix + SPECIAL_CASE_PROGRAM_NAME + "."
+        + SPECIAL_CASE_PROGRAM_NAME + ".Voltage");
+    toDirectiveName.setKey(toPrefix + "voltage");
+    setDefaultDirectiveValue(commandMap, fromDirectiveName, toDirectiveName);
+    fromDirectiveName.setKey(fromPrefix + SPECIAL_CASE_PROGRAM_NAME + "."
+        + SPECIAL_CASE_PROGRAM_NAME + ".SphericalAberration");
+    toDirectiveName.setKey(toPrefix + "Cs");
+    setDefaultDirectiveValue(commandMap, fromDirectiveName, toDirectiveName);
+  }
+
+  /**
+   * Using fromDirectiveName as a key, gets a value from commandMap.  Using
+   * toDirectiveName as a key, gets a directive from directiveMap.  Places the value in
+   * the default value of the directive.
+   * @param commandMap - list of values
+   * @param fromDirectiveName - key to commandMap
+   * @param toDirectiveName - key to DirectiveMap
+   * @param axisID - the value belongs to a specific axis
+   */
+  private void setDefaultDirectiveValue(final Map<String, String> commandMap,
+      final DirectiveName fromDirectiveName, final DirectiveName toDirectiveName) {
+    if (commandMap == null) {
+      return;
+    }
+    // Pull out the default value from the command map, using the "from" directive name.
+    if (commandMap.containsKey(fromDirectiveName.getParameterName())) {
+      Directive toDirective = directiveMap.get(toDirectiveName.getKey());
+      // Set the command map value in the "to" directive
+      String value = commandMap.get(fromDirectiveName.getParameterName());
+      if (value != null) {
+        toDirective.setDefaultValue(value);
+      }
+      else {
+        // no value - treat as a boolean
+        toDirective.setDefaultValue(true);
+      }
+    }
   }
 
   /**
    * Using directiveName as the key, gets a value from commandMap and gets a directive
    * from directiveMap.  Places the value in the directive.
    * @param commandMap - list of values
-   * @param directiveMap - list of directives - must not be null
    * @param directiveName - key
    * @param axisID - the value belongs to a specific axis
    * @param isDefaultValue - the value is a default value
    */
   private void setDirectiveValue(final Map<String, String> commandMap,
-      final DirectiveMap directiveMap, final DirectiveName directiveName,
-      final boolean isDefaultValue) {
+      final DirectiveName directiveName, final boolean isDefaultValue) {
     if (commandMap == null) {
       return;
     }
-    // Pull out the value and default value from the program commands.
+    // Pull out the value or default value from the program command.
     if (commandMap.containsKey(directiveName.getParameterName())) {
       Directive directive = directiveMap.get(directiveName.getKey());
       // Set value in the directive

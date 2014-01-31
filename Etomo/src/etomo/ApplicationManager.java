@@ -578,36 +578,56 @@ public final class ApplicationManager extends BaseManager implements
     return param;
   }
 
+  /**
+   * Copy the directive and template files chosen by the user during setup.  If a type of
+   * template was not chosen, delete the corresponding type in the dataset.
+   */
   private void copyDirectiveFiles() {
     DirectiveFileCollection directiveFileCollection = setupReconUIHarness
         .getDirectiveFileCollection();
     DirectiveFile directiveFile = null;
+    FileType template = null;
     try {
+      template = FileType.LOCAL_SCOPE_TEMPLATE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SCOPE);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SCOPE_TEMPLATE, this,
-            AxisID.ONLY);
+        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
       }
+      else {
+        Utilities.deleteFileType(this, AxisID.ONLY, template);
+      }
+      template = FileType.LOCAL_SYSTEM_TEMPLATE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.SYSTEM);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_SYSTEM_TEMPLATE, this,
-            AxisID.ONLY);
+        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
       }
+      else {
+        Utilities.deleteFileType(this, AxisID.ONLY, template);
+      }
+      template = FileType.LOCAL_USER_TEMPLATE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.USER);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_USER_TEMPLATE, this,
-            AxisID.ONLY);
+        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
       }
+      else {
+        Utilities.deleteFileType(this, AxisID.ONLY, template);
+      }
+      template = FileType.LOCAL_BATCH_DIRECTIVE_FILE;
       directiveFile = directiveFileCollection.getDirectiveFile(DirectiveFileType.BATCH);
       if (directiveFile != null) {
-        Utilities.copyFile(directiveFile.getFile(), FileType.LOCAL_BATCH_DIRECTIVE_FILE,
-            this, AxisID.ONLY);
+        Utilities.copyFile(directiveFile.getFile(), template, this, AxisID.ONLY);
+      }
+      else {
+        Utilities.deleteFileType(this, AxisID.ONLY, template);
       }
     }
     catch (IOException e) {
-      uiHarness.openMessageDialog(this, "Unable to copy "
-          + (directiveFile != null ? directiveFile.getFile().getAbsolutePath() : "file")
-          + " to dataset.", "Unable to Copy File");
+      e.printStackTrace();
+      if (directiveFile != null) {
+        uiHarness.openMessageDialog(this, "Unable to copy "
+            + directiveFile.getFile().getAbsolutePath() + " to dataset.",
+            "Unable to Copy File");
+      }
     }
   }
 
@@ -1011,7 +1031,7 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   /**
-   * Archive the orginal stacks during clean up.
+   * Archive the original stacks during clean up.
    * 
    * @param axisID
    */
@@ -1187,7 +1207,7 @@ public final class ApplicationManager extends BaseManager implements
     }
     processTrack.setState(ProcessState.INPROGRESS, axisID, dialogType);
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
-    // Rename the fixed stack to the raw stack file name and save the orginal
+    // Rename the fixed stack to the raw stack file name and save the original
     // raw stack to _orig.st if that does not already exist
     try {
       if (!FileType.ORIGINAL_RAW_STACK.getFile(this, axisID).exists()) {
@@ -3034,10 +3054,35 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   private void updateDirective(final DirectiveMap map, final String key,
+      final StringBuffer errmsg, final boolean value, final boolean defaultValue) {
+    Directive directive = map.get(key);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
+    }
+    else {
+      errmsg.append("Missing directive: " + key + ".  ");
+    }
+  }
+
+  private void updateDirective(final DirectiveMap map, final String key,
       final StringBuffer errmsg, final ConstEtomoNumber value) {
     Directive directive = map.get(key);
     if (directive != null) {
       directive.setValue(value);
+    }
+    else {
+      errmsg.append("Missing directive: " + key + ".  ");
+    }
+  }
+
+  private void updateDirective(final DirectiveMap map, final String key,
+      final StringBuffer errmsg, final ConstEtomoNumber value,
+      final ConstEtomoNumber defaultValue) {
+    Directive directive = map.get(key);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
     }
     else {
       errmsg.append("Missing directive: " + key + ".  ");
@@ -3122,6 +3167,18 @@ public final class ApplicationManager extends BaseManager implements
     }
   }
 
+  private void updateDirective(final DirectiveMap map, final String key,
+      final StringBuffer errmsg, final String value, final String defaultValue) {
+    Directive directive = map.get(key);
+    if (directive != null) {
+      directive.setValue(value);
+      directive.setDefaultValue(defaultValue);
+    }
+    else {
+      errmsg.append("Missing directive: " + key + ".  ");
+    }
+  }
+
   /**
    * Save the param file and the open dialogs and return a timestamp.  If returning null,
    * popup a dialog containing errmsg before leaving.
@@ -3169,7 +3226,7 @@ public final class ApplicationManager extends BaseManager implements
     String prepend = DirectiveType.SETUP_SET.toString() + AutodocTokenizer.SEPARATOR_CHAR
         + DirectiveFile.COPY_ARG_NAME + AutodocTokenizer.SEPARATOR_CHAR;
     updateDirective(directiveMap, prepend + DirectiveFile.DUAL_NAME, errmsg,
-        metaData.getAxisType() == AxisType.DUAL_AXIS);
+        metaData.getAxisType() == AxisType.DUAL_AXIS, true);
     updateDirective(directiveMap, prepend + DirectiveFile.MONTAGE_NAME, errmsg, montage);
     updateDirective(directiveMap, prepend + DirectiveFile.PIXEL_NAME, errmsg,
         metaData.getPixelSize());
@@ -3211,7 +3268,7 @@ public final class ApplicationManager extends BaseManager implements
           directiveMap,
           prepend
               + DirectiveFile.convertAttributeName(curAxisID, DirectiveFile.EXTRACT_NAME),
-          errmsg, true);
+          errmsg, true, true);
     }
     if (dualAxis) {
       curAxisID = AxisID.SECOND;
@@ -3236,7 +3293,7 @@ public final class ApplicationManager extends BaseManager implements
             directiveMap,
             prepend
                 + DirectiveFile.convertAttributeName(curAxisID,
-                    DirectiveFile.EXTRACT_NAME), errmsg, true);
+                    DirectiveFile.EXTRACT_NAME), errmsg, true, true);
       }
     }
     curAxisID = firstAxisID;
@@ -3331,11 +3388,11 @@ public final class ApplicationManager extends BaseManager implements
         errmsg, metaData.isFiducialess(curAxisID));
     // Tracking choices
     updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
-    updateDirective(directiveMap, prepend + module + DirectiveFile.TRACKING_METHOD_NAME,
-        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)));
+        errmsg, TrackingMethod.toDirectiveValue(metaData.getTrackMethod(curAxisID)),
+        TrackingMethod.SEED.getValue());
     updateDirective(directiveMap, prepend + module + DirectiveFile.SEEDING_METHOD_NAME,
-        errmsg, SeedingMethod.toDirectiveValue(metaData, curAxisID));
+        errmsg, SeedingMethod.toDirectiveValue(metaData, curAxisID),
+        SeedingMethod.MANUAL.getValue());
     // Beadtracking
     // numberOfRuns - cannot update
     // Auto seed finding
@@ -3346,7 +3403,7 @@ public final class ApplicationManager extends BaseManager implements
     metaData.getTrackRaptorUseRawStack();
     updateDirective(directiveMap,
         prepend + module + DirectiveFile.USE_ALIGNED_STACK_NAME, errmsg,
-        !metaData.getTrackRaptorUseRawStack());
+        !metaData.getTrackRaptorUseRawStack(), true);
     updateDirective(directiveMap,
         prepend + module + DirectiveFile.NUMBER_OF_MARKERS_NAME, errmsg,
         metaData.getTrackRaptorMark());
@@ -3362,7 +3419,7 @@ public final class ApplicationManager extends BaseManager implements
     updateDirective(directiveMap, prepend + module + DirectiveFile.WHOLE_TOMOGRAM_NAME,
         errmsg, metaData.isWholeTomogramSample(curAxisID));
     updateDirective(directiveMap, prepend + module + DirectiveFile.BIN_BY_FACTOR_NAME,
-        errmsg, metaData.getPosBinning(curAxisID));
+        errmsg, metaData.getPosBinning(curAxisID), 3);
     updateDirective(directiveMap, prepend + module + DirectiveFile.THICKNESS_NAME,
         errmsg, metaData.getSampleThickness(curAxisID));
     // Aligned stack module
@@ -3409,7 +3466,7 @@ public final class ApplicationManager extends BaseManager implements
     updateDirective(directiveMap, prepend + module + "linearInterpolation", errmsg,
         linearInterpolation);
     updateDirective(directiveMap, prepend + module + DirectiveFile.BIN_BY_FACTOR_NAME,
-        errmsg, binByFactor);
+        errmsg, binByFactor, 1);
     updateDirective(directiveMap, prepend + module + DirectiveFile.SIZE_IN_X_AND_Y_NAME,
         errmsg, metaData.getSizeToOutputInXandY(curAxisID));
     // CTFplotting module
@@ -11592,7 +11649,7 @@ public final class ApplicationManager extends BaseManager implements
  * <p>
  * .seed to _orig.seed. Ok to use fid as seed when .seed does not exist.
  * <p>
- * Orginal bug# 276.
+ * Original bug# 276.
  * <p>
  * <p>
  * Revision 3.47 2004/05/03 22:29:21 sueh

@@ -10,6 +10,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import etomo.Arguments.DebugLevel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.UITestFieldType;
@@ -52,7 +53,10 @@ final class ComboBox {
   private final JLabel label;
   private final JPanel pnlRoot;
   final boolean addEmptyChoice;// Causes the index to be off by one
+
+  private boolean checkpointed =false;
   private int checkpointIndex = -1;
+  private DebugLevel debug = EtomoDirector.INSTANCE.getArguments().getDebugLevel();
 
   private ComboBox(final String name, final boolean labeled, final boolean addEmptyChoice) {
     this.addEmptyChoice = addEmptyChoice;
@@ -163,6 +167,10 @@ final class ComboBox {
     return label.getText();
   }
 
+  void setDebug(final DebugLevel input) {
+    debug = input;
+  }
+
   void setEditable(final boolean editable) {
     comboBox.setEditable(editable);
   }
@@ -181,6 +189,7 @@ final class ComboBox {
    * Saves the current selected index as the checkpoint.
    */
   void checkpoint() {
+    checkpointed = true;
     checkpointIndex = getSelectedIndex();
   }
 
@@ -193,7 +202,7 @@ final class ComboBox {
     if (!alwaysCheck && (!isEnabled() || !isVisible())) {
       return false;
     }
-    if (checkpointIndex == -1) {
+    if (!checkpointed) {
       return true;
     }
     return checkpointIndex != getSelectedIndex();

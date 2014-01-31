@@ -105,7 +105,7 @@ public final class DirectiveWriter {
           }
         }
       }
-      if (droppedDirectives != null) {
+      if (droppedDirectives != null && !droppedDirectives.isEmpty()) {
         Iterator<String> iterator = droppedDirectives.iterator();
         if (iterator != null && iterator.hasNext()) {
           logFile.newLine(id);

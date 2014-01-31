@@ -103,7 +103,7 @@ comparam.align.tiltalign.TargetPatchSizeXandY,Target minimum size for local patc
 comparam.align.tiltalign.MinFidsTotalAndEachSurface,Minimum fiducials in local area,2 Int,Y,Y,SO,,Minimum fiducials (total and one side),
 comparam.align.tiltalign.MagOption,Type of magnification solution (3 to group),Int,Y,Y,SO,,Type of magnification solution,0: fixed; 1: solve all; 3: grouped
 comparam.align.tiltalign.TiltOption,Type of tilt angle solution (0 to fix),Int,Y,Y,SO,,Type of tilt angle solution,0: fixed; 1: solve all; 5: grouped
-comparam.align.tiltalign.RotOption,Type of rotation solution (3 to group; -1 solve one),Int,Y,Y,SO,,Type of rotation solution,0: fixed; -1: solve one; 1 solve all; 3: grouped
+comparam.align.tiltalign.RotOption,Type of rotation solution (3 to group; -1 solve one),Int,Y,Y,SO,,Type of rotation solution,0: fixed; -1: solve one; 1: solve all; 3: grouped
 comparam.align.tiltalign.BeamTiltOption,Type of beam tilt solution (2 to search),Int,Y,Y,SD,,Type of beam tilt solution,0: fixed; 2: solve for
 comparam.align.tiltalign.FixedOrInitialBeamTilt,Fixed beam tilt value or initial value for search,Float,Y,Y,SD,,Fixed or initial value of beam tilt,
 comparam.align.tiltalign.RobustFitting,Whether to use robust fitting to downweight some points,Bool,Y,Y,SD,,Use robust fitting,

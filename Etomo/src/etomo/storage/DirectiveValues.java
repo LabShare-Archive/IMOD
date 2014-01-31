@@ -150,6 +150,16 @@ public final class DirectiveValues {
     }
   }
 
+  void setDefaultValue(final ConstEtomoNumber input) {
+    if (input.isNull()) {
+      defaultValue = null;
+    }
+    else {
+      createDefaultValue();
+      defaultValue.set(input);
+    }
+  }
+
   void setValue(final boolean input) {
     createValue();
     value.set(input);
@@ -194,6 +204,7 @@ public final class DirectiveValues {
       value.set(input);
     }
   }
+
   void setValue(final FortranInputString input) {
     if (input == null) {
       value = null;
@@ -203,6 +214,7 @@ public final class DirectiveValues {
       value.set(input);
     }
   }
+
   void setValue(final int input) {
     if (input == EtomoNumber.INTEGER_NULL_VALUE) {
       value = null;
