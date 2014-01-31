@@ -240,6 +240,11 @@ def runFindBeads():
    if adjustSize:
       comlines.append('AdjustSizes 1')
 
+   if findOptions:
+      psplit = findOptions.split(' -')
+      for opt in psplit:
+         comlines.append(opt.lstrip('-'))
+
    prnstr('RUNNING IMODFINDBEADS' + viewStr)
    prnstr(' ')
    try:
@@ -307,17 +312,17 @@ from pysed import *
 options = ["track:TrackCommandFile:FN:", "append:AppendToSeedModel:B:",
            "guess:MinGuessNumBeads:I:", "spacing:MinSpacing:F:", "size:BeadSize:F:",
            "adjust:AdjustSizes:B:", "peak:PeakStorageFraction:F:",
-           "views:NumberOfSeedViews:I:", "boundary:BoundaryModel:FN:",
-           "exclude:ExcludeInsideAreas:B:", "border:BordersInXandY:IP:",
-           "two:TwoSurfaces:B:", "number:TargetNumberOfBeads:I:",
-           "density:TargetDensityOfBeads:F:", "ratio:MaxMajorToMinorRatio:F:",
-           "elongated:ElongatedPointsAllowed:I:", "cluster:ClusteredPointsAllowed:I:",
-           "lower:LowerTargetForClustered:F:", "subarea:SubareaSize:I:",
-           "sort:SortAreasMinNumAndSize:IP:", "ignore:IgnoreSurfaceData:LI:",
-           "drop:DropTracks:LI:", "pick:PickSeedOptions:CH:",
-           "remove:RemoveTempFiles:I:", "output:OutputSeedModel:FN:",
-           "info:InfoFile:FN:", "tempdir:TemporaryDirectory:FN:",
-           "leave:LeaveTempFiles:B:"]
+           "find:FindBeadOptions:CH:", "views:NumberOfSeedViews:I:",
+           "boundary:BoundaryModel:FN:", "exclude:ExcludeInsideAreas:B:",
+           "border:BordersInXandY:IP:", "two:TwoSurfaces:B:",
+           "number:TargetNumberOfBeads:I:", "density:TargetDensityOfBeads:F:",
+           "ratio:MaxMajorToMinorRatio:F:", "elongated:ElongatedPointsAllowed:I:",
+           "cluster:ClusteredPointsAllowed:I:", "lower:LowerTargetForClustered:F:",
+           "subarea:SubareaSize:I:", "sort:SortAreasMinNumAndSize:IP:",
+           "ignore:IgnoreSurfaceData:LI:", "drop:DropTracks:LI:",
+           "pick:PickSeedOptions:CH:", "remove:RemoveTempFiles:I:",
+           "output:OutputSeedModel:FN:", "info:InfoFile:FN:",
+           "tempdir:TemporaryDirectory:FN:", "leave:LeaveTempFiles:B:"]
 
 (opts, nonopts) = PipReadOrParseOptions(sys.argv, options, progname, 2, 0, 0)
 
@@ -413,6 +418,7 @@ appendToSeed = PipGetBoolean('AppendToSeedModel', 0)
 spacing = PipGetFloat('MinSpacing', spacing)
 peakFraction = PipGetFloat('PeakStorageFraction', 1.0)
 adjustSize = PipGetBoolean('AdjustSizes', 0)
+findOptions = PipGetString('FindBeadOptions', '')
 targetNumber = PipGetInteger('TargetNumberOfBeads', 0)
 targetDensity = PipGetFloat('TargetDensityOfBeads', 0.)
 if targetNumber < 1 and targetDensity <= 0.:

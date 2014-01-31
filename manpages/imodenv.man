@@ -191,9 +191,8 @@ option.  The value should be an integer specifying the size in megabytes.  The
 default in 3dmod is 20000.
 .TP
 .B WRITE_MODE0_SIGNED
-Set this variable to 1 to have all MRC files in mode 0 written as signed
-bytes.  In some future IMOD version, this may be the default behavior, and
-then the variable can be set to 0 to have files written as unsigned bytes.
+Set this variable to 0 to have all MRC files in mode 0 written as unsigned
+bytes, which was the default before IMOD 4.7.
 
 .SS Build and Test Variables
 
