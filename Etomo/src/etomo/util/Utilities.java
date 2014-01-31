@@ -738,9 +738,70 @@ public class Utilities {
   }
 
   /**
+   * Rename a file working around the Windows bug.  Never delete delete a file in this
+   * function.  If the destination file exists, fail.
+   * This need serious work arounds because of the random failure bugs on
+   * windows.  See sun java bugs: 4017593, 4017593, 4042592
+   * @param source - file to be moved
+   * @param destination - new file for source file
+   * @throws IOException
+   */
+  public static boolean renameFileSafely(final BaseManager manager, final AxisID axisID,
+      final File source, final File destination) throws IOException {
+    if (source == null || destination == null) {
+      System.err.println("WARNING: unable to rename - source or destination is null");
+      return false;
+    }
+    if (!source.exists()) {
+      System.err.println("WARNING: unable to rename - " + source.getName()
+          + " does not exist.");
+      return false;
+    }
+    // If the destination exists, exit
+    if (destination.exists()) {
+      UIHarness.INSTANCE.openMessageDialog(manager,
+          "Unable to rename " + source.getName() + " to " + destination.getName()
+              + " because the target file already exists.", "Rename Failed", axisID);
+      return false;
+    }
+    // Rename the existing log file
+    if (source.exists()) {
+      Utilities.debugPrint(source.getAbsolutePath() + " exists");
+      String actionMessage = prepareRenameActionMessage(source, destination);
+      if (!source.renameTo(destination)) {
+        if (source.exists()) {
+          System.err.println(source.getAbsolutePath() + " still exists");
+        }
+        else {
+          System.err.println(source.getAbsolutePath() + " does not exist");
+        }
+        if (destination.exists()) {
+          System.err.println(destination.getAbsolutePath() + " exists");
+        }
+        else {
+          System.err.println(destination.getAbsolutePath() + " does not exist");
+        }
+        System.err.println("Unable to rename file to: " + destination.getAbsolutePath());
+        StringBuffer message = new StringBuffer("Unable to rename "
+            + source.getAbsolutePath() + " to " + destination.getAbsolutePath());
+        if (isWindowsOS()) {
+          message.append("\nIf either of these files is open in 3dmod, close 3dmod.");
+        }
+        throw (new IOException(message.toString()));
+      }
+      else if (actionMessage != null) {
+        System.err.println(actionMessage);
+      }
+    }
+    return true;
+  }
+
+  /**
    * Rename a file working around the Windows bug
    * This need serious work arounds because of the random failure bugs on
    * windows.  See sun java bugs: 4017593, 4017593, 4042592
+   * @param source - file to be moved
+   * @param destination - new file for source file
    */
   public static void renameFile(File source, File destination) throws IOException {
     if (!source.exists()) {
@@ -749,6 +810,7 @@ public class Utilities {
     // Delete the existing backup file if it exists, otherwise the call will
     // fail on windows
     if (destination.exists()) {
+      // TODO implement interactive Bug# 1696
       Utilities.debugPrint(destination.getAbsolutePath() + " exists, deleting");
       if (!destination.delete()) {
         System.err.println("Unable to delete destination file: "
