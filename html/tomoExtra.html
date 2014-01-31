@@ -1,7 +1,7 @@
 <html><head> <title>IMOD Tomography Guide - Advanced Topics</title> </head>
 <body>
 <A NAME = "TOP"></A>
-<H2 ALIGN=center>Tomography Guide Advanced Topics for IMOD 4.3<BR>
+<H2 ALIGN=center>Tomography Guide Advanced Topics for IMOD 4.7<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -10,11 +10,11 @@
 </UL>
 <BR><A HREF = "#Command Files">1.0. Command Files</A>
 <BR><A HREF = "#Entries to Programs">2.0. Entries to Programs</A>
-<BR><A HREF = "#Running Copytomocoms">3.0. Running Copytomocoms Manually</A>
-<BR><A HREF = "#Bidirectional X Tilt">4.0. Correcting for X-axis Tilt in Bidirectional Tilt Series</A>
-<BR><A HREF = "#Fiducialless Tomogram">5.0. Making a Tomogram with Correlation Alignment.</A>
-<BR><A HREF = "#Fiducialless Combine">6.0. Combining Tomograms with Few or No Fiducials</A>
-<BR><A HREF = "#ImportingDual">7.0. Importing Two Tomograms into Tomogram Combination</A>
+<BR><A HREF = "#Bidirectional X Tilt">3.0. Correcting for X-axis Tilt in Bidirectional Tilt Series</A>
+<BR><A HREF = "#Fiducialless Tomogram">4.0. Making a Tomogram with Correlation Alignment.</A>
+<BR><A HREF = "#Fiducialless Combine">5.0. Combining Tomograms with Few or No Fiducials</A>
+<BR><A HREF = "#ImportingDual">6.0. Importing Two Tomograms into Tomogram Combination</A>
+<BR><A HREF = "#CombineOversized"></A>7.0. Combining with Over-sized Reconstructions</A>
 <BR><A HREF = "#ErasingTracking"> 8.0. Tracking Additional Gold for Erasing from a Tomogram</A>
 <HR>
 
@@ -32,31 +32,35 @@ insert the lines:
   ...
   $label:                 (This must be on a line by itself)
 </PRE>
-You can run a command file with the "subm" alias, which is defined in the
-IMOD startup files:
-<BR><CODE>     alias subm 'submbg \!* &'
+You can run a command file with "subm", which is an alias defined in the
+IMOD startup files; for example, for tcsh users it is:
+<BR><CODE>     alias subm 'submfg \!* &'
 <BR></CODE>
-(An equivalent function is provided for bash users.)  Submbg is a shell script
+(An equivalent function is provided for bash users, and a script is provided
+for Windows users without Cygwin to run submfg in the background.)  
+<A HREF = "man/subm.html">Submfg</A> is a script
 that will run one or more command
 files in sequence, creating a log file for each and reporting on their
-success or failure.  It uses the program Vmstocsh to
-convert a command file to a script that can be run
-by the C shell, csh.
+success or failure.  It uses the script <A HREF = "man/vmstopy.html">Vmstopy</A> to
+convert a command file to a Python script.
 With this alias, you can enter, e.g., "subm track", and a file named
-track.com will be executed in the background, a log file will be created
+track.com will be executed in the background, with a log file created
 called track.log.  The bell will ring and a message will be printed 
 when the command file is completed.
-You can also enter "subm track." or "subm xcorr.com prenewst".
+You can also enter "subm track." or "subm xcorr.com prenewst".  You can
+actually define variables and include Python statements in a command file; see
+the <A HREF = "man/vmstopy.html">Vmstopy man page</A>.
 <P>
      If you need to interrupt a command file after you have started it,
-one way is to use the "kill" command with the process ID (PID) that was
+one way is to use the "imodkillgroup" command with the process ID (PID) that was
 printed out
 when you entered the "subm" command.  For example, if the PID was 1234, enter
-"kill 1234".  Another way is to bring the process to
+"imodkillgroup 1234".  Another way (except on Windows without Cygwin) is to
+bring the process to
 the foreground with "fg", then used CTRL-C to interrupt it.  If there is
-more than one process in the background, give the command "jobs" first to
-determine which one is the process in question, then use, for example, "fg %2"
-to bring job 2 to the foreground.
+more than one process in the background, in tcsh you can give the command
+"jobs" first to determine which one is the process in question, then use,
+for example, "fg %2" to bring job 2 to the foreground.
 
 <H4><A NAME = "Entries to Programs"></A>
 2.0. Entries to Programs
@@ -114,21 +118,24 @@ All text starting with a '#' is treated as a comment and ignored.
 
 <P>
 It may help to be aware of the underlying structure of the programs in
-the IMOD package.  They are written in three languages: C, Fortran, and shell
-script language.  The C programs take command line arguments; none have yet
-been converted to use <A HREF = "man/pip.html">PIP</A> for input.  Most of the
-shell scripts also take command line arguments, the exceptions being
-Copytomocoms, Setupcombine, and Makejoincom, which originally took inputs
-interactively and have been converted to take command line arguments as well.
+the IMOD package.  Other than eTomo, they are written primarily in three 
+languages: C, Fortran, and Python.  (There are still a few specialized scripts
+in shell
+script language.)  The C programs take command line arguments; only a few of
+the older ones 
+have been converted to use <A HREF = "man/pip.html">PIP</A> for input but
+a number of newer ones do use it.  The Python and
+shell scripts also take command line arguments, and almost all Python programs
+use <A HREF = "man/pip.html">PIP</A>.
 The Fortran programs, which are the predominant programs used for tomography,
-originally all took inputs interactively.  Some of them also took input and
-output filenames on the command line, particularly ones which needed no other
-entries (e.g., Header and Fftrans).  Fortran programs used for tomography
+originally all took inputs interactively.  
+Fortran programs used for tomography
 have almost all been converted to use <A HREF = "man/pip.html">PIP</A> for
 input.
 <P>
 Fortran programs have several conventions for numeric interactive input,
-and <A HREF = "man/pip.html">PIP</A> follows essentially the same conventions:
+and <A HREF = "man/pip.html">PIP</A> follows essentially the same conventions
+when used from a Fortran program:
 <OL>
 <LI>When several numbers are expected in response to a query, they can be
 separated by commas or spaces.  In addition, they can be entered on more than
@@ -171,22 +178,8 @@ the list; text after that character will be ignored, thus allowing comments
 after lists.
 </OL>
 
-<H4><A NAME = "Running Copytomocoms"></A>
-3.0. Running Copytomocoms Manually
-</H4>
-     If you need to get command files for a situation that Etomo cannot handle,
-go to the directory where you will be working and enter
-<CODE><BR>     copytomocoms</CODE><BR>
-With no command-line arguments like this; the program will ask you a series of
-questions about whether you have a tilt series about one axis or two, whether
-the data are from CCD camera or film, etc.  The program works best if your
-data files are already present in the current directory.
-<P>
-     Copytomocoms fetches the command files from $IMOD_DIR/com.  If 
-something goes wrong, you can copy files from there manually.
-
 <H4><A NAME = "Bidirectional X Tilt"></A>
-4.0. Correcting for X-axis Tilt in Bidirectional Tilt Series
+3.0. Correcting for X-axis Tilt in Bidirectional Tilt Series
 </H4>
 Some tilt series taken by tilting in two directions from zero tilt appear to
 have a change in X-axis tilt between the two halves of the series.  Although
@@ -221,7 +214,7 @@ depending on which gives the smaller residual.
 </OL>
 
 <H4><A NAME = "Fiducialless Tomogram"></A>
-5.0. Making a Tomogram with Correlation Alignment.
+4.0. Making a Tomogram with Correlation Alignment.
 </H4>
 This section describes in detail the steps involved if you need to make as
 good a tomogram as possible with the cross-correlation alignment.  
@@ -295,7 +288,7 @@ width, and make the final tomogram.
 </OL>
 </UL>
 <H4><A NAME = "Fiducialless Combine"></A>
-6.0. Combining Tomograms with Few or No Fiducials
+5.0. Combining Tomograms with Few or No Fiducials
 </H4>
 This section describes how to use models of corresponding points to get
 the initial match between two tomograms when there are too few, or no,
@@ -334,7 +327,7 @@ you do have some fiducials.
 </OL>
 
 <H4><A NAME = "ImportingDual"></A>
-7.0. Importing Two Tomograms into Tomogram Combination
+6.0. Importing Two Tomograms into Tomogram Combination
 </H4>
 <P>
 This section describes how you can use eTomo to combine tomograms from tilt
@@ -407,6 +400,41 @@ inside the border of the original data by as much as half the X/Y size of the
 patches used for patch correlations.
 <LI> Set other parameters as usual and start the combine operation.
 </ol>
+</P>
+<H4><A NAME = "CombineOversized"></A>
+7.0. Combining Over-sized Reconstructions
+</H4>
+When you make over-sized reconstructions, there will be substantial regions
+near the edges that have inadequate or no backprojected information; these
+regions need to be excluded from patch correlation when combining.  When you
+use a patch region model to define the area with good reconstruction in the A
+tomogram, <A HREF = "man/corrsearch3d.html#TOP">Corrsearch3d</A> assumes that
+everything from the B tomogram that matches into that area is suitable for
+correlation, unless it is within 36 pixels of the edge in X or Y.  Indeed,
+the material in such regions would be suitable, but the reconstruction of it
+may not.  Thus, you may need to define a region model for the second axis.
+Specifically, this would be the case when the two tomograms are not nearly the
+same size in X and Y after rotating one by 90 degrees, or when there is a
+substantial shift between their centers.
+The steps for this would be:
+<OL>
+<LI>Open the volume being transformed in 3dmod.  Draw a contour around the
+  region with good reconstruction.  In the X dimension, keep the borders to
+  within the original field of view of the camera to avoid data that may be
+  smeared out in Z.  Save the model as "matched_region.mod".
+<LI>After pressing <B>Create Combine Scripts</B>, press <B>Postpone</B>.
+<LI>Edit patchcorr.com and insert the line
+<PRE>    BRegionModel  matched_region.mod </PRE>
+among the other parameter inputs.
+<LI>Reopen the Combine page and press <B>Start Combine</B>
+</OL>
+<P>
+In the final step of combining, <A HREF = "man/filltomo.html#TOP">Filltomo</A>
+is used to fill the combined tomogram with data from A in areas where the the
+B tomogram does not have good data.  The program is given information
+about the size of the original tilt series and the transformations that were
+applied in reconstructing and combining the B axis.   This information should
+allow the program to fill in data appropriately when combining 
 </P>
 <H4><A NAME = "ErasingTracking"></A>
 8.0. Tracking Additional Gold for Erasing from a Tomogram

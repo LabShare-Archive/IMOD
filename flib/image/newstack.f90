@@ -1035,7 +1035,8 @@ program newstack
         enddo
         deallocate(secZmins, secZmaxes, ztemp)
         if (isecOut > 0) write(*,'(/,a,i3,a)')'WARNING: NEWSTACK - ',isecOut, &
-            ' sections have extreme ranges and will be scaled to a different mean & SD'
+            ' sections have extreme ranges and will be truncated to preserve dynamic'// &
+            ' range'
       endif
     endif
   endif
@@ -1333,7 +1334,7 @@ program newstack
         dsum = tmpMin * (float(nxOut) * nyOut)
         nyNeeded = 1
         call reallocateIfNeeded()
-        call findScaleFactors()
+        call findScaleFactors(tmpMin, tmpMax)
         do i = 1, nxOut
           array(i) = tmpMin * scaleFactor + constAdd
         enddo
@@ -1752,7 +1753,7 @@ program newstack
         saveTime = saveTime + wallTime() - wallStart
       enddo
 
-      call findScaleFactors()
+      call findScaleFactors(tmpMin, tmpMax)
 
       if (rescale) then
         dmin2 = 1.e20
@@ -1975,15 +1976,17 @@ CONTAINS
   ! section.  This code is really dreadful since first it calculates new
   ! min and max and uses that to determine scaling.
   !
-  subroutine findScaleFactors()
+  subroutine findScaleFactors(tmpMinIn, tmpMaxIn)
     !
     real*4 avgSec, sdSec, dminNew, dmaxNew, dmin2, dmax2, zminSec, zmaxSec
-    real*4 tmpMean, tmpMinShift, tmpMaxShift
+    real*4 tmpMean, tmpMinShift, tmpMaxShift, tmpMinIn, tmpMaxIn
     !
     ! calculate new min and max after rescaling under various possibilities
     !
     scaleFactor = 1.
     constAdd = 0.
+    tmpMin = tmpMinIn
+    tmpMax = tmpMaxIn
     dmin2 = tmpMin
     dmax2 = tmpMax
     !
@@ -2032,8 +2035,13 @@ CONTAINS
         call sums_to_avgsd8(dsum, dsumSq, nxOut, nyOut, avgSec, sdSec)
         ! print *,'overall mean & sd', avgSec, sdSec
         if (tmpMin == tmpMax .or. sdSec == 0.) sdSec = 1.
-        zminSec = max(zmin, (tmpMin - avgSec) / sdSec)
-        zmaxSec = min(zmax, (tmpMax - avgSec) / sdSec)
+        
+        ! Truncate the min and max to what will fit in the common range determined after
+        ! outlier elimination, then compute the min and max that those map to.
+        tmpMin = max(tmpMin, zmin * sdsec + avgSec)
+        tmpMax = min(tmpMax, zmax * sdsec + avgSec)
+        zminSec = (tmpMin - avgSec) / sdSec
+        zmaxSec = (tmpMax - avgSec) / sdSec
         dmin2 = (zminSec - zmin) * optimalOut / (zmax - zmin)
         dmax2 = (zmaxSec - zmin) * optimalOut / (zmax - zmin)
         dmin2 = max(0., dmin2)

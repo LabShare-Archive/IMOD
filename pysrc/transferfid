@@ -73,14 +73,15 @@ def getMinimumAngle(setname, src, AA, lines):
    zero = -1
    try:
       for i in range(len(anglines)):
-         ang = math.fabs(float(anglines[i]))
-         if ang < amin:
-            amin = ang
-            zero = i + 1
+         if anglines[i].strip():
+            ang = math.fabs(float(anglines[i]))
+            if ang < amin:
+               amin = ang
+               zero = i + 1
    except Exception:
       exitError('Converting lines in ' + tiltfile + ' to floating point values')
    if zero <= 0:
-      exitError('Cannot find a minimum tilt angles from ' + tiltfile)
+      exitError('Cannot find a minimum tilt angle from ' + tiltfile)
    return zero
 
 

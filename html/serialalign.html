@@ -150,15 +150,16 @@ difficult to see this problem in the unaligned images, so you may not see a
 problem until you make an aligned stack.  The log file from the blending run
 does have useful information about the errors in aligning the pieces, unless
 you have a montage that consists of just one row or one column of pieces.
-Thus, except in that case, you should open the "preblend.log" to examine the
-errors in aligning pieces. (Right-click in
+Except in that case, when the blending finishes, eTomo will pop up a graph
+showing the remaining error for each section after shifting pieces into
+optimal alignment.  If some of these are unusually high, you should 
+open the "preblend.log" to determine what section numbers they are. (Right-click in
 the panel and select this file from the popup menu.)
 For each section, you will see a line like
 <pre>
  8 edges, mean&max error before:  25.22  88.08, after by edges:   1.24   3.06
 </pre>
-The two numbers on the right are the ones that indicate whether the pieces
-line up well after being shifting into registration as well as possible.  If
+The two numbers on the right are the ones plotted in the graph. If
 these numbers are large (more than a few pixels), it is likely that one or
 more of the correlations used to align adjacent pieces in that section has
 failed.  It is hard to give a fixed rule for when the numbers are too large,

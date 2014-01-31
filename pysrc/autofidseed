@@ -421,7 +421,7 @@ if targetNumber < 1 and targetDensity <= 0.:
 boundModel = PipGetString('BoundaryModel', '')
 excludeAreas = PipGetBoolean('ExcludeInsideAreas', 0)
 if boundModel and not os.path.exists(boundModel):
-   exitError('Boundary model ' + boundModel + ' dose not exist')
+   exitError('Boundary model ' + boundModel + ' does not exist')
 (minSubareaNum, minSubareaSize) = PipGetTwoIntegers('SortAreasMinNumAndSize',
                                                     minSubareaNum, minSubareaSize)
 ifPick = 1 - PipGetErrNo()
@@ -544,7 +544,7 @@ if tiltFile:
          if tiltLines[i].strip():
             tiltAngles.append(float(tiltLines[i]))
    except ValueError:
-      exitError('Converting lines in ' + tiltfile + ' to floating point values')
+      exitError('Converting lines in ' + tiltFile + ' to floating point values')
 
 else:
    first = optionValue(tracklines, 'FirstTiltAngle', 2)
