@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/30/14: In eTomo - Setup Reconstruction, allowing .mrc image files to be
+selected, and renaming them to .st.(Bug# 1696)
+
 1/30/14: In eTomo fixed bugs in the Directive Editor.(Bug# 1721)
 
 1/30/14: In eTomo - Directive Editor, fixed bugs which where causing unchanged
