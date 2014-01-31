@@ -80,6 +80,17 @@ gold particles are being missed. For example, 1.1 would include
 the strongest peaks below the dip, 10% as many as are above the dip.
 The negative of this entry is used for the -store entry to Imodfindbeads(1).
 
+[Field = FindBeadOptions]
+short = find
+type = CH
+usage = One or more options to pass to ImodFindBeads
+tooltip =
+manpage = Additional options to pass to ImodFindBeads.  The entry should be a single
+string (quoted when running from the command line) that contains the text that
+would be entered directly to ImodFindBeads, for example, 
+"-peakmin .15 -store 30".  Each option, recognized by the dash, is placed on a
+separate line of input to ImodFindBeads, at the end of the usual input.
+
 [Field = NumberOfSeedViews]
 short = views
 type = I

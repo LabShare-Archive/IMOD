@@ -385,7 +385,7 @@ be written with a type number, the peak strength, and the actual or smoothed
 number of counts.  The program will use successive type numnbers and print a
 line describing the histogram written with each type number.  Histograms can
 be displayed with commands like 
-^   onegenplot -ift -con -sym 0 -ty <type>  <filename>
+^   onegenplot -con -sym 0 -ty <type>  <filename>
 ^where <type> is a type number and <filename> is the name provided with this
 option.  Add the option "-ylog 10" to spread out the low parts of the
 histogram.
