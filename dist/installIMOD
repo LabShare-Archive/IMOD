@@ -30,7 +30,7 @@ def echoerr(message):
 
 # Test whether a directory is writable in windows even if the permission seem wrong
 def testUnwritable(testdir):
-   if ostype == windows:
+   if ostype == WINDOWS:
       try:
          testfile = open(testdir + '/testfile')
          testfile.write('gibberish\n')
@@ -142,11 +142,13 @@ keepg2c = 0
 yesopt = 0
 ubuntu = 0
 ubscripts = ('/etc/csh.cshrc', '/etc/bash.bashrc')
-linux = 0
-windows = 1
-osx = 2
 noCygwin = 0
 sysnames = ('Linux', 'Windows', 'Mac OSX')
+
+# Constants for testing os and package type against - capitalize to avoid testing on them
+LINUX = 0
+WINDOWS = 1
+OSX = 2
 
 # Look for recognized arguments
 argind = 1
@@ -209,7 +211,7 @@ echo("Checking system and package types")
 # Set up system-sependent scripts, etc
 defaultdir = '/usr/local'
 if 'linux' in sys.platform:
-   ostype = linux
+   ostype = LINUX
    scripts = ('IMOD-linux.csh', 'IMOD-linux.sh')
 
    # Try to identify ubuntu
@@ -231,17 +233,17 @@ if 'linux' in sys.platform:
       scripts = ('ubuntu.cshrc', 'ubuntu.bashrc', 'IMOD-linux.csh', 'IMOD-linux.sh')
 
 elif 'darwin' in sys.platform:
-   ostype = osx
+   ostype = OSX
    defaultdir = '/Applications'
    scripts = ('mac.cshrc', 'mac.profile', 'IMOD-mac.csh', 'IMOD-mac.sh')
    sysfiles = ('/etc/csh.login', '/etc/profile')
 
 elif 'cygwin' in sys.platform:
-   ostype = windows
+   ostype = WINDOWS
    scripts = ('IMOD-cygwin.csh', 'IMOD-cygwin.sh')
 
 elif 'win32' in sys.platform:
-   ostype = windows
+   ostype = WINDOWS
    defaultdir = 'C:/Program Files'
    noCygwin = 1
    if not skipcopy:
@@ -257,18 +259,18 @@ if installdir != defaultdir:
 
 # Get the package type from its name
 if 'win' in package:
-   packos = windows
+   packos = WINDOWS
 elif 'osx' in package:
-   packos = osx
+   packos = OSX
 else:
-   packos = linux
+   packos = LINUX
 
 if ostype != packos:
    echoerr("The system type (" + sysnames[ostype] + ") does not match the IMOD package" +\
               " type (" + sysnames[packos] + ")")
 
 sysdir = '/etc'
-if (ostype == linux and not ubuntu) or ostype == windows:
+if (ostype == LINUX and not ubuntu) or ostype == WINDOWS:
    sysdir = '/etc/profile.d'
 if scriptdir:
    sysdir = scriptdir
@@ -383,7 +385,7 @@ if not custname and os.path.exists('IMOD'):
          echoerr("An error occurred renaming the old IMOD - " + str(sys.exc_info()[1]))
 
 # Make link or rename
-if ostype == windows or ostype == osx or custname:
+if ostype == WINDOWS or ostype == OSX or custname:
    echo("Renaming " + version + " to " + namedir)
    for trial in range(5):
       try:
@@ -395,7 +397,7 @@ if ostype == windows or ostype == osx or custname:
       break
    else:
       echo("Failed to rename " + version + " to " + namedir)
-      if ostype == windows:
+      if ostype == WINDOWS:
           echo("You should try again but may have to do installation steps manually.")
       sys.exit(1)
 
@@ -433,7 +435,7 @@ if ubuntu:
                        '; You should remove that file manually')
 
 # Move Windows .dlls up for pre-XP version
-if ostype == windows and not noCygwin:
+if ostype == WINDOWS and not noCygwin:
    uname = (os.uname()[0]).split('-')
    try:
       unamespl = uname[1].split('.')
@@ -455,9 +457,9 @@ if ostype == windows and not noCygwin:
 # Test for 64 versus 32-bit
 mismatch = ''
 try:
-   if not windows:
+   if ostype != WINDOWS:
       uname = os.uname()
-   if ostype == linux:
+   if ostype == LINUX:
       bit3264 = testFileType('lib/libimod.so')
       if bit3264 == 2 and uname[4] == 'x86_64':
          mismatch = "WARNING: THIS IS A 32-bit PACKAGE ON A 64-BIT SYSTEM AND MAY NOT RUN"
@@ -468,7 +470,7 @@ try:
          mismatch = \
              "WARNING: THIS IS A 64-bit PACKAGE ON A 32-BIT SYSTEM AND WILL NOT RUN"
             
-   elif ostype == osx:
+   elif ostype == OSX:
       bit3264 = testFileType('lib/libimod.dylib')
       archlines = runcmd('sysctl hw')
       arch64 = 0
@@ -509,7 +511,7 @@ if custom or custname:
             echo('WARNING: An error occurred writing ' + scrip)
 
 # Copy scripts to /etc/profile.d or designated place
-if (ostype == windows or (ostype == linux and not ubuntu) or scriptdir) and not skipcopy:
+if (ostype == WINDOWS or (ostype == LINUX and not ubuntu) or scriptdir) and not skipcopy:
    indst = 2 * ubuntu
    sys.stdout.write("Copying startup scripts to " + sysdir + ":")
    for scrip in scripts[indst:]:
@@ -590,7 +592,7 @@ elif not skipcopy:
                pass
 
 # Try to take care of SELinux problems in recommended fashion
-if ostype == linux and os.path.exists('/usr/sbin/sestatus'):
+if ostype == LINUX and os.path.exists('/usr/sbin/sestatus'):
    try:
       selines = runcmd('/usr/sbin/sestatus')
       enabled = 0
@@ -626,7 +628,7 @@ if ostype == linux and os.path.exists('/usr/sbin/sestatus'):
       echo("WARNING: could not run /usr/sbin/sestatus - " + str(sys.exc_info()[1]))
 
 # Manage the libtiff links if necessary (why???)
-if ostype == linux:
+if ostype == LINUX:
    hastiff = glob.glob('qtlib/libtiff.so*')
    libdir = '/usr/lib'
    if bit3264 == 4:
@@ -652,6 +654,14 @@ if ostype == linux:
                  ' to lib/libtiff.so.3')
          echo("You should install a regular IMOD package that includes tiff libraries")
 
+# Do a quick and dirty test for whether they need to install libjpeg 6 on Ubuntu
+if ubuntu:
+   jpeglib = '/usr/lib/x86_64-linux-gnu/libjpeg.so.'
+   if os.path.exists(jpeglib + '8') and not os.path.exists(jpeglib + '62'):
+      echo('WARNING: You need version 6.2 of the JPEG libraries and you only have\n' +\
+              '         version 8.  Install version 6 with:\n' + \
+              '         sudo apt-get install libjpeg62')
+         
 # List files and offer to clean up
 vernum = version[version.find('_') + 1:]
 echo("")
@@ -698,7 +708,7 @@ if noCygwin:
    winpath = installstr.replace('/', '\\')
    echo("\nIn Windows environment variables, set IMOD_DIR to " + winpath)
    echo("    and add " + winpath + "\\bin to PATH")
-elif ostype == windows and custom:
+elif ostype == WINDOWS and custom:
    try:
       winpath = runcmd('cygpath -w ' + installstr)
       if len(winpath):
