@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/31/14: Fixed installer test for 32/64 bit mismatch and added test and
+message about libjpeg 6.2 on Ubuntu.
+
 1/30/14: IMOD_4-6-40
 1/30/14: Switched to outputting signed bytes by default.  BYTE FILES WILL NO
 LONGER BE READABLE BY VERSIONS BEFORE IMOD 4.3.
