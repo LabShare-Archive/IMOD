@@ -6,7 +6,9 @@
 def usage():
    sys.stdout.write("""Usage: installIMOD [options] [package file name]
   Installs IMOD using a package in the current directory if there is only one,
-    or using the specified package file.
+    or using the specified package file.  It will look only for a .tar.gz 
+    package, but if a package name is entered ending in .csh, it will extract
+    the .tar.gz from that.
   Options (may be abbreviated):
     -dir dir     Directory in which to install IMOD
     -name dir    Name to give the IMOD directory itself
@@ -20,13 +22,30 @@ def usage():
 """)
    sys.exit(0)
 
+
+# Remove an extracted package if one was createed
+def doCleanup():
+   if cleanupPackage:
+      sys.stdout.write('\nRemoving compressed tar file\n')
+      try:
+         os.chdir(startingDir)
+         if tgzfile:
+            tgzfile.close()
+         os.remove(realPackage)
+      except Exception:
+         pass
+
+
 # print commands to replace echo statements in tcsh script
 def echo(message):
    sys.stdout.write(message + '\n')
+   sys.stdout.flush()
 
 def echoerr(message):
    sys.stdout.write(message + '\n')
+   doCleanup()
    sys.exit(1)
+
 
 # Test whether a directory is writable in windows even if the permission seem wrong
 def testUnwritable(testdir):
@@ -144,6 +163,10 @@ ubuntu = 0
 ubscripts = ('/etc/csh.cshrc', '/etc/bash.bashrc')
 noCygwin = 0
 sysnames = ('Linux', 'Windows', 'Mac OSX')
+cleanupPackage = False
+realPackage = ''
+tgzfile = None
+startingDir = os.path.abspath('.')
 
 # Constants for testing os and package type against - capitalize to avoid testing on them
 LINUX = 0
@@ -200,6 +223,41 @@ else:
       echo("Cannot identify IMOD package; there is more than one in this directory")
       echoerr("Specify package as an argument")
    package = packlist[0]
+
+# Does package name end in .csh?  Then need to extract the tar.gz
+if package.endswith('.csh'):
+   realPackage = package.replace('.csh', '.tar.gz')
+   try:
+      action = 'opening ' + package
+      cshfile = open(package, 'rb')
+      action = 'finding end of stub in ' + package
+      echo('Extracting compressed tar from csh file...')
+      line = cshfile.readline()
+      while True:
+         line = cshfile.readline()
+         if line.startswith(b'END OF STUB'):
+            break
+         if not line:
+            echoerr('Cannot find END OF STUB in csh file')
+
+      action = 'opening ' + realPackage
+      tgzfile = open(realPackage, 'wb')
+      cleanupPackage = True
+      action = 'copying from ' + package + ' to ' + realPackage
+      while True:
+         data = cshfile.read(1000000)
+         if not data:
+            break
+         tgzfile.write(data)
+
+      action = 'closing files after copy'
+      cshfile.close()
+      tgzfile.close()
+      tgzfile = None
+      package = realPackage
+
+   except IOError:
+      echoerr('An error occurred ' + action)
 
 # Get name that unpacked directory will have
 version = re.sub('.*(imod_[0-9.]*).*', r'\1', os.path.basename(package))
@@ -399,6 +457,7 @@ if ostype == WINDOWS or ostype == OSX or custname:
       echo("Failed to rename " + version + " to " + namedir)
       if ostype == WINDOWS:
           echo("You should try again but may have to do installation steps manually.")
+      doCleanup()
       sys.exit(1)
 
 else:
@@ -715,5 +774,6 @@ elif ostype == WINDOWS and custom:
          echo("\nIn Windows environment variables, set IMOD_DIR to " + winpath[0])
    except ImodpyError:
       pass
-   
+
+doCleanup()   
 sys.exit(0)
