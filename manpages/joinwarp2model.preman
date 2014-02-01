@@ -2,7 +2,7 @@
 .nh
 .TH joinwarp2model 1 4.6.12 BL3DEMC
 .SH NAME
-joinwarp2model \- Selects best seed points for autofidseed
+joinwarp2model \- Make starting model for refining tomogram join from initial warping
 .SH SYNOPSIS
 joinwarp2model  options  warping_xf_file  model_file
 .SH DESCRIPTION
