@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/1/14: Made installer able to take a .csh file, so it can be used to upgrade
+on Windows without Cygwin.
+
 1/31/14: Fixed installer test for 32/64 bit mismatch and added test and
 message about libjpeg 6.2 on Ubuntu.
 
