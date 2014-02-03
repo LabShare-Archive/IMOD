@@ -55,7 +55,7 @@ QSlider DLL_IM_EX *diaSlider(int min, int max, int step, int value,
                              QWidget *parent, QBoxLayout *layout);
 QAbstractSpinBox DLL_IM_EX *diaLabeledSpin
 (int nDecimal, float minValue, float maxValue, float step, const char *text,
- QWidget *parent, QBoxLayout *layout);
+ QWidget *parent, QBoxLayout *layout, QLabel **labelPtr = NULL);
 QVBoxLayout DLL_IM_EX *diaVBoxLayout(QBoxLayout *layout);
 QHBoxLayout DLL_IM_EX *diaHBoxLayout(QBoxLayout *layout);
 int DLL_IM_EX diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
