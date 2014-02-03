@@ -471,9 +471,6 @@ elif inputDir:
    os.chdir(inputDir)
 if winOnly:
    lslrt = runcmd('dir /OD')
-   winver = sys.getwindowsversion()
-   unameOut = [fmtstr('Windows version: {} - {} - {} - {} - {}', winver[0], winver[1],
-                      winver[2], winver[3], winver[4])]
 
 else:
    lslrt = runcmd('ls -lrt')
