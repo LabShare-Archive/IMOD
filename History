@@ -21,8 +21,8 @@ directives to be display in the default mode.(Bug# 1772)
 1/30/14: In eTomo - Directive Editor, getting CTF defaults from origcoms.
 (Bug# 1715)
 
-1/29/13: IMOD_4-6-39
-1/29/13: Changed Newstack floating to truncate images with extreme ranges
+1/29/14: IMOD_4-6-39
+1/29/14: Changed Newstack floating to truncate images with extreme ranges
 instead of scaling them to a different mean/SD.
 
 1/29/14: In eTomo - Coarse Alignment, fixed a problem with graphing edge
@@ -36,10 +36,10 @@ field.(Bug# 1671)
 
 1/29/14: Exposed flgNoReferenceRefinement in eTomo - PEET.(Bug# 1738)
 
-1/28/13: Restored fortran graphics program wrappers to Mac build, lost 1/13.
+1/28/14: Restored fortran graphics program wrappers to Mac build, lost 1/13.
 
-1/20/13: IMOD_4-6-38
-1/20/13: Fixed keypad hot keys in Model View on Mac.
+1/20/14: IMOD_4-6-38
+1/20/14: Fixed keypad hot keys in Model View on Mac.
 
 1/18/14: IMOD_4-6-37
 

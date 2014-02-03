@@ -222,6 +222,7 @@ class BeadFixer : public DialogFrame
   QCheckBox *turnOffBut;
   QCheckBox *ignoreSkipBut;
   QLabel *doneLabel;
+  QLabel *wgtThreshLabel;
   QCheckBox *skipLowWgtBox;
   QDoubleSpinBox *wgtThreshSpin;
   QWidget *weightHbox;

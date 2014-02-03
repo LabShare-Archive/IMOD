@@ -704,6 +704,7 @@ int BeadFixer::reread()
   delContBut->setEnabled(false);
   skipLowWgtBox->setEnabled(mHasWeights);
   wgtThreshSpin->setEnabled(mHasWeights && sSkipLowWeight != 0);
+  wgtThreshLabel->setEnabled(mHasWeights && sSkipLowWeight != 0);
 
   if (!globalResLine.isEmpty())
     wprint("\n%s\n", LATIN1(globalResLine));
@@ -1132,6 +1133,7 @@ void BeadFixer::skipLowWgtToggled(bool state)
 {
   sSkipLowWeight = state ? 1 : 0;
   wgtThreshSpin->setEnabled(mHasWeights && sSkipLowWeight != 0);
+  wgtThreshLabel->setEnabled(mHasWeights && sSkipLowWeight != 0);
 }
 
 void BeadFixer::wgtThreshChanged(double value)
@@ -2622,7 +2624,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   diamlay = new QHBoxLayout(weightHbox);
   diamlay->setContentsMargins(0,0,0,0);
   wgtThreshSpin = (QDoubleSpinBox *)diaLabeledSpin(2, 0., 0.9, 0.05, "Threshold", this, 
-                                                   diamlay);
+                                                   diamlay, &wgtThreshLabel);
   QObject::connect(wgtThreshSpin, SIGNAL(valueChanged(double)), this,
                    SLOT(wgtThreshChanged(double)));
   wgtThreshSpin->setToolTip("Threshold weight for skipping points");
