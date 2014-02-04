@@ -398,8 +398,7 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     return 0;
   case MESSAGE_BEADFIX_DELALLSEC:
     sDelOnAllSec = (*strings)[++(*arg)].toInt();
-    if (threshSlider)
-      diaSetChecked(delAllSecBut, sDelOnAllSec != 0);
+    diaSetChecked(delAllSecBut, sDelOnAllSec != 0);
     return 0;
   }
   return 1;
@@ -2218,13 +2217,7 @@ void BeadFixer::modeSelected(int value)
       showWidget(seedModeBox, value == SEED_MODE);
       showWidget(overlayHbox, value == SEED_MODE);
       showWidget(reverseBox, value == SEED_MODE);
-      if (threshSlider) {
-        threshSlider->showWidgets(0, value == SEED_MODE);
-        showWidget(deleteBelowBut, value == SEED_MODE);
-        showWidget(delAllSecBut, value == SEED_MODE);
-        showWidget(delAllObjBut, value == SEED_MODE);
-        showWidget(turnOffBut, value == SEED_MODE);
-      }
+      manageThreshWidgets(value == SEED_MODE);
     }
 
     // Manage gap filling items
@@ -2296,19 +2289,23 @@ void BeadFixer::showWidget(QWidget *widget, bool state)
 // Change the thresholding widgets based on a change in model */
 void BeadFixer::modelUpdate()
 {
+  manageThreshWidgets(sShowMode == SEED_MODE);
+  fixSize();
+}
+
+void BeadFixer::manageThreshWidgets(bool seedMode)
+{
   Imod *imod = ivwGetModel(sView);
   Iobj *obj = imodObjectGet(imod);
   bool enabled;
   float min, max;
 
-  if (!threshSlider || !obj)
-    return;
-  enabled = obj->flags & IMOD_OBJFLAG_USE_VALUE;
-  threshSlider->setEnabled(0, enabled);
-  delAllSecBut->setEnabled(enabled);
-  delAllObjBut->setEnabled(enabled);
-  turnOffBut->setEnabled(enabled);
-  deleteBelowBut->setEnabled(enabled);
+  enabled = obj && (obj->flags & IMOD_OBJFLAG_USE_VALUE) && seedMode;
+  threshSlider->showWidgets(0, enabled);
+  showWidget(delAllSecBut, enabled);
+  showWidget(delAllObjBut, enabled);
+  showWidget(turnOffBut, enabled);
+  showWidget(deleteBelowBut, enabled);
   if (!enabled)
     return;
   istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min, &max);
@@ -2333,14 +2330,8 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
 {
   QCheckBox *box;
   QString qstr;
-  Imod *imod = App->cvi->imod;
-  Iobj *obj;
-  float min, max;
-  int ob;
   overlayHbox = NULL;
   reverseBox = NULL;
-  deleteBelowBut = NULL;
-  threshSlider = NULL;
   mRunningAlign = false;
   mTopTimerID = 0;
   mStayOnTop = false;
@@ -2472,52 +2463,35 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
     diaSetChecked(reverseBox, sReverseOverlay != 0);
   }    
 
-  // Determine if any object has a value display set
-  for (ob = 0; ob < imod->objsize; ob++) {
-    obj = &imod->obj[ob];
-    if (obj->flags & IMOD_OBJFLAG_USE_VALUE) {
-      istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min,
-                      &max);
-      mPeakMin = B3DNINT(min * 1000.);
-      mPeakMax = B3DNINT(max * 1000.);
-      
-      threshSlider = new MultiSlider(this, 1, threshTitle, mPeakMin, mPeakMax,
-                                     3);
-      mLayout->addLayout(threshSlider->getLayout());
-      QObject::connect(threshSlider, SIGNAL(sliderChanged(int, int, bool)),
-                       this, SLOT(threshChanged(int, int, bool)));
-      threshSlider->getSlider(0)->setToolTip(
-                    "Set threshold peak strength for viewing points");
-      threshSlider->setValue(0, B3DNINT(obj->valblack * (mPeakMax - mPeakMin) /
-                                       255. + mPeakMin));
+  // Value threshold and deletion controls
+  threshSlider = new MultiSlider(this, 1, threshTitle, 0., 1000., 3);
+  mLayout->addLayout(threshSlider->getLayout());
+  QObject::connect(threshSlider, SIGNAL(sliderChanged(int, int, bool)),
+                   this, SLOT(threshChanged(int, int, bool)));
+  threshSlider->getSlider(0)->setToolTip("Set threshold peak strength for viewing "
+                                         "points");
 
-      turnOffBut = diaCheckBox("Turn off below threshold", this, mLayout);
-      connect(turnOffBut, SIGNAL(toggled(bool)), this,
-              SLOT(turnOffToggled(bool)));
-      turnOffBut->setToolTip("Do not show contours below the threshold");
-      diaSetChecked(turnOffBut, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
+  turnOffBut = diaCheckBox("Turn off below threshold", this, mLayout);
+  connect(turnOffBut, SIGNAL(toggled(bool)), this,
+          SLOT(turnOffToggled(bool)));
+  turnOffBut->setToolTip("Do not show contours below the threshold");
 
-      deleteBelowBut = diaPushButton("Delete Below", this, mLayout);
-      connect(deleteBelowBut, SIGNAL(clicked()), this, SLOT(deleteBelow()));
-      deleteBelowBut->setToolTip("Delete all contours below threshold");
+  deleteBelowBut = diaPushButton("Delete Below", this, mLayout);
+  connect(deleteBelowBut, SIGNAL(clicked()), this, SLOT(deleteBelow()));
+  deleteBelowBut->setToolTip("Delete all contours below threshold");
 
-      delAllSecBut = diaCheckBox("Delete on all sections", this, mLayout);
-      connect(delAllSecBut, SIGNAL(toggled(bool)), this, 
-              SLOT(delAllSecToggled(bool)));
-      delAllSecBut->setToolTip("Delete contours below threshold regardless"
-                    " of Z value of points");
-      diaSetChecked(delAllSecBut, sDelOnAllSec != 0);
+  delAllSecBut = diaCheckBox("Delete on all sections", this, mLayout);
+  connect(delAllSecBut, SIGNAL(toggled(bool)), this, SLOT(delAllSecToggled(bool)));
+  delAllSecBut->setToolTip("Delete contours below threshold regardless"
+                           " of Z value of points");
+  diaSetChecked(delAllSecBut, sDelOnAllSec != 0);
 
-      delAllObjBut = diaCheckBox("Delete in all objects", this, mLayout);
-      connect(delAllObjBut, SIGNAL(toggled(bool)), this, 
-              SLOT(delAllObjToggled(bool)));
-      delAllObjBut->setToolTip("Delete contours from all objects that are"
-                    " below the respective object threshold");
-      diaSetChecked(delAllObjBut, sDelInAllObj != 0);
-
-      break;
-    }
-  }
+  delAllObjBut = diaCheckBox("Delete in all objects", this, mLayout);
+  connect(delAllObjBut, SIGNAL(toggled(bool)), this, SLOT(delAllObjToggled(bool)));
+  delAllObjBut->setToolTip("Delete contours from all objects that are"
+                           " below the respective object threshold");
+  diaSetChecked(delAllObjBut, sDelInAllObj != 0);
+  manageThreshWidgets(sShowMode == SEED_MODE);
 
   // GAP CONTROLS
   nextGapBut = diaPushButton("Go to Next Gap", this, mLayout);

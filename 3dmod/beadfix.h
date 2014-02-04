@@ -152,6 +152,7 @@ class BeadFixer : public DialogFrame
   void reportContRes();
   int moveToCont(int idir);
   void iterateMoveAll();
+  void manageThreshWidgets(bool seedMode);
 
   int    mIfdidgap;
   int    mLastco, mLastpt, mLastbefore;

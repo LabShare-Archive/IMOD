@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/3/14: Changed Bead Fixer so value-based controls show or hide appropriately
+when model is changed.
+
 2/1/14: Made installer able to take a .csh file, so it can be used to upgrade
 on Windows without Cygwin.
 
