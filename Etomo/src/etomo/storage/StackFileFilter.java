@@ -37,8 +37,9 @@ public class StackFileFilter extends FileFilter {
    * @see javax.swing.filechooser.FileFilter#accept(File)
    */
   public boolean accept(File f) {
-    //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(".st")) {
+    // If this is a file test its extension, all others should return true
+    if (f.isFile() && !f.getAbsolutePath().endsWith(".st")
+        && !f.getAbsolutePath().endsWith(".mrc")) {
       return false;
     }
     return true;
@@ -48,7 +49,7 @@ public class StackFileFilter extends FileFilter {
    * @see javax.swing.filechooser.FileFilter#getDescription()
    */
   public String getDescription() {
-    return "MRC Image Stack";
+    return "MRC Image Stack (.mrc files will be renamed to .st)";
   }
 
 }

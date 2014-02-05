@@ -16,6 +16,7 @@ import etomo.ui.swing.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Montagesize;
+import etomo.util.Utilities;
 
 /**
 * <p>Description: </p>
@@ -38,6 +39,46 @@ public final class DatasetTool {
   private static final String MESSAGE_TITLE = "Invalid Dataset Directory";
 
   private DatasetTool() {
+  }
+
+  /**
+   * Rename the input file, if it is not a .st file.  If the file has the .mrc extension,
+   * it will substitute the .st extension for the .mrc extension.  Returns the path of the
+   * image file as it exists at the end of the this function.  If something has gone
+   * wrong, null will be returned.  This forces the user to find the correct file, and
+   * reduces the chance that etomo will or
+   * @param inputFile - image stack file
+   * @return the path of the image file, or null if there has been an error - set this output to the dataset text field
+   */
+  public static String standardizeExtension(final BaseManager manager,
+      final File inputFile) {
+    if (inputFile != null) {
+      String name = inputFile.getName();
+      if (!name.endsWith(".st")) {
+        if (inputFile.getName().endsWith(".mrc")) {
+          name = name.substring(0, name.length() - 4);
+        }
+        File newFile = new File(inputFile.getParentFile(), name + ".st");
+        try {
+          // MUST fail and return false if the destination file already exists.
+          System.err.println("Renaming " + inputFile.getAbsolutePath() + " to "
+              + newFile.getAbsolutePath());
+          if (Utilities.renameFileSafely(manager, AxisID.ONLY, inputFile, newFile)) {
+            return newFile.getAbsolutePath();
+          }
+        }
+        catch (IOException e) {
+          e.printStackTrace();
+          UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Rename Failed");
+          // Rename appears to have failed, but we don't absolutely know the state of the
+          // files. The .st file may or may not exist now, so the user needs to reselect
+          // the correct image file or dataset name.
+          return null;
+        }
+      }
+      return inputFile.getAbsolutePath();
+    }
+    return null;
   }
 
   /**

@@ -322,14 +322,28 @@ public final class SetupReconUIHarness {
       return null;
     }
     // Add the appropriate extension onto the filename if necessary
-    if (!datasetName.endsWith(".st")) {
+    if (!datasetName.endsWith(".st") && !datasetName.endsWith(".mrc")) {
+      String datasetNameSt;
       if (setupInterface.isDualAxisSelected()) {
-        datasetName = datasetName + "a.st";
+        datasetNameSt = datasetName + "a.st";
       }
       else {
-        datasetName = datasetName + ".st";
-
+        datasetNameSt = datasetName + ".st";
       }
+      if (new File(datasetNameSt).exists()) {
+        return datasetNameSt;
+      }
+      String datasetNameMrc;
+      if (setupInterface.isDualAxisSelected()) {
+        datasetNameMrc = datasetName + "a.mrc";
+      }
+      else {
+        datasetNameMrc = datasetName + ".mrc";
+      }
+      if (new File(datasetNameMrc).exists()) {
+        return datasetNameMrc;
+      }
+      return datasetNameSt;
     }
     return datasetName;
   }

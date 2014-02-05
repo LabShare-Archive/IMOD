@@ -865,6 +865,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + ".LengthOfPieces");
   private final EtomoNumber lengthOfPiecesB = new EtomoNumber(TRACK_KEY + "."
       + SECOND_AXIS_KEY + ".LengthOfPieces");
+  //Either .st or .mrc
+  private final StringProperty origImageStackExt = new StringProperty(
+      "Setup.OrigImageStackExt");
   /**
    * For backwards compatibility
    */
@@ -934,26 +937,35 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   }
 
   /**
-   * Remove the ".st", "a.st", or "b.st" as approrpiate to the
+   * Remove the ".st", "a.st", "b.st", .mrc, a.mrc, or b.mrc as approrpiate to the file
+   * name.
    */
   private void fixDatasetName() {
+    origImageStackExt.set(".st");
+    String mrcExt = ".mrc";
+    if (datasetName.endsWith(mrcExt)) {
+      origImageStackExt.set(mrcExt);
+    }
     if (axisType == AxisType.SINGLE_AXIS) {
-      if (datasetName.endsWith(".st")) {
+      if (datasetName.endsWith(origImageStackExt.toString())) {
         int nChars = datasetName.length();
-        datasetName = datasetName.substring(0, nChars - 3);
+        datasetName = datasetName.substring(0, nChars - origImageStackExt.length());
       }
     }
     else {
-      if (datasetName.endsWith("a.st") | datasetName.endsWith("b.st")) {
+      if (datasetName.endsWith("a" + origImageStackExt.toString())
+          || datasetName.endsWith("b" + origImageStackExt.toString())) {
         int nChars = datasetName.length();
-        datasetName = datasetName.substring(0, nChars - 4);
+        datasetName = datasetName.substring(0, nChars - (origImageStackExt.length() + 1));
       }
       // if a dual axis file has the wrong format, treat it like a single axis
       // file
-      else if (datasetName.endsWith(".st")) {
+      else if (datasetName.endsWith(origImageStackExt.toString())) {
         int nChars = datasetName.length();
-        datasetName = datasetName.substring(0, nChars - 3);
-        appendMessage("Dual axis image stack files must end in a.st and b.st.\n");
+        datasetName = datasetName.substring(0, nChars - origImageStackExt.length());
+        appendMessage("Dual axis image stack files must end in a"
+            + origImageStackExt.toString() + " and b" + origImageStackExt.toString()
+            + ".\n");
       }
     }
   }
@@ -1896,6 +1908,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     lengthOfPiecesB.reset();
     minimumOverlapA.reset();
     minimumOverlapB.reset();
+    origImageStackExt.reset();
     // load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -2240,6 +2253,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       minimumOverlapB.set(Utilities.getElementFromList(trackLengthAndOverlapB.toString(),
           1));
     }
+    origImageStackExt.load(props, prepend);
   }
 
   public boolean isTrackElongatedPointsAllowedNull(final AxisID axisID) {
@@ -2644,6 +2658,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     lengthOfPiecesA.store(props, prepend);
     lengthOfPiecesB.store(props, prepend);
     // Backward compatibility - not necessary to store minimumOverlap
+    origImageStackExt.store(props, prepend);
   }
 
   public String getMinimumOverlap(final AxisID axisID) {
@@ -3735,10 +3750,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
 
     // Does the appropriate image stack exist in the working directory
     if (axisType == AxisType.DUAL_AXIS) {
-      currentDir = findValidFile(datasetName + "a.st", currentDir, backupDir);
+      currentDir = findValidFile(datasetName + "a" + origImageStackExt.toString(),
+          currentDir, backupDir);
     }
     else {
-      currentDir = findValidFile(datasetName + ".st", currentDir, backupDir);
+      currentDir = findValidFile(datasetName + origImageStackExt.toString(), currentDir,
+          backupDir);
     }
     return currentDir;
   }

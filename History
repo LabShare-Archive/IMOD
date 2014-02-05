@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/30/14: In eTomo - Setup Reconstruction, allowing .mrc image files to be
+selected, and renaming them to .st.(Bug# 1696)
+
 2/3/14: Changed Bead Fixer so value-based controls show or hide appropriately
 when model is changed.
 

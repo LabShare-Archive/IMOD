@@ -80,6 +80,13 @@ public final class StringProperty implements ConstStringProperty {
       string = input;
     }
   }
+  
+  int length() {
+    if (isEmpty()) {
+      return 0;
+    }
+    return string.length();
+  }
 
   void set(final StringProperty input) {
     string = input.string;
