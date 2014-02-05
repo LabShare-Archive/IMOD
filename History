@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/5/14: Makecomfile adds option to append to seed model for autofidseedb.com.
+
 2/3/14: Changed Bead Fixer so value-based controls show or hide appropriately
 when model is changed.
 
