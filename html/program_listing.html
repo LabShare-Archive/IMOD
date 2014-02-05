@@ -54,6 +54,9 @@ by combining data from multiple images in the tilt series.
 : Generate a contour based model from a 3D 
 image using a threshold based algorithm.
 
+<LI> <B><A HREF="man/imodchopconts.html#TOP">imodchopconts</A></b>
+: Chop up contours in IMOD model based on length or color
+
 <LI><b><A HREF="man/imod-dist.html#TOP">imod-dist</a></b>
 : Measure and report distances between model points and a reference location.
 
@@ -69,6 +72,9 @@ image using a threshold based algorithm.
 <LI><b><A HREF="man/imodmop.html#TOP">imodmop</a></b>
 : Cut out image data inside of model closed contours, circles, spheres or
 along lines; optionally reproject a tilt series of the image data.
+
+<LI><b><A HREF="man/imodsetvalues.html#TOP">imodsetvalues</a></b>
+: Store general values for contours or points in a model.
 
 <LI><b><A HREF="man/imodtrans.html#TOP">imodtrans</A></b>
 : Transform an IMOD model.
@@ -98,6 +104,9 @@ along lines; optionally reproject a tilt series of the image data.
 
 <LI><b><A HREF="man/rec2imod.html#TOP">rec2imod</A></b>
 : Convert an HVEM3D rec model file from a PC to an IMOD file.
+
+<LI><b><A HREF="man/slashmasksort.html#TOP">slashmasksort</A></b>
+: Sort or split contours into new objects based on whether they fall inside a mask object
 
 <LI><b><A HREF="man/wmod2imod.html#TOP">wmod2imod</A></b>
 : Convert a WIMP model file to an IMOD file.
@@ -135,7 +144,7 @@ along lines; optionally reproject a tilt series of the image data.
 image data.  Includes the following processing abilities.
 	<UL>
 	<LI>FFT,<LI>Correlation and Filters.
-	<LI>Averaging.
+	<LI>Averaging, summing, multiplying, dividing.
 	<LI>Brightness and  contrast adjustments.
 	</UL>
 <LI> <b><A HREF="man/nad_eed_3d.html#TOP">nad_eed_3d</a></b> 
@@ -145,6 +154,8 @@ A. Frangakis and R. Hegerl.
 : Corrects tilt series for microscope CTF by phase flipping.
 <LI> <b><A HREF="man/imodfindbeads.html#TOP">imodfindbeads</a></b> 
 : Finds gold particles in 2D images.
+<LI> <b><A HREF="man/slashfindspheres.html#TOP">slashfindspheres</a></b> 
+: Finds spheres in a volume given example points
 </UL>
 
 </UL>
@@ -152,9 +163,9 @@ A. Frangakis and R. Hegerl.
 <HR>
 This section lists Fortran image processing programs for MRC image files,
 Fortran programs that work with IMOD models, and
-shell scripts that run these programs.  Most of the programs
-prompt users for input or use command files, but many have been converted to
-take command line and keyword-value input.  The shell scripts generally
+scripts that run these programs.  Some of the programs
+prompt users for input or use command files, but most have been converted to
+take command line and keyword-value input.  The scripts generally
 provide a
 command line interface.
 <I>
@@ -185,8 +196,8 @@ command line interface.
 <LI><B><A HREF="man/ccderaser.html#TOP">ccderaser</A></B>
 : Automatically remove X-rays, erase spot and line flaws in image from 
 CCD camera, and erase fiducials.
-<LI><B><A HREF="man/chunksetup.html#TOP">chunksetup</A></B>
-: Set up command files for processing a volume in chunks.
+<LI><B><A HREF="man/colornewst.html#TOP">colornewst</A></B>
+: Run <A HREF="man/newstack.html#TOP">newstack</A> operations on RGB color files.
 <LI><B><A HREF="man/edgeeraser.html#TOP">edgeeraser</A></B>
 : Erase bad parts of image near edge.
 <LI><B><A HREF="man/edmont.html#TOP">edmont</A></B>
@@ -219,12 +230,15 @@ radius2.
 : Substitute sections from one montage into another
 <LI><b><A HREF="man/fftrans.html#TOP">fftrans</a></b>
 : Calculate a 2-D FFT from an MRC file.
-<LI><b><A HREF="man/genhstplt">genhstplt</a></b>
-: Plot histograms and 2-D plots on screen or paper.
 <LI><b><A HREF="man/header.html#TOP">header</a></b>
 : Print MRC header information.
 <LI><b><A HREF="man/imavgstat.html#TOP">imavgstat</a></b>
 : Compute mean and SD images and mean intensity in subareas.
+<LI><b><A HREF="man/makepyramid.html#TOP">makepyramid</a></b>
+: Make a set of image files from a very large volume to allow rapid viewing in
+  3dmod.
+<LI><B><A HREF="man/matchvol.html#TOP">matchvol</A></B>
+: Transform a volume to match another with a general linear transformation.
 <LI><b><A HREF="man/montagesize.html#TOP">montagesize</a></b>
 : Report actual X, Y, and Z dimensions of a montaged image file.
 <LI><b><A HREF="man/mtffilter.html#TOP">mtffilter</a></b>
@@ -257,10 +271,10 @@ radius2.
 : Subtracts one average image from another with a t-test.
 <LI><b><A HREF="man/sumdensity.html#TOP">sumdensity</a></b>
 : Adds densities for pixels above a threshold within contours.
-<LI><B><A HREF="man/vmstocsh.html#TOP">vmstocsh</A></B>
-: Converts IMOD command file to C-shell script.
-<LI><B><A HREF="man/vmstopy.html#TOP">vmstopy</A></B>
-: Converts IMOD command file to Python script.
+<LI><b><A HREF="man/trimvol.html#TOP">trimvol</a></b>
+: Trim a volume and scale it to bytes.
+<LI><b><A HREF="man/warpvol.html#TOP">warpvol</a></b>
+: Warp a volume to match another with a set of linear transformations.
 <LI><b><A HREF="man/xcorrstack.html#TOP">xcorrstack</a></b>
 : Cross-correlate a single image with a whole image stack.
 <LI><b><A HREF="man/xyzproj.html#TOP">xyzproj</a></b>
@@ -273,6 +287,8 @@ X, Y, or Z axis.
 <UL>
 <LI><B><A HREF="man/checkxforms.html#TOP">checkxforms</A></B>
 : Find maximum displacement & rotation in a set of transforms.
+<LI><b><A HREF="man/joinwarp2model.html#TOP">joinwarp2model</a></b>
+: Make starting model for refining tomogram join from initial warping.
 <LI><B><A HREF="man/xf2rotmagstr.html#TOP">xf2rotmagstr</A></B>
 : Convert transforms to rotations, magnifications, and stretches along an axis.
 <LI><B><A HREF="man/xfalign.html#TOP">xfalign</A></B>
@@ -347,11 +363,15 @@ post-processing of such volumes.
 : Extract useful parts from the output of tiltalign.
 <LI><B><A HREF="man/assemblevol.html#TOP">assemblevol</A></B>
 : Assemble an image file from an array of subvolumes.
+<LI><B><A HREF="man/autofidseed.html#TOP">autofidseed</A></B>
+: Automatically make a seed model for tilt series fiducial tracking
+<LI><B><A HREF="man/batchruntomo.html#TOP">batchruntomo</A></B>
+: Make a tomographic reconstruction automatically
 <LI><B><A HREF="man/beadtrack.html#TOP">beadtrack</A></B>
 : Track fiducial gold particles through a tilt series.
 <LI><B><A HREF="man/combinefft.html#TOP">combinefft</A></B>
 : Combine FFTs of tomograms from a double-axis tilt series.
-<LI><B><A HREF="man/copytomocoms.html#TOP"></A>copytomocoms</B>
+<LI><B><A HREF="man/copytomocoms.html#TOP">copytomocoms</A></B>
 : Generate command files needed for processing a tilt series.
 <LI><B><A HREF="man/corrsearch3d.html#TOP">corrsearch3d</A></B>
 : Search for displacements between two volumes at an array of positions.
@@ -360,7 +380,7 @@ post-processing of such volumes.
 <LI><B><A HREF="man/densnorm.html#TOP">densnorm</A></B>
 : Normalize densities in an image file to represent projected mass density.
 <LI><B><A HREF="man/edgepatches.html#TOP">edgepatches</A></B>
-: Set up and do initial steps in stitching together adjacent overlapping
+: Do initial steps in stitching together adjacent overlapping
 tomograms.
 <LI><B><A HREF="man/filltomo.html#TOP">filltomo</A></B>
 : Replace pixels in combined tomogram with values from one.
@@ -380,21 +400,27 @@ overlapping tomograms.
 lines or points on surfaces.
 <LI><B>goodframe</B>
 : Only used as a call from scripts.
-<LI><B><A HREF="man/makejoincom.html#TOP"></A>makejoincom</B>
+<LI><B><A HREF="man/makecomfile.html#TOP">makecomfile</A></B>
+: Make a command file for an optional step in tilt series processing.
+<LI><B><A HREF="man/makejoincom.html#TOP">makejoincom</A></B>
 : Generate command file for initial steps in joining tomograms from serial 
 sections.
 <LI><B><A HREF="man/matchorwarp.html#TOP">matchorwarp</A></B>
 : Find final transformation(s) between two volumes and make matching volume.
 <LI><B><A HREF="man/matchshifts.html#TOP">matchshifts</A></B>
 : Find X, Y, and Z shifts between two volumes by cross-correlation (obsolete).
-<LI><B><A HREF="man/matchvol.html#TOP">matchvol</A></B>
-: Transform a volume to match another with a general linear transformation.
 <LI><B><A HREF="man/onepatchcorr.html#TOP">onepatchcorr</A></B>
 : Cross-correlate patches between two volumes at a single position.
 <LI><B><A HREF="man/patchcorr3d.html#TOP">patchcorr3d</A></B>
-: Cross-correlate patches between two volumes at an array of positions.
+: Cross-correlate patches between two volumes at an array of positions (obsolete).
 <LI><B><A HREF="man/patchcrawl3d.html#TOP">patchcrawl3d</A></B>
-: Search for displacements between two volumes at an array of positions using <b><A HREF="man/corrsearch3d.html#TOP">corrsearch3d</a></b>.
+: Search for displacements between two volumes at an array of positions.
+  using <b><A HREF="man/corrsearch3d.html#TOP">corrsearch3d</a></b> (obsolete).
+<LI><B><A HREF="man/pickbestseed.html#TOP">pickbestseed</A></B>
+: Used by <A HREF="man/autofidseed.html#TOP">autofidseed</A> to select an
+  optimal seed model for fiducial tracking.
+<LI><B><A HREF="man/preNAD.html#TOP">preNAD</A></B>
+: 2D anisotropic diffusion filter for tilt projections.
 <LI><B><A HREF="man/raptor.html#TOP">RAPTOR</A></B>
 : Automatically find fiducials in tilt series images.
 <LI><B><A HREF="man/refinematch.html#TOP">refinematch</A></B>
@@ -403,6 +429,8 @@ sections.
 : Eliminate empty contours from seed model produced by <b><A HREF="man/transferfid.html#TOP">transferfid</a></b>.
 <LI><B><A HREF="man/setupcombine.html#TOP">setupcombine</A></B>
 : Generate command file for combining two tomograms.
+<LI><B><A HREF="man/setupstitch.html#TOP">setupstitch</A></B>
+: Set up for stitching together adjacent overlapping tomograms.
 <LI><B><A HREF="man/sirtsetup.html#TOP">sirtsetup</A></B>
 : Set up multiple command files for simultaneous iterative reconstruction
 (SIRT).
@@ -423,12 +451,12 @@ the actual image.
 image inside the edges.
 <LI><b><A HREF="man/tilt.html#TOP">tilt</a></b>
 : Calculate 3-D tomographic reconstruction from a tilt series.
-<LI><b><A HREF="man/gputilttest.html#TOP">gputilttest</a></b>
-: Test whether a GPU is reliable for computing reconstructions with the tilt program.
 <LI><b><A HREF="man/tiltalign.html#TOP">tiltalign</a></b>
 : Align a tilt series using fiducial points.
 <LI><b><A HREF="man/tiltxcorr.html#TOP">tiltxcorr</a></b>
 : Find preliminary alignment of tilt series by cross-correlation.
+<LI><B><A HREF="man/tomodataplots.html#TOP">tomodataplots</a></B>
+: Make an X/Y plot of some output from tilt series processing
 <LI><B><A HREF="man/tomopieces.html#TOP">tomopieces</a></B>
 : Determine how to chop a tomogram into pieces; called from copytomocoms.
 <LI><b><A HREF="man/tomopitch.html#TOP">tomopitch</a></b>
@@ -437,17 +465,13 @@ image inside the edges.
 : Transform adjacent tomograms into alignment and stitch them together.
 <LI><b><A HREF="man/transferfid.html#TOP">transferfid</a></b>
 : Make a seed model for second axis from the fiducial model on first axis.
-<LI><b><A HREF="man/trimvol.html#TOP">trimvol</a></b>
-: Trim a volume and scale it to bytes.
-<LI><b><A HREF="man/warpvol.html#TOP">warpvol</a></b>
-: Warp a volume to match another with a set of linear transformations.
 </UL>
 
 <P>
 <LI> Scripts for (parallel) processing of large volumes.
 <UL>
 <LI><B><A HREF="man/chunksetup.html#TOP">chunksetup</A></B>
-: Set up command files to process a volume in chunks.
+: Set up command files for processing a volume in chunks.
 <LI><B><A HREF="man/processchunks.html#TOP">processchunks</A></B>
 : Run command files in parallel on multiple processors.
 <LI><B><A HREF="man/queuechunk.html#TOP">queuechunk</A></B>
@@ -511,10 +535,28 @@ properties.
 : Refine alignment of a MT model based on MT trajectories.
 </UL>
 
-
+<P>
+<LI> General utilities and plotting programs
+<UL>
+<LI><b><A HREF="man/submfg.html#TOP">subm/submfg</a></b>
+: Run one or more IMOD command files in the background.
+<LI><B><A HREF="man/vmstocsh.html#TOP">vmstocsh</A></B>
+: Convert IMOD command file to C-shell script.
+<LI><B><A HREF="man/vmstopy.html#TOP">vmstopy</A></B>
+: Convert IMOD command file to Python script.
+<LI><B><A HREF="man/imodkillgroup.html#TOP">imodkillgroup</A></B>
+: Kill a process or process group for one or more process IDs.
+<LI><b><A HREF="man/genhstplt">genhstplt</a></b>
+: Plot histograms and 2-D plots on screen or to Postscript files.
+<LI><b><A HREF="man/genhstplt">onegenplot</a></b>
+: Script for getting one plot in <A HREF="man/genhstplt">genhstplt</a> with a
+  simple command.
+<LI><b><A HREF="man/gputilttest.html#TOP">gputilttest</a></b>
+: Test whether a GPU is reliable for computing reconstructions with the tilt program.
+</UL>
 </UL>
 <HR>
-<I>Last updated: February, 2012</I>
+<I>Last updated: February, 2014</I>
 [<A HREF="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</A>] 
 [<A HREF="http://bio3d.colorado.edu/index.html>BL3DEMC Home Page</A>]
 </body>

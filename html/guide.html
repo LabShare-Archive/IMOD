@@ -7,7 +7,7 @@
 	</head>
 	<body>
 		<A NAME="TOP"></A>
-		<h1 align="center">IMOD User's Guide for Version 4.5
+		<h1 align="center">IMOD User's Guide for Version 4.7
 		</h1>
 		<h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of Cells</h3>
 		<hr>
@@ -25,39 +25,33 @@
 					<li>
 						<a href="#InstallingMac">1.4 Installing IMOD on a Macintosh running OS X</a>
 					<li>
-						<a href="#SettingUpWindows">1.5 Setting Up a Windows PC to Run IMOD</a>
+						<a href="#SettingUpWindows">1.5 Setting Up a Windows PC to Run
+						IMOD with Cygwin</a>
 					<li>
-						<a href="#InstallingWindows">1.6 Installing IMOD on a Windows PC</a>
+						<a href="#InstallingWindows">1.6 Installing IMOD on a Windows PC
+						with Cygwin</a>
 					<li>
-						<a href="#UsingGPU">1.7 Using a GPU for Tomography</a>
+						<a href="#SettingUpNoCygwin">1.7 Setting Up a Windows PC and
+						  Installing IMOD without Cygwin</a>
 					<li>
-						<a href="#ImodCalib">1.8 Using the ImodCalib directory</a></li>
+						<a href="#UsingGPU">1.8 Using a GPU for Tomography</a>
+					<li>
+						<a href="#ImodCalib">1.9 Using the ImodCalib directory</a></li>
 				</ul>
 			<li>
 				<a href="#GettingStarted">2. Getting Started</a>
 			<li>
-				<a href="#AligningImages">3. Aligning Serial Section Images</a>
-				<ul>
-					<li>
-						<a href="#AutomaticAlignment">3.1 Automatic Image Alignment</a>
-					<li>
-						<a href="#ManualAlignment">3.2 Manual Image Alignment</a>
-					<li>
-						<a href="#FiducialAlignment">3.3 Image Alignment using Fiducial Markers.</a>
-					</li>
-				</ul>
+				<a href="#QuantitativeInformation">3. Getting Quantitative Information</a>
 			<li>
-				<a href="#QuantitativeInformation">4. Getting Quantitative Information</a>
+				<a href="#OtherOutput">4. Output to Other Model Formats</a>
 			<li>
-				<a href="#OtherOutput">5. Output to Other Model Formats</a>
-			<li>
-				<a href="#Special">6. Links to Help on Specific Topics and to a Listing of All 
-					Programs</a>
+				<a href="#Special">5. Links to Help on Specific Topics</a>
 			</li>
 		</ul>
 		<p>
-			There is also a <a href="program_listing.html#TOP">reference guide</a> that 
-			gives a description of each IMOD program and a link to its man page.
+			There is also a <a href="program_listing.html#TOP">Listing of All 
+					Programs</a> that gives a one-line description of each IMOD program
+					and a link to its man page.
 		</p>
 		<hr>
 		<a name="Installation">
@@ -70,24 +64,27 @@
 			install to the default location in the system and set up the IMOD environment 
 			for all users in the default way, then you can install simply by running this 
 			script, e.g.,<br>
-			&nbsp;&nbsp;&nbsp;<code>csh -f imod_4.5.1_RHEL6.csh</code><br>
+			&nbsp;&nbsp;&nbsp;<code>csh -f imod_4.7.1_RHEL6.csh</code><br>
 			<br>
 			(In this guide, the specific filenames are used as an example; your copy may 
 			have higher version numbers.)
 			<span style="COLOR: rgb(255,0,0)">You cannot click on the .csh file to
-install it.</span>&nbsp; There is an executable installer for Windows with extension .exe 
-			that you can click on.&nbsp; If you have followed our recommended installation 
+install it.</span>&nbsp; This command will not work on Windows unless the
+      Cygwin toolkit is installed.  There is an executable installer for Windows
+      with extension .exe that you can click on to install (either with or
+      without Cygwin).&nbsp; If you have followed
+      our recommended installation 
 			procedures since IMOD 3.0.8, you will be able to upgrade using the same 
 			command. If you want to install to a location other than the default,&nbsp; you 
 			can specify the desired location inside of which the IMOD directory will be 
 			placed, e.g.,<br>
-			<code>&nbsp; csh -f imod_4.5.1_RHEL6.csh -dir /opt</code><br>
+			<code>&nbsp; csh -f imod_4.7.1_RHEL6.csh -dir /opt</code><br>
 			<br>
 			Older versions will be renamed, and at the end the installation script will 
 			offer to remove them for you.&nbsp; People with special requirements not 
 			anticipated by the install script may need to work with the tar file 
 			instead.&nbsp; It can be extracted with:<br>
-			&nbsp; <code>&nbsp;csh -f imod_4.5.1_RHEL6.csh -extract </code>
+			&nbsp; <code>&nbsp;csh -f imod_4.7.1_RHEL6.csh -extract </code>
 		</p>
 		<p>
 			The gzipped tar file and the install script will be left in a subdirectory 
@@ -95,7 +92,7 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 				-script </code>to install startup scripts to a different location, <code>-skip</code>
 			to skip installing startup scripts, <code>-name</code> to have the IMOD 
 			directory be renamed to the given name.&nbsp; Use:<br>
-			<code>&nbsp; csh -f imod_4.5.1_RHEL6.csh -help<br>
+			<code>&nbsp; csh -f imod_4.7.1_RHEL6.csh -help<br>
 			</code>
 			<br>
 			to see all available options.&nbsp; The sections below on individual machine 
@@ -152,7 +149,8 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
     present on newer systems.  The sign of needing this is an error message
     when trying run 3dmod or some other programs: <I>error while loading shared
     libraries: libjpeg.so.62: cannot open shared object file: No such file or
-    directory</I>.  Install the older JPEG library with:<br>
+    directory</I>.  Before this, you should see a warning when you install
+    IMOD.  Install the older JPEG library with:<br>
 			&nbsp;&nbsp; <code>sudo apt-get install libjpeg62</code>
     </p>
 		<a name="InstallingLinuxSGI">
@@ -170,7 +168,7 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 			source the startup scripts from the IMOD directory, unless you give the <code>-skip</code>
 			option.&nbsp; To accomplish all of this, change directory to the place where 
 			the package is located and enter, for example:<br>
-			&nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>-f imod_4.5.1_RHEL6.csh<br>
+			&nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>-f imod_4.7.1_RHEL6.csh<br>
 			</code>
 			<br>
 			You will have to open a new window, or possibly even log out and log back in, 
@@ -207,7 +205,7 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 		<P>If you want to run programs temporarily in a particular version of IMOD without 
 			replacing your installed version, unpack the desired version in some logical 
 			place with a command like:<br>
-			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code> csh -f imod_4.4.5_RHEL6.csh -dir 
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code> csh -f imod_4.7.1_RHEL6.csh -dir 
 				testIMOD -skip</code></P>
 		<P>This will manage an installation of IMOD under the directory <code>testIMOD</code>, 
 			offering to delete other versions there.&nbsp; To run with this IMOD, cd to <code>testIMOD/IMOD</code>
@@ -230,11 +228,11 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 			<LI>
 				cd to the directory where you downloaded IMOD, and
 				<br>
-				&nbsp;<code> mv imod_4.5.1_RHEL6.tar.gz /usr/local</code>
+				&nbsp;<code> mv imod_4.7.1_RHEL6.tar.gz /usr/local</code>
 			<LI>
 				&nbsp;<code> cd /usr/local</code>&nbsp;
 			<LI>
-				&nbsp;<code> tar -xzf imod_4.5.1_RHEL6.tar.gz</code>
+				&nbsp;<code> tar -xzf imod_4.7.1_RHEL6.tar.gz</code>
 			<LI>
 				To see if you already have a /usr/local/IMOD,
 				<br>
@@ -249,7 +247,7 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 				<br>
 				<code>&nbsp; mv IMOD oldIMOD</code>
 			<li>
-				&nbsp;<code> ln -s imod_4.5.1 IMOD</code>
+				&nbsp;<code> ln -s imod_4.7.1 IMOD</code>
 			<li>
 				Except on Ubuntu and other Debian systems,<br>
 				<code>&nbsp; cp IMOD/IMOD-linux.* /etc/profile.d</code> <code></code>
@@ -264,8 +262,8 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 			<h3>1.3. Installing Java on a Linux PC
 			</h3>
 			<P>
-		</a>Etomo is a Java 2 application and thus requires a Java runtime environment 
-		(JRE) with a version of 1.5 or better to be installed.&nbsp; Recent Fedora and 
+		</a>Etomo is a Java application and thus requires a Java runtime environment 
+		(JRE) with a version of 1.6 or better to be installed.&nbsp; Recent Fedora and 
 		RedHat-based systems have had usable native Java packages available or 
 		installed.&nbsp; Check your system with<br>
 		&nbsp;&nbsp; <code>&nbsp;java -version</code><br>
@@ -287,20 +285,17 @@ install it.</span>&nbsp; There is an executable installer for Windows with exten
 			<br>
 			<code>
 				<span style="FONT-FAMILY: monospace">&nbsp;&nbsp; sudo
-mv </span></code><span style="FONT-FAMILY: monospace"><code><span style="FONT-FAMILY: monospace">jre-6u20-linux-i586.bin /usr/local</span></code><br></P>
-		</SPAN>
-		<p>Next change your working directory to <code>/usr/local</code> and&nbsp; execute 
-			the bin by entering<br>
-			<span style="FONT-FAMILY: monospace"><code>&nbsp;&nbsp; cd /usr/local</code><br>
-      &nbsp;<code>&nbsp; sudo sh jre-6u20-linux-i586.bin</code></p>
-		</SPAN>
-		<p>on the command line. &nbsp;</p>
+          mv </span></code><code><span style="FONT-FAMILY: monospace">jre-6u20-linux-i586.bin /usr/local</span></code><br></P>
+    <p>Next change your working directory to <code>/usr/local</code> and&nbsp; execute 
+	    the bin by entering<br>
+	    <span style="FONT-FAMILY: monospace"><code>&nbsp;&nbsp; cd /usr/local</code><br>
+        &nbsp;<code>&nbsp; sudo sh jre-6u20-linux-i586.bin</code></span></p>
+    <p>on the command line. &nbsp;</p>
 		<p>This will install the JRE in <code>/usr/local/jre1.6.0_20</code>. &nbsp;The IMOD 
 			startup scripts will assume that the JRE is in <code>/usr/local/java</code> if 
 			java is not on your command path, so next create a link:<br>
 			<span style="FONT-FAMILY: monospace">
-				<code>&nbsp;&nbsp; sudo ln -s jre1.6.0_20 java</code></p>
-		</SPAN>
+				<code>&nbsp;&nbsp; sudo ln -s jre1.6.0_20 java</code></span></p>
 		<p>If you upgrade to a different JRE, then you just need to change the link. 
 			&nbsp;If you wish to use a different JRE than the one pointed to by <code>/usr/local/java</code>, 
 			you must&nbsp; redefine the environment variable IMOD_JAVADIR to specify the 
@@ -311,22 +306,22 @@ mv </span></code><span style="FONT-FAMILY: monospace"><code><span style="FONT-FA
 				the ImodCalib Directory</a>).
 		</p>
 		<a name="InstallingMac">
-			<h3>1.4. Installing IMOD on a Macintosh running OS X</h3>
-			<P>
-		</a>Be sure to install the right package for the processor type: <code>_osx_intel</code>
+			<h3>1.4. Installing IMOD on a Macintosh running OS X</h3></a>
+		<P>
+		  Be sure to install the right package for the processor type: <code>_osx_intel</code>
 		for an Intel processor or <code>_osx_ppc</code> for a PowerPC (G4, G5, 
 		etc).&nbsp; The self-installing package will install to /Applications or to an 
 		alternate location with the <code>-dir</code> option.&nbsp;
 		<span style="COLOR: rgb(255,0,0); FONT-WEIGHT: bold">It will
-not work by clicking on it, only by running it at the command
-line.</span>&nbsp; It will place appropriate "source" commands for defining the user 
+      not work by clicking on it, only by running it at the command
+      line.</span>&nbsp; It will place appropriate "source" commands for defining the user 
 		environment in <code>/etc/csh.login<span style="FONT-FAMILY:
                                                     sans-serif"></span></code>
     and
 		<code>/etc/profile</code>.&nbsp;You need to be able to use sudo. &nbsp;Open a 
 		terminal window (under Applications-Utilities), change directory to the place 
 		where the package is located, and enter, e.g.:<br>
-		&nbsp;&nbsp;&nbsp;&nbsp;<code> sudo csh -f imod_4.5.1_osx_intel64.csh</code><br>
+		&nbsp;&nbsp;&nbsp;&nbsp;<code> sudo csh -f imod_4.7.1_osx_intel64.csh</code><br>
 		<br>
 		&nbsp;You will need to exit and restart Terminal for these changes to take 
 		effect, or you can just source <code>/etc/csh.login</code>&nbsp;(if you are 
@@ -341,14 +336,15 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
 		make some links in <code>/usr/lib</code> to libraries in the IMOD directories 
 		that will allow you to start 3dmod by clicking on its icon. &nbsp;Run the <code>linklibs-mac
 		</code>script by entering:<br>
-		<code>&nbsp;&nbsp; sudo $IMOD_DIR/linklibs-mac -i</code></P>
-		<p>If this creates problems, such as conflicts with other programs that supply 
+		<code>&nbsp;&nbsp; sudo $IMOD_DIR/linklibs-mac -i</code>
+    </P>
+    <p>If this creates problems, such as conflicts with other programs that supply 
 			their own Qt libraries, you can remove the links with:<br>
-			<code>&nbsp;&nbsp; sudo $IMOD_DIR/linklibs-mac -u</p>
-		</CODE><p>If you are upgrading IMOD and have done this before, you should run <code>$IMOD_DIR/linklibs-mac 
+			<code>&nbsp;&nbsp; sudo $IMOD_DIR/linklibs-mac -u</code></p>
+    <p>If you are upgrading IMOD and have done this before, you should run <code>$IMOD_DIR/linklibs-mac 
 				-u </code>before installing the new version.</p>
-		<p><b>Java for OS X 10.7.</b>&nbsp; Java is not installed by default in OS X 
-			10.7.&nbsp; The system will offer to install it for you the first time you run 
+		<p><b>Java for OS X 10.7 - 10.9.</b>&nbsp; Java is not installed by default in OS X 
+			10.7 and above.&nbsp; The system will offer to install it for you the first time you run 
 			a Java program.&nbsp; To check the status of Java and get it installed, in the 
 			terminal, enter<br>
 			<code>&nbsp;&nbsp; java -version</code></p>
@@ -368,11 +364,11 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
 			<LI>
 				cd to the directory where you downloaded IMOD, and
 				<br>
-				&nbsp;&nbsp;<code> sudo mv imod_4.5.1_osx_intel64.tar.gz /Applications</code>
+				&nbsp;&nbsp;<code> sudo mv imod_4.7.1_osx_intel64.tar.gz /Applications</code>
 			<li>
 				&nbsp;&nbsp;<code> cd /Applications</code>
 			<li>
-				&nbsp;&nbsp;<code> sudo tar xzf imod_4.5.1_osx_intel64.tar.gz</code>
+				&nbsp;&nbsp;<code> sudo tar xzf imod_4.7.1_osx_intel64.tar.gz</code>
 			<li>
 				To see if you already have a /Applications/IMOD,
 				<br>
@@ -387,13 +383,13 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
 				<br>
 				&nbsp;&nbsp;<code> sudo mv IMOD oldIMOD</code>
 			<li>
-				&nbsp;&nbsp;<code> sudo mv imod_4.5.1 IMOD</code></li></OL>
+				&nbsp;&nbsp;<code> sudo mv imod_4.7.1 IMOD</code></li></OL>
 		<P>If you are on a single user-machine or have administrative privileges from the 
 			desktop, you can use the following alternative approach:</P>
 		<ol>
 			<li>
 				Click on the downloaded file to unpack it with Stuffit Expander and create the 
-				IMOD folder, e.g. <code>imod_4.5.1</code>
+				IMOD folder, e.g. <code>imod_4.7.1</code>
 			<li>
 			Drag this folder into the /Applications folder.
 			<li>
@@ -437,11 +433,17 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
 			See the above instructions for Linux PC for other variations on installation 
 			procedures.</p>
 		<a name="SettingUpWindows">
-			<h3>1.5. Setting Up a Windows PC to Run IMOD</h3>
+			<h3>1.5. Setting Up a Windows PC to Run IMOD with Cygwin</h3>
 		</a>
-		<p>For complete IMOD functionality under Windows, including the ability to run 
-			shell scripts and to build tomograms, you need to install a Unix-like 
-			environment called <a href="http://www.cygwin.com">Cygwin</a>. &nbsp;We have 
+    <p>To use IMOD effectively under Windows, 
+	    you need to install either a Unix-like 
+	    environment called <a href="http://www.cygwin.com">Cygwin</a> or an
+			appropriate version of Python. &nbsp;The option of just installing
+			Python is new for IMOD 4.7; everything will work except a few
+			specialized C-shell scripts.  If this is the route that you prefer, go
+			to <a href="#SettingUpNoCygwin"> Setting Up a Windows PC and Installing
+			IMOD without Cygwin</a></p>
+<p>This section deals with installing Cygwin.  We have 
 			provided both a <a href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD0310.exe">
 				Cygwin package</a> and a <a href="http://bio3d.colorado.edu/imod/windows/cygwin_installer_0310.exe">
 				Cygwin installer</a> (from March 2010) to make this process simpler and 
@@ -518,9 +520,8 @@ line.</span>&nbsp; It will place appropriate "source" commands for defining the 
 		<p>
 			In order to run eTomo, you also need to have Java installed.&nbsp; If you do 
 			not already have Java (most machines do now), get the latest Java Run-time 
-			Environment from <a href="http://java.com/en/download/index.jsp">Sun/Oracle</a> 
-			or use the version provided <a href="http://bio3d.colorado.edu/imod/java/jre-6u20-windows-i586-s.exe">
-				here</a>.&nbsp; Click on the file and take the defaults to install Java. 
+			Environment from <a href="http://java.com/en/download/manual.jsp">Java
+			download site</a>.&nbsp; Click on the file and take the defaults to install Java. 
 			When you are done, you can delete any Java icons from your desktop.</p>
 		<p>
 			You can use our simpler <a href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD0310.exe">
@@ -611,7 +612,7 @@ Python category.&nbsp; In addition, there must be a Python executable named
 					&nbsp;&nbsp; <code>cp /bin/python2.6.exe /bin/python.exe</code></li>
 			</ol>
 			<a name="InstallingWindows">
-				<h3>1.6. Installing IMOD on a Windows PC</h3>
+				<h3>1.6. Installing IMOD on a Windows PC with Cygwin</h3>
 			</a>
 		<p>For Windows, we provide an executable installer that works by clicking on it, 
 			installs IMOD in <code>/usr/local</code>, copies the startup scripts <code>IMOD-cygwin.sh</code>
@@ -619,7 +620,7 @@ Python category.&nbsp; In addition, there must be a Python executable named
 			of putting Cygwin on the system path and setting the environment variables <code>IMOD_DIR</code>
 			and <code>HOME</code> as described below. Old versions of IMOD are 
 			automatically deleted.&nbsp; If you need something besides this behavior, you 
-			can still run a self-installing package (e.g., a <code>csh</code> file like <code>imod_4.5.1_win.csh</code>) 
+			can still run a self-installing package (e.g., a <code>csh</code> file like <code>imod_4.7.1_win.csh</code>) 
 			at the command line, as described below.
 		</p>
 		<p>
@@ -649,7 +650,7 @@ clicking on it, only
 by executing it from the command line.</span>&nbsp; To install or upgrade IMOD this way, 
 			start a Cygwin terminal window, change to the directory where the package is 
 			located, and enter, e.g.:<br>
-			&nbsp;&nbsp;&nbsp;&nbsp;<code>csh -f imod_4.5.1_win.csh</code></p>
+			&nbsp;&nbsp;&nbsp;&nbsp;<code>csh -f imod_4.7.1_win.csh</code></p>
 		<p>
 			You will have to open a new Cygwin window for a new installation to take 
 			effect.
@@ -694,70 +695,139 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 					&nbsp;&nbsp; mv IMOD oldIMOD</code><li>
 				&nbsp;Unpack the tar file, rename it to IMOD, and copy startup files:
 				<br>
-				<code>&nbsp;&nbsp; tar -xzf imod_4.5.1.tar.gz </code>
+				<code>&nbsp;&nbsp; tar -xzf imod_4.7.1.tar.gz </code>
 				<br>
-				<code>&nbsp;&nbsp; mv imod_4.5.1 IMOD </code>
+				<code>&nbsp;&nbsp; mv imod_4.7.1 IMOD </code>
 				<br>
 				<code>&nbsp;&nbsp; cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
 		</ol>
-		<p>
-			Finally, if you do not want to install Cygwin, you can still use most of the 
-			programs in IMOD (but not eTomo).&nbsp; In this case, get the <code>.tar.gz</code>
-			distribution instead of the self-installing distribution and use <a href="http://www.winzip.com">
-				Winzip </a>to unpack it somewhere, (e.g., <code>C:\Program Files</code>), 
-			rename the top directory to IMOD, and add the <code>IMOD\bin</code> directory 
-			(e.g., <code>C:\Program Files\IMOD\bin</code>) to your path in Windows, as 
-			described above.
-		</p>
+		<a name="SettingUpNoCygwin">
+			<h3>1.7. Setting Up a Windows PC and Installing IMOD without Cygwin</h3>
+		</a>
+    <p>You must have Python installed to use IMOD fully on Windows, as well as
+    a module called psutil built for the same version of Python.  The IMOD
+    installer relies on the registry entries made by Windows
+    Python packages from the 
+    <a href = "http://www.python.org/download/releases/">Python download
+    site</a> to find Python, so a package from there is probably needed to use
+    the installer.  Some packages are provided here:
+    <ul>
+      <li> 32-bit <a href = "http://bio3d.colorado.edu/imod/windows/python-2.7.6.msi">Python 2.7</a> and matching
+        <a href="http://bio3d.colorado.edu/imod/windows/psutil-1.2.1.win32-py2.7.exe">psutil</a>
+      <li> 64-bit <a href = "http://bio3d.colorado.edu/imod/windows/python-2.7.6.amd64.msi">Python 2.7</a> and matching
+        <a href="http://bio3d.colorado.edu/imod/windows/psutil-1.2.1.win-amd64-py2.7.exe">psutil</a>
+      <li> 32-bit <a href = "http://bio3d.colorado.edu/imod/windows/python-3.3.3.msi">Python 3.3</a> and matching
+        <a href="http://bio3d.colorado.edu/imod/windows/psutil-1.2.1.win32-py3.3.exe">psutil</a>
+      <li> 64-bit <a href = "http://bio3d.colorado.edu/imod/windows/python-3.2.5.amd64.msi">Python 3.2</a> and matching
+        <a href="http://bio3d.colorado.edu/imod/windows/psutil-1.0.1.win-amd64-py3.2.exe">psutil</a>
+    </ul>
+    Unless you know or anticipate that other software will need Python 2.7,
+    you might as well install Python 3.  If you need to use a Python package
+    other than the ones here, get a matching version of psutil from the
+    <a href="http://code.google.com/p/psutil">psutil site</a>; use the
+    Download link to get to current versions and the Download tab to get to
+    older versions.
+    </p>
+    <p>Click on the downloaded file to install it; first Python, then psutil.
+    Python does not need to install in the default location that it offers;
+    you can put it in <code>C:\Program Files</code> under the name of the version (e.g.,
+    set the install location to <code>C:\Program Files\Python3.2</code>.
+    </p>
+    <p>After Python is installed, click on the IMOD installer.  It will
+    install IMOD in <code>C:\Program Files\IMOD</code>, define the environment
+    variables <code>IMOD_DIR</code>, <code>IMOD_CALIB_DIR</code>, and 
+      <code>IMOD_PLUGIN_DIR</code>, and place both IMOD and the version of
+      Python that it finds on the path.
+    </p>
+    <p>In order to run eTomo, you also need to have Java installed.&nbsp; If
+      you do not already have Java (most machines do now), get the latest Java
+      Run-time Environment from the
+      <a href="http://java.com/en/download/manual.jsp">Java download
+        site</a>.&nbsp; Click on the file and take the defaults to
+      install Java.
+      When you are done, you can delete any Java icons from your desktop.
+    </p>
+    <p>
+      If you want to use a better terminal window than the Command Prompt
+      window, try getting the Console program from 
+      <a href="http://sourceforge.net/projects/console">sourceforge</a>.  This
+      program allows window resizing, font and color control, easy cutting and
+      pasting with mouse buttons, and multiple tabs.
+      Unzip the package wherever you want to; it will create a directory
+      "Console2" with Console.exe inside, to which you can create a shortcut on your
+      desktop. This <a href="http://bio3d.colorado.edu/imod/windows/console.xml">
+        configuration file</a> has some good initial settings.  Make a folder
+      named <code>Console</code> inside 
+      <code>C:\Users\yourUserName\Application Data</code> (or 
+      <code>C:\Documents and Setting\yourUserName\Application Data</code> on
+      Windows XP) and place the file in that folder.
+    </p>
+    <p>
+      There is no <code>man</code> command for viewing program manual pages,
+      but <code>imodhelp programName</code> will open Qt Assistant to the
+      manual page for the given program.  The program name can even be
+      abbreviated. 
+    </p>
+    <p>
+      If you want to upgrade to a beta version after you have installed IMOD
+      from one of the executable installer packages, you need to download the
+      appropriate self-installing package file from the beta download site,
+      for example, <code>imod_4.8.10_win64.csh</code>.  Copy the file 
+      <code>installIMOD</code> from C:\Program Files\IMOD to the same place
+      that you put the package.  In a terminal, <code>cd</code> to that folder
+      and enter (for this example file) <br>
+      <pre>    installIMOD -skip imod_4.8.10_win64.csh</pre>
+    </p>
 		<a name="UsingGPU"></a>
-		<h3>1.7. Using a GPU for Tomography</h3>
-		<p>With this version of IMOD, you can use the graphics processing unit (GPU) of an 
+		<h3>1.8. Using a GPU for Tomography</h3>
+		<p>With all IMOD 4.7 packages, you can use the graphics processing unit (GPU) of an 
 			NVIDIA graphics card to compute tomograms.&nbsp; The card must be of a kind 
 			that supports processing with a system called CUDA, and you also need to have 
 			NVIDIA drivers new enough to support CUDA.&nbsp; To see if your card can be 
-			used, check it in <a href="http://www.nvidia.com/object/cuda_learn_products.html">NVIDIA's 
-				lists </a>.&nbsp; Most of the packages for IMOD 4.5 are built with CUDA 
-			version 3.&nbsp; A few packages are built with CUDA 2 or with CUDA 4.&nbsp; 
+			used, check it in <a href="https://developer.nvidia.com/cuda-gpus">NVIDIA's 
+				lists </a>.&nbsp; Most of the packages for IMOD 4.7 are built with CUDA 
+			version 4.1.&nbsp; A few packages are built with CUDA 2 or with CUDA 3.&nbsp; 
 			When there are two packages for a particular operating system, the one not 
-			built with CUDA 3 has CUDA and the version number in its name.&nbsp; A package 
+			built with CUDA 4 has CUDA and the version number in its name.&nbsp; A package 
 			built with a particular version of CUDA will work with CUDA drivers of the same 
 			or a higher version.&nbsp; Here are details for the three operating systems:</p>
 		<ul>
 			<li>
 				<b>Linux:</b>
-			the capability is available in the RHEL6 package of IMOD and is built
+			the RHEL6 package of IMOD and is built
 			with CUDA 4.1, so you must be running a driver version of 285.05.33 or
 			higher.  It is built with CUDA 3 in the 32-bit and 64-bit RHEL5 packages,
 			and you must be running a driver version of 195.36.31 or higher.
 			<li>
 				<b>Windows:</b>
 			the capability is available in both 32 and 64 bit packages, and you must be 
-			running a driver version of 197.13 or higher for a package built with CUDA 
-			3.&nbsp; Driver version numbers are not straightforward in Windows; this 
-			corresponds to a driver date of March 25, 2010 or later. A package built with 
+			running a driver version of 286.19 or higher for a package built with CUDA 
+			4.1, such as the WHQL driver, 295.73, with a date of February 21,
+			2012, or any later driver.&nbsp; Driver version numbers are not
+			straightforward in Windows, so the dates are helpful.  A package built with 
 			CUDA 2.1 must be run with a driver version of 180.22 or later, corresponding to 
-			a driver date of January, 2009 or later.  A package built with CUDA 4.1
-			must be run with a driver version of 286.19 or later, such as the WHQL
-			driver, 295.73, with a date of February 21, 2012.  <li>
-				<b>Mac:</b> the capability is available only in IMOD packages for the 
-				Intel-processor based Mac and requires OS X 10.5 or higher.&nbsp; The drivers 
+			a driver date of January, 2009 or later.  A package built with CUDA 3.0
+			must be run with a driver version of 197.13 286.19 or later, corresponding
+			to a driver date of March 25, 2010 or later. 
+		 <li>
+				<b>Mac:</b> 
+				The drivers 
 				that support CUDA are not part of the basic graphics drivers and must be 
 				installed separately.  Once they are installed, the system may offer
-				to upgrade them.&nbsp;
+				to upgrade them, or you may be able to upgrade them through a button in the Other
+				section of System Preferences.&nbsp;  All driver versions are
+				available at the NVIDIA <a href = "http://www.nvidia.com/object/mac-driver-archive.html">CUDA Driver Archive</a>.
 				<ul>
 					<li>
-						If you are running OS X 10.7 or have a Quadro 4000 card, go to the CUDA 4 <a href="http://developer.nvidia.com/cuda-toolkit-40">
-							download page</a>, scroll down to the section for Mac OS X, and 
-					download the "Developer Drivers".
+						If you are running OS X 10.7 - 10.9 or have a Quadro 4000 card,
+							you must use an IMOD package built with CUDA 4.1.  For OS X
+							10.9, version 5.5.28 or higher is required.  Otherwise, you can
+							install the final CUDA 4 driver, 4.2.10, or you can try a CUDA 5
+							driver if the Supported Products tab indicates that your
+							card is supported.
 					<li>
-						Otherwise, go to the CUDA 3.1 <a href="http://developer.nvidia.com/object/cuda_3_1_downloads.html#MacOS">
-							download page</a>
-					for Mac OS X and download "Developer Drivers for MacOS". This should work with 
-					both 32-bit and 64-bit IMOD packages.
-					<li>
-						&nbsp;But if there is a problem with a 32-bit package, try this older <a href="http://developer.nvidia.com/object/cuda_2_3_downloads.html#MacOS">
-							download page</a> and download driver 2.3.1a if you are on OS X 10.6 or 
-						have a Quadro FX 4800 or GeForce GTX 285; otherwise download driver 2.3.0a.</li>
+						Otherwise, you should use an IMOD package built with CUDA 3.1 and
+							install a CUDA 3 driver such as 3.2.17.
 				</ul>
 			</li>
 		</ul>
@@ -780,8 +850,9 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 		And optional argument can be added to set the length of the test in minutes; an 
 		optional second argument can be used to specify the GPU number when there is 
 		more than one.&nbsp; A few cards do give variable results, so it is important 
-		to test for reproducible results initially and after upgrading the NVIDIA 
-		drivers or the operating system.<p>
+		to test for reproducible results initially, periodically thereafter, and
+		especially after upgrading the NVIDIA drivers or the operating system.
+		There is also a button on the Front Page of eTomo for running this test.<p>
 			If you want to know how much speed improvement your system has, get <code>tilttimers.tar.gz</code>
 			from our <a href="ftp://bio3d.colorado.edu/benchmarks">ftp site</a> and follow 
 			the instructions in the <code>README</code> file there.
@@ -795,7 +866,7 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 		<p><code> &lt;console&gt; 0666 &lt;dri&gt; 0666 root </code>
 		</p>
 		<a name="ImodCalib"></a>
-		<h3>1.8. Using the ImodCalib directory</h3>
+		<h3>1.9. Using the ImodCalib directory</h3>
 		Several parts of IMOD look for data and configuration files in a separate 
 		location, pointed to by the environment variable IMOD_CALIB_DIR. These files 
 		include the <code>cpu.adoc</code> file for enabling parallel processing, 
@@ -824,18 +895,32 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 			package.&nbsp; If you are doing tomography, you should start with the <a href="etomoTutorial.html#TOP">
 				eTomo tutorial</a>.&nbsp;This eTomo tutorial is also available in video 
 			form on our&nbsp; <A href="http://www.youtube.com/bl3demc">YouTube channel</A>.&nbsp; 
-			For access to the complete IMOD documentation, just enter <code>imodhelp</code> 
+			If you are doing reconstructions from serial images such as serial thin
+			sections or serial block face images, you should work through the 
+      <a href="serialalign.html">Serial Section Alignment guide</a>, which
+      will take you through the steps needed to align the images in eTomo.
+      For access to the complete IMOD documentation, just enter <code>imodhelp</code> 
 			at the command line to open it in the Qt Assistant, where it can be browsed and 
-			searched.&nbsp; Beyond this, your initial problem may be getting data into a 
-			format usable by the IMOD programs.&nbsp; If you are having problems getting 
+			searched.&nbsp; 
+    </p>
+    <p>
+      Aside from learning to use the major tools, your initial problem may be
+			getting data into a format usable by the IMOD programs.&nbsp; If you are
+			having problems getting 
 			your data into a format usable by IMOD contact us for help.</p>
 		<h3>2.1. The Image Data Format and File Conversion</h3>
-		<p>All of the IMOD programs use the <a href="mrc_format.txt">MRC image file format</a>. 
-			We have utility programs available for converting TIFF files and raw data into 
-			the MRC file format.&nbsp; In addition, <code>3dmod</code> can read some common 
-			formats like JPEG, TIFF, PNG, and BMP; it recognizes several specialized image 
-			formats (DigitalMicrograph, EM, Hanspeter Winkler's NFF, PIF files from Bsoft); 
+		<p>All of the IMOD programs read and produce files in
+			the <a href="mrc_format.txt">MRC image file format</a>.  As of
+			IMOD 4.7, they can also read TIFF files and files in several specialized
+			image formats compatible with MRC: DigitalMicrograph, PIF files from
+			Bsoft, EM, and Hanspeter Winkler's NFF.
+      In addition to those formats, <code>3dmod</code> can read some other common 
+			formats like JPEG, PNG, and BMP,
 			and it has a dialog box and options for specifying how to read raw data.</p>
+			However, most programs are designed to operate on a stack of images
+			in a single file rather than on a set of single-image files.  Thus,
+			we have utility programs available for converting TIFF files and raw data into 
+			the MRC file format and combining single-image files into a stack.&nbsp; 
 		<p>
 			Use the program <a href="man/tif2mrc.html#TOP">tif2mrc</a> to convert a series 
 			of TIFF image files into a single MRC image file. The <code>tif2mrc</code> program 
@@ -849,18 +934,22 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 		<p>See the <a href="man/tif2mrc.html#TOP">tif2mrc manual page</a> for more 
 			information on how to use <code>tif2mrc</code>.</p>
 		<P>Use the program <a href="man/dm2mrc.html#TOP">dm2mrc</a> to convert a series of 
-			digital micrograph image files into a single MRC image file. The following 
+			DigitalMicrograph image files into a single MRC image file. The following 
 			example will create a MRC file from a list of DigitalMicrograph files 
 			(cell01.dm3, cell02.dm3....;&nbsp;note that dm2 and dm4 files are also 
 			supported.)<BR>
 			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<FONT size="2" face="Courier New">dm2mrc 
 				cell*.dm3 cell.mrc</FONT></P>
 		<P>
-			If you already have a series of MRC files, with one image per file, you can 
+			If you have a series of MRC files, with one image per file, you can 
 			combine them into a single stack easily with the program &nbsp;<a href="man/newstack.html#TOP">newstack</a>.&nbsp; 
 			For example, enter
 			<br>
-			<code>&nbsp;&nbsp; newstack cell*.mrc cell.st&nbsp;</code></P>
+			<code>&nbsp;&nbsp; newstack cell*.mrc cell.st&nbsp;</code><br>
+      With the new file-reading capabilities in IMOD 4.7, you can also
+      use <code>newstack</code> to stack TIFF and DigitalMicrograph files,
+      provided that no special conversion options are needed.
+    </P>
 		<p>
 			The program <a href="man/raw2mrc.html#TOP">raw2mrc</a> is used to convert raw 
 			image data into the mrc format. This program can take a file of 8, 16,or 32 bit 
@@ -920,152 +1009,7 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 			and&nbsp;<a href="man/point2model.html#TOP">point2model</a>, that can be used 
 			to convert an IMOD model to or from a simple list of point coordinates.
 		</p>
-		<a name="AligningImages">
-			<h2>3. Aligning Serial Section Serial Images</h2>
-		</a>
-		<P>There are several&nbsp;tools available in IMOD for aligning serial section 
-			images.&nbsp; The procedures are most commonly used for aligning serial, EM 
-			thin sections for 3D reconstruction. For more background and explanation of the 
-			topics in this section, see the <A href="serialalign.html#TOP">guide</A> to 
-			serial section alignment.
-		</P>
-		<P style="Z-INDEX: 0">Sometimes images in a data set are not in register with one 
-			another. When this happens, a series of transforms will need to be found that 
-			will align the whole stack of images. This series of transformations is 
-			obtained in two stages. First, each successive pair of images is considered 
-			separately, and a transform is found that aligns the images when applied to the 
-			second image in the pair. This procedure yields a list of transforms that align 
-			each image to the previous image; the programs consistently refer to this as a 
-			list of "f" transforms. If you think about it, you will realize that simply 
-			applying these f transforms to all of the images in the stack will not help, 
-			because each section would be aligned to the previous one only if that previous 
-			one were not itself transformed. A second stage is thus necessary: one must 
-			obtain the transforms for each image that will produce an aligned stack when 
-			actually applied to the images. This list is consistently referred to as a list 
-			of "g" transforms. In summary, "f" transforms align each section to the 
-			preceding one; "g" transforms align each section to the whole stack. Finally, 
-			the program newstack will apply the "g" transforms to the images to create an 
-			aligned stack.&nbsp; Note that<U> </U><A href="man/newstack.html#TOP">newstack</A>
-			and some of the other programs will not work with 24-bit color images.&nbsp; 
-			Use the "-g" option to <A href="man/tif2mrc.html#TOP">tif2mrc</A> to 
-			convert to gray scale when making the MRC stack.&nbsp; If you do need to 
-			preserve the color information, then you can split the color into three 
-			separate byte-mode files with the <A href="man/clip.html#TOP">clip</A>
-			program, determine the alignment with one color channel, apply the 
-			trasnformations to each of the 3 files separately, then merge the data again 
-			with <A href="man/clip.html#TOP">clip</A>.</P>
-		<p>
-			The procedures described here are appropriate for aligning images of successive 
-			slices through a structure, but not for aligning tilt series images for 
-			tomography.&nbsp; The latter operation is done with the <code>eTomo</code> program.&nbsp; 
-			Conversely, the tilt series alignment procedures&nbsp;in eTomo&nbsp;cannot be 
-			used to align serial thin section images.</p>
-		<p style="Z-INDEX: 0">There are three general methods for obtaining alignment 
-			transforms: automated search for the best fit between two images, manual 
-			adjustment of transformation parameters, and solving for a transform from a set 
-			of fiducial points that correspond between two sections.
-		</p>
-		<a name="AutomaticAlignment">
-			<H3 style="Z-INDEX: 0">
-				3.1. Automatic Image Alignment
-			</H3></a>
-			<P><FONT size="3">Several programs are used for automated image alignment. The programs 
-					used are </FONT>
-		<A href="man/xfalign.html#TOP">xfalign</A>,
-			<A href="man/xftoxg.html#TOP"><FONT size="3">xftoxg</FONT></A>, <A href="man/midas.html#TOP"><FONT size="3">
-				midas</FONT></A> and 
-		<A href="man/newstack.html#TOP"><FONT size="3">newstack</FONT></A>. 
-				<Code>Xfalign</Code> is a Python script that generates a "f" transform list using the </FONT>
-		<A href="man/xfsimplex.html#TOP"><FONT size="3">xfsimplex</FONT></A>
-				program. It can prefilter images in several different ways.
-				It also has an option to get an initial alignment of the images by 
-				cross-correlation, in case images are not already roughly aligned.</p>
-			<P><FONT size="3">Steps and programs used in automatic image alignment: </FONT>
-			</P>
-			<UL>
-				<LI>
-					<FONT size="3">Create a "f" transform list by using the xfalign program.<BR>
-						<CODE>&nbsp;&nbsp; xfalign cell.mrc cell.xf</CODE><BR>
-						Expect the alignment for each section to take several seconds to compute. The 
-						file, cell.xf, will contain information on how to align adjacent images to one 
-						another. </FONT>
-				<LI>
-					<FONT size="3">The next step is to analyze the the file cell.xf and the transforms 
-						needed to bring all of the images in alignment with on another. Use<CODE></CODE>
-					</FONT>
-		<A href="man/xftoxg.html#TOP"><FONT size="3">xftoxg</FONT></A>
-				to create a global "g" transform list from the "f" transform list:
-				<BR>
-				<CODE>&nbsp;&nbsp; xftoxg cell.xf </CODE></FONT>
-			<LI>
-				<FONT size="3">The output file from that command, cell.xg, should contain all of 
-					the information needed to make new aligned images from the old unaligned 
-					images. Use the </FONT>
-		<A href="man/newstack.html#TOP"><FONT size="3">newstack</FONT></A>
-				program to create the new aligned images. The following example will create an 
-				aligned file newcell.mrc from the old cell.mrc image file.
-				<BR>
-				<CODE>&nbsp;&nbsp; newstack -xform cell.xg cell.mrc newcell.mrc </CODE></FONT>
-			</LI></UL>
-			<P><FONT size="3">If the automatic alignment is not always correct, it can be adjusted 
-					with the </FONT>
-		<A href="man/midas.html#TOP"><FONT size="3">midas</FONT></A>
-				program. Start the program with:
-				<BR>
-				<CODE>&nbsp;&nbsp; midas cell.mrc cell.xf </CODE></P>
-				<P>
-				A window will open up and you can view the alignment between any given pair of 
-				adjacent images. After making adjustments for any sections that are out of 
-				alignment, save the transforms and exit the program. Then rerun the <CODE>xftoxg</CODE>
-				and <CODE>newstack</CODE> commands shown above. </FONT></P>
-		<a name="ManualAlignment">
-			<H3>3.2. Manual Image Alignment</H3>
-		</A>
-		<p>The program <a href="man/midas.html#TOP">midas</a> is used for manual alignment 
-			or manual adjustments to automated alignment of images. <code>Midas</code> can 
-			be used to create a transform list or to edit an existing list; it can work 
-			with either "f" or "g" transform lists. To get a "g" transform list from an "f" 
-			transform list use the <a href="man/xftoxg.html#TOP">xftoxg</a> program. <code>xftoxg</code>
-			has options to leave long term trends in the data, which are invoked by default 
-			when you run the program with command-line arguments.</p>
-		<P>Steps and programs used for manual image alignment</P>
-		<UL>
-			<LI>
-			<code>midas</code> : Assess and&nbsp;adjust the alignment between pairs of images. 
-			There are interactive controls for adjusting translation, rotation, 
-			magnification and stretch along an axis. Save as a "f" transform file.
-			<LI>
-			<code>xftoxg</code> : Creates a "g" transform list, leaving in long term trends in the data.
-			<LI>
-				<code>newstack</code> : Applies the transforms creating an aligned image stack.</LI></UL>
-		<a name="FiducialAlignment"></a>
-		<h3>3.3. Image Alignment using Fiducial Markers.</h3>
-		<p>The program <a href="man/xfmodel.html#TOP">xfmodel</a> will create a list of xf 
-			transforms from a model containing fiducial points. See the <a href="3dmodguide.html#TOP">
-				Introduction to 3dmod</a> to see how to make models.</p>
-		<p>
-			Steps and programs used in fiducial marker alignment.
-		</p>
-		<ul>
-			<li>
-				<code>3dmod</code>
-			: Creates a model in which points in each contour are placed on adjacent 
-			sections that mark the same area on both sections. Note that a single contour 
-			corresponds to a single fiducial marker, and the contour contains a point on 
-			each of the sections where the marker appears. These are contours that pass 
-			between sections rather than being confined to a single section.
-			<li>
-				<code>xfmodel</code>
-			: Creates a "f" transform list.
-			<li>
-				<code>xftoxg</code>
-			: Creates a "g" transform list, leaving in long term trends in the data.
-			<li>
-				<code>newstack</code> : Creates an aligned image stack.
-			</li>
-		</ul>
-		<a name="AutomaticAlignment"></a><a name="QuantitativeInformation">
-			<h2>4. Getting Quantitative Information</h2>
+			<h2>3. Getting Quantitative Information</h2>
 		</a>
 		<p>In order to get accurate information the fields in the model header have to be 
 			set properly. See the <a href="3dmodguide.html#SettingZ-scale">Introduction to 
@@ -1084,7 +1028,7 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 			and&nbsp;compute&nbsp;volumes and mesh areas.&nbsp;A text file can be created 
 			using the -f option.</P>
 		<a name="OtherOutput">
-			<h2>5. Output to Other Model Formats</h2>
+			<h2>4. Output to Other Model Formats</h2>
 		</a>
 		<p>IMOD models can be converted to a few other 3rd party formats. The formats and 
 			the programs used to convert to them are listed below.</p>
@@ -1116,11 +1060,11 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 		</p>
 		<p>&nbsp;</p>
 		<a name="Special">
-			<h2>6. Help on Specific Topics</h2>
+			<h2>5. Help on Specific Topics</h2>
 		</a>
 		<ul>
 			<li>
-				<a href="program_listing.html">Program Listing</a>
+				<a href="program_listing.html#TOP">Program Listing</a>
 			with brief description and link to man page for each program<li>
 				<a href="3dmodguide.html#TOP">Introduction to 3dmod.</a>
 			<li>
@@ -1136,15 +1080,19 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 				A <a href="JoinTutorial.html#TOP">tutorial</a>
 			for joining serial section tomograms with eTomo, including a sample data set.
 			<li>
-				<a href="serialalign.html#TOP">Guide to serial section alignment.</a>
+				<a href="serialalign.html#TOP">Guide to serial section alignment and
+				montage blending.</a>
 			<li>
-				<a href="libraries.html">IMOD library documentation</a>.
+				<a href="PEETmanual.html#TOP">Manual for PEET subvolume alignment and
+				averaging software.</a>
+			<li>
+				<a href="libraries.html#TOP">IMOD library documentation</a>.
 			<li>
 				<a href="index.html">Index file</a> with links to all documentation.<br>
 			</li>
 		</ul>
 		<hr>
-		<i>Last updated: May 1, 2012</i> [<a href="http://bio3d.colorado.edu/imod/index.html">IMOD 
+		<i>Last updated: February 2, 2014</i> [<a href="http://bio3d.colorado.edu/imod/index.html">IMOD 
 			Home Page</a>] [<a href="http://bio3d.colorado.edu/index.html">BL3DEMC Home 
 			Page</a>]
 		<br>

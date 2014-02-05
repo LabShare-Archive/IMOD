@@ -659,6 +659,8 @@ void FindBeads::main(int argc, char *argv[])
     if (mPeakThresh >0)
       printf("%d peaks above threshold of %.3f are being stored in model\n",
              numToSave, mPeakThresh);
+    if (!numToSave)
+      exitError("There are no peaks available for saving");
 
     if (imodNewObject(imod))
       exitError("Creating new object in model");
@@ -1156,7 +1158,8 @@ void FindBeads::averageBeads(int izStart, int izEnd)
     if (findHistoDipPL(histDip, peakBelow, peakAbove, NULL)) {
       if (mAverageFallback <= 0 || mNumPeaks < 2)
         exitError("Failed to find dip in smoothed histogram of peaks");
-      printf("Failed to find dip in histogram; using fallback threshold for averaging\n");
+      printf("Failed to find dip in histogram; using fallback threshold of %d for "
+             "averaging\n", mAverageFallback);
       qsort(&mPeakList[0], mNumPeaks, sizeof(PeakEntry), comparePeaks);
       numStart = B3DMAX(0, mNumPeaks - mAverageFallback);
       threshUse = 2.;

@@ -105,17 +105,20 @@ QLabel *diaLabel(const char *text, QWidget *parent, QBoxLayout *layout)
  * sizes for the spin box.  If [nDecimal] is non-zero, it creates and returns 
  * a QDoubleSpinBox with that number of decimal places.  It skips the label
  * if [text] is NULL.  The focus policy is set to ClickFocus.  Keyboard 
- * tracking is turned off.
+ * tracking is turned off.  If a pointer is supplied in the optional argument [labelPtr]
+ * (which is NULL by default), it is returned with the label pointer.
  */
 QAbstractSpinBox *diaLabeledSpin(int nDecimal, float minValue, float maxValue,
                                  float step, const char *text, QWidget *parent,
-                                 QBoxLayout *layout)
+                                 QBoxLayout *layout, QLabel **labelPtr)
 {
   QSpinBox *spin;
   QDoubleSpinBox *fspin;
   if (text) {
     QLabel *label = diaLabel(text, parent, layout);
     label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    if (labelPtr)
+      *labelPtr = label;
   }
   if (nDecimal) {
     fspin = new QDoubleSpinBox(parent);

@@ -1,6 +1,6 @@
 <html><head><title>Tomogram Joining</title></head><body>
 <A NAME = "TOP"></A>
-<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 4.3<BR>
+<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 4.7<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -552,7 +552,12 @@ alignment, but <A href="man/xfjointomo.html#TOP">Xfjointomo</A> will (thus far)
 solve only for a linear refining transformation.  The final transformations
 applied in rejoining the volumes will still be warping transforms, since they
 are obtained by multiplying the initial warping transforms with the refining
-transforms.
+transforms.  However, in order to build on the initial alignment as much as
+possible, it is important to incorporate the warping control points that you have
+already identified as corresponding between the sections fiducials in the
+refining model.  This is done by running
+the  <A href="man/joinwarp2model.html#TOP">joinwarp2model</A> to initialize
+the refining model, as described in the next section.
 <P>
 </P>
 <H4><A NAME = "RefineModel"></A>
@@ -565,7 +570,24 @@ to use a trial join that skips slices.
 To start the refinement process, press the <B>Refine Join</B> button on the 
 <B>Join</B> panel, which causes the program to rename the file that you want
 to model and store the information that it
-will need for the refinement.  Next, go to the <B>Model</B> tab and press
+will need for the refinement.  
+<P>
+If you used warping in the initial alignment, next go to the terminal and run:
+<PRE>
+   joinwarp2model -jo rootname_modeled.join -xf rootname.warpxg -off Xoff,Yoff -bi binning -ch size1,size2... rootname.xf rootname_refine.mod </PRE>
+where:
+<PRE>     rootname is the root name of your data set
+     Xoff,Yoff are the <B>negative</B> of the numbers in the <B>Shift in X:</B>
+         and <B>Y:</B> text boxes on the <B>Join</B> tab.
+     binning is the binning if you are using a binned trial join; otherwise
+         the option can be omitted
+     size1,size2,... are the sizes of the sections in the join.  Each size
+         equals End + 1 - Start for that section in the <B>Section Table</B>
+</PRE>
+We plan to make eTomo run this for you; check this document when you get a new
+IMOD release to see if the new version does it yet.
+<P>
+Next, go to the <B>Model</B> tab and press
 <B>Make Refining Model</B>.  Note that you can make this model on a binned or
 unbinned volume, just as you can make it on a binned trial join file.  If you
 need to load the volume with binning,
