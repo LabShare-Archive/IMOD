@@ -110,6 +110,16 @@ public class AxisID {
     return null;
   }
 
+  public static AxisID getInstance(char extension) {
+    if (FIRST_EXT_STRING.charAt(0) == extension) {
+      return FIRST;
+    }
+    if (SECOND_EXT_STRING.charAt(0) == extension) {
+      return SECOND;
+    }
+    return null;
+  }
+
   /**
    * Returns the extension associated with the specific AxisID.  Used for
    * creating file names.
