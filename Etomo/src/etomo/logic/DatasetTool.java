@@ -41,44 +41,83 @@ public final class DatasetTool {
   private DatasetTool() {
   }
 
+  public static String standardizeExtension(final BaseManager manager,
+      final File inputFile) {
+    // Nothing to do
+    if (inputFile == null) {
+      return null;
+    }
+    String name = inputFile.getName();
+    if (name.endsWith(".st")) {
+      return inputFile.getAbsolutePath();
+    }
+    if (manager.getBaseMetaData().getAxisType() == AxisType.SINGLE_AXIS) {
+      return renameToStandardExtension(manager, inputFile);
+    }
+    String newFileName = renameToStandardExtension(manager, inputFile);
+    // Find out if this is an A axis or B axis file
+    int index = name.lastIndexOf(".");
+    if (index != -1) {
+      index--;
+    }
+    else {
+      index = name.length() - 1;
+    }
+    AxisID axisID = AxisID.getInstance(name.charAt(index));
+    if (axisID == null) {
+      // Has neither an a or b extension - giving up
+      return newFileName;
+    }
+    // Attempt to rename the second file
+    else if (axisID == AxisID.FIRST) {
+      axisID = AxisID.SECOND;
+    }
+    else {
+      axisID = AxisID.FIRST;
+    }
+    StringBuffer secondFileName = new StringBuffer();
+    secondFileName.append(name.substring(0, index) + axisID.getExtension());
+    if (secondFileName.length() < name.length()) {
+      secondFileName.append(name.substring(index + 1));
+    }
+    renameToStandardExtension(manager,
+        new File(inputFile.getParentFile(), secondFileName.toString()));
+    return newFileName;
+  }
+
   /**
-   * Rename the input file, if it is not a .st file.  If the file has the .mrc extension,
+   * Rename the input file that is not an .st file.  If the file has the .mrc extension,
    * it will substitute the .st extension for the .mrc extension.  Returns the path of the
    * image file as it exists at the end of the this function.  If something has gone
    * wrong, null will be returned.  This forces the user to find the correct file, and
    * reduces the chance that etomo will or
-   * @param inputFile - image stack file
+   * @param inputFile - image stack file that is not null and does not have extension .st
    * @return the path of the image file, or null if there has been an error - set this output to the dataset text field
    */
-  public static String standardizeExtension(final BaseManager manager,
+  private static String renameToStandardExtension(final BaseManager manager,
       final File inputFile) {
-    if (inputFile != null) {
-      String name = inputFile.getName();
-      if (!name.endsWith(".st")) {
-        if (inputFile.getName().endsWith(".mrc")) {
-          name = name.substring(0, name.length() - 4);
-        }
-        File newFile = new File(inputFile.getParentFile(), name + ".st");
-        try {
-          // MUST fail and return false if the destination file already exists.
-          System.err.println("Renaming " + inputFile.getAbsolutePath() + " to "
-              + newFile.getAbsolutePath());
-          if (Utilities.renameFileSafely(manager, AxisID.ONLY, inputFile, newFile)) {
-            return newFile.getAbsolutePath();
-          }
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-          UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Rename Failed");
-          // Rename appears to have failed, but we don't absolutely know the state of the
-          // files. The .st file may or may not exist now, so the user needs to reselect
-          // the correct image file or dataset name.
-          return null;
-        }
-      }
-      return inputFile.getAbsolutePath();
+    String name = inputFile.getName();
+    if (name.endsWith(".mrc")) {
+      name = name.substring(0, name.length() - 4);
     }
-    return null;
+    File newFile = new File(inputFile.getParentFile(), name + ".st");
+    try {
+      // MUST fail and return false if the destination file already exists.
+      System.err.println("Renaming " + inputFile.getAbsolutePath() + " to "
+          + newFile.getAbsolutePath());
+      if (Utilities.renameFileSafely(manager, AxisID.ONLY, inputFile, newFile)) {
+        return newFile.getAbsolutePath();
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(manager, e.getMessage(), "Rename Failed");
+      // Rename appears to have failed, but we don't absolutely know the state of the
+      // files. The .st file may or may not exist now, so the user needs to reselect
+      // the correct image file or dataset name.
+      return null;
+    }
+    return inputFile.getAbsolutePath();
   }
 
   /**
