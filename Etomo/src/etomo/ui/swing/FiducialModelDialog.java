@@ -889,6 +889,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     cbBoundaryModel.addActionListener(actionListener);
     btnBoundaryModel.addActionListener(actionListener);
     btn3dmodClusteredElongatedModel.addActionListener(actionListener);
+    cbAppendToSeedModel.addActionListener(actionListener);
   }
 
   public static String getUseRaptorResultLabel() {
@@ -905,6 +906,14 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     boolean selected = cbBoundaryModel.isSelected();
     btnBoundaryModel.setEnabled(selected);
     cbExcludeInsideAreas.setEnabled(selected);
+    if (cbAppendToSeedModel.isSelected()) {
+      btnAutofidseed.setText(AUTOFIDSEED_APPEND_LABEL);
+      rbSeedModelAuto.setText(AUTOFIDSEED_APPEND_TITLE);
+    }
+    else {
+      btnAutofidseed.setText(AUTOFIDSEED_NEW_MODEL_LABEL);
+      rbSeedModelAuto.setText(AUTOFIDSEED_NEW_MODEL_TITLE);
+    }
   }
 
   public void expand(GlobalExpandButton button) {
@@ -1095,14 +1104,6 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     ltfBordersInXandY.setText(param.getBordersInXandY());
     cbTwoSurfaces.setSelected(param.isTwoSurfaces());
     cbAppendToSeedModel.setSelected(param.isAppendToSeedModel());
-    if (cbAppendToSeedModel.isSelected()) {
-      btnAutofidseed.setText(AUTOFIDSEED_APPEND_LABEL);
-      rbSeedModelAuto.setText(AUTOFIDSEED_APPEND_TITLE);
-    }
-    else {
-      btnAutofidseed.setText(AUTOFIDSEED_NEW_MODEL_LABEL);
-      rbSeedModelAuto.setText(AUTOFIDSEED_NEW_MODEL_TITLE);
-    }
     if (param.isTargetNumberOfBeads()) {
       rtfTargetNumberOfBeads.setSelected(true);
       rtfTargetNumberOfBeads.setText(param.getTargetNumberOfBeads());
@@ -1358,7 +1359,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
           DatasetFiles.getSeedFileName(applicationManager, axisID),
           DatasetFiles.getRawTiltFile(applicationManager, axisID), dialogType);
     }
-    else if (command.equals(cbBoundaryModel.getActionCommand())) {
+    else if (command.equals(cbBoundaryModel.getActionCommand())
+        || command.equals(cbAppendToSeedModel.getActionCommand())) {
       updateDisplay();
     }
     else if (command.equals(btnAutofidseed.getActionCommand())) {
