@@ -385,6 +385,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
   private static final DialogType DIALOG_TYPE = DialogType.FIDUCIAL_MODEL;
+  static final String AUTOFIDSEED_NEW_MODEL_LABEL = "Generate Seed Model";
+  private static final String AUTOFIDSEED_APPEND_LABEL = "Add Points to Seed Model";
+  private static final String AUTOFIDSEED_NEW_MODEL_TITLE = "Generate seed model automatically";
+  private static final String AUTOFIDSEED_APPEND_TITLE = "Add points to seed model automatically";
 
   private final JPanel pnlMain = new JPanel();
   private final FiducialModelActionListener actionListener = new FiducialModelActionListener(
@@ -408,7 +412,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final RadioButton rbSeedModelManual = new RadioButton(
       "Make seed model manually", SeedModelEnumeratedType.MANUAL, bgSeedModel);
   private final RadioButton rbSeedModelAuto = new RadioButton(
-      "Generate seed model automatically", SeedModelEnumeratedType.AUTO, bgSeedModel);
+      AUTOFIDSEED_NEW_MODEL_TITLE, SeedModelEnumeratedType.AUTO, bgSeedModel);
   private final RadioButton rbSeedModelTransfer = new RadioButton(
       "Transfer seed model from the other axis", SeedModelEnumeratedType.TRANSFER,
       bgSeedModel);
@@ -434,6 +438,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
   private final RadioTextField rtfTargetDensityOfBeads = RadioTextField.getInstance(
       FieldType.FLOATING_POINT, "Density (per megapixel):", bgTarget);
   private final CheckBox cbTwoSurfaces = new CheckBox("Select beads on two surfaces");
+  private final CheckBox cbAppendToSeedModel = new CheckBox("Add beads to existing model");
   private final LabeledTextField ltfIgnoreSurfaceData = new LabeledTextField(
       FieldType.INTEGER_LIST, "Ignore sorting in tracked models: ");
   private final LabeledTextField ltfDropTracks = new LabeledTextField(
@@ -518,6 +523,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     JPanel pnlExcludeInsideAreas = new JPanel();
     JPanel pnlTarget = new JPanel();
     JPanel pnlTwoSurfaces = new JPanel();
+    JPanel pnlAppendToSeedModel = new JPanel();
     JPanel pnlClusteredPointsAllowed1 = new JPanel();
     JPanel pnl3dmodBeadSortingAndSearching = new JPanel();
     JPanel pnlButtons = new JPanel();
@@ -680,6 +686,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlBeadSearchingAndSorting.setAlignmentY(Box.TOP_ALIGNMENT);
     pnlBeadSearchingAndSorting.add(pnlTarget);
     pnlBeadSearchingAndSorting.add(pnlTwoSurfaces);
+    pnlBeadSearchingAndSorting.add(pnlAppendToSeedModel);
     pnlBeadSearchingAndSorting.add(ltfIgnoreSurfaceData.getComponent());
     pnlBeadSearchingAndSorting.add(ltfDropTracks.getComponent());
     pnlBeadSearchingAndSorting.add(ltfMaxMajorToMinorRatio.getComponent());
@@ -698,6 +705,10 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     pnlTwoSurfaces.setLayout(new BoxLayout(pnlTwoSurfaces, BoxLayout.X_AXIS));
     pnlTwoSurfaces.add(cbTwoSurfaces);
     pnlTwoSurfaces.add(Box.createHorizontalGlue());
+    // AppendToSeedModel
+    pnlAppendToSeedModel.setLayout(new BoxLayout(pnlAppendToSeedModel, BoxLayout.X_AXIS));
+    pnlAppendToSeedModel.add(cbAppendToSeedModel);
+    pnlAppendToSeedModel.add(Box.createHorizontalGlue());
     // ClusteredPointsAllowed1
     pnlClusteredPointsAllowed1.setLayout(new BoxLayout(pnlClusteredPointsAllowed1,
         BoxLayout.X_AXIS));
@@ -1083,6 +1094,15 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
     cbAdjustSizes.setSelected(param.isAdjustSizes());
     ltfBordersInXandY.setText(param.getBordersInXandY());
     cbTwoSurfaces.setSelected(param.isTwoSurfaces());
+    cbAppendToSeedModel.setSelected(param.isAppendToSeedModel());
+    if (cbAppendToSeedModel.isSelected()) {
+      btnAutofidseed.setText(AUTOFIDSEED_APPEND_LABEL);
+      rbSeedModelAuto.setText(AUTOFIDSEED_APPEND_TITLE);
+    }
+    else {
+      btnAutofidseed.setText(AUTOFIDSEED_NEW_MODEL_LABEL);
+      rbSeedModelAuto.setText(AUTOFIDSEED_NEW_MODEL_TITLE);
+    }
     if (param.isTargetNumberOfBeads()) {
       rtfTargetNumberOfBeads.setSelected(true);
       rtfTargetNumberOfBeads.setText(param.getTargetNumberOfBeads());
@@ -1126,6 +1146,7 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
       param.setAdjustSizes(cbAdjustSizes.isSelected());
       param.setBordersInXandY(ltfBordersInXandY.getText(doValidation));
       param.setTwoSurfaces(cbTwoSurfaces.isSelected());
+      param.setAppendToSeedModel(cbAppendToSeedModel.isSelected());
       if (rtfTargetNumberOfBeads.isSelected()) {
         param.setTargetNumberOfBeads(rtfTargetNumberOfBeads.getText(doValidation));
       }
@@ -1295,8 +1316,8 @@ public final class FiducialModelDialog extends ProcessDialog implements ContextM
         AutofidseedParam.TARGET_DENSITY_OF_BEADS_KEY));
     cbTwoSurfaces.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         AutofidseedParam.TWO_SURFACES_KEY));
-    cbTwoSurfaces.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-        AutofidseedParam.TWO_SURFACES_KEY));
+    cbAppendToSeedModel.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        AutofidseedParam.APPEND_TO_SEED_MODEL_KEY));
     ltfIgnoreSurfaceData.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         AutofidseedParam.IGNORE_SURFACE_DATA_KEY));
     ltfDropTracks.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
