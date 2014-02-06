@@ -2474,6 +2474,7 @@ public final class ApplicationManager extends BaseManager implements
       DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     try {
+      imodManager.setOpenContours(key, axisID, true);
       imodManager.setPreserveContrast(key, axisID, true);
       imodManager.setOpenBeadFixer(key, axisID, true);
       imodManager.setAutoCenter(key, axisID, true);
