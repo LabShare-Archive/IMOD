@@ -479,9 +479,9 @@ assert.sp.particles-per-cpu=5
 assert.sp.debug-level=3
 assert.tf.low-frequency-cutoff=0
 assert.tf.sigma=0.05
-assert.tf.average-only-members-of-class=
+assert.tf.average-only-members-of-classes=
 #enabled/disabled
-assert.enabled.tf.average-only-members-of-class=
+assert.enabled.tf.average-only-members-of-classes=
 
 
 [function = check-prm]
@@ -703,10 +703,10 @@ assert.contains.file=%{dataset}.prm|debugLevel = 2
 sp.debug-level=3
 save=
 assert.contains.file=%{dataset}.prm|lowCutoff = {[0, 0.05]}
-tf.average-only-members-of-class=1
+tf.average-only-members-of-classes=1,3
 save=
-assert.contains.file=%{dataset}.prm|selectClassID = 1
-tf.average-only-members-of-class=
+assert.contains.file=%{dataset}.prm|selectClassID = [1,3]
+tf.average-only-members-of-classes=
 
 
 [function = cross-correlation-measure-check-prm]
