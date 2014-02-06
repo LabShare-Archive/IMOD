@@ -510,7 +510,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       FieldLabels.FLG_ALIGN_AVERAGES_LABEL);
   private final CheckBox cbFlgAbsValue = new CheckBox(FieldLabels.FLG_ABS_VALUE_LABEL);
   private final LabeledTextField ltfSelectClassID = new LabeledTextField(
-      FieldType.INTEGER, "Average only members of class: ");
+      FieldType.INTEGER, "Average only members of classes: ");
 
   private final SphericalSamplingForThetaAndPsiPanel sphericalSamplingForThetaAndPsiPanel;
   private final YAxisTypePanel yAxisTypePanel;
@@ -999,12 +999,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
             + "desired.  Values must be listed in increasing order and must be "
             + "larger than End.");
     ltfSelectClassID
-        .setToolTipText("Restrict averaging to members of the specified class. This is "
+        .setToolTipText("Restrict averaging to members of the specified classes. This is "
             + "useful only when the motive list contains class numbers (e.g. generated "
             + "by clusterPca). WARNING: if accidentally set when running a new alignment "
             + "(or at any other time when class numbers have not been assigned in the "
             + "motive list), you will get no particles in the new averages / "
-            + "references.");
+            + "references.  Format: a comma or space separated list of integers and/or "
+            + "descriptions (start:optional increment:end)");
   }
 
   private void setDefaults() {
