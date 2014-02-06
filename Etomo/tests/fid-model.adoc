@@ -365,12 +365,15 @@ assert.tf.total-number=
 assert.rb.density=off
 assert.tf.density=
 assert.cb.select-beads-on-two-surfaces=off
+if.not.var.dual-b.assert.cb.add-beads-to-existing-model=off
+if.var.dual-b.assert.cb.add-beads-to-existing-model=on
 #test enabled
 assert.enabled.rb.total-number=
 assert.enabled.tf.total-number=
 assert.enabled.rb.density=
 assert.disabled.tf.density=
 assert.enabled.cb.select-beads-on-two-surfaces=
+assert.enabled.cb.add-beads-to-existing-model=
 assert.disabled.bn.open-sorted-3d-models=
 
 [function = test-advanced-selection-and-sorting-parameters]
