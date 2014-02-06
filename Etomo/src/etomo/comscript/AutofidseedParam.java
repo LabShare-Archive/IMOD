@@ -41,6 +41,7 @@ public class AutofidseedParam implements CommandParam, Command {
   public static final String TARGET_NUMBER_OF_BEADS_KEY = "TargetNumberOfBeads";
   public static final String TARGET_DENSITY_OF_BEADS_KEY = "TargetDensityOfBeads";
   public static final String TWO_SURFACES_KEY = "TwoSurfaces";
+  public static final String APPEND_TO_SEED_MODEL_KEY = "AppendToSeedModel";
   public static final String IGNORE_SURFACE_DATA_KEY = "IgnoreSurfaceData";
   public static final String DROP_TRACKS_KEY = "DropTracks";
   public static final String MAX_MAJOR_TO_MINOR_RATIO_KEY = "MaxMajorToMinorRatio";
@@ -61,6 +62,8 @@ public class AutofidseedParam implements CommandParam, Command {
   private final FortranInputString bordersInXandY = new FortranInputString(
       BORDERS_IN_X_AND_Y_KEY, 2);
   private final EtomoBoolean2 twoSurfaces = new EtomoBoolean2(TWO_SURFACES_KEY);
+  private final EtomoBoolean2 appendToSeedModel = new EtomoBoolean2(
+      APPEND_TO_SEED_MODEL_KEY);
   private final ScriptParameter targetNumberOfBeads = new ScriptParameter(
       TARGET_NUMBER_OF_BEADS_KEY);
   private final ScriptParameter targetDensityOfBeads = new ScriptParameter(
@@ -94,6 +97,7 @@ public class AutofidseedParam implements CommandParam, Command {
     excludeInsideAreas.reset();
     bordersInXandY.reset();
     twoSurfaces.reset();
+    appendToSeedModel.reset();
     targetNumberOfBeads.reset();
     targetDensityOfBeads.reset();
     maxMajorToMinorRatio.reset();
@@ -121,6 +125,7 @@ public class AutofidseedParam implements CommandParam, Command {
     excludeInsideAreas.parse(scriptCommand);
     bordersInXandY.validateAndSet(scriptCommand);
     twoSurfaces.parse(scriptCommand);
+    appendToSeedModel.parse(scriptCommand);
     targetNumberOfBeads.parse(scriptCommand);
     targetDensityOfBeads.parse(scriptCommand);
     maxMajorToMinorRatio.parse(scriptCommand);
@@ -148,6 +153,7 @@ public class AutofidseedParam implements CommandParam, Command {
     excludeInsideAreas.updateComScript(scriptCommand);
     bordersInXandY.updateScriptParameter(scriptCommand);
     twoSurfaces.updateComScript(scriptCommand);
+    appendToSeedModel.updateComScript(scriptCommand);
     targetNumberOfBeads.updateComScript(scriptCommand);
     targetDensityOfBeads.updateComScript(scriptCommand);
     maxMajorToMinorRatio.updateComScript(scriptCommand);
@@ -208,6 +214,10 @@ public class AutofidseedParam implements CommandParam, Command {
 
   public boolean isTwoSurfaces() {
     return twoSurfaces.is();
+  }
+
+  public boolean isAppendToSeedModel() {
+    return appendToSeedModel.is();
   }
 
   public boolean isTargetNumberOfBeads() {
@@ -277,6 +287,10 @@ public class AutofidseedParam implements CommandParam, Command {
 
   public void setTwoSurfaces(final boolean input) {
     twoSurfaces.set(input);
+  }
+
+  public void setAppendToSeedModel(final boolean input) {
+    appendToSeedModel.set(input);
   }
 
   public void setTargetNumberOfBeads(final String input) {

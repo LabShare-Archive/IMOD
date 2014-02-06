@@ -76,7 +76,8 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay trackTiltxcorr = Run3dmodButton
       .getDeferredToggle3dmodInstance("Track Patches", DialogType.FIDUCIAL_MODEL);
   private final Run3dmodButton autofidseed = Run3dmodButton
-      .getDeferredToggle3dmodInstance("Generate Seed Model", DialogType.FIDUCIAL_MODEL);
+      .getDeferredToggle3dmodInstance(FiducialModelDialog.AUTOFIDSEED_NEW_MODEL_LABEL,
+          DialogType.FIDUCIAL_MODEL);
   private final ProcessResultDisplay imodchopconts = Run3dmodButton
       .getDeferredToggle3dmodInstance("Recut or Restore Contours",
           DialogType.FIDUCIAL_MODEL);

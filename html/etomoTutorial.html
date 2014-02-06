@@ -60,8 +60,8 @@
       <P>When eTomo is first started, a <b>Front Page</b> panel will 
         come up (shown above), allowing you to select what operation you want to 
         perform with eTomo.&nbsp; At this point you can either start working on a new 
-        data set by selecting <B>New Tomogram</B> or open an existing data set under 
-        the <b>File</b> menu.&nbsp;<br>
+        data set by pressing the <B>Build Tomogram</B> button or open an existing data set under 
+        the <b>File</b> and <b>Recent Projects</b> menus.&nbsp;<br>
       </P>
       <P>&nbsp;</P>
       <div align="center"><img src="etomoImages/setupwindow1.png" title="" alt="">&nbsp;
@@ -69,7 +69,7 @@
       </div>
       <p>&nbsp;
       </p>
-      <p>Press <B>New Tomogram</B> and the <b>Setup Tomogram</b> panel 
+      <p>Press <B>Build Tomogram</B> and the <b>Setup Tomogram</b> panel 
         will come up (shown above). A <B>Project Log</B> window will also 
         open that will contain a history of actions and report useful log file 
         solutions specific to particular steps.</p>
@@ -77,12 +77,16 @@
         To start working on a new data set, the following fields must be filled out. 
         The <b>Dataset name</b> is the name of the file containing the raw, tilt series 
         (or the root_namea.st if a dual axis data set was collected).&nbsp; You can 
-        enter the <b>Dataset name</b> by clicking on the yellow file selection 
+        enter the <b>Dataset name</b> by clicking on the yellow file selection button 
         associated with the <b>Dataset name</b> field, or type in the directory path 
         and file name directly in the field. The <b>Backup directory </b>is an optional 
         field to save small working files every time you run a procedure.&nbsp; This 
         field can be left empty if you don't wish to use a backup directory.
       </p>
+<p>In the <b>Templates</b> box, select the <i>plasticSection.adoc</i>
+<b>System template</b>.&nbsp;&nbsp;This template is part of the IMOD
+installation.&nbsp;&nbsp;If it is not available, please get the latest
+version of IMOD.</p>
       <p>
         Select whether the data set is <b>Single axis</b> or <b>Dual axis.</b> The <b>Montage</b>
         option is available for processing montaged tilt series.</p>
@@ -306,38 +310,25 @@ alignment</B>
         the <A href="tomoguide.html#GETTING FIDUCIAL">FIDUCIAL MODEL GENERATION</A> section 
         of the Tomography Guide for details.
         </P>
-      <H4>Press the 'Seed Fiducial Model' button. </H4>
-      <p>This will open BBa.preali in 3dmod and create an empty model 
-        file named BBa.seed. It will also bring up the Bead Fixer dialog box in <b>Make 
-          seed</b> mode with <b>Autocenter</b>&nbsp; and <B>Automatic new contour</B>
-        checked.&nbsp;</p>
-      <P>&nbsp;</P>
-      <div align="center"><img src="etomoImages/beadfixerSeed.png" title="" alt=""><br>
-      </div>
-      <p>&nbsp;</p>
-      <p>3dmod will open the file to the middle section (section 31in 
-        this tutorial). You can return to the middle section by pressing the Insert key 
-        on your keyboard.</p>
-      <P>&nbsp;</P>
-      <div align="center"><img src="etomoImages/seedmodel1.jpg" title="" alt=""><br>
-      </div>
-      <p></p>
-      <div align="center">&nbsp;&nbsp; &nbsp;
+
+ <div align="center"><img src="etomoImages/autofidseed1.png" title="" alt="">&nbsp;
         <br>
       </div>
-      <p>In the Zap (image) window, place a model point in the center 
-        of 20-40<span>&nbsp; </span>gold particles by centering the cursor in the 
-        middle of the gold particle and pressing the middle mouse button. Because <B>Automatic 
-          new contour</B> is checked,&nbsp; a new contour for each new gold bead 
-        will be cerated. Because <b>Autocenter</b> is checked, 3dmod should make sure 
-        that the model point is positioned in the center of the gold bead. In my 
-        example (BBa.seed) I selected 25 gold particles; the model contains 1 object, 
-        24 contours, with each contour having 1 point.
-        <span>&nbsp;</span>Save this 'seed' model by going to File -&gt; Save model, or 
-        by hitting the hot key 's'. The model is referred to as a 'seed' because it 
-        contains model points on only one section. The next step uses this model as a 
-        seed from which a complete fiducial model is built.
-      </p>
+
+ <div align="center"><img src="etomoImages/fix1.jpg" title="" alt="">&nbsp;
+        <br>
+      </div>
+
+
+
+ 
+
+
+
+
+
+
+      <p>Select the <b>Track Beads</b> tab.</p>
       <h4>Press the 'Track Seed Model' process button.</h4>
       <p>&nbsp;</p>
       <P align="center">&nbsp;<img src="etomoImages/fiducialA2.png" title="" alt="">
@@ -348,18 +339,26 @@ alignment</B>
         completed fiducial model. This computer-generated model is not perfect, and 
         gaps in the fiducial model can occur. A report of the total points missing will 
         be indicated in the Project log window. If a large number of points are 
-        missing, press the Track with Fiducial Model as Seed button which will rerun 
-        the tracking program with the fiducial model as the seed. If points are still 
+        missing, press the <b>Track with Fiducial Model as Seed</b> button, which will rerun 
+        the tracking program with the fiducial model as the seed.&nbsp;&nbsp;If points are still 
         missing, the next procedure involves an iterative process to edit this fiducial 
         model.</p>
-      <h4>Press the 'Fix Fiducial Model' process button.</h4>
+
+   <div align="center"><img src="etomoImages/track1.png" title="" alt="">&nbsp;
+        <br></div>
+
+          <h4>Press the 'Fix Fiducial Model' process button.</h4>
       <p>&nbsp;</p>
       <p align="center"><img src="etomoImages/fiducialA3.png" title="" alt="">&nbsp;
         </p>
+
       <p><br>
         This procedure will open the prealigned stack (BBa.preali) and the fiducial 
         model file (BBa.fid) in 3dmod.
       </p>
+ <div align="center"><img src="etomoImages/fix1.jpg" title="" alt="">&nbsp;
+        <br></div>
+
       <p>&nbsp;</p>
       <div align="center"><img src="etomoImages/3dmodmain.png" title="" alt=""> &nbsp;&nbsp;&nbsp; 
         &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 
@@ -379,12 +378,23 @@ alignment</B>
         the section with the missing point and use the middle mouse button to add the 
         point in the center of the gold particle. It is useful to increase the 
         magnification of the image with the '+' key and adjust the contrast on the 
-        sections, especially at high tilt. Repeat <b>'Go to&nbsp; Next Gap'</b> until 
+        sections, especially at high tilt. </p>
+
+ <div align="center"><img src="etomoImages/fix2.png" title="" alt="">&nbsp;
+        <br></div>
+ 
+<p>Repeat <b>'Go to&nbsp; Next Gap'</b> until 
         the message, '<B>No more gaps found</B>' comes 
         up in the main 3dmod window. Save the model file,&nbsp; and hit the
         <B>Done</B>
         button to advance to the fine alignment step.</p>
       <p>&nbsp;</p>
+
+
+
+
+
+
       <H2>VII.&nbsp; Alignment of serial tilts</h2>
       <p align="left">The <b>Fine Alignment</b> panel is organized with 
         a set of three tabs to solve for various alignment parameters. A general 
@@ -414,11 +424,64 @@ alignment</B>
         and short sections from this log file. In my example, the first
         <B>Compute
 Alignment</B>
-        run gave a Residual error mean of 0.364<br>
+        run gave a Residual error mean of 0.239<br>
         <br>
       </p>
+
       <p align="center"><img src="etomoImages/alignlogerrors.png" title="" alt=""><br>
       </p>
+
+      </p>
+
+      <p align="center"><img src="etomoImages/seed1.png" title="" alt=""><br>
+      </p>
+
+     <H4>Press the 'Seed Fiducial Model' button. </H4>
+      <p>This will open BBa.preali in 3dmod and create an empty model 
+        file named BBa.seed. It will also bring up the Bead Fixer dialog box in <b>Make 
+          seed</b> mode with <b>Autocenter</b>&nbsp;
+        checked.&nbsp;&nbsp;Check <B>Automatic new contour</B> if it is off.</p>
+      <P>&nbsp;</P>
+      <div align="center"><img src="etomoImages/beadfixerSeed.png" title="" alt=""><br>
+      </div>
+      <p>&nbsp;</p>
+      <p>3dmod will open the file to the middle section (section 31in 
+        this tutorial). You can return to the middle section by pressing the Insert key 
+        on your keyboard.</p>
+      <P>&nbsp;</P>
+      <div align="center"><img src="etomoImages/seedmodel1.jpg" title="" alt=""><br>
+      </div>
+      <p></p>
+      <div align="center">&nbsp;&nbsp; &nbsp;
+        <br>
+      </div>
+      <p>In the Zap (image) window, place a model point in the center 
+        of 20-40<span>&nbsp; </span>gold particles by centering the cursor in the 
+        middle of the gold particle and pressing the middle mouse button. Because <B>Automatic 
+          new contour</B> is checked,&nbsp; a new contour for each new gold bead 
+        will be cerated. Because <b>Autocenter</b> is checked, 3dmod should make sure 
+        that the model point is positioned in the center of the gold bead. In my 
+        example (BBa.seed) I selected 25 gold particles; the model contains 1 object, 
+        24 contours, with each contour having 1 point.
+        <span>&nbsp;</span>Save this 'seed' model by going to File -&gt; Save model, or 
+        by hitting the hot key 's'. The model is referred to as a 'seed' because it 
+        contains model points on only one section. The next step uses this model as a 
+        seed from which a complete fiducial model is built.
+      </p>
+
+      <div align="center"><img src="etomoImages/track2.png" title="" alt="">
+      </div>
+
+ <p align="center"><img src="etomoImages/finealignment2.png" title="" alt=""><br>
+      </p>
+
+ <p align="center"><img src="etomoImages/alignlogerrors2.png" title="" alt=""><br>
+      </p>
+
+
+
+
+
       <p>&nbsp;</p>
       <p>The goal of the fine alignment step is to reduce the Residual 
         error mean to 0.2- 0.5 for the pixel size of this tutorial data set. Data sets 
@@ -452,10 +515,10 @@ the fiducials based on their solved positions. </span>Fiducials that are present
       </p>
       <p align="center"><img src="etomoImages/residualvector.jpg" title="" alt="">&nbsp;
         <br>
-      </p>
       <p><br>
-        The model will show the current model point as a red X, and the position of the 
-        residual as a green X. This residual displacement is expanded by a factor of 10 
+        The model will show the current model point as the origin of a green arrow, and
+        the position of the 
+        residual as the end of the arrow. This residual displacement is expanded by a factor of 10 
         in order to distinguish it from the actual model point, because displacements 
         are often very small (<u>&lt;</u> 2 pixels). In large (&gt;2k x 2k) images the 
         residual model will often show large displacements in one area but not in other 
@@ -504,7 +567,7 @@ iterative steps involve fixing fiducial points with large residuals.</h4>
       </div>
       <p>&nbsp;</p>
       <p>Note the Total tilt angle change near the bottom (in my 
-        example, this value was -0.09). Put this value in the
+        example, this value was -0.39). Put this value in the
         <B>Fine Alignment Volume Position Parameters</B>
         box under
         <B>Total tilt angle offset</B>. Press the&nbsp; 
@@ -539,7 +602,7 @@ button to run the alignment.  3dmod will re-read the log file when <b>Compute Al
         as long as you haven't changed any parameters in eTomo. After a few runs of 
         running the alignment and checking model points in 3dmod, the final mean 
         residual should come down to 0.2-0.4.&nbsp;&nbsp; In my example, the final 
-        Residual error mean was 0.318.</p>
+        Residual error mean was 0.326.</p>
       <p>
       <p>&nbsp;</p>
       </p>
@@ -715,9 +778,14 @@ first series to make the seed model for the second series. At the end, the
 program will list the fiducial correspondence between the first and second axes 
 and will report this in the Project log window.</p>
       <p> Do not worry if a few fiducials failed to transfer.
-In this example, all 27 fiducials correspond:</p>
-      <p><code><font size=+1>&nbsp;&nbsp; &nbsp; Points in A: 1-27</font></code></p>
-      <p><code><font size=+1>&nbsp; &nbsp; &nbsp;Points in B: 1-27</font></code></p>
+In this example, 21 fiducials correspond:</p>
+      <div align="center"><img src="etomoImages/transferfidOutput.png" title="" alt="">&nbsp;<br>
+        </div>  
+  <div align="center"><img src="etomoImages/autofidseed2.png" title="" alt="">&nbsp;<br>
+        </div>
+  <div align="center"><img src="etomoImages/autofidseed3.png" title="" alt="">&nbsp;<br>
+        </div>
+
       <p>The output file of transferfid
 is the seed model for the second axis. In this example, the model is
 named BBb.seed. Proceed to <B>Track
@@ -805,7 +873,7 @@ Relationship</B>. It is most common to match the B tomogram to A.
         defaults were kept for the X and Y axis.</p>
       <p>In this example <b>Z axis min</b> and <b>Z axis max</b> where 
         set to the first and last slices where about half the material in the slice is 
-        not blurry (18 and 69).</p>
+        not blurry (15 and 66).</p>
       <p>&nbsp;</p>
       <P align="center">&nbsp;<img src="etomoImages/volA1.jpg" title="" alt=""><img src="etomoImages/volA2.jpg" title="" alt="">&nbsp;</P>
       <p>&nbsp;</p>
@@ -897,7 +965,7 @@ you press <B>Get XYZ Volume Range from
         Z slider to lower part of the scaling range (24) and press <b>Lo</b>.&nbsp; 
         Move the Z slider to the upper part of the scaling range (70) and press <b>Hi</b>.</p>
       <p>&nbsp;</p>
-      <P align="center">&nbsp;<img src="etomoImages/rubberband2.jpg" title="" alt="">&nbsp;</P>
+      <P align="center">&nbsp;<img src="etomoImages/rubberband2.png" title="" alt="">&nbsp;</P>
       <p>&nbsp;</p>
       <p>Go to the <b>Scaling</b> box in eTomo and press the <b>Get XYZ 
           Sub-Area From 3dmod</b> button. This will cause the eTomo to retrieve X, Y, 
