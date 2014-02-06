@@ -176,6 +176,8 @@ elif typeName == 'autofidseed':
                'TrackCommandFile	track' + axislet + '.com',
                'MinSpacing	0.85',
                'PeakStorageFraction	1.0']
+   if axislet == 'b':
+      comlines.append('AppendToSeedModel	1')
 
 # TRANSFERFID
 elif typeName == 'transferfid':
