@@ -442,7 +442,7 @@ public final class MatlabParam {
       .getMatlabInstance(FLG_ABS_VALUE_KEY);
   private final ParsedNumber flgStrictSearchLimits = ParsedNumber
       .getMatlabInstance(FLG_STRICT_SEARCH_LIMITS_KEY);
-  private final ParsedNumber selectClassID = ParsedNumber
+  private final ParsedArray selectClassID = ParsedArray
       .getMatlabInstance(SELECT_CLASS_ID_KEY);
   private final ParsedNumber flgNoReferenceRefinement = ParsedNumber
       .getMatlabInstance(FLG_NO_REFERENCE_REFINEMENT_KEY);
