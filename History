@@ -1,6 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/30/14: In eTomo - Setup Reconstruction, allowing .mrc image files to be
+2/6/14: Updated the images in the eTomo tutorial.  Also exposed the
+autofidseed append parameter and initialized the seed model contours in 3dmod.
+(Bug# 1775)
+
+2/6/14: In eTomo - PEET, accepting integer vectors in selectClassID.
+(Bug# 1775)
+
+2/6/14: In eTomo - Setup Reconstruction, allowing .mrc image files to be
 selected, and renaming them to .st.(Bug# 1696)
 
 2/5/14: Makecomfile adds option to append to seed model for autofidseedb.com.
