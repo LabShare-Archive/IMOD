@@ -442,6 +442,12 @@ public final class MatlabParam {
       .getMatlabInstance(FLG_ABS_VALUE_KEY);
   private final ParsedNumber flgStrictSearchLimits = ParsedNumber
       .getMatlabInstance(FLG_STRICT_SEARCH_LIMITS_KEY);
+  /**
+   * @deprecated
+   * backwards compatibility for selectClassID, which used to be a number
+   */
+  private final ParsedNumber bcSelectClassID = ParsedNumber
+      .getMatlabInstance(SELECT_CLASS_ID_KEY);
   private final ParsedArray selectClassID = ParsedArray
       .getMatlabInstance(SELECT_CLASS_ID_KEY);
   private final ParsedNumber flgNoReferenceRefinement = ParsedNumber
@@ -918,6 +924,7 @@ public final class MatlabParam {
     flgFairReference.setRawString(false);
     flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
     flgStrictSearchLimits.setRawString(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
+    bcSelectClassID.clear();
     selectClassID.clear();
     flgNoReferenceRefinement.setRawString(false);
 
@@ -1331,8 +1338,18 @@ public final class MatlabParam {
           FLG_STRICT_SEARCH_LIMITS_KEY, FieldLabels.FLG_STRICT_SEARCH_LIMITS_LABEL, 1);
     }
     // selectClassID
-    selectClassID.parse(autodoc.getAttribute(SELECT_CLASS_ID_KEY));
-    addError(selectClassID, errorList);
+    attribute = autodoc.getAttribute(SELECT_CLASS_ID_KEY);
+    selectClassID.parse(attribute);
+    // Backwards compatibility - read it in if its a number
+    if (selectClassID.validate() != null) {
+      bcSelectClassID.parse(attribute);
+      if (bcSelectClassID.validate() != null) {
+        addError(selectClassID, errorList);
+      }
+      else {
+        selectClassID.setRawString(bcSelectClassID.getRawString());
+      }
+    }
     // FlgNoReferenceRefinement
     flgNoReferenceRefinement.parse(autodoc.getAttribute(FLG_NO_REFERENCE_REFINEMENT_KEY));
     if (!addError(flgNoReferenceRefinement, errorList)) {
