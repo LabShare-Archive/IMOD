@@ -23,6 +23,10 @@ void AdocDone();
 int AdocWrite(const char *filename);
 int AdocAppendSection(const char *filename);
 int AdocAddSection(const char *collName, const char *name);
+int AdocInsertSection(const char *typeName, int sectInd, const char *name);
+int AdocDeleteSection(const char *typeName, int sectInd);
+int AdocLookupSection(const char *typeName, const char *name);
+int AdocFindInsertIndex(const char *typeName, int nameValue);
 int AdocSetKeyValue(const char *collName, int sectInd, const char *key, 
                     const char *value);
 int AdocDeleteKeyValue(const char *collName, int sectInd, const char *key);

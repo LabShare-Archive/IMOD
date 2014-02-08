@@ -531,7 +531,7 @@ int AdocAddSection(const char *typeName, const char *name)
  * Inserts a section with name given by [name] into the collection of sections of type 
  * [typeName], at the index [sectInd].  The collection must exist unless [sectInd] is 0,
  * and [sectInd] must be less than or equal to the number of sections in that collection.
- * Returns -1 for error.  (Untested)
+ * Returns -1 for error.
  */
 int AdocInsertSection(const char *typeName, int sectInd, const char *name)
 {
@@ -555,7 +555,7 @@ int AdocInsertSection(const char *typeName, int sectInd, const char *name)
 
   /* Add section to end regardless, then return if that is all that is needed */
   coll = &curAdoc->collections[collInd];
-  if (AdocAddSection(typeName, name))
+  if (AdocAddSection(typeName, name) < 0)
       return -1;
   if (sectInd == numSect)
     return 0;
@@ -615,6 +615,56 @@ int AdocDeleteSection(const char *typeName, int sectInd)
   return 0;
 }
 
+/*!
+ * Looks up a section of type specified by [typeName] and name given by [name].  
+ * Returns the index of that section in the collection of sections of that
+ * type, -1 if there is none, or -2 for error.
+ */
+int AdocLookupSection(const char *typeName, const char *name)
+{
+  AdocCollection *coll;
+  int collInd, sectInd;
+
+  if (!curAdoc || !typeName || !name)
+    return -2;
+  collInd = lookupCollection(curAdoc, typeName);
+  if (collInd < 0)
+    return -2;
+  coll = &curAdoc->collections[collInd];
+  for (sectInd = 0; sectInd < coll->numSections; sectInd++)
+    if (!strcmp(coll->sections[sectInd].name, name))
+      return sectInd;
+  return -1;
+}
+
+/*!
+ * Looks in the collection of sections of type [typeName], converts their name strings to
+ * to integers, and returns the index of the first section whose name is greater than
+ * [nameValue], the number of sections if there is no such section, or -1 for error
+ * (including if a section exists whose name converts to [nameValue]).  This returned
+ * index can thus be used in a call to @AdocInsertSection to maintain the sections in
+ * numeric order by name value.
+ */
+int AdocFindInsertIndex(const char *typeName, int nameValue)
+{
+  AdocCollection *coll;
+  int collInd, sectInd, sectValue;
+
+  if (!curAdoc || !typeName)
+    return -1;
+  collInd = lookupCollection(curAdoc, typeName);
+  if (collInd < 0)
+    return -1;
+  coll = &curAdoc->collections[collInd];
+  for (sectInd = 0; sectInd < coll->numSections; sectInd++) {
+    sectValue = atoi(coll->sections[sectInd].name);
+    if (nameValue == sectValue)
+      return -1;
+    if (nameValue < sectValue)
+      return sectInd;
+  }
+  return coll->numSections;
+}
 
 /*!
  * Sets a key-value pair to [key] and [value] in the section with index 
