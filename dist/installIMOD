@@ -167,6 +167,7 @@ cleanupPackage = False
 realPackage = ''
 tgzfile = None
 startingDir = os.path.abspath('.')
+pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
 
 # Constants for testing os and package type against - capitalize to avoid testing on them
 LINUX = 0
@@ -233,9 +234,12 @@ if package.endswith('.csh'):
       action = 'finding end of stub in ' + package
       echo('Extracting compressed tar from csh file...')
       line = cshfile.readline()
+      stubTest = 'END OF STUB'
+      if pyVersion >= 300:
+         stubTest = stubTest.encode()
       while True:
          line = cshfile.readline()
-         if line.startswith(b'END OF STUB'):
+         if line.startswith(stubTest):
             break
          if not line:
             echoerr('Cannot find END OF STUB in csh file')
@@ -384,7 +388,7 @@ if os.path.exists(version):
       echoerr("Error removing  existing directory " + version)
 
 # extractall is better because it preserves dates; use it if possible
-pyVersion = 100 * sys.version_info[0] + 10 * sys.version_info[1]
+# Extraction of either kind with Python 3.2.0 gives error on cuda files with chained links
 echo("Unpacking IMOD in " + installdir + " ...")
 tf = None
 try:
@@ -394,10 +398,13 @@ try:
    else:
       for tfi in tf:
          tf.extract(tfi)
+
 except tarfile.ReadError:
    echoerr("An error occurred opening tar file " + packabs)
 except tarfile.TarError:
    echoerr("An error occurred unpacking the IMOD tar file")
+except OSError:
+   print("An error occurred unpacking the IMOD tar file: " + str(sys.exc_info()[1]))
 if tf:
       tf.close()
 
@@ -743,7 +750,10 @@ if not custname:
       else:
          echo("Do you want to remove these other versions?")
          echo("  " + oldstr)
-         yesno = raw_input("Enter Y to remove them: ")
+         if pyVersion < 300:
+            yesno = raw_input("Enter Y to remove them: ")
+         else:
+            yesno = input("Enter Y to remove them: ")
          yesopt = yesno.lower() == 'y'
 
       if yesopt:
