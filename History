@@ -1,8 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/7/14: Fixed problems with installer on Python 2.5 and Python 3.
+
 2/6/14: Updated the images in the eTomo tutorial.  Also exposed the
 autofidseed append parameter and initialized the seed model contours in 3dmod.
-(Bug# 1775)
+(Bug# 1777)
 
 2/6/14: In eTomo - PEET, accepting integer vectors in selectClassID.
 (Bug# 1775)
