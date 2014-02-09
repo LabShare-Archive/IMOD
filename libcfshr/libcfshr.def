@@ -153,6 +153,7 @@ EXPORTS
 	ADOCGETTWOFLOATS
 	AdocGetString
 	mrc_big_seek
+	AdocLookupSection
 	avgSD
 	rsSortIndexedFloats
 	XCorrMeanZero
@@ -255,6 +256,7 @@ EXPORTS
 	zoomFiltInterp
 	FINDPIECESHIFTS
 	b3dIMin
+	AdocFindInsertIndex
 	CCCOEFFICIENT
 	ilistDelete
 	numberInList
