@@ -4,6 +4,7 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.JoinManager;
+import etomo.logic.DatasetTool;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -32,7 +33,6 @@ public final class DatasetFiles {
   public static final String ROTATED_TOMO_EXT = ".rot";
   public static final String COMSCRIPT_EXT = ".com";
   public static final String TOMO_EXT = ".rec";
-  public static final String STACK_EXT = ".st";
   public static final String MODEL_EXT = ".mod";
   private static final String PATCH_VECTOR_STRING = "patch_vector";
   public static final String PATCH_VECTOR_MODEL = PATCH_VECTOR_STRING + MODEL_EXT;
@@ -63,13 +63,13 @@ public final class DatasetFiles {
   private static File calibrationDir = null;
   private static File distortionDir = null;
 
-  //Stacks
+  // Stacks
 
   public static File getOriginalStack(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
     return new File(manager.getPropertyUserDir(), manager.getName()
-        + axisID.getExtension() + "_orig" + STACK_EXT);
+        + axisID.getExtension() + "_orig" + DatasetTool.STANDARD_DATASET_EXT);
   }
 
   public static File getStack(BaseManager manager, AxisID axisID) {
@@ -86,12 +86,12 @@ public final class DatasetFiles {
 
   private static String getStackName(BaseMetaData metaData, AxisID axisID) {
     axisID = correctAxisID(metaData, axisID);
-    return metaData.getName() + axisID.getExtension() + STACK_EXT;
+    return metaData.getName() + axisID.getExtension() + DatasetTool.STANDARD_DATASET_EXT;
   }
 
   public static String getStackName(String dataset, AxisType axisType, AxisID axisID) {
     axisID = correctAxisID(axisType, axisID);
-    return dataset + axisID.getExtension() + STACK_EXT;
+    return dataset + axisID.getExtension() + DatasetTool.STANDARD_DATASET_EXT;
   }
 
   public static String getSeedFileName(BaseManager manager, AxisID axisID) {
@@ -106,7 +106,7 @@ public final class DatasetFiles {
     return new File(manager.getPropertyUserDir(), getSeedFileName(manager, axisID));
   }
 
-  //Tomograms
+  // Tomograms
 
   public static String getTomogramName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -121,13 +121,9 @@ public final class DatasetFiles {
     return new File(manager.getPropertyUserDir(), getTomogramName(manager, axisID));
   }
 
-  /*
-   public static File getCombinedTomogram(BaseManager manager) {
-   if (manager.getBaseMetaData().getAxisType() != AxisType.DUAL_AXIS) {
-   return null;
-   }
-   return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT);
-   }*/
+  /*public static File getCombinedTomogram(BaseManager manager) { if
+   * (manager.getBaseMetaData().getAxisType() != AxisType.DUAL_AXIS) { return null; }
+   * return new File(manager.getPropertyUserDir(), "sum" + TOMO_EXT); } */
 
   public static boolean isRotatedTomogram(File tomogram) {
     String tomogramName = tomogram.getName();
@@ -139,12 +135,12 @@ public final class DatasetFiles {
 
   public static File getRotatedTomogram(BaseManager manager, File tomogram) {
     String tomogramName = tomogram.getName();
-    return new File(manager.getPropertyUserDir(), tomogramName.substring(0, tomogramName
-        .lastIndexOf('.'))
+    return new File(manager.getPropertyUserDir(), tomogramName.substring(0,
+        tomogramName.lastIndexOf('.'))
         + ROTATED_TOMO_EXT);
   }
 
-  //Other dataset files
+  // Other dataset files
 
   public static String getLogName(BaseManager manager, AxisID axisID,
       ProcessName processName) {
@@ -189,11 +185,8 @@ public final class DatasetFiles {
     return metaData.getName() + FLATTEN_WARP_EXT + XF_EXT;
   }
 
-  /*
-   public static File getFlattenWarpOutputFile(BaseManager manager) {
-   return new File(manager.getPropertyUserDir(),
-   getFlattenWarpOutputName(manager));
-   }*/
+  /*public static File getFlattenWarpOutputFile(BaseManager manager) { return new
+   * File(manager.getPropertyUserDir(), getFlattenWarpOutputName(manager)); } */
 
   public static String getPrealignedStackName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -321,16 +314,11 @@ public final class DatasetFiles {
     return metaData.getName() + axisID.getExtension() + FULL_ALIGNED_EXT;
   }
 
-  /*
-   public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
-   return new File(manager.getPropertyUserDir(), getFullAlignedStackFileName(
-   manager, axisID));
-   }
-
-   public static File getErasedFiducialsFile(BaseManager manager, AxisID axisID) {
-   return new File(manager.getPropertyUserDir(), getErasedFiducialsFileName(
-   manager, axisID));
-   }*/
+  /*public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
+   * return new File(manager.getPropertyUserDir(), getFullAlignedStackFileName( manager,
+   * axisID)); } public static File getErasedFiducialsFile(BaseManager manager, AxisID
+   * axisID) { return new File(manager.getPropertyUserDir(), getErasedFiducialsFileName(
+   * manager, axisID)); } */
 
   public static String getErasedFiducialsFileName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -392,13 +380,10 @@ public final class DatasetFiles {
     return new File(manager.getPropertyUserDir(), PATCH_VECTOR_MODEL);
   }
 
-  //other etomo files
-  /*
-   public static File getCommandsFile(BaseManager manager, String subdirName,
-   String rootName) {
-   return new File(manager.getPropertyUserDir(), getCommandsFileName(
-   subdirName, rootName));
-   }*/
+  // other etomo files
+  /*public static File getCommandsFile(BaseManager manager, String subdirName, String
+   * rootName) { return new File(manager.getPropertyUserDir(), getCommandsFileName(
+   * subdirName, rootName)); } */
 
   public static String getCommandsFileName(String subdirName, String rootName) {
     String commandsFileName = rootName + ".cmds";
@@ -432,21 +417,19 @@ public final class DatasetFiles {
     return new File(subdirName, outFileName).getPath();
   }
 
-  //log files
+  // log files
 
   public static String getTomopitchLogFileName(BaseManager manager, AxisID axisID) {
     return ProcessName.TOMOPITCH.toString()
         + correctAxisID(manager.getBaseMetaData(), axisID).getExtension() + LOG_EXT;
   }
 
-  //com scripts
+  // com scripts
 
-  /* public static File getCombineCom(BaseManager manager) {
-   return new File(manager.getPropertyUserDir(), ProcessName.COMBINE
-   + COMSCRIPT_EXT);
-   }*/
+  /* public static File getCombineCom(BaseManager manager) { return new
+   * File(manager.getPropertyUserDir(), ProcessName.COMBINE + COMSCRIPT_EXT); } */
 
-  //directories
+  // directories
   public static File getCalibrationDir(BaseManager manager, String propertyUserDir,
       AxisID axisID) {
     if (calibrationDir == null) {
@@ -473,7 +456,7 @@ public final class DatasetFiles {
     return distortionDir;
   }
 
-  //private
+  // private
 
   private static AxisID correctAxisID(BaseMetaData metaData, AxisID axisID) {
     return correctAxisID(metaData.getAxisType(), axisID);
