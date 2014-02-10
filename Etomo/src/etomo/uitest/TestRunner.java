@@ -14,6 +14,7 @@ import junit.extensions.jfcunit.JFCTestHelper;
 import etomo.Arguments;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
@@ -87,7 +88,8 @@ public final class TestRunner extends JFCTestCase implements VariableList {
 
   private static final String SOURCE_ENV_VAR = "IMOD_UITEST_SOURCE";
   private static final String[] IMAGE_FILE_EXT_ARRAY = { ".3dmod", ".ali", ".erase",
-      ".fid", ".mod", ".resmod", ".seed", ".st", ".matmod", ".rec" };
+      ".fid", ".mod", ".resmod", ".seed", DatasetTool.STANDARD_DATASET_EXT, ".matmod",
+      ".rec" };
 
   private final Map variableMap = new HashMap();
   private final Map variableMapA = new HashMap();

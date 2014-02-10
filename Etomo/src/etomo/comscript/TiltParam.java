@@ -276,6 +276,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.ApplicationManager;
+import etomo.logic.DatasetTool;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -1220,7 +1221,8 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
    */
   public boolean setSubsetStart() {
     resetSubsetStart();
-    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     try {
       if (!stackHeader.read(manager)) {
         return true;

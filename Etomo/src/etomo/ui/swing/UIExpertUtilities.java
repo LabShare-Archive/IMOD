@@ -10,6 +10,7 @@ import etomo.BaseManager;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
@@ -117,7 +118,8 @@ public final class UIExpertUtilities {
    */
   public int getStackBinning(BaseManager manager, AxisID axisID, MRCHeader stackHeader,
       boolean nullIfFailed) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     int defaultValue = nullIfFailed ? EtomoNumber.INTEGER_NULL_VALUE : 1;
     try {
       if (!rawstackHeader.read(manager) || !stackHeader.read(manager)) {
@@ -310,7 +312,8 @@ public final class UIExpertUtilities {
    * @return
    */
   private int getBackwardCompatibleAlignBinning(ApplicationManager manager, AxisID axisID) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     try {
       if (!rawstackHeader.read(manager)) {
         return 1;
@@ -402,7 +405,8 @@ public final class UIExpertUtilities {
    */
   private int getBackwardCompatibleTiltBinning(ApplicationManager manager, AxisID axisID,
       ConstTiltParam tiltParam) {
-    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(manager, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     try {
       if (!rawstackHeader.read(manager)) {
         return 1;

@@ -97,6 +97,7 @@ import java.io.IOException;
 import etomo.ApplicationManager;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.NewstParam;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.util.InvalidParameterException;
@@ -104,14 +105,14 @@ import etomo.util.MRCHeader;
 
 public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
   public static final String rcsid = "$Id$";
-  
+
   private final ApplicationManager applicationManager;
 
   private String dataSetPath = null;
 
   public PrenewstProcessMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id, ProcessName.PRENEWST);
-    this.applicationManager=appMgr;
+    this.applicationManager = appMgr;
   }
 
   /**
@@ -127,8 +128,8 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Get the header from the raw stack to calculate the aligned stack size
     loadDataSetPath();
-    MRCHeader rawStack = MRCHeader.getInstance(manager.getPropertyUserDir(),
-        dataSetPath + ".st", axisID);
+    MRCHeader rawStack = MRCHeader.getInstance(manager.getPropertyUserDir(), dataSetPath
+        + DatasetTool.STANDARD_DATASET_EXT, axisID);
     if (!rawStack.read(manager)) {
       return false;
     }
@@ -152,8 +153,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
     }
     long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
-    manager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes,
-        axisID);
+    manager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID);
     return true;
   }
 

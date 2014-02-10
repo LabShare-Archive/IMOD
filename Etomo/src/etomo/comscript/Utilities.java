@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.IOException;
 
 import etomo.BaseManager;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
@@ -41,14 +42,15 @@ public final class Utilities {
   public static final String rcsid = "$Id$";
 
   public static final String MONTAGE_SEPARATION = "-10";
-  
+
   static boolean is90DegreeImageRotation(double imageRotation) {
     return (imageRotation > 45 && imageRotation < 135)
         || (imageRotation < -45 && imageRotation > -135);
   }
 
   static Goodframe getGoodframeFromMontageSize(AxisID axisID, BaseManager manager) {
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID,".st");
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     try {
       montagesize.read(manager);
       if (montagesize.isFileExists()) {

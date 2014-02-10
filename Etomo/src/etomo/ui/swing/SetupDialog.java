@@ -41,6 +41,7 @@ import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.FileType;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.StringProperty;
 import etomo.type.TiltAngleSpec;
 import etomo.type.UserConfiguration;
 import etomo.ui.FieldType;
@@ -219,8 +220,12 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   public boolean buttonExecuteAction() {
     String sDataset = ftfDataset.getText();
-    ftfDataset.setText(DatasetTool.standardizeExtension(applicationManager,
-        ftfDataset.getFile()));
+    StringProperty standardizedFilePath = new StringProperty();
+    if (DatasetTool.standardizeExtension(applicationManager, expert.getAxisType(),
+        ftfDataset.getFile(), standardizedFilePath)) {
+      // file name changed or there was a problem with the rename
+      ftfDataset.setText(standardizedFilePath.toString());
+    }
     if (sDataset.indexOf(File.separator) != -1) {
       if (!DatasetTool.validateDatasetName(applicationManager, null, AxisID.ONLY,
           ftfDataset.getFile(), DataFileType.RECON, expert.getAxisType())) {

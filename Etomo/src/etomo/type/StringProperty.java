@@ -47,6 +47,11 @@ public final class StringProperty implements ConstStringProperty {
 
   private String string = null;
 
+  public StringProperty() {
+    this.key = null;
+    this.returnNullWhenEmpty = false;
+  }
+  
   public StringProperty(final String key) {
     this.key = key;
     this.returnNullWhenEmpty = false;

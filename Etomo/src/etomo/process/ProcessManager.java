@@ -990,6 +990,7 @@
 
 package etomo.process;
 
+import etomo.logic.DatasetTool;
 import etomo.storage.AutofidseedLog;
 import etomo.storage.FlattenWarpLog;
 import etomo.storage.LogFile;
@@ -1478,7 +1479,8 @@ public class ProcessManager extends BaseProcessManager {
     // Construct the command line strings
     String[] commandArray = new String[3];
 
-    String stack = getDatasetName() + axisID.getExtension() + ".st";
+    String stack = getDatasetName() + axisID.getExtension()
+        + DatasetTool.STANDARD_DATASET_EXT;
     String xform = getDatasetName() + axisID.getExtension() + ".prexf";
 
     String[] command = new String[] { ApplicationManager.getIMODBinPath() + "midas",
@@ -1515,7 +1517,7 @@ public class ProcessManager extends BaseProcessManager {
       stackExtension = BlendmontParam.DISTORTION_CORRECTED_STACK_EXTENSION;
     }
     else {
-      stackExtension = ".st";
+      stackExtension = DatasetTool.STANDARD_DATASET_EXT;
     }
     // String options = "-p " + getDatasetName() + axisID.getExtension() + ".pl "
     // + "-b 0 -q ";

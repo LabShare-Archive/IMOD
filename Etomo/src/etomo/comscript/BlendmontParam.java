@@ -7,6 +7,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import etomo.BaseManager;
+import etomo.logic.DatasetTool;
 import etomo.logic.TomogramTool;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -279,7 +280,8 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
       return retval;
     }
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID, ".st");
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     montagesize.read(manager);
     convertToStartingAndEnding(startingAndEndingX, montagesize.getX().getInt(),
         fisSizeToOutputInXandY.getInt(0));
@@ -507,7 +509,7 @@ public final class BlendmontParam implements CommandParam, CommandDetails {
       // run blendmont, as long as the blendmont output is more recent then the
       // stack.
       File stackFile = new File(manager.getPropertyUserDir(), datasetName
-          + axisID.getExtension() + ".st");
+          + axisID.getExtension() + DatasetTool.STANDARD_DATASET_EXT);
       File blendFile = new File(manager.getPropertyUserDir(), datasetName
           + axisID.getExtension() + BLENDMONT_STACK_EXTENSION);
       if (readInXcorrs.is() && oldEdgeFunctions.is() && blendFile.exists()
