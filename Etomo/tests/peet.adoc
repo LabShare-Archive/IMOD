@@ -705,7 +705,7 @@ save=
 assert.contains.file=%{dataset}.prm|lowCutoff = {[0, 0.05]}
 tf.average-only-members-of-classes=1,3
 save=
-assert.contains.file=%{dataset}.prm|selectClassID = [1,3]
+assert.contains.file=%{dataset}.prm|selectClassID = [1, 3]
 tf.average-only-members-of-classes=
 
 
