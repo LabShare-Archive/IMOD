@@ -989,7 +989,8 @@ public final class ApplicationManager extends BaseManager implements
    * Open 3dmod to view the erased stack
    */
   public void imodErasedStack(AxisID axisID, Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack") == null) {
+    if (Utilities.getFile(this, true, axisID,
+        "_fixed" + DatasetTool.STANDARD_DATASET_EXT, "erased stack") == null) {
       return;
     }
     try {
@@ -1058,8 +1059,8 @@ public final class ApplicationManager extends BaseManager implements
     // resetNextProcess(AxisID.ONLY);
     // }
     // check for original stack
-    File originalStack = Utilities.getFile(this, false, stackAxisID, "_orig.st",
-        "original stack");
+    File originalStack = Utilities.getFile(this, false, stackAxisID, "_orig"
+        + DatasetTool.STANDARD_DATASET_EXT, "original stack");
     if (!originalStack.exists()) {
       if (stackAxisID == AxisID.FIRST) {
         // Nothing to do on the first axis, so move on to the second axis
@@ -1108,7 +1109,8 @@ public final class ApplicationManager extends BaseManager implements
     else {
       return;
     }
-    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
+    File originalStack = Utilities.getFile(this, false, axisID, "_orig"
+        + DatasetTool.STANDARD_DATASET_EXT, "");
     String errTag = "Unexpected result from running archiveorig";
     StringBuffer errMess = new StringBuffer();
     if (!originalStack.exists()) {
@@ -1156,8 +1158,10 @@ public final class ApplicationManager extends BaseManager implements
   }
 
   public String getArchiveInfo(AxisID axisID) {
-    File stack = Utilities.getFile(this, false, axisID, ".st", "");
-    File originalStack = Utilities.getFile(this, false, axisID, "_orig.st", "");
+    File stack = Utilities.getFile(this, false, axisID, DatasetTool.STANDARD_DATASET_EXT,
+        "");
+    File originalStack = Utilities.getFile(this, false, axisID, "_orig"
+        + DatasetTool.STANDARD_DATASET_EXT, "");
     File xrayStack = Utilities.getFile(this, false, axisID, "_xray.st.gz", "");
     if (stack == null && originalStack == null || xrayStack == null) {
       throw new IllegalStateException("Unable to get file information");
@@ -4588,7 +4592,8 @@ public final class ApplicationManager extends BaseManager implements
       }
       double startingAngle = tiltAngleSpec.getRangeMin();
       double step = tiltAngleSpec.getRangeStep();
-      MRCHeader rawStackHeader = MRCHeader.getInstance(this, axisID, ".st");
+      MRCHeader rawStackHeader = MRCHeader.getInstance(this, axisID,
+          DatasetTool.STANDARD_DATASET_EXT);
       if (!rawStackHeader.read(this)) {
         String message = "Unable to create " + rawtlt.getAbsolutePath();
         uiHarness.openMessageDialog(this, message, "Unable to create raw tilt file",
@@ -8437,7 +8442,8 @@ public final class ApplicationManager extends BaseManager implements
       ConstProcessSeries processSeries) {
     FidXyz fidXyz = UIExpertUtilities.INSTANCE.getFidXyz(this, axisID);
     MRCHeader prealiHeader = MRCHeader.getInstance(this, axisID, ".preali");
-    MRCHeader rawstackHeader = MRCHeader.getInstance(this, axisID, ".st");
+    MRCHeader rawstackHeader = MRCHeader.getInstance(this, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     try {
       fidXyz.read();
       if (!prealiHeader.read(this) || !rawstackHeader.read(this)) {
