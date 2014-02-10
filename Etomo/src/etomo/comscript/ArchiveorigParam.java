@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.File;
 
 import etomo.BaseManager;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.FileType;
 import etomo.type.ProcessName;
@@ -40,7 +41,8 @@ public class ArchiveorigParam implements Command {
     else if (axisID == AxisID.SECOND) {
       mode = Mode.AXIS_B;
     }
-    File stack = Utilities.getFile(manager, false, axisID, ".st", "");
+    File stack = Utilities.getFile(manager, false, axisID,
+        DatasetTool.STANDARD_DATASET_EXT, "");
     commandArray = new String[] { "python", "-u",
         BaseManager.getIMODBinPath() + COMMAND_NAME, "-PID", stack.getName() };
     outputFile = Utilities.getFile(manager, false, axisID, "_xray.st.gz", "");
