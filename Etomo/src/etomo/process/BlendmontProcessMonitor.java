@@ -5,6 +5,7 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.BlendmontParam.Mode;
+import etomo.logic.DatasetTool;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.util.InvalidParameterException;
@@ -101,7 +102,8 @@ public class BlendmontProcessMonitor extends LogFileProcessMonitor {
   protected void findNSections() throws InterruptedException, NumberFormatException,
       LogFile.LockException, InvalidParameterException, IOException {
     Montagesize montagesize = null;
-    montagesize = Montagesize.getInstance(manager, axisID,".st");
+    montagesize = Montagesize.getInstance(manager, axisID,
+        DatasetTool.STANDARD_DATASET_EXT);
     montagesize.read(manager);
     nSections = montagesize.getZ().getInt();
   }

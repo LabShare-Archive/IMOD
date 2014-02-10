@@ -10,6 +10,7 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
@@ -2000,7 +2001,8 @@ public class ImodManager {
   private ImodState newRawStack(final AxisID axisID, final File file) {
     ImodState imodState;
     if (file == null) {
-      imodState = new ImodState(manager, axisID, datasetName, ".st");
+      imodState = new ImodState(manager, axisID, datasetName,
+          DatasetTool.STANDARD_DATASET_EXT);
       imodState.setLoadAsIntegers();
     }
     else {
@@ -2010,7 +2012,7 @@ public class ImodManager {
   }
 
   private ImodState newErasedStack(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName, "_fixed.st");
+    ImodState imodState = new ImodState(manager, axisID, datasetName, "_fixed"+DatasetTool.STANDARD_DATASET_EXT);
     return imodState;
   }
 
@@ -2149,7 +2151,8 @@ public class ImodManager {
   }
 
   private ImodState newPreview(AxisID axisID) {
-    ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
+    ImodState imodState = new ImodState(manager, axisID, datasetName,
+        DatasetTool.STANDARD_DATASET_EXT);
     imodState.setLoadAsIntegers();
     return imodState;
   }
