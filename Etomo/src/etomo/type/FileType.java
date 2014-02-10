@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.process.ImodManager;
 
 /**
@@ -282,11 +283,12 @@ public final class FileType {
   public static final FileType SIRT_SUBAREA_OUTPUT_TEMPLATE = FileType
       .getTemplateInstance(true, true, "_sub", ".srec");
   public static final FileType RAW_STACK = FileType.getTwoImodInstance(true, true, "",
-      ".st", ImodManager.RAW_STACK_KEY, ImodManager.PREVIEW_KEY);
+      DatasetTool.STANDARD_DATASET_EXT, ImodManager.RAW_STACK_KEY,
+      ImodManager.PREVIEW_KEY);
   public static final FileType FIXED_XRAYS_STACK = FileType.getImodInstance(true, true,
-      "_fixed", ".st", ImodManager.ERASED_STACK_KEY);
+      "_fixed", DatasetTool.STANDARD_DATASET_EXT, ImodManager.ERASED_STACK_KEY);
   public static final FileType ORIGINAL_RAW_STACK = FileType.getInstance(true, true,
-      "_orig", ".st");
+      "_orig", DatasetTool.STANDARD_DATASET_EXT);
   public static final FileType EDGE_FUNCTIONS_X = FileType.getInstance(true, true, "",
       ".xef");
   public static final FileType LOCAL_TRANSFORMATION_LIST = FileType.getInstance(true,

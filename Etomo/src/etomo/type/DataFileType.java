@@ -1,5 +1,7 @@
 package etomo.type;
 
+import etomo.logic.DatasetTool;
+
 /**
 * <p>Description: Describes the types of of data files and rules about directory sharing.</p>
 * 
@@ -16,7 +18,8 @@ package etomo.type;
 public final class DataFileType {
   public static final String rcsid = "$Id$";
 
-  public static final DataFileType RECON = new DataFileType(".edf", true, ".st");
+  public static final DataFileType RECON = new DataFileType(".edf", true,
+      DatasetTool.STANDARD_DATASET_EXT);
   public static final DataFileType JOIN = new DataFileType(".ejf", false, null);
   public static final DataFileType PARALLEL = new DataFileType(".epp", false, null);
   public static final DataFileType PEET = new DataFileType(".epe", false, null);

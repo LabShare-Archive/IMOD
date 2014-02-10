@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.process.SystemProgram;
 import junit.framework.TestCase;
 
@@ -149,7 +150,8 @@ public class MetaDataTest extends TestCase {
   private static final String validFileDirName = new String("ConstMetaData_validFile");
   private static final String dummyFileName = new String("dummy");
   private static final String validDatasetName = new String("valid");
-  private static final String validFileName = new String(validDatasetName + ".st");
+  private static final String validFileName = new String(validDatasetName
+      + DatasetTool.STANDARD_DATASET_EXT);
   private static final String validAFileName = new String(validDatasetName + "a.st");
   private boolean windowsOs = false;
   private SystemProgram program;

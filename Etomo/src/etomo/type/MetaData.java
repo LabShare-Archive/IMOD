@@ -12,6 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.logic.DatasetTool;
 import etomo.logic.TrackingMethod;
 import etomo.ui.LogProperties;
 import etomo.util.Utilities;
@@ -865,7 +866,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + FIRST_AXIS_KEY + ".LengthOfPieces");
   private final EtomoNumber lengthOfPiecesB = new EtomoNumber(TRACK_KEY + "."
       + SECOND_AXIS_KEY + ".LengthOfPieces");
-  //Either .st or .mrc
+  // Either .st or .mrc
   private final StringProperty origImageStackExt = new StringProperty(
       "Setup.OrigImageStackExt");
   /**
@@ -941,10 +942,9 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
    * name.
    */
   private void fixDatasetName() {
-    origImageStackExt.set(".st");
-    String mrcExt = ".mrc";
-    if (datasetName.endsWith(mrcExt)) {
-      origImageStackExt.set(mrcExt);
+    origImageStackExt.set(DatasetTool.STANDARD_DATASET_EXT);
+    if (datasetName.endsWith(DatasetTool.ALTERNATE_DATASET_EXT)) {
+      origImageStackExt.set(DatasetTool.ALTERNATE_DATASET_EXT);
     }
     if (axisType == AxisType.SINGLE_AXIS) {
       if (datasetName.endsWith(origImageStackExt.toString())) {
