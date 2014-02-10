@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -959,7 +960,8 @@ public final class NewstParam implements ConstNewstParam, CommandParam {
     // UserSize is empty, check for an angle close to 90 degrees.
     if ((sizeToOutputInXandY.isDefault() || sizeToOutputInXandY.isEmpty())
         && Utilities.is90DegreeImageRotation(imageRotation)) {
-      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st");
+      MRCHeader header = MRCHeader.getInstance(manager, axisID,
+          DatasetTool.STANDARD_DATASET_EXT);
       header.read(manager);
       // Set y from columns (x)
       sizeToOutputInXandY.set(1, header.getNColumns());

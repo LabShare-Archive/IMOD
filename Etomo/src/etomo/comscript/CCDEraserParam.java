@@ -3,6 +3,7 @@ package etomo.comscript;
 import java.io.File;
 
 import etomo.ApplicationManager;
+import etomo.logic.DatasetTool;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.FileType;
@@ -223,9 +224,9 @@ public class CCDEraserParam extends ConstCCDEraserParam implements Command, Comm
 
       // Turn on the automatic mode with the defaults from the new com script
       findPeaks = true;
-      String junk[] = inputFile.split("\\.st");
+      String junk[] = inputFile.split("\\" + DatasetTool.STANDARD_DATASET_EXT);
       String datasetName = junk[0];
-      outputFile = datasetName + "_fixed.st";
+      outputFile = datasetName + "_fixed" + DatasetTool.STANDARD_DATASET_EXT;
       outputFileType = FileType.FIXED_XRAYS_STACK;
       peakCriterion = "10.0";
       diffCriterion = "8.0";
