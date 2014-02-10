@@ -322,23 +322,24 @@ public final class SetupReconUIHarness {
       return null;
     }
     // Add the appropriate extension onto the filename if necessary
-    if (!datasetName.endsWith(".st") && !datasetName.endsWith(".mrc")) {
+    if (!datasetName.endsWith(DatasetTool.STANDARD_DATASET_EXT)
+        && !datasetName.endsWith(DatasetTool.ALTERNATE_DATASET_EXT)) {
       String datasetNameSt;
       if (setupInterface.isDualAxisSelected()) {
-        datasetNameSt = datasetName + "a.st";
+        datasetNameSt = datasetName + "a" + DatasetTool.STANDARD_DATASET_EXT;
       }
       else {
-        datasetNameSt = datasetName + ".st";
+        datasetNameSt = datasetName + DatasetTool.STANDARD_DATASET_EXT;
       }
       if (new File(datasetNameSt).exists()) {
         return datasetNameSt;
       }
       String datasetNameMrc;
       if (setupInterface.isDualAxisSelected()) {
-        datasetNameMrc = datasetName + "a.mrc";
+        datasetNameMrc = datasetName + "a" + DatasetTool.ALTERNATE_DATASET_EXT;
       }
       else {
-        datasetNameMrc = datasetName + ".mrc";
+        datasetNameMrc = datasetName + DatasetTool.ALTERNATE_DATASET_EXT;
       }
       if (new File(datasetNameMrc).exists()) {
         return datasetNameMrc;
@@ -363,7 +364,8 @@ public final class SetupReconUIHarness {
     }
     File dataset = new File(datasetText);
     String datasetFileName = dataset.getName();
-    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
+    if (datasetFileName.equals("a" + DatasetTool.STANDARD_DATASET_EXT)
+        || datasetFileName.equals("b" + DatasetTool.STANDARD_DATASET_EXT)
         || datasetFileName.equals(".")) {
       UIHarness.INSTANCE.openMessageDialog(manager, "The name " + datasetFileName
           + " cannot be used as a dataset name.", errorMessageTitle, AxisID.ONLY);
