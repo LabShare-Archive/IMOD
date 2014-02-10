@@ -10,6 +10,7 @@ import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.DataFileType;
+import etomo.type.StringProperty;
 import etomo.type.ViewType;
 import etomo.ui.UIComponent;
 import etomo.ui.swing.UIHarness;
@@ -36,53 +37,121 @@ import etomo.util.Utilities;
 public final class DatasetTool {
   public static final String rcsid = "$Id:$";
 
+  public static final String STANDARD_DATASET_EXT = ".st";
+  public static final String ALTERNATE_DATASET_EXT = ".mrc";
+
   private static final String MESSAGE_TITLE = "Invalid Dataset Directory";
 
   private DatasetTool() {
   }
 
-  public static String standardizeExtension(final BaseManager manager,
-      final File inputFile) {
+  /**
+   * Rename the inputFile if it is an .mrc file.  If this is dual axis, also rename the
+   * other axis .mrc file.  If inputFile is actually a dataset name, rename the associated
+   * .mrc file(s), if they exist.  if an .mrc file name was passed in, return true and set
+   * standardizedFilePath to the renamed file path.  If the rename fails, return true and
+   * keep standardizedFilePath empty so that the user will reexamine the directory.
+   * Otherwise return true.
+   * @param manager
+   * @param inputFile - dataset file or dataset name that is treated as if it where a file
+   * @param standardizedFilePath - a new string to place in the dataset field
+   * @return true if standardizedFilePath should replace the current dataset field entry
+   */
+  public static boolean standardizeExtension(final BaseManager manager,
+      final AxisType axisType, final File inputFile,
+      final StringProperty standardizedFilePath) {
+    standardizedFilePath.reset();
     // Nothing to do
     if (inputFile == null) {
-      return null;
+      return false;
     }
+    // The standard extension was used - nothing to do
     String name = inputFile.getName();
-    if (name.endsWith(".st")) {
-      return inputFile.getAbsolutePath();
+    if (name.endsWith(STANDARD_DATASET_EXT)) {
+      return false;
     }
-    if (manager.getBaseMetaData().getAxisType() == AxisType.SINGLE_AXIS) {
-      return renameToStandardExtension(manager, inputFile);
+    // The entry is a dataset name, not a file
+    String absPath = inputFile.getAbsolutePath();
+    if (!name.endsWith(ALTERNATE_DATASET_EXT)) {
+      if (axisType != AxisType.DUAL_AXIS) {
+        // single axis dataset
+        File altDatasetFile;
+        if (!(new File(absPath + STANDARD_DATASET_EXT).exists())) {
+          altDatasetFile = new File(absPath + ALTERNATE_DATASET_EXT);
+          if (altDatasetFile.exists()) {
+            // rename the .mrc file associated with this dataset name
+            if (renameToStandardExtension(manager, altDatasetFile) == null) {
+              // Need to reset the dataset field because rename failed
+              return true;
+            }
+          }
+        }
+      }
+      else if (!(new File(absPath + AxisID.FIRST.getExtension() + STANDARD_DATASET_EXT)
+          .exists())
+          && !(new File(absPath + AxisID.SECOND.getExtension() + STANDARD_DATASET_EXT)
+              .exists())) {
+        // dual axis dataset
+        // if the .mrc files associated with this dataset name exist, rename them
+        File altDatasetFile = new File(absPath + AxisID.FIRST.getExtension()
+            + ALTERNATE_DATASET_EXT);
+        // must return true if the rename failed, files may be in an unknown state and
+        // the user should reexamine the directory.
+        boolean renameFailed = false;
+        if (altDatasetFile.exists()) {
+          renameFailed = renameToStandardExtension(manager, altDatasetFile) == null;
+        }
+        altDatasetFile = new File(absPath + AxisID.SECOND.getExtension()
+            + ALTERNATE_DATASET_EXT);
+        if (altDatasetFile.exists()) {
+          if (renameToStandardExtension(manager, altDatasetFile) == null || renameFailed) {
+            return true;
+          }
+        }
+        else if (renameFailed) {
+          return true;
+        }
+      }
+      // no need to change the dataset field, since its a dataset name without an
+      // extension and any renames succeeded.
+      return false;
     }
-    String newFileName = renameToStandardExtension(manager, inputFile);
-    // Find out if this is an A axis or B axis file
-    int index = name.lastIndexOf(".");
-    if (index != -1) {
-      index--;
+    // The file has the alternative extension - must be renamed
+    String newName = renameToStandardExtension(manager, inputFile);
+    if (newName != null) {
+      standardizedFilePath.set(newName);
     }
-    else {
-      index = name.length() - 1;
+    // Handle the second .mrc file in a dual axis dataset
+    if (axisType == AxisType.DUAL_AXIS) {
+      // Find out if this is an A axis or B axis file
+      int index = name.lastIndexOf(".");
+      if (index != -1) {
+        index--;
+      }
+      else {
+        index = name.length() - 1;
+      }
+      AxisID axisID = AxisID.getInstance(name.charAt(index));
+      if (axisID == null) {
+        // Has neither an a or b extension - giving up
+        return false;
+      }
+      // Attempt to rename the second file
+      else if (axisID == AxisID.FIRST) {
+        axisID = AxisID.SECOND;
+      }
+      else {
+        axisID = AxisID.FIRST;
+      }
+      StringBuffer secondFileName = new StringBuffer();
+      secondFileName.append(name.substring(0, index) + axisID.getExtension());
+      if (secondFileName.length() < name.length()) {
+        secondFileName.append(name.substring(index + 1));
+      }
+      renameToStandardExtension(manager, new File(inputFile.getParentFile(),
+          secondFileName.toString()));
     }
-    AxisID axisID = AxisID.getInstance(name.charAt(index));
-    if (axisID == null) {
-      // Has neither an a or b extension - giving up
-      return newFileName;
-    }
-    // Attempt to rename the second file
-    else if (axisID == AxisID.FIRST) {
-      axisID = AxisID.SECOND;
-    }
-    else {
-      axisID = AxisID.FIRST;
-    }
-    StringBuffer secondFileName = new StringBuffer();
-    secondFileName.append(name.substring(0, index) + axisID.getExtension());
-    if (secondFileName.length() < name.length()) {
-      secondFileName.append(name.substring(index + 1));
-    }
-    renameToStandardExtension(manager,
-        new File(inputFile.getParentFile(), secondFileName.toString()));
-    return newFileName;
+    return true;
   }
 
   /**
@@ -97,10 +166,10 @@ public final class DatasetTool {
   private static String renameToStandardExtension(final BaseManager manager,
       final File inputFile) {
     String name = inputFile.getName();
-    if (name.endsWith(".mrc")) {
-      name = name.substring(0, name.length() - 4);
+    if (name.endsWith(ALTERNATE_DATASET_EXT)) {
+      name = name.substring(0, name.length() - ALTERNATE_DATASET_EXT.length());
     }
-    File newFile = new File(inputFile.getParentFile(), name + ".st");
+    File newFile = new File(inputFile.getParentFile(), name + STANDARD_DATASET_EXT);
     try {
       // MUST fail and return false if the destination file already exists.
       System.err.println("Renaming " + inputFile.getAbsolutePath() + " to "
@@ -137,6 +206,7 @@ public final class DatasetTool {
       errorMessage = "No input file specified.";
     }
     else if (!inputFile.exists()) {
+      Thread.dumpStack();
       errorMessage = "Input file does not exist: " + inputFile.getAbsolutePath();
     }
     else if (!inputFile.isFile()) {
