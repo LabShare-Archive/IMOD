@@ -6,6 +6,7 @@ import java.io.File;
 import etomo.ApplicationManager;
 import etomo.Arguments;
 import etomo.EtomoDirector;
+import etomo.logic.DatasetTool;
 import etomo.logic.UserEnv;
 import etomo.storage.DirectiveFileCollection;
 import etomo.storage.EtomoFileFilter;
@@ -254,15 +255,15 @@ public final class SetupDialogExpert {
     // Create File instances based on the stacks specified in the setup dialog
     if (axisType == AxisType.DUAL_AXIS) {
       firstStack = new File(propertyUserDir, datasetName + AxisID.FIRST.getExtension()
-          + ".st");
+          + DatasetTool.STANDARD_DATASET_EXT);
       firstStackName = firstStack.getName();
       secondStack = new File(propertyUserDir, datasetName + AxisID.SECOND.getExtension()
-          + ".st");
+          + DatasetTool.STANDARD_DATASET_EXT);
       secondStackName = secondStack.getName();
     }
     else if (axisType == AxisType.SINGLE_AXIS) {
       firstStack = new File(propertyUserDir, datasetName + AxisID.ONLY.getExtension()
-          + ".st");
+          + DatasetTool.STANDARD_DATASET_EXT);
       firstStackName = firstStack.getName();
     }
     // open any .edf files in propertyUserDir - assuming the .edf file for this
@@ -276,7 +277,7 @@ public final class SetupDialogExpert {
     // where one is done on A and the other is done on B, would be considered
     // sharing a directory.
     for (int i = 0; i < edfFiles.length; i++) {
-      MetaData savedMetaData = new MetaData(manager,manager.getLogProperties());
+      MetaData savedMetaData = new MetaData(manager, manager.getLogProperties());
       try {
         ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i]);
         if (paramStore != null) {
@@ -299,10 +300,10 @@ public final class SetupDialogExpert {
       String savedSecondStackName;
       if (savedAxisType == AxisType.DUAL_AXIS) {
         savedFirstStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.FIRST.getExtension() + ".st");
+            + AxisID.FIRST.getExtension() + DatasetTool.STANDARD_DATASET_EXT);
         savedFirstStackName = savedFirstStack.getName();
         savedSecondStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.SECOND.getExtension() + ".st");
+            + AxisID.SECOND.getExtension() + DatasetTool.STANDARD_DATASET_EXT);
         savedSecondStackName = savedSecondStack.getName();
         if (axisType == AxisType.DUAL_AXIS) {
           // compare dual axis A against saved dual axis A
@@ -327,7 +328,7 @@ public final class SetupDialogExpert {
       }
       else if (savedAxisType == AxisType.SINGLE_AXIS) {
         savedFirstStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.ONLY.getExtension() + ".st");
+            + AxisID.ONLY.getExtension() + DatasetTool.STANDARD_DATASET_EXT);
         savedFirstStackName = savedFirstStack.getName();
         if (axisType == AxisType.DUAL_AXIS) {
           // compare dual axis A against saved single axis
@@ -475,8 +476,6 @@ public final class SetupDialogExpert {
     }
     return currentBackupDirectory;
   }
-
-
 
   String getCurrentMagGradientDir() {
     // Open up the file chooser in the calibration directory, if available,
