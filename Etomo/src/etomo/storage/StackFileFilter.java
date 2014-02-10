@@ -4,6 +4,8 @@ import java.io.File;
 
 import javax.swing.filechooser.FileFilter;
 
+import etomo.logic.DatasetTool;
+
 /**
  * <p>Description: </p>
  *
@@ -30,16 +32,20 @@ import javax.swing.filechooser.FileFilter;
  * <p> Initial revision
  * <p>
  */
-public class StackFileFilter extends FileFilter {
+public class StackFileFilter extends FileFilter implements java.io.FileFilter {
   public static final String rcsid = "$Id:";
 
-  /**
-   * @see javax.swing.filechooser.FileFilter#accept(File)
-   */
+  public StackFileFilter() {
+  }
+
   public boolean accept(File f) {
     // If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(".st")
-        && !f.getAbsolutePath().endsWith(".mrc")) {
+    if (!f.isFile()) {
+      return true;
+    }
+    String name = f.getName();
+    if (!name.endsWith(DatasetTool.STANDARD_DATASET_EXT)
+        && !name.endsWith(DatasetTool.ALTERNATE_DATASET_EXT)) {
       return false;
     }
     return true;
