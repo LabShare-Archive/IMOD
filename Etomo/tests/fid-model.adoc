@@ -85,8 +85,8 @@ if.var.dual-b.assert.rb.add-points-to-seed-model-automatically=off
 if.var.dual.assert.rb.transfer-seed-model-from-the-other-axis=off
 #test enabled
 assert.enabled.rb.make-seed-model-manually=
-if.not.var.assert.enabled.rb.generate-seed-model-automatically=
-if.var.assert.enabled.rb.add-points-to-seed-model-automatically=
+if.not.var.dual-b.assert.enabled.rb.generate-seed-model-automatically=
+if.var.dual-b.assert.enabled.rb.add-points-to-seed-model-automatically=
 if.var.dual-a.assert.disabled.rb.transfer-seed-model-from-the-other-axis=
 if.var.dual-b.assert.enabled.rb.transfer-seed-model-from-the-other-axis=
 #test panels
