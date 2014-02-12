@@ -269,14 +269,18 @@ final class LabeledSpinner {
     if (value.isNull()) {
       spinner.setValue(defaultValue);
     }
-    spinner.setValue(value.getNumber());
+    else {
+      spinner.setValue(value.getNumber());
+    }
   }
 
   void setValue(final int value) {
     if (value == EtomoNumber.INTEGER_NULL_VALUE) {
       spinner.setValue(defaultValue);
     }
-    spinner.setValue(new Integer(value));
+    else {
+      spinner.setValue(new Integer(value));
+    }
   }
 
   void setEnabled(final boolean isEnabled) {
