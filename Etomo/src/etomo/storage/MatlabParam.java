@@ -35,7 +35,13 @@ import etomo.ui.swing.UIHarness;
 import etomo.util.DatasetFiles;
 
 /**
- * <p>Description: </p>
+ * <p>Description: 
+ * prmParser doesn't like:
+ * dPhi = {:}
+ * szVol = [, , ]
+ * outsideMaskRadius = 
+ * 
+ * </p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -355,7 +361,7 @@ public final class MatlabParam {
   public static final String PARTICLE_PER_CPU_KEY = "particlePerCPU";
   public static final int PARTICLE_PER_CPU_MIN = 1;
   public static final int PARTICLE_PER_CPU_MAX = 50;
-  public static final int PARTICLE_PER_CPU_DEFAULT = 5;
+  public static final int PARTICLE_PER_CPU_DEFAULT = 20;
   /**
    * @deprecated replaced by yaxisObject and yaxisContour.
    */
@@ -411,7 +417,8 @@ public final class MatlabParam {
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = ParsedQuotedString
       .getInstance(REFERENCE_KEY);
-  private final ParsedArray reference = ParsedArray.getMatlabInstance(REFERENCE_KEY);
+  private final ParsedArray reference = ParsedArray.getMatlabInstance(false,
+      REFERENCE_KEY);
   private final ParsedNumber yaxisObjectNum = ParsedNumber
       .getMatlabInstance(YAXIS_OBJECT_NUM_KEY);
   private final ParsedNumber yaxisContourNum = ParsedNumber
@@ -479,6 +486,14 @@ public final class MatlabParam {
     flgStrictSearchLimits.setDefault(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
     edgeShift.setDefault(EDGE_SHIFT_DEFAULT);
     flgNoReferenceRefinement.setDefault(false);
+    particlePerCpu.setDefault(PARTICLE_PER_CPU_DEFAULT);
+    refFlagAllTom.setDefault(1);
+    lstFlagAllTom.setDefault(1);
+    debugLevel.setDefault(DEBUG_LEVEL_DEFAULT);
+    flgWedgeWeight.setDefault(FLG_WEDGE_WEIGHT_DEFAULT);
+    insideMaskRadius.setDefault(0);
+    flgRemoveDuplicates.setDefault(false);
+    flgAlignAverages.setDefault(false);
   }
 
   /**
@@ -878,7 +893,7 @@ public final class MatlabParam {
   }
 
   public SampleSphere getSampleSphere(final UIComponent component) {
-    return SampleSphere.getInstance(sampleSphere.getRawString(), component);
+    return SampleSphere.getInstance(sampleSphere, component);
   }
 
   public String getMaskType() {
@@ -890,15 +905,15 @@ public final class MatlabParam {
   }
 
   public void clear() {
-    particlePerCpu.clear();
+    particlePerCpu.setRawString(PARTICLE_PER_CPU_DEFAULT);
     szVol.clear();
     fnOutput.clear();
-    refFlagAllTom.clear();
-    edgeShift.clear();
+    refFlagAllTom.setRawString(1);
+    edgeShift.setRawString(1);
     lstThresholds.clear();
-    lstFlagAllTom.clear();
+    lstFlagAllTom.setRawString(1);
     alignedBaseName.clear();
-    debugLevel.clear();
+    debugLevel.setRawString(DEBUG_LEVEL_DEFAULT);
     volumeList.clear();
     iterationList.clear();
     referenceFile.clear();
@@ -913,21 +928,20 @@ public final class MatlabParam {
     flgWedgeWeight.setRawString(FLG_WEDGE_WEIGHT_DEFAULT);
     sampleInterval.clear();
     sampleSphere.clear();
-    maskType.clear();
+    maskType.setRawString(MaskType.DEFAULT.toString());
     maskModelPts.clear();
-    insideMaskRadius.clear();
+    insideMaskRadius.setRawString(0);
     outsideMaskRadius.clear();
-    nWeightGroup.clear();
+    nWeightGroup.setRawString(N_WEIGHT_GROUP_DEFAULT);
     tiltRangeEmpty = false;
-    flgRemoveDuplicates.clear();
-    flgAlignAverages.clear();
+    flgRemoveDuplicates.setRawString(false);
+    flgAlignAverages.setRawString(false);
     flgFairReference.setRawString(false);
     flgAbsValue.setRawString(FLG_ABS_VALUE_DEFAULT);
     flgStrictSearchLimits.setRawString(FLG_STRICT_SEARCH_LIMITS_DEFAULT);
     bcSelectClassID.clear();
     selectClassID.clear();
     flgNoReferenceRefinement.setRawString(false);
-
   }
 
   public void clearEdgeShift() {
@@ -1362,7 +1376,7 @@ public final class MatlabParam {
   void checkValue(final ParsedNumber number, final int[] expectedValues,
       final UIComponent component, final String paramName, final String fieldLabel,
       final int replacementValueIndex) {
-    if (number == null || expectedValues == null) {
+    if (number == null || number.isMissingAttribute() || expectedValues == null) {
       return;
     }
     if (expectedValues != null) {
@@ -1403,7 +1417,7 @@ public final class MatlabParam {
   void checkValue(final ParsedNumber number, final int min, final int max,
       final int step, final UIComponent component, final String paramName,
       final String fieldLabel, final String replacementValue) {
-    if (number == null) {
+    if (number == null || number.isMissingAttribute()) {
       return;
     }
     Number nNumber = number.getRawNumber();
@@ -1553,24 +1567,24 @@ public final class MatlabParam {
     lowCutoff.parse(autodoc.getAttribute(LOW_CUTOFF_KEY));
     addError(lowCutoff, errorList);
     // hiCutoff
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, false,
         HI_CUTOFF_KEY);
     hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
     addError(hiCutoff, errorList);
     size = Math.max(size, hiCutoff.size());
     // refThreshold
     ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
-        REF_THRESHOLD_KEY);
+        false, REF_THRESHOLD_KEY);
     refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
     addError(refThreshold, errorList);
     // duplicateShiftTolerance
-    ParsedArray duplicateShiftTolerance = ParsedArray
-        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
+    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance(false,
+        DUPLICATE_SHIFT_TOLERANCE_KEY);
     duplicateShiftTolerance.parse(autodoc.getAttribute(DUPLICATE_SHIFT_TOLERANCE_KEY));
     addError(duplicateShiftTolerance, errorList);
     // duplicateAngularTolerance
-    ParsedArray duplicateAngularTolerance = ParsedArray
-        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
+    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance(false,
+        DUPLICATE_ANGULAR_TOLERANCE_KEY);
     duplicateAngularTolerance
         .parse(autodoc.getAttribute(DUPLICATE_ANGULAR_TOLERANCE_KEY));
     addError(duplicateAngularTolerance, errorList);
@@ -1708,14 +1722,14 @@ public final class MatlabParam {
     ParsedList searchRadius = ParsedList.getMatlabInstance(SEARCH_RADIUS_KEY);
     ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
         LOW_CUTOFF_KEY);
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, false,
         HI_CUTOFF_KEY);
     ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
-        REF_THRESHOLD_KEY);
-    ParsedArray duplicateShiftTolerance = ParsedArray
-        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
-    ParsedArray duplicateAngularTolerance = ParsedArray
-        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
+        false, REF_THRESHOLD_KEY);
+    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance(false,
+        DUPLICATE_SHIFT_TOLERANCE_KEY);
+    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance(false,
+        DUPLICATE_ANGULAR_TOLERANCE_KEY);
     // build the lists
     for (int i = 0; i < iterationList.size(); i++) {
       Iteration iteration = (Iteration) iterationList.get(i);
@@ -2155,8 +2169,12 @@ public final class MatlabParam {
       return false;
     }
 
-    private static SampleSphere getInstance(final String value,
+    private static SampleSphere getInstance(final ParsedElement parsedElement,
         final UIComponent component) {
+      if (parsedElement.isMissingAttribute()) {
+        return DEFAULT;
+      }
+      String value = parsedElement.getRawString();
       if (value == null) {
         return DEFAULT;
       }
@@ -2383,6 +2401,10 @@ public final class MatlabParam {
     private final ParsedArrayDescriptor descriptor = ParsedArrayDescriptor.getInstance(
         EtomoNumber.Type.DOUBLE, null);
 
+    private void clear() {
+      descriptor.clear();
+    }
+
     /**
      * Sets both the End and Start values.  The Start is set to the negation of
      * the End value.  If End is empty, set it and Start to 0.
@@ -2434,7 +2456,8 @@ public final class MatlabParam {
      */
     private void checkStart(final ParsedElement start, final ParsedElement end,
         final String key, final String label, final UIComponent component) {
-      if (start == null || start.isEmpty() || end == null || end.isEmpty()) {
+      if (start == null || start.isMissingAttribute() || start.isEmpty() || end == null
+          || end.isMissingAttribute() || end.isEmpty()) {
         // ignore validation errors
         return;
       }
@@ -2465,13 +2488,13 @@ public final class MatlabParam {
     private final ParsedArray lowCutoff = ParsedArray.getMatlabInstance(
         EtomoNumber.Type.DOUBLE, LOW_CUTOFF_KEY);
     private final ParsedArray hiCutoff = ParsedArray.getMatlabInstance(
-        EtomoNumber.Type.DOUBLE, HI_CUTOFF_KEY);
+        EtomoNumber.Type.DOUBLE, false, HI_CUTOFF_KEY);
     private final ParsedNumber refThreshold = ParsedNumber.getMatlabInstance(
-        EtomoNumber.Type.DOUBLE, REF_THRESHOLD_KEY);
-    private final ParsedNumber duplicateShiftTolerance = ParsedNumber
-        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
+        EtomoNumber.Type.DOUBLE, false, REF_THRESHOLD_KEY);
+    private final ParsedNumber duplicateShiftTolerance = ParsedNumber.getMatlabInstance(
+        false, DUPLICATE_SHIFT_TOLERANCE_KEY);
     private final ParsedNumber duplicateAngularTolerance = ParsedNumber
-        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
+        .getMatlabInstance(false, DUPLICATE_ANGULAR_TOLERANCE_KEY);
 
     // search spaces
     private final SearchAngleArea dPhi = new SearchAngleArea();
@@ -2479,6 +2502,18 @@ public final class MatlabParam {
     private final SearchAngleArea dPsi = new SearchAngleArea();
 
     private Iteration() {
+    }
+
+    public void clearDPhi() {
+      dPhi.clear();
+    }
+
+    public void clearDTheta() {
+      dTheta.clear();
+    }
+
+    public void clearDPsi() {
+      dPsi.clear();
     }
 
     public void setDPhiEnd(final String input) {
