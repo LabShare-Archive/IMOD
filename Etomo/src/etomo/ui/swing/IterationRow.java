@@ -249,12 +249,27 @@ final class IterationRow implements Highlightable {
 
   void getParameters(final MatlabParam matlabParamFile) {
     MatlabParam.Iteration iteration = matlabParamFile.getIteration(index);
-    iteration.setDPhiEnd(dPhiMax.getValue());
-    iteration.setDPhiIncrement(dPhiIncrement.getValue());
-    iteration.setDThetaEnd(dThetaMax.getValue());
-    iteration.setDThetaIncrement(dThetaIncrement.getValue());
-    iteration.setDPsiEnd(dPsiMax.getValue());
-    iteration.setDPsiIncrement(dPsiIncrement.getValue());
+    if (!dPhiMax.isEmpty() || !dPhiIncrement.isEmpty()) {
+      iteration.setDPhiEnd(dPhiMax.getValue());
+      iteration.setDPhiIncrement(dPhiIncrement.getValue());
+    }
+    else {
+      iteration.clearDPhi();
+    }
+    if (!dThetaMax.isEmpty() || !dThetaIncrement.isEmpty()) {
+      iteration.setDThetaEnd(dThetaMax.getValue());
+      iteration.setDThetaIncrement(dThetaIncrement.getValue());
+    }
+    else {
+      iteration.clearDTheta();
+    }
+    if (!dPsiMax.isEmpty() || !dPsiIncrement.isEmpty()) {
+      iteration.setDPsiEnd(dPsiMax.getValue());
+      iteration.setDPsiIncrement(dPsiIncrement.getValue());
+    }
+    else {
+      iteration.clearDPsi();
+    }
     iteration.setSearchRadius(searchRadius.getValue());
     iteration.setHiCutoffCutoff(hiCutoff.getValue());
     iteration.setHiCutoffSigma(lowCutoff.getValue());
