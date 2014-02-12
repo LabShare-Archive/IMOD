@@ -164,6 +164,7 @@ public final class ParsedList {
   private boolean failed = false;
   private boolean debug = false;
   private String failedMessage = null;
+  private boolean missingAttribute = false;
 
   private ParsedList(ParsedElementType type, EtomoNumber.Type etomoNumberType,
       final boolean allowNan, final String descr) {
@@ -182,6 +183,12 @@ public final class ParsedList {
   public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType,
       final String descr) {
     return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, true, descr);
+  }
+
+  public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType,
+      final boolean allowNan, final String descr) {
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, allowNan,
+        descr);
   }
 
   public static ParsedList getStringInstance(final String descr) {
@@ -311,6 +318,7 @@ public final class ParsedList {
     list.clear();
     resetFailed();
     if (attribute == null) {
+      missingAttribute = true;
       return;
     }
     PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
@@ -482,7 +490,7 @@ public final class ParsedList {
    * @return
    */
   final String getFailedMessage() {
-    if (!failed) {
+    if (!failed || !missingAttribute) {
       return null;
     }
     if (failedMessage == null) {
@@ -502,6 +510,7 @@ public final class ParsedList {
   final void resetFailed() {
     failed = false;
     failedMessage = null;
+    missingAttribute = false;
   }
 
   final void fail(final String message) {
