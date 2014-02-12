@@ -475,7 +475,7 @@ assert.cb.use-absolute-value-of-cross-correlation=on
 assert.cb.save-individual-aligned-particles=off
 assert.cb.strict-search-limit-checking=off
 assert.cb.no-reference-refinement=off
-assert.sp.particles-per-cpu=5
+assert.sp.particles-per-cpu=20
 assert.sp.debug-level=3
 assert.tf.low-frequency-cutoff=0
 assert.tf.sigma=0.05
@@ -693,10 +693,10 @@ cb.save-individual-aligned-particles=on
 save=
 assert.contains.file=%{dataset}.prm|alignedBaseName = 'aligned'
 cb.save-individual-aligned-particles=off
-sp.particles-per-cpu=20
+sp.particles-per-cpu=21
 save=
-assert.contains.file=%{dataset}.prm|particlePerCPU = 20
-sp.particles-per-cpu=1
+assert.contains.file=%{dataset}.prm|particlePerCPU = 21
+sp.particles-per-cpu=20
 sp.debug-level=2
 save=
 assert.contains.file=%{dataset}.prm|debugLevel = 2
@@ -705,7 +705,7 @@ save=
 assert.contains.file=%{dataset}.prm|lowCutoff = {[0, 0.05]}
 tf.average-only-members-of-classes=1,3
 save=
-assert.contains.file=%{dataset}.prm|selectClassID = [1,3]
+assert.contains.file=%{dataset}.prm|selectClassID = [1, 3]
 tf.average-only-members-of-classes=
 
 
