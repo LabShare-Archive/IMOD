@@ -1,8 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/12/14: In eTomo, fixed a problem with slowness when opening 3dmod dialogs.
+(Bug# 1778)
+
 2/12/14: In eTomo - PEET fixed problems with defaults and the handling of
 missing properties.(Bug# 1738)
- 
+
 2/9/14: Updated the images in the eTomo tutorial.  Also exposed the
 autofidseed append parameter and initialized the seed model contours in 3dmod.
 (Bug# 1777)
