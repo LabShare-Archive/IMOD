@@ -52,11 +52,14 @@ manpage = The Z dimension only will be reduced with antialiased filtering
 instead of with binning if a number between 2 and 6 is entered to specify the
 filter type.  Use the "-shrink" option to Newstack(1) first to use antialiased
 reduction in X and Y.  The filters are as in Newstack(1):
-^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    2: Blackman - fast but not as good at antialiasing as slower 
+^                  filters
 ^    3: Triangle - fast but smooths more than Blackman
 ^    4: Mitchell - good at antialiasing, smooths a bit
-^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
-^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing 
+^                  than Mitchell
+^    6: Lanczos 3 lobes - slower, even less smoothing but more 
+^                  risk of ringing
 
 [Field = SpreadSlicesInZ]
 short = spread

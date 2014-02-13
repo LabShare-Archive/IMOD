@@ -258,11 +258,14 @@ binning.  Antialiasing becomes important when the images contain a strong
 noise component at the high frequencies being eliminated by the image
 reduction.  Ordinary binning reduces aliasing, but not as much as these filters
 do.  As in Newstack(1), the available types here are:
-^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    2: Blackman - fast but not as good at antialiasing as slower 
+^                  filters
 ^    3: Triangle - fast but smooths more than Blackman
 ^    4: Mitchell - good at antialiasing, smooths a bit
-^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
-^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing 
+^                  than Mitchell
+^    6: Lanczos 3 lobes - slower, even less smoothing but more 
+^                  risk of ringing
 
 [Field = LeaveTiltAxisShifted]
 short = leaveaxis

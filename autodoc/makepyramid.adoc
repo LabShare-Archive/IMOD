@@ -16,8 +16,8 @@ type = CH
 usage = Root name for output files (default is root of input file name)
 tooltip = 
 manpage = Root name for output files.  If you use the "-subdir" option, this
-will also be the name of directory in which files are placed.  The default is
-the root of the input file name.
+will also be the basis of the name of the directory in which files are placed.
+The default is the root of the input file name.
 
 [Field = ReductionsInSize]
 short = reductions
@@ -98,12 +98,15 @@ usage = Type of antialias filter to apply in X and Y (0/1 for binning)
 tooltip = 
 manpage = Type of antialias filter to apply by shrinking the image in X and Y
 with Newstack(1).  The filters are:
-^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    2: Blackman - fast but not as good at antialiasing as slower 
+^                  filters
 ^    3: Triangle - fast but smooths more than Blackman
 ^    4: Mitchell - good at antialiasing, smooths a bit
-^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
-^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
-^ In fact, the default here is 6.  Enter 0 or 1 to use ordinary binning in
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing 
+^                  than Mitchell
+^    6: Lanczos 3 lobes - slower, even less smoothing but more 
+^                  risk of ringing
+^ The default here is 6.  Enter 0 or 1 to use ordinary binning in
 Binvol(1) instead.
 
 [Field = AntialiasTypeInZ]

@@ -180,7 +180,7 @@ program newstack
   rotTime = 0.
   maxExtraIn = 0
   maxExtraOut = 0
-  indFilter = 5
+  indFilter = 6
   shrinkFactor = 1.
   linesShrink = 0
   iseriesBase = -1

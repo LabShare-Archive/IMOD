@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/13/14: Switched default antialiasing filter for Newstack to Lanczos 3.
+
 2/9/14: Updated the images in the eTomo tutorial.  Also exposed the
 autofidseed append parameter and initialized the seed model contours in 3dmod.
 (Bug# 1777)
