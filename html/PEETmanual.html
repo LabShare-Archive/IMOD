@@ -315,8 +315,11 @@ alignment and averaging, although they are used by some specific PEET programs
 
 <p>If <b>User supplied file</b> is selected, the specified MRC file will be used as the
 initial reference. In this case, the user is responsible for ensuring that the supplied
-reference is appropriately sized.&nbsp; (In the other 2 cases, PEET will choose an
-adequate reference size automatically).</p>
+reference is appropriately sized.&nbsp; To support full searches, the
+reference should ideally be a cube large enough to contain a particle padded 
+by twice the maximum search radius in any orientation.&nbsp; 
+(PEET will choose an adequate reference size automatically when the reference
+is not user-supplied).</p>
 
 <p>Finally, if multiparticle reference is selected the specified number 
 (a power of 2 between 4 and 1024 chosen from the drop-down box) of randomly chosen

@@ -2347,12 +2347,8 @@ public final class ApplicationManager extends BaseManager implements
           FileType.AUTOFIDSEED_COMSCRIPT);
       makecomfile(axisID, makecomFileParam);
       comScriptMgr.loadAutofidseed(axisID, true);
-      autofidseedParam = new AutofidseedParam(this, axisID);
-      comScriptMgr.saveAutofidseed(autofidseedParam, axisID);
     }
-    else {
-      autofidseedParam = comScriptMgr.getAutofidseedParam(axisID);
-    }
+    autofidseedParam = comScriptMgr.getAutofidseedParam(axisID);
     fiducialModelDialog.setParameters(autofidseedParam);
     fiducialModelDialog.setParameters(getScreenState(axisID));
     mainPanel.showProcess(fiducialModelDialog.getContainer(), axisID);

@@ -80,11 +80,13 @@ run.function.run-track-beads=
 [function = test-basic-seed-model]
 #test values
 assert.rb.make-seed-model-manually=on
-assert.rb.generate-seed-model-automatically=off
+if.not.var.dual-b.assert.rb.generate-seed-model-automatically=off
+if.var.dual-b.assert.rb.add-points-to-seed-model-automatically=off
 if.var.dual.assert.rb.transfer-seed-model-from-the-other-axis=off
 #test enabled
 assert.enabled.rb.make-seed-model-manually=
-assert.enabled.rb.generate-seed-model-automatically=
+if.not.var.dual-b.assert.enabled.rb.generate-seed-model-automatically=
+if.var.dual-b.assert.enabled.rb.add-points-to-seed-model-automatically=
 if.var.dual-a.assert.disabled.rb.transfer-seed-model-from-the-other-axis=
 if.var.dual-b.assert.enabled.rb.transfer-seed-model-from-the-other-axis=
 #test panels
@@ -130,11 +132,14 @@ if.var.build.return=
 
 [function = test-basic-generate-seed-model-automatically]
 #goto panel
-rb.generate-seed-model-automatically=
+if.not.var.dual-b.rb.generate-seed-model-automatically=
+if.var.dual-b.rb.add-points-to-seed-model-automatically=
 #test values
-assert.bn.generate-seed-model=off
+if.not.var.dual-b.assert.bn.generate-seed-model=off
+if.var.dual-b.assert.bn.add-points-to-seed-model=off
 #test enabled
-assert.enabled.bn.generate-seed-model=
+if.not.var.dual-b.assert.enabled.bn.generate-seed-model=
+if.var.dual-b.assert.enabled.bn.add-points-to-seed-model=
 assert.enabled.bn.open-seed-model=
 assert.enabled.bn.clean-up-temporary-files=
 #test panels
@@ -146,7 +151,8 @@ rb.make-seed-model-manually=
 
 [function = test-advanced-generate-seed-model-automatically]
 #setup
-rb.generate-seed-model-automatically=
+if.not.var.dual-b.rb.generate-seed-model-automatically=
+if.var.dual-b.rb.add-points-to-seed-model-automatically=
 #test panels
 run.function.test-advanced-beadtracker=
 #set advanced
@@ -159,16 +165,19 @@ rb.make-seed-model-manually=
 [function = run-generate-seed-model-automatically]
 if.var.build.return=
 #setup
-rb.generate-seed-model-automatically=
+if.not.var.dual-b.rb.generate-seed-model-automatically=
+if.var.dual-b.rb.add-points-to-seed-model-automatically=
 bn.advanced=
 #test processes
 #test 1
 tf.total-number=40
-bn.generate-seed-model=
+if.not.var.dual-b.bn.generate-seed-model=
+if.var.dual-b.bn.add-points-to-seed-model=
 wait.process.autofidseed=done
 [[if = test-gui]]
   #test values
-  assert.bn.generate-seed-model=on
+  if.not.var.dual-b.assert.bn.generate-seed-model=on
+  if.var.dual-b.assert.bn.add-points-to-seed-model=on
   #test enabled
   assert.disabled.bn.open-sorted-3d-models=
   assert.enabled.bn.open-clustered-/-elongated-model=
@@ -184,7 +193,8 @@ wait.process.autofidseed=done
 run.function.test-run-initial-bead-finding-parameters=
 #test 2
 cb.select-beads-on-two-surfaces=on
-bn.generate-seed-model=
+if.not.var.dual-b.bn.generate-seed-model=
+if.var.dual-b.bn.add-points-to-seed-model=
 wait.process.autofidseed=done
 [[if = test-gui]]
   #test enabled
@@ -193,7 +203,8 @@ wait.process.autofidseed=done
   assert.exists.file=%{dataset}%{axis}.seed~
   assert.exists.file=autofidseed%{axis}.log~
 [[]]
-bn.generate-seed-model=
+if.not.var.dual-b.bn.generate-seed-model=
+if.var.dual-b.bn.add-points-to-seed-model=
 wait.process.autofidseed=done
 #3dmod
 bn.open-sorted-3d-models=
