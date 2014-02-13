@@ -124,9 +124,9 @@ run.function.setup-patch-tracking=
 [[]]
 cb.parallel-processing=on
 bn.generate-tomogram=
-[[if = test-gui]]
-  if.wait.process.processchunks-tilt%{axis}.run.function.test-kill-pp=completed
-[[]]
+#[[if = test-gui]]
+#  if.wait.process.processchunks-tilt%{axis}.run.function.test-kill-pp=completed
+#[[]]
 wait.process.processchunks-tilt%{axis}=done
 if.var.build.return=
 # check files
@@ -193,10 +193,10 @@ bn.kill-process=
 wait.process.calculating-tomogram=killed
 bn.generate-tomogram=
 
-[function = test-kill-pp]
-bn.kill-process=
-wait.process.processchunks-tilt%{axis}-killed=killed
-bn.generate-tomogram=
+#[function = test-kill-pp]
+#bn.kill-process=
+#wait.process.processchunks-tilt%{axis}-killed=killed
+#bn.generate-tomogram=
 
 [function = setup-patch-tracking]
 if.not.var.patch-tracking.return=
