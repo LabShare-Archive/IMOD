@@ -430,6 +430,9 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
    * @param parsable - true when creating a parsable string
    */
   String getString(final boolean parsable) {
+    if (descriptor.isEmpty()) {
+      return "";
+    }
     ParsedElement start = descriptor.get(START_INDEX);
     ParsedElement increment = descriptor.get(INCREMENT_INDEX);
     ParsedElement end = descriptor.get(END_INDEX);

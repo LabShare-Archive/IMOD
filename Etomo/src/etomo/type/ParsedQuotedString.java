@@ -139,6 +139,7 @@ public final class ParsedQuotedString extends ParsedElement {
     rawString = "";
     resetFailed();
     if (attribute == null) {
+      setMissingAttribute();
       return;
     }
     PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());

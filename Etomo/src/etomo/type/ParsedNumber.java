@@ -161,6 +161,11 @@ public final class ParsedNumber extends ParsedElement {
         descr);
   }
 
+  public static ParsedNumber getMatlabInstance(final boolean allowNan, final String descr) {
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null, allowNan,
+        descr);
+  }
+
   public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType,
       final String descr) {
     return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
@@ -183,6 +188,7 @@ public final class ParsedNumber extends ParsedElement {
     rawNumber.reset();
     resetFailed();
     if (attribute == null) {
+      setMissingAttribute();
       return;
     }
     PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());

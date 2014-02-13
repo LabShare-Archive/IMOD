@@ -85,6 +85,7 @@ public abstract class ParsedElement {
 
   private boolean failed = false;
   private String failedMessage = null;
+  private boolean missingAttribute = false;
 
   final String descr;
 
@@ -194,9 +195,18 @@ public abstract class ParsedElement {
     failedMessage = (descr != null ? descr : "") + ": " + message;
   }
 
+  public final boolean isMissingAttribute() {
+    return missingAttribute;
+  }
+
+  final void setMissingAttribute() {
+    missingAttribute = true;
+  }
+
   final void resetFailed() {
     failed = false;
     failedMessage = null;
+    missingAttribute = false;
   }
 
   final void setFailed(final boolean failed, final String failedMessage) {
@@ -218,7 +228,7 @@ public abstract class ParsedElement {
    * @return
    */
   final String getFailedMessage() {
-    if (!failed) {
+    if (!failed || !missingAttribute) {
       return null;
     }
     if (failedMessage == null) {

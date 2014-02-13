@@ -150,7 +150,8 @@ public final class ParsedArray extends ParsedElement {
     this.defaultValue = defaultValue;
     this.debug = debug;
     this.allowNan = allowNan;
-    array = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan,descr);
+    array = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan,
+        descr);
     setDebug(debug);
   }
 
@@ -161,6 +162,11 @@ public final class ParsedArray extends ParsedElement {
   public static ParsedArray getMatlabInstance(final String descr) {
     return new ParsedArray(ParsedElementType.MATLAB_ARRAY, null, null, false, null, true,
         descr);
+  }
+
+  public static ParsedArray getMatlabInstance(final boolean allowNan, final String descr) {
+    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, null, null, false, null,
+        allowNan, descr);
   }
 
   public static ParsedArray getMatlabInstance(EtomoNumber.Type etomoNumberType,
@@ -239,6 +245,7 @@ public final class ParsedArray extends ParsedElement {
     array.clear();
     resetFailed();
     if (attribute == null) {
+      setMissingAttribute();
       return;
     }
     PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
@@ -607,7 +614,7 @@ public final class ParsedArray extends ParsedElement {
     }
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, debug,
-          defaultValue, allowNan,descr);
+          defaultValue, allowNan, descr);
     }
     return parsedNumberExpandedArray;
   }
@@ -827,7 +834,7 @@ public final class ParsedArray extends ParsedElement {
       // ParsedDescriptor would not return an instance so the type is not a type
       // that can have an array descriptor or iterator.
       element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue,
-          allowNan,descr);
+          allowNan, descr);
       token = element.parse(token, tokenizer);
     }
     if (index == -1) {

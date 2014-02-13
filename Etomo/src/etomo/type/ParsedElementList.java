@@ -156,6 +156,10 @@ public final class ParsedElementList {
     size = 0;
   }
 
+  boolean isEmpty() {
+    return map.isEmpty();
+  }
+
   synchronized ParsedElement addEmptyElement() {
     return setEmptyElement(size);
   }
@@ -163,7 +167,7 @@ public final class ParsedElementList {
   ParsedElement setEmptyElement(int index) {
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
-      element = ParsedQuotedString.getInstance(debug,descr);
+      element = ParsedQuotedString.getInstance(debug, descr);
     }
     else {
       element = ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue,

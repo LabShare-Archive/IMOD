@@ -118,7 +118,7 @@ abstract class ParsedDescriptor extends ParsedElement {
     descriptor.remove(index);
   }
 
-  final void clear() {
+  public final void clear() {
     descriptor.clear();
   }
 
