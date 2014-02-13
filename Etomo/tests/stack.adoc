@@ -199,6 +199,7 @@ run.function.ctf-phase-flip=
 	assert.enabled.bn.use-ctf-correction=
   assert.enabled.tf.defocus-tolerance=
 	#test field validation
+	mb.parallel-processing=-
 	tf.defocus-tolerance=200abc
 	bn.correct-ctf=
 	wait.popup.field-validation-failed=OK
