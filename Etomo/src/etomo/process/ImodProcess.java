@@ -874,7 +874,6 @@ public class ImodProcess {
     // On Mac never run with -D, -W, and not -L. This will crash 3dmod by
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
-
     if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
       commandOptions.add("-D");
       if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
@@ -992,7 +991,6 @@ public class ImodProcess {
         }
       }
     }
-
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
@@ -1015,7 +1013,6 @@ public class ImodProcess {
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
     }
-
     // Start the 3dmod program thread and wait for it to finish
     imodThread = new Thread(imod);
     imodThread.start();
@@ -1041,6 +1038,7 @@ public class ImodProcess {
               throw (new SystemProcessException("Could not parse window ID from imod\n"));
             }
             windowID = words[3];
+            break;
           }
         }
       }
