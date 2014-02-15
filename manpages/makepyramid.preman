@@ -74,6 +74,35 @@ INSERT OPTION TEXT HERE
 .B -StandardInput
 Read parameter entries from standard input
 
+.SH EXAMPLES
+Until you have some reason to do something different, you can ignore
+most of those options and proceed with very simple commands.  To make a
+pyramid in the current directory from the file "bigfile.mrc", with a
+tiled copy of bigfile.mrc:
+    makepyramid bigfile.mrc
+.br
+The files can now be opened with
+    3dmod bigfile.imlist
+.P
+To make such a pyramid in a subdirectory:
+    makepyramid -sub bigfile.mrc
+.br
+which can be opened with:
+    3dmod bigfile-pyr
+.P
+To make a pyramid in the current directory that uses the existing copy
+of bigfile.mrc (faster to make, less storage, slower to load):
+    makepyramid -use bigfile.mrc
+.br
+and again it opens with:
+    3dmod bigfile.imlist
+.P
+To make a pyramid of TIFF files with JPEG compression in a
+subdirectory:
+    makepyramid -sub -tif -com jpeg bigfile.mrc
+.br
+and again it opens with:
+    3dmod bigfile-pyr
 .SH FILES
 Image and piece list files are named as "rootname-#xy-#z...", where the
 first "#" is the reduction in X and Y and the second "#" is the reduction in Z.

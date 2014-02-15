@@ -279,16 +279,18 @@ manpage = Type of antialiasing filter to use when reducing images with the
 without -shrink, it will cause image reduction to be done with antialias
 filtering instead of by simple binning.  The available types of filters are:
 ^    1: Box - equivalent to binning
-^    2: Blackman - fast but not as good at antialiasing as slower filters
+^    2: Blackman - fast but not as good at antialiasing as slower 
+^                  filters
 ^    3: Triangle - fast but smooths more than Blackman
 ^    4: Mitchell - good at antialiasing, smooths a bit
-^    5: Lanczos 2 lobes - good at antialiasing, less smoothing than Mitchel
-^    6: Lanczos 3 lobes - slower, even less smoothing but more risk of ringing
-^The default is currently 5 for the Lanczos 2, which many people consider the best
-compromise among the various factors.  However, that statement may apply more
-to images of natural scenes than EM images, so the default may change to 6
-after further evaluation.  Enter a negative number to select the default,
-whatever it is set to.
+^    5: Lanczos 2 lobes - good at antialiasing, less smoothing 
+^                  than Mitchell
+^    6: Lanczos 3 lobes - slower, even less smoothing but more 
+^                  risk of ringing
+^The default is 6 for Lanczos 3 as of IMOD 4.7.  Although many people consider
+Lanczos 2 the best compromise among the various factors, that sentiment may be
+based on images of natural scenes where there are sharp edges. Enter a
+negative number to select the default, whatever it is set to.
 
 [Field = BinByFactor]
 short = bin

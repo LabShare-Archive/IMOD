@@ -3,6 +3,8 @@ IMOD History
 2/12/14: In eTomo, fixed a problem with slowness when opening 3dmod dialogs.
 (Bug# 1778)
 
+2/13/14: Switched default antialiasing filter for Newstack to Lanczos 3.
+
 2/12/14: In eTomo - PEET fixed problems with defaults and the handling of
 missing properties.(Bug# 1738)
 
