@@ -391,9 +391,12 @@ void GrabSlicer::closeEvent ( QCloseEvent * e )
   e->accept();
 }
 
-// Close on escape, pass on keys
+// Close on escape, pass on keys unless one of the text widgets has focus, modifier keys
+// come through here in that case and need to be ignored
 void GrabSlicer::keyPressEvent ( QKeyEvent * e )
 {
+  if (tilt_note->hasFocus() || tilt_id->hasFocus())
+    return;
   if (e->key() == Qt::Key_Escape)
     close();
   else
