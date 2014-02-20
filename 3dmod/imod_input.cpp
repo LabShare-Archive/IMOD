@@ -21,6 +21,7 @@
 #include "dia_qtutils.h"
 #include "xgraph.h"
 #include "imod.h"
+#include "imodplug.h"
 #include "autox.h"
 #include "display.h"
 #include "workprocs.h"
@@ -1222,6 +1223,13 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
       inputToggleGap(vi);
     } else  
       inputGhostmode(vi);
+    break;
+
+  case Qt::Key_H:
+    if (ctrl)
+      imodPlugOpenByName("Grab with Note");
+    else
+      handled = 0;
     break;
 
   case Qt::Key_K:

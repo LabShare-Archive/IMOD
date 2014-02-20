@@ -114,6 +114,7 @@ PopupEntry sDefaultActions[] = {
   {"Open Graph window", Qt::Key_G, 0, 1, 0},
   {"Open Model View window", Qt::Key_V, 0, 0, 0},
   {"Open Isosurface in Model View window", Qt::Key_U, 0, 1, 0},
+  {"Open Grab with Note plugin", Qt::Key_H, 1, 0, 0},
   {"", -2, 0, 0, 0},
   {"", -3, 0, 0, 0},
   {"Make TIFF snapshot of window", Qt::Key_S, 1, 0, 0},

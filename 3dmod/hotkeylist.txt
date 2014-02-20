@@ -1,6 +1,10 @@
 This is a list of the hot keys used in 3dmod.  Plugins (e.g. Drawing Tools)
 may intercept some of these keys.
 
+Popup menus are defined for general hot keys in utilities.cpp, for model view
+in mv_window.cpp, and for specific windows in zap_classes.cpp,
+slicer_classes.cpp, and xyz.cpp
+
 a - Zap - advances to and fills next section when auto contouring.
 A - Autocontrast - set to target mean and SD of intensity.
 Ctrl-A - Zap - adds multiple contours on the current section to the 
@@ -20,6 +24,7 @@ F - Find the maximum pixel within 10 pixels and report its value.
 g - Toggle previous contour ghost draw mode.
 G - Open Graph window.
 Ctrl-G - Toggle gap at current point
+Ctrl-H - Open Grab with Note
 i - Zap - toggles the modeling direction.
 I - Zap - prints information about the window and image size and 
 
