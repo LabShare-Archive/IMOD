@@ -136,7 +136,7 @@ if sys.platform.find('win32') >= 0:
             cygdrive = dir[0]
             break
       cygtry = os.path.join(cygdrive + r':\cygwin', 'bin')
-      if os.path.exist(os.path.join(cygtry, 'python.exe')):
+      if os.path.exists(os.path.join(cygtry, 'python.exe')):
          cygbin = cygtry
          os.environ['PATH'] = cygbin + os.pathsep + os.environ['PATH']
       else:
@@ -233,7 +233,7 @@ elif os.getenv('HOME') != None:
       try:
          os.mkdir(ETOMO_LOG_DIR)
       except Exception:
-         pass
+         prnstr('WARNING: Failed to create logs directory ' + ETOMO_LOG_DIR)
 
 if ETOMO_LOG_DIR and os.access(ETOMO_LOG_DIR, os.W_OK):
 
