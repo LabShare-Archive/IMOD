@@ -1097,7 +1097,7 @@ void ZapFuncs::paint()
     for (ix = 0; ix < mArrowHead.size(); ix++) {
       if ((fabs((double)xpos(mArrowTail[ix].x) - xpos(mArrowHead[ix].x)) > 2. || 
            fabs((double)ypos(mArrowTail[ix].y) - ypos(mArrowHead[ix].y)) > 2.)) {
-        b3dColorIndex(App->arrow);
+        b3dColorIndex(App->arrow[ix % 4]);
         b3dDrawArrow(xpos(mArrowTail[ix].x), ypos(mArrowTail[ix].y), 
                      xpos(mArrowHead[ix].x), ypos(mArrowHead[ix].y));
       }

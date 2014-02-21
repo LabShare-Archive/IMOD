@@ -183,7 +183,10 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->namedIndex[5] = App->foreground;
   prefs->namedIndex[6] = App->background;
   prefs->namedIndex[7] = App->ghost;
-  prefs->namedIndex[8] = App->arrow;
+  prefs->namedIndex[8] = App->arrow[0];
+  prefs->namedIndex[9] = App->arrow[1];
+  prefs->namedIndex[10] = App->arrow[2];
+  prefs->namedIndex[11] = App->arrow[3];
   prefs->namedColorDflt[0] = qRgb(255, 255,   0);
   prefs->namedColorDflt[1] = qRgb(185, 185,   0);
   prefs->namedColorDflt[2] = qRgb(255,   0,   0);
@@ -193,6 +196,9 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->namedColorDflt[6] = qRgb( 64,  64,  96);
   prefs->namedColorDflt[7] = qRgb( 16,  16,  16);  
   prefs->namedColorDflt[8] = qRgb(255,   0, 160);
+  prefs->namedColorDflt[9] = qRgb(  0, 255,   0);
+  prefs->namedColorDflt[10] = qRgb(  0, 170, 255);
+  prefs->namedColorDflt[11] = qRgb(255, 170,   0);
 #ifdef Q_OS_IRIX
   prefs->snapFormatDflt = "RGB";
 #else

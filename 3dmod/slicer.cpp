@@ -3695,7 +3695,7 @@ void SlicerFuncs::paint()
     getWindowCoords(mArrowTail[i].x, mArrowTail[i].y, mArrowTail[i].z, xim1, yim1, iz);
     getWindowCoords(mArrowHead[i].x, mArrowHead[i].y, mArrowHead[i].z, xim2, yim2, iz);
     if (fabs((double)xim1 - xim2) > 2. || fabs((double)yim1 - yim2) > 2.) {
-      b3dColorIndex(App->arrow);
+      b3dColorIndex(App->arrow[i % 4]);
       b3dDrawArrow(xim1, yim1, xim2, yim2);
     }
   }

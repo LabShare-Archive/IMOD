@@ -1378,7 +1378,13 @@ int imodColorValue(int inColor)
     case COLOR_GHOST:
       pixel = App->ghost; break;
     case COLOR_ARROW:
-      pixel = App->arrow; break;
+      pixel = App->arrow[0]; break;
+    case COLOR_ARROW2:
+      pixel = App->arrow[1]; break;
+    case COLOR_ARROW3:
+      pixel = App->arrow[2]; break;
+    case COLOR_ARROW4:
+      pixel = App->arrow[3]; break;
     case COLOR_MIN:
       pixel = App->cvi->rampbase; break;
     case COLOR_MAX:

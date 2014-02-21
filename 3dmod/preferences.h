@@ -43,7 +43,7 @@ int hotSliderKey();
 #define EXCLUDE_STYLES
 #define MAXZOOMS 22
 #define MAX_GEOMETRIES 10
-#define MAX_NAMED_COLORS 9
+#define MAX_NAMED_COLORS 12
 
 #define TRIPLET(a,b) a b; \
   a b##Dflt; \

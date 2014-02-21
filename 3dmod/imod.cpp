@@ -194,7 +194,10 @@ int main( int argc, char *argv[])
   App->bgnpoint     = IMOD_BGNPOINT;
   App->curpoint     = IMOD_CURPOINT;
   App->ghost        = IMOD_GHOST;
-  App->arrow        = IMOD_ARROW;
+  App->arrow[0]     = IMOD_ARROW;
+  App->arrow[1]     = IMOD_ARROW2;
+  App->arrow[2]     = IMOD_ARROW3;
+  App->arrow[3]     = IMOD_ARROW4;
 
   /*DNM: prescan for debug, ci and style flags before the display_init */
   /* Cancel forking on debug or -W output, or -L or -R or -h */

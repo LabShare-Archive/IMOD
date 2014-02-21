@@ -145,9 +145,12 @@ void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel,
 #define COLOR_BEGIN      6  /* begin point color */
 #define COLOR_POINT      7  /* point color */
 #define COLOR_GHOST      8  /* ghost color, darker version of object. */
-#define COLOR_ARROW      9  /* arrow color */
-#define COLOR_MIN       10  /* The index of the minimum image value. */
-#define COLOR_MAX       11  /* The index of the maximum image value. */
+#define COLOR_ARROW      9  /* first arrow color */
+#define COLOR_ARROW2    10  /* second arrow color */
+#define COLOR_ARROW3    11  /* third arrow color */
+#define COLOR_ARROW4    12  /* fourth arrow color */
+#define COLOR_MIN       13  /* The index of the minimum image value. */
+#define COLOR_MAX       14  /* The index of the maximum image value. */
 /* END_CODE */
 /* END_SECTION */
 

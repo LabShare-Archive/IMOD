@@ -55,7 +55,7 @@ typedef struct imod_application
   int bgnpoint;
   int curpoint;
   int ghost;
-  int arrow;
+  int arrow[4];
   
   short wzoom;
   int closing;      // Flag that windows are being closed on exit
@@ -282,7 +282,10 @@ extern "C" int iiQImageCheck(ImodImageFile *inFile);
 #define IMOD_FOREGROUND (IMOD_MAX_INDEX - 8)
 #define IMOD_BACKGROUND (IMOD_MAX_INDEX - 9)
 #define IMOD_ARROW      (IMOD_MAX_INDEX - 10)
-#define RAMPMAX         (IMOD_MAX_INDEX - 11)
+#define IMOD_ARROW2     (IMOD_MAX_INDEX - 11)
+#define IMOD_ARROW3     (IMOD_MAX_INDEX - 12)
+#define IMOD_ARROW4     (IMOD_MAX_INDEX - 13)
+#define RAMPMAX         (IMOD_MAX_INDEX - 14)
 #define RAMPMIN         101
 #define IMOD_MIN_INDEX  16
 
