@@ -123,9 +123,8 @@ if sys.platform.find('cygwin') >= 0:
 if sys.platform.find('win32') >= 0:
    findCyg = True
    try:
-      if newstuff:    # This will go away when etomo is ready
-         import psutil
-         findCyg = False
+      import psutil
+      findCyg = False
 
    except ImportError:
       pass
@@ -136,8 +135,14 @@ if sys.platform.find('win32') >= 0:
          if re.search('cygwin', dir, re.IGNORECASE):
             cygdrive = dir[0]
             break
-      cygbin = os.path.join(cygdrive + ':\cygwin', 'bin')
-      os.environ['PATH'] = cygbin + os.pathsep + os.environ['PATH']
+      cygtry = os.path.join(cygdrive + r':\cygwin', 'bin')
+      if os.path.exist(os.path.join(cygtry, 'python.exe')):
+         cygbin = cygtry
+         os.environ['PATH'] = cygbin + os.pathsep + os.environ['PATH']
+      else:
+         prnstr('You must have the psutil module installed to run etomo with Windows ' + \
+                   'Python')
+         sys.exit(1)
 
 if cygbin and not os.path.exists(os.path.join(cygbin, 'python.exe')):
    if os.path.exists(os.path.join(cygbin, 'python')):
