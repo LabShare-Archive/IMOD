@@ -428,7 +428,7 @@ int MovieSequenceForm::saveSequence()
   if (err)
     dia_err(err == 1 ? "Failed to back up existing copy of file" :
             "Error writing the movie sequence to file");
-  mModified = err < 1;
+  mModified = err < 0;
   return err; 
 }
 
