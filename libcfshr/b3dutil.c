@@ -29,7 +29,7 @@
 #define getpid _getpid
 #endif
 
-#if defined(WIN32_BIGFILE)
+#ifdef WIN32_BIGFILE
 #include <io.h>
 #define fileno _fileno
 #define read _read
