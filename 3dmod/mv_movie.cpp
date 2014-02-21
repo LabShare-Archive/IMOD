@@ -560,7 +560,7 @@ static int makeMovie(int frames, bool fromSequence)
   }
 
   objTransChange = 0;
-  numObj = b3dIMin(Imodv->imod->objsize, sStartObjTrans.size(), sEndObjTrans.size());
+  numObj = b3dIMin(3, Imodv->imod->objsize, sStartObjTrans.size(), sEndObjTrans.size());
   for (obNum = 0; obNum < numObj; obNum++) {
     Imodv->imod->obj[obNum].trans = sStartObjTrans[obNum];
     if (sStartObjTrans[obNum] != sEndObjTrans[obNum])
