@@ -67,7 +67,7 @@ Plotter::Plotter(MyApp *app, QWidget *parent) : QWidget(parent)
   mAngleButton = new QPushButton("Angles", this);
   mAngleButton->setToolTip("Open Angle Range and Tile Selection dialog");
   connect(mAngleButton, SIGNAL(clicked()), this, SLOT(angleDiag()) );
-#ifdef Q_OSMACX  
+#ifdef Q_OS_MACX  
   added = (int)(1.5 * mRangeButton->fontMetrics().height());
 #endif
   width = (int)(1.2 * mAngleButton->fontMetrics().width("Angles") +0.5)+added;

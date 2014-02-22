@@ -227,6 +227,9 @@ int main(int argc, char *argv[])
     qApp->syncX();
     qApp->processEvents();
     splash->repaint(0, 0, -1, -1);
+#ifdef Q_OS_MACX  
+    splash->raise();
+#endif
     qApp->processEvents();
   }
 
@@ -440,6 +443,7 @@ int main(int argc, char *argv[])
   B3DFREE(defFn);
   B3DFREE(rAvg1);
   B3DFREE(rAvg2);
+  return 0;
 }
 
 int ctfShowHelpPage(const char *page)
