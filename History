@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/22/14: Fix exit status, button width, splash screen for Ctfplotter on Mac.
+
 2/21/14: Added three more colors for arrows drawn with Grab with Note.
 
 2/21/14: Fixed changing transparency during model view movies.
