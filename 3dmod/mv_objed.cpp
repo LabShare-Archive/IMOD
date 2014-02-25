@@ -2252,7 +2252,7 @@ static void fixMakeMesh_cb()
   diaSetButtonWidth(wMakeDoButton, ImodPrefs->getRoundedStyle(), 1.3,
                     "Mesh One");
   diaSetButtonWidth(wMakeAllButton, ImodPrefs->getRoundedStyle(), 1.3,
-                    "Mesh One");
+                    "Mesh All");
 }
 
 
