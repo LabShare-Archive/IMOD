@@ -116,12 +116,17 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 			Recent Nvidia Linux device drivers and OpenGL libraries from <a href="http://www.nvidia.com">
 				Nvidia</a>
 		</P>
-		<P><b>Nvidia installation.</b> Installing Nvidia drivers is now straightforward, 
+		<P><b>Nvidia installation.</b> Installing Nvidia drivers is now
+			straightforward on some systems, 
 			but here are some <a href="nvidia_install.txt">instructions</a> that may be 
-			helpful. The latest versions of the drivers change the Driver line in 
+			helpful for older Fedora (up to 16 or so) and Red Hat/Centos through
+			version 6. &nbsp;The latest versions of the drivers change the Driver line in 
 			/etc/X11/xorg.conf from "nv" to "nvidia" if you accept their offer to modify 
-			the file.&nbsp; On Ubuntu, the automatic installation through Synaptic Package 
-			Manager should be adequate.
+			the file. &nbsp;For recent Fedora, search for "Install NVIDIA drivers
+			Fedora xx", where xx is your version number, and study the
+			various instructions that you find.  It should be easy if it
+			works. &nbsp;On Ubuntu, the automatic installation through Synaptic Package 
+			Manager or its current equivalent should be adequate.
 		</P>
 		<p><b>Window manager settings.</b> To keep 3dmod from bogging down when it is 
 			displaying complex models, some window managers can be set to display only the 
@@ -704,6 +709,10 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 		<a name="SettingUpNoCygwin">
 			<h3>1.7. Setting Up a Windows PC and Installing IMOD without Cygwin</h3>
 		</a>
+    <p>To install IMOD without Cygwin using our installer package, you need to
+    have Administrator privileges on Windows versions past XP because, for
+    now, the installation can go only in C:\Program Files.
+    </p>
     <p>You must have Python installed to use IMOD fully on Windows, as well as
     a module called psutil built for the same version of Python.  The IMOD
     installer relies on the registry entries made by Windows
@@ -731,7 +740,10 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
     <p>Click on the downloaded file to install it; first Python, then psutil.
     Python does not need to install in the default location that it offers;
     you can put it in <code>C:\Program Files</code> under the name of the version (e.g.,
-    set the install location to <code>C:\Program Files\Python3.2</code>.
+    set the install location to <code>C:\Program Files\Python3.2</code>).
+    Python installs without using "Run as Administrator", but on Windows
+    versions past XP, it appears to be necessary to install psutil by
+    right-clicking and selecting "Run as Administrator".
     </p>
     <p>After Python is installed, click on the IMOD installer.  It will
     install IMOD in <code>C:\Program Files\IMOD</code>, define the environment
@@ -821,10 +833,13 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 					<li>
 						If you are running OS X 10.7 - 10.9 or have a Quadro 4000 card,
 							you must use an IMOD package built with CUDA 4.1.  For OS X
-							10.9, version 5.5.28 or higher is required.  Otherwise, you can
+							10.9, version 5.5.28 or higher is required, but 5.5.28 seems to
+							support only GTX 680, K5000 and K4000 cards.
+							<B>Check on the
+							Supported Products tab to see if your card is supported BEFORE
+							upgrading to 10.9.</B>  For OSX 10.7 - 10.8, you can
 							install the final CUDA 4 driver, 4.2.10, or you can try a CUDA 5
-							driver if the Supported Products tab indicates that your
-							card is supported.
+							driver if your card is supported.  
 					<li>
 						Otherwise, you should use an IMOD package built with CUDA 3.1 and
 							install a CUDA 3 driver such as 3.2.17.
@@ -916,11 +931,28 @@ by executing it from the command line.</span>&nbsp; To install or upgrade IMOD t
 			Bsoft, EM, and Hanspeter Winkler's NFF.
       In addition to those formats, <code>3dmod</code> can read some other common 
 			formats like JPEG, PNG, and BMP,
-			and it has a dialog box and options for specifying how to read raw data.</p>
-			However, most programs are designed to operate on a stack of images
+			and it has a dialog box and options for specifying how to read raw
+			data.</p>
+    <p>As of IMOD 4.7, programs will write MRC files in byte mode as signed by
+    default (values of -128 to 127), which
+    is a change from previous behavior to conform with a clarification of the
+    MRC standards.  Such files will not be read correctly by IMOD versions
+    before 4.3, and you may encounter other software that has difficulty with
+    signed byte files.  Two programs have command-line options to produce
+    unsigned output files (values 0-255):
+    <a href="man/newstack.html#TOP">newstack</a> (option "-byte 0")
+    and  <a href="man/clip.html#TOP">clip</a> (option "-m ubyte").  In
+    addition, you can make all programs write unsigned bytes by setting the
+    environment variable WRITE_MODE0_SIGNED to 0.
+    </p>
+    <p>
+			Even though IMOD programs can read multiple file types, you will
+			generally want to convert your data to a stack of images in MRC format, 
+      because most programs are designed to operate on a stack of images
 			in a single file rather than on a set of single-image files.  Thus,
 			we have utility programs available for converting TIFF files and raw data into 
 			the MRC file format and combining single-image files into a stack.&nbsp; 
+    </p>
 		<p>
 			Use the program <a href="man/tif2mrc.html#TOP">tif2mrc</a> to convert a series 
 			of TIFF image files into a single MRC image file. The <code>tif2mrc</code> program 
