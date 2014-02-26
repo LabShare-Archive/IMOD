@@ -57,17 +57,37 @@ with default snapshot naming.
 ---------------------<br>
 
 If you are using Caltech Tomography Database, this button is present and you may use it
-to add grabbed image with note to the database and attach it with a given 
+to add the grabbed image with note to the database and attach it with a given 
 tilt series ID. A database configuration file must be present.
 
 <ul>
-<li><b>image type</b> - For display purpose, only JPEG or PNG are allowed to be saved 
-to database.</li>
-<li><b>configuration file</b> - should be located at $IMOD_CALIB_DIR/grabDatabase.ini. 
+<li><b>image type</b> - To save space in the database, only JPEG or PNG can be saved 
+to the database.</li>
+<li><b>tilt series id</b> - You may manually input a "Tilt Series Database ID". If
+  the 3D image opened by 3dmod is under a standard path in the database (has
+  a format of &lt;Database path&gt;/&lt; tilt series id&gt;/... ), or it is downloaded
+  from the database with "Download Files with Database Structure", the
+  tilt series id will be automatically detected.</li>
+</ul>
+<br>
+<br>
+<b>Setup of Database Image Path on Server </b><br>
+---------------------<br>
+  The directory &lt;Database path&gt;/Caps/ should be
+  created by the database administrator and it should be writable. All images are saved
+  under &lt;Database path&gt;/Caps/ with file name formats 
+  &lt;tilt series id&gt;_&lt;zap or slicer&gt;&lt;file id&gt;.jpg
+
+<br>
+<br>
+<br>
+<b>Setup of Configuration File on User Computer</b><br>
+---------------------<br>
+A configuration file should be located at $IMOD_CALIB_DIR/grabDatabase.ini. 
 By default $IMOD_CALIB_DIR is /usr/local/ImodCalib/ .  The configuration file
   should have 5 lines:
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbpath '/path/tp/database/'
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbpath '/path/to/database/'
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbhost 'ip_address_of_host'
 <br>
@@ -77,16 +97,7 @@ By default $IMOD_CALIB_DIR is /usr/local/ImodCalib/ .  The configuration file
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; dbpass 'password'
 <br>
-where in each case the text should be contained in single quotes as shown.</li>
-<li><b>tilt series id</b> - you may manually input "Tilt Series Database ID", or,
-if the 3D image opened by 3dmod is under standard path in the database (has a format
-of &lt;Database path&gt;/&lt; tilt series id&gt;/... ), the tilt series id will be automatically
-detected.</li>
-<li><b>database image path</b> - all images are saved under  &lt;Database
-  path&gt;/Caps/ 
-which should be created by a database administrator in advance.
-File name formats: &lt;tilt series id&gt;_&lt;zap or slicer&gt;&lt;file id&gt;.jpg</li>
-</ul>
+where in each case the text should be contained in single quotes as shown.
 <br><br><br>
 <b>Hot Keys</b><br>
 ---------------------<br>
@@ -95,7 +106,10 @@ Save image with note in 3dmod snapshot directory
 <br>
 <b>[W]</b>&nbsp &nbsp
 Save image with note in the Caltech Tomography Database. The image will
-be attached to an existing database tilt series ID. See more details below.
+be attached to an existing database tilt series ID. See more details above.
+<br>
+<b>[Ctrl+W]</b>&nbsp &nbsp Save image with note in the Caltech Tomography Database
+and in 3dmod snapshot directory
 <br>
 ---------------------<br>
 <br>
