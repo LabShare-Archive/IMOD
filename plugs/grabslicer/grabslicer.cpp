@@ -48,10 +48,9 @@ using namespace std;
 
 //Static variables
 
-static QString fullfilename;
-static QString realfilename;
 static QString qtiltseriesid;
 static QString dbini;
+static QString qdbpath;
 static bool sHasDBini;
 
 /*
@@ -118,8 +117,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   case Qt::Key_W:
     if(shift)
       plug->window->saveImage();
-    else if (sHasDBini)
-      plug->window->saveDatabase();
+    else if (sHasDBini) {
+      plug->window->saveDatabase(ctrl != 0);
+    }
     break;
   default:
     keyhandled = 0;
@@ -172,9 +172,6 @@ void imodPlugExecute(ImodView *inImodView)
 
   plug->view = inImodView;
   
-  //get path of the image file name, used in saveDatabase()
-  fullfilename = ivwCurrentImageFile(inImodView, false);
-
   /*
    * This creates the plug window.
    */
@@ -277,7 +274,7 @@ GrabSlicer::GrabSlicer(QWidget *parent, bool showWelcome)
   button->setToolTip("Clear out all arrows in windows of the selected type");
   connect(button, SIGNAL(clicked()), this, SLOT(clearArrowsClicked()));
 
-  //get real filename, input tiltseiresid if available
+  //get database tiltseires id if available
   const char *imod_calob_dir = getenv("IMOD_CALIB_DIR");
   dbini = QString(imod_calob_dir)+"/grabDatabase.ini";
 
@@ -293,32 +290,35 @@ GrabSlicer::GrabSlicer(QWidget *parent, bool showWelcome)
                         "in the tomography database");
 
     QTextStream in(&dbfile);
-    QString qdbpath;
     while ( !in.atEnd() ) {
       QStringList dbline =  in.readLine().split("'");
       if (dbline[0].startsWith("dbpath")) 
-        qdbpath = dbline[1].trimmed();;
+        qdbpath = dbline[1].trimmed();
     } 
-    if (fullfilename.startsWith(qdbpath)) {
+
+    QString fullfilename = ivwCurrentImageFile(sPlug.view, false);
+    if (fullfilename.startsWith(qdbpath)) { //if fullpath starts with dbpath, get tiltseiresid
       int len1 = fullfilename.size();
       int len2 = qdbpath.size(); 
       QString templine = fullfilename.right(len1-len2);
-      QStringList  templist = templine.split("/");
+      QStringList  templist = templine.split(QDir::separator());
       qtiltseriesid = templist[0];
-      realfilename = templist[templist.size()-1];
       tilt_id->setText(qtiltseriesid);
     }
-    else {
-      QStringList  templist = fullfilename.split("/");
-      realfilename = templist[templist.size()-1];
+    else { //if database .id file present in the 3d file directory, get tiltseiresid
+      QStringList templist = fullfilename.split(QDir::separator());
+      int len1 = fullfilename.size();
+      int len2 = templist[templist.size() - 1].size(); 
+      QString filedir = fullfilename.left(len1-len2);
+      QDir export_folder(filedir);
+      export_folder.setNameFilters(QStringList()<<"*.id");
+      QStringList fileList = export_folder.entryList();
+      if (fileList.size() == 1)  {// if exactly one .id file found
+	QStringList  templist1 = fileList[0].split(".");
+	qtiltseriesid = templist1[0];
+	tilt_id->setText(qtiltseriesid);
+      }      
     }
-  }
-  else {
-    QStringList templist = fullfilename.split("/");
-    if (templist.size() > 1)
-      realfilename = templist[templist.size()-1];
-    else
-      realfilename = fullfilename;
   }
 
   QLabel *boxlab = new QLabel("Enter note for image snapshot:", this);
@@ -477,13 +477,23 @@ void GrabSlicer::saveImage()
 {
   //QString snapname = "/home/hding/snap000.jpg";
   QString snapname = "";
+  QString TiltID;
   QString TiltNote = (tilt_note->toPlainText()).trimmed(); 
   QString sangle;
   QString spoint;
   QString scaleLine = scaleBarLine();
   QStringList templist = ivwCurrentImageFile(sPlug.view, false).split(QDir::separator());
-  realfilename = templist[templist.size() - 1];
-  QStringList capLines = (QStringList() << realfilename);
+  QString realfilename = templist[templist.size() - 1];
+  QStringList capLines;
+  if (sHasDBini)
+    TiltID = (tilt_id->text()).trimmed();
+  if (TiltID.isEmpty()) { 
+    capLines = (QStringList() << realfilename);
+  }
+  else {
+    capLines = (QStringList() << QString("Database id: ")+TiltID);
+    capLines << QString("3D Image: ")+realfilename;
+  }
   if (sPlug.slicerZap == 0) { // slicer
     float fangle[3];
     Ipoint fpoint;
@@ -532,16 +542,18 @@ void GrabSlicer::saveImage()
 
 }
 
-void GrabSlicer::saveDatabase()
+void GrabSlicer::saveDatabase(bool saveboth)
 {
 
   QString sangle, spoint;
-  if (sPlug.slicerZap == 0) { // slicer, put this first in order to check if slicer window is open
-    float fangle[3];
-    Ipoint fpoint;
+  Ipoint fpoint;
+  float fangle[3];
+  float imX, imY;
+  int imZ;
+
+  if (sPlug.slicerZap == 0) { // check if slicer window is open
     int stime;
-    int islicer = getTopSlicerAngles(fangle, &fpoint, stime); //time always 0?
-    if (islicer == 1) {
+    if (getTopSlicerAngles(fangle, &fpoint, stime) == 1) {
       dia_err("Snapshot failed: Slicer window is not open.");
       return;
     }
@@ -549,9 +561,10 @@ void GrabSlicer::saveDatabase()
     spoint.sprintf ("Slicer center point:  (%d, %d, %d)", (int)fpoint.x+1, 
                     (int)fpoint.y+1, (int)fpoint.z+1 );
   } else {
-    float imX, imY;
-    int imZ;
-    ivwGetTopZapCenter(sPlug.view, imX, imY, imZ);
+    if ( ivwGetTopZapCenter(sPlug.view, imX, imY, imZ) == 1) {
+      dia_err("Snapshot failed: Zap window is not open.");
+      return;
+    }
     spoint.sprintf("Zap center point:  (%d, %d, %d)", (int)imX, (int)imY, imZ);
   }
 
@@ -570,8 +583,9 @@ void GrabSlicer::saveDatabase()
   }
 
   QStringList capLines = (QStringList() << QString("Database id: ")+TiltID);
-  QStringList templist = ivwCurrentImageFile(sPlug.view, false).split(QDir::separator());
-  realfilename = templist[templist.size() - 1];
+  QString fullfilename = ivwCurrentImageFile(sPlug.view, false);
+  QStringList templist = fullfilename.split(QDir::separator());
+  QString realfilename = templist[templist.size() - 1];
   capLines << QString("3D Image: ")+realfilename;
   if (sPlug.slicerZap == 0) { // slicer
     capLines << sangle << spoint;       
@@ -648,7 +662,17 @@ void GrabSlicer::saveDatabase()
   imodPrintStderr("%s is in database\n", tiltseriesid);
 
   //insert image and get the last insert id
-  sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`, status, filetype, auto, filename, TXT_notes)  VALUES ( \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\")", tiltseriesid, TiltNote.toStdString().c_str() );
+  QString recordpath;
+  if (fullfilename.startsWith(qdbpath)) 
+    recordpath = fullfilename;
+  else
+    recordpath = realfilename;
+    
+   
+  if (sPlug.slicerZap == 0)  // slicer window
+    sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`, `REF|ThreeDFile|image`, status, filetype, auto, filename, TXT_notes, grab, xcenter, ycenter, zcenter, xangle, yangle, zangle)  VALUES ( \"%s\", \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\", 1, %d, %d, %d, %f,  %f,  %f)", tiltseriesid, recordpath.toStdString().c_str(), TiltNote.toStdString().c_str(), (int)fpoint.x+1, (int)fpoint.y+1, (int)fpoint.z+1, fangle[0], fangle[1], fangle[2] );
+  else
+    sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`, `REF|ThreeDFile|image`, status, filetype, auto, filename, TXT_notes, grab, xcenter, ycenter, zcenter)  VALUES ( \"%s\", \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\", 2, %d, %d, %d)", tiltseriesid, recordpath.toStdString().c_str(), TiltNote.toStdString().c_str(), (int)imX, (int)imY, imZ );
   qry.prepare(sqlsql);
   if( !qry.exec() ) {
     imodPrintStderr("Error excuting sql=%s\n", sqlsql);
@@ -690,17 +714,27 @@ void GrabSlicer::saveDatabase()
   int isnap = 1;
   sprintf (savepath, "%sCaps/%s", dbpath, savename);
   QString snapname = QString(savepath);
+  QString qsavename = QString(savename);
   if (sPlug.slicerZap == 0) { //slicer
     isnap = ivwSnapshotTopSlicer(snapname, sPlug.snapShot_format, false, 
                                  sPlug.fullAreaSnap);
     if (isnap == -1) {
       dia_err("Snapshot failed: Slicer window is not open.");
     }
+    if (saveboth) {//sav a copy of image in Snap dir too
+      b3dSetSnapshotCaption(capLines, true);
+      ivwSnapshotTopSlicer(qsavename, sPlug.snapShot_format, false, 
+                                 sPlug.fullAreaSnap);  
+    }
   }
   else if  (sPlug.slicerZap == 1) { //zap
     isnap = ivwSnapshotTopZap(snapname, sPlug.snapShot_format, false, sPlug.fullAreaSnap);
     if (isnap == -1)
       dia_err("Snapshot failed: Zap window is not open");
+    if (saveboth) {//sav a copy of image in Snap dir too
+      b3dSetSnapshotCaption(capLines, true);
+      ivwSnapshotTopZap(qsavename, sPlug.snapShot_format, false, sPlug.fullAreaSnap);
+    }
   }
   if (isnap == 0) { // snapshot saved
     //rename the image record in DB with correct name containing file id
@@ -715,7 +749,11 @@ void GrabSlicer::saveDatabase()
     if( !qry.exec() ) {
       imodPrintStderr("Warning! Timestamp is not changed. Error excuting sql=%s\n", sqlsql);
     }
-    imodPrintStderr("Snapshot saved at %s\n", savepath);
+    if (saveboth) {
+      imodPrintStderr("Snapshot saved at %s and Snap dir\n", savepath);
+    }
+    else
+      imodPrintStderr("Snapshot saved at %s\n", savepath);
   }
   if (isnap != 0) {  // failed
     dia_err("Snapshot failed.");
