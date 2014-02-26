@@ -229,7 +229,7 @@ if os.getenv('ETOMO_LOG_DIR') != None:
 # Put logs in hidden directory if directory is not defined
 elif os.getenv('HOME') != None:
    ETOMO_LOG_DIR = os.environ['HOME'] + '/.etomologs'
-   if not os.path.exists('ETOMO_LOG_DIR'):
+   if not os.path.exists(ETOMO_LOG_DIR):
       try:
          os.mkdir(ETOMO_LOG_DIR)
       except Exception:
