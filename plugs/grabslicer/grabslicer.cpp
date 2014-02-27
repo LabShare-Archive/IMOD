@@ -483,7 +483,9 @@ QString GrabSlicer::scaleBarLine()
   return str;
 }
 
-// Save image to snapshot and database
+/*
+ * Save image to snapshot 
+ */
 void GrabSlicer::saveImage()
 {
   //QString snapname = "/home/hding/snap000.jpg";
@@ -553,6 +555,9 @@ void GrabSlicer::saveImage()
 
 }
 
+/*
+ * Save image to database or to both database and snapshot
+ */
 void GrabSlicer::saveDatabase()
 {
 
