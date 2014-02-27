@@ -195,9 +195,10 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
   SlicerFuncs *ss = getTopSlicer();
   if (!ss)
     return 1;
-  ss->mTang[b3dX] = angles[0];
-  ss->mTang[b3dY] = angles[1];
-  ss->mTang[b3dZ] = angles[2];
+  for (int ixyz = 0; ixyz < 3; ixyz++) {
+    ss->mTang[ixyz] = angles[ixyz];
+    B3DCLAMP(ss->mTang[ixyz], -sMaxAngle[ixyz], sMaxAngle[ixyz]);
+  }
   ss->mQtWindow->setAngles(ss->mTang);
   ss->mCx = B3DMAX(0., B3DMIN(center->x, ss->mVi->xsize - 1));
   ss->mCy = B3DMAX(0., B3DMIN(center->y, ss->mVi->ysize - 1));
@@ -220,6 +221,18 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
     ss->synchronizeSlicers();
     ss->showSlice();
   }
+  return 0;
+}
+
+// Set zoom (used initially)
+int setTopSlicerZoom(float zoom, bool draw)
+{
+  SlicerFuncs *ss = getTopSlicer();
+  if (!ss || zoom < 0.005 || zoom > 200.)
+    return 1;
+  ss->setInitialZoom(zoom);
+  if (draw)
+    ss->draw();
   return 0;
 }
 
@@ -556,17 +569,24 @@ SlicerFuncs::SlicerFuncs(ImodView *vi, int autoLink)
         break;
       mZoom = (float)newZoom;
     }
-    mQtWindow->setZoomText(mZoom);
-    if (mZoom > 1.5) {
-      mHq = 1;
-      mQtWindow->setToggleState(0, 1);
-    }
+    setInitialZoom(mZoom);
   }
   
   setAngleToolbarState(mQtWindow, sSliceAngDia != NULL);
 
   adjustGeometryAndShow((QWidget *)mQtWindow, IMOD_IMAGE, false);
   mGlw->setMouseTracking(sPixelViewOpen);
+}
+
+// Set the zoom initially: switch to HQ if it is high enough
+void SlicerFuncs::setInitialZoom(float zoom)
+{
+  mZoom = zoom;
+  mQtWindow->setZoomText(mZoom);
+  if (mZoom > 1.5) {
+    mHq = 1;
+    mQtWindow->setToggleState(0, 1);
+  }
 }
 
 void SlicerFuncs::externalDraw(ImodView *vi, int drawflag)

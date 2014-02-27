@@ -80,6 +80,7 @@ class SlicerFuncs {
   void setLinkedState(bool state);
   float viewAxisStepSize();
   getMember(int, Closing);
+  void setInitialZoom(float zoom);
 
  private:
   void cubeDraw();
@@ -266,6 +267,7 @@ void slicerPixelViewState(bool state);
 void slicerReportAngles();
 SlicerFuncs *getTopSlicer(bool withBand = false, int *index = NULL);
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw);
+int setTopSlicerZoom(float zoom, bool draw);
 int setTopSlicerFromModelView(Ipoint *rot);
 int getTopSlicerTime(bool &continuous);
 void slicerNewTime(bool refresh);
