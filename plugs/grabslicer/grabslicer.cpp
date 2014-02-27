@@ -52,6 +52,7 @@ static QString qtiltseriesid;
 static QString dbini;
 static QString qdbpath;
 static bool sHasDBini;
+static bool sSaveBoth = false;
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -118,7 +119,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     if(shift)
       plug->window->saveImage();
     else if (sHasDBini) {
-      plug->window->saveDatabase(ctrl != 0);
+      sSaveBoth = ctrl != 0;
+      plug->window->saveDatabase();
     }
     break;
   default:
@@ -460,8 +462,9 @@ void GrabSlicer::clearArrowsClicked()
 // Compose a line with a scale bar length if there is one
 QString GrabSlicer::scaleBarLine()
 {
-  QString str = "";
-  float zapLen, slicerLen, xyzLen, multiZlen, modvLen, useLen = -1.;
+  QString str = "", str2 = "";
+  float zapLen, slicerLen, xyzLen, multiZlen, modvLen, useLen = -1., zoom;
+  int err = 1;
   scaleBarAllLengths(zapLen, slicerLen, xyzLen, multiZlen, modvLen);
   if (sPlug.enableScale)
     useLen = sPlug.slicerZap == 0 ? slicerLen : zapLen;
@@ -469,10 +472,18 @@ QString GrabSlicer::scaleBarLine()
     str.sprintf("Scale bar: %g %s", useLen, imodUnits(ivwGetModel(sPlug.view)));
     imodPrintStderr("%s\n", (const char *)str.toLatin1());
   }
+  if (sPlug.slicerZap == 0)
+    err = ivwGetTopSlicerZoom(sPlug.view, &zoom);
+  else if (sPlug.slicerZap == 1)
+    err = ivwGetTopZapZoom(sPlug.view, &zoom);
+  if (!err) {
+    str2.sprintf("%sZoom: %g", str.isEmpty() ? "" : "      ", zoom);
+    str += str2;
+  }
   return str;
 }
 
-
+// Save image to snapshot and database
 void GrabSlicer::saveImage()
 {
   //QString snapname = "/home/hding/snap000.jpg";
@@ -542,7 +553,7 @@ void GrabSlicer::saveImage()
 
 }
 
-void GrabSlicer::saveDatabase(bool saveboth)
+void GrabSlicer::saveDatabase()
 {
 
   QString sangle, spoint;
@@ -550,6 +561,8 @@ void GrabSlicer::saveDatabase(bool saveboth)
   float fangle[3];
   float imX, imY, zoom = 1.;
   int imZ;
+  bool saveboth = sSaveBoth;
+  sSaveBoth = false;
 
   if (sPlug.slicerZap == 0) { // check if slicer window is open
     int stime;

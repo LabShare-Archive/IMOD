@@ -30,7 +30,7 @@ class GrabSlicer : public DialogFrame
 
   void buttonPressed(int which);
   void saveImage();
-  void saveDatabase(bool saveboth);
+  void saveDatabase();
   void winSelected(int value);
   void imgtypeSelected(int value);
   void quitDatabase(QSqlDatabase db);
