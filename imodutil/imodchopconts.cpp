@@ -79,7 +79,8 @@ void ChopConts::main( int argc, char *argv[])
   int breakAtColor = 0;
   int ierr, obNum, surf, numToCut, maxLen, co, lenConts, numCont, lapTotal, lapBase;
   int lapRemainder, ptBase, newCo, lastNewInd, ind, ipnt, numObjOrig, numObjTmp;
-  int numBefore, curColor, color, coNum, maxSurfOrObj, ptNum, ob;
+  int numBefore, curColor, color, coNum, maxSurfOrObj, ptNum, ob, hasMinMax;
+  float valMin, valMax;
   Istore store, *storePtr;
   DIMap::iterator iter;
   DrawProps props, dfltProps, contProps;
@@ -327,7 +328,9 @@ void ChopConts::main( int argc, char *argv[])
           imodObjectCopyClear(&mModel->obj[obNum], &mModel->obj[ob]);
         }
         obj = &mModel->obj[obNum];
-
+        hasMinMax = istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, 
+                                    &valMin, &valMax);
+        
         // Assign the colors
         for (iter = mColorMap.begin(); iter != mColorMap.end(); iter++) {
           color = B3DNINT(iter->first);
@@ -380,6 +383,12 @@ void ChopConts::main( int argc, char *argv[])
         imodContourClear(obj->cont);
         imodObjectRemoveContour(obj, 0);
       }        
+
+      // Assign all new objects the same min/max for consistent display
+      if (!mAssignSurf && hasMinMax) {
+        for (ob = numObjTmp; ob < maxSurfOrObj; ob++)
+          istoreAddMinMax(&mModel->obj[ob].store, GEN_STORE_MINMAX1, valMin, valMax);
+      }
     }
   }
   imodBackupFile(filename);
