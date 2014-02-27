@@ -3320,6 +3320,15 @@ int ivwGetTopZapZoom(ImodView *inImodView, float *outZoom)
   return 0;
 }
 
+int ivwGetTopSlicerZoom(ImodView *inImodView, float *outZoom)
+{
+  SlicerFuncs *ss = getTopSlicer();
+  if (!ss)
+    return 1;
+  *outZoom = ss->mZoom;
+  return 0;
+}
+
 int ivwSetTopZapZoom(ImodView *inImodView, float inZoom, bool draw)
 {
   ZapFuncs *zap = getTopZapWindow(false);
