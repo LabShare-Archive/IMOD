@@ -156,19 +156,29 @@ begin
   end else begin
 #endif
     //find out if Cygwin is installed
-    if not setupCygwin(HKEY_LOCAL_MACHINE, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
-      if not setupCygwin(HKEY_CURRENT_USER, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin                 
-        if not setupCygwin(HKEY_LOCAL_MACHINE, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
-          if not setupCygwin(HKEY_CURRENT_USER, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
-            //find out if Windows Python is installed.  A single-user Windows-only install will not work because a non-admin
-            //account cannot write to Program Files.
-            if not setupWindows(HKEY_LOCAL_MACHINE) then begin
-              MsgBox('A compatible Python version has not been installed on this computer.  Unable to install.', mbCriticalError, MB_OK);
-              Result := False;
+    if not setupCygwin(HKEY_LOCAL_MACHINE_64, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
+      if not setupCygwin(HKEY_LOCAL_MACHINE_32, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
+        if not setupCygwin(HKEY_CURRENT_USER_64, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin  
+          if not setupCygwin(HKEY_CURRENT_USER_32, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
+            if not setupCygwin(HKEY_LOCAL_MACHINE_32, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin                 
+              if not setupCygwin(HKEY_LOCAL_MACHINE_64, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
+                if not setupCygwin(HKEY_CURRENT_USER_32, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
+                  if not setupCygwin(HKEY_CURRENT_USER_64, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
+                    //find out if Windows Python is installed.  A single-user Windows-only install will not work because a non-admin
+                    //account cannot write to Program Files.
+                    if not setupWindows(HKEY_LOCAL_MACHINE_32) then begin
+                      if not setupWindows(HKEY_LOCAL_MACHINE_64) then begin
+                        MsgBox('A compatible Python version has not been installed on this computer.  Unable to install.', mbCriticalError, MB_OK);
+                        Result := False;
+                      end;
+                    end;                               
+                  end;              
+                end;                    
+              end; 
             end;
-          end;                               
-        end;              
-      end;                    
+          end;
+        end;
+      end;
     end;
 #ifdef Win64
   end;
@@ -176,7 +186,7 @@ begin
   //If Cygwin is installed but does not not have Python installed, and there is a valid Windows Python installed,
   //ask the user before going with the Windows-only installation.
   if BadCygwin and (AppDir <> '') and (MsgBox('There is no Python installed in Cygwin.  ' +
-                    'If you proceed with this intallation,'#13#10
+                    'If you proceed with this'#13#10'intallation, ' +
                     'some IMOD programs will not be runnable from Cygwin terminals.'#13#10#13#10
                     'To use IMOD with a Cygwin terminal, ' +
                     'exit this installer and use the Cygwin installer to intall Python.'#13#10#13#10
