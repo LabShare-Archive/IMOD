@@ -3,315 +3,329 @@ AppPublisher=BL3DEMC, University of Colorado
 AppPublisherURL=http://bio3d.colorado.edu/imod/
 AppSupportURL=http://bio3d.colorado.edu/imod/
 UsePreviousAppDir=no
+;Turns off user's ability to change install directory
 DisableDirPage=yes
 AppName=IMOD
-AppVerName=IMOD version 4.5.7 for Win64
-DefaultDirName={code:CreateRootDir}\usr\local
+#ifdef Win64
+#ifdef Cuda
+AppVerName=IMOD version {#ImodVersion} for win64 with CUDA{#Cuda}
+#else
+AppVerName=IMOD version {#ImodVersion} for win64
+#endif
+#else
+AppVerName=IMOD version {#ImodVersion}
+#endif
+DefaultDirName={code:getAppDir}
 ChangesEnvironment=yes
 AlwaysShowDirOnReadyPage=yes
 CreateUninstallRegKey=no
 Uninstallable=no
 UpdateUninstallLogAppName=no
 PrivilegesRequired=none
-OutputBaseFilename=imod_4.5.7_win64
+;Function calls do not work with OutputBaseFilename because it is used for packaging the installable.
+#ifdef Win64
+#ifdef Cuda
+OutputBaseFilename=imod_{#ImodVersion}_win64_CUDA{#Cuda}
+#else
+OutputBaseFilename=imod_{#ImodVersion}_win64
+#endif
+#else
+OutputBaseFilename=imod_{#ImodVersion}_win
+#endif
+
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+
 [Files]
-Source: "imod_4.5.7_win64.csh"; DestDir: "{app}"; Flags: deleteafterinstall ignoreversion; Afterinstall: RunImodInstaller
+;Must be hard coded.
+Source: installIMOD; DestDir: "{app}"; Flags: deleteafterinstall ignoreversion
+#ifdef Win64
+#ifdef Cuda
+Source: "imod_{#ImodVersion}_win64_CUDA{#Cuda}.tar.gz"; DestDir: "{app}"; Flags: deleteafterinstall ignoreversion; Afterinstall: installIMOD
+#else
+Source: "imod_{#ImodVersion}_win64.tar.gz"; DestDir: "{app}"; Flags: deleteafterinstall ignoreversion; Afterinstall: installIMOD
+#endif
+#else
+Source: "imod_{#ImodVersion}_win.tar.gz"; DestDir: "{app}"; Flags: deleteafterinstall ignoreversion; Afterinstall: installIMOD
+#endif
+
 
 [Registry]
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: string; ValueName: "IMOD_DIR"; ValueData: "{app}\IMOD"; Check: checkOKMultiUser
-Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "IMOD_DIR"; ValueData: "{app}\IMOD"; Check: checkOKSingleUser
-Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "HOME"; ValueData: "{code:getRootDir}\home\{username}"; Check: checkOK
+;All installations
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: string; ValueName: "IMOD_DIR"; ValueData: "{app}\IMOD"; Check: (not isFailed) and IsAdminLoggedOn
+Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "HOME"; ValueData: "{code:getHome}"; Check: not isFailed
+;Cygwin installations
+Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "IMOD_DIR"; ValueData: "{app}\IMOD"; Check: (not isFailed) and isCygwin and (not IsAdminLoggedOn)
+;Windows-only installations - admin privledges only
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: string; ValueName: "IMOD_PLUGIN_DIR"; ValueData: "{app}\IMOD\lib\imodplug"; Check: (not isFailed) and (not isCygwin) and IsAdminLoggedOn
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: string; ValueName: "IMOD_CALIB_DIR"; ValueData: "C:\ProgramData"; Check: (not isFailed) and (not isCygwin) and IsAdminLoggedOn and DirExists('C:\ProgramData')
+;Cygwin installations - the combination of single user and Windows-only does not work.
+Root: HKCU; Subkey: "Environment"; ValueType: string; ValueName: "IMOD_DIR"; ValueData: "{app}\IMOD"; Check: (not isFailed) and isCygwin and (not IsAdminLoggedOn)
+
 
 [Run]
-Filename: "{cmd}"; Parameters: "/C PATH={code:getRootDir}\bin;%PATH% && rm -fr {app}\IMODtempDir"; WorkingDir: "{app}"; StatusMsg: "Removing IMODtempDir if necessary..."
+Filename: "{cmd}"; Parameters: "/C move {code:getQuotedAppDir}\installIMOD.log {code:getQuotedAppDir}\IMOD"; WorkingDir: "{app}"; StatusMsg: "Moving installIMOD.log to IMOD..."; Check: (not isFailed)
+
 
 [Code]
 var
   Failed: Boolean;
-  RootDir:  String;
-  SingleUser: Boolean;
+  Cygwin: Boolean;
+  Psutil: Boolean;
+  BadCygwin: Boolean;
+  AppDir: String;
+  CygwinDir: String;
+  PythonDir: String;
   
-function checkOK(): Boolean;
+function setupCygwin(const rootKey: Integer; const cygwinKeyName: String; const pathName: String): Boolean;
+//If a installation of Cygwin that contains Python is found, set global variables and return true.
+var
+  path: String;
+  bin: String;
 begin
-  Result := not Failed;
+  Result := False;
+  if RegQueryStringValue(rootKey, cygwinKeyName, pathName, path) and (path <> '') then begin
+    path := trim(path);
+    if DirExists(path) then begin
+      bin := AddBackslash(path) + 'bin';
+      if DirExists(bin) then begin
+        if fileExists(bin + '\python.exe') then begin
+          AppDir := AddBackslash(path) + 'usr\local';
+          CygwinDir := path;
+          PythonDir := bin;
+          Cygwin := true;
+          Result := True;
+          BadCygwin := False;
+        end else begin
+          BadCygwin := True;
+        end;
+      end;
+    end;
+  end;
 end;
 
-function checkOKMultiUser(): Boolean;
+function setupWindows(const rootKey: Integer): Boolean;
+//If a compatible version of Python is found, set the global variables and return true.
+var
+  versionArray: TArrayOfString;
+  version: String;
+  index: Integer;
+  path: String;
 begin
-  Result := (not Failed) and (not SingleUser) and (IsAdminLoggedOn());
+  Result := False;
+  Psutil := False;
+  if RegGetSubkeyNames(rootKey, 'Software\Python\PythonCore', versionArray) then begin
+    for index := 0 to GetArrayLength(versionArray)-1 do begin
+      version := versionArray[index];
+      //Take either the first valid python with psutil or, if none of them have psutil,
+      //will take the last valid one.
+      if RegQueryStringValue(rootKey, 'Software\Python\PythonCore\' + version + '\InstallPath',
+                       '', path) then begin
+        if DirExists(path) and fileExists(AddBackslash(path) + 'python.exe') then begin
+          AppDir := 'C:\Program Files'
+          CygwinDir := '';
+          PythonDir := path;
+          Cygwin := False;
+          Result := True;
+          if DirExists(AddBackslash(path) + 'Lib\site-packages\psutil') then begin
+            Psutil := True;
+            break;
+          end;
+        end;
+      end;
+    end;
+  end;
 end;
 
-function isSingleUser(): Boolean;
+function InitializeSetup(): Boolean;
+//Initializes the global variables.
+//Check 64-bit status, checks whether the right packages are installed, and sets the global variables.
+//Return false if 64-bit status is wrong, or the right packages are not installed.
+//If false is returned, the installer terminates.
 begin
-  if SingleUser then
-    Result := True
-  else
-    Result := not IsAdminLoggedOn();
+  Failed := False;
+  BadCygwin := False;
+  Result := True;
+#ifdef Win64
+  //Make sure this computer is a 64-bit computer.
+  if (not isWin64()) then begin
+    MsgBox('Not a 64-bit computer.  Unable to install', mbCriticalError, MB_OK);
+    Result := False;
+  end else begin
+#endif
+    //find out if Cygwin is installed
+    if not setupCygwin(HKEY_LOCAL_MACHINE, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
+      if not setupCygwin(HKEY_CURRENT_USER, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin                 
+        if not setupCygwin(HKEY_LOCAL_MACHINE, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
+          if not setupCygwin(HKEY_CURRENT_USER, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
+            //find out if Windows Python is installed.  A single-user Windows-only install will not work because a non-admin
+            //account cannot write to Program Files.
+            if not setupWindows(HKEY_LOCAL_MACHINE) then begin
+              MsgBox('A compatible Python version has not been installed on this computer.  Unable to install.', mbCriticalError, MB_OK);
+              Result := False;
+            end;
+          end;                               
+        end;              
+      end;                    
+    end;
+#ifdef Win64
+  end;
+#endif
+  //If Cygwin is installed but does not not have Python installed, and there is a valid Windows Python installed,
+  //ask the user before going with the Windows-only installation.
+  if BadCygwin and (AppDir <> '') and (MsgBox('There is no Python installed in Cygwin.  ' +
+                    'If you proceed with this intallation,'#13#10
+                    'some IMOD programs will not be runnable from Cygwin terminals.'#13#10#13#10
+                    'To use IMOD with a Cygwin terminal, ' +
+                    'exit this installer and use the Cygwin installer to intall Python.'#13#10#13#10
+                    'Exit?', mbConfirmation, MB_YESNO) = IDYES) then begin
+    MsgBox('IMOD had not been installed.  Exiting installer.', mbInformation, MB_OK);
+    Result := False;
+  end;
 end;
 
-function checkOKSingleUser(): Boolean;
+function getAppDir(const dummy: String): String;
 begin
-  if Failed then
-    Result := False
-  else
-    Result := isSingleUser();
+  Result := AppDir;
 end;
 
-function getRootDir(Param: String): String;
+function getQuotedAppDir(const dummy: String): String;
 begin
-  Result := RootDir;
+  Result := '"' + AppDir + '"';
 end;
 
-procedure RunImodInstaller();
-//Runs the IMOD .csh installed and sets Failed to true if it fails
+function isFailed(): Boolean;
+begin
+  Result := Failed;
+end;
+
+function isCygwin(): Boolean;
+begin
+  Result := Cygwin;
+end;
+
+function getPythonDir(const dummy: String): String;
+begin
+  Result := PythonDir;
+end;
+
+function getCygwinDir(const dummy: String): String;
+begin
+  Result := CygwinDir;
+end;
+
+procedure installIMOD();
+//Run installIMOD.
 var
   command: String;
-  parameter: String;
-  workingDir: String;
+  outputBaseFilename: String;
+  skip: String;
   returnCode: Integer;
+  //Runs the installIMOD script.  Sets Failed if installIMOD failed.
 begin
-  //Run installer
-  command := ExpandConstant('{cmd}');
-  parameter := ExpandConstant('/C PATH={code:GetRootDir}\bin;%PATH% && tcsh -f imod_4.5.7_win64.csh -yes');
-  workingDir := ExpandConstant('{app}');
-  if Exec(command, parameter, workingDir, SW_SHOW, ewWaitUntilTerminated, returnCode) then
-  begin
-    if returnCode <> 0 then
-    begin
+  if Cygwin then begin
+    skip := '';
+  end else begin
+    skip := '-skip ';
+  end;
+#ifdef Win64
+#ifdef Cuda
+  outputBaseFilename := 'imod_{#ImodVersion}_win64_CUDA{#Cuda}'
+#else
+  outputBaseFilename := 'imod_{#ImodVersion}_win64'
+#endif
+#else
+  outputBaseFilename := 'imod_{#ImodVersion}_win'
+#endif
+  command := '/C PATH=' + PythonDir + ';%PATH% && echo Installing IMOD.......... && python installIMOD -yes ' + skip + outputBaseFilename + '.tar.gz > installIMOD.log 2>&1';
+  if Exec(ExpandConstant('{cmd}'), command, ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, returnCode) then begin
+    if returnCode <> 0 then begin
       Failed := True;
-      MsgBox('IMOD Install has failed!.  IMOD will not be installed ' +
-                     '(ignore messages to the contrary from this ' +
-                     'installer).  Please see http://bio3d.colorado.edu/imod for ' +
-                     'alternatives.  command=' + command + ',parameter=' +
-                     parameter + ',workingDir=' + workingDir + ',returnCode=' +
-                     IntToStr(returnCode), mbCriticalError, MB_OK);
+      MsgBox('IMOD Install has failed!.  IMOD will not be installed (ignore messages to the contrary from this ' +
+             'installer).  Error messages are in installIMOD.log in ' + ExpandConstant('{app}') +
+             '.  Please see http://bio3d.colorado.edu/imod for alternatives.  Working directory=' +
+             ExpandConstant('{app}') + ',command=' + command + ',returnCode=' + IntToStr(returnCode), mbCriticalError, MB_OK);
     end;
-  end
-  else
-  begin
+  end else begin
     Failed := True;
-    MsgBox('IMOD Install has failed!.  IMOD will not be installed ' +
-                     '(ignore messages to the contrary from this ' +
-                     'installer).  Please see http://bio3d.colorado.edu/imod for ' +
-                     'alternatives.  command=' + command + ',parameter=' +
-                     parameter + ',workingDir=' + workingDir + ',returnCode=' +
-                     IntToStr(returnCode), mbCriticalError, MB_OK);
+    MsgBox('IMOD Install has failed!.  IMOD will not be installed (ignore messages to the contrary from this ' +
+           'installer).  Please see http://bio3d.colorado.edu/imod for alternatives.  Working directory=' +
+           ExpandConstant('{app}') + ',command=' + command + ',returnCode=' + IntToStr(returnCode), mbCriticalError, MB_OK);
   end;
 end;
 
-function setRootDir(cygwin: String): String;
+function getHome(const dummy: String): String;
+//Return the value for the HOME variable.
 var
-  cygwinBin:  String;
+  version: TWindowsVersion;
 begin
-  cygwin := Trim(cygwin);
-  if DirExists(cygwin) then
-  begin
-    cygwinBin := AddBackslash(cygwin) + 'bin';
-    if DirExists(cygwinBin) then
-    begin
-      RootDir := cygwin;
-      Result := cygwin;
-    end
-    else
-    begin
-      MsgBox('Cygwin has not been installed correctly.  Please ' +
-             'install Cygwin before installing IMOD.  See ' +
-             'http://bio3d.colorado.edu/imod for instructions.  cygwin=' + cygwin +
-             ',cygwinBin=' + cygwinBin, mbCriticalError, MB_OK);
-      Abort();
+  if Cygwin then begin
+    //Cygwin
+    Result := ExpandConstant(CygwinDir + '\home\{username}');
+  end else begin
+    GetWindowsVersionEx(version);
+    if version.Major >= 6 then begin
+      //Vista and on
+      Result := ExpandConstant('C:\Users\{username}');
+    end else begin
+      //XP and earlier
+      Result := ExpandConstant('C:\Documents and Settings\{username}');
     end;
-  end
-  else
-  begin
-    MsgBox('Cygwin has not been installed correctly.  Please ' +
-           'install Cygwin before installing IMOD.  See ' +
-           'http://bio3d.colorado.edu/imod for instructions.  cygwin=' + cygwin, mbCriticalError, MB_OK);
-    Abort();
   end;
 end;
 
-procedure validateTcsh(root: String);
-//Sets Failed to True if tcsh is not in cygwin
-begin
-  if not fileExists(AddBackslash(root) + '\bin\tcsh.exe') then
-    begin
-      MsgBox('WARNING:  Your Cygwin does not include tcsh.  IMOD will not install without it.  ' +
-      'To install tcsh, you need to run Cygwin Setup (from www.cygwin.com) - select the '+
-      '"Keep" radio button in the Select Packages panel, and select tcsh from the Shells package category.',
-      mbCriticalError, MB_OK);
-      Abort();
-    end
-end;
-
-function CreateRootDir(Param: String): String;
-//Sets RootDir.  Checks for a valid Cygwin.
-//Sets Failed and throws an exception if there is a failure.
-//Returns the RootDir.
+procedure addToSysPath(const path: String; var sysPath: String);
+//Add a path to the PATH environment variable value.
 var
-  cygwin: String;
-  root: String;
+  addPath: Boolean;
+  index: Integer;
 begin
-  if (not isWin64()) then
-    begin
-      MsgBox('Not a 64-bit computer.  Unable to install', mbCriticalError, MB_OK);
-      Abort();
+  addPath := True;
+  //Don't add the path if it already exists
+  index := Pos(path, sysPath);
+  if index <> 0 then begin
+    index := index + Length(path) + 1;
+    if (index <> Length(sysPath)) and (sysPath[index] <> ';') then begin
+      addPath := False;
     end;
-  SingleUser := False
-  //New Cygwin location
-  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Cygwin\setup',
-                         'rootdir', cygwin) and (cygwin <> '') then
-     begin
-       root := setRootDir(cygwin);
-       validateTcsh(root);
-       Result := root;
-     end
-  else
-    if RegQueryStringValue(HKEY_CURRENT_USER, 'Software\Cygwin\setup',
-                           'rootdir', cygwin) and (cygwin <> '') then
-      begin
-        SingleUser := True;
-        if MsgBox('Cygwin has been installed for this user only.  This means ' +
-                  'that IMOD will also be installed for this user only.  Continue?', mbConfirmation, MB_YESNO) = IDNO then
-          Abort();
-        root := setRootDir(cygwin);
-        validateTcsh(root);
-        Result := root;
-      end
-    else
-      //Old Cygwin location
-      if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/',
-                             'native', cygwin) and (cygwin <> '') then
-        begin
-          root := setRootDir(cygwin);
-          validateTcsh(root);
-          Result := root;
-        end
-      else
-        if RegQueryStringValue(HKEY_CURRENT_USER, 'Software\Cygnus Solutions\Cygwin\mounts v2\/',
-                               'native', cygwin) and (cygwin <> '') then
-          begin
-            SingleUser := True;
-            if MsgBox('Cygwin has been installed for this user only.  This means ' +
-                      'that IMOD will also be installed for this user only.  Continue?', mbConfirmation, MB_YESNO) = IDNO then
-              Abort();
-            root := setRootDir(cygwin);
-            validateTcsh(root);
-            Result := root;
-          end
-        else
-          begin
-            MsgBox('Cygwin has not been installed correctly.  Please ' +
-                   'install Cygwin before installing IMOD.  See ' +
-                   'http://bio3d.colorado.edu/imod for instructions.', mbCriticalError, MB_OK);
-            Abort();
-          end;
-end;
-
-procedure addSingleUserImodDir(const environmentVariable: String; const value: String);
-begin
-  RegWriteStringValue(HKEY_CURRENT_USER, 'Environment', environmentVariable, value);
-end;
-
-procedure AddImodDir();
-var
-environmentVariable: String;
-value: String;
-begin
-  environmentVariable := 'IMOD_DIR';
-  value := ExpandConstant('{app}\IMOD');
-  if isSingleUser() then
-    addSingleUserImodDir(environmentVariable, value)
-  else
-    RegWriteStringValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', environmentVariable, value);
-end;
-
-procedure ModPath();
-var
-	pathValue:	String;
-	newPath:	String;
-	prevPosition:	Integer;
-	position:	Integer;
-	found:	Boolean;
-	done:  Boolean;
-	p:	Integer;
-	hkey: Integer;
-	keyPath: String;
-begin
-  //Modify the Path environment variables - add the Cygwin bin to the front of
-  //it, if its not already there.
-  //Not supporting uninstalling and not support Windows 9x.
-  if (not IsUninstaller()) and (UsingWinNT()) then
-  begin
-	  newpath := ExpandConstant('{code:GetRootDir}\bin');
-	  //Get the current Path value
-	  if isSingleUser() then
-	  begin
-      hkey := HKEY_CURRENT_USER;
-      keyPath := 'Environment';
-    end
-	  else
-	  begin
-	    hkey := HKEY_LOCAL_MACHINE;
-      keyPath := 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
-	  end;
-  	RegQueryStringValue(hkey, keyPath, 'Path', pathValue);
-  	pathValue := Trim(pathValue);
-  	// Put a ';' on the end of pathValue to make it easier to move through the string.
-  	if Copy(pathValue, Length(pathValue), 1) <> ';' then
-  	  pathValue := pathValue + ';';
-  	position := Pos(';', pathValue);
-  	prevPosition := 0;
-  	found := False;
-  	done := False;
-  	//Look at each path in pathValue
-  	while ((not found) and (not done)) do
-    begin
-  		// Check if the current path matches newPath
-  		if CompareText(newpath, Copy(pathValue, prevPosition + 1, position - prevPosition - 1)) = 0 then
-  			found := True
-      else
-      begin
-  		  //Go to the next path
-  		  //Copy doesn't mind if the count parameter is too big.
-  		  p := Pos(';', Copy(pathValue, position + 1, Length(pathValue)));
-  		  if p = 0 then
-  		    done := True
-  		  else
-        begin
-  		    prevPosition := position
-  		    // Move to the next positon.
-  		    position := position + p;
-  		  end;
-  		end;
-  	end;
-  	//Add new directory path to pathValue and write to the registry
-  	if not found then
-    begin
-  	  //Remove trailing ';'
-  	  pathValue := Copy(pathValue, 1, Length(pathValue) -1);
-  	  //Place the cygwin bin path at the beginning of the path value
-  	  if Copy(pathValue, 1, 1) <> ';' then
-  	    pathValue := ';' + pathValue;
-  		pathValue := newPath + pathValue;
-  		RegWriteStringValue(hkey, keyPath, 'Path', pathValue);
-  	end;
+  end;
+  if addPath then begin
+    sysPath := path + ';' + sysPath;
   end;
 end;
 
-procedure CurStepChanged(CurStep: TSetupStep);
+procedure CurStepChanged(const CurStep: TSetupStep);
+var
+  sysPath: String;
+  hkey: Integer;
+	subkey: String;
 begin
-  if CurStep = ssInstall then
-  begin
-    Failed := False;
-  end
-	else if CurStep = ssPostInstall then
-    if checkOKMultiUser() then
-      AddImodDir();
-	  if checkOK() then
-		  ModPath()
+	if CurStep = ssPostInstall then begin
+    //Modify the PATH environment variable.
+	  if not Failed then begin
+      if not IsAdminLoggedOn() then begin
+        hkey := HKEY_CURRENT_USER;
+        subkey := 'Environment';
+      end else begin
+        hkey := HKEY_LOCAL_MACHINE;
+        subkey := 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+	    end;
+      RegQueryStringValue(hkey, subkey, 'Path', sysPath);
+  	  sysPath := Trim(sysPath);
+		  addToSysPath(AppDir + '\IMOD\bin', sysPath);
+      if Cygwin then begin
+        addToSysPath(CygwinDir + '\bin', sysPath);
+      end else begin
+        addToSysPath(PythonDir, sysPath);
+      end;
+      RegWriteStringValue(hkey, subkey, 'Path', sysPath);
+      if (not Cygwin) and (not Psutil) then begin
+        //warn about missing psutil
+        MsgBox('WARNING: the module psutil does not appear to be installed in ' + PythonDir,
+               mbInformation, MB_OK);
+      end;
+    end;
+  end;
 end;
-
