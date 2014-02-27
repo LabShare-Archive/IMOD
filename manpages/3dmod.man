@@ -284,6 +284,20 @@ or
 is entered.  These 4 options can all be used together to open a selected
 set of windows.
 .TP
+.B -ic \fIX,Y,Z\fR
+Set the starting current image point, and the center coordinate for
+an initially opened Zap and/or Slicer window, to the given X, Y, Z
+values.  Both center coordinates and angles (\fB-ia\fR option) must be
+entered to initialize a Slicer window.
+.TP
+.B -ia \fIX,Y,Z\fR
+Set the angles for an initially opened Slicer window to the given X, Y,
+and Z values. 
+.TP
+.B -iz \fIvalue\fR
+Set the zoom for an initially opened Zap and/or Slicer window to the
+given value.
+.TP
 .B -Y
 This option causes the image data to be rotated by 90 degrees around the X
 axis after it has been loaded.  This allows one to model image planes

@@ -90,6 +90,9 @@ void imod_usage(char *name)
   qstr += "   -y min,max  Load in sub image.\n";
   qstr += "   -z min,max  Load in sub image.\n";
   qstr += "   -s min,max  Scale input to range [min,max] (0,0 for all files the same).\n";
+  qstr += "   -ic x,y,z   Set initial center position of slicer and/or Zap.\n";
+  qstr += "   -ia x,y,z   Set initial angles of slicer window.\n";
+  qstr += "   -iz #       Set initial zoom of slicer and/or Zap.\n";
   qstr += "   -I #  Load data as 16-bit integers (# = 1) or as bytes (# = 0).\n";
   qstr += "   -C #  Set # of sections or Mbytes to cache (#M or #m for Mbytes).\n";
   qstr += "   -CT # Set # of sections or Mbytes for cache of tiles or strips.\n";
@@ -148,6 +151,11 @@ int main( int argc, char *argv[])
   int i      = 0;
   int nx, ny, nz, mode;
   int minxpiece, numXpieces, xoverlap, minypiece, numYpieces, yoverlap;
+  float initAngles[3], initZoom;
+  Ipoint initCenter;
+  int setAngles = 0;
+  int setCenter = 0;
+  int setZoom = 0;
   int frames = 0;
   int firstfile = 0;
   int lastimage;
@@ -426,6 +434,20 @@ int main( int argc, char *argv[])
           break;
 
         case 'i':
+          if (argv[i][2] == 'c') {
+            sscanf(argv[++i], "%f%*c%f%*c%f", &initCenter.x, &initCenter.y, 
+                   &initCenter.z);
+            setCenter = 1;
+          } else if (argv[i][2] == 'a') {
+            sscanf(argv[++i], "%f%*c%f%*c%f", &initAngles[0], &initAngles[1], 
+                   &initAngles[2]);
+            setAngles = 1;
+          } else if (argv[i][2] == 'z') {
+            sscanf(argv[++i], "%f", &initZoom);
+            setZoom = 1;
+          }
+          break;
+
         case 'D':
           Imod_debug = TRUE;
           break;
@@ -969,6 +991,17 @@ int main( int argc, char *argv[])
   imod_draw_window();
   xcramp_setlevels(App->cvi->cramp,App->cvi->black,App->cvi->white);
 
+  // Set mouse center and constrain it
+  if (setCenter) {
+    vi.xmouse = initCenter.x;
+    vi.ymouse = initCenter.y;
+    vi.zmouse = initCenter.z;
+    ivwBindMouse(&vi);
+    initCenter.x = vi.xmouse;
+    initCenter.y = vi.ymouse;
+    initCenter.z = vi.zmouse;
+  }
+
   /*********************************/
   /* Open up default Image Windows. */
   if (xyzwinopen)
@@ -979,8 +1012,13 @@ int main( int argc, char *argv[])
     imodv_open();
     imodvOpenSelectedWindows(windowKeys);
   }
-  if (zapOpen || !(xyzwinopen || sliceropen || modelViewOpen))
+  if (zapOpen || !(xyzwinopen || sliceropen || modelViewOpen)) {
     imod_zap_open(&vi, 0); 
+    if (setCenter)
+      ivwSetTopZapCenter(&vi, vi.xmouse, vi.ymouse, B3DNINT(vi.zmouse), false);
+    if (setZoom)
+      ivwSetTopZapZoom(&vi, initZoom, false);
+  }
   if (Imod_debug)  
     imodPuts("initial windows opened");
   if (App->rgba)
@@ -988,6 +1026,12 @@ int main( int argc, char *argv[])
 
   /* Open up requested dialog windows */
   ImodInfoWin->openSelectedWindows(windowKeys, modelViewOpen);
+
+  // Set center and angles if appropriate
+  if (sliceropen && setCenter && setAngles)
+    setTopSlicerAngles(initAngles, &initCenter, false);
+  if (sliceropen && setZoom)
+    setTopSlicerZoom(initZoom, false);
     
   /* Start main application input loop. */
   if (Imod_debug)
