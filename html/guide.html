@@ -124,9 +124,19 @@ install it.</span>&nbsp; This command will not work on Windows unless the
 			/etc/X11/xorg.conf from "nv" to "nvidia" if you accept their offer to modify 
 			the file. &nbsp;For recent Fedora, search for "Install NVIDIA drivers
 			Fedora xx", where xx is your version number, and study the
-			various instructions that you find.  It should be easy if it
-			works. &nbsp;On Ubuntu, the automatic installation through Synaptic Package 
-			Manager or its current equivalent should be adequate.
+			various instructions that you find.
+			&nbsp;On Ubuntu, the automatic installation through Synaptic Package 
+			Manager or its current equivalent should be adequate.  However, on
+			laptops, it is important to know whether the NVIDIA card has Optimus
+			technology for switching between the card and built-in graphics.  If it
+			does, the regular methods will probably not work, but one solution is to
+			install bumblebee (search on bumblebee and the Linux distribution name
+			for specific instructions).  Bumblebee allows you to direct a program
+			to access the NVIDIA graphics by starting it with a 
+			the <code>optirun</code> command.  Thus, if you simply start a new 
+			shell, e.g., with <code>optirun bash</code> and run IMOD commands from
+			this shell, you should find that 
+			3dmod uses the NVIDIA graphics and that the GPU is available for reconstruction.
 		</P>
 		<p><b>Window manager settings.</b> To keep 3dmod from bogging down when it is 
 			displaying complex models, some window managers can be set to display only the 
