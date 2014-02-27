@@ -144,10 +144,13 @@ function InitializeSetup(): Boolean;
 //Check 64-bit status, checks whether the right packages are installed, and sets the global variables.
 //Return false if 64-bit status is wrong, or the right packages are not installed.
 //If false is returned, the installer terminates.
+var
+  Win32Comp : Boolean;
 begin
   Failed := False;
   BadCygwin := False;
   Result := True;
+  win32Comp := (not isWin64());
 #ifdef Win64
   //Make sure this computer is a 64-bit computer.
   if (not isWin64()) then begin
@@ -156,18 +159,18 @@ begin
   end else begin
 #endif
     //find out if Cygwin is installed
-    if not setupCygwin(HKEY_LOCAL_MACHINE_64, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
+    if win32Comp or (not setupCygwin(HKEY_LOCAL_MACHINE_64, 'SOFTWARE\Cygwin\setup', 'rootdir')) then begin
       if not setupCygwin(HKEY_LOCAL_MACHINE_32, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
-        if not setupCygwin(HKEY_CURRENT_USER_64, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin  
+        if win32Comp or (not setupCygwin(HKEY_CURRENT_USER_64, 'SOFTWARE\Cygwin\setup', 'rootdir')) then begin  
           if not setupCygwin(HKEY_CURRENT_USER_32, 'SOFTWARE\Cygwin\setup', 'rootdir') then begin
             if not setupCygwin(HKEY_LOCAL_MACHINE_32, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin                 
-              if not setupCygwin(HKEY_LOCAL_MACHINE_64, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
+              if win32Comp or not (setupCygwin(HKEY_LOCAL_MACHINE_64, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native')) then begin
                 if not setupCygwin(HKEY_CURRENT_USER_32, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
-                  if not setupCygwin(HKEY_CURRENT_USER_64, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native') then begin
+                  if win32Comp or (not setupCygwin(HKEY_CURRENT_USER_64, 'SOFTWARE\Cygnus Solutions\Cygwin\mounts v2\/', 'native')) then begin
                     //find out if Windows Python is installed.  A single-user Windows-only install will not work because a non-admin
                     //account cannot write to Program Files.
                     if not setupWindows(HKEY_LOCAL_MACHINE_32) then begin
-                      if not setupWindows(HKEY_LOCAL_MACHINE_64) then begin
+                      if win32Comp or (not setupWindows(HKEY_LOCAL_MACHINE_64)) then begin
                         MsgBox('A compatible Python version has not been installed on this computer.  Unable to install.', mbCriticalError, MB_OK);
                         Result := False;
                       end;
