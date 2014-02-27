@@ -548,7 +548,7 @@ void GrabSlicer::saveDatabase(bool saveboth)
   QString sangle, spoint;
   Ipoint fpoint;
   float fangle[3];
-  float imX, imY;
+  float imX, imY, zoom = 1.;
   int imZ;
 
   if (sPlug.slicerZap == 0) { // check if slicer window is open
@@ -560,12 +560,14 @@ void GrabSlicer::saveDatabase(bool saveboth)
     sangle.sprintf ("Slicer angle:  (%.2f, %.2f, %.2f)", fangle[0], fangle[1], fangle[2]);
     spoint.sprintf ("Slicer center point:  (%d, %d, %d)", (int)fpoint.x+1, 
                     (int)fpoint.y+1, (int)fpoint.z+1 );
+    ivwGetTopSlicerZoom(sPlug.view, &zoom);
   } else {
     if ( ivwGetTopZapCenter(sPlug.view, imX, imY, imZ) == 1) {
       dia_err("Snapshot failed: Zap window is not open.");
       return;
     }
     spoint.sprintf("Zap center point:  (%d, %d, %d)", (int)imX, (int)imY, imZ);
+    ivwGetTopZapZoom(sPlug.view, &zoom);
   }
 
   if (sPlug.snapShot_format == SnapShot_TIF) { 
@@ -670,9 +672,20 @@ void GrabSlicer::saveDatabase(bool saveboth)
     
    
   if (sPlug.slicerZap == 0)  // slicer window
-    sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`, `REF|ThreeDFile|image`, status, filetype, auto, filename, TXT_notes, grab, xcenter, ycenter, zcenter, xangle, yangle, zangle)  VALUES ( \"%s\", \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\", 1, %d, %d, %d, %f,  %f,  %f)", tiltseriesid, recordpath.toStdString().c_str(), TiltNote.toStdString().c_str(), (int)fpoint.x+1, (int)fpoint.y+1, (int)fpoint.z+1, fangle[0], fangle[1], fangle[2] );
+    sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`,"
+             " `REF|ThreeDFile|image`, status, filetype, auto, filename, TXT_notes, grab,"
+             " zoom, xcenter, ycenter, zcenter, xangle, yangle, zangle)  VALUES ( \"%s\","
+             " \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\", 1, %f, %d, %d, %d, "
+             "%f,  %f,  %f)", tiltseriesid, recordpath.toStdString().c_str(), 
+             TiltNote.toStdString().c_str(), zoom, (int)fpoint.x+1, (int)fpoint.y+1, 
+             (int)fpoint.z+1, fangle[0], fangle[1], fangle[2] );
   else
-    sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`, `REF|ThreeDFile|image`, status, filetype, auto, filename, TXT_notes, grab, xcenter, ycenter, zcenter)  VALUES ( \"%s\", \"%s\", 0, \"2dimage\", 2, \"tempcapsname\", \"%s\", 2, %d, %d, %d)", tiltseriesid, recordpath.toStdString().c_str(), TiltNote.toStdString().c_str(), (int)imX, (int)imY, imZ );
+    sprintf (sqlsql, "INSERT INTO tomography.DataFile (`REF|TiltSeriesData|tiltseries`,"
+             " `REF|ThreeDFile|image`, status, filetype, auto, filename, TXT_notes, grab,"
+             " zoom, xcenter, ycenter, zcenter)  VALUES ( \"%s\", \"%s\", 0, \"2dimage\","
+             " 2, \"tempcapsname\", \"%s\", 2, %f, %d, %d, %d)", tiltseriesid,
+             recordpath.toStdString().c_str(), TiltNote.toStdString().c_str(), zoom, 
+             (int)imX, (int)imY, imZ );
   qry.prepare(sqlsql);
   if( !qry.exec() ) {
     imodPrintStderr("Error excuting sql=%s\n", sqlsql);
