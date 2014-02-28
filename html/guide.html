@@ -634,10 +634,14 @@ Python category.&nbsp; In addition, there must be a Python executable named
 					<br>
 					to see if there is a <code>python.exe</code>
 				<li>
-					If there is not, copy <code>python2.6.exe</code> (or whatever numbered 
+					If there is not, copy <code>python2.7.exe</code> (or whatever numbered 
 					executable shows up in the listing) with<br>
-					&nbsp;&nbsp; <code>cp /bin/python2.6.exe /bin/python.exe</code></li>
+					&nbsp;&nbsp; <code>cp /bin/python2.7.exe /bin/python.exe</code></li>
 			</ol>
+      If you upgrade Cygwin and you DO reinstall IMOD, it will fail if there is
+      an old <code>python.exe</code> from Python 2.6.  In that case, you can
+      just remove <code>python.exe</code> and run the installer again, or you
+      can do the copy just described.
 			<a name="InstallingWindows">
 				<h3>1.6. Installing IMOD on a Windows PC with Cygwin</h3>
 			</a>
