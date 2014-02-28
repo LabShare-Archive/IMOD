@@ -237,7 +237,7 @@ public final class SetupReconUIHarness {
   }
 
   public boolean scanHeaderAction(final SetupReconInterface setupInterface) {
-    MRCHeader header = readMRCHeader(setupInterface);
+    MRCHeader header = readMRCHeader(getStackFileName(setupInterface));
     if (header == null) {
       return false;
     }
@@ -275,6 +275,21 @@ public final class SetupReconUIHarness {
       binning = 1;
     }
     setupInterface.setBinning(binning);
+    ConstEtomoNumber twodir = header.getTwodir();
+    if (!twodir.isNull()) {
+      setupInterface.setTwodir(AxisID.FIRST, twodir.getDouble());
+    }
+    // B stack
+    String bStack = getBAxisStackFileName(setupInterface);
+    if (bStack != null) {
+      header = readMRCHeader(bStack);
+      if (header != null) {
+        twodir = header.getTwodir();
+        if (!twodir.isNull()) {
+          setupInterface.setTwodir(AxisID.SECOND, twodir.getDouble());
+        }
+      }
+    }
     return true;
   }
 
@@ -282,10 +297,9 @@ public final class SetupReconUIHarness {
    * Construction and read an MRCHeader object.
    * @return the MRCHeader object
    */
-  private MRCHeader readMRCHeader(final SetupReconInterface setupInterface) {
+  private MRCHeader readMRCHeader(final String stackFileName) {
     // Run header on the dataset to the extract whatever information is
     // available
-    String stackFileName = getStackFileName(setupInterface);
     if (stackFileName == null) {
       return null;
     }
@@ -347,6 +361,41 @@ public final class SetupReconUIHarness {
       return datasetNameSt;
     }
     return datasetName;
+  }
+
+  /**
+   * Get the B  stack name using dialog.getDataset()
+   * @return
+   */
+  private String getBAxisStackFileName(final SetupReconInterface setupInterface) {
+    if (!setupInterface.isDualAxisSelected()) {
+      return null;
+    }
+    // Get the dataset name from the UI object
+    String datasetName = setupInterface.getDataset();
+    if (datasetName == null || datasetName.equals("")) {
+      return null;
+    }
+    // Add the appropriate extension onto the filename if necessary
+    if (!datasetName.endsWith(DatasetTool.STANDARD_DATASET_EXT)
+        && !datasetName.endsWith(DatasetTool.ALTERNATE_DATASET_EXT)) {
+      String datasetNameSt;
+      datasetNameSt = datasetName + "b" + DatasetTool.STANDARD_DATASET_EXT;
+      if (new File(datasetNameSt).exists()) {
+        return datasetNameSt;
+      }
+      String datasetNameMrc;
+      datasetNameMrc = datasetName + "b" + DatasetTool.ALTERNATE_DATASET_EXT;
+      if (new File(datasetNameMrc).exists()) {
+        return datasetNameMrc;
+      }
+      return datasetNameSt;
+    }
+    int index = datasetName.lastIndexOf("a");
+    if (index == -1) {
+      return null;
+    }
+    return datasetName.substring(0, index) + "b" + datasetName.substring(index + 1);
   }
 
   public boolean isValid() {
