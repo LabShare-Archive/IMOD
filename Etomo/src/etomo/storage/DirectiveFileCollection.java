@@ -339,6 +339,12 @@ public class DirectiveFileCollection implements SetupReconInterface {
     }
   }
 
+  public void setTwodir(final AxisID axisID, final double input) {
+    if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
+      directiveFileArray[DirectiveFileType.BATCH.getIndex()].setTwodir(axisID, input);
+    }
+  }
+
   public void setImageRotation(final String input) {
     if (directiveFileArray[DirectiveFileType.BATCH.getIndex()] != null) {
       directiveFileArray[DirectiveFileType.BATCH.getIndex()].setImageRotation(input);
