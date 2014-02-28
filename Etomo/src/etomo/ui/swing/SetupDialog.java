@@ -609,6 +609,17 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
+  public void setTwodir(final AxisID axisID, final double input) {
+    if (axisID == AxisID.SECOND) {
+      ctfBtwodir.setSelected(true);
+      ctfBtwodir.setText(Double.toString(input));
+    }
+    else {
+      ctfTwodir.setSelected(true);
+      ctfTwodir.setText(Double.toString(input));
+    }
+  }
+
   void setExcludeListEnabled(final AxisID axisID, final boolean enable) {
     if (axisID == AxisID.SECOND) {
       ltfExcludeListB.setEnabled(enable);
