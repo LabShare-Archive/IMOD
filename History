@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/28/14: IMOD_4-8-0 and branch to IMOD_4-7-0
 2/28/14: Reading the bidirectional tilt value from the header file.(Bug# 1781)
 
 2/26/14: Add options to 3dmod for setting initial center, angles, and zoom.
