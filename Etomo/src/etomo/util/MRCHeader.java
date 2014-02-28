@@ -210,11 +210,11 @@ import etomo.ui.swing.UIHarness;
 
 public class MRCHeader {
   //
-  //n'ton member variables
+  // n'ton member variables
   //
   private static Hashtable instances = new Hashtable();
   //
-  //member variables to prevent unnecessary reads
+  // member variables to prevent unnecessary reads
   //
   private FileModifiedFlag modifiedFlag;
 
@@ -223,13 +223,13 @@ public class MRCHeader {
   private static int N_ROWS_INDEX = N_SECTIONS_INDEX - 1;
   private static int N_COLUMNS_INDEX = N_SECTIONS_INDEX - 2;
 
-  //This is information about the header process.  Will only be used by
-  //MrcHeader if it is run with the "-brief" option.
+  // This is information about the header process. Will only be used by
+  // MrcHeader if it is run with the "-brief" option.
   public static String SIZE_HEADER_BRIEF = "Dimensions:";
   public static int N_SECTIONS_INDEX_BRIEF = 3;
 
   //
-  //other member variables
+  // other member variables
   //
   private String filename;
   private int nColumns = -1;
@@ -239,6 +239,7 @@ public class MRCHeader {
   private final EtomoNumber xPixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber yPixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private final EtomoNumber zPixelSize = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+  private final EtomoNumber twodir = new EtomoNumber(EtomoNumber.Type.DOUBLE);
   private double xPixelSpacing = Double.NaN;
   private double yPixelSpacing = Double.NaN;
   private double zPixelSpacing = Double.NaN;
@@ -276,8 +277,8 @@ public class MRCHeader {
    */
   public static MRCHeader getInstance(BaseManager manager, AxisID axisID,
       FileType fileType) {
-    File keyFile = Utilities.getFile(manager.getPropertyUserDir(), fileType.getFileName(
-        manager, axisID));
+    File keyFile = Utilities.getFile(manager.getPropertyUserDir(),
+        fileType.getFileName(manager, axisID));
     String key = makeKey(keyFile);
     MRCHeader mrcHeader = (MRCHeader) instances.get(key);
     if (mrcHeader == null) {
@@ -332,7 +333,7 @@ public class MRCHeader {
   }
 
   //
-  //other functions
+  // other functions
   //
   /**
    * @returns true if file exists
@@ -348,7 +349,7 @@ public class MRCHeader {
           + file.getAbsolutePath() + ", which doesn't exist.");
       return false;
     }
-    //If the file hasn't changed, don't reread
+    // If the file hasn't changed, don't reread
     if (!modifiedFlag.isModifiedSinceLastRead()) {
       return true;
     }
@@ -393,10 +394,10 @@ public class MRCHeader {
     }
 
     for (int i = 0; i < stdOutput.length; i++) {
-      //  Parse the size of the data
-      //  Note the initial space in the string below
-      //Need to get brief header and regular header in the same way, so change
-      //so that the output is trimmed for this parse.
+      // Parse the size of the data
+      // Note the initial space in the string below
+      // Need to get brief header and regular header in the same way, so change
+      // so that the output is trimmed for this parse.
       if (stdOutput[i].trim().startsWith(SIZE_HEADER)) {
         String[] tokens = stdOutput[i].trim().split("\\s+");
         if (debug) {
@@ -435,7 +436,7 @@ public class MRCHeader {
         }
       }
 
-      //  Parse the mode
+      // Parse the mode
       if (stdOutput[i].startsWith(" Map mode")) {
         String[] tokens = stdOutput[i].split("\\s+");
         if (tokens.length < 5) {
@@ -444,8 +445,8 @@ public class MRCHeader {
         }
         mode = Integer.parseInt(tokens[4]);
       }
-      //PixelsParsed will be set to true if there are no errors parsing
-      //"Pixel Spacing".
+      // PixelsParsed will be set to true if there are no errors parsing
+      // "Pixel Spacing".
       boolean pixelsParsed = false;
       // Parse the pixels size
       if (stdOutput[i].startsWith(" Pixel spacing")) {
@@ -475,6 +476,7 @@ public class MRCHeader {
       // Parse the rotation angle and/or binning from the comment section
       parseTiltAxis(stdOutput[i]);
       parseBinning(stdOutput[i]);
+      parseTwodir(stdOutput[i]);
     }
     Utilities.timestamp("read", "header", filename, Utilities.FINISHED_STATUS);
     return true;
@@ -518,6 +520,10 @@ public class MRCHeader {
    */
   public int getNRows() {
     return nRows;
+  }
+
+  public ConstEtomoNumber getTwodir() {
+    return twodir;
   }
 
   /**
@@ -598,8 +604,8 @@ public class MRCHeader {
     }
     line = line.trim();
     if (line.startsWith("Tilt axis rotation angle")) {
-      //Handle an "=" sign without a following space.  This can happen with
-      //Fortran output because it wants to put numbers in fixed-width columns.
+      // Handle an "=" sign without a following space. This can happen with
+      // Fortran output because it wants to put numbers in fixed-width columns.
       String[] pair = line.split("=");
       String[] valueTokens = pair[1].trim().split("\\s+");
       if (valueTokens.length > 0) {
@@ -617,6 +623,25 @@ public class MRCHeader {
       String[] tokens = line.split("\\s+");
       if (tokens.length > 8) {
         binning = Integer.parseInt(tokens[8]);
+      }
+    }
+  }
+
+  /**
+   * Parse the binning parameter from the comments
+   * @param line
+   */
+  private void parseTwodir(String line) {
+    String tag = "bidir";
+    if (line.indexOf(tag) != -1 && line.indexOf("RO image file") == -1) {
+      String[] array = line.trim().split("\\s*\\=\\s*|\\s*,\\s*|\\s+");
+      if (array != null) {
+        for (int i = 0; i < array.length; i++) {
+          if (array[i].equals(tag) && i < array.length - 1) {
+            twodir.set(array[i + 1]);
+            break;
+          }
+        }
       }
     }
   }
