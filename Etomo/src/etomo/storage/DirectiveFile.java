@@ -627,6 +627,10 @@ public final class DirectiveFile {
     setCopyArgValue(BINNING_NAME, Integer.toString(input));
   }
 
+  public void setTwodir(final AxisID axisID, final double input) {
+    setCopyArgValue(convertAttributeName(axisID, TWODIR_NAME), Double.toString(input));
+  }
+
   public void setImageRotation(final String input) {
     setCopyArgValue(convertAttributeName(AxisID.FIRST, ROTATION_NAME), input);
     if (isDual()) {
