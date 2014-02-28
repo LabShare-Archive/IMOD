@@ -52,6 +52,8 @@ public interface SetupReconInterface {
 
   public boolean isTwodir(AxisID axisID);
 
+  public void setTwodir(AxisID axisID, double input);
+
   public String getFiducialDiameter(boolean doValidation)
       throws FieldValidationFailedException;
 
