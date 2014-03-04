@@ -152,7 +152,6 @@ public final class ParsedList {
   private final ParsedElementType type;
   private final ParsedElementList list;
   private final EtomoNumber.Type etomoNumberType;
-  private final boolean allowNan;
   private final String descr;
 
   /**
@@ -167,32 +166,24 @@ public final class ParsedList {
   private boolean missingAttribute = false;
 
   private ParsedList(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      final boolean allowNan, final String descr) {
+      final String descr) {
     this.type = type;
-    this.allowNan = allowNan;
     this.descr = descr;
-    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue, allowNan,
-        descr);
+    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue, descr);
     this.etomoNumberType = etomoNumberType;
   }
 
   public static ParsedList getMatlabInstance(final String descr) {
-    return new ParsedList(ParsedElementType.MATLAB_NUMBER, null, true, descr);
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, null, descr);
   }
 
   public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType,
       final String descr) {
-    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, true, descr);
-  }
-
-  public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType,
-      final boolean allowNan, final String descr) {
-    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, allowNan,
-        descr);
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType, descr);
   }
 
   public static ParsedList getStringInstance(final String descr) {
-    return new ParsedList(ParsedElementType.STRING, null, false, descr);
+    return new ParsedList(ParsedElementType.STRING, null, descr);
   }
 
   /**
@@ -282,26 +273,25 @@ public final class ParsedList {
   /**
    * Only effects elements of the list, not list size.
    * @param input
-   
-   public void setMinArraySize(int input) {
-   for (int i = 0; i < list.size(); i++) {
-   list.get(i).setMinArraySize(input);
-   }
-   }
    */
   public String getParsableString() {
-    StringBuffer buffer = new StringBuffer(OPEN_SYMBOL.toString());
-    boolean firstElement = true;
+    StringBuffer buffer = new StringBuffer();
+    buffer.append(OPEN_SYMBOL);
     for (int i = 0; i < list.size(); i++) {
       ParsedElement element = list.get(i);
       if (element != null) {
-        if (!firstElement) {
-          buffer.append(DIVIDER_SYMBOL.toString() + " ");
+        String string;
+        string = element.getParsableString();
+        if (buffer.length() > 1) {
+          buffer.append(DIVIDER_SYMBOL + " ");
+        }
+        if (string.matches("\\s*")) {
+          buffer.append(ParsedArray.OPEN_SYMBOL.toString()
+              + ParsedArray.CLOSE_SYMBOL.toString());
         }
         else {
-          firstElement = false;
+          buffer.append(string);
         }
-        buffer.append(element.getParsableString());
       }
     }
     buffer.append(CLOSE_SYMBOL);
@@ -430,7 +420,7 @@ public final class ParsedList {
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       // Found an empty element.
       list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(), defaultValue,
-          allowNan, descr));
+          descr));
       return token;
     }
     // May have found an element.
@@ -448,7 +438,7 @@ public final class ParsedList {
       // Array descriptors don't have their own open and close symbols, so they
       // look like numbers until to you get to the first divider (":"or "-").
       ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type, etomoNumberType,
-          isDebug(), defaultValue, allowNan, descr);
+          isDebug(), defaultValue, descr);
       token = descriptor.parse(token, tokenizer);
       // create the correct type of element
       if (descriptor.isEmpty()) {
