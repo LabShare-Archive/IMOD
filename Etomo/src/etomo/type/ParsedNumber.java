@@ -135,17 +135,15 @@ public final class ParsedNumber extends ParsedElement {
 
   private final StringBuffer NON_ELEMENT_SYMBOLS;
   private final ParsedElementType type;
-  final boolean allowNan;
 
   private EtomoNumber defaultValue = null;
   private boolean debug = false;
 
   private ParsedNumber(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue, final boolean allowNan, final String descr) {
+      boolean debug, EtomoNumber defaultValue, final String descr) {
     super(descr);
     this.etomoNumberType = etomoNumberType;
     this.type = type;
-    this.allowNan = allowNan;
     rawNumber = new EtomoNumber(etomoNumberType);
     rawNumber.setDefault(defaultValue);
     NON_ELEMENT_SYMBOLS = new StringBuffer(ParsedList.OPEN_SYMBOL.toString()
@@ -157,31 +155,19 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   public static ParsedNumber getMatlabInstance(final String descr) {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null, true,
-        descr);
-  }
-
-  public static ParsedNumber getMatlabInstance(final boolean allowNan, final String descr) {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null, allowNan,
-        descr);
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null, descr);
   }
 
   public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType,
       final String descr) {
     return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
-        null, true, descr);
-  }
-
-  public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType,
-      final boolean allowNan, final String descr) {
-    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType, false,
-        null, allowNan, descr);
+        null, descr);
   }
 
   static ParsedNumber getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue,
-      final boolean allowNan, final String descr) {
-    return new ParsedNumber(type, etomoNumberType, debug, defaultValue, allowNan, descr);
+      final String descr) {
+    return new ParsedNumber(type, etomoNumberType, debug, defaultValue, descr);
   }
 
   public void parse(ReadOnlyAttribute attribute) {
@@ -267,7 +253,7 @@ public final class ParsedNumber extends ParsedElement {
    */
   public String getParsableString() {
     if (rawNumber.isDefaultedNull()) {
-      if (type.isMatlab() && allowNan) {
+      if (type.isMatlab()) {
         // Empty strings cannot be parsed by MatLab. If this instance is a
         // Matlab syntax instance, return NaN (unless it is an array descriptor
         // because they can't contain NaN).
@@ -443,7 +429,7 @@ public final class ParsedNumber extends ParsedElement {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, debug,
-          defaultValue, allowNan, descr);
+          defaultValue, descr);
     }
     if (rawNumber.isNull()) {
       return parsedNumberExpandedArray;
