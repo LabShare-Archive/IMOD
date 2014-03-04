@@ -417,8 +417,7 @@ public final class MatlabParam {
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = ParsedQuotedString
       .getInstance(REFERENCE_KEY);
-  private final ParsedArray reference = ParsedArray.getMatlabInstance(false,
-      REFERENCE_KEY);
+  private final ParsedArray reference = ParsedArray.getMatlabInstance(REFERENCE_KEY);
   private final ParsedNumber yaxisObjectNum = ParsedNumber
       .getMatlabInstance(YAXIS_OBJECT_NUM_KEY);
   private final ParsedNumber yaxisContourNum = ParsedNumber
@@ -432,7 +431,7 @@ public final class MatlabParam {
   private final ParsedQuotedString maskType = ParsedQuotedString
       .getInstance(MASK_TYPE_KEY);
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance(
-      EtomoNumber.Type.DOUBLE, false, MASK_MODEL_PTS_KEY);
+      EtomoNumber.Type.DOUBLE, MASK_MODEL_PTS_KEY);
   private final ParsedNumber insideMaskRadius = ParsedNumber
       .getMatlabInstance(INSIDE_MASK_RADIUS_KEY);
   private final ParsedNumber outsideMaskRadius = ParsedNumber
@@ -1567,24 +1566,24 @@ public final class MatlabParam {
     lowCutoff.parse(autodoc.getAttribute(LOW_CUTOFF_KEY));
     addError(lowCutoff, errorList);
     // hiCutoff
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, false,
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
         HI_CUTOFF_KEY);
     hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
     addError(hiCutoff, errorList);
     size = Math.max(size, hiCutoff.size());
     // refThreshold
     ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
-        false, REF_THRESHOLD_KEY);
+        REF_THRESHOLD_KEY);
     refThreshold.parse(autodoc.getAttribute(REF_THRESHOLD_KEY));
     addError(refThreshold, errorList);
     // duplicateShiftTolerance
-    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance(false,
-        DUPLICATE_SHIFT_TOLERANCE_KEY);
+    ParsedArray duplicateShiftTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
     duplicateShiftTolerance.parse(autodoc.getAttribute(DUPLICATE_SHIFT_TOLERANCE_KEY));
     addError(duplicateShiftTolerance, errorList);
     // duplicateAngularTolerance
-    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance(false,
-        DUPLICATE_ANGULAR_TOLERANCE_KEY);
+    ParsedArray duplicateAngularTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
     duplicateAngularTolerance
         .parse(autodoc.getAttribute(DUPLICATE_ANGULAR_TOLERANCE_KEY));
     addError(duplicateAngularTolerance, errorList);
@@ -1722,14 +1721,14 @@ public final class MatlabParam {
     ParsedList searchRadius = ParsedList.getMatlabInstance(SEARCH_RADIUS_KEY);
     ParsedList lowCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
         LOW_CUTOFF_KEY);
-    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE, false,
+    ParsedList hiCutoff = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
         HI_CUTOFF_KEY);
     ParsedList refThreshold = ParsedList.getMatlabInstance(EtomoNumber.Type.DOUBLE,
-        false, REF_THRESHOLD_KEY);
-    ParsedArray duplicateShiftTolerance = ParsedArray.getMatlabInstance(false,
-        DUPLICATE_SHIFT_TOLERANCE_KEY);
-    ParsedArray duplicateAngularTolerance = ParsedArray.getMatlabInstance(false,
-        DUPLICATE_ANGULAR_TOLERANCE_KEY);
+        REF_THRESHOLD_KEY);
+    ParsedArray duplicateShiftTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
+    ParsedArray duplicateAngularTolerance = ParsedArray
+        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
     // build the lists
     for (int i = 0; i < iterationList.size(); i++) {
       Iteration iteration = (Iteration) iterationList.get(i);
@@ -2488,13 +2487,13 @@ public final class MatlabParam {
     private final ParsedArray lowCutoff = ParsedArray.getMatlabInstance(
         EtomoNumber.Type.DOUBLE, LOW_CUTOFF_KEY);
     private final ParsedArray hiCutoff = ParsedArray.getMatlabInstance(
-        EtomoNumber.Type.DOUBLE, false, HI_CUTOFF_KEY);
+        EtomoNumber.Type.DOUBLE, HI_CUTOFF_KEY);
     private final ParsedNumber refThreshold = ParsedNumber.getMatlabInstance(
-        EtomoNumber.Type.DOUBLE, false, REF_THRESHOLD_KEY);
-    private final ParsedNumber duplicateShiftTolerance = ParsedNumber.getMatlabInstance(
-        false, DUPLICATE_SHIFT_TOLERANCE_KEY);
+        EtomoNumber.Type.DOUBLE, REF_THRESHOLD_KEY);
+    private final ParsedNumber duplicateShiftTolerance = ParsedNumber
+        .getMatlabInstance(DUPLICATE_SHIFT_TOLERANCE_KEY);
     private final ParsedNumber duplicateAngularTolerance = ParsedNumber
-        .getMatlabInstance(false, DUPLICATE_ANGULAR_TOLERANCE_KEY);
+        .getMatlabInstance(DUPLICATE_ANGULAR_TOLERANCE_KEY);
 
     // search spaces
     private final SearchAngleArea dPhi = new SearchAngleArea();
