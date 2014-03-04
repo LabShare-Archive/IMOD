@@ -59,7 +59,6 @@ abstract class ParsedDescriptor extends ParsedElement {
   private final EtomoNumber.Type etomoNumberType;
   final ParsedElementList descriptor;// for use by children classes
   private final ParsedElementType type;
-  final boolean allowNan;
 
   private boolean dividerParsed = false;
   private EtomoNumber defaultValue = null;
@@ -69,14 +68,12 @@ abstract class ParsedDescriptor extends ParsedElement {
   abstract boolean isDebug();
 
   ParsedDescriptor(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue, final boolean allowNan, final String descr) {
+      boolean debug, EtomoNumber defaultValue, final String descr) {
     super(descr);
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.defaultValue = defaultValue;
-    this.allowNan = allowNan;
-    descriptor = new ParsedElementList(type, etomoNumberType, debug, defaultValue,
-        allowNan, descr);
+    descriptor = new ParsedElementList(type, etomoNumberType, debug, defaultValue, descr);
     setDebug(debug);
   }
 
@@ -99,13 +96,12 @@ abstract class ParsedDescriptor extends ParsedElement {
    */
   static ParsedDescriptor getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue,
-      final boolean allowNan, final String descr) {
+      final String descr) {
     if (debug) {
       System.out.println("ParsedDescriptor.getInstance");
     }
     if (type.isMatlab()) {
-      return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue, allowNan,
-          descr);
+      return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue, descr);
     }
     return null;
   }
@@ -222,7 +218,7 @@ abstract class ParsedDescriptor extends ParsedElement {
   final Token parseElement(Token token, final PrimativeTokenizer tokenizer) {
     // parse a number
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan, descr);
+        defaultValue, descr);
     element.setDebug(isDebug());
     element.setDefault(defaultValue);
     token = element.parse(token, tokenizer);
@@ -279,14 +275,14 @@ abstract class ParsedDescriptor extends ParsedElement {
       return;
     }
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan, descr);
+        defaultValue, descr);
     element.setRawString(string);
     descriptor.set(index, element);
   }
 
   void setRawString(final int index, final double number) {
     ParsedNumber element = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan, descr);
+        defaultValue, descr);
     element.setRawString(number);
     descriptor.set(index, element);
   }
@@ -357,14 +353,14 @@ abstract class ParsedDescriptor extends ParsedElement {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType, isDebug(),
-          defaultValue, allowNan, descr);
+          defaultValue, descr);
     }
     if (descriptor.size() == 0) {
       return parsedNumberExpandedArray;
     }
     // exclude empty descriptor numbers
     ParsedElementList list = new ParsedElementList(type, etomoNumberType, isDebug(),
-        defaultValue, allowNan, descr);
+        defaultValue, descr);
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       if (element != null && !element.isEmpty()) {
@@ -416,7 +412,7 @@ abstract class ParsedDescriptor extends ParsedElement {
     while (!done) {
       prevNumber = curNumber;
       curNumber = ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
-          defaultValue, allowNan, descr);
+          defaultValue, descr);
       curNumber.setRawString(prevNumber.getRawNumber());
       curNumber.plus(increment);
       if ((increment.isPositive() && curNumber.le(lastNumber))
@@ -440,20 +436,20 @@ abstract class ParsedDescriptor extends ParsedElement {
    */
   String getString(final boolean parsable) {
     StringBuffer buffer = new StringBuffer();
-    boolean emptyString = true;
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
       if (element != null) {
-        if (!emptyString) {
-          buffer.append(getDividerSymbol().charValue());
-        }
-        emptyString = false;
+        String string;
         if (parsable) {
-          buffer.append(element.getParsableString());
+          string = element.getParsableString();
         }
         else {
-          buffer.append(element.getRawString());
+          string = element.getRawString();
         }
+        if (buffer.length() > 0 && !string.matches("\\s*")) {
+          buffer.append(getDividerSymbol().charValue());
+        }
+        buffer.append(string);
       }
     }
     return buffer.toString();
