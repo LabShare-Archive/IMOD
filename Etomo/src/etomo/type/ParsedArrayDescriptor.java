@@ -153,20 +153,15 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   private boolean debug = false;
 
   ParsedArrayDescriptor(final EtomoNumber.Type etomoNumberType, boolean debug,
-      EtomoNumber defaultValue, final boolean allowNan, final String descr) {
+      EtomoNumber defaultValue, final String descr) {
     super(ParsedElementType.MATLAB_ARRAY_DESCRIPTOR, etomoNumberType, debug,
-        defaultValue, allowNan, descr);
+        defaultValue, descr);
     setDebug(debug);
   }
 
   public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType,
       final String descr) {
-    return new ParsedArrayDescriptor(etomoNumberType, false, null, true, descr);
-  }
-
-  public static ParsedArrayDescriptor getInstance(final EtomoNumber.Type etomoNumberType,
-      final boolean allowNan, final String descr) {
-    return new ParsedArrayDescriptor(etomoNumberType, false, null, allowNan, descr);
+    return new ParsedArrayDescriptor(etomoNumberType, false, null, descr);
   }
 
   public void setRawStringEnd(final String input) {
@@ -369,7 +364,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
       parsedNumberExpandedArray = new ParsedElementList(getType(), getEtomoNumberType(),
-          debug, getDefault(), allowNan, descr);
+          debug, getDefault(), descr);
     }
     ParsedNumber start = (ParsedNumber) descriptor.get(START_INDEX);
     ParsedNumber end = (ParsedNumber) descriptor.get(END_INDEX);
@@ -409,7 +404,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     boolean increasing = !increment.isNegative();
     while ((increasing && current.lt(last)) || (!increasing && current.gt(last))) {
       ParsedNumber parsedCurrent = ParsedNumber.getInstance(getType(),
-          getEtomoNumberType(), debug, getDefault(), allowNan, descr);
+          getEtomoNumberType(), debug, getDefault(), descr);
       parsedCurrent.setRawString(current.getNumber());
       parsedNumberExpandedArray.add(parsedCurrent);
       current = new EtomoNumber(current);
