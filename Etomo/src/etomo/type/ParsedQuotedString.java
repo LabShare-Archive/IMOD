@@ -284,8 +284,7 @@ public final class ParsedQuotedString extends ParsedElement {
   ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null, false,
-          descr);
+      parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null, descr);
     }
     return parsedNumberExpandedArray;
   }
