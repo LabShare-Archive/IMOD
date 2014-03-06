@@ -2759,7 +2759,6 @@ static int ivwProcessImageList(ImodView *vi)
         mratio = 0.;
         if (naysum  > 0.)
           mratio = iiReadPoint(image, 0, midy, midz) / naysum;
-        imodPrintStderr("mratio %f  zratio %f\n", mratio, zratio);
         if (zratio && mratio && mratio > 10. * zratio)
           image->mirrorFFT = 0;
         iiClose(image);
