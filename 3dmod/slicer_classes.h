@@ -46,6 +46,7 @@ class SlicerCube;
 class QDoubleSpinBox;
 class HotToolBar;
 class RotationTool;
+class HotWidget;
 
 class SlicerWindow : public QMainWindow
 {
@@ -72,6 +73,7 @@ class SlicerWindow : public QMainWindow
   SlicerFuncs *mFuncs;
   HotToolBar *mToolBar;
   HotToolBar *mToolBar2;
+  HotWidget *mFreeBar2;
   HotToolBar *mTimeBar;
   HotToolBar *mSaveAngBar;
   QPushButton *mSetAngBut;
@@ -118,8 +120,7 @@ class SlicerWindow : public QMainWindow
   
  private:
   void setFontDependentWidths();
-  HotToolBar *makeToolBar(bool addBreak, int spacing, const char *caption);
-  void buildToolBar2();
+  void buildToolBar2(bool freeBar);
   
   QToolButton *mToggleButs[MAX_SLICER_TOGGLES];
   int mToggleStates[MAX_SLICER_TOGGLES];
@@ -180,5 +181,27 @@ protected:
  private:
   SlicerFuncs *mFuncs;
 };
+
+class HotWidget : public QWidget
+{
+  Q_OBJECT
+ public:
+  HotWidget( QWidget * parent = 0, Qt::WFlags fl = Qt::Window) 
+    : QWidget(parent, fl) { };
+  ~HotWidget() {}
+
+ signals:
+  void keyPress(QKeyEvent *e);
+  void keyRelease(QKeyEvent *e);
+  void contextMenu(QContextMenuEvent *e);
+
+
+ protected:
+  void keyPressEvent ( QKeyEvent * e ) {emit keyPress(e);};
+  void keyReleaseEvent ( QKeyEvent * e ) {emit keyRelease(e);};
+  void contextMenuEvent(QContextMenuEvent *e) {emit contextMenu(e);};
+  void closeEvent (QCloseEvent * e ) {e->ignore();};
+};
+
 
 #endif     // SLICER_CLASSES_H
