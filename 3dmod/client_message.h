@@ -28,6 +28,7 @@
 #define MESSAGE_GHOST_MODE     17
 #define MESSAGE_ZAP_HQ_MODE    18
 #define MESSAGE_OPEN_DIALOGS   19
+// REMEMBER TO UPDATE requiredArgs in ImodClipboard::executeMessage FOR NEW MESSAGES
 
 /* Definitions for plugins/special modules */
 #define MESSAGE_BEADFIX_OPENFILE   1
