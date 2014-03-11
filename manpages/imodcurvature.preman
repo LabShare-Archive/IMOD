@@ -49,10 +49,11 @@ and bottoms of structures.  The exhaustive orientation search is
 computationally inefficient and will make the program run much longer than for
 spherical fits (hours instead of minutes).
 .P
-If contours are in arbitrary planes rather than in Z planes, the 
+If contours are in arbitrary planes rather than in Z planes, the 2D
+curvature can be determined, but only if they are
+individually rotated into the best-fitting plane, using the 
 .B -ro
-option allows them to be individually rotated into the best-fitting plane, and
-the 2D curvature can then be determined.
+option.
 .P
 A radius of curvature is encoded into the model only if it falls within the
 range of the lower and upper criteria set with the 
