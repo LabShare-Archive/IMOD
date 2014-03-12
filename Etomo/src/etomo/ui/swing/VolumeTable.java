@@ -760,7 +760,7 @@ final class VolumeTable implements Expandable, Highlightable, Run3dmodButtonCont
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File file = chooser.getSelectedFile();
       parent.setLastLocation(file.getParentFile());
-      if (tiltLogFileFilter.accept(file)) {
+      if (tiltLogFileFilter.accept(file) || file.getName().endsWith(".log")) {
         try {
           TiltLog tiltLog = TiltLog.getInstance(file);
           tiltLog.read();
