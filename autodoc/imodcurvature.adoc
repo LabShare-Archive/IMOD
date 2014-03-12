@@ -221,6 +221,5 @@ tooltip =
 manpage = If "+", radii and curvatures will be stored as positive values 
 when the contour follows a locally clockwise path as viewed from the
 +z axis, and negative for counterclockwise. If "-", these signs will be 
-reversed. SignedValues are only applicabble when RotateToXYPlane (-ro) and 
-one of StoreValues (-st) or KappaValues (-kappa) is specified.
-
+reversed. SignedValues are not allowed in combination with ZRangeToFit (-zr) 
+or CylinderSearchAngles (-cy) .

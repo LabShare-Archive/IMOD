@@ -77,7 +77,7 @@ int main( int argc, char *argv[])
   int printMean = 0;
   int red, green, blue;
   int signedValues = 0;
-  char *signedValuesStr;
+  char *signedValuesStr = 0;
   unsigned char cmap[3][256];
   float fitCrit = 0.;
   float sample = 2.;
@@ -129,6 +129,10 @@ int main( int argc, char *argv[])
   PipGetBoolean("RotateToXYPlane", &rotateWild);
   PipGetFloat("CylinderSearchAngle", &cylSearch);
   PipGetInteger("MeanStored", &printMean);
+  if (!PipGetString("SignedValues", &signedValuesStr) && cylSearch) {
+    exitError(
+      "SignedValues (-si) can not be used with CylinderSearchAngle (-cy)");
+  }
   
   if (!testcurve) {
 
@@ -214,8 +218,10 @@ int main( int argc, char *argv[])
     }
     
     /* See if storing signed curvature / radii was requested */
-    if (!PipGetString("SignedValues", &signedValuesStr)) {
-      if (rotateWild && storeVals) {
+    if (signedValuesStr) {
+      if (zrange)
+        exitError("SignedValues (-si) can not be used with ZRangeToFit (-zr)");
+      if (storeVals) {
         if (strcmp(signedValuesStr, "+") == 0)
 	  signedValues = 1;
         else 
@@ -223,10 +229,9 @@ int main( int argc, char *argv[])
             signedValues = -1;
           else
             exitError("SignedValues (-si) argument must be \"+\" or \"-\"");
-	free(signedValuesStr);
       }
-      else 
-        exitError("SignedValues (-si) require -ro and either -st or -kappa"); 
+      else exitError("SignedValues (-si) require either -st or -kappa"); 
+      free(signedValuesStr);
     }
 
     /* Loop on the objects */
