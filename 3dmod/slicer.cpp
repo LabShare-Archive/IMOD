@@ -353,12 +353,12 @@ void setupLinkedSlicers(ImodView *vi)
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
   slicer = (SlicerWindow *)objList.at(objList.count() - 1);
   imod_info_input();
-  slicer->mToolBar2->show();
+  slicer->mFreeBar2->show();
   imod_info_input();
 
   // On Linux, the toolbar has the full size if we process events enough, but the 
   // window frame geometry might not be right yet
-  QRect toolGeom = slicer->mToolBar2->frameGeometry();
+  QRect toolGeom = slicer->mFreeBar2->frameGeometry();
   QRect fullGeom = slicer->frameGeometry();
   QRect winGeom = ivwRestorableGeometry(slicer);
   newWidth = B3DMAX(winGeom.width(), toolGeom.width() + 20);
@@ -381,7 +381,10 @@ void setupLinkedSlicers(ImodView *vi)
   // dropping the window size by 10,10 each time
   while (newWidth > winGeom.width() / 2 && newHeight > winGeom.height() / 2) {
     firstLeft = 10;
-    firstTop = topIndent + toolGeom.height();
+
+    // Allow some space below toolbar because on gnome the size still doesn't have title 
+    // bar included
+    firstTop = topIndent + toolGeom.height() + 24;
     numInX = B3DMAX(1, deskWidth / (newWidth + xBorder));
     numInY = B3DMAX(1, (deskHeight - toolGeom.height()) / (newHeight + yBorder));
     if (numInX * numInY >= vi->numTimes)
@@ -397,7 +400,9 @@ void setupLinkedSlicers(ImodView *vi)
   }
   
   // Open the windows and place them all
-  slicer->mToolBar2->move(10, topIndent);
+  slicer->mFreeBar2->move
+    (10 + (firstLeft == 10 ? (deskWidth - toolGeom.width()) / 2 : 0),
+     topIndent + (firstLeft == 10 ? 0 : (deskHeight - toolGeom.height()) / 2));
   ix = 0;
   iy = 0;
   for (i = 1; i <= B3DMIN(numInX * numInY, vi->numTimes); i++) {
@@ -552,8 +557,14 @@ SlicerFuncs::SlicerFuncs(ImodView *vi, int autoLink)
   imod_info_input();
 
   QSize toolSize1 = mQtWindow->mToolBar->sizeHint();
-  QSize toolSize2 = mQtWindow->mToolBar2->sizeHint();
-  mQtWindow->mToolBar2->setMaximumWidth(toolSize2.width() + 10);
+  QSize toolSize2;
+  if (mAutoLink == 1 && mQtWindow->mFreeBar2) { 
+    toolSize2 = mQtWindow->mFreeBar2->sizeHint();
+    mQtWindow->mFreeBar2->setMaximumWidth(toolSize2.width() + 10);
+  } else if (mQtWindow->mToolBar2) {
+    toolSize2 = mQtWindow->mToolBar2->sizeHint();
+    mQtWindow->mToolBar2->setMaximumWidth(toolSize2.width() + 10);
+  }
   int newWidth = toolSize1.width() > toolSize2.width() ?
     toolSize1.width() : toolSize2.width();
   int newHeight = newWidth + toolSize1.height() + (mAutoLink ? 0 : toolSize2.height());
@@ -1132,9 +1143,13 @@ void SlicerFuncs::setLinkedState(bool state)
         if (numLeft > 1) {
           slicer->manageAutoLink(1);
           slicer->mFuncs->mAutoLink = 1;
-          QRect pos = ivwRestorableGeometry(mQtWindow->mToolBar2);
-          slicer->mToolBar2->move(pos.left(), pos.top());
-          slicer->mToolBar2->show();
+          if (slicer->mFreeBar2) {
+            if (mQtWindow->mFreeBar2) {
+              QRect pos = ivwRestorableGeometry(mQtWindow->mFreeBar2);
+              slicer->mFreeBar2->move(pos.left(), pos.top());
+            }
+            slicer->mFreeBar2->show();
+          }
           break;
         } else {
           slicer->manageAutoLink(0);

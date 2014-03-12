@@ -65,7 +65,7 @@ ImodClipboard::ImodClipboard(bool useStdin, bool doingInitialLoad)
   QClipboard *cb = QApplication::clipboard();
   //cb->setSelectionMode(false);
   mHandling = false;
-  mDeferredHandling = false;
+  mDeferredHandling = 0;
   mExiting = 0;
   mDisconnected = false;
   mClipHackTimer = NULL;
@@ -342,7 +342,7 @@ bool ImodClipboard::executeMessage()
 
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
-  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3};
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4, 3, 1, 1};
   int numArgs = sMessageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
@@ -351,7 +351,7 @@ bool ImodClipboard::executeMessage()
 
     // Get the action, then check that there are enough values for it
     sMessageAction = sMessageStrings[arg].toInt();
-    if (sMessageAction < sizeof(requiredArgs) / sizeof(int) &&
+    if (sMessageAction >= 0 && sMessageAction < sizeof(requiredArgs) / sizeof(int) &&
         arg + requiredArgs[sMessageAction] >= numArgs) {
         imodPrintStderr("imodExecuteMessage: not enough values sent"
                 " with action command %d\n", sMessageAction);
@@ -361,7 +361,8 @@ bool ImodClipboard::executeMessage()
 
     // If still in initial load, skip the arguments (and one more if model mode message)
     if (sInitialLoad) {
-      arg += requiredArgs[sMessageAction];
+      if (sMessageAction >= 0 && sMessageAction < sizeof(requiredArgs) / sizeof(int))
+        arg += requiredArgs[sMessageAction];
       if (arg < numArgs - 1 && sMessageAction == MESSAGE_MODEL_MODE)
         arg++;
 
