@@ -28,10 +28,10 @@ public class TiltLogFileFilter extends FileFilter {
     String name = f.getName();
     //  If this is a file test its extension, all others should return true
     if (!f.isFile()
-        || name.equals(ProcessName.TILT.toString() + DatasetFiles.LOG_EXT)
-        || name.equals(ProcessName.TILT.toString() + AxisID.FIRST.getExtension()
+        || name.endsWith(ProcessName.TILT.toString() + DatasetFiles.LOG_EXT)
+        || name.endsWith(ProcessName.TILT.toString() + AxisID.FIRST.getExtension()
             + DatasetFiles.LOG_EXT)
-        || name.equals(ProcessName.TILT.toString() + AxisID.SECOND.getExtension()
+        || name.endsWith(ProcessName.TILT.toString() + AxisID.SECOND.getExtension()
             + DatasetFiles.LOG_EXT)) {
       return true;
     }
