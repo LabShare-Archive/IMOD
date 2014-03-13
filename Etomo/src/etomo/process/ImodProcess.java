@@ -1408,8 +1408,13 @@ public class ImodProcess {
     if (sendArguments.size() == 0) {
       return;
     }
-    /* for (int i = 0; i < sendArguments.size(); i++) {
-     * System.out.print(sendArguments.get(i) + " "); } System.out.println(); */
+    if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+      System.out.print("sendArguments: ");
+      for (int i = 0; i < sendArguments.size(); i++) {
+        System.out.print(sendArguments.get(i) + " ");
+      }
+      System.out.println();
+    }
     String[] argArray = (String[]) sendArguments
         .toArray(new String[sendArguments.size()]);
     if (!listenToStdin) {
