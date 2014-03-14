@@ -397,7 +397,7 @@ void GrabSlicer::closeEvent ( QCloseEvent * e )
 // come through here in that case and need to be ignored
 void GrabSlicer::keyPressEvent ( QKeyEvent * e )
 {
-  if (tilt_note->hasFocus() || tilt_id->hasFocus())
+  if (tilt_note->hasFocus() || (sHasDBini && tilt_id->hasFocus()))
     return;
   if (e->key() == Qt::Key_Escape)
     close();
