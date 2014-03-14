@@ -875,7 +875,7 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
     if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
-      commandOptions.add("-D");
+      commandOptions.add("-DC");
       if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
         commandOptions.add("-L");
       }
@@ -1408,8 +1408,13 @@ public class ImodProcess {
     if (sendArguments.size() == 0) {
       return;
     }
-    /* for (int i = 0; i < sendArguments.size(); i++) {
-     * System.out.print(sendArguments.get(i) + " "); } System.out.println(); */
+    if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+      System.out.print("sendArguments: ");
+      for (int i = 0; i < sendArguments.size(); i++) {
+        System.out.print(sendArguments.get(i) + " ");
+      }
+      System.out.println();
+    }
     String[] argArray = (String[]) sendArguments
         .toArray(new String[sendArguments.size()]);
     if (!listenToStdin) {
