@@ -30,7 +30,8 @@ static int encodeCurvature(Imod *mod, int obnum, float rCritLo, float rCritHi,
                            unsigned char *red, unsigned char *green, 
                            unsigned char *blue, int storeVals, float zrange,
                            float zscale, int rotateWild, float cylSearch,
-                           int verbose, int testCo, int TestPt, int printMean);
+                           int verbose, int testCo, int TestPt, int printMean,
+                           int signedValues);
 static int farthestPoint(float *xx, float *yy, int numPts, int icen);
 static int fitCylinder(float *xx3, float *yy3, float *zz3, float *xxr,
                        float *yyr, int numPts, float delt, float *rad,
@@ -75,6 +76,8 @@ int main( int argc, char *argv[])
   int storeKappa = 0;
   int printMean = 0;
   int red, green, blue;
+  int signedValues = 0;
+  char *signedValuesStr = 0;
   unsigned char cmap[3][256];
   float fitCrit = 0.;
   float sample = 2.;
@@ -94,7 +97,7 @@ int main( int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
   
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodcurvature  */
-  int numOptions = 21;
+  int numOptions = 22;
   const char *options[] = {
     "in:InputFile:FN:", ":OutputFile:FN:", "wl:WindowLength:F:",
     "zr:ZRangeToFit:F:", "cy:CylinderSearchAngle:F:",
@@ -103,7 +106,7 @@ int main( int argc, char *argv[])
     "ps:PointSize:B:", "sy:SymbolZoom:F:", "co:Color:ITM:",
     "di:DivideRange:B:", "pa:UsePalette:FN:", "sa:SampleSpacing:F:",
     "me:MeanStored:I:", "ve:Verbose:B:", "tc:TestCircleFits:B:",
-    "ts:TestSphereFits:IP:"};
+    "ts:TestSphereFits:IP:", "si:SignedValues:CH:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -126,6 +129,10 @@ int main( int argc, char *argv[])
   PipGetBoolean("RotateToXYPlane", &rotateWild);
   PipGetFloat("CylinderSearchAngle", &cylSearch);
   PipGetInteger("MeanStored", &printMean);
+  if (!PipGetString("SignedValues", &signedValuesStr) && cylSearch) {
+    exitError(
+      "SignedValues (-si) can not be used with CylinderSearchAngle (-cy)");
+  }
   
   if (!testcurve) {
 
@@ -210,6 +217,23 @@ int main( int argc, char *argv[])
       testPt = -1;
     }
     
+    /* See if storing signed curvature / radii was requested */
+    if (signedValuesStr) {
+      if (zrange)
+        exitError("SignedValues (-si) can not be used with ZRangeToFit (-zr)");
+      if (storeVals) {
+        if (strcmp(signedValuesStr, "+") == 0)
+	  signedValues = 1;
+        else 
+          if (strcmp(signedValuesStr, "-") == 0)
+            signedValues = -1;
+          else
+            exitError("SignedValues (-si) argument must be \"+\" or \"-\"");
+      }
+      else exitError("SignedValues (-si) require either -st or -kappa"); 
+      free(signedValuesStr);
+    }
+
     /* Loop on the objects */
     imodObjviewComplete(model);
     colorInd = 0;
@@ -242,7 +266,7 @@ int main( int argc, char *argv[])
                           &cmap[0][colorInd], &cmap[1][colorInd], 
                           &cmap[2][colorInd], storeVals, zrange,
                           model->zscale, rotateWild, cylSearch, verbose,
-                          testCo, testPt, printMean))
+                          testCo, testPt, printMean, signedValues))
         exitError("Error allocating memory in curvature routine");
 
       if (numColors && !divColors && colorInd < numColors - 1)
@@ -307,7 +331,7 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
                     unsigned char *red, unsigned char *green, 
                     unsigned char *blue, int storeVals, float zrange,
                     float zscale, int rotateWild, float cylSearch, int verbose,
-                    int testCo, int testPt, int printMean)
+                    int testCo, int testPt, int printMean, int signedValues)
 {
   Iobj *obj = &model->obj[obnum];
   Icont *cont;
@@ -335,6 +359,8 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   int numUpDown[2];
   Iobjview *obv;
   Imat *mat;
+  int n0, n1, n2;
+  float rx, ry, tx, ty;
 
   scale.x = 1.;
   scale.y = 1.;
@@ -693,8 +719,27 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
         activeCol = 1;
       }
 
-      /* For values, simply store them and keep track of min/max*/
+      /* For values, simply store them and keep track of min/max */
       if (meetsCrit && storeVals) {
+
+        /* Are we storing signed values? */
+        if (signedValues) {
+          n0 = numPts / 2;
+          n1 = n0 - 1;
+          n2 = n0 + 1;
+          rx = xx[n0] - xcen;
+          ry = yy[n0] - ycen;
+          tx = xx[n2] - xx[n1];
+          ty = yy[n2] - yy[n1];
+          if (signedValues == 1) /* CW seen from +z stored as positive */
+            if (rx * ty - ry * tx > 0.0)
+              rad = -rad;
+	    else ;
+	  else /* (signedValues == -1) CCW stored as positive */
+            if (rx * ty - ry * tx < 0.0)
+              rad = -rad;
+	}
+
         radsto = rad * model->pixsize;
         if (storeVals < 0) {
           radsto = 1. / radsto;

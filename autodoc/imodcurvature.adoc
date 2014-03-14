@@ -16,7 +16,6 @@ tooltip =
 manpage = Name of output model file.  If it is not entered with this option it 
 must be entered with the second non-option argument.
 
-
 [Field = WindowLength]
 short = wl
 type = F
@@ -214,3 +213,13 @@ of the fitted cyclinder, and the results for each search angle will be
 printed.  If the -ve option is given, the program will also output the
 projection points at each search angle.
 
+[Field = SignedValues]
+short = si
+type = CH
+usage = Store radii / curvatures as signed values
+tooltip =
+manpage = If "+", radii and curvatures will be stored as positive values 
+when the contour follows a locally clockwise path as viewed from the
++z axis, and negative for counterclockwise. If "-", these signs will be 
+reversed. SignedValues are not allowed in combination with ZRangeToFit (-zr) 
+or CylinderSearchAngles (-cy) .
