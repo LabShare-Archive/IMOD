@@ -111,6 +111,7 @@ class SlicerWindow : public QMainWindow
   void lowHighClicked(int which);
   void contextMenuHit(int val);
   void toolbarMenuEvent(QContextMenuEvent *event);
+  void freeBarClose();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -194,13 +195,13 @@ class HotWidget : public QWidget
   void keyPress(QKeyEvent *e);
   void keyRelease(QKeyEvent *e);
   void contextMenu(QContextMenuEvent *e);
-
+  void closePressed();
 
  protected:
   void keyPressEvent ( QKeyEvent * e ) {emit keyPress(e);};
   void keyReleaseEvent ( QKeyEvent * e ) {emit keyRelease(e);};
   void contextMenuEvent(QContextMenuEvent *e) {emit contextMenu(e);};
-  void closeEvent (QCloseEvent * e ) {e->ignore();};
+  void closeEvent (QCloseEvent * e ) {emit closePressed() ; e->ignore();};
 };
 
 
