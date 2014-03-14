@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/11/14: Fixed a problem in eTomo - PEET where tilt angles where not being loaded from a renamed log file (In 4.7).(Bug# 1782)
+3/13/14: Fixed a problem in eTomo - PEET where tilt angles where not being
+loaded from a renamed tilt log file (In 4.7).(Bug# 1782)
 
 3/8/14: Fixed deferring of initial messages to 3dmod on Mac (In 4.7).
 
