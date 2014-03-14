@@ -24,7 +24,7 @@ F - Find the maximum pixel within 10 pixels and report its value.
 g - Toggle previous contour ghost draw mode.
 G - Open Graph window.
 Ctrl-G - Toggle gap at current point
-Ctrl-H - Open Grab with Note
+Shift-H - Open Grab with Note (Ctrl-H hides windows on Mac - do not use)
 i - Zap - toggles the modeling direction.
 I - Zap - prints information about the window and image size and 
 
