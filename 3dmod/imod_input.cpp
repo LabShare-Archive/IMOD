@@ -1226,7 +1226,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vi)
     break;
 
   case Qt::Key_H:
-    if (ctrl)
+    if (shift)
       imodPlugOpenByName("Grab with Note");
     else
       handled = 0;
