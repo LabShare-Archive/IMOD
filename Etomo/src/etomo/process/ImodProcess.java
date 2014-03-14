@@ -864,8 +864,11 @@ public class ImodProcess {
       return;
     }
 
-    // Reset the window string
+    // New open - reset
     windowID = "";
+    if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+      System.err.println("open 1:windowID:" + windowID);
+    }
     ArrayList commandOptions = new ArrayList();
     commandOptions.add(ApplicationManager.getIMODBinPath() + "3dmod");
     // Collect the command line options
@@ -875,7 +878,7 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
     if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
-      commandOptions.add("-D");
+      commandOptions.add("-DC");
       if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
         commandOptions.add("-L");
       }
@@ -998,14 +1001,14 @@ public class ImodProcess {
         System.err.print(commandArray[i] + " ");
       }
       else if (debug) {
-        System.out.print(commandArray[i] + " ");
+        System.err.print(commandArray[i] + " ");
       }
     }
     if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println();
     }
     else if (debug) {
-      System.out.println();
+      System.err.println();
     }
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
     stderr.setImod(imod);
@@ -1038,13 +1041,16 @@ public class ImodProcess {
               throw (new SystemProcessException("Could not parse window ID from imod\n"));
             }
             windowID = words[3];
+            if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+              System.err.println("open 2:windowID:" + windowID);
+            }
             break;
           }
         }
       }
       // If imod exited before getting the window report the problem to the user
       if (windowID.equals("") && outputWindowID) {
-        String message = "3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
+        String message = "Missing windowID.  3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
 
         while ((line = stderr.getQuickMessage(stderrRegId)) != null) {
           System.err.println(line);
@@ -1408,8 +1414,13 @@ public class ImodProcess {
     if (sendArguments.size() == 0) {
       return;
     }
-    /* for (int i = 0; i < sendArguments.size(); i++) {
-     * System.out.print(sendArguments.get(i) + " "); } System.out.println(); */
+    if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+      System.err.print("sendArguments: ");
+      for (int i = 0; i < sendArguments.size(); i++) {
+        System.err.print(sendArguments.get(i) + " ");
+      }
+      System.err.println();
+    }
     String[] argArray = (String[]) sendArguments
         .toArray(new String[sendArguments.size()]);
     if (!listenToStdin) {
@@ -1530,6 +1541,9 @@ public class ImodProcess {
       }
       String[] command = new String[2 + args.length];
       command[0] = ApplicationManager.getIMODBinPath() + "imodsendevent";
+      if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+        System.err.println("imodSendEvent:windowID:" + windowID);
+      }
       command[1] = windowID;
       // String command = ApplicationManager.getIMODBinPath() + "imodsendevent "
       // + windowID + " ";
@@ -1696,6 +1710,9 @@ public class ImodProcess {
    * @return String
    */
   public String getWindowID() {
+    if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+      System.err.println("getWindowID:windowID:" + windowID);
+    }
     return windowID;
   }
 
@@ -1902,6 +1919,10 @@ public class ImodProcess {
 
     private void setImod(InteractiveSystemProgram imod) {
       this.imod = imod;
+      quickListenerQueue.clear();
+      if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
+        System.err.println("Cleared quickListenerQueue");
+      }
     }
 
     /**
