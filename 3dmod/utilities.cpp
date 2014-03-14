@@ -474,7 +474,8 @@ bool utilCloseKey(QKeyEvent *e)
   if (e->key() == Qt::Key_Escape)
     return true;
 #ifdef Q_OS_MACX
-  if (e->key() == Qt::Key_W && (e->modifiers() & Qt::ControlModifier))
+  if (e->key() == Qt::Key_W && (e->modifiers() & Qt::ControlModifier) && 
+      !(e->modifiers() & Qt::ShiftModifier))
     return true;
 #endif
   return false;

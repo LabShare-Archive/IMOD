@@ -49,9 +49,12 @@ Ctrl+Shift+S - Make snapshot with second non-TIFF format.
 t - Toggle model drawing on/off.
 T - Toggle current point/contour markers on/off.
 Ctrl+T - Toggle current object on/off.
-v - Open Model View window.
 u - Zap - smooths a filled area when auto contouring.
 U - Open Model View and Isosurface windows.
+v - Open Model View window.
+w - Grab with Note to database
+Shift+W - Grab to image
+Ctrl+Shift+W - Grab to image and to database  (Ctrl-W closes windows on Mac)
 Ctrl-Y - Redo model changes that were undone.
 z - Open Zap window.
 Z - Zap - toggles auto section advance on and off.  When this is on, 

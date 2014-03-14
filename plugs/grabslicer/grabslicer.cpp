@@ -116,10 +116,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     //plug->window->saveImage();
     break;
   case Qt::Key_W:
-    if(shift)
+    if(shift && !ctrl)
       plug->window->saveImage();
     else if (sHasDBini) {
-      sSaveBoth = ctrl != 0;
+      sSaveBoth = shift != 0 && ctrl != 0;
       plug->window->saveDatabase();
     }
     break;
