@@ -9,78 +9,137 @@
 <UL>
 <BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 4.7</A>
 <BR><A HREF = "#BACKGROUND">1. BACKGROUND</A>
-<BR><A HREF = "#Program Names">1.1. Program Names</A>
-<BR><A HREF = "#Command Files">1.2. Command Files</A>
-<BR><A HREF = "#Numbering System">1.3. Numbering System</A>
-<BR><A HREF = "#Backup Files">1.4. Backup Files</A>
-<BR><A HREF = "#File Naming Conventions">1.5. File Format and Naming Conventions</A>
-<BR><A HREF = "#Using Insecure Storage">1.6. Using Temporary or Insecure Storage</A>
-<BR><A HREF = "#Intensity Problems">1.7. Problems with Intensities in 3dmod</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Program Names">1.1. Program Names</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Command Files">1.2. Command Files</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Numbering System">1.3. Numbering System</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Backup Files">1.4. Backup Files</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#File Naming Conventions">1.5. File Format and Naming Conventions</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Using Insecure Storage">1.6. Using Temporary or Insecure Storage</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Intensity Problems">1.7. Problems with Intensities in 3dmod</A>
 <BR><A HREF = "#NON-BOULDER NOTES">2. NOTES FOR SPECIAL CASES</A>
-<BR><A HREF = "#Image Scaling">2.1. Image Scaling and Contrast Polarity</A>
-<BR><A HREF = "#Bidirectional Series">2.2. Tilt Series Taken in Two Directions
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Image Scaling">2.1. Image Scaling and Contrast Polarity</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Bidirectional Series">2.2. Tilt Series Taken in Two Directions
   from a Starting Angle</A>
-<BR><A HREF = "#UnknownAxisAngle">2.3. Unknown Tilt Axis Rotation Angle</A>
-<BR><A HREF = "#Antialiasing">2.4. Image Reduction with Antialiasing</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#UnknownAxisAngle">2.3. Unknown Tilt Axis Rotation Angle</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Antialiasing">2.4. Image Reduction with Antialiasing</A>
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
-<BR><A HREF = "#Montage Coms">3.1. Command Files when Montaging</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Montage Coms">3.1. Command Files when Montaging</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
 <BR><A HREF = "#COARSE ALIGNMENT">5. COARSE ALIGNMENT BY CROSS-CORRELATION</A>
-<BR><A HREF = "#Fiducialless Quick">5.1. Making a Quick Tomogram with Correlation Alignment</A>
-<BR><A HREF = "#Fixing Montage Edges">5.2. Fixing Montage Edges</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Fiducialless Quick">5.1. Making a Quick Tomogram with Correlation Alignment</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Fixing Montage Edges">5.2. Fixing Montage Edges</A>
 <BR><A HREF = "#GETTING FIDUCIAL">6. FIDUCIAL MODEL GENERATION</A>
-<BR><A HREF = "#AutomaticSeed">6.1. Generating a Seed Model Automatically</A>
-<BR><A HREF = "#ProblemsAutoSeed">6.2. Solving Problems with Automatic Seed Generation</A>
-<BR><A HREF = "#ManualSeed">6.3. Making a Seed Model Manually in 3dmod</A>
-<BR><A HREF = "#TrackingSeed">6.4. Tracking Gold from a Seed Model</A>
-<BR><A HREF = "#Reseeding Model">6.5. Using Beadtrack to Extend a Model</A>
-<BR><A HREF = "#Transferring Fiducial">6.6. Getting Fiducials for a Second Axis</A>
-<BR><A HREF = "#PatchTracking">6.7. Local Patch Tracking</A>
-<BR><A HREF = "#UsingRaptor">6.8. Using RAPTOR to Make a Fiducial Model</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#AutomaticSeed">6.1. Generating a Seed Model Automatically</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#ProblemsAutoSeed">6.2. Solving Problems with Automatic Seed Generation</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#ManualSeed">6.3. Making a Seed Model Manually in 3dmod</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#TrackingSeed">6.4. Tracking Gold from a Seed Model</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Reseeding Model">6.5. Using Beadtrack to Extend a Model</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Transferring Fiducial">6.6. Getting Fiducials for a Second Axis</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#PatchTracking">6.7. Local Patch Tracking</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#UsingRaptor">6.8. Using RAPTOR to Make a Fiducial Model</A>
 <BR><A HREF = "#FINAL ALIGNMENT">7. FINE ALIGNMENT</A>
-<BR><A HREF = "#Running Tiltalign">7.1. Running Tiltalign</A>
-<BR><A HREF = "#Background Grouping">7.2. Background on Grouping Variables and Solving for Distortion</A>
-<BR><A HREF = "#Distortion Two">7.3. Solving for Distortion - Fiducials on Both Surfaces</A>
-<BR><A HREF = "#Distortion One">7.4. Solving for Distortion - Fiducials on Only One Surface</A>
-<BR><A HREF = "#RobustFitting"> 7.5. Using Robust Fitting</A>
-<BR><A HREF = "#Projection Stretch">7.6. Solving for Projection Stretch</A>
-<BR><A HREF = "#Beam Tilt">7.7. Solving for Beam Tilt</A>
-<BR><A HREF = "#Using Local Alignments">7.8. Using Local Alignments</A>
-<BR><A HREF = "#AligningPatchModel">7.9. Aligning with a Patch Tracking Model</A>
-<BR><A HREF = "#Excluding Views">7.10. Excluding Views</A>
-<BR><A HREF = "#Residual Model Output">7.11. Residual Model Output</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Running Tiltalign">7.1. Running Tiltalign</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Background Grouping">7.2. Background on Grouping Variables and Solving for Distortion</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Distortion Two">7.3. Solving for Distortion - Fiducials on Both Surfaces</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Distortion One">7.4. Solving for Distortion - Fiducials on Only One Surface</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#RobustFitting"> 7.5. Using Robust Fitting</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Projection Stretch">7.6. Solving for Projection Stretch</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Beam Tilt">7.7. Solving for Beam Tilt</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Using Local Alignments">7.8. Using Local Alignments</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#AligningPatchModel">7.9. Aligning with a Patch Tracking Model</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Excluding Views">7.10. Excluding Views</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Residual Model Output">7.11. Residual Model Output</A>
 <BR><A HREF = "#TOMOGRAM POSITIONING">8. TOMOGRAM POSITIONING </A>
-<BR><A HREF = "#Doing Tilted Samples">8.1. Redoing Samples to Refine the Positioning</A>
-<BR><A HREF = "#Whole Tomogram Positioning">8.2. Positioning with a Whole Tomogram</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Doing Tilted Samples">8.1. Redoing Samples to Refine the Positioning</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Whole Tomogram Positioning">8.2. Positioning with a Whole Tomogram</A>
 <BR><A HREF = "#ResolutionFiltering">9. FILTERING AND RESOLUTION</A>
-<BR><A HREF = "#Radial filter">9.1. Tomogram Resolution and the Need for Filtering</A>
-<BR><A HREF = "#Filtering Options">9.2. Filtering Options</A>
-<BR><A HREF = "#Filtering Guidelines">9.3. Filtering Guidelines</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Radial filter">9.1. Tomogram Resolution and the Need for Filtering</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Filtering Options">9.2. Filtering Options</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Filtering Guidelines">9.3. Filtering Guidelines</A>
 <BR><A HREF = "#FinalAligned">10. MAKING AND PROCESSING THE ALIGNED STACK</A>
-<BR><A HREF = "#Making Aligned">10.1 Making the Aligned Stack</A>
-<BR><A HREF = "#CorrectingCTF">10.2 Correcting Phase Inversions from the Microscope CTF</A>
-<BR><A HREF = "#ErasingGold">10.3 Erasing Gold Particles Using a Fiducial Model</A>
-<BR><A HREF = "#ErasingFinding3D">10.4. Erasing Gold by Finding It in a Tomogram and Projecting It</A>
-<BR><A HREF = "#Filtering2D">10.5 Applying 2D Filtering</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Making Aligned">10.1 Making the Aligned Stack</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#CorrectingCTF">10.2 Correcting Phase Inversions from the Microscope CTF</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#ErasingGold">10.3 Erasing Gold Particles Using a Fiducial Model</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#ErasingFinding3D">10.4. Erasing Gold by Finding It in a Tomogram and Projecting It</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Filtering2D">10.5 Applying 2D Filtering</A>
 <BR><A HREF = "#TOMOGRAM GENERATION">11. TOMOGRAM GENERATION</A>
-<BR><A HREF = "#Building Tomogram">11.1. Building the Tomogram</A>
-<BR><A HREF = "#Making Trial Tomograms">11.2. Making Trial Tomograms</A>
-<BR><A HREF = "#Z factors">11.3. Using Z Factors in the Backprojection</A>
-<BR><A HREF = "#SIRTtomogram">11.4. Making a Reconstruction with SIRT</A>
-<BR><A HREF = "#ScalingProblems">11.5. Problems with Output Density Scaling</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Building Tomogram">11.1. Building the Tomogram</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Making Trial Tomograms">11.2. Making Trial Tomograms</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Z factors">11.3. Using Z Factors in the Backprojection</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#SIRTtomogram">11.4. Making a Reconstruction with SIRT</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#ScalingProblems">11.5. Problems with Output Density Scaling</A>
 <BR><A HREF = "#TOMOGRAM COMBINATION">12. COMBINING TWO TOMOGRAMS</A>
-<BR><A HREF = "#Setting Up">12.1. Setting Up</A>
-<BR><A HREF = "#Temporary Combining Storage">12.2. Using Temporary Storage for Combining</A>
-<BR><A HREF = "#Proceeding">12.3. Proceeding</A>
-<BR><A HREF = "#Initial Problems in Combining">12.4. Initial Registration Problems in Combining</A>
-<BR><A HREF = "#Patch Problems in Combining">12.5. Patch Correlation Problems in Combining</A>
-<BR><A HREF = "#Linen Pattern">12.6. Linen Patterns in the Combined Tomogram</A>
-<BR><A HREF = "#Block Artifacts">12.7. Block Artifacts in the Combined Tomogram</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Setting Up">12.1. Setting Up</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Temporary Combining Storage">12.2. Using Temporary Storage for Combining</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Proceeding">12.3. Proceeding</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Initial Problems in Combining">12.4. Initial Registration Problems in Combining</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Patch Problems in Combining">12.5. Patch Correlation Problems in Combining</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Linen Pattern">12.6. Linen Patterns in the Combined Tomogram</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Block Artifacts">12.7. Block Artifacts in the Combined Tomogram</A>
 <BR><A HREF = "#POST-PROCESSING">13. POST-PROCESSING</A>
-<BR><A HREF = "#Scaling and Trimming">13.1. Scaling and Trimming a Tomogram</A>
-<BR><A HREF = "#Reorienting">13.2. Reorienting the Volume</A>
-<BR><A HREF = "#Flattening">13.3. Flattening a Tomogram</A>
-<BR><A HREF = "#Squeezing">13.4. Squeezing a Tomogram</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Scaling and Trimming">13.1. Scaling and Trimming a Tomogram</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Reorienting">13.2. Reorienting the Volume</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Flattening">13.3. Flattening a Tomogram</A>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;
+<A HREF = "#Squeezing">13.4. Squeezing a Tomogram</A>
 <BR><A HREF = "#Cleaning Up">14. CLEAN UP</A>
 </UL>
 <HR>
