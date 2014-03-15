@@ -313,9 +313,11 @@ void SlicerWindow::buildToolBar2(bool freeBar)
                      SLOT(toolKeyRelease(QKeyEvent *)));
     connect(mFreeBar2, SIGNAL(contextMenu(QContextMenuEvent *)), this, 
                      SLOT(toolbarMenuEvent(QContextMenuEvent *)));
+    connect(mFreeBar2, SIGNAL(closePressed()), this, SLOT(freeBarClose()));
+    
     sliderFrame = new QWidget(mFreeBar2);
     freeLay->addWidget(sliderFrame);
-    
+
   } else {
     mToolBar2 = utilMakeToolBar(this, true, 2, "Slicer Toolbar 2");
     sliderFrame = new QWidget(mToolBar2);
@@ -499,6 +501,25 @@ void SlicerWindow::manageAutoLink(int newState)
     } else if (mToolBar2)
       mToolBar2->show();
   }
+}
+
+/*
+ * The close button on the master toolbar was pressed; close all linked slicers
+ */
+void SlicerWindow::freeBarClose()
+{
+  QObjectList objList;
+  SlicerWindow *slicer, *master;
+  int i;
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+  for (i = 0; i < objList.count(); i++) {
+    slicer = (SlicerWindow *)objList.at(i);
+    if (slicer->mFuncs->mAutoLink == 1)
+      master = slicer;
+    else if (slicer->mFuncs->mAutoLink)
+      slicer->close();
+  }
+  master->close();
 }
 
 void SlicerWindow::zoomUp()
