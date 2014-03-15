@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/14/13: Made the close button on the detached toolbar of linked slicers close
+3/14/14: Fixed a Windows problem with opening 3dmod from eTomo where
+imodsendevent was called incorrectly (In 4.7).(Bug# 1786)
+
+3/14/14: Made the close button on the detached toolbar of linked slicers close
 all the linked slicers (In 4.7).
+
 3/13/14: Fixed a problem in eTomo - PEET where tilt angles where not being
 loaded from a renamed tilt log file (In 4.7).(Bug# 1782)
 
