@@ -864,7 +864,7 @@ public class ImodProcess {
       return;
     }
 
-    // New open - reset
+    // Reset the window string
     windowID = "";
     if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
       System.err.println("open 1:windowID:" + windowID);
