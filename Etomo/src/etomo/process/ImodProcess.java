@@ -878,7 +878,7 @@ public class ImodProcess {
     // copying the clipboard onto the message area. 3dmod will crash if there is
     // something big in the clipboard.
     if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
-      commandOptions.add("-DC");
+      commandOptions.add("-D");
       if (OSType.getInstance() == OSType.MAC && outputWindowID && !listenToStdin) {
         commandOptions.add("-L");
       }
