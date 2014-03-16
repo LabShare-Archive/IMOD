@@ -1902,6 +1902,7 @@ public class ImodProcess {
 
     private void setImod(InteractiveSystemProgram imod) {
       this.imod = imod;
+      quickListenerQueue.clear();
     }
 
     /**
