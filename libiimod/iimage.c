@@ -290,6 +290,7 @@ int  iiReopen(ImodImageFile *inFile)
     if ((*inFile->reopen)(inFile))
       return 2;
     inFile->state = IISTATE_READY;
+    addToOpenedList(inFile);
     return 0;
   }
 
