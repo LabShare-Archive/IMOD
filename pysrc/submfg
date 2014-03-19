@@ -98,6 +98,7 @@ if argind >= lenarg:
 passOnKeyInterrupt(True)
 
 # Loop over the command files
+exitVal = 0
 while argind < lenarg:
    try:
       # Get the full command file name
@@ -180,6 +181,7 @@ while argind < lenarg:
 
    except ImodpyError:
       prnstr('Error executing ' + comname + bell)
+      exitVal = 1
 
       # If log exists, find ERROR:, and if not do last few lines
       if os.path.exists(logname):
@@ -209,4 +211,4 @@ while argind < lenarg:
       break
       
 cleanupFiles([comtmp])
-sys.exit(0)
+sys.exit(exitVal)
