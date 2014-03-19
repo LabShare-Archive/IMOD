@@ -4,6 +4,7 @@ c
       subroutine int_iwrite(string,num,nchar)
       character*(*) string
       character*12 temp
+      string = ' '
       write(temp,'(i12)')num
       nchar=0
       do i=1,12
