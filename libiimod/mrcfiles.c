@@ -116,6 +116,13 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
   if (hdata->imodStamp != IMOD_MRC_STAMP)
     hdata->imodFlags = 0;
 
+  /* Invert origin coming in if this flag is set (added for 4.7 release) */
+  if (hdata->imodStamp == IMOD_MRC_STAMP && (hdata->imodFlags & MRC_FLAGS_INV_ORIGIN)) {
+    hdata->xorg *= -1;
+    hdata->yorg *= -1;
+    hdata->zorg *= -1;
+  }
+
   for ( i = 0; i < MRC_NLABELS; i ++){
     if (fread(hdata->labels[i], MRC_LABEL_SIZE, 1, fin) == 0) {  
       b3dError(stderr, "ERROR: mrc_head_read - reading label %d.\n", i);
