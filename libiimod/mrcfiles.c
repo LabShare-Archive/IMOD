@@ -258,7 +258,7 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
   if (iiFile && iiFile->file != IIFILE_MRC) {
     if (iiFile->file != IIFILE_RAW)
       iiSyncFromMrcHeader(iiFile, hdata);
-    /* There is not yet a need for a header-writing function for other file types */
+    iiWriteHeader(iiFile);
     return 0;
   }
 
