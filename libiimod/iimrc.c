@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include "mrcc.h"
 #include "iimage.h"
 #include "b3dutil.h"
 
@@ -22,7 +21,12 @@ static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, in
 static int writeSection(ImodImageFile *inFile, char *buf, int inSection, int asFloat);
 static int readSectionUnscaled(ImodImageFile *inFile, char *buf, int inSection, 
                                int asFloat);
-static void iiMRCsetLoadInfo(ImodImageFile *inFile, IloadInfo *li);
+static int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection);
+static int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
+static int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection);
+static int iiMRCreadSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
+static int iiMRCwriteSection(ImodImageFile *inFile, char *buf, int inSection);
+static int iiMRCwriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection);
 
 int iiMRCCheck(ImodImageFile *iif)
 {
@@ -150,7 +154,7 @@ int iiMRCfillHeader(ImodImageFile *inFile, MrcHeader *hdata)
 /*
  * Transfer the subarea loading information from the image file to the loadInfo
  */
-static void iiMRCsetLoadInfo(ImodImageFile *inFile, IloadInfo *li)
+void iiMRCsetLoadInfo(ImodImageFile *inFile, IloadInfo *li)
 {
   mrc_init_li(li, NULL);
   li->xmin = inFile->llx;
@@ -178,12 +182,12 @@ static void iiMRCsetLoadInfo(ImodImageFile *inFile, IloadInfo *li)
   li->padRight = inFile->padRight;
 }
 
-int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
+static int iiMRCreadSection(ImodImageFile *inFile, char *buf, int inSection)
 {
   return readSectionUnscaled(inFile, buf, inSection, 0);
 }
 
-int iiMRCreadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+static int iiMRCreadSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
 {
   return readSectionUnscaled(inFile, buf, inSection, 1);
 }
@@ -211,11 +215,11 @@ static int readSectionUnscaled(ImodImageFile *inFile, char *buf, int inSection,
   return err;
 }
 
-int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
+static int iiMRCreadSectionByte(ImodImageFile *inFile, char *buf, int inSection)
 {
   return readSectionScaled(inFile, buf, inSection, 255);
 }
-int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
+static int iiMRCreadSectionUShort(ImodImageFile *inFile, char *buf, int inSection)
 {
   return readSectionScaled(inFile, buf, inSection, 65535);
 }
@@ -240,12 +244,12 @@ static int readSectionScaled(ImodImageFile *inFile, char *buf, int inSection, in
   return err;
 }
 
-int iiMRCwriteSection(ImodImageFile *inFile, char *buf, int inSection)
+static int iiMRCwriteSection(ImodImageFile *inFile, char *buf, int inSection)
 {
   return writeSection(inFile, buf, inSection, 0);
 }
 
-int iiMRCwriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
+static int iiMRCwriteSectionFloat(ImodImageFile *inFile, char *buf, int inSection)
 {
   return writeSection(inFile, buf, inSection, 1);
 }
