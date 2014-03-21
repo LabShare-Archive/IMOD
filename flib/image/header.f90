@@ -23,22 +23,24 @@ program header
   character*25 extractCom(ntypes) /'extracttilts', 'extractpieces', &
       'extracttilts -stage', 'extracttilts -mag', 'extracttilts -int', &
       'extracttilts -exp'/
-  integer*4 numInputFiles, nfilein, ifBrief, iBinning, iflags, ifImod
+  integer*4 numInputFiles, nfilein, ifBrief, iBinning, iflags, ifImod, ivolume, imUnit
+  integer*4 numVolumes
   logical*4 doSize, doMode, doMin, doMax, doMean, silent, doPixel, doOrigin
   real*4 DMIN, DMAX, DMEAN, pixel, tiltaxis, delta(3)
+  integer*4 iiuRetNumVolumes, iiuVolumeOpen
   logical pipinput
   integer*4 numOptArg, numNonOptArg
   integer*4 PipGetLogical, PipGetString, PipGetNonOptionArg, PipGetInteger
   !
-  ! fallbacks from ../../manpages/autodoc2man -2 2  header
+  ! fallbacks from ../../manpages/autodoc2man -3 2  header
   !
   integer numOptions
-  parameter (numOptions = 10)
+  parameter (numOptions = 11)
   character*(40 * numOptions) options(1)
   options(1) = &
-      'input:InputFile:FNM:@size:Size:B:@mode:Mode:B:@'// &
-      'pixel:PixelSize:B:@origin:Origin:B:@minimum:Minimum:B:@'// &
-      'maximum:Maximum:B:@mean:Mean:B:@brief:Brief:B:@help:usage:B:'
+      'input:InputFile:FNM:@size:Size:B:@mode:Mode:B:@pixel:PixelSize:B:@'// &
+      'origin:Origin:B:@minimum:Minimum:B:@maximum:Maximum:B:@mean:Mean:B:@'// &
+      'volume:VolumeNumber:I:@brief:Brief:B:@help:usage:B:'
   !
   ! defaults
   !
@@ -51,6 +53,8 @@ program header
   doOrigin = .false.
   nfilein = 1
   ifBrief = 0
+  ivolume = -1
+  imUnit = 1
   !
   ! Pip startup: set error, parse options, check help, set flag if used
   ! But turn off the entry printing first!
@@ -69,6 +73,7 @@ program header
     ierr = PipGetLogical('PixelSize', doPixel)
     ierr = PipGetLogical('Origin', doOrigin)
     ierr = PipGetInteger('Brief', ifBrief)
+    ierr = PipGetInteger('VolumeNumber', ivolume)
     call PipNumberOfEntries('InputFile', numInputFiles)
     nfilein = numInputFiles + numNonOptArg
     if (nfilein == 0) &
@@ -95,34 +100,49 @@ program header
       READ(5, '(a)') FILIN
     endif
     !
+    call iiAllowMultiVolume(1)
     CALL IMOPEN(1, FILIN, 'RO')
-    CALL IRDHDR(1, NXYZ, MXYZ, MODE, DMIN, DMAX, DMEAN)
+    numVolumes = iiuRetNumVolumes(1)
+    if (iVolume > max(1, numVolumes)) call exitError( &
+        'The volume number entered is higher than the number of volumes in the file')
+    if (numVolumes > 1) then
+      if (iVolume < 0) then
+        write(*,'(a,i4,a)')'This is the header for the first of', numVolumes, &
+            ' volumes, use -vol # to see others'
+      else if (iVolume > 1) then
+        imUnit = 11
+        if (iiuVolumeOpen(imUnit, 1, iVolume - 1) .ne. 0)  &
+            call exitError('Opening additional volume in file')
+      endif
+    endif
+
+    CALL IRDHDR(imUnit, NXYZ, MXYZ, MODE, DMIN, DMAX, DMEAN)
     !
     if (silent) then
       if (doSize) write(*, '(3i8)') (nxyz(j), j = 1, 3)
       if (doMode) write(*, '(i4)') mode
       if (doPixel) then
-        call irtdel(1, delta)
+        call irtdel(imUnit, delta)
         write(*, '(3g11.4)') (delta(j), j = 1, 3)
       endif
       if (doOrigin) then
-        call irtorg(1, delta(1), delta(2), delta(3))
+        call irtorg(imUnit, delta(1), delta(2), delta(3))
         write(*, '(3g11.4)') (delta(j), j = 1, 3)
       endif
       if (doMin) write(*, '(g13.5)') dmin
       if (doMax) write(*, '(g13.5)') dmax
       if (doMean) write(*, '(g13.5)') dmean
     else
-      call irtnbsym(1, nbsym)
+      call irtnbsym(imUnit, nbsym)
       if (nbsym > 0 .and. nbsym <= maxextra) then
-        call irtsym(1, nbsym, array)
-        call irtsymtyp(1, numInt, numReal)
+        call irtsym(imUnit, nbsym, array)
+        call irtsymtyp(imUnit, numInt, numReal)
         if (.not. nbytes_and_flags(numInt, numReal) .and. numReal >= 12) then
           tiltaxis = array(numInt + 11)
           if (tiltaxis >= -360. .and. tiltaxis <= 360.) then
             if (tiltaxis < -180.) tiltaxis = tiltaxis + 360.
             if (tiltaxis > 180.) tiltaxis = tiltaxis - 360.
-            call irtlab(1, labels, nlabel)
+            call irtlab(imUnit, labels, nlabel)
             write(feichar, '(a4)') labels(1, 1)
             if (feichar == 'Fei ') then
               write(*,101) - tiltaxis, ' (Corrected sign)'
@@ -132,8 +152,8 @@ program header
 101         format(10x,'Tilt axis rotation angle = ', f7.1, a)
           endif
           pixel = array(numInt + 12) * 1.e9
-          call irtdel(1, delta)
-          call irtImodFlags(1, iflags, ifImod)
+          call irtdel(imUnit, delta)
+          call irtImodFlags(imUnit, iflags, ifImod)
           if (pixel > 0.01 .and. pixel < 10000 .and. iand(iflags, 2) .eq. 0) then
             do j = 3, 1, -1
               iBinning = nint(delta(j))
@@ -165,7 +185,8 @@ program header
       endif
     endif
 
-    CALL IMCLOSE(1)
+    CALL imclose(imUnit)
+    if (imUnit > 1) call imclose(1)
   enddo
   !
   call exit(0)
