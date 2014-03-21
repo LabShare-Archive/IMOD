@@ -44,8 +44,13 @@ integer*4 function iiuOpenPrint(iunit, name, attribute)
 2000 format(/,1x,a,' image file on unit',i4,' : ',a)
 2100 format(/,1x,a,' image file on unit',i4,' : ',a, '     Size= ',i10,' K')
   if (doPrint .and. iiuRetBrief() == 0) then
-    if (itype == 1) write(6,2200) 'This is a TIFF file.'
-    if (itype .ne. 1 .and. itype .ne. 2) write(6,2200) 'This is a non-MRC file.'
+    if (itype == 1) then
+      write(6,2200) 'This is a TIFF file.'
+    else if (itype == 5) then
+      write(6,2200) 'This is an HDF file.'
+    elseif (itype .ne. 2) then
+      write(6,2200) 'This is a non-MRC file.'
+    endif
     if (btest(iflags, 0)) write(6,2200) 'This is a byte-swapped file.'
   endif
 2200  format(/,20x,a)
