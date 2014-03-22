@@ -300,7 +300,7 @@ program newstack
     do isec = 1, nz
       iy = isec - 1
       if (twoDirections .and. indFile == 1) iy = nz - isec
-      inList(min(listTotal + isec, LIMSEC)) = iy
+      inList(min(listTotal + isec, LIMSEC)) = iy + numberOffset
     enddo
     numAllSec = numAllSec + nz
     !
