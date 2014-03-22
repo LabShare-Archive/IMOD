@@ -329,7 +329,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
 }
 
 static unsigned char *plistBuf = 0;
-static int plistBufSize=0;
+static unsigned int plistBufSize = 0;
 
 int ivwPlistBlank(ImodView *vi, int cz)
 {
@@ -2527,7 +2527,7 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
                       bool &anyHavePieceList)
 {
   Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
-  ImodImageFile *image, *baseImage;
+  ImodImageFile *image, *baseImage, *newImage;
   int pathlen, i, indVol, numVols, adocInd;
   char *convarg;
   QDir *curdir = new QDir();
@@ -2571,12 +2571,11 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
       if (image->file == IIFILE_RAW && !image->amin && !image->amax)
         iiRawScan(image);
       
-      /* Anyway, leave last file in vi->hdr/image */
-      vi->fp = image->fp;
-      vi->hdr = vi->image = image;
-    
       image->time = vi->numTimes;
       vi->numTimes++;
+
+      // This just needs to be non-NULL when there is a file, doesn't need to be accurate
+      vi->fp = image->fp;
 
       /* Copy filename with directory stripped to the descriptor */
       /* There was strange comment about "Setting the fp keeps it from closing 
@@ -2596,13 +2595,15 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
       /* Add file to list.  This makes a duplicate including all pointers, so free the
          original structure, get new address, and update the volume list of HDF file */
       ilistAppend(ilist, image);
+      newImage = (ImodImageFile *)ilistLast(ilist);
+      iiFileChangeAddress(image, newImage);
       free(image);
-      image = (ImodImageFile *)ilistLast(ilist);
-      if (image->iiVolumes) {
-        if (!indVol)
-          baseImage = image;
-        baseImage->iiVolumes[indVol] = image;
-      }
+      image = newImage;
+      if (!indVol)
+        baseImage = image;
+
+      /* Anyway, leave last file in vi->hdr/image */
+      vi->hdr = vi->image = image;
     }
   }
   delete curdir;
@@ -2611,7 +2612,7 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
     vi->imagePyramid = -1;
 
   /* save this in iv so it can be passed in call to ivwSetCacheFrom List */
-  /* Don't worry, its data will get copied later  to vi->imageList */
+  /* Don't worry, its data will get copied later  to vi->imageList or vi->image */
   vi->imageList = (ImodImageFile *)ilist;
 }
 
@@ -2742,7 +2743,7 @@ static int ivwProcessImageList(ImodView *vi)
   Ilist *ilist = (Ilist *)vi->imageList;
   MrcHeader *header;
   FILE *fp;
-  int xsize, ysize, zsize, i, midy, midz, ivol;
+  int xsize, ysize, zsize, i, midy, midz;
   float naysum, zratio, mratio, smin, smax;
   int rgbs = 0, cmaps = 0, allByte = 1, allCanReadInt = 1;
 
@@ -2948,8 +2949,7 @@ static int ivwProcessImageList(ImodView *vi)
       exit(3);
     }
     memcpy(vi->image, ilist->data, sizeof(ImodImageFile));
-    if (vi->image->iiVolumes && vi->image->numVolumes)
-      vi->image->iiVolumes[0] = vi->image;
+    iiFileChangeAddress((ImodImageFile *)ilist->data, vi->image);
     ivwReopen(vi->image);
     vi->curTime = vi->numTimes = 0;
     vi->imageList = NULL;
@@ -2968,13 +2968,10 @@ static int ivwProcessImageList(ImodView *vi)
     }
     memcpy(vi->imageList, ilist->data, sizeof(ImodImageFile) * ilist->size);
 
-    // Fix any volume tables in the image list
+    // Fix the changed addresses
     for (i = 0; i < ilist->size; i++) {
-      if (vi->imageList[i].iiVolumes && vi->imageList[i].numVolumes) {
-        for (ivol = 0; ivol < vi->imageList[i].numVolumes; ivol++)
-          vi->imageList[i].iiVolumes[ivol] = &vi->imageList[i + ivol];
-        i += vi->imageList[i].numVolumes - 1;
-      }
+      image = (ImodImageFile *)ilistItem(ilist, i);
+      iiFileChangeAddress(image, &vi->imageList[i]);
     }
 
     vi->hdr = vi->image = &vi->imageList[vi->imagePyramid ? 
