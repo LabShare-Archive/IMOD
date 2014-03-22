@@ -321,7 +321,7 @@ int iiuRetNumVolumes(int iunit)
   return u->iiFile->datasetID ? u->iiFile->numVolumes : 0;
 }
 
-void iiuretnumvolumes(int *iunit) {iiuRetNumVolumes(*iunit);}
+int iiuretnumvolumes(int *iunit) {return iiuRetNumVolumes(*iunit);}
 
 /*!
  * Opens a new or existing volume in the HDF file open on unit [mainUnit], assigning it
