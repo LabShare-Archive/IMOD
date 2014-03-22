@@ -247,6 +247,7 @@ extern "C" {
   int iiDefaultMinMaxMean(int type, float *amin, float *amax, float *amean);
   int iiWriteHeader(ImodImageFile *inFile);
   int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax, float scaleMax);
+  void iiFileChangeAddress(ImodImageFile *oldFile, ImodImageFile *newFile);
   FILE *iiFOpen(const char *filename, const char *mode);
   ImodImageFile *iiLookupFileFromFP(FILE *fp);
   void iiFClose(FILE *fp);

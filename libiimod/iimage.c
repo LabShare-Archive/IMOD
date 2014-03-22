@@ -250,7 +250,7 @@ ImodImageFile *iiOpenNew(const char *filename, const char *mode, int fileKind)
   int err = 0;
   if (fileKind == IIFILE_DEFAULT)
     fileKind = b3dOutputFileType();
-  //printf("fk %d\n", fileKind);
+  /* printf("fk %d\n", fileKind); */
   if (!strstr(mode, "w")) {
     b3dError(stderr, "ERROR: iiOpenNew - File opening mode %s is not appropriate for a "
              "new image file\n");
@@ -554,6 +554,27 @@ static int findFileInList(ImodImageFile *iiFile, FILE *fp)
     }
   }
   return -1;
+}
+
+/*!
+ * Manages the list of open files, volume points in {iiVolumes}, and the {fp} entry
+ * after the ImodImageFile structure has been copied from [oldFile] to [newFile].  The
+ * old address no longer needs to be useable.
+ */
+void iiFileChangeAddress(ImodImageFile *oldFile, ImodImageFile *newFile)
+{
+  int ind;
+  removeFromOpenedList(oldFile);
+  if (newFile->fp == (FILE *)oldFile) {
+    newFile->fp = (FILE *)newFile;
+    if (newFile->file == IIFILE_HDF)
+      ((MrcHeader *)newFile->header)->fp = newFile->fp;
+  }
+  if (newFile->iiVolumes && newFile->numVolumes)
+    for (ind = 0; ind < newFile->numVolumes; ind++)
+      if (newFile->iiVolumes[ind] == oldFile)
+        newFile->iiVolumes[ind] = newFile;
+  addToOpenedList(newFile);
 }
 
 /*!
