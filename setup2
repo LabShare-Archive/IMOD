@@ -665,6 +665,12 @@ else
     echo 'TILTGPUOBJ =  nogpu.$(OBJEXT)' >> $configure
 endif
 
+if ($?HDF5_DIR) then
+    echo 'HDFOBJS =  iihdf.$(OBJEXT) hdf_imageio.$(OBJEXT)' >> $configure
+else
+    echo '#define NO_HDF_LIB' >> $hconfigure
+endif
+
 cat << EOF >> $hconfigure
 #define CTRL_STRING "$ctrl_string"
 typedef $b3dbyte b3dByte;
@@ -699,11 +705,6 @@ mkdir -p $inst_dir/man/cat1
 mkdir -p $inst_dir/man/cat5
 
 if ($?FFTW3_DIR) echo 'CFFTOBJS =  fftw_wrap.$(OBJEXT)' >> $configure
-if ($?HDF5_DIR) then
-    echo 'HDFOBJS =  iihdf.$(OBJEXT) hdf_imageio.$(OBJEXT)' >> $configure
-else
-    echo '#define NO_HDF_LIB' >> $hconfigure
-endif
 
 if ($machine != cygwin) then
 
