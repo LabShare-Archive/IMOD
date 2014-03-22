@@ -1688,6 +1688,8 @@ static int adocToAttributes(hid_t parentID, const char *typeName, int sectInd,
   for (keyInd = 0; keyInd < numKeys; keyInd++) {
     if (AdocGetKeyByIndex(typeName, sectInd, keyInd, &key) < 0)
       return 1;
+    if (!key)
+      continue;
     prefKey = key;
     if (prefix && !startsWith(key, prefix))
       prefKey = prefixedKey(prefix, key);
