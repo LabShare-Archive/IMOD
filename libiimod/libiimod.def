@@ -153,7 +153,6 @@ EXPORTS
 	mrc_mread_slice
 	iiMRCCheck
 	IALRMS
-	hdfWriteSectionAny
 	tiffClose
 	sliceWrapFFTLines
 	IIUALTLABELS
@@ -312,7 +311,6 @@ EXPORTS
 	mrcReadZByte
 	iiLookupFileFromFP
 	iiMRCfillHeader
-	hdfReadSectionAny
 	mrc_byte_mmm
 	IIUALTRMS
 	IALSAM
@@ -321,7 +319,6 @@ EXPORTS
 	IRTSYM
 	sliceGradient
 	iiuAltExtendedType
-	initNewHDFfile
 	tiffWriteFinish
 	mrc_slice_getvol
 	iiTiffWriteSectionFloat
