@@ -1,0 +1,35 @@
+<html><head><title>Unit-based File I/O Module</title></head>
+<body>
+<A NAME = "TOP"></A>
+<H2  align="center">Unit-based File I/O Module</H2>
+This module contains functions for doing image-file-type independent I/O by
+associating a file with an arbitrary unit number less than 1000.  It was
+designed to support all existing MRC file operations in Fortran programs as
+well as to be fully accessible from C.  A file unit structure contains an
+ImodImageFile structure and also contains an MrcHeader structure for a file
+type where the ImodImageFile does not contain one (e.g., TIFF).
+<P>
+Nearly all header operations will work
+with all file types, although for a file type that does not support a
+particular header value, a default value will be returned, and setting the
+value will have no effect.  All MRC header fields are supported in HDF files.
+<P>
+Unless otherwise noted, Fortran wrappers use the same arguments, minus any
+string lengths at the end of the argument list.  Most functions have two
+wrappers, one to support existing code, one matching the longer, more
+informative name of the C function.
+<P>
+Headers to include: iiunit.h, iimage.h
+<P>
+<H3 style="color: rgb(0,128,0);">Opening, Reading, and Writing Functions in 
+unit_fileio.c</H3>
+LIST FUNCTIONS FROM unit_fileio.c
+<H3 style="color: rgb(0,128,0);">Header Related Functions in unit_header.c</H3>
+LIST FUNCTIONS FROM unit_header.c
+
+<H3 style="color: rgb(0,128,0);">Opening, Reading, and Writing Functions in 
+unit_fileio.c</H3>
+DESCRIBE FUNCTIONS FROM unit_fileio.c
+<H3 style="color: rgb(0,128,0);">Header Related Functions in unit_header.c</H3>
+DESCRIBE FUNCTIONS FROM unit_header.c
+</body>

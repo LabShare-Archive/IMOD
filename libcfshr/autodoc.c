@@ -31,6 +31,7 @@ typedef struct adoc_section {
   char **comments;     /* List of comments strings */
   int *comIndex;       /* Array of key indexes they occur before */
   int numComments;     /* Number of comments */
+  unsigned char *types;  /* Array of types of keys */
 } AdocSection;
 
 /* A collection holds sections of the same type and has a name */
@@ -60,7 +61,7 @@ static int numAutodocs = 0;
 static int curAdocInd = -1;
 static Autodoc *curAdoc = NULL;
 
-#define GLOBAL_NAME "PreData"
+#define GLOBAL_NAME ADOC_GLOBAL_NAME
 #define OPEN_DELIM "["
 #define CLOSE_DELIM "]"
 
@@ -76,7 +77,7 @@ static void deleteAdoc(Autodoc *adoc);
 static int parseKeyValue(char *line, char *end, char **key, char **value);
 static int lookupKey(AdocSection *sect, const char *key);
 static int lookupCollection(Autodoc *adoc, const char *name);
-static int addKey(AdocSection *sect, const char *key, const char *value);
+static int addKey(AdocSection *sect, const char *key, const char *value, int type);
 static int addSection(Autodoc *adoc, int collInd, const char *name);
 static int addCollection(Autodoc *adoc, const char *name);
 static int addAutodoc();
@@ -85,6 +86,10 @@ static int addComments(AdocSection *sect, char **comments, int *numComments,
                        int index);
 static int writeFile(FILE *afile, int writeAll);
 static int findSectionInAdocList(int collInd, int sectInd);
+static int setKeyValueType(const char *typeName, int sectInd, const char *key, 
+                           const char *value, int type);
+static int setArrayOfValues(const char *typeName, int sectInd, const char *key, 
+                            void *vals, int numVals, int valType);
 
 /*!
  * Reads an autodoc from the file specified by [filename], and returns the 
@@ -114,7 +119,7 @@ int AdocRead(const char *filename)
   }
 
   /* Create a new adoc, which sets up global collection/section
-   and takes care of cleanup if it fails */
+     and takes care of cleanup if it fails */
   if ((index = addAutodoc()) < 0) {
     fclose(afile);
     return -1;
@@ -163,7 +168,7 @@ int AdocRead(const char *filename)
     if (PipStartsWith(line, OPEN_DELIM) && strstr(line, CLOSE_DELIM)) {
 
       /* If this is a section start, get name - value.  Here there must be
-       a value and it is an error if there is none. */
+         a value and it is an error if there is none. */
       lineEnd = strstr(line, CLOSE_DELIM);
       err = parseKeyValue(line + strlen(OPEN_DELIM), lineEnd, &key, &value);
       if (!value)
@@ -194,7 +199,7 @@ int AdocRead(const char *filename)
     } else {
 
       /* Otherwise this is key-value inside a section.  First check for
-       continuation line and append to last value. */
+         continuation line and append to last value. */
       if (lastInd >= 0 && !strstr(line, valueDelim) && 
           curSect->values[lastInd]) {
         ikey = strlen(curSect->values[lastInd]);
@@ -243,7 +248,7 @@ int AdocRead(const char *filename)
       } else {
 
         /* Or just add the key-value */
-        if ((err = addKey(curSect, key, value)))
+        if ((err = addKey(curSect, key, value, ADOC_STRING)))
           break;
         free(key);
         if (value)
@@ -556,7 +561,7 @@ int AdocInsertSection(const char *typeName, int sectInd, const char *name)
   /* Add section to end regardless, then return if that is all that is needed */
   coll = &curAdoc->collections[collInd];
   if (AdocAddSection(typeName, name) < 0)
-      return -1;
+    return -1;
   if (sectInd == numSect)
     return 0;
 
@@ -638,7 +643,19 @@ int AdocLookupSection(const char *typeName, const char *name)
 }
 
 /*!
- * Looks in the collection of sections of type [typeName], converts their name strings to
+ * Looks up a section of type specified by [typeName] whose name converts to the integer
+ * value [nameValue]. Returns the index of that section in the collection of sections of
+ * that type, -1 if there is none, or -2 for error.
+ */
+int AdocLookupByNameValue(const char *typeName, int nameValue)
+{
+  char buf[15];
+  sprintf(buf, "%d", nameValue);
+  return AdocLookupSection(typeName, buf);
+}
+
+/*!
+ * Looks in the collection of sections of type [typeName], converts their name strings
  * to integers, and returns the index of the first section whose name is greater than
  * [nameValue], the number of sections if there is no such section, or -1 for error
  * (including if a section exists whose name converts to [nameValue]).  This returned
@@ -667,12 +684,74 @@ int AdocFindInsertIndex(const char *typeName, int nameValue)
 }
 
 /*!
+ * Transfers all key/value pairs from the section of index [sectInd] in the collection of
+ * type [typeName] of the current autodoc to a section of the same type in the autodoc
+ * with index [toAdocInd], with a name [newName].  If [byValue] is non-zero, the new
+ * name is converted to an integer and the section is inserted so as to maintain sections
+ * in order.  The collection in the receiving autodoc is created if necessary; the new
+ * section may already exist or will be created if necessary; existing values with the
+ * same key are overwritten.  Returns -1 for all kinds of errors.
+ */
+int AdocTransferSection(const char *typeName, int sectInd, int toAdocInd, 
+                        const char *newName, int byValue)
+{
+  int err = 0, ind, newSectInd, collInd, nameVal;
+  AdocSection *sect;
+  int curIndSave = curAdocInd;
+
+  /* Get the section then switch adocs */
+  if (!(sect = getSection(typeName, sectInd)))
+    return -1;
+  if (toAdocInd < 0 || toAdocInd == curAdocInd || toAdocInd >= numAutodocs || !newName)
+    return -2;
+  AdocSetCurrent(toAdocInd);
+
+  /* If the section does not exist, add it, using insert if the collection does exist */
+  newSectInd = AdocLookupSection(typeName, newName);
+  if (newSectInd < 0) {
+    collInd = lookupCollection(curAdoc, typeName);
+    if (collInd < 0) {
+      newSectInd = 0;
+      err = AdocAddSection(typeName, newName);
+    } else {
+      newSectInd = curAdoc->collections[collInd].numSections;
+      if (byValue) {
+        nameVal = atoi(newName);
+        newSectInd = AdocFindInsertIndex(typeName, nameVal);
+      }
+      err = AdocInsertSection(typeName, newSectInd, newName);
+    }
+    if (err < 0) {
+      AdocSetCurrent(curIndSave);
+      return -3;
+    }
+  }
+
+  /* Copy the key/values and their types */
+  for (ind = 0; ind < sect->numKeys && !err; ind++)
+    if (setKeyValueType(typeName, newSectInd, sect->keys[ind], sect->values[ind], 
+                        sect->types[ind]) < 0)
+      err = -4;
+  AdocSetCurrent(curIndSave);
+  return err;
+}
+
+/*!
  * Sets a key-value pair to [key] and [value] in the section with index 
  * [sectInd] in the collection of sections of type [typeName].  The section 
  * must already exist.  Replaces an existing value if any.  [value] may be 
  * NULL.  Returns -1 for error.
  */
 int AdocSetKeyValue(const char *typeName, int sectInd, const char *key, const char *value)
+{
+  return setKeyValueType(typeName, sectInd, key, value, ADOC_STRING);
+}
+
+/*
+ * The function that actually sets a value, given the type as well.
+ */
+static int setKeyValueType(const char *typeName, int sectInd, const char *key, 
+                           const char *value, int type)
 {
   AdocSection *sect;
   int keyInd;
@@ -691,12 +770,16 @@ int AdocSetKeyValue(const char *typeName, int sectInd, const char *key, const ch
       sect->values[keyInd] = strdup(value);
       if (PipMemoryError(sect->values[keyInd], "AdocSetKeyValue"))
         return -1;
-    } else
+      sect->types[keyInd] = type;
+    } else {
       sect->values[keyInd] = NULL;
+      sect->types[keyInd] = ADOC_NO_VALUE;
+    }
   } else
-    return addKey(sect, key, value);
+    return addKey(sect, key, value, type);
   return 0;
 }
+
 
 /*!
  * Sets the value of [key] to the integer [ival] in the section with index 
@@ -708,7 +791,7 @@ int AdocSetInteger(const char *typeName, int sectInd, const char *key, int ival)
 {
   char str[30];
   sprintf(str, "%d", ival);
-  return(AdocSetKeyValue(typeName, sectInd, key, str));
+  return(setKeyValueType(typeName, sectInd, key, str, ADOC_ONE_INT));
 }
 
 /*!
@@ -720,7 +803,7 @@ int AdocSetTwoIntegers(const char *typeName, int sectInd, const char *key, int i
 {
   char str[60];
   sprintf(str, "%d %d", ival1, ival2);
-  return(AdocSetKeyValue(typeName, sectInd, key, str));
+  return(setKeyValueType(typeName, sectInd, key, str, ADOC_TWO_INTS));
 }
 
 /*!
@@ -732,7 +815,17 @@ int AdocSetThreeIntegers(const char *typeName, int sectInd, const char *key, int
 {
   char str[90];
   sprintf(str, "%d %d %d", ival1, ival2, ival3);
-  return(AdocSetKeyValue(typeName, sectInd, key, str));
+  return(setKeyValueType(typeName, sectInd, key, str, ADOC_THREE_INTS));
+}
+
+/*!
+ * Like @AdocSetInteger, except that the value is set to the array of [numVals] integers 
+ * in [ivals].
+ */
+int AdocSetIntegerArray(const char *typeName, int sectInd, const char *key, int *ivals,
+                        int numVals)
+{
+  return(setArrayOfValues(typeName, sectInd, key, ivals, numVals, ADOC_INT_ARRAY));
 }
 
 /*!
@@ -745,7 +838,7 @@ int AdocSetFloat(const char *typeName, int sectInd, const char *key, float val)
 {
   char str[30];
   sprintf(str, "%g", val);
-  return(AdocSetKeyValue(typeName, sectInd, key, str));
+  return(setKeyValueType(typeName, sectInd, key, str, ADOC_ONE_FLOAT));
 }
 
 /*!
@@ -757,7 +850,7 @@ int AdocSetTwoFloats(const char *typeName, int sectInd, const char *key, float v
 {
   char str[60];
   sprintf(str, "%g %g", val1, val2);
-  return(AdocSetKeyValue(typeName, sectInd, key, str));
+  return(setKeyValueType(typeName, sectInd, key, str, ADOC_TWO_FLOATS));
 }
 
 /*!
@@ -769,7 +862,56 @@ int AdocSetThreeFloats(const char *typeName, int sectInd, const char *key, float
 {
   char str[90];
   sprintf(str, "%g %g %g", val1, val2, val3);
-  return(AdocSetKeyValue(typeName, sectInd, key, str));
+  return(setKeyValueType(typeName, sectInd, key, str, ADOC_THREE_FLOATS));
+}
+
+/*!
+ * Like @AdocSetFloat, except that the value is set to the array of [numVals] floats in 
+ * [vals].
+ */
+int AdocSetFloatArray(const char *typeName, int sectInd, const char *key, float *vals,
+                      int numVals)
+{
+  return(setArrayOfValues(typeName, sectInd, key, vals, numVals, ADOC_FLOAT_ARRAY));
+}
+    
+/*
+ * Function to set a line of floats or integers as the string value; valType should be
+ * ADOC_INT_ARRAY or ADOC_FLOAT_ARRAY.
+ */
+static int setArrayOfValues(const char *typeName, int sectInd, const char *key, 
+                            void *vals, int numVals, int valType)
+{
+  char tmp[40];
+  char *fullStr;
+  int *ivals = (int *)vals;
+  float *fvals = (float *)vals;
+  int ind, totLen = 0;
+
+  /* Add up the characters needed for the eahc value */
+  for (ind = 0; ind < numVals; ind++) {
+    if (valType == ADOC_INT_ARRAY)
+      sprintf(tmp, "%d ", ivals[ind]);
+    else
+      sprintf(tmp, "%g ", fvals[ind]);
+    totLen += strlen(tmp) + 1;
+  }
+
+  /* Get the string and build it up by writing again */
+  fullStr = B3DMALLOC(char, totLen);
+  if (!fullStr)
+    return -1;
+  fullStr[0] = 0x00;
+  for (ind = 0; ind < numVals; ind++) {
+    if (valType == ADOC_INT_ARRAY)
+      sprintf(tmp, "%s%d", ind ? " " : "", ivals[ind]);
+    else
+      sprintf(tmp, "%s%g", ind ? " " : "", fvals[ind]);
+    strcat(fullStr, tmp);
+  }
+  ind = setKeyValueType(typeName, sectInd, key, fullStr, valType);
+  free(fullStr);
+  return ind;
 }
 
 /*!
@@ -787,11 +929,9 @@ int AdocDeleteKeyValue(const char *typeName, int sectInd, const char *key)
   keyInd = lookupKey(sect, key);
   if (keyInd < 0)
     return -1;
-  if (sect->values[keyInd])
-    free(sect->values[keyInd]);
-  sect->values[keyInd] = NULL;
-  free(sect->keys[keyInd]);
-  sect->keys[keyInd] = NULL;
+  B3DFREE(sect->values[keyInd]);
+  B3DFREE(sect->keys[keyInd]);
+  sect->types[keyInd] = ADOC_NO_VALUE;
   return 0;
 }
 
@@ -800,9 +940,32 @@ int AdocDeleteKeyValue(const char *typeName, int sectInd, const char *key)
  */
 
 /*!
+ * Returns the number of collections of sections, excluding the global data collection,
+ * or -1 if there is no current autodoc.
+ */
+int AdocGetNumCollections()
+{
+  if (!curAdoc)
+    return -1;
+  return curAdoc->numCollections - 1;
+}
+
+/*!
+ * Returns the name of the collection with index [collInd] into [string], which is 
+ * allocated and should be freed with {free}.  Returns -1 for errors.
+ */
+int AdocGetCollectionName(int collInd, char **string)
+{
+  if (!curAdoc || collInd < 0 || collInd >= curAdoc->numCollections - 1)
+    return -1;
+  *string = strdup(curAdoc->collections[collInd].name);
+  return (PipMemoryError(*string, "AdocGetCollectionName"));
+}
+
+/*!
  * Gets the name of the section with index [sectInd] in the collection of 
- * sections of type [typeName].  Returns the name in [string].
- * Returns -1 for errors.
+ * sections of type [typeName].  Returns the name in [string], which is allocated and 
+ * should be freed with {free}.  Returns -1 for errors.
  */
 int AdocGetSectionName(const char *typeName, int sectInd, char **string)
 {
@@ -839,6 +1002,62 @@ int AdocGetNumberOfKeys(const char *typeName, int sectInd)
   if (!(sect = getSection(typeName, sectInd)))
     return -1;
   return sect->numKeys;
+}
+
+/*!
+ * Gets the key at index [keyInd] in the section with index [sectInd] in the collection 
+ * of sections of type [typeName].  Returns a copy of the key in
+ * [key], which should be freed with {free}.  Returns -1 for errors.
+ */
+int AdocGetKeyByIndex(const char *typeName, int sectInd, int keyInd, char **key)
+{
+  AdocSection *sect;
+  if (!(sect = getSection(typeName, sectInd)))
+    return -1;
+  if (keyInd < 0 || keyInd >= sect->numKeys)
+    return -1;
+  *key = strdup(sect->keys[keyInd]);
+  return *key == NULL ? -1 : 0;
+}
+
+/*!
+ * Returns information about the value string matching [key] in the section with index 
+ * [sectInd] in the collection of sections of type [typeName]: the value type 
+ * (ADOC_ONE_INT, etc) in [valType] and the 
+ * number of space-separated tokens in the string in [numTokens].  Returns -1 if the key 
+ * is null, the section does not exist, or for a memory error; returns 1 if the
+ * key does not occur in the given section or if the value is null.
+ */
+int AdocGetValTypeAndSize(const char *typeName, int sectInd, const char *key, 
+                          int *valType, int *numTokens)
+{
+  AdocSection *sect;
+  int keyInd;
+  char *valstr, *parsed;
+  *valType = ADOC_NO_VALUE;
+  *numTokens = 0;
+  if (!key)
+    return -1;
+  if (!(sect = getSection(typeName, sectInd)))
+    return -1;
+  keyInd = lookupKey(sect, key);
+  if (keyInd < 0 || !sect->values[keyInd])
+    return 1;
+  *valType = sect->types[keyInd];
+
+  /* Get a copy of the string and use the dreadful strtok */
+  valstr = strdup(sect->values[keyInd]);
+  if (!valstr) {
+    PipMemoryError(NULL, "AdocGetValTypeAndSize");
+    return -1;
+  }
+  parsed = valstr;
+  while (strtok(parsed, " ") != NULL) {
+    parsed = NULL;
+    (*numTokens)++;
+  }
+  free(valstr);
+  return 0;
 }
 
 /*!
@@ -997,13 +1216,14 @@ int AdocGetFloatArray(const char *typeName, int sectInd, const char *key, float 
 
 /* Adds a key-value pair to the given section, without checking for 
    duplication */
-static int addKey(AdocSection *sect, const char *key, const char *value)
+static int addKey(AdocSection *sect, const char *key, const char *value, int type)
 {
 
   /* First allocate enough memory if needed */
   if (!sect->maxKeys) {
     sect->keys = (char **)malloc(MALLOC_CHUNK * sizeof(char *));
     sect->values = (char **)malloc(MALLOC_CHUNK * sizeof(char *));
+    sect->types = B3DMALLOC(unsigned char, MALLOC_CHUNK);
     sect->maxKeys = MALLOC_CHUNK;
   } else if (sect->numKeys >= sect->maxKeys) {
     sect->keys = (char **)realloc(sect->keys, (sect->maxKeys + MALLOC_CHUNK) * 
@@ -1011,9 +1231,10 @@ static int addKey(AdocSection *sect, const char *key, const char *value)
     sect->values = (char **)realloc(sect->values, 
                                     (sect->maxKeys + MALLOC_CHUNK) *
                                     sizeof(char *));
+    B3DREALLOC(sect->types, unsigned char, sect->maxKeys + MALLOC_CHUNK);
     sect->maxKeys += MALLOC_CHUNK;
   }
-  if (!sect->keys || !sect->values) {
+  if (!sect->keys || !sect->values || !sect->types) {
     PipMemoryError(NULL, "addKey");
     return -1;
   }
@@ -1024,6 +1245,7 @@ static int addKey(AdocSection *sect, const char *key, const char *value)
     sect->values[sect->numKeys] = strdup(value);
   else
     sect->values[sect->numKeys] = NULL;
+  sect->types[sect->numKeys] = value ? type : ADOC_NO_VALUE;
   if (! sect->keys[sect->numKeys] || (value && !sect->values[sect->numKeys])) {
     PipMemoryError(NULL, "addKey");
     return -1;
@@ -1075,6 +1297,7 @@ static int addSection(Autodoc *adoc, int collInd, const char *name)
     return -1;
   sect->keys = NULL;
   sect->values = NULL;
+  sect->types = NULL;
   sect->numKeys = 0;
   sect->maxKeys = 0;
   sect->comments = NULL;
@@ -1179,45 +1402,34 @@ static void deleteAdoc(Autodoc *adoc)
 
       /* Clean key/values out of sections */
       for (k = 0; k < sect->numKeys; k++) {
-        if (sect->keys[k])
-          free(sect->keys[k]);
-        if (sect->values[k])
-          free(sect->values[k]);
+        B3DFREE(sect->keys[k]);
+        B3DFREE(sect->values[k]);
       }
-      if (sect->keys)
-        free(sect->keys);
-      if (sect->values)
-        free(sect->values);
-      if (sect->name)
-        free(sect->name);
+      B3DFREE(sect->keys);
+      B3DFREE(sect->values);
+      B3DFREE(sect->types);
+      B3DFREE(sect->name);
 
       /* Clean comments out of sections */
       for (k = 0; k < sect->numComments; k++)
-        if (sect->comments[k])
-          free(sect->comments[k]);
-      if (sect->comments)
-        free(sect->comments);
+        B3DFREE(sect->comments[k]);
+      B3DFREE(sect->comments);
     }
 
 
     /* Free sections */
-    if (coll->sections)
-      free(coll->sections);
-    if (coll->name)
-      free(coll->name);
+    B3DFREE(coll->sections);
+    B3DFREE(coll->name);
   }
 
   /* Free collections */
-  if (adoc->collections)
-    free(adoc->collections);
+  B3DFREE(adoc->collections);
   adoc->numCollections = 0;
   adoc->collections = NULL;
 
   /* Free lists of sections */
-  if (adoc->collList)
-    free(adoc->collList);
-  if (adoc->sectList)
-    free(adoc->sectList);
+  B3DFREE(adoc->collList);
+  B3DFREE(adoc->sectList);
   adoc->collList = NULL;
   adoc->sectList = NULL;
   adoc->numSections = 0;
@@ -1225,10 +1437,8 @@ static void deleteAdoc(Autodoc *adoc)
   
   /* Free final comments */
   for (i = 0; i < adoc->numFinalCom; i++)
-    if (adoc->finalComments[i])
-      free(adoc->finalComments[i]);
-  if (adoc->finalComments)
-    free(adoc->finalComments);
+    B3DFREE(adoc->finalComments[i]);
+  B3DFREE(adoc->finalComments);
   adoc->finalComments = NULL;
   adoc->numFinalCom = 0;
   adoc->inUse = 0;

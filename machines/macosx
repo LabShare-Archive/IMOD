@@ -3,6 +3,7 @@
 #
 set c_includes = ''
 set Lfftwlib = ''
+set Lhdflib = ""
 #
 #   default is to assume tifflib does exist
 #
@@ -16,6 +17,14 @@ if ($?FFTW3_DIR) then
     set c_includes = "$c_includes -I${FFTW3_DIR}/include"
     set Lfftwlib = "-L${FFTW3_DIR}/lib"
     set lifft = "-lifft -lfftw3f_omp -lfftw3f"
+endif
+
+# If HDF exists, adjust variables
+#
+if ($?HDF5_DIR) then
+    set c_includes = "$c_includes -I${HDF5_DIR}/include"
+    set Lhdflib = "-L${HDF5_DIR}/lib"
+    set lhdf = "-lhdf5"
 endif
 
 # Set defaults for using gcc
@@ -161,7 +170,7 @@ if ($m64bit == true && $majorrel > 9) then
     set wlread_only = ""
 endif
 
-echo "LDFLAGS = $m64flags"' -L$(LIBDIR) '"-dynamic $openmpFlags $Lfftwlib $ldread_only" >> $configure
+echo "LDFLAGS = $m64flags"' -L$(LIBDIR) '"-dynamic $openmpFlags $Lhdflib $Lfftwlib $ldread_only" >> $configure
 
 if ($compiler == ifort) then
     set fcomp = "ifort"
@@ -170,7 +179,7 @@ if ($compiler == ifort) then
     set fcompFlags = "-132 -assume bscc -vec-report0 -heap-arrays 100"
 
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
-    set ldfflags = '-L$(LIBDIR) '"-i-dynamic $openmpfFlags $Lfftwlib $wlread_only"
+    set ldfflags = '-L$(LIBDIR) '"-i-dynamic $openmpfFlags $Lhdflib $Lfftwlib $wlread_only"
     set fcmpldFlags = "-i-dynamic"
     set exefflags = "-mdynamic-no-pic"
     set fortdir = `which ifort`
@@ -337,10 +346,10 @@ echo 'TILTOBJS = bpsumnox.o bpsumxtilt.o bpsumlocal.o' >> $configure
 # make extra fortran libs
 if ($compiler == ifort) then
     echo 'LINUXFLIBS = ' >> $configure
-    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr $ltiff" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr $ltiff $lhdf" >> $configure
 else
     echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
-    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt $ltiff" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt $ltiff $lhdf" >> $configure
 endif
 
 # Adjust variables for CUDA.  Libraries are hardcoded to user's installed 
@@ -366,6 +375,14 @@ endif
 if ($?FFTW3_DIR) then
     echo "DLLSTOCOPY$dllnum = libfftw3f_omp libfftw3f" >> $configure 
     echo "DLLSOURCEDIR$dllnum = $FFTW3_DIR/lib" >> $configure
+    @ dllnum++
+endif    
+
+# Set up to copy HDF library
+#
+if ($?HDF5_DIR) then
+    echo "DLLSTOCOPY$dllnum = libhdf5" >> $configure 
+    echo "DLLSOURCEDIR$dllnum = $HDF5_DIR/lib" >> $configure
     @ dllnum++
 endif    
 
@@ -456,7 +473,7 @@ end
 
 cat << EOF  >! $midas_qconf
 INCLUDEPATH += $QTDIR/include/QtOpenGL
-LIBS += $Lfftwlib
+LIBS += $Lhdflib $Lfftwlib
 EOF
 
 # 3/33/04: removed -ldl from the second LIBS line because it is in libqt now
@@ -464,15 +481,15 @@ EOF
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir $Lfftwlib -liimod -limesh -limod -ltrack -lcfshr -ldiaqt $lifft $ltiff
+LIBS += -L$lib_dir $Lhdflib $Lfftwlib -liimod -limesh -limod -ltrack -lcfshr -ldiaqt $lifft $ltiff $lhdf
 LIBS += -lm
 RC_FILE = b3dicon.icns
 EOF
 
 # 3/30/10: Start this file, it is now expected to be started
-echo "LIBS += $Lfftwlib" >! $ctfplot_qconf
+echo "LIBS += $Lhdflib $Lfftwlib" >! $ctfplot_qconf
 echo " " >! $prochunk_qconf
-echo " " >! $mrc2tif_qconf
+echo "LIBS += $Lhdflib" >! $mrc2tif_qconf
 
 # Make run scripts for the fortran Qt programs
 # They have to be named run... because the programs install in bin first

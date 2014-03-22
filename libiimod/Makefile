@@ -13,7 +13,8 @@ LIBS   = $(LIBI) $(LIBD)
 CFLAGS = $(LIBCFLAGS)
 
 OBJS  = iimage.$(O) iitif.$(O) iimrc.$(O) mrcfiles.$(O) mrcsec.$(O) unit_header.$(O) \
- mrcslice.$(O) plist.$(O) sliceproc.$(O) diffusion.$(O) iilikemrc.$(O) unit_fileio.$(O)
+ mrcslice.$(O) plist.$(O) sliceproc.$(O) diffusion.$(O) iilikemrc.$(O) unit_fileio.$(O) \
+ $(HDFOBJS)
 
 INCS  = $(INCDIR)/mrcfiles.h $(INCDIR)/mrcslice.h \
  $(INCDIR)/mrcc.h $(INCDIR)/b3dutil.h

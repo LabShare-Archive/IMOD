@@ -17,11 +17,13 @@
 #include "iimage.h"
 #include "ilist.h"
 #include "b3dutil.h"
+#include "autodoc.h"
 
 /* The resident check list and list of opened files */
 static Ilist *sCheckList = NULL;
 static Ilist *sOpenedFiles = NULL;
 static int sRWcallCount = 0;
+static int sAllowMultiVolume = 0;
 
 static int readWriteSection(ImodImageFile *inFile, char *buf, int inSection, 
                             iiSectionFunc func, const char *mess);
@@ -45,6 +47,8 @@ static int initCheckList()
   func = iiMRCCheck;
   ilistAppend(sCheckList, &func);
   func = iiLikeMRCCheck;
+  ilistAppend(sCheckList, &func);
+  func = iiHDFCheck;
   ilistAppend(sCheckList, &func);
   return 0;
 }
@@ -117,6 +121,7 @@ ImodImageFile *iiNew()
   ofile->writeSectionFloat = NULL;
   ofile->fillMrcHeader = NULL;
   ofile->syncFromMrcHeader = NULL;
+  ofile->writeHeader     = NULL;
   ofile->cleanUp         = NULL;
   ofile->reopen          = NULL;
   ofile->close           = NULL;
@@ -136,6 +141,13 @@ ImodImageFile *iiNew()
   ofile->ny = 0;
   ofile->nz = 0;
   ofile->lastWrittenZ = -1;
+  ofile->adocIndex = -1;
+  ofile->globalAdocIndex = -1;
+  ofile->stackSetList = NULL;
+  ofile->zToDataSetMap = NULL;
+  ofile->datasetName = NULL;
+  ofile->iiVolumes = NULL;
+  ofile->numVolumes = 0;
   return(ofile);
 }
 
@@ -202,9 +214,15 @@ ImodImageFile *iiOpen(const char *filename, const char *mode)
     }
 
     if (!(err = (*checkFunc)(ofile))) {
-      ofile->state = IISTATE_READY;
-      if (!addToOpenedList(ofile))
-        return ofile;
+      if (ofile->numVolumes > 1 && !sAllowMultiVolume) {
+        b3dError(stderr, "ERROR: iiOpen - %s is an HDF file with multiple volumes and "
+                 "cannot be opened by this program or with current options to the "
+                 "program\n", filename);
+      } else {
+        ofile->state = IISTATE_READY;
+        if (!addToOpenedList(ofile))
+          return ofile;
+      }
       iiDelete(ofile);
       return NULL;
     }
@@ -222,7 +240,7 @@ ImodImageFile *iiOpen(const char *filename, const char *mode)
 /*!
  * Opens a new file whose name is in [filename] with the given [mode], which must
  * contain 'w'.  The type of file is specified by [fileKind], which can be either
- * IIFILE_MRC, IIFILE_TIFF, or IIFILE_DEFAULT for the type defined by calling
+ * IIFILE_MRC, IIFILE_TIFF, IIFILE_HDF, or IIFILE_DEFAULT for the type defined by calling
  * @@b3dutil.html#b3dOutputFileType@.  Adds the file to the list of opened files and
  * returns the opened file pointer.
  */
@@ -232,7 +250,7 @@ ImodImageFile *iiOpenNew(const char *filename, const char *mode, int fileKind)
   int err = 0;
   if (fileKind == IIFILE_DEFAULT)
     fileKind = b3dOutputFileType();
-  //printf("fk %d\n", fileKind);
+  /* printf("fk %d\n", fileKind); */
   if (!strstr(mode, "w")) {
     b3dError(stderr, "ERROR: iiOpenNew - File opening mode %s is not appropriate for a "
              "new image file\n");
@@ -248,6 +266,8 @@ ImodImageFile *iiOpenNew(const char *filename, const char *mode, int fileKind)
    
   if (!err && fileKind == IIFILE_MRC) {
     err = iiMRCopenNew(ofile, mode);
+  } else if (!err && fileKind == IIFILE_HDF) {
+    err = iiHDFopenNew(ofile, mode);
   } else if (!err && fileKind == IIFILE_TIFF) {
     err = tiffOpenNew(ofile);
     if (err)
@@ -273,7 +293,8 @@ ImodImageFile *iiOpenNew(const char *filename, const char *mode, int fileKind)
 }
 
 /*!
- * Reopen a file that has already been opened and analyzed 
+ * Reopen a file that has already been opened and analyzed.  Returns 1 if the file is
+ * already open or 2 for other errors.
  */
 int  iiReopen(ImodImageFile *inFile)
 {
@@ -359,9 +380,7 @@ int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax, float scaleMax)
   inFile->slope = scaleMax / range;
 
   inFile->offset = -inMin * inFile->slope;
-
-  /* printf("iiSetMM %g %g -> %g %g\n",
-     inMin, inMax, inFile->slope, inFile->offset); */
+  /* printf("iiSetMM %g %g -> %g %g\n", inMin, inMax, inFile->slope, inFile->offset); */
 
   return(0);
 }
@@ -399,7 +418,7 @@ void iiDelete(ImodImageFile *inFile)
 }
 
 /*!
- * For the image file [inFile], initializes the MRC header structure [data] and fills in
+ * For the image file [inFile], initializes the MRC header structure [hdata] and fills in
  * as many fields as possible with file-specific values.  For an MRC file, it simply 
  * copies the already read-in header.  Returns -1 if a header filling function is not 
  * defined or 1 if there is some other problem filling the header in.
@@ -458,6 +477,49 @@ void iiSyncFromMrcHeader(ImodImageFile *inFile, MrcHeader *hdata)
     inFile->syncFromMrcHeader(inFile, hdata);
 }
 
+/*!
+ * Returns default min/max/mean values for the data type [type] into [amin], [amax], and
+ * [amean].  Returns an actual file value for signed bytes, to be shifted up later in
+ * a header-reading routine.
+ */
+int iiDefaultMinMaxMean(int type, float *amin, float *amax, float *amean)
+{
+  switch (type) {
+  case IITYPE_UBYTE:
+  case IITYPE_FLOAT:
+    *amin = 0;
+    *amax = 255;
+    break;
+  case IITYPE_BYTE:
+    *amin = -128;
+    *amax = 127;
+    break;
+  case IITYPE_SHORT:
+    *amin = -32767;
+    *amax = 32767;
+    break;
+  case IITYPE_USHORT:
+    *amin = 0;
+    *amax = 65535;
+    break;
+  default:
+      return 1;
+  }
+  *amean = (*amax + *amin) / 2.;
+  return 0;
+}
+
+/*!
+ * Writes header and other metadata to [inFile] if the file type has a function defined 
+ * for doing so.  Returns 1 for error.
+ */
+int iiWriteHeader(ImodImageFile *inFile)
+{
+  if (inFile->writeHeader)
+    return (*inFile->writeHeader)(inFile);
+  return 0;
+}
+
 /*
  * Functions for adding, removing, and looking up a file in the list
  */
@@ -468,7 +530,7 @@ static int addToOpenedList(ImodImageFile *iiFile)
   if (sOpenedFiles && !ilistAppend(sOpenedFiles, &iiFile))
     return 0;
   b3dError(stderr, "ERROR: iiOpen - Memory error adding new file to master list\n");
-    return 1;
+  return 1;
 }
 
 static void removeFromOpenedList(ImodImageFile *iiFile)
@@ -492,6 +554,27 @@ static int findFileInList(ImodImageFile *iiFile, FILE *fp)
     }
   }
   return -1;
+}
+
+/*!
+ * Manages the list of open files, volume points in {iiVolumes}, and the {fp} entry
+ * after the ImodImageFile structure has been copied from [oldFile] to [newFile].  The
+ * old address no longer needs to be useable.
+ */
+void iiFileChangeAddress(ImodImageFile *oldFile, ImodImageFile *newFile)
+{
+  int ind;
+  removeFromOpenedList(oldFile);
+  if (newFile->fp == (FILE *)oldFile) {
+    newFile->fp = (FILE *)newFile;
+    if (newFile->file == IIFILE_HDF)
+      ((MrcHeader *)newFile->header)->fp = newFile->fp;
+  }
+  if (newFile->iiVolumes && newFile->numVolumes)
+    for (ind = 0; ind < newFile->numVolumes; ind++)
+      if (newFile->iiVolumes[ind] == oldFile)
+        newFile->iiVolumes[ind] = newFile;
+  addToOpenedList(newFile);
 }
 
 /*!
@@ -525,7 +608,7 @@ ImodImageFile *iiLookupFileFromFP(FILE *fp)
 
 /*!
  * Closes the file with pointer [fp] either by calling @iiDelete for its corresponding 
- * ImodImageFile, or by simple closing it if it is not in the list of opened files.
+ * ImodImageFile, or by simply closing it if it is not in the list of opened files.
  * This function must be called for a newly written file if there is a possibility that
  * it is a TIFF file.
  */
@@ -538,7 +621,59 @@ void iiFClose(FILE *fp)
     fclose(fp);
 }
 
-/* Fuctions for keeping track of whether we are already in an iiRead/Write call */
+/*!
+ * Opens the volume at index [volIndex] in a multi-volume HDF file, where the index is 
+ * numbered from 0 and must be at least 1; i.e., this should not be called on the initial
+ * volume accessed by iiFOpen.
+ */
+FILE *iiFOpenVolume(ImodImageFile *inFile, int volIndex)
+{
+  if (!inFile)
+    return NULL;
+  if (inFile->file != IIFILE_HDF || inFile->numVolumes < 2) {
+    b3dError(stderr, "ERROR: iiFOpenVolume - Attempting to open a secondary volume for "
+             "a non-HDF file or an HDF file with only a stack or one volume");
+    return NULL;
+  }
+  if (volIndex < 1 || volIndex >= inFile->numVolumes) {
+    b3dError(stderr, "ERROR: iiFOpenVolume - Requested volume index %d out of range\n",
+             volIndex);
+    return NULL;
+  }
+  if (iiReopen(inFile->iiVolumes[volIndex])) {
+    b3dError(stderr, "ERROR: iiFOpenVolume - Error calling iiReopen on volume at "
+             "index %d\n", volIndex); 
+    return NULL;
+  }
+  return inFile->iiVolumes[volIndex]->fp;
+}
+
+/*!
+ * Creates a new volume in an HDF file open on [inFile] that was not opened read-only and 
+ * has volume datasets rather than a stack of single-image datasets.  Sets the 
+ * {zChunkSize} member of [inFile] to 1 to ensure that a volume dataset will be created 
+ * later, but you can still change chunk properties with @iiSetChunkSizes.  Returns the 
+ * {fp} member of the new ImodImageFile structure, or NULL for error.
+ */
+FILE *iiFOpenNewVolume(ImodImageFile *inFile)
+{
+  ImodImageFile *iiFile;
+  if (!inFile)
+    return NULL;
+  if (inFile->file != IIFILE_HDF || inFile->stackSetList) {
+    b3dError(stderr, "ERROR: iiFOpenNewVolume - Attempting to create an additional "
+             "volume for a non-HDF file or an HDF file with a stack in it\n");
+    return NULL;
+  }
+  if (iiHDFopenNew(inFile, "wb+"))
+    return NULL;
+  iiFile = inFile->iiVolumes[inFile->numVolumes - 1];
+  if (addToOpenedList(iiFile))
+    return NULL;
+  return iiFile->fp;
+}
+
+/* Functions for keeping track of whether we are already in an iiRead/Write call */
 void iiChangeCallCount(int delta)
 {
   sRWcallCount = B3DMAX(0, sRWcallCount + delta);
@@ -547,6 +682,132 @@ void iiChangeCallCount(int delta)
 int iiCallingReadOrWrite()
 {
   return sRWcallCount;
+}
+
+/*!
+ * Sets a flag to allow opening of multi-volume HDF files.  There is a Fortran wrapper 
+ * iiallowmultivolume.
+ */
+void iiAllowMultiVolume(int allow)
+{
+  sAllowMultiVolume = allow;
+}
+
+/*!
+ * For the HDF file or volume dataset in [inFile], sets the tile (chunk) sizes in X and Y
+ * to [xSize] and [ySize], and the chunk size in Z to [zSize].  Pass 0 for [xSize] or 
+ * [ySize] to avoid tiling in those dimensions.  [zSize] must be 1 or greater.  This 
+ * function must be called before the volume or its header is written.  Returns 1 for 
+ * error. 
+ */
+int iiSetChunkSizes(ImodImageFile *inFile, int xSize, int ySize, int zSize)
+{
+  if (!inFile || inFile->file != IIFILE_HDF || inFile->stackSetList) {
+    b3dError(stderr, "ERROR: iiSetChunkSizes - Attempting to set chunk sizes "
+             "for a non-HDF file or an HDF file with a stack in it\n");
+    return 1;
+  }
+  if (inFile->datasetName) {
+    b3dError(stderr, "ERROR: iiSetChunkSizes - The volume dataset properties have "
+             "already been set and cannot be changed\n");
+    return 1;
+  }
+  if (xSize < 0 || ySize < 0 || zSize <= 0) {
+    b3dError(stderr, "ERROR: iiSetChunkSizes - X and Y chunk sizes must be non-negative "
+             "and Z size must be positive\n");
+    return 1;
+  }
+  inFile->tileSizeX = xSize;
+  inFile->tileSizeY = ySize;
+  inFile->zChunkSize = zSize;
+  return 0;
+}
+
+/*!
+ * Returns an autodoc index for [inFile].  Set [global] non-zero for accessing or storing 
+ * information that applies to all volumes of a multi-volume HDF file or information
+ * stored in sections other than in the ZValue collection.  If the file is not an
+ * HDF file, it will return the existing value of the {adocIndex} member if it is
+ * non-negative or if [openMdocOrNew] is 0; otherwise it will attempt to open a metadata
+ * autodoc file by adding ".mdoc" to the filename if [openMdocOrNew] is positive or
+ * it will open a new autodoc if [openMdocOrNew] is negative.  Returns -1 if there is 
+ * no autodoc, or -2 for more serious errors.
+ */
+int iiGetAdocIndex(ImodImageFile *inFile, int global, int openMdocOrNew)
+{
+  char *mdocName;
+  if (!inFile)
+    return -2;
+  if (inFile->file == IIFILE_HDF) {
+    if (inFile->stackSetList || inFile->globalAdocIndex < 0 || !global)
+      return inFile->adocIndex;
+    return inFile->globalAdocIndex;
+  }
+  if (inFile->adocIndex >= 0 || !openMdocOrNew)
+    return inFile->adocIndex;
+  if (openMdocOrNew < 0) {
+    inFile->adocIndex = AdocNew();
+    if (inFile->adocIndex < 0)
+      return -2;
+  } else {
+    mdocName = (char *)malloc(strlen(inFile->filename) + 6);
+    if (!mdocName) {
+      b3dError(stderr, "ERROR: iiGetAdocIndex - Allocating memory for filename\n");
+      return -2;
+    }
+    sprintf(mdocName, "%s.mdoc", inFile->filename);
+    inFile->adocIndex = AdocRead(mdocName);
+    free(mdocName);
+  }
+  return inFile->adocIndex;
+}
+
+/*!
+ * Transfers all but Z-slice specific information from the autodoc structures associated
+ * with [fromFile] to those of [toFile].  The {adocIndex} member must be non-negative for
+ * both files.  Global data (in the PreData section) are transferred between these two
+ * specific autodocs.  Data in other sections, except for sections of type ZValue, are
+ * also transferred.  For an HDF file, the autodoc index used in each case is the one
+ * in {globalAdocIndex}, if it is non-negative; otherwise it is the one in {adocIndex}.
+ * Returns 1 for errors.
+ */
+int iiTransferAdocSections(ImodImageFile *fromFile, ImodImageFile *toFile)
+{
+  int err = 0, sectInd, coll, numColl, numSect, fromDoc, toDoc;
+  char *collName, *sectName;
+  if (fromFile->adocIndex < 0 || toFile->adocIndex < 0)
+    return 1;
+  
+  /* First transfer global data from specific adoc's */
+  if (AdocSetCurrent(fromFile->adocIndex))
+    return 1;
+  if (AdocTransferSection(ADOC_GLOBAL_NAME, 0, toFile->adocIndex, ADOC_GLOBAL_NAME, 0))
+    return 1;
+
+  /* Then transfer section data from/to these autodocs or global one if any */
+  fromDoc = fromFile->globalAdocIndex >= 0 ? fromFile->globalAdocIndex: 
+    fromFile->adocIndex;
+  toDoc = toFile->globalAdocIndex >= 0 ? toFile->globalAdocIndex: toFile->adocIndex;
+  if (AdocSetCurrent(fromDoc))
+    return 1;
+  numColl = AdocGetNumCollections();
+  for (coll = 0; coll < numColl && !err; coll++) {
+    if (AdocGetCollectionName(coll, &collName))
+      return 1;
+    if (!strcmp(collName, ADOC_ZVALUE_NAME)) {
+      numSect = AdocGetNumberOfSections(collName);
+      for (sectInd = 0; sectInd < numSect && !err; sectInd++) {
+        if (AdocGetSectionName(collName, sectInd, &sectName))
+          err = 1;
+        else {
+          err = AdocTransferSection(collName, sectInd, toDoc, sectName, 0);
+          free(sectName);
+        }
+      }
+    }
+    free(collName);
+  }
+  return err;
 }
 
 /*!
@@ -645,7 +906,6 @@ float iiReadPoint(ImodImageFile *inFile, int x, int y, int z)
   b3dInt16 sdata[2];
   float fdata = inFile->amin;
   float cfdata[2];
-  int llx, lly, urx, ury, axis;
   ImodImageFile iiSave;
 
   if (x < 0 || y < 0 || z < 0 || 
@@ -782,3 +1042,28 @@ int iiRestoreLoadParams(int retVal, ImodImageFile *iiFile, ImodImageFile *iiSave
   iiFile->offset = iiSave->offset;
   return retVal;
 }
+
+#ifdef NO_HDF_LIB
+int iiHDFCheck(ImodImageFile *inFile)
+{
+  return IIERR_NO_SUPPORT;
+}
+
+int iiHDFopenNew(ImodImageFile *inFile, const char *mode)
+{
+  return IIERR_NO_SUPPORT;  
+}
+
+/*!
+ * Writes global autodoc information and autodoc information contained in sections other 
+ * than of type ZValue to the top images group of the HDF file opened in [inFile].
+ * This function is called automatically when the header is written for an HDF file
+ * containing a stack of single images or only one volume, so it needs to be called only
+ * when working with a multi-volume file.
+ */
+int hdfWriteGlobalAdoc(ImodImageFile *inFile)
+{
+  return 1;
+}
+
+#endif

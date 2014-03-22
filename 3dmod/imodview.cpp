@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #endif
 #include <qdir.h>
+#include "autodoc.h"
 #include "imod.h"
 #include "cachefill.h"
 #include "client_message.h"
@@ -328,7 +329,7 @@ unsigned char **ivwGetZSection(ImodView *vi, int section)
 }
 
 static unsigned char *plistBuf = 0;
-static int plistBufSize=0;
+static unsigned int plistBufSize = 0;
 
 int ivwPlistBlank(ImodView *vi, int cz)
 {
@@ -2306,6 +2307,7 @@ int ivwLoadIMODifd(ImodView *vi, QStringList &plFileNames, bool &anyHavePieceLis
 
   anyHavePieceList = false;
   anyImageFail = false;
+  iiAllowMultiVolume(0);
   rewind(vi->fp);
   imodFgetline(vi->fp, line, IFDLINE_SIZE);
 
@@ -2525,12 +2527,13 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
                       bool &anyHavePieceList)
 {
   Ilist *ilist = ilistNew(sizeof(ImodImageFile), 32);
-  ImodImageFile *image;
-  int pathlen, i;
+  ImodImageFile *image, *baseImage, *newImage;
+  int pathlen, i, indVol, numVols, adocInd;
   char *convarg;
   QDir *curdir = new QDir();
   QString str;
   anyHavePieceList = false;
+  iiAllowMultiVolume(1);
 
   for (i = firstfile; i <= lastimage; i++) {
     if (argv[i][0]) {
@@ -2538,39 +2541,70 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
       image = iiOpen(LATIN1(QDir::convertSeparators(QString(convarg))), "rb");
     } else
       image = iiOpen(argv[i], "rb");
-    if (!image) {
-      str.sprintf("3DMOD Error: couldn't open image file %s.\n", argv[i]);
-      str = QString(b3dGetError()) + str;
-      imodError(NULL, LATIN1(str));
-      exit(3);
+    numVols = 1;
+    if (image && image->numVolumes > 1) {
+      baseImage = image;
+      numVols = image->numVolumes;
+      adocInd = iiGetAdocIndex(image, 1, 0);
+      if (adocInd >= 0 && !AdocSetCurrent(adocInd) && 
+          !AdocGetInteger(ADOC_GLOBAL_NAME, 0, "image_pyramid", &indVol) && indVol > 0) 
+        vi->imagePyramid = 1;
     }
+    for (indVol = 0; indVol < numVols; indVol++) {
+      if (indVol) {
+        if (iiReopen(baseImage->iiVolumes[indVol])) {
+          b3dError(stderr, "Failed to reopen volume #%d in image file.\n", indVol + 1);
+          image = NULL;
+        } else {
+          image = baseImage->iiVolumes[indVol];
+          convarg = strdup(image->filename);
+        }
+      }
+      if (!image) {
+        str.sprintf("3DMOD Error: couldn't open image file %s.\n", argv[i]);
+        str = QString(b3dGetError()) + str;
+        imodError(NULL, LATIN1(str));
+        exit(3);
+      }
 
-    /* set up scaling for this image, scanning if needed */
-    if (image->file == IIFILE_RAW && !image->amin && !image->amax)
-      iiRawScan(image);
+      /* set up scaling for this image, scanning if needed */
+      if (image->file == IIFILE_RAW && !image->amin && !image->amax)
+        iiRawScan(image);
+      
+      image->time = vi->numTimes;
+      vi->numTimes++;
 
-    /* Anyway, leave last file in vi->hdr/image */
-    vi->fp = image->fp;
-    vi->hdr = vi->image = image;
-    
-    image->time = vi->numTimes;
-    vi->numTimes++;
+      // This just needs to be non-NULL when there is a file, doesn't need to be accurate
+      vi->fp = image->fp;
 
-    /* Copy filename with directory stripped to the descriptor */
-    /* There was strange comment about "Setting the fp keeps it from closing 
-       the file", but the file does get closed unless it is stdin */
-    if (argv[i][0]) {
-      iiClose(image);
-      pathlen = strlen(convarg);
-      while (( pathlen > 0) && (convarg[pathlen-1] != '/'))
-        pathlen--;
-      image->description = strdup(&convarg[pathlen]);
-      free(convarg);
-    } else
-      image->description = strdup(argv[i]);
-    if (image->hasPieceCoords)
-      anyHavePieceList = true;
-    ilistAppend(ilist, image);
+      /* Copy filename with directory stripped to the descriptor */
+      /* There was strange comment about "Setting the fp keeps it from closing 
+         the file", but the file does get closed unless it is stdin */
+      if (argv[i][0]) {
+        iiClose(image);
+        pathlen = strlen(convarg);
+        while (( pathlen > 0) && (convarg[pathlen-1] != '/'))
+          pathlen--;
+        image->description = strdup(&convarg[pathlen]);
+        free(convarg);
+      } else
+        image->description = strdup(argv[i]);
+      if (image->hasPieceCoords)
+        anyHavePieceList = true;
+
+      /* Add file to list.  This makes a duplicate including all pointers, so free the
+         original structure, get new address, and update the volume list of HDF file */
+      ilistAppend(ilist, image);
+      newImage = (ImodImageFile *)ilistLast(ilist);
+      iiFileChangeAddress(image, newImage);
+      free(image);
+      image = newImage;
+      if (!indVol)
+        baseImage = image;
+
+      /* Anyway, leave last file in vi->hdr/image */
+      vi->hdr = vi->image = image;
+    }
   }
   delete curdir;
 
@@ -2578,6 +2612,7 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage,
     vi->imagePyramid = -1;
 
   /* save this in iv so it can be passed in call to ivwSetCacheFrom List */
+  /* Don't worry, its data will get copied later  to vi->imageList or vi->image */
   vi->imageList = (ImodImageFile *)ilist;
 }
 
@@ -2734,9 +2769,9 @@ static int ivwProcessImageList(ImodView *vi)
     // See if mirroring of an FFT is needed: Not forbidden by option 
     // (MRC complex float odd size not reliable, eliminated 7/16/13)
     // Set flags and increase the nx
-    if (!i && (image->file == IIFILE_MRC || image->file == IIFILE_RAW) && 
-        image->format == IIFORMAT_COMPLEX && image->type == IITYPE_FLOAT && 
-        vi->li->mirrorFFT >= 0) {
+    if (!i && (image->file == IIFILE_MRC || image->file == IIFILE_RAW || 
+               image->file == IIFILE_HDF) && image->format == IIFORMAT_COMPLEX && 
+        image->type == IITYPE_FLOAT && vi->li->mirrorFFT >= 0) {
       image->mirrorFFT = 1;
       if (image->file == IIFILE_MRC) {
 
@@ -2780,8 +2815,8 @@ static int ivwProcessImageList(ImodView *vi)
     /* Add to count if RGB or not, to see if all the same type.  Similarly
        for colormap images */
     if (image->format == IIFORMAT_RGB && 
-        !((image->file == IIFILE_MRC  || image->file == IIFILE_RAW) && 
-          vi->grayRGBs))
+        !((image->file == IIFILE_MRC  || image->file == IIFILE_RAW || 
+           image->file == IIFILE_HDF) && vi->grayRGBs))
       rgbs++;
 
     if (image->format == IIFORMAT_COLORMAP)
@@ -2889,8 +2924,8 @@ static int ivwProcessImageList(ImodView *vi)
         image->urz = vi->multiFileZ > 0 ? 0 : vi->li->zmax;
                
         // If not an MRC file, or if multifile in Z, set to no flipping unless cache full
-        if ((image->file != IIFILE_MRC  && image->file != IIFILE_RAW) || 
-            vi->multiFileZ > 0)
+        if ((image->file != IIFILE_MRC  && image->file != IIFILE_RAW && 
+             image->file != IIFILE_HDF) || vi->multiFileZ > 0)
           vi->flippable = 0;
       }
     }     
@@ -2914,6 +2949,7 @@ static int ivwProcessImageList(ImodView *vi)
       exit(3);
     }
     memcpy(vi->image, ilist->data, sizeof(ImodImageFile));
+    iiFileChangeAddress((ImodImageFile *)ilist->data, vi->image);
     ivwReopen(vi->image);
     vi->curTime = vi->numTimes = 0;
     vi->imageList = NULL;
@@ -2925,13 +2961,19 @@ static int ivwProcessImageList(ImodView *vi)
   } else {
 
     /* For multiple files, copy the whole image list to vi->imageList */
-    vi->imageList = (ImodImageFile *)malloc
-      (sizeof(ImodImageFile) * ilist->size);
+    vi->imageList = B3DMALLOC(ImodImageFile, ilist->size);
     if (!vi->imageList) {
-      imodError(NULL, "Not enough memory.\n"); 
+      imodError(NULL, "Failed to allocate memory for image list.\n"); 
       exit(3);
     }
     memcpy(vi->imageList, ilist->data, sizeof(ImodImageFile) * ilist->size);
+
+    // Fix the changed addresses
+    for (i = 0; i < ilist->size; i++) {
+      image = (ImodImageFile *)ilistItem(ilist, i);
+      iiFileChangeAddress(image, &vi->imageList[i]);
+    }
+
     vi->hdr = vi->image = &vi->imageList[vi->imagePyramid ? 
                                          vi->pyrCache->getBaseIndex() : 0];
 
