@@ -432,17 +432,18 @@ int b3doutputfiletype()
 
 /*!
  * Sets output filetype based on a string in [typeStr], which can contain 'MRC', 'TIF', 
- * 'TIFF', or 'HDF' (with case-insensitive comparison).  Returns 2 for MRC, 1 for TIFF,
+ * 'TIFF', or 'HDF' (or all lower-case equivalents).  Returns 2 for MRC, 1 for TIFF,
  * 5 for HDF, -5 for HDF if there is no HDF support, and -1 for other entries
  */
 int setOutputTypeFromString(const char *typeStr)
 {
   int retval = -1;
-  if (!strcasecmp(typeStr, "MRC"))
+  if (!strcmp(typeStr, "MRC") || !strcmp(typeStr, "mrc"))
     retval = OUTPUT_TYPE_MRC;
-  else if (!strcasecmp(typeStr, "TIFF") || !strcasecmp(typeStr, "TIF"))
+  else if (!strcmp(typeStr, "TIFF") || !strcmp(typeStr, "TIF") || 
+           !strcmp(typeStr, "tiff") || !strcmp(typeStr, "tif"))
     retval = OUTPUT_TYPE_TIFF;
-  else if (!strcasecmp(typeStr, "HDF"))
+  else if (!strcmp(typeStr, "HDF") || !strcmp(typeStr, "hdf"))
 #ifdef NO_HDF_LIB
     retval = -OUTPUT_TYPE_HDF;
 #else

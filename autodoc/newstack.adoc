@@ -75,10 +75,10 @@ and "ext" is the extension entered with this option.
 [Field = FormatOfOutputFile]
 short = format
 type = CH
-usage = Type of output file: MRC, TIF or TIFF, HDF (case insensitive)
+usage = Type of output file: MRC, TIF or TIFF, HDF (or lower case)
 tooltip =
 manpage = Set output file format to MRC, TIFF, or HDF (if the package supports
-HDF) by entering MRC, TIF, TIFF, HDF, or any lower or mixed case variation on
+HDF) by entering MRC, TIF, TIFF, HDF, or any lower case form of
 these.  This entry overrides a default format set with the environment
 variable IMOD_OUTPUT_FORMAT.
 
