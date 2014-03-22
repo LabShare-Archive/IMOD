@@ -61,7 +61,7 @@ extern "C" {
   char *f2cString(const char *str, int strSize);
   int c2fString(const char *cStr, char *fStr, int fSize);
   void b3dSetStoreError(int ival);
-  void b3dError(FILE *stream, char *format, ...);
+  void b3dError(FILE *stream, const char *format, ...);
   char *b3dGetError(void);
 
   int b3dFseek(FILE *fp, int offset, int flag);

@@ -603,10 +603,15 @@ static int getFileXscale(int format)
 static hid_t lookupNativeDatatype(ImodImageFile *inFile)
 {
   int ind, nativeInd = 0;
-  hid_t nativeType[5] = {H5T_NATIVE_CHAR, H5T_NATIVE_UCHAR, H5T_NATIVE_SHORT, 
-                         H5T_NATIVE_USHORT,  H5T_NATIVE_FLOAT};
+  hid_t nativeType[5];
   int iiTypeLookup[5] = {IITYPE_BYTE, IITYPE_UBYTE, IITYPE_SHORT, IITYPE_USHORT,
                          IITYPE_FLOAT};
+  nativeType[0] = H5T_NATIVE_CHAR;
+  nativeType[1] = H5T_NATIVE_UCHAR;
+  nativeType[2] = H5T_NATIVE_SHORT;
+  nativeType[3] = H5T_NATIVE_USHORT;
+  nativeType[4] = H5T_NATIVE_FLOAT;
+  
   for (ind = 0; ind < 5; ind++)
     if (iiTypeLookup[ind] == inFile->type)
       nativeInd = ind;

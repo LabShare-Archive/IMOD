@@ -51,7 +51,6 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 {
   int i;
   int retval = 0;
-  //int filesize;
   int datasize;
   ImodImageFile *iiFile;
 

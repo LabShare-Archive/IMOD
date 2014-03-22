@@ -123,7 +123,7 @@ static char *sMrcPrefix = NULL;
  */
 int iiHDFCheck(ImodImageFile *inFile)
 {
-  hid_t fileID, groupID, dsetID, attribID;
+  hid_t fileID, groupID, dsetID;
   char *slash;
   int numMrcTags = 6;
   const char *emanSectType = NULL;
@@ -791,7 +791,7 @@ static int scanGroup(hid_t groupID, char *groupName, int *adocSection)
       free(tmpName);
     }
 
-    // Get the info
+    /* Get the info */
     if (H5Oget_info_by_idx(groupID, ".", H5_INDEX_NAME, H5_ITER_INC, (hsize_t)ind,
                            &objInfo, H5P_DEFAULT) < 0) {
       retval = IIERR_IO_ERROR;
@@ -1462,7 +1462,11 @@ static int setupZtoSetMap(hid_t fileID, ImodImageFile *inFile, int size, int seq
  */
 static hid_t openDatasetGroup(ImodImageFile *inFile, const char *dsName)
 {
-  int ind = strrchr(dsName, '/');
+  int ind;
+  char *last = strrchr(dsName, '/');
+  if (last)
+    return -1;
+  ind = last - dsName;
   if (manageMallocBuf((void **)&sStringBuf, &sStrBufSize, ind + 1, 1))
     return -1;
   strncpy(sStringBuf, dsName, ind);

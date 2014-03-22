@@ -519,7 +519,7 @@ static char errorMess[MAX_IMOD_ERROR_STRING] = "";
 /*! Stores an error message and may print it as well.  The message is 
   internally printed with vsprintf.  It is printed to [fout] unless 
   b3dSetStoreError has been called with a non-zero value. */
-void b3dError(FILE *out, char *format, ...)
+void b3dError(FILE *out, const char *format, ...)
 {
   va_list args;
   va_start(args, format);
