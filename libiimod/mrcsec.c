@@ -356,7 +356,8 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
       /* Adjust to start of line for chunk reading, then assign pointers for all modes */
       if (chunkLines > 1)
         d.bdata += seekLine;
-      iiProcessReadLine(hdata, li, &d);
+      if (iiProcessReadLine(hdata, li, &d))
+        return 1;
 
       /* End loop on Y - advance file pointer or data pointer */
       if (chunkLines == 1) {
@@ -548,6 +549,7 @@ int iiInitReadSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf,
     break;
   }
   d->usmap = (b3dUInt16 *)d->map;
+  d->bytesSinceCheck = 0;
   return 0;
 }
 
@@ -555,10 +557,12 @@ int iiInitReadSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf,
  * Process one line of data that has been read in according to the conversion needs,
  * and maintain the buffer pointers
  */
-void iiProcessReadLine(MrcHeader *hdata, IloadInfo *li, LineProcData *d)
+int iiProcessReadLine(MrcHeader *hdata, IloadInfo *li, LineProcData *d)
 {
   int nx = hdata->nx;
   int ny = hdata->ny;
+  int sysExtraRead = 100000;
+  int statusInterval = 4000000;
   unsigned char *bdata = d->bdata;
   unsigned char *buf = d->buf;
   unsigned char *fft = d->fft;
@@ -873,6 +877,15 @@ void iiProcessReadLine(MrcHeader *hdata, IloadInfo *li, LineProcData *d)
   d->bufp = bufp;
   d->usbufp = usbufp;
   d->fbufp = fbufp;
+
+  /* Keep track of bytes possibly read by system and check for quit */
+  d->bytesSinceCheck += B3DMIN(d->xsize * d->pixSize + sysExtraRead, 
+                               hdata->nx * d->pixSize);
+  if (d->bytesSinceCheck > statusInterval) {
+    d->bytesSinceCheck = 0;
+    return iiCheckForQuit(d->cz);
+  }
+  return 0;
 }
 
 

@@ -236,7 +236,8 @@ int hdfReadSectionAny(ImodImageFile *inFile, unsigned char *buf, int cz, int typ
       needRead = 0;
 
       /* Process the next line */
-      iiProcessReadLine(hdata, li, &d);
+      if (iiProcessReadLine(hdata, li, &d))
+        return 1;
       
       /* End loop on Y - advance data pointer for continuing with a chunk */
       d.bdata += d.xsize * d.pixSize;

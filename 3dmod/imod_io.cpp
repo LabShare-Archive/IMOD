@@ -746,10 +746,9 @@ void setModelScalesFromImage(Imod *imod, bool doZscale)
 unsigned char **imod_io_image_load(struct ViewInfo *vi)
 {
   ImodImageFile *im = vi->image;
-  struct LoadInfo *li = vi->li;
+  IloadInfo *li = vi->li;
   unsigned char **idata;
-  struct MRCheader *mrchead;
-  struct MRCheader savehdr;
+  MrcHeader *mrchead;
   int i;
   int pixsize;
   QString message;
@@ -760,18 +759,15 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
     return NULL;
 
   /* Loading unbinned, non RGB MRC, file */
+  // This a fully obsolete call now... but needed a quick fix (3/24/14)
   if (im->file == IIFILE_MRC && !vi->rawImageStore && 
       vi->xybin * vi->zbin == 1 && li->mirrorFFT <= 0) {
-    mrchead = (struct MRCheader *)im->header;
-
+    mrchead = (MrcHeader *)im->header;
     imodStartAutoDumpCache();
     vi->loadingImage = 1;
-    /* DNM: save and restore header after call to mrc_read_byte */
-    savehdr = *mrchead;
     idata = mrc_read_byte(im->fp, mrchead, li, imod_imgcnt);
-    *mrchead = savehdr;
     vi->loadingImage = 0;
-    
+  
     return(idata);
   }
   

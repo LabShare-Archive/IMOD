@@ -226,6 +226,7 @@ extern "C" {
     int seekEndY;
     int pixSize;
     int swapped;
+    int bytesSinceCheck;
   } LineProcData;
 
   typedef int (*IIFileCheckFunction)(ImodImageFile *);
@@ -236,6 +237,8 @@ extern "C" {
   void iiDeleteCheckList();
   void iiAddRawCheckFunction(IIRawCheckFunction func, const char *name);
   void iiDeleteRawCheckList();
+  void iiRegisterQuitCheck(int (*func)(int));
+  int iiCheckForQuit();
   ImodImageFile *iiNew(void);
   ImodImageFile *iiOpen(const char *filename, const char *mode);
   ImodImageFile *iiOpenNew(const char *filename, const char *mode, int fileKind);
@@ -321,7 +324,7 @@ extern "C" {
   int iiHDFCheck(ImodImageFile *inFile);
   int iiHDFopenNew(ImodImageFile *inFile, const char *mode);
   int hdfWriteGlobalAdoc(ImodImageFile *inFile);
-  void iiProcessReadLine(MrcHeader *hdata, IloadInfo *li, LineProcData *d);
+  int iiProcessReadLine(MrcHeader *hdata, IloadInfo *li, LineProcData *d);
   int iiInitReadSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf,
                            LineProcData *d, int *freeMap, int *yEnd, const char *caller);
 

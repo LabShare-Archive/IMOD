@@ -1007,7 +1007,8 @@ int AdocGetNumberOfKeys(const char *typeName, int sectInd)
 /*!
  * Gets the key at index [keyInd] in the section with index [sectInd] in the collection 
  * of sections of type [typeName].  Returns a copy of the key in
- * [key], which should be freed with {free}.  Returns -1 for errors.
+ * [key], which should be freed with {free}, or returns NULL if this key has been deleted.
+ *  Returns -1 for errors.
  */
 int AdocGetKeyByIndex(const char *typeName, int sectInd, int keyInd, char **key)
 {
@@ -1016,8 +1017,10 @@ int AdocGetKeyByIndex(const char *typeName, int sectInd, int keyInd, char **key)
     return -1;
   if (keyInd < 0 || keyInd >= sect->numKeys)
     return -1;
-  *key = strdup(sect->keys[keyInd]);
-  return *key == NULL ? -1 : 0;
+  *key = NULL;
+  if (sect->keys[keyInd])
+    *key = strdup(sect->keys[keyInd]);
+  return 0;
 }
 
 /*!
