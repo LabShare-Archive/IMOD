@@ -42,6 +42,7 @@ void imod_info_enable(void);
 int imod_info_input(void);
 void imod_set_mmode(int mode);
 void imod_draw_window(void);
+int imodQuitCheck(int cz);
 void imod_imgcnt(const char *string);
 void imodStartAutoDumpCache();
 void imodInfoUpdateOnly(int value);

@@ -24,6 +24,7 @@ static Ilist *sCheckList = NULL;
 static Ilist *sOpenedFiles = NULL;
 static int sRWcallCount = 0;
 static int sAllowMultiVolume = 0;
+static int (*sQuitCheckFunc)(int) = NULL;
 
 static int readWriteSection(ImodImageFile *inFile, char *buf, int inSection, 
                             iiSectionFunc func, const char *mess);
@@ -90,6 +91,26 @@ void iiDeleteCheckList()
     return;
   ilistDelete(sCheckList);
   sCheckList = NULL;
+}
+
+/*!
+ * Registers a callback function that can be used for periodic updates or to check for
+ * quitting during loading from an MRC-like or HDF file.
+ */
+void iiRegisterQuitCheck(int (*func)(int))
+{
+  sQuitCheckFunc = func;
+}
+
+/*!
+ * This function is called periodically during loading of a large section from an MRC-like
+ * or HDF file and calls the registered function if any.
+ */
+int iiCheckForQuit(int param)
+{
+  if (sQuitCheckFunc != NULL)
+    return (*sQuitCheckFunc)(param);
+  return 0;
 }
 
 /*!
