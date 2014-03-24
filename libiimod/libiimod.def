@@ -13,7 +13,6 @@ EXPORTS
 	sliceQuadInterpolate
 	sliceByteSharpen
 	IIURETADOCINDEX
-	read_mrc_byte
 	sliceByteShrink
 	IIURETPRINT
 	IIUSETPOSITION
@@ -186,6 +185,7 @@ EXPORTS
 	iiuAltTiltRot
 	tiffSetMapping
 	IIURETCHUNKSIZES
+	iiRegisterQuitCheck
 	iiLikeMRCDelete
 	IALNBSYM
 	corr_conj
@@ -265,11 +265,11 @@ EXPORTS
 	iiReadPoint
 	IMCLOSE
 	mrcReadYFloat
+	iiCheckForQuit
 	sliceByteEdgeTwo
 	mrcReadYUShort
 	mrcReadSectionByte
 	iiDelete
-	mrc_default_status
 	mrcReadSectionUShort
 	tiffWriteStrip
 	iiuRetTilt
