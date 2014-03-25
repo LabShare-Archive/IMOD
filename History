@@ -1,6 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-IMOD_4-8-1
+3/24/14: IMOD_4-8-2
 3/23/14: Eliminated an input routine that reads line-by-line, which was giving
 terrible 3dmod performance on Mac laptops loading over a network.
 
