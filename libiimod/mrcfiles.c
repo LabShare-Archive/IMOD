@@ -868,7 +868,7 @@ int mrcReadFloatSlice(b3dFloat *buf, MrcHeader *hdata, int slice)
  * Data memory is allocated with
  * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory .  Should work
  * with planes > 4 GB on 64-bit systems.  Will work for non-MRC-like files since it
- * calls @@mrcfiles.html#mrcReadSectionByte@.  Returns NULL for error.  
+ * calls @@mrcfiles.html#mrcReadZByte@.  Returns NULL for error.  
  */
 unsigned char **mrc_read_byte(FILE *fin, 
                               MrcHeader *hdata, 
@@ -940,7 +940,7 @@ unsigned char **mrc_read_byte(FILE *fin,
       (*func)(statstr);
     }
 
-    if (mrcReadSectionByte(hdata, li, idata[k], k)) {
+    if (mrcReadZByte(hdata, li, idata[k], k)) {
       mrcFreeDataMemory(idata, li->contig, zsize);
       hdata->fp = fpSave;
       return NULL;
