@@ -101,7 +101,7 @@ void amatToRotmagstr(float a11, float a12, float a21, float a22,
     fden = (float)(f3*cosphisq-f1*sinphisq);
     if (fden < 0.)
       fden = -fden;
-    if(f2 > 0. && fnum < fden || f2 < 0. && fnum > fden)
+    if ((f2 > 0. && fnum < fden) || (f2 < 0. && fnum > fden))
       cosphisq = 1.-cosphisq;
   }
   *phi = (float)(acos(sqrt(cosphisq)) / ator);

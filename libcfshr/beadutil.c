@@ -111,8 +111,8 @@ double beadIntegral(float *array, int nxdim, int nx, int ny, float rCenter,
     }
     
   }
-  //printf("cen %.2f in %.2f out %.2f ncen %d censum %f nann %d annsum %f\n",
-  //       rCenter, rInner, rOuter, ncen, censum, nann, annsum);
+  /*printf("cen %.2f in %.2f out %.2f ncen %d censum %f nann %d annsum %f\n",
+    rCenter, rInner, rOuter, ncen, censum, nann, annsum); */
   if (!nann || !ncen)
     return 0.;
   *annmean = annsum / nann;

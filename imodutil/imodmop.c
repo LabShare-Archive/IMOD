@@ -882,8 +882,8 @@ void paintExactContour(Iobj *obj, Icont *cont, Islice *islice, Islice *pslice[3]
   Ipoint pmin, pmax, pnt;
   float morePad = B3DMAX(0., fill ? Padding : -Padding);
   float dist, taperFrac, absPad;
-  int doAllInside = fill && Padding >= 0. || !fill && Padding <= 0.;
-  int lookOutside = fill && Padding > 0. || !fill && Padding < 0.;
+  int doAllInside = (fill && Padding >= 0.) || (!fill && Padding <= 0.);
+  int lookOutside = (fill && Padding > 0.) || (!fill && Padding < 0.);
 
 
   /* Initialize color values if not filling */

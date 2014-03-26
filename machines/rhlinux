@@ -9,6 +9,7 @@ set c_includes = ""
 set ccompFlags = ""
 set Ltifflib = ""
 set Lfftwlib = ""
+set Lhdflib = ""
 
 # DNM 8/27/01: Needed for large files to work right.  Use a -D define instead
 # of #define in imodconfig because it must precede all system includes.
@@ -27,6 +28,14 @@ if ($?FFTW3_DIR) then
     set c_includes = "$c_includes -I${FFTW3_DIR}/include"
     set Lfftwlib = "-L${FFTW3_DIR}/lib"
     set lifft = "-lifft -lfftw3f_omp -lfftw3f"
+endif
+
+# If HDF exists, adjust variables
+#
+if ($?HDF5_DIR) then
+    set c_includes = "$c_includes -I${HDF5_DIR}/include"
+    set Lhdflib = "-L${HDF5_DIR}/lib"
+    set lhdf = "-lhdf5"
 endif
 
 # Set default compiler to intel if the fortran compiler is on the path
@@ -65,7 +74,7 @@ if ($compiler == intel) then
     endif
     \rm -f icc.tmp
     if ($openmp == true) set openmpFlags = "-openmp"
-    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic $openmpFlags $Ltifflib $Lfftwlib" >> $configure
+    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic $openmpFlags $Ltifflib $Lhdflib $Lfftwlib" >> $configure
 
 else
     echo "CC        = gcc"              >> $configure
@@ -100,7 +109,7 @@ else
         if ($fortvers[1] == 4 && $minorvers == 0) set openmp = false
         if ($openmp == true) set openmpFlags = "-fopenmp"
     endif
-    echo 'LDFLAGS = -L$(LIBDIR)'" $openmpFlags $Ltifflib $Lfftwlib" >> $configure
+    echo 'LDFLAGS = -L$(LIBDIR)'" $openmpFlags $Ltifflib $Lhdflib $Lfftwlib" >> $configure
     if ($QMAKESPEC == "linux-icc") unsetenv QMAKESPEC
 endif
 
@@ -159,9 +168,9 @@ echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
 if ($compiler == intel) then
-    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -ltiff" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -ltiff $lhdf" >> $configure
 else
-    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt -ltiff" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -liimod -lcfshr -lb3dcmpt -ltiff $lhdf" >> $configure
 endif
 
 #
@@ -294,13 +303,13 @@ endif
 cat << EOF  >! $midas_qconf
 DEFINES	+= _FILE_OFFSET_BITS=64
 INCLUDEPATH += $midasglinc/QtOpenGL
-LIBS += $Ltifflib $Lfftwlib
+LIBS += $Ltifflib $Lhdflib $Lfftwlib
 EOF
 
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir $Ltifflib $Lfftwlib -liimod -limesh -limod -ltrack -lcfshr -ldiaqt $lifft -ltiff
+LIBS += -L$lib_dir $Ltifflib $Lhdflib $Lfftwlib -liimod -limesh -limod -ltrack -lcfshr -ldiaqt $lifft -ltiff $lhdf
 LIBS += -lGLU -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E
@@ -308,8 +317,8 @@ QMAKE_LFLAGS_RELEASE += -Wl,-E
 EOF
 
 # The lstdc++ is needed for linking with gfortran on FC 14; see if it works everywhere
-echo "LIBS += $Ltifflib $Lfftwlib $fort_cpplibs" >! $ctfplot_qconf
-echo "LIBS += $Ltifflib" >! $mrc2tif_qconf
+echo "LIBS += $Ltifflib $Lhdflib $Lfftwlib $fort_cpplibs" >! $ctfplot_qconf
+echo "LIBS += $Ltifflib $Lhdflib" >! $mrc2tif_qconf
 echo " " >! $prochunk_qconf
 if ("$qmcxxFlags" != "") then
     foreach i ($midas_qconf $imod_qconf $ctfplot_qconf $prochunk_qconf)
@@ -420,6 +429,15 @@ if ($?FFTW3_DIR) then
     if ($dllnum == 1) echo "DLLDESTDIR = lib" >> $configure 
     echo "DLLSTOCOPY$dllnum = libfftw3f_omp libfftw3f" >> $configure 
     echo "DLLSOURCEDIR$dllnum = $FFTW3_DIR/lib" >> $configure
+    @ dllnum++
+endif    
+
+# Set up to copy HDF library
+#
+if ($?HDF5_DIR) then
+    if ($dllnum == 1) echo "DLLDESTDIR = lib" >> $configure 
+    echo "DLLSTOCOPY$dllnum = libhdf5" >> $configure 
+    echo "DLLSOURCEDIR$dllnum = $HDF5_DIR/lib" >> $configure
     @ dllnum++
 endif    
 

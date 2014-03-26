@@ -1189,10 +1189,31 @@ void imodStartAutoDumpCache()
   sStartDump = 2;
 }
 
+// This is called periodically within a section load of a large image
+int imodQuitCheck(int cz)
+{
+  imod_imgcnt(NULL);
+  return 0;
+}
+
+// This is called after every section load (or within a large section load) and updates
+// the info window (but not too often), processes events to check for quit, and takes
+// care of dumping cache
 void imod_imgcnt(const char *string)
 {
   static int started = 0;
   static QTime timer;
+  static QString lastString;
+  static bool inCall = false;
+  if (inCall)
+    return;
+  if (!string && lastString.isEmpty())
+    return;
+  inCall = true;
+  if (string)
+    lastString = string;
+  else
+    string = LATIN1(lastString);
   if (!started)
     timer.start();
   if (started < 3 || timer.elapsed() > 100 || string[0] == '\n' || 
@@ -1220,5 +1241,6 @@ void imod_imgcnt(const char *string)
       sStartDump--;
     if (string[0] == 0x00)
       sDumpCache = 0;
-  }     
+  }
+  inCall = false;
 }

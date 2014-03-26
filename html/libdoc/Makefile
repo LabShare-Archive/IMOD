@@ -11,7 +11,7 @@ PLD = ../../3dmod
 
 HTMLS = $(LHD)/libimod.html $(LHD)/libiimod.html $(LHD)/imodel.html $(LHD)/iobj.html \
 $(LHD)/objgroup.html $(LHD)/icont.html $(LHD)/ipoint.html $(LHD)/imesh.html \
-$(LHD)/imodel_files.html $(LHD)/ilist.html $(LHD)/istore.html \
+$(LHD)/imodel_files.html $(LHD)/ilist.html $(LHD)/istore.html $(LHD)/unitIO.html \
 $(LHD)/imat.html $(LHD)/iplane.html $(LHD)/iview.html $(LHD)/ilabel.html \
 $(LHD)/mod_fwrap.html $(LHD)/b3dutil.html $(LHD)/autodoc.html \
 $(LHD)/mrcfiles.html $(LHD)/iimage.html $(LHD)/plist.html \
@@ -117,6 +117,9 @@ $(LHD)/iimage.html: iimage.html $(IIMD)/iimage.c $(IIMD)/iilikemrc.c \
 
 $(LHD)/plist.html: plist.html $(IIMD)/plist.c
 	$(SDEXE) -d $(IIMD) plist.html $(LHD)/plist.html
+
+$(LHD)/unitIO.html: unitIO.html $(IIMD)/unit_header.c $(IIMD)/unit_fileio.c
+	$(SDEXE) -d $(IIMD) unitIO.html $(LHD)/unitIO.html
 
 $(LHD)/mrcslice.html: mrcslice.html $(IIMD)/mrcslice.c $(INCD)/mrcslice.h
 	$(SDEXE) -d $(IIMD) mrcslice.html $(LHD)/mrcslice.html

@@ -516,9 +516,9 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
   int err;
   float memlim, memmin = 512000000., memmax = 2048000000.;
   float sizefac = 8.;
-  size_t lineOfs;
+  size_t lineOfs, sliceOfs;
   float ycen, zcen;
-  Islice *sl, *tsl;
+  Islice *sl, *tsl, *outSlice;
   Islice **yslice;
   Ival val;
   IloadInfo li;
@@ -629,8 +629,9 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     maxSlices = (int)((memlim / (dsize * hout->nx)) / hout->ny);
     maxSlices = B3DMAX(1, B3DMIN(hout->nz / (2 * dsize), maxSlices));
     yslice = (Islice **)malloc(hin->nz * sizeof(Islice));
-    if (!yslice) {
-      printf("ERROR: CLIP - getting memory for slice array\n");
+    outSlice = sliceCreate(hout->nx, hin->nz, hout->mode);
+    if (!yslice|| !outSlice) {
+      printf("ERROR: CLIP - getting memory for slice array or output slice\n");
       return (-1);
     }
     for (k = 0; k < hin->nz; k++) {
@@ -664,36 +665,36 @@ int clip_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
         yst = 0;
       }
 
-      /* Load the slices within the Y range and shift bytes for output if needed */
+      /* Load the slices within the Y range */
       for (k = 0; k < hin->nz; k++) {
         if ((err = mrcReadZ(hin, &li, yslice[k]->data.b, k))) {
           printf("ERROR: CLIP - Reading section %d, y %d to %d (error # %d)\n",
                  k, li.ymin, li.ymax, err);
           return -1;
         }
-        if (!hout->mode && hout->bytesSigned)
-          b3dShiftBytes(yslice[k]->data.b, (char *)yslice[k]->data.b, hout->nx, 
-                        li.ymax + 1 - li.ymin, 1, 1);
       }
       
-      /* Write Z slices in order, line by line */
+      /* Write Z slices in order after copying into output slice */
       for (j = yst; j * ydir <= ynd * ydir; j += ydir) {
         lineOfs = (size_t)(hout->nx * dsize) * (size_t)j;
+        sliceOfs = 0;
         for (k = 0; k < hin->nz; k++) {
-          if (b3dFwrite(yslice[k]->data.b + lineOfs, dsize, hout->nx, hout->fp) != 
-              hout->nx) {
-            printf("ERROR: CLIP - Writing section %d, line %d\n", numDone + 
-                   ydir * (j - yst), k);
-            return -1;
-          }
+          memcpy(outSlice->data.b + sliceOfs, yslice[k]->data.b + lineOfs, dsize *
+                 hout->nx);
+          sliceOfs += (size_t)(hout->nx * dsize);
         }
+        if (mrc_write_slice(outSlice->data.b, hout->fp, hout, numDone, 'z')) {
+          printf("ERROR: CLIP - Writing section %d\n", numDone);
+          return -1;
+        }
+        numDone++;
       }
-      numDone += numTodo;
     }
 
     /* Clean up */
     for (k = 0; k < hin->nz; k++)
       sliceFree(yslice[k]);
+    sliceFree(outSlice);
     puts(" Done!");
     return(0);
   }

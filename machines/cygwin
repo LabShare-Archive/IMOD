@@ -25,6 +25,8 @@ set fcmpNoportFlags = ""
 set fftw_lib = ""
 set fftw_def = ""
 set fftw_cfshr = ""
+set hdf_lib = ""
+set hdf_def = ""
 
 if ($compiler == intel) then
     set c_includes =  
@@ -40,6 +42,16 @@ if ($compiler == intel) then
         set fftw_def = "$fftw_dir/${fftw_libroot}.lib"
         set lifft = "libifft.lib ${fftw_libroot}.lib"
         set fftw_cfshr = "../buildlib/libcfshr.lib"
+    endif
+
+    # If HDF5_DIR exists, adjust variables
+    if ($?HDF5_DIR) then
+        set hdf_dir = `cygpath --mixed $HDF5_DIR`
+        set c_includes = "$c_includes -I${hdf_dir}/include"
+        set hdf_lib =  '-LIBPATH:"'$hdf_dir/bin'"'
+        set hdf_libroot = hdf5
+        set hdf_def = "${hdf_dir}/bin/${hdf_libroot}.lib"
+        set lhdf = "${hdf_dir}/bin/${hdf_libroot}.lib"
     endif
 
     set qt_flags = '-I"$(QTDIR)\include" -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include\QtOpenGL" -I"$(QTDIR)\include\QtSql"'
@@ -102,7 +114,7 @@ if ($compiler == intel) then
     if ($vcversion >= 9) set nodeflib = libcmt.lib
     
 cat << EOF >> $configure
-LDFLAGS = /nologo /MD $openmpFlags -link -LIBPATH:"$cyg_lib" $fftw_lib /NODEFAULTLIB:$nodeflib
+LDFLAGS = /nologo /MD $openmpFlags -link -LIBPATH:"$cyg_lib" $hdf_lib $fftw_lib /NODEFAULTLIB:$nodeflib
 .SUFFIXES: .cpp .obj .f .c
 .cpp.obj:
 	\$(CXX) -c \$(CXXFLAGS) \$<
@@ -174,7 +186,7 @@ if ($compiler == intel) then
         set dllext = dll
         echo "ARFLAGS = -dll /NOLOGO /out:"         >> $configure
         echo 'MAKELIBCPP = link -dll /NOLOGO /out:' >> $configure
-        echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libcfshr.lib ../buildlib/libtiff.lib'   >> $configure
+        echo "LIBIIMODDEF = /def:libiimod.def ../buildlib/libcfshr.lib ../buildlib/libtiff.lib $hdf_def"   >> $configure
         echo 'LIBIMODDEF = /def:libimod.def ../buildlib/libcfshr.lib'  >> $configure
         echo 'LIBCFSHRDEF = /def:libcfshr.def'     >> $configure
         echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libcfshr.lib ../buildlib/libimod.lib'     >> $configure
@@ -343,24 +355,24 @@ echo CONFIG += CONSOLE >! $sourcedoc_qconf
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtrack.lib libcfshr.lib libtiff.lib $lifft
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
+LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtrack.lib libcfshr.lib libtiff.lib $lifft $lhdf
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib $hdf_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib $hdf_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 RC_FILE = 3dmod.rc
 EOF
 
 cat <<EOF >! $midas_qconf
-LIBS += libdiaqt.lib libiimod.lib libimod.lib libiwarp.lib libcfshr.lib libtiff.lib $lifft
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
+LIBS += libdiaqt.lib libiimod.lib libimod.lib libiwarp.lib libcfshr.lib libtiff.lib $lifft $lhdf
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib $hdf_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib $hdf_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 INCLUDEPATH += $QTDIR/include/QtOpenGL
 LIBS += $QTDIR/lib/QtOpenGL4.lib
 EOF
 
 cat <<EOF >! $ctfplot_qconf
-LIBS += libb3dlapk.lib libb3dblas.lib libiimod.lib libcfshr.lib libtiff.lib $lifft
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
+LIBS += libb3dlapk.lib libb3dblas.lib libiimod.lib libcfshr.lib libtiff.lib $lifft $lhdf
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../buildlib" $fftw_lib $hdf_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../buildlib" $fftw_lib $hdf_lib /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
 
 cat <<EOF >! $qtassist_qconf
@@ -378,9 +390,9 @@ EOF
 
 cat <<EOF >! $mrc2tif_qconf
 CONFIG += CONSOLE
-LIBS += libiimod.lib libcfshr.lib libtiff.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"../../buildlib"
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"../../buildlib"
+LIBS += libiimod.lib libcfshr.lib libtiff.lib $lhdf
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"../../buildlib" $hdf_lib
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"../../buildlib" $hdf_lib 
 EOF
 
 if ($no_qt3 == false) then
@@ -588,6 +600,13 @@ if ($compiler == intel) then
     if ($?FFTW3_DIR) then
         echo "DLLSOURCEDIR$dllnum = $fftw_dir" >> $configure
         echo "DLLSTOCOPY$dllnum = $fftw_libroot" >> $configure
+        @ dllnum++
+    endif
+
+    # Set up for hdf library
+    if ($?HDF5_DIR) then
+        echo "DLLSOURCEDIR$dllnum = $hdf_dir/bin" >> $configure
+        echo "DLLSTOCOPY$dllnum = $hdf_libroot" >> $configure
         @ dllnum++
     endif
 
