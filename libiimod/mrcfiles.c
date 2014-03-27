@@ -257,8 +257,7 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
   if (iiFile && iiFile->file != IIFILE_MRC) {
     if (iiFile->file != IIFILE_RAW)
       iiSyncFromMrcHeader(iiFile, hdata);
-    iiWriteHeader(iiFile);
-    return 0;
+    return iiWriteHeader(iiFile);
   }
 
   /* Set the IMOD stamp and flags and clear out old creator field when writing */
