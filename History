@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/25/14: Fixed a etomo - PEET, which was not loading a non-array selectClassID
+(In 4.7).(Bug# 1789)
+
 3/22/14: Fixed newstack when -fromone used with default section list (In 4.7).
 
 3/14/14: Fixed a Windows problem with opening 3dmod from eTomo where

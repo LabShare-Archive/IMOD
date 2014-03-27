@@ -228,7 +228,7 @@ public abstract class ParsedElement {
    * @return
    */
   final String getFailedMessage() {
-    if (!failed || !missingAttribute) {
+    if (!failed && !missingAttribute) {
       return null;
     }
     if (failedMessage == null) {
