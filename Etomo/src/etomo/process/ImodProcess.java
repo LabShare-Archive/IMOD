@@ -653,6 +653,7 @@ public class ImodProcess {
   // Get stderr messages only through this member variable.
   private final Stderr stderr = new Stderr();
   private final Integer messageSenderRegId = stderr.register();
+  private final Integer stderrRegId = stderr.register();
   private final ContinuousListener continuousListener;
 
   private String datasetName = "";
@@ -1032,7 +1033,6 @@ public class ImodProcess {
       if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
         System.err.println("ImodProcess:open " + Utilities.getDateTimeStamp(true));
       }
-      Integer stderrRegId = stderr.register();
       while (imodThread.isAlive() && windowID.equals("")) {
         while ((line = stderr.getQuickMessage(stderrRegId)) != null) {
           if (line.indexOf("Window id = ") != -1) {
@@ -1041,16 +1041,16 @@ public class ImodProcess {
               throw (new SystemProcessException("Could not parse window ID from imod\n"));
             }
             windowID = words[3];
-            if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
-              System.err.println("open 2:windowID:" + windowID);
+            if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isOn()) {
+              System.err.println("Found windowID:" + windowID);
             }
-            break;
           }
         }
       }
       // If imod exited before getting the window report the problem to the user
       if (windowID.equals("") && outputWindowID) {
-        String message = "Missing windowID.  3dmod returned: " + String.valueOf(imod.getExitValue()) + "\n";
+        String message = "Missing windowID.  3dmod returned: "
+            + String.valueOf(imod.getExitValue()) + "\n";
 
         while ((line = stderr.getQuickMessage(stderrRegId)) != null) {
           System.err.println(line);
@@ -1411,6 +1411,9 @@ public class ImodProcess {
    * @throws IOException
    */
   public void sendMessages() throws IOException, SystemProcessException {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println("sendMessages");
+    }
     if (sendArguments.size() == 0) {
       return;
     }
@@ -1915,14 +1918,13 @@ public class ImodProcess {
     private int regId = -1;
 
     private Stderr() {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("Stderr:" + this);
+      }
     }
 
     private void setImod(InteractiveSystemProgram imod) {
       this.imod = imod;
-      quickListenerQueue.clear();
-      if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isExtraVerbose()) {
-        System.err.println("Cleared quickListenerQueue");
-      }
     }
 
     /**
@@ -1946,6 +1948,9 @@ public class ImodProcess {
       int queueSize = quickListenerQueue.size();
       readStderr();
       EtomoNumber index = registration.get(regId);
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("regId:" + regId + ",index:" + index);
+      }
       // Read a string from the queue, if there is anything left to read.
       if (index.lt(quickListenerQueue.size() - 1)) {
         // Increment the index.
@@ -2150,7 +2155,8 @@ public class ImodProcess {
       if (buffer.length() > 0) {
         try {
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-            System.err.println(buffer.toString());
+            System.err.println("MessageSender:" + this + "," + buffer.toString());
+
           }
           // send the string to 3dmod's stdin
           if (!isRunning()) {
@@ -2195,6 +2201,9 @@ public class ImodProcess {
      * problem.
      */
     public void readResponse() {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("MessageSender:" + this + ",readResponse");
+      }
       boolean responseReceived = false;
       String response = null;
       StringBuffer userMessage = new StringBuffer();
@@ -2205,6 +2214,9 @@ public class ImodProcess {
       }
       for (int timeout = 0; timeout < 30; timeout++) {
         if (responseReceived) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+            System.err.println("MessageSender:" + this + ",responseReceived");
+          }
           break;
         }
         // process response
@@ -2212,7 +2224,7 @@ public class ImodProcess {
         while ((response = stderr.getQuickMessage(messageSenderRegId)) != null) {
           responseReceived = true;
           if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-            System.err.println(response);
+            System.err.println("MessageSender:" + this + "," + response);
           }
           response = response.trim();
           if (response.equals("OK")) {
@@ -2243,10 +2255,10 @@ public class ImodProcess {
             System.err.println("\nsleep interrupted");
           }
           // no response received and 3dmod is running - "throw" exception
-          SystemProcessException exception = new SystemProcessException(
-              "No response received from 3dmod.  datasetName=" + datasetName
-                  + ",modelName=" + modelName + ",workingDirectory=" + workingDirectory
-                  + ",axisID=" + axisID);
+          SystemProcessException exception = new SystemProcessException("MessageSender:"
+              + this + ",No response received from 3dmod.  datasetName=" + datasetName
+              + ",modelName=" + modelName + ",workingDirectory=" + workingDirectory
+              + ",axisID=" + axisID);
           exception.printStackTrace();
           UIHarness.INSTANCE.openMessageDialog(manager, exception.getMessage(),
               "3dmod Exception", getAxisID());
