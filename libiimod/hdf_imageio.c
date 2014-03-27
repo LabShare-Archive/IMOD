@@ -267,7 +267,7 @@ int hdfWriteSectionAny(ImodImageFile *inFile, unsigned char *buf, int cz,
   int needData = 0;
   int chunkLines = 1;
   float targetMemory = 65536.;
-  char nameBuf[30];
+  char nameBuf[36];
 
   /* Buffer to write lines from; may be replaced by temporary buffer */
   unsigned char *bdata = buf;
@@ -282,7 +282,7 @@ int hdfWriteSectionAny(ImodImageFile *inFile, unsigned char *buf, int cz,
   int lineEnd;
   int ind, numLines, fileXscale, rank;
   hid_t dspaceID = 0, memSpaceID, dsetID, nativeType;
-  hsize_t memDim[2], fileCount[3], memCount[2], fileOffset[3], memOffset[2];
+  hsize_t memDim[3], fileCount[3], memCount[3], fileOffset[3], memOffset[3];
 
   /* Set the mode of the buffer if writing floats and they are not complex */
   if (fromFloat && hdata->mode != MRC_MODE_COMPLEX_FLOAT && 
@@ -391,25 +391,27 @@ int hdfWriteSectionAny(ImodImageFile *inFile, unsigned char *buf, int cz,
 
   /* Get the multiplier to X dimensions and offsets and make default memory dataspace */
   fileXscale = getFileXscale(inFile->format);
-  memCount[0] = memDim[0] = chunkLines;
-  memCount[1] = nx * fileXscale;
+  dspaceID = H5Dget_space(dsetID);
+  rank = H5Sget_simple_extent_ndims(dspaceID);
+  memCount[0] = memDim[0] = 1;
   memOffset[0] = 0;
+  memCount[rank - 2] = memDim[rank - 2] = chunkLines;
+  memCount[rank - 1] = nx * fileXscale;
+  memOffset[rank - 2] = 0;
   if (needData) {
-    memDim[1] = nx * fileXscale;
-    memOffset[1] = 0;
+    memDim[rank - 1] = nx * fileXscale;
+    memOffset[rank - 1] = 0;
   } else {
-    memDim[1] = xDimension * fileXscale;
-    memOffset[1] = padLeft * fileXscale;
+    memDim[rank - 1] = xDimension * fileXscale;
+    memOffset[rank - 1] = padLeft * fileXscale;
   }
-  memSpaceID = H5Screate_simple(2, memDim, NULL);
-  err = H5Sselect_hyperslab(memSpaceID, H5S_SELECT_SET, memOffset, NULL, memCount, NULL);
-  if (err < 0) {
-    cleanupTmp(tmpData, -1, NULL, 0, memSpaceID, "selecting memory area to use");
+  memSpaceID = H5Screate_simple(rank, memDim, NULL);
+  if (memDim[rank - 1] != memCount[rank - 1] && H5Sselect_hyperslab
+      (memSpaceID, H5S_SELECT_SET, memOffset, NULL, memCount, NULL) < 0) {
+    cleanupTmp(tmpData, -1, NULL, dspaceID, memSpaceID, "selecting memory area to use");
     return 3;
   }
 
-  dspaceID = H5Dget_space(dsetID);
-  rank = H5Sget_simple_extent_ndims(dspaceID);
   fileCount[rank - 1] = nx * fileXscale;
   fileOffset[rank - 1] = 0;
   fileCount[0] = 1;
@@ -424,8 +426,8 @@ int hdfWriteSectionAny(ImodImageFile *inFile, unsigned char *buf, int cz,
     numLines = lineEnd + 1 - line;
 
     /* Revise the memory selection for ending lines */
-    if (numLines != memCount[0]) {
-      memCount[0] = numLines;
+    if (numLines != memCount[rank - 2]) {
+      memCount[rank - 2] = numLines;
       err = H5Sselect_hyperslab(memSpaceID, H5S_SELECT_SET, memOffset, NULL, memCount,
                                 NULL);
       if (err < 0) {
@@ -476,12 +478,12 @@ int hdfWriteSectionAny(ImodImageFile *inFile, unsigned char *buf, int cz,
 
       /* Advance output data pointer */
       bdata += pixSizeOut * nx;
+    }
       
-      /* Write the chunk of data */
-      if (H5Dwrite(dsetID, nativeType, memSpaceID, dspaceID, H5P_DEFAULT, writePtr) < 0) {
-        cleanupTmp(tmpData, -1, NULL, dspaceID, memSpaceID, "Writing data to file");
-        return 3;
-      }
+    /* Write the chunk of data */
+    if (H5Dwrite(dsetID, nativeType, memSpaceID, dspaceID, H5P_DEFAULT, writePtr) < 0) {
+      cleanupTmp(tmpData, -1, NULL, dspaceID, memSpaceID, "Writing data to file");
+      return 3;
     }
   }
   cleanupTmp(tmpData, -1, NULL, dspaceID, memSpaceID, NULL);
@@ -495,7 +497,7 @@ int hdfWriteSectionAny(ImodImageFile *inFile, unsigned char *buf, int cz,
 */
 int initNewHDFfile(ImodImageFile *inFile)
 {
-  char buf[30];
+  char buf[36];
   hid_t dsetID;
   int ind, size = B3DMAX(4, inFile->nz);
   if (inFile->zChunkSize) {
@@ -538,15 +540,21 @@ int initNewHDFfile(ImodImageFile *inFile)
 static hid_t createGroupAndDataset(ImodImageFile *inFile, int zValue, char *buf)
 {
   hid_t groupID, dsetID, dspaceID, cparms = H5P_DEFAULT, nativeType, useType;
+  hid_t accParms = H5P_DEFAULT;
   hsize_t chunkDims[3], fileDims[3], maxDims[3];
   int rank = inFile->zChunkSize > 0 ? 3 : 2;
   int fileXscale = getFileXscale(inFile->format);
+  int bytesPerChanBuf, numChanBuf, numChunks;
+  size_t nslots, nbytes, nbytesNew;
+  double w0;
   sprintf(buf, "/MDF/images/%d", zValue);
   groupID = H5Gcreate((hid_t)inFile->hdfFileID, buf, H5P_DEFAULT, H5P_DEFAULT, 
                       H5P_DEFAULT);
   maxDims[rank - 1] = fileDims[rank - 1] = inFile->nx * fileXscale;
   maxDims[rank - 2] = fileDims[rank - 2] = inFile->ny;
   if (rank > 2) {
+
+    /* Set the chunk sizes for 3D data set */
     cparms = H5Pcreate(H5P_DATASET_CREATE);
     maxDims[0] = H5S_UNLIMITED;
     fileDims[0] = inFile->nz;
@@ -559,8 +567,18 @@ static hid_t createGroupAndDataset(ImodImageFile *inFile, int zValue, char *buf)
       chunkDims[2] = inFile->nx * fileXscale;
     else
       chunkDims[2] = inFile->tileSizeX * fileXscale;
-
     if (H5Pset_chunk(cparms, rank, chunkDims) < 0)
+      return -1;
+
+    /* Set the chunk cache big enough for a full row of actual chunks */
+    accParms = H5Pcreate(H5P_DATASET_ACCESS);
+    if (H5Pget_chunk_cache(accParms, &nslots, &nbytes, &w0) < 0)
+      return -1;
+    mrc_getdcsize(inFile->mode, &bytesPerChanBuf, &numChanBuf);
+    numChunks = (inFile->nx + chunkDims[2] - 1) / chunkDims[2];
+    nbytesNew = (bytesPerChanBuf * numChunks * chunkDims[2] * fileXscale * chunkDims[1] *
+                 11) / 10;
+    if (nbytesNew > nbytes && H5Pset_chunk_cache(accParms, nslots, nbytesNew, w0) < 0)
       return -1;
   }
   nativeType = lookupNativeDatatype(inFile);
@@ -573,14 +591,17 @@ static hid_t createGroupAndDataset(ImodImageFile *inFile, int zValue, char *buf)
   }
   dspaceID = H5Screate_simple(rank, fileDims, maxDims); 
   dsetID = H5Dcreate(groupID, "image", useType, dspaceID, H5P_DEFAULT, cparms, 
-                     H5P_DEFAULT);
+                     accParms);
   if (dspaceID < 0 || dsetID < 0)
     return -1;
-  if (rank > 2)
+  if (rank > 2) {
     H5Pclose(cparms);
+    H5Pclose(accParms);
+  }
   H5Tclose(useType);
   H5Gclose(groupID);
   H5Sclose(dspaceID);
+  sprintf(buf, "/MDF/images/%d/image", zValue);
   return dsetID;
 }
 
