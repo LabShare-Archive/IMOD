@@ -327,6 +327,7 @@ extern "C" {
   int iiProcessReadLine(MrcHeader *hdata, IloadInfo *li, LineProcData *d);
   int iiInitReadSectionAny(MrcHeader *hdata, IloadInfo *li, unsigned char *buf,
                            LineProcData *d, int *freeMap, int *yEnd, const char *caller);
+  void iiBestTileSize(int imSize, int *tileSize, int *numTiles, int multipleOf);
 
 #ifdef __cplusplus
 }

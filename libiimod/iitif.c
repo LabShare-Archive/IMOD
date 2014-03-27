@@ -1168,9 +1168,10 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
 
   if (*tileSizeX) {
 
+    /* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does */
     sRowsPerStrip = *outRows;
-    bestTileSize(inFile->nx, tileSizeX, &sNumXtiles);
-    bestTileSize(inFile->ny, (int *)(&sRowsPerStrip), &sNumStrips);
+    iiBestTileSize(inFile->nx, tileSizeX, &sNumXtiles, 16);
+    iiBestTileSize(inFile->ny, (int *)(&sRowsPerStrip), &sNumStrips, 16);
     sXtileSize = *tileSizeX;
     TIFFSetField(tif, TIFFTAG_TILEWIDTH, sXtileSize);
     TIFFSetField(tif, TIFFTAG_TILELENGTH, sRowsPerStrip);
@@ -1213,16 +1214,6 @@ int tiffWriteSetup(ImodImageFile *inFile, int compression, int inverted, int res
   sLinesDone = 0;
   sAlreadyInverted = inverted;
   return 0;
-}
-
-/* For tiles, make sure each dimension is multiple of 16, it is what tiffcp does 
-   But also increase tile size to the point that minimizes the extra amount that is
-   put out because tiles must be equal */
-static void bestTileSize(int imSize, int *tileSize, int *numTiles)
-{
-  *numTiles = (imSize + *tileSize - 1) / *tileSize;
-  *tileSize = 16 * (int)ceil(imSize / (16. * *numTiles));
-  *numTiles = (imSize + *tileSize - 1) / *tileSize;
 }
 
 /*

@@ -15,9 +15,16 @@
 #include <string.h>
 
 #include "iimage.h"
+#include "imodconfig.h"
 #include "ilist.h"
 #include "b3dutil.h"
 #include "autodoc.h"
+
+#ifdef F77FUNCAP
+#define iibesttilesize IIBESTTILESIZE
+#else
+#define iibesttilesize iibesttilesize_
+#endif
 
 /* The resident check list and list of opened files */
 static Ilist *sCheckList = NULL;
@@ -1063,6 +1070,38 @@ int iiRestoreLoadParams(int retVal, ImodImageFile *iiFile, ImodImageFile *iiSave
   iiFile->offset = iiSave->offset;
   return retVal;
 }
+
+/*!
+ * Given an image size in one dimension in [imSize], a target tile size in [tileSize],
+ * and a factor that the tile size must be a multiple of in [multipleOf], returns an
+ * optimal tile size that minimizes extra total image size in [tileSize] and the number of
+ * tiles in [numTiles].  It picks a tile size less than or equal to the target, unless
+ * the tile size with one fewer tile gives both less extra total image size and a tile
+ * size closer to the target.  Fortran wrapper iibesttilesize.
+ */
+void iiBestTileSize(int imSize, int *tileSize, int *numTiles, int multipleOf)
+{
+  int numLess, tileLess, target = *tileSize;
+  *numTiles = (imSize + *tileSize - 1) / *tileSize;
+  *tileSize = multipleOf * (int)ceil(imSize / ((float)multipleOf * *numTiles));
+  *numTiles = (imSize + *tileSize - 1) / *tileSize;
+  if (!numTiles > 1) {
+    numLess = *numTiles - 1;
+    tileLess = multipleOf * (int)ceil(imSize / ((float)multipleOf * numLess));
+    numLess = (imSize + tileLess - 1) / tileLess;
+    if (*numTiles * *tileSize > numLess * tileLess && 
+        B3DABS(target - *tileSize) > B3DABS(target - tileLess)) {
+      *numTiles = numLess;
+      *tileSize = tileLess;
+    }
+  }   
+}
+
+void iibesttilesize(int *imSize, int *tileSize, int *numTiles, int *multipleOf)
+{
+  iiBestTileSize(*imSize, tileSize, numTiles, *multipleOf);
+}
+
 
 #ifdef NO_HDF_LIB
 int iiHDFCheck(ImodImageFile *inFile)
