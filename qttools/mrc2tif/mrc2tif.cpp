@@ -540,7 +540,7 @@ int main(int argc, char *argv[])
     else
       iiClose(iifile);
   }
-  fclose(fin);
+  iiFClose(fin);
   if (xTileSize)
     printf("Actual tile size = %d x %d\n", xTileSize, linesPerChunk);
   exit(0);
