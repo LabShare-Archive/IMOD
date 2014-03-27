@@ -113,14 +113,18 @@ organized as a stack even if the input file has volumes.
 [Field = ChunkSizesInXYZ]
 short = chunk
 type = IT
-usage = Set chunk sizes in X, Y, and Z for 3D volumes stored in HDF files
+usage = Set target chunk sizes in X, Y, and Z for 3D volumes in HDF files
 tooltip =
-manpage = Set chunk sizes in X, Y, and Z for 3D volumes stored in HDF files.
-If this option is entered, the output file will be an HDF file with data
-stored as a 3D volume, making it unnecessary to enter -3d or -format.  The
-default is for 3D volumes to be stored with no tiling in X and Y and a chunk
-size of 1 in Z, or with the tiling and chunk size of the first input file if
-it an HDF file stored as a 3D volume.
+manpage = Set target chunk sizes in X, Y, and Z for 3D volumes stored in HDF
+files.  Based on the target, an actual chunk size will be chosen in each
+dimension that minimizes the amount of extra image area created by making a
+set of full tiles.  When the target value already evenly divides the image size
+in a dimension, that target will be used.  If this option is entered, the
+output file will be an HDF file with data stored as a 3D volume, making it
+unnecessary to enter -3d or -format.  The default is for 3D volumes to be
+stored with no tiling in X and Y and a chunk size of 1 in Z, or with the
+tiling and chunk size of the first input file if it an HDF file stored as a 3D
+volume.
 
 [Field = UseMdocFiles]
 short = mdoc

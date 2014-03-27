@@ -1252,8 +1252,17 @@ program newstack
           needClose2 = 0
         endif
         if (if3dVolumes > 0) then
-          if (iiuAltChunkSizes(2, nxTile, nyTile, nzChunk) .ne. 0) call exitError( &
+          nxTileIn = nxTile
+          nyTileIn = nyTile
+          nzChunkIn = nzChunk
+          call iiBestTileSize(nxOut, nxTileIn, ierr, 1)
+          call iiBestTileSize(nyOut, nyTileIn, ierr, 1)
+          call iiBestTileSize(numSecOut(iOutFile), nzChunkIn, ierr, 1)
+          if (iiuAltChunkSizes(2, nxTileIn, nyTileIn, nzChunkIn) .ne. 0) call exitError( &
               'SETTING CHUNK SIZES IN NEW VOLUME')
+          if (nxTileIn .ne. nxOut .or. nyTileIn .ne. nyOut .or. nzChunkIn .ne.  &
+              numSecOut(iOutFile)) write(*,'(a,i7,a,i7,a,i4)')'Actual chunk size: ', &
+              nxTileIn,' by', nyTileIn, ' by', nzChunkIn
         endif
 
         call itrhdr(2, 1)
