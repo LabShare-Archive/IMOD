@@ -653,6 +653,7 @@ public class ImodProcess {
   // Get stderr messages only through this member variable.
   private final Stderr stderr = new Stderr();
   private final Integer messageSenderRegId = stderr.register();
+  private final Integer stderrRegId = stderr.register();
   private final ContinuousListener continuousListener;
 
   private String datasetName = "";
@@ -1029,7 +1030,6 @@ public class ImodProcess {
       if (EtomoDirector.INSTANCE.getArguments().getDebugLevel().isVerbose()) {
         System.err.println("ImodProcess:open " + Utilities.getDateTimeStamp(true));
       }
-      Integer stderrRegId = stderr.register();
       while (imodThread.isAlive() && windowID.equals("")) {
         while ((line = stderr.getQuickMessage(stderrRegId)) != null) {
           if (line.indexOf("Window id = ") != -1) {
@@ -1038,7 +1038,6 @@ public class ImodProcess {
               throw (new SystemProcessException("Could not parse window ID from imod\n"));
             }
             windowID = words[3];
-            break;
           }
         }
       }
@@ -1902,7 +1901,6 @@ public class ImodProcess {
 
     private void setImod(InteractiveSystemProgram imod) {
       this.imod = imod;
-      quickListenerQueue.clear();
     }
 
     /**
