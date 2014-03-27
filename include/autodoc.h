@@ -10,9 +10,16 @@
 
 #ifndef AUTODOC_H
 #define AUTODOC_H
+
+#define ADOC_GLOBAL_NAME "PreData"
+#define ADOC_ZVALUE_NAME "ZValue"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum {ADOC_NO_VALUE = 0, ADOC_ONE_INT, ADOC_TWO_INTS, ADOC_THREE_INTS, ADOC_INT_ARRAY,
+      ADOC_ONE_FLOAT, ADOC_TWO_FLOATS, ADOC_THREE_FLOATS, ADOC_FLOAT_ARRAY, ADOC_STRING};
 int AdocRead(const char *filename);
 int AdocOpenImageMetadata(const char *filename, int addMdoc, int *montage,
                           int *numSect, int *sectType);
@@ -26,13 +33,21 @@ int AdocAddSection(const char *collName, const char *name);
 int AdocInsertSection(const char *typeName, int sectInd, const char *name);
 int AdocDeleteSection(const char *typeName, int sectInd);
 int AdocLookupSection(const char *typeName, const char *name);
+int AdocLookupByNameValue(const char *typeName, int nameValue);
 int AdocFindInsertIndex(const char *typeName, int nameValue);
+int AdocTransferSection(const char *typeName, int sectInd, int toAdocInd, 
+                        const char *newName, int byValue);
 int AdocSetKeyValue(const char *collName, int sectInd, const char *key, 
                     const char *value);
 int AdocDeleteKeyValue(const char *collName, int sectInd, const char *key);
+int AdocGetNumCollections();
+int AdocGetCollectionName(int collInd, char **string);
 int AdocGetSectionName(const char *collName, int sectInd, char **string);
 int AdocGetNumberOfSections(const char *collName);
 int AdocGetNumberOfKeys(const char *typeName, int sectInd);
+int AdocGetKeyByIndex(const char *typeName, int sectInd, int keyInd, char **key);
+int AdocGetValTypeAndSize(const char *typeName, int sectInd, const char *key, 
+                          int *valType, int *numTokens);
 int AdocGetString(const char *collName, int sectInd, const char *key, char **string);
 int AdocGetInteger(const char *collName, int sectInd, const char *key, int *val1);
 int AdocGetTwoIntegers(const char *collName, int sectInd, const char *key, int *val1,
@@ -53,38 +68,17 @@ int AdocSetTwoIntegers(const char *typeName, int sectInd, const char *key, int i
                        int ival2);
 int AdocSetThreeIntegers(const char *typeName, int sectInd, const char *key, int ival1,
                          int ival2, int ival3);
+int AdocSetIntegerArray(const char *typeName, int sectInd, const char *key, int *ivals,
+                        int numVals);
 int AdocSetFloat(const char *typeName, int sectInd, const char *key, float val);
 int AdocSetTwoFloats(const char *typeName, int sectInd, const char *key, float val1, 
                      float val2);
 int AdocSetThreeFloats(const char *typeName, int sectInd, const char *key, float val1,
                        float val2, float val3);
+int AdocSetFloatArray(const char *typeName, int sectInd, const char *key, float *vals,
+                      int numVals);
 
 #ifdef __cplusplus
 }
 #endif
 #endif
-
-/*
-  $Log$
-  Revision 3.7  2010/08/31 22:05:26  mast
-  New function to open image metadata
-
-  Revision 3.6  2010/08/28 05:18:04  mast
-  Append function
-
-  Revision 3.5  2010/08/27 20:54:48  mast
-  new function
-
-  Revision 3.4  2009/04/13 05:13:45  mast
-  New function to clear one autodoc
-
-  Revision 3.3  2007/04/05 20:57:42  mast
-  Added set functions for ints and floats
-
-  Revision 3.2  2006/10/17 18:01:26  mast
-  Gettingthe Id string right
-
-  Revision 3.1  2006/10/17 18:00:32  mast
-  Added to package
-
-*/

@@ -53,7 +53,14 @@ Private Defines
 #define iwrlin IWRLIN
 #define iiufileinfo IIUFILEINFO
 #define iiualtconvert IIUALTCONVERT
-
+#define iiallowmultivolume IIALLOWMULTIVOLUME
+#define iiuretnumvolumes IIURETNUMVOLUMES
+#define iiuvolumeopen IIUVOLUMEOPEN
+#define iiuretadocindex IIURETADOCINDEX
+#define iiuwriteglobaladoc IIUWRITEGLOBALADOC
+#define iiuretchunksizes IIURETCHUNKSIZES
+#define iiualtchunksizes IIUALTCHUNKSIZES
+#define iiufiletype IIUFILETYPE
 #else
 
 #define move       move_
@@ -74,6 +81,14 @@ Private Defines
 #define iwrlin iwrlin_
 #define iiufileinfo iiufileinfo_
 #define iiualtconvert iiualtconvert_
+#define iiallowmultivolume iiallowmultivolume_
+#define iiuretnumvolumes iiuretnumvolumes_
+#define iiuvolumeopen iiuvolumeopen_
+#define iiuretadocindex iiuretadocindex_
+#define iiuwriteglobaladoc iiuwriteglobaladoc_
+#define iiuretchunksizes iiuretchunksizes_
+#define iiualtchunksizes iiualtchunksizes_
+#define iiufiletype iiufiletype_
 
 #endif
 
@@ -226,7 +241,8 @@ int iiuOpen(int iunit, const char *name, const char *attribute)
 
   /* Old or new files */
   /* For a non-MRC file type, create an MRC header and populate it with defaults */
-  if (u->iiFile->file != IIFILE_MRC && u->iiFile->file != IIFILE_RAW) {
+  if (u->iiFile->file != IIFILE_MRC && u->iiFile->file != IIFILE_RAW && 
+      u->iiFile->file != IIFILE_HDF) {
     u->header = B3DMALLOC(MrcHeader, 1);
     iiuMemoryError(u->header, "ERROR: iiuOpen - Allocating MRC header");
     if (iiFillMrcHeader(u->iiFile, u->header)) {
@@ -294,6 +310,123 @@ void iiuClose(int iunit)
 
 void imclose(int *iunit) {iiuClose(*iunit);}
 void iiuclose(int *iunit) {iiuClose(*iunit);}
+
+/*!
+ * Returns the number of volume datasets in an HDF file that is not a stack of 
+ * single-image datasets; otherwise returns 0.  Fortran wrapper iiuretnumvolumes.
+ */
+int iiuRetNumVolumes(int iunit)
+{
+  Unit *u = lookupUnit(iunit, "iiuRetNumVolumes", 1, 0);
+  return u->iiFile->datasetID ? u->iiFile->numVolumes : 0;
+}
+
+int iiuretnumvolumes(int *iunit) {return iiuRetNumVolumes(*iunit);}
+
+/*!
+ * Opens a new or existing volume in the HDF file open on unit [mainUnit], assigning it
+ * to [newUnit].  Set [volIndex] negative to open a new volume, or to the index of the
+ * existing volume to open (numbered from 0, must be 1 or higher).  The file must not be 
+ * open read-only and must not consist of a stack of single-image datasets.  Fortran 
+ * wrapper iiuvolumeopen.
+ */
+int iiuVolumeOpen(int newUnit, int mainUnit, int volIndex)
+{
+  FILE *fp;
+  Unit *u = lookupUnit(mainUnit, "iiuOpenVolume", 1, 0);
+  Unit *unew = findNewUnit(newUnit);
+  iiuMemoryError(unew, "ERROR:  - Allocating new unit");
+  unew->beingUsed = 1;
+  unew->readOnly = u->readOnly;
+  unew->currentSec = 0;
+  unew->currentLine = 0;
+  unew->attribute = u->attribute == UNIT_ATBUT_SCRATCH ? UNIT_ATBUT_NEW : u->attribute;
+  if (volIndex < 0) {
+    fp = iiFOpenNewVolume(u->iiFile);
+    volIndex = u->iiFile->numVolumes - 1;
+  } else {
+    fp = iiFOpenVolume(u->iiFile, volIndex);
+  }
+  if (!fp)
+    EXIT_OR_RETURN(1);
+  unew->iiFile = u->iiFile->iiVolumes[volIndex];
+  unew->header = (MrcHeader *)unew->iiFile->header;
+  return 0;
+}
+
+int iiuvolumeopen(int *newUnit, int *mainUnit, int *volIndex)
+{ return iiuVolumeOpen(*newUnit, *mainUnit, *volIndex);}
+
+/*!
+ * Returns the autodoc index for an HDF file or potentially opens a metadata autodoc
+ * or a new autodoc for an MRC file; see @@iimage.html#iiGetAdocIndex@.  Fortran wrapper
+ * iiuretadocindex, returns an index numbered from 1.
+ */
+int iiuRetAdocIndex(int iunit, int global, int openMdocOrNew)
+{
+  Unit *u = lookupUnit(iunit, "iiuRetAdocIndex", 1, 0);
+  return iiGetAdocIndex(u->iiFile, global, openMdocOrNew);
+}
+
+int iiuretadocindex(int *iunit, int *global, int *openMdocOrNew)
+{return iiuRetAdocIndex(*iunit, *global, *openMdocOrNew) + 1;}
+
+/* This function is here because unit_header has no access to lookupUnit */
+int iiuTransAdocSections(int toUnit, int fromUnit)
+{
+  Unit *uto = lookupUnit(toUnit, "iiuTransAdocSections", 1, 0);
+  Unit *ufrom = lookupUnit(fromUnit, "iiuTransAdocSections", 1, 0);
+  if (uto->iiFile->adocIndex >= 0 && ufrom->iiFile->adocIndex >= 0)
+    return iiTransferAdocSections(ufrom->iiFile, uto->iiFile);
+  return 0;
+}
+
+/*!
+ * Writes global autodoc information and autodoc information contained in sections other 
+ * than of type ZValue to the top images group of the HDF file opened on unit [iunit].
+ * See @@iimage.html#hdfWriteGlobalAdoc@. The function needs to be called only
+ * when working with a multi-volume file.  Fortran wrapper iiuwriteglobaladoc.
+ */
+int iiuWriteGlobalAdoc(int iunit)
+{
+  Unit *u = lookupUnit(iunit, "iiuWriteGlobalAdoc", 1, 0);
+  if (hdfWriteGlobalAdoc(u->iiFile))
+    EXIT_OR_RETURN(1);
+  return 0;
+}
+
+int iiuwriteglobaladoc(int *iunit) { return iiuWriteGlobalAdoc(*iunit);}
+
+/*!
+ * Returns the size of tiles (chunks) in X and Y in [xSize] and [ySize], and of chunks 
+ * in Z in [zSize], for unit [iunit].  The Z size will be nonzero only for a volume 
+ * dataset of an HDF file; the X and Y sizes may be non-zero for TIFF files as well.
+ */
+void iiuRetChunkSizes(int iunit, int *xSize, int *ySize, int *zSize)
+{
+  Unit *u = lookupUnit(iunit, "iiuRetChunkSize", 1, 0);
+  *xSize = u->iiFile->tileSizeX;
+  *ySize = u->iiFile->tileSizeY;
+  *zSize = u->iiFile->zChunkSize;
+}
+
+void iiuretchunksizes(int *iunit, int *xSize, int *ySize, int *zSize)
+{ iiuRetChunkSizes(*iunit, xSize, ySize, zSize);} 
+
+/*!
+ * Sets the size of chunks in a volume dataset of an HDF file open on unit [iunit] to
+ * [xSize], [ySize], and [zSize] in X, Y, and Z.  [xSize] or [ySize] can be set to zero
+ * to avoid chunking in those dimensions; [zSize] must be positive.  Returns 1 for error.
+ * Fortran wrapper iiualtchunksizes.
+ */
+int iiuAltChunkSizes(int iunit, int xSize, int ySize, int zSize)
+{
+  Unit *u = lookupUnit(iunit, "iiuAltChunkSize", 1, 0);
+  return iiSetChunkSizes(u->iiFile, xSize, ySize, zSize);
+}
+
+int iiualtchunksizes(int *iunit, int *xSize, int *ySize, int *zSize)
+{return iiuAltChunkSizes(*iunit, *xSize, *ySize, *zSize);} 
 
 /*!
  * Sets the position for the next read or write on unit [iunit] to the Z value in
@@ -516,8 +649,8 @@ static int setupCurrentLines(Unit *u, int numLines)
 
 /*!
  * Returns information for unit [iunit]: the file size in KB in [fileSize]; the type of
- * file in [fileType], which can be 1 for TIFF, 2 for MRC, or 4 for other raw-type files;
- * and flags in [flags]: ^
+ * file in [fileType], which can be 1 for TIFF, 2 for MRC, 4 for other raw-type files or
+ * 5 for HDF; and flags in [flags]: ^
  * bit 0 - bytes are swapped  ^
  * bit 1 - bytes are stored signed  ^
  * bit 2 - old-style header with no MAP and origin wrong place  ^
@@ -627,6 +760,11 @@ void iiuAltConvert(int iunit, int val)
 
 void iiualtconvert(int *iunit, int *val) {iiuAltConvert(*iunit, *val);}
 
+void iiallowmultivolume(int *allow)
+{
+  iiAllowMultiVolume(*allow);
+}
+
 /*!
  * Returns the MRC header for unit [iunit].  If this is not an open unit, it prints 
  * a message including the text in [function] and exits if [doExit] is non-zero.  If 
@@ -654,13 +792,16 @@ void iiuSyncWithMrcHeader(int iunit)
 }
 
 /*!
- * Returns the type of file open on unit [iunit]: IIFILE_MRC (2), or IIFILE_TIFF (1).
+ * Returns the type of file open on unit [iunit]: IIFILE_MRC (2), IIFILE_TIFF (1) or
+ * IIFILE_HDF (5).  Fortran wrapper iiufiltype.
  */
 int iiuFileType(int iunit)
 {
   Unit *u = lookupUnit(iunit, "iiuFileType", 1, 0);
   return u->iiFile->file;
 }
+
+int iiufiletype(int *iunit) { return iiuFileType(*iunit); }
 
 void move(char *a, char *b, int *n)
 {

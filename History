@@ -6,6 +6,19 @@ previous incorrect fixes from 2/14/14 and 3/14/14 (In 4.7).(Bug# 1792)
 3/25/14: Fixed a etomo - PEET, which was not loading a non-array selectClassID
 (In 4.7).(Bug# 1789)
 
+3/24/14: IMOD_4-8-2
+3/23/14: Eliminated an input routine that reads line-by-line, which was giving
+terrible 3dmod performance on Mac laptops loading over a network.
+
+3/22/14: Programs can now read and write HDF files interchangeably with MRC
+files. Write performance is currently atrocious.  Metadata can be stored as
+well; Newstack will move metadata between an HDF file and an .mdoc file
+associated with another file type, or even between two mdoc files.  Supported
+HDF files can consist of stacks of 2D images of the same size, or files with
+multiple 3D volumes, which 3dmod will open like multiple files.  Makepyramid
+can make a multi-volume HDF file that 3dmod will recognize as an image
+pyramid.
+
 3/22/14: Fixed newstack when -fromone used with default section list (In 4.7).
 
 3/14/14: Fixed a Windows problem with opening 3dmod from eTomo where

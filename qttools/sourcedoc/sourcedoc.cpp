@@ -41,15 +41,15 @@ void usage(char *progname)
 
 int main(int argc, char *argv[])
 {
-  char *listString = "LIST FUNCTIONS FROM ";
-  char *descString = "DESCRIBE FUNCTIONS FROM ";
-  char *listCode = "LIST CODE FROM ";
-  char *descCode = "DESCRIBE CODE FROM ";
-  char *secString = "DOC_SECTION";
-  char *endSecString = "END_SECTION";
-  char *codeString = "DOC_CODE";
-  char *endCodeString = "END_CODE";
-  char *noFunc = "0";
+  const char *listString = "LIST FUNCTIONS FROM ";
+  const char *descString = "DESCRIBE FUNCTIONS FROM ";
+  const char *listCode = "LIST CODE FROM ";
+  const char *descCode = "DESCRIBE CODE FROM ";
+  const char *secString = "DOC_SECTION";
+  const char *endSecString = "END_SECTION";
+  const char *codeString = "DOC_CODE";
+  const char *endCodeString = "END_CODE";
+  const char *noFunc = "0";
   QString str, str2, fname, href, funcName, secName, path;
   QStringList descList;
   QStringList fnameList;
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 
         // If not in a chosen section, or in a section when not looking for
         // one, skip line
-        if(!secName.isEmpty() && !inSection || secName.isEmpty() && inSection) 
+        if((!secName.isEmpty() && !inSection) || (secName.isEmpty() && inSection))
           continue;
 
         if (!doCode && str.contains(QRegExp(docStart))) {

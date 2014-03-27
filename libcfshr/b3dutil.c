@@ -64,6 +64,9 @@
 #define numompthreads NUMOMPTHREADS
 #define b3dompthreadnum B3DOMPTHREADNUM
 #define numberinlist NUMBERINLIST
+#define overrideoutputtype OVERRIDEOUTPUTTYPE
+#define b3doutputfiletype B3DOUTPUTFILETYPE
+#define setoutputtypefromstring SETOUTPUTTYPEFROMSTRING
 #else
 #define imodbackupfile imodbackupfile_
 #define imodgetenv imodgetenv_
@@ -82,6 +85,9 @@
 #define numompthreads numompthreads_
 #define b3dompthreadnum b3dompthreadnum_
 #define numberinlist numberinlist_
+#define overrideoutputtype overrideoutputtype_
+#define b3doutputfiletype b3doutputfiletype_
+#define setoutputtypefromstring setoutputtypefromstring_
 #endif
 
 /* DNM 2/26/03: These need to be printf instead of fprintf(stderr) to not
@@ -392,10 +398,11 @@ void overrideoutputtype(int *type)
 }
 
 /*!
- * Returns the current output file type  OUTPUT_TYPE_MRC (2) or OUTPUT_TYPE_TIFF (1), 
+ * Returns the current output file type  OUTPUT_TYPE_MRC (2), OUTPUT_TYPE_TIFF (1), or
+ * OUTPUT_TYPE_HDF (5) (provided the package was build with HDF).
  * The type is either the default type (which is MRC), or the value of the environment 
- * variable IMOD_OUTPUT_FORMAT if that is set and is 'MRC', 'TIF', or 'TIFF', overridden
- * by a value set with @@overrideOutputType@.
+ * variable IMOD_OUTPUT_FORMAT if that is set and is 'MRC', 'TIF', 'TIFF', or 'HDF', 
+ * overridden by a value set with @@overrideOutputType@.
  */
 int b3dOutputFileType()
 {
@@ -406,8 +413,13 @@ int b3dOutputFileType()
       type = OUTPUT_TYPE_MRC;
     else if (!strcmp(envtype, "TIFF") || !strcmp(envtype, "TIF"))
       type = OUTPUT_TYPE_TIFF;
+#ifndef NO_HDF_LIB
+    else if (!strcmp(envtype, "HDF"))
+      type = OUTPUT_TYPE_HDF;
+#endif
   }
-  if (sOutputTypeOverride == OUTPUT_TYPE_MRC || sOutputTypeOverride == OUTPUT_TYPE_TIFF)
+  if (sOutputTypeOverride == OUTPUT_TYPE_MRC || sOutputTypeOverride == OUTPUT_TYPE_TIFF ||
+      sOutputTypeOverride == OUTPUT_TYPE_HDF)
     type = sOutputTypeOverride;
   return type;
 }
@@ -416,6 +428,43 @@ int b3dOutputFileType()
 int b3doutputfiletype()
 {
   return b3dOutputFileType();
+}
+
+/*!
+ * Sets output filetype based on a string in [typeStr], which can contain 'MRC', 'TIF', 
+ * 'TIFF', or 'HDF' (or all lower-case equivalents).  Returns 2 for MRC, 1 for TIFF,
+ * 5 for HDF, -5 for HDF if there is no HDF support, and -1 for other entries
+ */
+int setOutputTypeFromString(const char *typeStr)
+{
+  int retval = -1;
+  if (!strcmp(typeStr, "MRC") || !strcmp(typeStr, "mrc"))
+    retval = OUTPUT_TYPE_MRC;
+  else if (!strcmp(typeStr, "TIFF") || !strcmp(typeStr, "TIF") || 
+           !strcmp(typeStr, "tiff") || !strcmp(typeStr, "tif"))
+    retval = OUTPUT_TYPE_TIFF;
+  else if (!strcmp(typeStr, "HDF") || !strcmp(typeStr, "hdf"))
+#ifdef NO_HDF_LIB
+    retval = -OUTPUT_TYPE_HDF;
+#else
+    retval = OUTPUT_TYPE_HDF;
+#endif
+    printf("output type %d\n", retval);
+  if (retval > 0)
+    overrideOutputType(retval);
+  return retval;
+}
+
+/*! Fortran wrapper for @setOutputTypeFromString */
+int setoutputtypefromstring(const char *str, int strSize)
+{
+  char *cstr = f2cString(str, strSize);
+  int ret;
+  if (!cstr)
+    return -2;
+  ret = setOutputTypeFromString(cstr);
+  free(cstr);
+  return ret;
 }
 
 /*! Creates a C string with a copy of a Fortran string described by [str] and 
@@ -471,7 +520,7 @@ static char errorMess[MAX_IMOD_ERROR_STRING] = "";
 /*! Stores an error message and may print it as well.  The message is 
   internally printed with vsprintf.  It is printed to [fout] unless 
   b3dSetStoreError has been called with a non-zero value. */
-void b3dError(FILE *out, char *format, ...)
+void b3dError(FILE *out, const char *format, ...)
 {
   va_list args;
   va_start(args, format);
