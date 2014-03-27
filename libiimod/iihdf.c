@@ -159,6 +159,7 @@ int iiHDFCheck(ImodImageFile *inFile)
     cleanupFromOpen(0, 0, 0, inFile);
     return IIERR_MEMORY_ERR;
   }
+
   fileID = H5Fopen(inFile->filename, 
                    strstr(inFile->fmode, "+") != NULL ? H5F_ACC_RDWR : H5F_ACC_RDONLY,
                    H5P_DEFAULT);
@@ -952,6 +953,7 @@ int iiHDFopenNew(ImodImageFile *inFile, const char *mode)
   ImodImageFile *iiVol;
   ImodImageFile **newVolumes;
   hid_t fileID, mdfID, imagesID;
+
   if (inFile->file != IIFILE_UNKNOWN) {
     
     /* Opening a new volume in an existing file */
@@ -1083,9 +1085,7 @@ static int hdfWriteHeader(ImodImageFile *inFile)
 
   /* Open top group unconditionally and put the max image ID there */
   groupID = H5Gopen((hid_t)inFile->hdfFileID, "/MDF/images", H5P_DEFAULT);
-  if (groupID < 0)
-    error = 1;
-  if (!error) {
+  if (groupID >= 0) {
     iz = inFile->numVolumes - 1;
     if (inFile->stackSetList) {
       
@@ -1104,14 +1104,16 @@ static int hdfWriteHeader(ImodImageFile *inFile)
   }
 
   /* Open the group where attributes will go if it is different */
-  if (!error && !inFile->stackSetList) {
+  if (!error && groupID >= 0 && !inFile->stackSetList) {
     H5Gclose(groupID);
     groupID = openDatasetGroup(inFile, inFile->datasetName);
   }
-  if (groupID < 0) {
+  if (error || groupID < 0) {
     cleanupMallocBufs();
-    b3dError(stderr, "ERROR: hdfWriteHeader - Opening group for writing header "
-             "attributes\n");
+    b3dError(stderr, "ERROR: hdfWriteHeader - %s\n", groupID < 0 ? "Opening group for"
+             " writing header attributes" : "Writing imageid_max attribute to header");
+    if (groupID >= 0)
+      H5Gclose(groupID);
     return 1;
   }
 
@@ -1464,7 +1466,7 @@ static hid_t openDatasetGroup(ImodImageFile *inFile, const char *dsName)
 {
   int ind;
   char *last = strrchr(dsName, '/');
-  if (last)
+  if (!last)
     return -1;
   ind = last - dsName;
   if (manageMallocBuf((void **)&sStringBuf, &sStrBufSize, ind + 1, 1))
