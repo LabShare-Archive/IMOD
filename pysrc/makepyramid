@@ -256,7 +256,7 @@ for indRed in range(len(reductions)):
                         'OutputFile ' + hdfName,
                         'Store3DVolumes ' + storeOpt,
                         fmtstr('ChunkSizesInXYZ {},{},1', xTileSize, yTileSize)]
-            prnstr('Running newstack to insert volume into HDF file')
+            prnstr('Running newstack to add volume to ' + hdfName, flush=True)
             runcmd('newstack -StandardInput', comlines)
 
          else:
