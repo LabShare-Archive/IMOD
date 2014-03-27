@@ -522,7 +522,9 @@ void Processchunks::timerEvent(QTimerEvent */*timerEvent*/) {
     mNextSyncIndex = mSizeJobArray + 2 - 1;
     noChunks = false;
   }
-  if (mSingleFile && mNumDone > 0) {
+
+  // Finish up now if all chunks are done
+  if ((mSingleFile && mNumDone > 0) || mNumDone >= mSizeJobArray) {
     cleanupAndExit();
     return;
   }
@@ -542,6 +544,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
     //Etomo is looking for this line too
     *mOutStream << "Finished reassembling" << endl;
+    mOutStream->flush();
   }
   if (mCheckFile != NULL) {
     mCheckFile->close();
@@ -555,6 +558,7 @@ void Processchunks::cleanupAndExit(int exitCode) {
     }
   }
   *mOutStream << "exitCode:" << exitCode << endl;
+  mOutStream->flush();
   exit(exitCode);
 }
 

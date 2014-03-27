@@ -635,6 +635,7 @@ int main( int argc, char *argv[])
   else
     iiAddCheckFunction(iiRawCheck);
   tiffFilterWarnings();
+  iiRegisterQuitCheck(imodQuitCheck);
 
   /* Try to open the last file if there is one */
   if (firstfile) {
@@ -954,6 +955,7 @@ int main( int argc, char *argv[])
     imodError(NULL, LATIN1(qname));
     exit(3);
   }
+  iiRegisterQuitCheck(NULL);
 
   // Now we can set to middle Z
   if (ImodPrefs->startAtMidZ())

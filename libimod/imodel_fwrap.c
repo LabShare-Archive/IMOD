@@ -2021,8 +2021,8 @@ void putobjcolor(int *objnum, int *red, int *green, int *blue)
   int r = B3DMIN(255, B3DMAX(0, *red));
   int g = B3DMIN(255, B3DMAX(0, *green));
   int b = B3DMIN(255, B3DMAX(0, *blue));
-  int flag = ((r << FLAG_VALUE_SHIFT) | (g << FLAG_VALUE_SHIFT + 8) |
-              (b << FLAG_VALUE_SHIFT + 16)) + OBJECT_COLOR_FLAG;
+  int flag = ((r << FLAG_VALUE_SHIFT) | (g << (FLAG_VALUE_SHIFT + 8)) |
+              (b << (FLAG_VALUE_SHIFT + 16))) + OBJECT_COLOR_FLAG;
   putimodflag(objnum, &flag);
 }
 
@@ -2041,7 +2041,7 @@ void putsymsize(int *objnum, int *size)
  */
 void putvalblackwhite(int *objnum, int *black, int *white)
 {
-  int flag = (*black << FLAG_VALUE_SHIFT) + (*white << FLAG_VALUE_SHIFT + 8) +
+  int flag = (*black << FLAG_VALUE_SHIFT) + (*white << (FLAG_VALUE_SHIFT + 8)) +
     VAL_BLACKWHITE_FLAG;
   putimodflag(objnum, &flag);
 }

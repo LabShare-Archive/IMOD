@@ -4,6 +4,7 @@ LIBRARY      "libcfshr"
 
 EXPORTS
 	CUBINTERP
+	AdocTransferSection
 	PipLinkedIndex
 	RSMADN
 	amoebaInit
@@ -25,6 +26,7 @@ EXPORTS
 	setSurfSortParam
 	sliceGetVal
 	AdocGetSectionName
+	AdocSetIntegerArray
 	rsFastMedian
 	GAUSSJ
 	sliceGetValMagnitude
@@ -44,10 +46,12 @@ EXPORTS
 	PipGetError
 	scanHistogram
 	PARABOLICFITPOSITION
+	ADOCLOOKUPBYNAMEVALUE
 	setOrClearFlags
 	ilistSwap
 	PipDone
 	PipAddOption
+	OVERRIDEOUTPUTTYPE
 	eigenSort
 	numOMPthreads
 	B3DSHIFTBYTES
@@ -62,6 +66,7 @@ EXPORTS
 	AdocGetTwoFloats
 	arrayMinMaxMeanSd
 	b3dFwrite
+	ADOCSETFLOATARRAY
 	PIPGETBOOLEAN
 	sliceEdgeMean
 	PipStartsWith
@@ -117,6 +122,7 @@ EXPORTS
 	LSFIT
 	LSFIT2
 	wrapFFTslice
+	AdocGetValTypeAndSize
 	dsytrd3
 	LSFITS
 	SPARSEPROD
@@ -126,6 +132,7 @@ EXPORTS
 	EXTRAISNBYTESANDFLAGS
 	AdocInsertSection
 	parWrtFindRegion
+	AdocSetFloatArray
 	SCALEDGAUSSIANKERNEL
 	AMOEBAINIT
 	CPUTIME
@@ -150,6 +157,7 @@ EXPORTS
 	AdocSetInteger
 	RSSORTINDEXEDFLOATS
 	b3dGetError
+	AdocGetCollectionName
 	ADOCGETTWOFLOATS
 	AdocGetString
 	mrc_big_seek
@@ -202,7 +210,6 @@ EXPORTS
 	ADOCSETTHREEINTEGERS
 	PipGetTwoFloats
 	AdocSetThreeFloats
-	b3doutputfiletype
 	ilistSize
 	parWrtInitialize
 	ADOCGETTHREEFLOATS
@@ -217,6 +224,7 @@ EXPORTS
 	TAPEROUTPAD
 	b3dShiftBytes
 	PIPGETTHREEINTEGERS
+	setOutputTypeFromString
 	pidToStderr
 	ADOCGETINTEGER
 	PIPSETERROR
@@ -224,6 +232,7 @@ EXPORTS
 	SELECTZOOMFILTER
 	scaledGaussianKernel
 	AdocSetFloat
+	ADOCTRANSFERSECTION
 	sliceTaperInPad
 	PipPrintHelp
 	READBYTESSIGNED
@@ -232,6 +241,7 @@ EXPORTS
 	ADOCSETINTEGER
 	PIDTOSTDERR
 	ilistNew
+	ADOCGETSTANDARDNAMES
 	RSFASTMEDIANINPLACE
 	b3dHeaderItemBytes
 	IMODGETPID
@@ -244,6 +254,7 @@ EXPORTS
 	rsFastMedianInPlace
 	ZOOMFILTINTERP
 	XCORRPEAKFINDWIDTH
+	AdocGetNumCollections
 	sliceTaperOutPad
 	xfInvert
 	addValueToRow
@@ -277,6 +288,7 @@ EXPORTS
 	b3dSetStoreError
 	RSTRIMMEDMEAN
 	parselist
+	SETOUTPUTTYPEFROMSTRING
 	PARWRTINITIALIZEFW
 	gaussj
 	INSIDECONTOUR
@@ -284,6 +296,8 @@ EXPORTS
 	RSFASTMEDIAN
 	XFMULT
 	PIPGETTHREEFLOATS
+	AdocGetKeyByIndex
+	ADOCLOOKUPSECTION
 	ADOCGETSTRING
 	REDUCE_BY_BINNING
 	sliceInit
@@ -295,6 +309,7 @@ EXPORTS
 	ADOCSETKEYVALUE
 	amoeba
 	SETCTFWSR
+	B3DOUTPUTFILETYPE
 	ADOCGETSECTIONNAME
 	fitSphereWgt
 	CONJUGATEPRODUCT
@@ -317,6 +332,7 @@ EXPORTS
 	ilistAppend
 	rsTrimmedMean
 	PIPADDOPTION
+	ADOCCLEAR
 	ADOCSETCURRENT
 	PipMemoryError
 	AdocDeleteSection
@@ -352,6 +368,7 @@ EXPORTS
 	ADOCADDSECTION
 	DTVALUE
 	ICLDEN
+	ADOCFINDINSERTINDEX
 	fgetline
 	exitError
 	betaFunc
@@ -370,6 +387,7 @@ EXPORTS
 	SETSURFSORTPARAM
 	PipSetError
 	cmapStandardRamp
+	AdocLookupByNameValue
 	SETCTFNOSCL
 	sliceMode
 	XFINVERT
@@ -402,7 +420,6 @@ EXPORTS
 	cblas_dscal
 	PipEnableEntryOutput
 	WALLTIME
-	overrideoutputtype
 	minimize1D
 	PIPINITIALIZE
 	ROBUSTREGRESS
@@ -435,6 +452,7 @@ EXPORTS
 	PipGetFloatArray
 	XCorrPeakFindWidth
 	statMatrices
+	ADOCSETINTEGERARRAY
 	WRAPFFTSLICE
 	slicePutVal
 	ADOCOPENIMAGEMETADATA

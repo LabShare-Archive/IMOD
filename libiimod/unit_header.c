@@ -956,7 +956,7 @@ int iiuAltExtendedData(int iunit, int numBytes, int *extra)
   MrcHeader *hdr = iiuMrcHeader(iunit, "iiAltExtendedData", doExit, 2);
   if (!hdr)
     return -1;
-  if (iiuFileType(iunit) == IIFILE_TIFF)
+  if (iiuFileType(iunit) != IIFILE_MRC)
     return 0;
   if (hdr->swapped) {
     fprintf(stdout, "\nERROR: iiuAltExtendedData - Cannot write extra header data to a"
@@ -985,9 +985,10 @@ void ialsym(int *iunit, int *numBytes, int *extra)
 
 /*!
  * Transfers extended header data from unit [iunit] to [intoUnit], which is not allowed to
- * be a byte-swapped file.  Returns negative values for internal errors, 1 for a read 
- * error, or 2 for a write error.  Fortran wrappers iiuTransExtendedData and 
- * itrextra (a void).
+ * be a byte-swapped MRC file.  Also transfers global and non-ZValue section data between
+ * autodocs associated with these units.  Returns negative values for internal errors,
+ * 1 for a read error, 2 for a write error, or 3 for an error in autodoc transfer. 
+ * Fortran wrappers iiuTransExtendedData and itrextra (a void).
  */
 int iiuTransExtendedData(int intoUnit, int iunit)
 {
@@ -1000,10 +1001,13 @@ int iiuTransExtendedData(int intoUnit, int iunit)
     return -1;
   if (iiuFileType(intoUnit) == IIFILE_TIFF)
     return 0;
+  if (iiuTransAdocSections(intoUnit, iunit))
+    return 3;
   if (!ihdr->next) {
     iiuAltNumExtended(intoUnit, 0);
     return 0;
   }
+      
   extra = B3DMALLOC(int, (ihdr->next + 3) / 4);
   iiuMemoryError(extra, "ERROR: iiuTransExtendedData - Allocating buffer for data");
   jhdr->nint = ihdr->nint;
@@ -1017,3 +1021,4 @@ int iiuTransExtendedData(int intoUnit, int iunit)
 int iiutransextendeddata(int *iunit, int *junit)
 { return iiuTransExtendedData(*iunit, *junit);}
 void itrextra(int *iunit, int *junit) {iiuTransExtendedData(*iunit, *junit);}
+

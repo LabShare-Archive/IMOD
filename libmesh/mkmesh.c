@@ -358,8 +358,8 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
   build_area_matrices(bc, direction[0], tc, direction[1], scale, up, down, 
                       openObj);
 
-  //siFirst[0] = si[0];
-  //siFirst[1] = si[1];
+  /*siFirst[0] = si[0];
+    siFirst[1] = si[1]; */
 
   for (; curCon <= numCon - endsConnected; curCon++) {
 
@@ -1316,8 +1316,8 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
       /* Test for skip at start of open contours */
       /* First test that top is at known or possible end and blocker is
          before the bottom point */
-      if (conn[j].b1 > 0 && conn[j].t1 == 0 && openDir >= 0 || 
-          conn[j].t2 == tc->psize - 1 && openDir <= 0) {
+      if ((conn[j].b1 > 0 && conn[j].t1 == 0 && openDir >= 0) || 
+          (conn[j].t2 == tc->psize - 1 && openDir <= 0)) {
         connum1 = istoreConnectNumber(bc->store, conn[j].b1 - 1);
         if (connum1 >= 0 && connum1 != conn[j].connect) {
           conn[j].skipFromStart = 1;
@@ -1380,8 +1380,8 @@ static Connector *makeConnectors(Icont *bc, Icont *tc, int *numCon,
       /* Test for skip to end of open contours */
       /* First test that top is at known or possible end and blocker is
          after the bottom point */
-      if (conn[j].b2 < bc->psize - 1 && conn[j].t1 == 0 && openDir <= 0 || 
-          conn[j].t2 == tc->psize - 1 && openDir >= 0) {
+      if ((conn[j].b2 < bc->psize - 1 && conn[j].t1 == 0 && openDir <= 0) || 
+          (conn[j].t2 == tc->psize - 1 && openDir >= 0)) {
         connum1 = istoreConnectNumber(bc->store, conn[j].b2 + 1);
         if (connum1 >= 0 && connum1 != conn[j].connect) {
           conn[j].skipToEnd = 1;
