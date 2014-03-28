@@ -570,7 +570,9 @@ static hid_t createGroupAndDataset(ImodImageFile *inFile, int zValue, char *buf)
     if (H5Pset_chunk(cparms, rank, chunkDims) < 0)
       return -1;
 
-    /* Set the chunk cache big enough for a full row of actual chunks */
+    /* Set the chunk cache big enough for a full row of actual chunks if there are 
+     multiple chunks in X.  Its seems no increase in cache is needed if there are no
+    chunks in X, even when there are in Y */
     accParms = H5Pcreate(H5P_DATASET_ACCESS);
     if (H5Pget_chunk_cache(accParms, &nslots, &nbytes, &w0) < 0)
       return -1;
@@ -578,7 +580,8 @@ static hid_t createGroupAndDataset(ImodImageFile *inFile, int zValue, char *buf)
     numChunks = (inFile->nx + chunkDims[2] - 1) / chunkDims[2];
     nbytesNew = (bytesPerChanBuf * numChunks * chunkDims[2] * fileXscale * chunkDims[1] *
                  11) / 10;
-    if (nbytesNew > nbytes && H5Pset_chunk_cache(accParms, nslots, nbytesNew, w0) < 0)
+    if (numChunks > 1 && nbytesNew > nbytes && 
+        H5Pset_chunk_cache(accParms, nslots, nbytesNew, w0) < 0)
       return -1;
   }
   nativeType = lookupNativeDatatype(inFile);
