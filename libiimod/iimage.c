@@ -1085,7 +1085,7 @@ void iiBestTileSize(int imSize, int *tileSize, int *numTiles, int multipleOf)
   *numTiles = (imSize + *tileSize - 1) / *tileSize;
   *tileSize = multipleOf * (int)ceil(imSize / ((float)multipleOf * *numTiles));
   *numTiles = (imSize + *tileSize - 1) / *tileSize;
-  if (!numTiles > 1) {
+  if (*numTiles > 1) {
     numLess = *numTiles - 1;
     tileLess = multipleOf * (int)ceil(imSize / ((float)multipleOf * numLess));
     numLess = (imSize + tileLess - 1) / tileLess;
