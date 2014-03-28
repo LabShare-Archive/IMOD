@@ -976,13 +976,13 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
 {
   int ind, which, pixSize, xstart, ystart, numBuf, zind, indStart, indEnd;
   int fillVal,xtile, ytile, bufInd, startXtile, startYtile, XinTile, YinTile;
-  int endXtile, endYtile;
+  int endXtile, endYtile, tileXmin, tileXmax, tileYmin, tileYmax, maxPix, numPix;
   int skip, ix, iy, i, j, fac1, fac2;
   size_t sizeNeeded;
   float zfrac;
   bool inBufferXY, zScaled, needInterp, bufferOK, loadOK, oneUsable, usableZ, tooSmall;
   bool shrink, newTilesLoaded;
-  int startXinner, endXinner, startYinner, endYinner;
+  int startXinner, endXinner, startYinner, endYinner, firstXtile, firstYtile;
   int otherZ[3], needLoadZ[3], needInBuf[2];
   TileCache *cache;
   LoadTileRequest request;
@@ -1150,10 +1150,35 @@ unsigned char **PyramidCache::getSectionArea(int section, int fullXstart, int fu
       getTileAndPositionInTile(mBufCacheInd, xstart + xsizeOut - xsizeOut / 10 - 1, 
                                ystart + ysizeOut - ysizeOut / 10 - 1, endXinner,
                                endYinner, XinTile, YinTile);
+
+      // Find out which one covers the largest fraction of displayed area
+      maxPix = -1;
       for (ytile = startYinner; ytile <= endYinner; ytile++) {
         for (xtile = startXinner; xtile <= endXinner; xtile++) {
-          xTileLoad.push_back(xtile);
-          yTileLoad.push_back(ytile);
+          findLoadLimits(mBufCacheInd, xtile, ytile, true, tileXmin, tileXmax, tileYmin,
+                         tileYmax);
+          tileXmin = B3DMAX(tileXmin, xstart);
+          tileXmax = B3DMIN(tileXmax, xstart + xsizeOut - 1);
+          tileYmin = B3DMAX(tileYmin, ystart);
+          tileYmax = B3DMIN(tileYmax, ystart + ysizeOut - 1);
+          numPix = (tileXmax + 1 - tileXmin) * (tileYmax + 1 - tileYmin);
+          if (numPix > maxPix) {
+            maxPix = numPix;
+            firstXtile = xtile;
+            firstYtile = ytile;
+          }
+        }
+      }
+
+      // Put that on the list first, then put the rest of the inner ones on the list
+      xTileLoad.push_back(firstXtile);
+      yTileLoad.push_back(firstYtile);
+      for (ytile = startYinner; ytile <= endYinner; ytile++) {
+        for (xtile = startXinner; xtile <= endXinner; xtile++) {
+          if (xtile != firstXtile || ytile != firstYtile) {
+            xTileLoad.push_back(xtile);
+            yTileLoad.push_back(ytile);
+          }
         }
       }
     }
