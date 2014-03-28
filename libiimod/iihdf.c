@@ -372,8 +372,9 @@ int iiHDFCheck(ImodImageFile *inFile)
         collName = sPreData;
 
         /* If it is group with non-global attributes, add a section if necessary and
-           add attributes to the section */
-        if (singleImStack && group->nonGlobalAttrib) {
+           add attributes to the section.  If there is just one image, also put it in a
+           section so that it will be preserved when stacking. */
+        if (singleImStack && (group->nonGlobalAttrib || inFile->nz == 1)) {
           if (addedSectInd < 0) {
             addedSectInd = AdocAddSection(sZvalue, sectText);
             if (addedSectInd < 0)
