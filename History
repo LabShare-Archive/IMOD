@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/27/14: Fixed HDF writing, optimized chunk cache size for volume writing,
+3/27/14: Fixed a communication problem between eTomo and 3dmod and rolled back
+previous incorrect fixes from 2/14/14 and 3/14/14 (In 4.7).(Bug# 1792)
+
+3/27/14: Fixed HDF writing, optimized chunk cache size for volume writing,
 fixed pyramid creation, made 3dmod recognize tiling in HDF file.
 
 3/25/14: Fixed a etomo - PEET, which was not loading a non-array selectClassID
