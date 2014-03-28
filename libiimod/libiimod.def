@@ -114,6 +114,7 @@ EXPORTS
 	tiffReadSectionByte
 	IRTRMS
 	iiuWriteGlobalAdoc
+	IIBESTTILESIZE
 	sliceByteThreshold
 	iiInsertCheckFunction
 	tiffDelete
@@ -142,6 +143,7 @@ EXPORTS
 	iiuRetDelta
 	IIUCREATEHEADER
 	get_short_map
+	iiBestTileSize
 	IIUWRITEHEADER
 	IIURETEXTENDEDTYPE
 	IIUALTNUMEXTENDED
