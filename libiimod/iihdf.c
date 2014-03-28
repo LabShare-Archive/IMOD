@@ -869,6 +869,7 @@ static int scanGroup(hid_t groupID, char *groupName, int *adocSection)
         if (rank == 2 || rank == 3) {
           H5Sget_simple_extent_dims(dspaceID, currentDims, maxDims);
 
+          dsData.chunkX = dsData.chunkY = dsData.chunkZ = 0;
           dsData.name = objName;
           dsData.nx = currentDims[rank - 1];
           dsData.ny = currentDims[rank - 2];
