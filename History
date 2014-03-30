@@ -1,10 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/29/14: In eTomo - PEET, fixed the loading of a non-array selectClassID
+value, and fixed more problems with unnecessary errors generated because of
+missing parameters (In 4.7).(Bug# 1789)
+
 3/27/14: Fixed a communication problem between eTomo and 3dmod and rolled back
 previous incorrect fixes from 2/14/14 and 3/14/14 (In 4.7).(Bug# 1792)
-
-3/25/14: Fixed a etomo - PEET, which was not loading a non-array selectClassID
-(In 4.7).(Bug# 1789)
 
 3/22/14: Fixed newstack when -fromone used with default section list (In 4.7).
 
