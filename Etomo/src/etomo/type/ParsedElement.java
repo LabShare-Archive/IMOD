@@ -206,7 +206,6 @@ public abstract class ParsedElement {
   final void resetFailed() {
     failed = false;
     failedMessage = null;
-    missingAttribute = false;
   }
 
   final void setFailed(final boolean failed, final String failedMessage) {
@@ -228,7 +227,7 @@ public abstract class ParsedElement {
    * @return
    */
   final String getFailedMessage() {
-    if (!failed && !missingAttribute) {
+    if (!failed) {
       return null;
     }
     if (failedMessage == null) {
