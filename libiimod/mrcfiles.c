@@ -51,7 +51,6 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 {
   int i;
   int retval = 0;
-  //int filesize;
   int datasize;
   ImodImageFile *iiFile;
 
@@ -258,8 +257,7 @@ int mrc_head_write(FILE *fout, MrcHeader *hdata)
   if (iiFile && iiFile->file != IIFILE_MRC) {
     if (iiFile->file != IIFILE_RAW)
       iiSyncFromMrcHeader(iiFile, hdata);
-    /* There is not yet a need for a header-writing function for other file types */
-    return 0;
+    return iiWriteHeader(iiFile);
   }
 
   /* Set the IMOD stamp and flags and clear out old creator field when writing */
@@ -856,27 +854,8 @@ int mrcReadFloatSlice(b3dFloat *buf, MrcHeader *hdata, int slice)
 }
 
 
-/* DNM 5/7/05: eliminated unused 
-   void *mrc_read_image(FILE *fin, MrcHeader *hdata, int z)
-   which duplicated and was inferior to mrc_mread_slice
-*/
-void mrc_default_status(const char *string)
-{
-  printf("%s", string);
-  fflush(stdout);
-}
-
-/* old function compatibility. sends status to stdout. */
-unsigned char **read_mrc_byte(FILE *fin,
-                              MrcHeader *hdata,
-                              IloadInfo *li)
-{
-  return(mrc_read_byte(fin, hdata, li, mrc_default_status));
-
-}
-
 /*!
- * Reads an MRC file into an array of unsigned bytes and returns an array of 
+ * Reads a file into an array of unsigned bytes and returns an array of 
  * pointers to the planes of data.  [fin] is the pointer to the
  * file, [hdata] is the MRC header structure, [li] is an @@IloadInfo structure@
  * specifying the limits and scaling of the load, and [func] is a function to
@@ -887,99 +866,46 @@ unsigned char **read_mrc_byte(FILE *fin,
  * latter two should be used only for integer and float input data.
  * Data memory is allocated with
  * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory .  Should work
- * with planes > 4 GB on 64-bit systems.  The dimensions and mode in [hdata]
- * (as well as the {mx} and {xlen} members, etc.), are modified so as to be 
- * appropriate if the data volume is written.  Returns NULL for error.  Does NOT work
- * with non-MRC-like files.
+ * with planes > 4 GB on 64-bit systems.  Will work for non-MRC-like files since it
+ * calls @@mrcfiles.html#mrcReadZByte@.  Returns NULL for error.  
  */
 unsigned char **mrc_read_byte(FILE *fin, 
                               MrcHeader *hdata, 
                               IloadInfo *li,
                               void (*func)(const char *))
 {
-  int  i, j, k;
-  int bytesRead;
+  int k;
+  IloadInfo liLocal;
   size_t xysize;               /* Size of each image.       */
   int xsize, ysize, zsize;  /* Size needed to be loaded. */
-  int xoff,  yoff,  zoff;   /* Offsets into image data.  */
-  float fpixel, ipixel, val;
-  float kscale = mrcGetComplexScale();  /* scaling value for complex numbers */
-  int seek_line, seek_endline, seek_endrow;
-
-  short pixel;
-  int ramptype = MRC_RAMP_LIN;
-  float smin= 0.0f, smax = 0.0f;
-  int black  = 0;   /* value of black.                                    */
-  int white  = 255; /* value of white. */
-  int dsize;
-  int doscale = 0;
-  int contig = 0;
-  float slope, offset;
-  float xscale, yscale, zscale;
   char statstr[128];            /* message sent to callback function. */
   unsigned char **idata;        /* image data to return. */
-  unsigned char *idatap;
-  unsigned char *bdata = NULL;
-  b3dInt16 *sdata;
-  b3dFloat *fdata;
-  unsigned char *map = NULL;
-  int freeMap = 0;
-  b3dUInt16 *usdata;
-  ImodImageFile *iiFile;
- 
-  /* Max # of bytes in full lines before reiterating the status output */
-  int statusLimit = 4000000;   
+  FILE *fpSave;                 /* Save and restore fp in header in case it differs */
 
   /* check input */
   if (!fin)
     return(NULL);
   if (!hdata)
     return(NULL);
-  iiFile = iiLookupFileFromFP(fin);
-  if (iiFile && iiFile->file != IIFILE_MRC && iiFile->file != IIFILE_RAW) {
-    b3dError(stderr, "ERROR: mrc_read_byte - Cannot be used with non-MRC-like file\n");
-    return(NULL);
+  
+  if (!li) {
+    li = &liLocal;
+    mrc_init_li(li, NULL);
+    mrc_init_li(li, hdata);
   }
 
-  if (li){
-    xsize = li->xmax - li->xmin + 1;
-    ysize = li->ymax - li->ymin + 1;
-    zsize = li->zmax - li->zmin + 1;
-    xoff  = li->xmin;
-    yoff  = li->ymin;
-    zoff  = li->zmin;
-    ramptype = li->ramp;
-    black = li->black;
-    white = li->white;
-    smin = li->smin;
-    smax = li->smax;
-    contig = li->contig;
-  }else{
-    xsize = hdata->nx;
-    ysize = hdata->ny;
-    zsize = hdata->nz;
-    xoff  = 0;
-    yoff  = 0;
-    zoff  = 0;
-    ramptype = MRC_RAMP_LIN;
-    black = 0;
-    white = 255;
-    smin = smax = 0;
-  }
+  fpSave = hdata->fp;
+  hdata->fp = fin;
+  xsize = li->xmax - li->xmin + 1;
+  ysize = li->ymax - li->ymin + 1;
+  zsize = li->zmax - li->zmin + 1;
   xysize = (size_t)xsize * (size_t)ysize;
 
   /*************************************/
   /* Calculate color map ramp scaling. */
      
-  mrcContrastScaling(hdata, smin, smax, black, white, ramptype, &slope,
-                     &offset);
-
-  /* printf("mrc_read_byte: slope = %g offset = %g\n", slope, offset); */
-
-  if (li){
-    li->slope = slope;
-    li->offset = offset;
-  }
+  mrcContrastScaling(hdata, li->smin, li->smax, li->black, li->white, li->ramp,
+                     &li->slope, &li->offset);
 
   /********************/
   /* Print some info. */
@@ -993,249 +919,38 @@ unsigned char **mrc_read_byte(FILE *fin,
     (*func)(statstr);
   }     
 
-  /********************************/  
-  /* Set up the data size, get scaling map if needed. */
-
-  k = 0;
-  b3dRewind(fin);
-  b3dFseek(fin, hdata->headerSize, SEEK_CUR);
-  switch(hdata->mode){
-  case MRC_MODE_BYTE:
-    dsize = 1;
-    doscale = (offset <= -1.0 || offset >= 1.0 || slope < 0.995 || slope > 1.005 ||
-               hdata->bytesSigned) ? 1 : 0;
-    if (doscale)
-      map = get_byte_map(slope, offset, 0, 255, hdata->bytesSigned);
-    break;
-  case MRC_MODE_SHORT:
-  case MRC_MODE_USHORT:
-    dsize = 2;
-    map = get_short_map(slope, offset, 0, 255, ramptype, hdata->swapped, 
-                        (hdata->mode == MRC_MODE_SHORT) ? 1 : 0);
-    freeMap = 1;
-    doscale = 1;
-    break;
-  case MRC_MODE_FLOAT:
-    dsize = 4;
-    break;
-  case MRC_MODE_COMPLEX_SHORT:
-    dsize = 4;
-    break;
-  case MRC_MODE_COMPLEX_FLOAT:
-    dsize = 8;
-    break;
-  case MRC_MODE_RGB:
-    dsize = 3;
-    break;
-  default:
-    b3dError(stderr, "ERROR: mrc_read_byte - Unsupported data mode %i\n.",
-             hdata->mode);
-    return NULL;
-    break;
-  }
-   
   /* Get the data memory */
   idata = mrcGetDataMemory(li, xysize, zsize, 1);
   if (!idata) {
-    if (map && freeMap)
-      free(map);
-    return NULL;
-  }
-  if (doscale && !map) {
-    b3dError(stderr, "ERROR: mrc_read_byte - Could not get memory for "
-             "scaling map.\n");
-    mrcFreeDataMemory(idata, contig, zsize);
+    hdata->fp = fpSave;
     return NULL;
   }
    
-  /* Get the temporary array for a line */
-  bdata = (unsigned char *)malloc(dsize * xsize);
-  fdata = (b3dFloat *)bdata;
-  sdata = (b3dInt16 *)bdata;
-  usdata = (b3dUInt16 *)bdata;
-  if (!bdata) {
-    b3dError(stderr, "ERROR: mrc_read_byte - Could not get memory for reading"
-             " a line.");
-    mrcFreeDataMemory(idata, contig, zsize);
-    if (freeMap)
-      free(map);
-    return NULL;
-  }
-  
-  /* compute offsets for seeking at lines and sections */
-  seek_line = dsize * xoff;
-  seek_endline = dsize * (hdata->nx - xoff - xsize);
-  seek_endrow  = hdata->ny - yoff - ysize;
-  if (zoff)
-    mrcHugeSeek(fin, hdata->sectionSkip * zoff, 0, 0, zoff, hdata->nx,
-                hdata->ny, dsize, SEEK_CUR);
-
+  k = 0;
   if (func != ( void (*)(const char *) ) NULL){
-    sprintf(statstr, "\nReading Image # %3.3d",k+1); 
+    sprintf(statstr, "\nReading Image # %3.3d", k + 1); 
     (*func)(statstr);
   }
 
   /* Loop on sections */
   for (k = 0; k < zsize; k++){
     if (func != ( void (*)(const char *) ) NULL){
-      sprintf(statstr, "\rReading Image # %3.3d",k+1); 
+      sprintf(statstr, "\rReading Image # %3.3d", k + 1); 
       (*func)(statstr);
     }
 
-    idatap = idata[k];
-    bytesRead = 0;
-    if (yoff)
-      mrcHugeSeek(fin, 0, 0, yoff, 0, hdata->nx, hdata->ny, dsize, SEEK_CUR);
-
-    /* loop on lines */
-    for(j = yoff; j < yoff + ysize; j++){
-      if (seek_line)
-        b3dFseek(fin, seek_line, SEEK_CUR);
-      
-      /* get a line of data, make sure it is right size */
-      if (fread(bdata, dsize, xsize, fin) != xsize) {
-        b3dError(stderr, "ERROR: mrc_read_byte - reading from file.");
-        mrcFreeDataMemory(idata, contig, zsize);
-        free(bdata);
-        if (freeMap)
-          free(map);
-        return NULL;
-      }        
-
-      /* Do data-dependent scaling */
-      switch(hdata->mode){
-      case MRC_MODE_BYTE:
-        if (doscale)
-          for(i = 0; i < xsize; i++)
-            idatap[i] = map[bdata[i]];
-        else
-          for(i = 0; i < xsize; i++)
-            idatap[i] = bdata[i];
-        break;
-
-      case MRC_MODE_RGB:
-        for(i = 0; i < xsize; i++){
-          fpixel = 0.3 * bdata[i * 3];
-          fpixel += 0.59 * bdata[(i * 3) + 1];
-          fpixel += 0.11 * bdata[(i * 3) + 2];
-          pixel = (int)(fpixel + 0.5f);
-          idatap[i] = pixel;
-        }
-        break;
-                  
-      case MRC_MODE_SHORT:
-      case MRC_MODE_USHORT:
-        for(i = 0; i < xsize; i++){
-          idatap[i] = map[usdata[i]];
-        }
-        break ;
-                  
-      case MRC_MODE_FLOAT:
-
-        /* 5/30/08: added ramps and 0.5 for consistency with mrcfiles.c */
-        if (hdata->swapped)
-          mrc_swap_floats(fdata, xsize);
-        for(i = 0; i < xsize; i++){
-          fpixel = fdata[i];
-          if (ramptype == MRC_RAMP_EXP)
-            fpixel = (float)exp(fpixel);
-          if (ramptype == MRC_RAMP_LOG)
-            fpixel = (float)log(fpixel);
-          fpixel = fpixel * slope + offset;
-          if (fpixel < 0.0)
-            fpixel = 0.0;
-          if (fpixel > 255.0)
-            fpixel = 255.0;
-          idatap[i] = fpixel + 0.5f;
-        }
-        break ;
-          
-        
-      case MRC_MODE_COMPLEX_SHORT:
-        /* DNM 1/7/04: threw away existing scaling of one component and
-           made it identical to float scaling of magnitude */
-        if (hdata->swapped)
-          mrc_swap_shorts(sdata, xsize * 2);
-        for(i = 0; i < xsize; i++){
-          fpixel = sdata[2 * i];
-          ipixel = sdata[2 * i + 1];
-          val = (fpixel * fpixel) + (ipixel * ipixel);
-          val = (float)sqrt(val);
-          val = (float)log((double)(1. + (kscale * val)));
-          fpixel = val * slope + offset;
-          if (fpixel < 0)
-            fpixel = 0;
-          if (fpixel > 255)
-            fpixel = 255;
-          idatap[i] = fpixel;
-        }
-        break ;
-        
-      case MRC_MODE_COMPLEX_FLOAT:
-        if (hdata->swapped)
-          mrc_swap_floats(fdata, xsize * 2);
-        for(i = 0; i < xsize; i++){
-          fpixel = fdata[2 * i];
-          ipixel = fdata[2 * i + 1];
-          val = (fpixel * fpixel) + (ipixel * ipixel);
-          val = (float)sqrt(val);
-          val = (float)log((double)(1. + (kscale * val)));
-          /* DNM 2/15/01: add offset */
-          fpixel = val * slope + offset;
-          if (fpixel < 0)
-            fpixel = 0;
-          if (fpixel > 255)
-            fpixel = 255;
-          /* 1/7/04 remove 0.5 for consistency with mrcsec */
-          idatap[i] = fpixel;/* + 0.5; */
-        }
-        break;
-      }
-      idatap += xsize;
-
-      /* Keep track of total number of bytes on full lines that were probably
-         read from disk and report status more frequently for large images so 
-         3dmod can process messages */
-      if (func != ( void (*)(const char *) ) NULL) {
-        bytesRead += dsize * hdata->nx;
-        if (bytesRead > statusLimit) {
-          (*func)(statstr);
-          bytesRead = 0;
-        }
-      }
-
-      /* Finish line, section, free memory */
-      if (seek_endline)
-        b3dFseek(fin, seek_endline, SEEK_CUR);
+    if (mrcReadZByte(hdata, li, idata[k], k)) {
+      mrcFreeDataMemory(idata, li->contig, zsize);
+      hdata->fp = fpSave;
+      return NULL;
     }
-    if (seek_endrow || hdata->sectionSkip)
-      mrcHugeSeek(fin, hdata->sectionSkip, 0, seek_endrow, 0, hdata->nx,
-                  hdata->ny, dsize, SEEK_CUR);
-
   }
-  free(bdata);
-  if (freeMap)
-    free(map);
-
-  /* modify header as if data were to be written (?) */
-  hdata->nx = xsize;
-  hdata->ny = ysize;
-  hdata->nz = zsize;
-  hdata->mode = MRC_MODE_BYTE; 
-  xscale = (hdata->mx && hdata->xlen) ? hdata->xlen / (float)hdata->mx : 1.;
-  yscale = (hdata->my && hdata->ylen) ? hdata->ylen / (float)hdata->my : 1.;
-  zscale = (hdata->mz && hdata->zlen) ? hdata->zlen / (float)hdata->mz : 1.;
-  hdata->mx = hdata->nx;
-  hdata->my = hdata->ny;
-  hdata->mz = hdata->nz;
-  hdata->xlen = hdata->nx * xscale;
-  hdata->ylen = hdata->ny * yscale;
-  hdata->zlen = hdata->nz * zscale;
      
   sprintf(statstr, "\n");
   if (func != ( void (*)(const char *) ) NULL)
     (*func)(statstr);
 
+  hdata->fp = fpSave;
   return(idata);
 }  
 

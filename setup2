@@ -93,6 +93,7 @@ set limod           = -limod
 set lcfshr          = -lcfshr
 set liimod          = -liimod
 set ltiff           = -ltiff
+set lhdf            = ''
 set ldnmncar        = -ldnmncar
 set lifft           = -lifft
 set limesh          = -limesh
@@ -627,7 +628,7 @@ OBJEXT =    $objext
 BINEXT =    $binext
 LIMOD  =    $limod
 LCFSHR =    $lcfshr
-LIIMOD =    $liimod
+LIIMOD =    $liimod $lhdf
 LIFFT =     $lifft
 LIMESH =    $limesh
 LIWARP =    $liwarp
@@ -662,6 +663,12 @@ if ($?CUDA_DIR) then
     echo 'TILTGPUOBJ =  gpubp.$(OBJEXT)' >> $configure
 else
     echo 'TILTGPUOBJ =  nogpu.$(OBJEXT)' >> $configure
+endif
+
+if ($?HDF5_DIR) then
+    echo 'HDFOBJS =  iihdf.$(OBJEXT) hdf_imageio.$(OBJEXT)' >> $configure
+else
+    echo '#define NO_HDF_LIB' >> $hconfigure
 endif
 
 cat << EOF >> $hconfigure
@@ -704,11 +711,11 @@ if ($machine != cygwin) then
     #
     # manage qconfigure files
     #
-    echo LIBS += -L$lib_dir -liimod -limod -liwarp -lcfshr -ldiaqt $ltiff $lifft $midasGL >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -lb3dlapk -lb3dblas -liimod -lcfshr $ltiff $lifft $lapack_flibs >> $ctfplot_qconf
+    echo LIBS += -L$lib_dir -liimod -limod -liwarp -lcfshr -ldiaqt $ltiff $lhdf $lifft $midasGL >> $midas_qconf
+    echo LIBS += -L$lib_dir -lm -lb3dlapk -lb3dblas -liimod -lcfshr $ltiff $lhdf $lifft $lapack_flibs >> $ctfplot_qconf
     echo LIBS += -L$lib_dir -lcfshr >! $qtassist_qconf
     echo LIBS += -L$lib_dir -lcfshr >> $prochunk_qconf
-    echo LIBS += -L$lib_dir -liimod -lcfshr $ltiff >> $mrc2tif_qconf
+    echo LIBS += -L$lib_dir -liimod -lcfshr $ltiff $lhdf >> $mrc2tif_qconf
     
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i

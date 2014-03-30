@@ -72,6 +72,78 @@ With this option, files will be named like "rootnnn.ext" instead of
 "root.nnn", where "root" is the root name entered as the output file name,
 and "ext" is the extension entered with this option.
 
+[Field = FormatOfOutputFile]
+short = format
+type = CH
+usage = Type of output file: MRC, TIF or TIFF, HDF (or lower case)
+tooltip =
+manpage = Set output file format to MRC, TIFF, or HDF (if the package supports
+HDF) by entering MRC, TIF, TIFF, HDF, or any lower case form of
+these.  This entry overrides a default format set with the environment
+variable IMOD_OUTPUT_FORMAT.
+
+[Field = VolumesToRead]
+short = volumes
+type = LI
+usage = List of volume numbers to read from multi-volume HDF files
+tooltip =
+manpage = If any HDF files containing multiple volumes are included in the
+input file list, this option must be entered to specify which volume to read
+from such a file.  Enter a volume number for each input file, numbered from 1,
+at least up until the last multi-volume HDF file in the input file list.
+Enter 1 for an HDF file with only one volume or a stack of 2D images, or for
+other file types.
+
+[Field = Store3DVolumes]
+short = 3d
+type = I
+usage = Controls whether to store 3D volume in new or existing file
+tooltip =
+manpage = This option controls whether data are stored in a 3D volume in an
+HDF file.  If 1 is entered, a new HDF file will be created (overriding the
+default output type) and data will be stored as 3D volume rather than a stack
+of 2D images.  If 2 or 3 are entered, the output file must be an existing HDF
+file with data stored as volumes, and data will be stored in a new 3D volume.
+A value of 3 is used by Makepyramid(1) to cause Newstack to insert the
+attribute "image_pyramid".  By default, if an HDF output file is being
+created, it will be stored as a volume if the first input file is an HDF file
+with volume storage.  A value of -1 will cause an outout HDF file to be
+organized as a stack even if the input file has volumes.
+
+[Field = ChunkSizesInXYZ]
+short = chunk
+type = IT
+usage = Set target chunk sizes in X, Y, and Z for 3D volumes in HDF files
+tooltip =
+manpage = Set target chunk sizes in X, Y, and Z for 3D volumes stored in HDF
+files.  Based on the target, an actual chunk size will be chosen in each
+dimension that minimizes the amount of extra image area created by making a
+set of full tiles.  When the target value already evenly divides the image size
+in a dimension, that target will be used.  If this option is entered, the
+output file will be an HDF file with data stored as a 3D volume, making it
+unnecessary to enter -3d or -format.  The default is for 3D volumes to be
+stored with no tiling in X and Y and a chunk size of 1 in Z, or with the
+tiling and chunk size of the first input file if it an HDF file stored as a 3D
+volume.
+
+[Field = UseMdocFiles]
+short = mdoc
+type = B
+usage = Copy metadata from .mdoc files associated with input files, if any
+tooltip =
+manpage = This option allows data about each image section in metadata autodoc
+(.mdoc) files to be transferred and managed much as data in the extended
+header of an MRC file are.  With it selected, the program will search for a
+matching .mdoc file for each input file that is not HDF, and create a
+matching .mdoc file for each output file that is not HDF.  (A matching file is
+one with .mdoc appended to the image filename, as SerialEM creates).  Metadata
+about each image slice in ZValue sections will be transferred between autodocs
+and the ZValue will be renumbered appropriately.  Thus, data can be
+transferred from one .mdoc to another, if input and output files are MRC; from
+an .mdoc into the attributes of an HDF file if input is MRC and output is HDF;
+or from HDF attributes into an .mdoc if input is HDF and output is MRC.  When
+input and output are both HDF, attributes are transferred automatically.
+
 [SectionHeader = SecOptions]
 usage = SECTION SELECTION OPTIONS 
 manpage = SECTION SELECTION OPTIONS

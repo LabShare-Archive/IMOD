@@ -22,7 +22,8 @@
 #define B3DMAX(a,b) ((a) > (b) ? (a) : (b))
 #define B3DCLAMP(a,b,c) a = B3DMAX((b), B3DMIN((c), (a)))
 #define B3DNINT(a) (int)floor((a) + 0.5)
-#define B3DFREE(a) if (a) {free(a); a = NULL;}
+#define B3DABS(a) ((a) >= 0 ? (a) : -(a))
+#define B3DFREE(a) {if (a) {free(a); a = NULL;}}
 #define B3DMALLOC(a,b) (a *)malloc((b) * sizeof(a))
 #define B3DREALLOC(a,b,c) a = (b *)realloc(a, (c) * sizeof(b))
 #define B3DSWAP(a,b,c) {c = (a); a = (b); b = c;}
@@ -37,6 +38,7 @@
 /* Duplicate definitions of output-capable IITYPE values to avoid including iimage.h */
 #define OUTPUT_TYPE_TIFF    1
 #define OUTPUT_TYPE_MRC     2
+#define OUTPUT_TYPE_HDF     5
 #define OUTPUT_TYPE_DEFAULT OUTPUT_TYPE_MRC
 #define OUTPUT_TYPE_ENV_VAR "IMOD_OUTPUT_FORMAT"
 
@@ -60,7 +62,7 @@ extern "C" {
   char *f2cString(const char *str, int strSize);
   int c2fString(const char *cStr, char *fStr, int fSize);
   void b3dSetStoreError(int ival);
-  void b3dError(FILE *stream, char *format, ...);
+  void b3dError(FILE *stream, const char *format, ...);
   char *b3dGetError(void);
 
   int b3dFseek(FILE *fp, int offset, int flag);
@@ -91,6 +93,7 @@ extern "C" {
                      int bytesSigned);
   void overrideOutputType(int type);
   int b3dOutputFileType();
+  int setOutputTypeFromString(const char *typeStr);
 
 #ifdef __cplusplus
 }

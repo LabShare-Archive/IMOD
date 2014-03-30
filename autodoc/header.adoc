@@ -58,6 +58,15 @@ usage = Output mean value of data
 tooltip = 
 manpage = 
 
+[Field = VolumeNumber]
+short = volume
+type = I
+usage = Volume number (from 1) of multi-volume HDF file to output header for
+tooltip = 
+manpage = For an HDF file with multiple volumes, the program will report the
+number of volumes and output the header of the first.  Use this option to
+specify a different volume number to see the header of, numbered from 1.
+
 [Field = Brief]
 short = brief
 type = B

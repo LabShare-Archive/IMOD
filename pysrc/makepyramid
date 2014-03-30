@@ -33,9 +33,10 @@ from pip import *
 options = ["input:InputFile:FN:", "rootname:RootOutputName:CH:",
            "reductions:ReductionsInSize:IA:", "zreductions:ReductionsInZ:IA:",
            "subdir:FilesIntoSubdirectory:B:", "tiff:TiffOutputFiles:B:",
-           "compress:TiffCompressionType:CH:", "quality:CompressionQuality:I:",
-           "use:UseInputFileAsIs:B:", "xyanti:AntialiasTypeInXandY:I:",
-           "zanti:AntialiasTypeInZ:I:", "tile:TileSizeInXandY:IP:"]
+           "hdf:HDFOutputFile:B:", "compress:TiffCompressionType:CH:",
+           "quality:CompressionQuality:I:", "use:UseInputFileAsIs:B:",
+           "xyanti:AntialiasTypeInXandY:I:", "zanti:AntialiasTypeInZ:I:",
+           "tile:TileSizeInXandY:IP:"]
 
 xyAntiType = 6
 zAntiType = 6
@@ -133,6 +134,11 @@ ifQuality = 1 - PipGetErrNo()
 if ifQuality and not compress:
    exitError('You should enter quality only when using compression')
 
+# HDF
+hdfOutput = PipGetBoolean('HDFOutputFile', 0)
+if hdfOutput and (tiffOutput or intoSubdir or useFirst):
+   exitError('You cannot enter -hdf with -tiff, -use, or -subdir')
+   
 # Antialiasing types and tile size; convert type 1 to 0
 xyAntiType = PipGetInteger('AntialiasTypeInXandY', xyAntiType)
 if xyAntiType < 0 or xyAntiType > antiLimit:
@@ -239,6 +245,20 @@ for indRed in range(len(reductions)):
             if indRed:
                cleanupFiles([binDest])
 
+         elif hdfOutput:
+
+            # HDF: Use newstack to transfer to chunked volume
+            hdfName = rootname + '-pyr.hdf'
+            storeOpt = '1'
+            if indRed:
+               storeOpt = '3'
+            comlines = ['InputFile ' + binDest,
+                        'OutputFile ' + hdfName,
+                        'Store3DVolumes ' + storeOpt,
+                        fmtstr('ChunkSizesInXYZ {},{},1', xTileSize, yTileSize)]
+            prnstr('Running newstack to add volume to ' + hdfName, flush=True)
+            runcmd('newstack -StandardInput', comlines)
+
          else:
 
             # MRC: run reducemont if first file or file big enough
@@ -296,8 +316,12 @@ if useFirst:
       imlistLines += ['IMAGE ' + os.path.normpath('../' + infile)]
    else:
       imlistLines += ['IMAGE ' + infile]
-      
-# Created all the files, write the image list file
+
+# Created all the files, write the image list file or just exit for HDF
+if hdfOutput:
+   prnstr(hdfName + ' has been created and can be opened in 3dmod')
+   sys.exit(0)
+   
 imlistFile = rootname + '.imlist'
 if intoSubdir:
    imlistFile = os.path.join(subdirName, imlistFile)

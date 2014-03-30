@@ -239,7 +239,7 @@ int PyramidCache::setupTileCache(ImodImageFile *image, IloadInfo *li, TileCache 
     cache->yOverlap = 0;
     imodTrace('t', "file %d TIIF %d  tile %d %d", image->file, IIFILE_TIFF, 
               image->tileSizeX, image->tileSizeY);
-    if (image->file == IIFILE_TIFF) {
+    if (image->file == IIFILE_TIFF || image->file == IIFILE_HDF) {
       cache->xTileSize = image->tileSizeX;
       cache->yTileSize = image->tileSizeY;
 

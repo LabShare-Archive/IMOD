@@ -38,6 +38,13 @@ extern "C" {
                        int iyStart, int iyEnd);
   int iiuWriteLines(int iunit, char *array, int numLines);
   void iiuFileInfo(int iunit, int *fileSize, int *fileType, int *flags);
+  int iiuRetNumVolumes(int iunit);
+  int iiuVolumeOpen(int newUnit, int mainUnit, int volIndex);
+  int iiuRetAdocIndex(int iunit, int global, int openMdocOrNew);
+  int iiuWriteGlobalAdoc(int iunit);
+  int iiuTransAdocSections(int toUnit, int fromUnit);
+  void iiuRetChunkSizes(int iunit, int *xSize, int *ySize, int *zSize);
+  int iiuAltChunkSizes(int iunit, int xSize, int ySize, int zSize);
   void ialBrief(int *val);
   int iiuRetBrief();
   void iiuAltPrint(int *val);

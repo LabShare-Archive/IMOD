@@ -58,6 +58,16 @@ tooltip =
 manpage = Output tiled TIFF files with Mrc2tif(1) and the -T option.  The default
 is to output a montaged MRC stack and piece list file with Reducemont(1).
 
+[Field = HDFOutputFile]
+short = hdf
+type = B
+usage = Output multi-volume HDF file instead of montaged MRC files
+tooltip = 
+manpage = Output a multi-volume HDF file instead of montaged MRC files or
+tiled TIFF files.  The file will be named rootname-pyr.hdf and can be opened
+directly as a pyramid in 3dmod with no options.  This option cannot be used
+with -tiff, -use, or -subdir.
+
 [Field = TiffCompressionType]
 short = compress
 type = CH

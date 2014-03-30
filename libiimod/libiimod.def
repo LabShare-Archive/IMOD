@@ -12,7 +12,7 @@ EXPORTS
 	IRTTLT
 	sliceQuadInterpolate
 	sliceByteSharpen
-	read_mrc_byte
+	IIURETADOCINDEX
 	sliceByteShrink
 	IIURETPRINT
 	IIUSETPOSITION
@@ -26,6 +26,7 @@ EXPORTS
 	iiConvertLineOfFloats
 	mrc_swap_longs
 	sliceByteGrow
+	IIUVOLUMEOPEN
 	iiuRetSpaceGroup
 	IIURETORIGIN
 	mrc_swap_floats
@@ -36,8 +37,10 @@ EXPORTS
 	IIURETLABELS
 	iiuClose
 	IIUTRANSEXTENDEDDATA
+	iiuRetAdocIndex
 	mrc_set_scale
 	mrc_fix_li
+	IIURETNUMVOLUMES
 	mrc_head_label
 	updateMatrix
 	IIURETDATATYPE
@@ -56,6 +59,7 @@ EXPORTS
 	iiSyncFromMrcHeader
 	sliceFloat
 	IALTLT
+	iiWriteHeader
 	iiPlistFromMetadata
 	IIURETDELTA
 	mrcReadYByte
@@ -70,6 +74,7 @@ EXPORTS
 	IIUALTEXTENDEDTYPE
 	mrc_slice_valscale
 	IALMAP
+	iiTransferAdocSections
 	iiuAltNumExtended
 	tiffGetArray
 	iiChangeCallCount
@@ -93,6 +98,8 @@ EXPORTS
 	iiSetupRawHeaders
 	allocate2D_float
 	iiReadSectionUShort
+	IIUFILETYPE
+	iiFOpenNewVolume
 	IRTSYMTYP
 	IALSIZ
 	IALCEL
@@ -106,6 +113,8 @@ EXPORTS
 	IIURETSPACEGROUP
 	tiffReadSectionByte
 	IRTRMS
+	iiuWriteGlobalAdoc
+	IIBESTTILESIZE
 	sliceByteThreshold
 	iiInsertCheckFunction
 	tiffDelete
@@ -128,17 +137,16 @@ EXPORTS
 	iiuAltExtendedData
 	iiuAltTiltOrig
 	IIUCLOSE
-	iiMRCreadSection
 	sliceByteAnisoDiff
 	iiuReadSection
 	mrcReadZFloat
 	iiuRetDelta
 	IIUCREATEHEADER
 	get_short_map
+	iiBestTileSize
 	IIUWRITEHEADER
 	IIURETEXTENDEDTYPE
 	IIUALTNUMEXTENDED
-	iiMRCreadSectionByte
 	sliceBox
 	iiuRetNumExtended
 	IIUALTTILTROT
@@ -146,6 +154,7 @@ EXPORTS
 	mrc_mread_slice
 	iiMRCCheck
 	IALRMS
+	hdfWriteSectionAny
 	tiffClose
 	sliceWrapFFTLines
 	IIUALTLABELS
@@ -170,10 +179,15 @@ EXPORTS
 	mrc_head_read
 	mrc_write_idata
 	mrcReadSection
+	iiuRetChunkSizes
 	sliceAnisoDiff
+	iiuVolumeOpen
 	mrcComplexSminSmax
+	iiuAltChunkSizes
 	iiuAltTiltRot
 	tiffSetMapping
+	IIURETCHUNKSIZES
+	iiRegisterQuitCheck
 	iiLikeMRCDelete
 	IALNBSYM
 	corr_conj
@@ -186,12 +200,14 @@ EXPORTS
 	sliceByteEdgeSobel
 	IIUREADLINES
 	iiRestoreLoadParams
+	iiFOpenVolume
 	iiuReadLines
 	IIUALTEXTENDEDDATA
 	iiMRCopenNew
 	iiuAltDelta
 	IIURETRMS
 	iiuRetDataType
+	iiDefaultMinMaxMean
 	tiffWriteSection
 	IIUWRITELINES
 	IRTMAP
@@ -203,7 +219,7 @@ EXPORTS
 	iiuRetAxisMap
 	iiuWriteHeaderStr
 	mrc_getdcsize
-	iiMRCreadSectionFloat
+	iiSetChunkSizes
 	mrcWriteZFloat
 	iiuMemoryError
 	parallelWriteSlice
@@ -211,10 +227,12 @@ EXPORTS
 	iiMRCLoadPCoord
 	sliceReadMRC
 	mrc_slice_real
+	iiAllowMultiVolume
 	sliceReduceMirroredFFT
 	mrcReadZ
 	IIUALTAXISMAP
 	mrc_head_new
+	IIUALTCHUNKSIZES
 	IRTSIZ
 	iiuRetTiltOrig
 	tiffFillMrcHeader
@@ -229,15 +247,17 @@ EXPORTS
 	mrc_slice_translate
 	ITREXTRA
 	mrcFreeDataMemory
-	iiMRCreadSectionUShort
+	iiMRCsetLoadInfo
 	iiuSetPosition
 	IIURETSIZE
 	IRTORG
 	iiMRCsetIOFuncs
+	iiInitReadSectionAny
 	iiuAltRMS
 	iiuAltSigned
 	mrcGetComplexScale
 	IIURETBASICHEAD
+	iiFileChangeAddress
 	get_byte_map
 	mrc_bandpass_filter
 	sliceByteAdd
@@ -245,17 +265,15 @@ EXPORTS
 	sliceMirror
 	niceFrame
 	iiReadPoint
-	iiMRCwriteSectionFloat
 	IMCLOSE
 	mrcReadYFloat
+	iiCheckForQuit
 	sliceByteEdgeTwo
 	mrcReadYUShort
 	mrcReadSectionByte
 	iiDelete
-	mrc_default_status
 	mrcReadSectionUShort
 	tiffWriteStrip
-	iiMRCwriteSection
 	iiuRetTilt
 	iiuexitonerror
 	IIUALTSIZE
@@ -279,6 +297,7 @@ EXPORTS
 	mrc_plist_proc
 	mrc_plist_li
 	IWRSECL
+	iiuRetNumVolumes
 	IALDEL
 	sliceByteSmooth
 	IIUALTIMODFLAGS
@@ -289,10 +308,13 @@ EXPORTS
 	mrc_slice_mat_mult
 	sliceMinMax
 	iiuRetSample
+	iiHDFopenNew
+	iiHDFCheck
 	IWRLIN
 	mrcReadZByte
 	iiLookupFileFromFP
 	iiMRCfillHeader
+	hdfReadSectionAny
 	mrc_byte_mmm
 	IIUALTRMS
 	IALSAM
@@ -301,6 +323,7 @@ EXPORTS
 	IRTSYM
 	sliceGradient
 	iiuAltExtendedType
+	initNewHDFfile
 	tiffWriteFinish
 	mrc_slice_getvol
 	iiTiffWriteSectionFloat
@@ -310,6 +333,7 @@ EXPORTS
 	IIUALTDELTA
 	iiuWriteSubarray
 	sliceByteEdgePrewitt
+	iiProcessReadLine
 	iiMRCmodeToFormatType
 	sliceNewMode
 	IIUREADSECPART
@@ -325,6 +349,7 @@ EXPORTS
 	iiuCreateHeader
 	IRTIMODFLAGS
 	IMPOSN
+	iiuTransAdocSections
 	IIUTRANSHEADER
 	mrc_liso
 	IRTSAM
@@ -333,11 +358,14 @@ EXPORTS
 	fixTitlePadding
 	sliceWriteMRCfile
 	mrc_swap_header
+	iiGetAdocIndex
 	iiuTransExtendedData
+	hdfWriteGlobalAdoc
 	mrcWriteZ
 	IIUOPEN
 	mrc_read_byte
 	mrc_slice_rotate
+	IIALLOWMULTIVOLUME
 	mrcInitOutputHeader
 	iiuGetExitOnError
 	mrcMirrorSource
@@ -349,6 +377,7 @@ EXPORTS
 	iiClose
 	mrcReadSectionFloat
 	iiPlistLoadF
+	IIUWRITEGLOBALADOC
 	iiuAltDataType
 	sliceComplexFloat
 	sliceMultConst
